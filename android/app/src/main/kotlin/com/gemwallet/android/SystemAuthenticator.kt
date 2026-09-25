@@ -3,6 +3,7 @@ package com.gemwallet.android
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -14,6 +15,7 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.model.requiresConfirmation
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.text
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +43,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
                     if (viewModel.uiState.value.initialAuth != AuthState.Success) {
                         retryOrCloseAfterAuthError(errorCode)
                     } else if (authRequests.hasActive()) {
+                        SystemAuthPolicy.errorText(errorCode)?.let { Toast.makeText(activity, it.text(activity), Toast.LENGTH_LONG).show() }
                         cancelActiveAuthRequest()
                     }
                 }

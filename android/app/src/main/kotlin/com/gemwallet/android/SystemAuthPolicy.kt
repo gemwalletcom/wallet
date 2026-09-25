@@ -7,6 +7,7 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import uniffi.gemstone.GemAuthPromptOutcome
+import uniffi.gemstone.GemErrorText
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -22,6 +23,8 @@ internal object SystemAuthPolicy {
     }
 
     fun initialRetryDelay(errorCode: Int): Duration? = promptOutcome(errorCode).retryDelayMilliseconds()?.toLong()?.milliseconds
+
+    fun errorText(errorCode: Int): GemErrorText? = promptOutcome(errorCode).errorText()
 
     private fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {
         BiometricPrompt.ERROR_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_SYSTEM

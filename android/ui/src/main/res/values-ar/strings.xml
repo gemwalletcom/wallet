@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">أصل غير مدعوم.</string>
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
   <string name="errors_connections_unsupported_chain">السلسلة المقدمة غير مدعومة.</string>
+  <string name="errors_authentication_unavailable">المصادقة غير مُعدّة على هذا الجهاز. فعّل القياسات الحيوية أو رمز المرور من إعدادات جهازك.</string>
+  <string name="errors_authentication_locked_out">محاولات فاشلة كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.</string>
+  <string name="errors_authentication_failed">فشلت المصادقة. يرجى المحاولة مرة أخرى.</string>
+  <string name="errors_connections_expired">انتهت صلاحية رابط الاتصال هذا. احصل على رمز QR جديد وحاول مرة أخرى.</string>
+  <string name="errors_connections_not_found">هذا الاتصال لم يعد موجودًا.</string>
+  <string name="errors_connections_relay_unavailable">تعذّر الوصول إلى WalletConnect. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.</string>
   <string name="errors_swap_amount_too_small">المبلغ صغير جدًا</string>
   <string name="errors_scan_transaction_malicious_description">لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="errors_scan_transaction_memo_required">يتطلب عنوان محفظة الوجهة %1$s علامة وجهة/مذكرة</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">عندما ينخفض السعر بمقدار</string>
   <string name="price_alerts_set_alert_set_target_price">تحديد سعر الهدف</string>
   <string name="price_alerts_set_alert_current_price">السعر الحالي</string>
-  <string name="price_alerts_added_for">تعيين تنبيه السعر %1$s</string>
+  <string name="price_alerts_added_price_over">تمت إضافة تنبيه عندما يتجاوز السعر %1$s</string>
+  <string name="price_alerts_added_price_under">تمت إضافة تنبيه عندما ينخفض السعر عن %1$s</string>
+  <string name="price_alerts_added_increases_by">تمت إضافة تنبيه عند ارتفاع السعر بنسبة %1$s</string>
+  <string name="price_alerts_added_decreases_by">تمت إضافة تنبيه عند انخفاض السعر بنسبة %1$s</string>
   <string name="price_alerts_state_empty_title">ستظهر تنبيهاتك هنا</string>
   <string name="price_alerts_state_empty_description">قم بتمكينهم عن طريق إضافة عملات معدنية للتتبع</string>
   <string name="price_alerts_auto_footer">يتم تشغيل التنبيهات عند حدوث تحركات كبيرة في الأسعار.</string>

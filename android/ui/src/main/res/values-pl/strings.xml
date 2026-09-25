@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Nieobsługiwany zasób.</string>
   <string name="errors_connections_no_supported_wallets">Brak obsługiwanych portfeli.</string>
   <string name="errors_connections_unsupported_chain">Podany łańcuch nie jest obsługiwany.</string>
+  <string name="errors_authentication_unavailable">Uwierzytelnianie nie jest skonfigurowane na tym urządzeniu. Włącz biometrię lub kod w ustawieniach urządzenia.</string>
+  <string name="errors_authentication_locked_out">Zbyt wiele nieudanych prób. Spróbuj ponownie później.</string>
+  <string name="errors_authentication_failed">Uwierzytelnianie nie powiodło się. Spróbuj ponownie.</string>
+  <string name="errors_connections_expired">Ten link połączenia wygasł. Pobierz nowy kod QR i spróbuj ponownie.</string>
+  <string name="errors_connections_not_found">To połączenie już nie istnieje.</string>
+  <string name="errors_connections_relay_unavailable">Nie można połączyć się z WalletConnect. Sprawdź połączenie z internetem i spróbuj ponownie.</string>
   <string name="errors_swap_amount_too_small">Kwota jest za mała</string>
   <string name="errors_scan_transaction_malicious_description">Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="errors_scan_transaction_memo_required">%1$s adres portfela docelowego wymaga znacznika/notatki docelowej</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Gdy cena spada o</string>
   <string name="price_alerts_set_alert_set_target_price">Ustaw cenę docelową</string>
   <string name="price_alerts_set_alert_current_price">Aktualna cena</string>
-  <string name="price_alerts_added_for">Ustaw alert cenowy %1$s</string>
+  <string name="price_alerts_added_price_over">Dodano alert dla ceny powyżej %1$s</string>
+  <string name="price_alerts_added_price_under">Dodano alert dla ceny poniżej %1$s</string>
+  <string name="price_alerts_added_increases_by">Dodano alert dla wzrostu ceny o %1$s</string>
+  <string name="price_alerts_added_decreases_by">Dodano alert dla spadku ceny o %1$s</string>
   <string name="price_alerts_state_empty_title">Twoje alerty będą pojawiać się tutaj</string>
   <string name="price_alerts_state_empty_description">Włącz je, dodając monety do śledzenia</string>
   <string name="price_alerts_auto_footer">Alerty uruchamiają się w przypadku znacznych wahań cen.</string>

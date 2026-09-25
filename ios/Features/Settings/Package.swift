@@ -73,6 +73,7 @@ let package = Package(
             dependencies: [
                 "Settings",
                 "SettingsTestKit",
+                "Localization",
                 "Primitives",
                 "PrimitivesComponents",
                 "Gemstone",

@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Activ neacceptat.</string>
   <string name="errors_connections_no_supported_wallets">Nu sunt disponibile portofele acceptate.</string>
   <string name="errors_connections_unsupported_chain">Lanțul furnizat nu este acceptat.</string>
+  <string name="errors_authentication_unavailable">Autentificarea nu este configurată pe acest dispozitiv. Activați biometria sau un cod de acces din setările dispozitivului.</string>
+  <string name="errors_authentication_locked_out">Prea multe încercări nereușite. Vă rugăm să încercați din nou mai târziu.</string>
+  <string name="errors_authentication_failed">Autentificarea a eșuat. Vă rugăm să încercați din nou.</string>
+  <string name="errors_connections_expired">Acest link de conexiune a expirat. Obțineți un cod QR nou și încercați din nou.</string>
+  <string name="errors_connections_not_found">Această conexiune nu mai există.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect nu poate fi accesat. Verificați conexiunea la internet și încercați din nou.</string>
   <string name="errors_swap_amount_too_small">Cantitate prea mică</string>
   <string name="errors_scan_transaction_malicious_description">Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.</string>
   <string name="errors_scan_transaction_memo_required">Adresa portofelului de destinație %1$s necesită o etichetă/un memo de destinație</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Când prețul scade cu</string>
   <string name="price_alerts_set_alert_set_target_price">Stabiliți prețul țintă</string>
   <string name="price_alerts_set_alert_current_price">Preț curent</string>
-  <string name="price_alerts_added_for">Setează alertă de preț %1$s</string>
+  <string name="price_alerts_added_price_over">Alertă adăugată pentru preț peste %1$s</string>
+  <string name="price_alerts_added_price_under">Alertă adăugată pentru preț sub %1$s</string>
+  <string name="price_alerts_added_increases_by">Alertă adăugată pentru creșterea prețului cu %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alertă adăugată pentru scăderea prețului cu %1$s</string>
   <string name="price_alerts_state_empty_title">Alertele tale vor apărea aici</string>
   <string name="price_alerts_state_empty_description">Activează-le adăugând monede la urmărire</string>
   <string name="price_alerts_auto_footer">Alertele se declanșează la mișcări semnificative ale prețurilor.</string>

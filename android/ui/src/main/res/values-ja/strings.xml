@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">未対応のアセットです。</string>
   <string name="errors_connections_no_supported_wallets">サポートされているウォレットは利用できません。</string>
   <string name="errors_connections_unsupported_chain">選択されたチェーンはサポートされていません</string>
+  <string name="errors_authentication_unavailable">このデバイスでは認証が設定されていません。デバイスの設定で生体認証またはパスコードをオンにしてください。</string>
+  <string name="errors_authentication_locked_out">失敗した回数が多すぎます。しばらくしてからもう一度お試しください。</string>
+  <string name="errors_authentication_failed">認証に失敗しました。もう一度お試しください。</string>
+  <string name="errors_connections_expired">この接続リンクは有効期限が切れています。新しいQRコードを取得して、もう一度お試しください。</string>
+  <string name="errors_connections_not_found">この接続は存在しません。</string>
+  <string name="errors_connections_relay_unavailable">WalletConnectに接続できません。インターネット接続を確認して、もう一度お試しください。</string>
   <string name="errors_swap_amount_too_small">金額が小さすぎます</string>
   <string name="errors_scan_transaction_malicious_description">この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。</string>
   <string name="errors_scan_transaction_memo_required">%1$s の送信先アドレスには、宛先タグまたはメモが必要です</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">価格の下落率</string>
   <string name="price_alerts_set_alert_set_target_price">目標価格の設定</string>
   <string name="price_alerts_set_alert_current_price">現在の価格</string>
-  <string name="price_alerts_added_for">価格アラートを設定しました：%1$s</string>
+  <string name="price_alerts_added_price_over">価格が%1$sを上回ったときのアラートを追加しました</string>
+  <string name="price_alerts_added_price_under">価格が%1$sを下回ったときのアラートを追加しました</string>
+  <string name="price_alerts_added_increases_by">価格が%1$s上昇したときのアラートを追加しました</string>
+  <string name="price_alerts_added_decreases_by">価格が%1$s下落したときのアラートを追加しました</string>
   <string name="price_alerts_state_empty_title">アラートはここに表示されます</string>
   <string name="price_alerts_state_empty_description">追跡するコインを追加して有効にしてください</string>
   <string name="price_alerts_auto_footer">大幅な価格変動が発生するとアラートが発動します。</string>

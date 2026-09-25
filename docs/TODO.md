@@ -19,10 +19,9 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Numbers and copy:** the copy for BD15, BD19 and VM67 through the translation-review flow.
-2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-3. **Balances and storage:** D76, D77, VM98 (an Android migration).
-4. **Server:** BD23, BD30, BD51, BD52.
+1. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+2. **Balances and storage:** D76, D77, VM98 (an Android migration).
+3. **Server:** BD23, BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -51,7 +50,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | Preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM172 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
@@ -95,7 +94,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
-- **VM67** **M** **Price-alert confirmation text comes from Core.** Both apps build "added for …" by choosing a title from type and direction and lowercasing a localized string, which is locale-unsafe (iOS `SetPriceAlertViewModel`, Android `PriceAlertTargetNavScreen`). **Copy:** we write one full sentence per kind and direction ("Alert added for price over {value}" and three siblings), translated into every language through the translation-review flow, replacing `price_alerts_added_for` plus the lowercased title; Core then returns it as a `GemLocalizedText` case.
 
 ## 5. Twins, adapters, redundant models and dead code
 
@@ -141,17 +139,6 @@ Taps on rows that already exist, not new row types.
 ## 9. Behavior differences
 
 Differences between the apps, or between an app and the server, each with its decision.
-
-### Raw or untranslated errors reaching users
-
-- **BD15** **S** **An unavailable or failed biometry reads differently on the app-authentication toggle.**
-  - **iOS:** shows "BiometryAuthenticationError error N" (`SecurityViewModel.swift:119-127,135,147`; `BiometryAuthenticationError.swift:7` is not a `LocalizedError`).
-  - **Android:** opens the biometric settings (`SecurityScene.kt:55` → `SystemAuthenticator.kt:99-111`).
-  - **Expected:** we write strings for unavailable, locked-out and failed biometry in all 21 languages and both apps show them; Android keeps opening the settings, which iOS cannot.
-- **BD19** **S** **WalletConnect pair and disconnect errors show raw SDK text.**
-  - **iOS:** `localizedDescription` (`ConnectionsViewModel.swift:114,125`).
-  - **Android:** `GemErrorText.Message` (`WalletConnectCoordinator.kt:108,118,272`), plus hardcoded English at `ReownWalletConnectClient.kt:120`.
-  - **Expected:** we write strings for an expired pairing, an unknown topic and a relay outage in all 21 languages, and both apps show them instead of the SDK's text.
 
 ### Same rule, different answers
 

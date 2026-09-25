@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Неподдерживаемый актив.</string>
   <string name="errors_connections_no_supported_wallets">Поддерживаемые кошельки отсутствуют.</string>
   <string name="errors_connections_unsupported_chain">Предоставленная цепочка не поддерживается.</string>
+  <string name="errors_authentication_unavailable">На этом устройстве не настроена аутентификация. Включите биометрию или код-пароль в настройках устройства.</string>
+  <string name="errors_authentication_locked_out">Слишком много неудачных попыток. Пожалуйста, попробуйте позже.</string>
+  <string name="errors_authentication_failed">Не удалось пройти аутентификацию. Пожалуйста, попробуйте снова.</string>
+  <string name="errors_connections_expired">Срок действия этой ссылки для подключения истёк. Получите новый QR-код и попробуйте снова.</string>
+  <string name="errors_connections_not_found">Это подключение больше не существует.</string>
+  <string name="errors_connections_relay_unavailable">Не удаётся связаться с WalletConnect. Проверьте подключение к интернету и попробуйте снова.</string>
   <string name="errors_swap_amount_too_small">Сумма слишком мала</string>
   <string name="errors_scan_transaction_malicious_description">Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адрес кошелька назначения требует тега назначения / заметки</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Когда цена уменьшается на</string>
   <string name="price_alerts_set_alert_set_target_price">Установить целевую цену</string>
   <string name="price_alerts_set_alert_current_price">Текущая цена</string>
-  <string name="price_alerts_added_for">Установить ценовое оповещение %1$s</string>
+  <string name="price_alerts_added_price_over">Оповещение добавлено: цена выше %1$s</string>
+  <string name="price_alerts_added_price_under">Оповещение добавлено: цена ниже %1$s</string>
+  <string name="price_alerts_added_increases_by">Оповещение добавлено: рост цены на %1$s</string>
+  <string name="price_alerts_added_decreases_by">Оповещение добавлено: падение цены на %1$s</string>
   <string name="price_alerts_state_empty_title">Ваши оповещения о ценах будут появляться здесь</string>
   <string name="price_alerts_state_empty_description">Включите их, добавив монеты для отслеживания</string>
   <string name="price_alerts_auto_footer">Оповещения срабатывают при значительных изменениях цены.</string>

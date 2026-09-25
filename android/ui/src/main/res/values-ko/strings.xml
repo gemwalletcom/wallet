@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">지원되지 않는 자산입니다.</string>
   <string name="errors_connections_no_supported_wallets">지원되는 지갑이 없습니다.</string>
   <string name="errors_connections_unsupported_chain">제공된 체인은 지원되지 않습니다.</string>
+  <string name="errors_authentication_unavailable">이 기기에 인증이 설정되어 있지 않습니다. 기기 설정에서 생체 인식 또는 암호를 켜세요.</string>
+  <string name="errors_authentication_locked_out">실패한 시도가 너무 많습니다. 나중에 다시 시도해 주세요.</string>
+  <string name="errors_authentication_failed">인증에 실패했습니다. 다시 시도해 주세요.</string>
+  <string name="errors_connections_expired">이 연결 링크가 만료되었습니다. 새 QR 코드를 받아 다시 시도해 주세요.</string>
+  <string name="errors_connections_not_found">이 연결은 더 이상 존재하지 않습니다.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.</string>
   <string name="errors_swap_amount_too_small">금액이 너무 적습니다</string>
   <string name="errors_scan_transaction_malicious_description">이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.</string>
   <string name="errors_scan_transaction_memo_required">%1$s 대상 지갑 주소에는 대상 태그/메모가 필요합니다.</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">가격이 하락하면</string>
   <string name="price_alerts_set_alert_set_target_price">목표 가격 설정</string>
   <string name="price_alerts_set_alert_current_price">현재 가격</string>
-  <string name="price_alerts_added_for">가격 알림 설정 %1$s</string>
+  <string name="price_alerts_added_price_over">가격이 %1$s 이상일 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_price_under">가격이 %1$s 이하일 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_increases_by">가격이 %1$s 상승할 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_decreases_by">가격이 %1$s 하락할 때 알림이 추가되었습니다</string>
   <string name="price_alerts_state_empty_title">알림이 여기에 표시됩니다.</string>
   <string name="price_alerts_state_empty_description">추적에 동전을 추가하여 활성화하세요</string>
   <string name="price_alerts_auto_footer">가격이 크게 변동하면 알림이 울립니다.</string>

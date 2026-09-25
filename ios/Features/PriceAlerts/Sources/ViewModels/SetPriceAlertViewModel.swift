@@ -116,10 +116,7 @@ public final class SetPriceAlertViewModel {
     }
 
     private var completeMessage: String {
-        let viewState = viewState
-        guard let savedValue = viewState.savedValue else { return .empty }
-        let message = [directionTitle(viewState).lowercased(), savedValue.text()].joined(separator: " ")
-        return Localized.PriceAlerts.addedFor(message)
+        viewState.savedMessage?.text ?? .empty
     }
 
     private func priceAlert() -> Primitives.PriceAlert? {

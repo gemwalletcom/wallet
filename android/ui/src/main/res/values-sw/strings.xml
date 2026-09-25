@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Kipengee hakitumiki.</string>
   <string name="errors_connections_no_supported_wallets">Hakuna pochi zinazotumika zinazopatikana.</string>
   <string name="errors_connections_unsupported_chain">Msururu uliotolewa hautumiki.</string>
+  <string name="errors_authentication_unavailable">Uthibitishaji haujawekwa kwenye kifaa hiki. Washa bayometriki au nambari ya siri kwenye mipangilio ya kifaa.</string>
+  <string name="errors_authentication_locked_out">Majaribio mengi mno yameshindwa. Tafadhali jaribu tena baadaye.</string>
+  <string name="errors_authentication_failed">Uthibitishaji umeshindwa. Tafadhali jaribu tena.</string>
+  <string name="errors_connections_expired">Kiungo hiki cha muunganisho kimeisha muda. Pata msimbo mpya wa QR na ujaribu tena.</string>
+  <string name="errors_connections_not_found">Muunganisho huu haupo tena.</string>
+  <string name="errors_connections_relay_unavailable">Imeshindwa kufikia WalletConnect. Angalia muunganisho wako wa intaneti na ujaribu tena.</string>
   <string name="errors_swap_amount_too_small">Kiasi kidogo sana</string>
   <string name="errors_scan_transaction_malicious_description">Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="errors_scan_transaction_memo_required">%1$s anwani ya mkoba lengwa inahitaji lebo/memo lengwa</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Wakati bei inapungua kwa</string>
   <string name="price_alerts_set_alert_set_target_price">Weka bei inayolengwa</string>
   <string name="price_alerts_set_alert_current_price">Bei ya sasa</string>
-  <string name="price_alerts_added_for">Weka arifa ya bei %1$s</string>
+  <string name="price_alerts_added_price_over">Arifa imeongezwa kwa bei iliyo juu ya %1$s</string>
+  <string name="price_alerts_added_price_under">Arifa imeongezwa kwa bei iliyo chini ya %1$s</string>
+  <string name="price_alerts_added_increases_by">Arifa imeongezwa kwa ongezeko la bei la %1$s</string>
+  <string name="price_alerts_added_decreases_by">Arifa imeongezwa kwa kushuka kwa bei kwa %1$s</string>
   <string name="price_alerts_state_empty_title">Arifa zako zitaonekana hapa</string>
   <string name="price_alerts_state_empty_description">Wawezeshe kwa kuongeza sarafu ili kufuatilia</string>
   <string name="price_alerts_auto_footer">Arifa hutumwa kunapokuwa na mabadiliko makubwa ya bei.</string>

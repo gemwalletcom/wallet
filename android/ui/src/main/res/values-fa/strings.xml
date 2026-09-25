@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">دارایی پشتیبانی نمی شود.</string>
   <string name="errors_connections_no_supported_wallets">هیچ کیف پول پشتیبانی شده ای در دسترس نیست.</string>
   <string name="errors_connections_unsupported_chain">زنجیره ارائه شده پشتیبانی نمی‌شود.</string>
+  <string name="errors_authentication_unavailable">احراز هویت در این دستگاه تنظیم نشده است. بیومتریک یا رمز عبور را در تنظیمات دستگاه روشن کنید.</string>
+  <string name="errors_authentication_locked_out">تلاش‌های ناموفق بیش از حد. لطفاً بعداً دوباره امتحان کنید.</string>
+  <string name="errors_authentication_failed">احراز هویت ناموفق بود. لطفاً دوباره امتحان کنید.</string>
+  <string name="errors_connections_expired">اعتبار این لینک اتصال به پایان رسیده است. یک کد QR جدید بگیرید و دوباره امتحان کنید.</string>
+  <string name="errors_connections_not_found">این اتصال دیگر وجود ندارد.</string>
+  <string name="errors_connections_relay_unavailable">دسترسی به WalletConnect ممکن نشد. اتصال اینترنت خود را بررسی کنید و دوباره امتحان کنید.</string>
   <string name="errors_swap_amount_too_small">مقدار خیلی کم</string>
   <string name="errors_scan_transaction_malicious_description">این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.</string>
   <string name="errors_scan_transaction_memo_required">%1$s آدرس کیف پول مقصد به یک برچسب / یادداشت مقصد نیاز دارد.</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">وقتی قیمت به میزان کاهش می‌یابد</string>
   <string name="price_alerts_set_alert_set_target_price">تعیین قیمت هدف</string>
   <string name="price_alerts_set_alert_current_price">قیمت فعلی</string>
-  <string name="price_alerts_added_for">تنظیم هشدار قیمت %1$s</string>
+  <string name="price_alerts_added_price_over">هشدار برای قیمت بالاتر از %1$s اضافه شد</string>
+  <string name="price_alerts_added_price_under">هشدار برای قیمت پایین‌تر از %1$s اضافه شد</string>
+  <string name="price_alerts_added_increases_by">هشدار برای افزایش قیمت به میزان %1$s اضافه شد</string>
+  <string name="price_alerts_added_decreases_by">هشدار برای کاهش قیمت به میزان %1$s اضافه شد</string>
   <string name="price_alerts_state_empty_title">هشدارهای شما اینجا نمایش داده می‌شوند</string>
   <string name="price_alerts_state_empty_description">با اضافه کردن سکه‌ها برای ردیابی، آنها را فعال کنید</string>
   <string name="price_alerts_auto_footer">هشدارها در صورت حرکت قابل توجه قیمت فعال می‌شوند.</string>

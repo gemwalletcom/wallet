@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Hindi sinusuportahang asset.</string>
   <string name="errors_connections_no_supported_wallets">Walang available na suportadong wallet.</string>
   <string name="errors_connections_unsupported_chain">Ang ibinigay na chain ay hindi suportado.</string>
+  <string name="errors_authentication_unavailable">Hindi naka-set up ang authentication sa device na ito. I-on ang biometrics o passcode sa mga setting ng device.</string>
+  <string name="errors_authentication_locked_out">Masyadong maraming nabigong pagsubok. Pakisubukan muli mamaya.</string>
+  <string name="errors_authentication_failed">Nabigo ang authentication. Pakisubukan muli.</string>
+  <string name="errors_connections_expired">Nag-expire na ang link ng koneksyong ito. Kumuha ng bagong QR code at subukan muli.</string>
+  <string name="errors_connections_not_found">Wala na ang koneksyong ito.</string>
+  <string name="errors_connections_relay_unavailable">Hindi maabot ang WalletConnect. Suriin ang iyong koneksyon sa internet at subukan muli.</string>
   <string name="errors_swap_amount_too_small">Masyadong maliit ang halaga</string>
   <string name="errors_scan_transaction_malicious_description">Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.</string>
   <string name="errors_scan_transaction_memo_required">Nangangailangan ang %1$s destination wallet address ng destination tag / memo</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Kapag bumaba ang presyo nang</string>
   <string name="price_alerts_set_alert_set_target_price">Itakda ang target na presyo</string>
   <string name="price_alerts_set_alert_current_price">Kasalukuyang presyo</string>
-  <string name="price_alerts_added_for">Itakda ang alerto sa presyo %1$s</string>
+  <string name="price_alerts_added_price_over">Naidagdag ang alerto para sa presyong higit sa %1$s</string>
+  <string name="price_alerts_added_price_under">Naidagdag ang alerto para sa presyong mas mababa sa %1$s</string>
+  <string name="price_alerts_added_increases_by">Naidagdag ang alerto para sa pagtaas ng presyo nang %1$s</string>
+  <string name="price_alerts_added_decreases_by">Naidagdag ang alerto para sa pagbaba ng presyo nang %1$s</string>
   <string name="price_alerts_state_empty_title">Lalabas dito ang iyong mga alerto sa presyo</string>
   <string name="price_alerts_state_empty_description">Paganahin ang mga ito sa pamamagitan ng pagdaragdag ng mga barya upang masubaybayan</string>
   <string name="price_alerts_auto_footer">Nagti-trigger ang mga alerto sa mga makabuluhang galaw ng presyo.</string>

@@ -26932,6 +26932,579 @@
         }
       }
     },
+    "errors.authentication_failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشلت المصادقة. يرجى المحاولة مرة أخرى."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রমাণীকরণ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ověření se nezdařilo. Zkuste to prosím znovu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godkendelsen mislykkedes. Prøv igen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication failed. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La autenticación falló. Inténtelo de nuevo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "احراز هویت ناموفق بود. لطفاً دوباره امتحان کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nabigo ang authentication. Pakisubukan muli."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'authentification a échoué. Veuillez réessayer."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabbatarwa ta gaza. Da fatan za a sake gwadawa."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "האימות נכשל. אנא נסה שוב."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रमाणीकरण विफल रहा। कृपया फिर प्रयास करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otentikasi gagal. Silakan coba lagi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autenticazione non riuscita. Riprova."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "認証に失敗しました。もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인증에 실패했습니다. 다시 시도해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pengesahan gagal. Sila cuba lagi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificatie mislukt. Probeer het opnieuw."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwierzytelnianie nie powiodło się. Spróbuj ponownie."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falha na autenticação. Tente novamente."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autentificarea a eșuat. Vă rugăm să încercați din nou."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось пройти аутентификацию. Пожалуйста, попробуйте снова."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uthibitishaji umeshindwa. Tafadhali jaribu tena."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การยืนยันตัวตนล้มเหลว โปรดลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося пройти автентифікацію. Будь ласка, спробуйте ще раз."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصدیق ناکام ہو گئی۔ براہ کرم دوبارہ کوشش کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác thực không thành công. Vui lòng thử lại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份验证失败，请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身分驗證失敗，請重試。"
+          }
+        }
+      }
+    },
+    "errors.authentication_locked_out": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محاولات فاشلة كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনেকবার ব্যর্থ চেষ্টা হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Příliš mnoho neúspěšných pokusů. Zkuste to prosím později."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For mange mislykkede forsøg. Prøv igen senere."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu viele fehlgeschlagene Versuche. Bitte versuchen Sie es später erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many failed attempts. Please try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demasiados intentos fallidos. Inténtelo de nuevo más tarde."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلاش‌های ناموفق بیش از حد. لطفاً بعداً دوباره امتحان کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masyadong maraming nabigong pagsubok. Pakisubukan muli mamaya."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trop de tentatives échouées. Veuillez réessayer plus tard."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An yi ƙoƙari da yawa da suka gaza. Da fatan za a sake gwadawa daga baya."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "יותר מדי ניסיונות כושלים. אנא נסה שוב מאוחר יותר."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बहुत अधिक असफल प्रयास। कृपया बाद में फिर प्रयास करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terlalu banyak percobaan gagal. Silakan coba lagi nanti."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troppi tentativi non riusciti. Riprova più tardi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失敗した回数が多すぎます。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실패한 시도가 너무 많습니다. 나중에 다시 시도해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terlalu banyak percubaan gagal. Sila cuba lagi kemudian."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te veel mislukte pogingen. Probeer het later opnieuw."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zbyt wiele nieudanych prób. Spróbuj ponownie później."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muitas tentativas sem sucesso. Tente novamente mais tarde."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prea multe încercări nereușite. Vă rugăm să încercați din nou mai târziu."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слишком много неудачных попыток. Пожалуйста, попробуйте позже."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majaribio mengi mno yameshindwa. Tafadhali jaribu tena baadaye."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ลองไม่สำเร็จหลายครั้งเกินไป โปรดลองใหม่ภายหลัง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Забагато невдалих спроб. Будь ласка, спробуйте пізніше."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بہت زیادہ ناکام کوششیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quá nhiều lần thử không thành công. Vui lòng thử lại sau."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败次数过多，请稍后再试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失敗次數過多，請稍後再試。"
+          }
+        }
+      }
+    },
+    "errors.authentication_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المصادقة غير مُعدّة على هذا الجهاز. فعّل القياسات الحيوية أو رمز المرور من إعدادات جهازك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ডিভাইসে প্রমাণীকরণ সেট আপ করা নেই। ডিভাইসের সেটিংসে বায়োমেট্রিক্স বা পাসকোড চালু করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ověřování není na tomto zařízení nastaveno. Zapněte biometrii nebo kód v nastavení zařízení."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godkendelse er ikke konfigureret på denne enhed. Slå biometri eller en adgangskode til i enhedens indstillinger."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Gerät ist keine Authentifizierung eingerichtet. Aktivieren Sie Biometrie oder einen Code in den Geräteeinstellungen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La autenticación no está configurada en este dispositivo. Active la biometría o un código de acceso en los ajustes del dispositivo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "احراز هویت در این دستگاه تنظیم نشده است. بیومتریک یا رمز عبور را در تنظیمات دستگاه روشن کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi naka-set up ang authentication sa device na ito. I-on ang biometrics o passcode sa mga setting ng device."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'authentification n'est pas configurée sur cet appareil. Activez la biométrie ou un code dans les réglages de l'appareil."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na'urar."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אימות לא מוגדר במכשיר הזה. הפעל זיהוי ביומטרי או קוד גישה בהגדרות המכשיר."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस डिवाइस पर प्रमाणीकरण सेट नहीं है। डिवाइस सेटिंग्स में बायोमेट्रिक्स या पासकोड चालू करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otentikasi belum diatur di perangkat ini. Aktifkan biometrik atau kode sandi di pengaturan perangkat."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'autenticazione non è configurata su questo dispositivo. Attiva la biometria o un codice nelle impostazioni del dispositivo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスでは認証が設定されていません。デバイスの設定で生体認証またはパスコードをオンにしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기에 인증이 설정되어 있지 않습니다. 기기 설정에서 생체 인식 또는 암호를 켜세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pengesahan belum disediakan pada peranti ini. Hidupkan biometrik atau kod laluan dalam tetapan peranti."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificatie is niet ingesteld op dit apparaat. Zet biometrie of een toegangscode aan in de apparaatinstellingen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uwierzytelnianie nie jest skonfigurowane na tym urządzeniu. Włącz biometrię lub kod w ustawieniach urządzenia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A autenticação não está configurada neste dispositivo. Ative a biometria ou um código nos ajustes do dispositivo."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autentificarea nu este configurată pe acest dispozitiv. Activați biometria sau un cod de acces din setările dispozitivului."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На этом устройстве не настроена аутентификация. Включите биометрию или код-пароль в настройках устройства."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uthibitishaji haujawekwa kwenye kifaa hiki. Washa bayometriki au nambari ya siri kwenye mipangilio ya kifaa."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "อุปกรณ์นี้ยังไม่ได้ตั้งค่าการยืนยันตัวตน เปิดไบโอเมตริกซ์หรือรหัสผ่านในการตั้งค่าอุปกรณ์"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu cihazda kimlik doğrulama ayarlanmamış. Cihaz ayarlarından biyometriyi veya bir parolayı açın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На цьому пристрої не налаштовано автентифікацію. Увімкніть біометрію або код-пароль у налаштуваннях пристрою."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس ڈیوائس پر تصدیق سیٹ اپ نہیں ہے۔ ڈیوائس کی ترتیبات میں بایومیٹرکس یا پاس کوڈ آن کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết bị này chưa thiết lập xác thực. Hãy bật sinh trắc học hoặc mật mã trong cài đặt thiết bị."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备未设置身份验证。请在设备设置中开启生物识别或密码。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此裝置未設定身分驗證。請在裝置設定中開啟生物辨識或密碼。"
+          }
+        }
+      }
+    },
     "errors.balances_activity_outdated": {
       "extractionState": "manual",
       "localizations": {
@@ -27505,6 +28078,197 @@
         }
       }
     },
+    "errors.connections.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انتهت صلاحية رابط الاتصال هذا. احصل على رمز QR جديد وحاول مرة أخرى."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই সংযোগ লিঙ্কের মেয়াদ শেষ হয়ে গেছে। একটি নতুন QR কোড নিয়ে আবার চেষ্টা করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platnost tohoto odkazu pro připojení vypršela. Získejte nový QR kód a zkuste to znovu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette forbindelseslink er udløbet. Hent en ny QR-kode, og prøv igen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Verbindungslink ist abgelaufen. Holen Sie sich einen neuen QR-Code und versuchen Sie es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection link has expired. Get a new QR code and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este enlace de conexión ha caducado. Obtenga un nuevo código QR e inténtelo de nuevo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعتبار این لینک اتصال به پایان رسیده است. یک کد QR جدید بگیرید و دوباره امتحان کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nag-expire na ang link ng koneksyong ito. Kumuha ng bagong QR code at subukan muli."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce lien de connexion a expiré. Obtenez un nouveau code QR et réessayez."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan hanyar haɗin ta ƙare. Samo sabon lambar QR ka sake gwadawa."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תוקף קישור החיבור הזה פג. קבל קוד QR חדש ונסה שוב."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस कनेक्शन लिंक की समय-सीमा समाप्त हो गई है। नया QR कोड लें और फिर प्रयास करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tautan koneksi ini sudah kedaluwarsa. Dapatkan kode QR baru dan coba lagi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo link di connessione è scaduto. Ottieni un nuovo codice QR e riprova."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この接続リンクは有効期限が切れています。新しいQRコードを取得して、もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 연결 링크가 만료되었습니다. 새 QR 코드를 받아 다시 시도해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pautan sambungan ini telah tamat tempoh. Dapatkan kod QR baharu dan cuba lagi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze verbindingslink is verlopen. Haal een nieuwe QR-code op en probeer het opnieuw."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten link połączenia wygasł. Pobierz nowy kod QR i spróbuj ponownie."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este link de conexão expirou. Obtenha um novo código QR e tente novamente."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acest link de conexiune a expirat. Obțineți un cod QR nou și încercați din nou."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Срок действия этой ссылки для подключения истёк. Получите новый QR-код и попробуйте снова."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiungo hiki cha muunganisho kimeisha muda. Pata msimbo mpya wa QR na ujaribu tena."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ลิงก์เชื่อมต่อนี้หมดอายุแล้ว รับคิวอาร์โค้ดใหม่แล้วลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu bağlantı linkinin süresi doldu. Yeni bir QR kodu alıp tekrar deneyin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Термін дії цього посилання для підключення минув. Отримайте новий QR-код і спробуйте ще раз."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس کنکشن لنک کی میعاد ختم ہو گئی ہے۔ نیا QR کوڈ حاصل کریں اور دوبارہ کوشش کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liên kết kết nối này đã hết hạn. Hãy lấy mã QR mới và thử lại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此连接链接已过期。请获取新的二维码后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此連線連結已過期。請取得新的 QR 碼後重試。"
+          }
+        }
+      }
+    },
     "errors.connections.malicious_origin": {
       "extractionState": "manual",
       "localizations": {
@@ -27883,6 +28647,388 @@
           "stringUnit": {
             "state": "translated",
             "value": "目前沒有支援的錢包可用。"
+          }
+        }
+      }
+    },
+    "errors.connections.not_found": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا الاتصال لم يعد موجودًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই সংযোগটি আর নেই।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto připojení už neexistuje."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne forbindelse findes ikke længere."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Verbindung besteht nicht mehr."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection no longer exists."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta conexión ya no existe."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این اتصال دیگر وجود ندارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wala na ang koneksyong ito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette connexion n'existe plus."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan haɗin ba ya nan kuma."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "החיבור הזה כבר לא קיים."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह कनेक्शन अब मौजूद नहीं है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koneksi ini sudah tidak ada."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa connessione non esiste più."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この接続は存在しません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 연결은 더 이상 존재하지 않습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sambungan ini tidak lagi wujud."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze verbinding bestaat niet meer."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To połączenie już nie istnieje."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta conexão não existe mais."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această conexiune nu mai există."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это подключение больше не существует."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muunganisho huu haupo tena."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การเชื่อมต่อนี้ไม่มีอยู่แล้ว"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu bağlantı artık mevcut değil."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цього підключення більше не існує."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ کنکشن اب موجود نہیں ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết nối này không còn tồn tại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此连接已不存在。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此連線已不存在。"
+          }
+        }
+      }
+    },
+    "errors.connections.relay_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر الوصول إلى WalletConnect. تحقق من اتصالك بالإنترنت وحاول مرة أخرى."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect-এ পৌঁছানো যায়নি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nepodařilo se spojit s WalletConnect. Zkontrolujte připojení k internetu a zkuste to znovu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke få forbindelse til WalletConnect. Tjek din internetforbindelse, og prøv igen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect ist nicht erreichbar. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't reach WalletConnect. Check your internet connection and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo conectar con WalletConnect. Compruebe su conexión a internet e inténtelo de nuevo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دسترسی به WalletConnect ممکن نشد. اتصال اینترنت خود را بررسی کنید و دوباره امتحان کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi maabot ang WalletConnect. Suriin ang iyong koneksyon sa internet at subukan muli."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de joindre WalletConnect. Vérifiez votre connexion Internet et réessayez."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba a iya isa WalletConnect ba. Duba haɗin intanet ɗinka ka sake gwadawa."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן להגיע ל-WalletConnect. בדוק את החיבור לאינטרנט ונסה שוב."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect तक नहीं पहुँच सके। अपना इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak dapat menjangkau WalletConnect. Periksa koneksi internet Anda dan coba lagi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile raggiungere WalletConnect. Controlla la connessione a Internet e riprova."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnectに接続できません。インターネット接続を確認して、もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak dapat mencapai WalletConnect. Semak sambungan internet anda dan cuba lagi."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można połączyć się z WalletConnect. Sprawdź połączenie z internetem i spróbuj ponownie."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível acessar o WalletConnect. Verifique sua conexão com a internet e tente novamente."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect nu poate fi accesat. Verificați conexiunea la internet și încercați din nou."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удаётся связаться с WalletConnect. Проверьте подключение к интернету и попробуйте снова."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imeshindwa kufikia WalletConnect. Angalia muunganisho wako wa intaneti na ujaribu tena."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เชื่อมต่อ WalletConnect ไม่ได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect'e ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдається зв'язатися з WalletConnect. Перевірте підключення до інтернету і спробуйте ще раз."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WalletConnect تک رسائی نہیں ہو سکی۔ اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể kết nối tới WalletConnect. Hãy kiểm tra kết nối internet và thử lại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接 WalletConnect。请检查网络连接后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連線至 WalletConnect。請檢查網路連線後重試。"
           }
         }
       }
@@ -63986,193 +65132,766 @@
         }
       }
     },
-    "price_alerts.added_for": {
+    "price_alerts.added_decreases_by": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعيين تنبيه السعر %@"
+            "value": "تمت إضافة تنبيه عند انخفاض السعر بنسبة %@"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "মূল্য সতর্কতা সেট করুন %@"
+            "value": "দাম %@ কমলে সতর্কতা যোগ করা হয়েছে"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nastavit cenové upozornění %@"
+            "value": "Upozornění přidáno pro pokles ceny o %@"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Indstil prisalarm %@"
+            "value": "Alarm tilføjet for prisfald på %@"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preisalarm einstellen %@"
+            "value": "Alarm hinzugefügt für Preisrückgang um %@"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Set price alert %@"
+            "value": "Alert added for price decrease of %@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Establecer alerta de precio %@"
+            "value": "Alerta añadida para bajada de precio de %@"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "تنظیم هشدار قیمت %@"
+            "value": "هشدار برای کاهش قیمت به میزان %@ اضافه شد"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Itakda ang alerto sa presyo %@"
+            "value": "Naidagdag ang alerto para sa pagbaba ng presyo nang %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Définir une alerte de prix %@"
+            "value": "Alerte ajoutée pour une baisse de prix de %@"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saita faɗakarwar farashi %@"
+            "value": "An ƙara faɗakarwa don raguwar farashi da %@"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הגדר התראת מחיר %@"
+            "value": "נוספה התראה לירידת מחיר של %@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "मूल्य अलर्ट सेट करें %@"
+            "value": "कीमत %@ घटने पर अलर्ट जोड़ा गया"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tetapkan peringatan harga %@"
+            "value": "Peringatan ditambahkan untuk penurunan harga sebesar %@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imposta avviso prezzo %@"
+            "value": "Avviso aggiunto per calo di prezzo del %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "価格アラートを設定しました：%@"
+            "value": "価格が%@下落したときのアラートを追加しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가격 알림 설정 %@"
+            "value": "가격이 %@ 하락할 때 알림이 추가되었습니다"
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tetapkan makluman harga %@"
+            "value": "Makluman ditambah untuk penurunan harga sebanyak %@"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prijswaarschuwing instellen %@"
+            "value": "Melding toegevoegd voor prijsdaling van %@"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ustaw alert cenowy %@"
+            "value": "Dodano alert dla spadku ceny o %@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Definir alerta de preço %@"
+            "value": "Alerta adicionado para queda de preço de %@"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Setează alertă de preț %@"
+            "value": "Alertă adăugată pentru scăderea prețului cu %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Установить ценовое оповещение %@"
+            "value": "Оповещение добавлено: падение цены на %@"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weka arifa ya bei %@"
+            "value": "Arifa imeongezwa kwa kushuka kwa bei kwa %@"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ตั้งค่าการแจ้งเตือนราคา %@"
+            "value": "เพิ่มการแจ้งเตือนเมื่อราคาลดลง %@ แล้ว"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fiyat uyarısı ayarla %@"
+            "value": "Fiyat %@ düştüğünde uyarı eklendi"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Встановити сповіщення про ціну %@"
+            "value": "Сповіщення додано: падіння ціни на %@"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "قیمت کا الرٹ مقرر کریں %@"
+            "value": "قیمت %@ گھٹنے پر الرٹ شامل کر دیا گیا"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đặt cảnh báo giá %@"
+            "value": "Đã thêm cảnh báo khi giá giảm %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为 %@ 设置价格提醒"
+            "value": "已添加价格下跌 %@ 时的提醒"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "價格提醒已設定：%@"
+            "value": "已新增價格下跌 %@ 時的提醒"
+          }
+        }
+      }
+    },
+    "price_alerts.added_increases_by": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمت إضافة تنبيه عند ارتفاع السعر بنسبة %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দাম %@ বাড়লে সতর্কতা যোগ করা হয়েছে"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upozornění přidáno pro nárůst ceny o %@"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm tilføjet for prisstigning på %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm hinzugefügt für Preisanstieg um %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alert added for price increase of %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta añadida para subida de precio de %@"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هشدار برای افزایش قیمت به میزان %@ اضافه شد"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naidagdag ang alerto para sa pagtaas ng presyo nang %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerte ajoutée pour une hausse de prix de %@"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An ƙara faɗakarwa don ƙaruwar farashi da %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נוספה התראה לעליית מחיר של %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कीमत %@ बढ़ने पर अलर्ट जोड़ा गया"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peringatan ditambahkan untuk kenaikan harga sebesar %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avviso aggiunto per aumento di prezzo del %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "価格が%@上昇したときのアラートを追加しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가격이 %@ 상승할 때 알림이 추가되었습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Makluman ditambah untuk kenaikan harga sebanyak %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melding toegevoegd voor prijsstijging van %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano alert dla wzrostu ceny o %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta adicionado para alta de preço de %@"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertă adăugată pentru creșterea prețului cu %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оповещение добавлено: рост цены на %@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arifa imeongezwa kwa ongezeko la bei la %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เพิ่มการแจ้งเตือนเมื่อราคาเพิ่มขึ้น %@ แล้ว"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiyat %@ arttığında uyarı eklendi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сповіщення додано: зростання ціни на %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قیمت %@ بڑھنے پر الرٹ شامل کر دیا گیا"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm cảnh báo khi giá tăng %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加价格上涨 %@ 时的提醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已新增價格上漲 %@ 時的提醒"
+          }
+        }
+      }
+    },
+    "price_alerts.added_price_over": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمت إضافة تنبيه عندما يتجاوز السعر %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দাম %@ এর উপরে গেলে সতর্কতা যোগ করা হয়েছে"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upozornění přidáno pro cenu nad %@"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm tilføjet for pris over %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm hinzugefügt für Preis über %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alert added for price over %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta añadida para precio por encima de %@"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هشدار برای قیمت بالاتر از %@ اضافه شد"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naidagdag ang alerto para sa presyong higit sa %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerte ajoutée pour un prix supérieur à %@"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An ƙara faɗakarwa don farashi sama da %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נוספה התראה למחיר מעל %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कीमत %@ से ऊपर होने पर अलर्ट जोड़ा गया"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peringatan ditambahkan untuk harga di atas %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avviso aggiunto per prezzo sopra %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "価格が%@を上回ったときのアラートを追加しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가격이 %@ 이상일 때 알림이 추가되었습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Makluman ditambah untuk harga melebihi %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melding toegevoegd voor prijs boven %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano alert dla ceny powyżej %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta adicionado para preço acima de %@"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertă adăugată pentru preț peste %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оповещение добавлено: цена выше %@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arifa imeongezwa kwa bei iliyo juu ya %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เพิ่มการแจ้งเตือนเมื่อราคาสูงกว่า %@ แล้ว"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiyat %@ üzerine çıktığında uyarı eklendi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сповіщення додано: ціна вище %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قیمت %@ سے اوپر جانے پر الرٹ شامل کر دیا گیا"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm cảnh báo khi giá trên %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加价格高于 %@ 时的提醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已新增價格高於 %@ 時的提醒"
+          }
+        }
+      }
+    },
+    "price_alerts.added_price_under": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تمت إضافة تنبيه عندما ينخفض السعر عن %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "দাম %@ এর নিচে গেলে সতর্কতা যোগ করা হয়েছে"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upozornění přidáno pro cenu pod %@"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm tilføjet for pris under %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarm hinzugefügt für Preis unter %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alert added for price under %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta añadida para precio por debajo de %@"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هشدار برای قیمت پایین‌تر از %@ اضافه شد"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naidagdag ang alerto para sa presyong mas mababa sa %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerte ajoutée pour un prix inférieur à %@"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An ƙara faɗakarwa don farashi ƙasa da %@"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נוספה התראה למחיר מתחת ל-%@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कीमत %@ से नीचे होने पर अलर्ट जोड़ा गया"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peringatan ditambahkan untuk harga di bawah %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avviso aggiunto per prezzo sotto %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "価格が%@を下回ったときのアラートを追加しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가격이 %@ 이하일 때 알림이 추가되었습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Makluman ditambah untuk harga di bawah %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melding toegevoegd voor prijs onder %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodano alert dla ceny poniżej %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta adicionado para preço abaixo de %@"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alertă adăugată pentru preț sub %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оповещение добавлено: цена ниже %@"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arifa imeongezwa kwa bei iliyo chini ya %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เพิ่มการแจ้งเตือนเมื่อราคาต่ำกว่า %@ แล้ว"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiyat %@ altına düştüğünde uyarı eklendi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сповіщення додано: ціна нижче %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قیمت %@ سے نیچے جانے پر الرٹ شامل کر دیا گیا"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm cảnh báo khi giá dưới %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加价格低于 %@ 时的提醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已新增價格低於 %@ 時的提醒"
           }
         }
       }

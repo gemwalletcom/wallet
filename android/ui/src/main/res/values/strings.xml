@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Not supported asset.</string>
   <string name="errors_connections_no_supported_wallets">No supported wallets are available.</string>
   <string name="errors_connections_unsupported_chain">The provided chain is not supported.</string>
+  <string name="errors_authentication_unavailable">Authentication isn\'t set up on this device. Turn on biometrics or a passcode in your device settings.</string>
+  <string name="errors_authentication_locked_out">Too many failed attempts. Please try again later.</string>
+  <string name="errors_authentication_failed">Authentication failed. Please try again.</string>
+  <string name="errors_connections_expired">This connection link has expired. Get a new QR code and try again.</string>
+  <string name="errors_connections_not_found">This connection no longer exists.</string>
+  <string name="errors_connections_relay_unavailable">Couldn\'t reach WalletConnect. Check your internet connection and try again.</string>
   <string name="errors_swap_amount_too_small">Amount too small</string>
   <string name="errors_scan_transaction_malicious_description">This transaction cannot be completed — the destination wallet address is linked to suspicious or harmful activity.</string>
   <string name="errors_scan_transaction_memo_required">%1$s destination wallet address requires a destination tag / memo</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">When price decreases by</string>
   <string name="price_alerts_set_alert_set_target_price">Set target price</string>
   <string name="price_alerts_set_alert_current_price">Current price</string>
-  <string name="price_alerts_added_for">Set price alert %1$s</string>
+  <string name="price_alerts_added_price_over">Alert added for price over %1$s</string>
+  <string name="price_alerts_added_price_under">Alert added for price under %1$s</string>
+  <string name="price_alerts_added_increases_by">Alert added for price increase of %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alert added for price decrease of %1$s</string>
   <string name="price_alerts_state_empty_title">Your price alerts will appear here</string>
   <string name="price_alerts_state_empty_description">Enable them by adding coins to track</string>
   <string name="price_alerts_auto_footer">Alerts trigger on significant price moves.</string>

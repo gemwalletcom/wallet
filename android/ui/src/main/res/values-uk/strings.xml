@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Не підтримуваний актив.</string>
   <string name="errors_connections_no_supported_wallets">Немає підтримуваних гаманців.</string>
   <string name="errors_connections_unsupported_chain">Наданий ланцюжок не підтримується.</string>
+  <string name="errors_authentication_unavailable">На цьому пристрої не налаштовано автентифікацію. Увімкніть біометрію або код-пароль у налаштуваннях пристрою.</string>
+  <string name="errors_authentication_locked_out">Забагато невдалих спроб. Будь ласка, спробуйте пізніше.</string>
+  <string name="errors_authentication_failed">Не вдалося пройти автентифікацію. Будь ласка, спробуйте ще раз.</string>
+  <string name="errors_connections_expired">Термін дії цього посилання для підключення минув. Отримайте новий QR-код і спробуйте ще раз.</string>
+  <string name="errors_connections_not_found">Цього підключення більше не існує.</string>
+  <string name="errors_connections_relay_unavailable">Не вдається зв\'язатися з WalletConnect. Перевірте підключення до інтернету і спробуйте ще раз.</string>
   <string name="errors_swap_amount_too_small">Сума занадто мала</string>
   <string name="errors_scan_transaction_malicious_description">Цю транзакцію неможливо завершити — адреса гаманця призначення пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адреса гаманця призначення вимагає тегу / мемо призначення</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Коли ціна знизиться на</string>
   <string name="price_alerts_set_alert_set_target_price">Встановити цільову ціну</string>
   <string name="price_alerts_set_alert_current_price">Поточна ціна</string>
-  <string name="price_alerts_added_for">Встановити сповіщення про ціну %1$s</string>
+  <string name="price_alerts_added_price_over">Сповіщення додано: ціна вище %1$s</string>
+  <string name="price_alerts_added_price_under">Сповіщення додано: ціна нижче %1$s</string>
+  <string name="price_alerts_added_increases_by">Сповіщення додано: зростання ціни на %1$s</string>
+  <string name="price_alerts_added_decreases_by">Сповіщення додано: падіння ціни на %1$s</string>
   <string name="price_alerts_state_empty_title">Ваші сповіщення про ціни з\'являтимуться тут</string>
   <string name="price_alerts_state_empty_description">Увімкніть їх, додавши монети до відстеження</string>
   <string name="price_alerts_auto_footer">Сповіщення спрацьовують у разі значних змін цін.</string>

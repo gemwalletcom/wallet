@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">تعاون یافتہ اثاثہ نہیں ہے۔</string>
   <string name="errors_connections_no_supported_wallets">کوئی تعاون یافتہ بٹوے دستیاب نہیں ہیں۔</string>
   <string name="errors_connections_unsupported_chain">فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔</string>
+  <string name="errors_authentication_unavailable">اس ڈیوائس پر تصدیق سیٹ اپ نہیں ہے۔ ڈیوائس کی ترتیبات میں بایومیٹرکس یا پاس کوڈ آن کریں۔</string>
+  <string name="errors_authentication_locked_out">بہت زیادہ ناکام کوششیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔</string>
+  <string name="errors_authentication_failed">تصدیق ناکام ہو گئی۔ براہ کرم دوبارہ کوشش کریں۔</string>
+  <string name="errors_connections_expired">اس کنکشن لنک کی میعاد ختم ہو گئی ہے۔ نیا QR کوڈ حاصل کریں اور دوبارہ کوشش کریں۔</string>
+  <string name="errors_connections_not_found">یہ کنکشن اب موجود نہیں ہے۔</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect تک رسائی نہیں ہو سکی۔ اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔</string>
   <string name="errors_swap_amount_too_small">رقم بہت چھوٹی ہے۔</string>
   <string name="errors_scan_transaction_malicious_description">یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔</string>
   <string name="errors_scan_transaction_memo_required">%1$s منزل والے بٹوے کے پتے کے لیے منزل کا ٹیگ / میمو درکار ہے۔</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">جب قیمت کم ہوتی ہے۔</string>
   <string name="price_alerts_set_alert_set_target_price">ہدف کی قیمت مقرر کریں۔</string>
   <string name="price_alerts_set_alert_current_price">موجودہ قیمت</string>
-  <string name="price_alerts_added_for">قیمت کا الرٹ مقرر کریں %1$s</string>
+  <string name="price_alerts_added_price_over">قیمت %1$s سے اوپر جانے پر الرٹ شامل کر دیا گیا</string>
+  <string name="price_alerts_added_price_under">قیمت %1$s سے نیچے جانے پر الرٹ شامل کر دیا گیا</string>
+  <string name="price_alerts_added_increases_by">قیمت %1$s بڑھنے پر الرٹ شامل کر دیا گیا</string>
+  <string name="price_alerts_added_decreases_by">قیمت %1$s گھٹنے پر الرٹ شامل کر دیا گیا</string>
   <string name="price_alerts_state_empty_title">آپ کے الرٹس یہاں ظاہر ہوں گے۔</string>
   <string name="price_alerts_state_empty_description">ٹریک میں سکے شامل کرکے انہیں فعال کریں۔</string>
   <string name="price_alerts_auto_footer">انتباہات اہم قیمت کی چالوں پر متحرک ہوتے ہیں۔</string>

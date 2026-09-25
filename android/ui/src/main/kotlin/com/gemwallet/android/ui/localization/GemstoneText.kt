@@ -210,6 +210,14 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.RewardsRedeemAsset -> context.getString(R.string.rewards_ways_spend_asset_title, value.text())
 
+    is GemLocalizedText.PriceAlertAddedPriceOver -> context.getString(R.string.price_alerts_added_price_over, value.text())
+
+    is GemLocalizedText.PriceAlertAddedPriceUnder -> context.getString(R.string.price_alerts_added_price_under, value.text())
+
+    is GemLocalizedText.PriceAlertAddedIncreasesBy -> context.getString(R.string.price_alerts_added_increases_by, value.text())
+
+    is GemLocalizedText.PriceAlertAddedDecreasesBy -> context.getString(R.string.price_alerts_added_decreases_by, value.text())
+
     is GemLocalizedText.SignInWith -> context.getString(R.string.common_sign_in_with, chain.requireChain().networkName())
 
     GemLocalizedText.ReviewRequest -> context.getString(R.string.transfer_review_request)
@@ -446,6 +454,12 @@ fun GemErrorText.text(context: Context): String = when (this) {
     GemErrorText.InvalidPrivateKey -> context.getString(R.string.errors_import_invalid_private_key)
     GemErrorText.InvalidAddress -> context.getString(R.string.errors_invalid_address_name)
     GemErrorText.NoAccountForChain -> context.getString(R.string.errors_wallet_account_missing)
+    GemErrorText.AuthenticationUnavailable -> context.getString(R.string.errors_authentication_unavailable)
+    GemErrorText.AuthenticationLockedOut -> context.getString(R.string.errors_authentication_locked_out)
+    GemErrorText.AuthenticationFailed -> context.getString(R.string.errors_authentication_failed)
+    GemErrorText.ConnectionExpired -> context.getString(R.string.errors_connections_expired)
+    GemErrorText.ConnectionNotFound -> context.getString(R.string.errors_connections_not_found)
+    GemErrorText.RelayUnavailable -> context.getString(R.string.errors_connections_relay_unavailable)
     GemErrorText.Unknown -> context.getString(R.string.errors_unknown)
     is GemErrorText.Message -> text
 }

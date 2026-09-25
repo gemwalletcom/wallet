@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Activo no admitido.</string>
   <string name="errors_connections_no_supported_wallets">No hay billeteras compatibles disponibles.</string>
   <string name="errors_connections_unsupported_chain">La cadena proporcionada no es compatible.</string>
+  <string name="errors_authentication_unavailable">La autenticación no está configurada en este dispositivo. Active la biometría o un código de acceso en los ajustes del dispositivo.</string>
+  <string name="errors_authentication_locked_out">Demasiados intentos fallidos. Inténtelo de nuevo más tarde.</string>
+  <string name="errors_authentication_failed">La autenticación falló. Inténtelo de nuevo.</string>
+  <string name="errors_connections_expired">Este enlace de conexión ha caducado. Obtenga un nuevo código QR e inténtelo de nuevo.</string>
+  <string name="errors_connections_not_found">Esta conexión ya no existe.</string>
+  <string name="errors_connections_relay_unavailable">No se pudo conectar con WalletConnect. Compruebe su conexión a internet e inténtelo de nuevo.</string>
   <string name="errors_swap_amount_too_small">Cantidad demasiado pequeña</string>
   <string name="errors_scan_transaction_malicious_description">Esta transacción no se puede completar: la dirección de la billetera de destino está vinculada a actividades sospechosas o dañinas.</string>
   <string name="errors_scan_transaction_memo_required">%1$s La dirección de la billetera de destino requiere una etiqueta/nota de destino.</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Cuando el precio disminuye en</string>
   <string name="price_alerts_set_alert_set_target_price">Establecer precio objetivo</string>
   <string name="price_alerts_set_alert_current_price">Precio actual</string>
-  <string name="price_alerts_added_for">Establecer alerta de precio %1$s</string>
+  <string name="price_alerts_added_price_over">Alerta añadida para precio por encima de %1$s</string>
+  <string name="price_alerts_added_price_under">Alerta añadida para precio por debajo de %1$s</string>
+  <string name="price_alerts_added_increases_by">Alerta añadida para subida de precio de %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alerta añadida para bajada de precio de %1$s</string>
   <string name="price_alerts_state_empty_title">Tus alertas aparecerán aquí</string>
   <string name="price_alerts_state_empty_description">Habilítelos agregando monedas para realizar un seguimiento</string>
   <string name="price_alerts_auto_footer">Las alertas se activan ante movimientos de precios significativos.</string>

@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">暂不支持该资产。</string>
   <string name="errors_connections_no_supported_wallets">暂无可用钱包</string>
   <string name="errors_connections_unsupported_chain">暂不支持该区块链网络</string>
+  <string name="errors_authentication_unavailable">此设备未设置身份验证。请在设备设置中开启生物识别或密码。</string>
+  <string name="errors_authentication_locked_out">失败次数过多，请稍后再试。</string>
+  <string name="errors_authentication_failed">身份验证失败，请重试。</string>
+  <string name="errors_connections_expired">此连接链接已过期。请获取新的二维码后重试。</string>
+  <string name="errors_connections_not_found">此连接已不存在。</string>
+  <string name="errors_connections_relay_unavailable">无法连接 WalletConnect。请检查网络连接后重试。</string>
   <string name="errors_swap_amount_too_small">金额太小，请输入更大的数额试试</string>
   <string name="errors_scan_transaction_malicious_description">无法完成此交易：目标钱包地址与可疑或恶意行为有关。</string>
   <string name="errors_scan_transaction_memo_required">%1$s 收款地址需要填写目标标签或备注</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">当价格下跌</string>
   <string name="price_alerts_set_alert_set_target_price">设定目标价格</string>
   <string name="price_alerts_set_alert_current_price">当前价格</string>
-  <string name="price_alerts_added_for">为 %1$s 设置价格提醒</string>
+  <string name="price_alerts_added_price_over">已添加价格高于 %1$s 时的提醒</string>
+  <string name="price_alerts_added_price_under">已添加价格低于 %1$s 时的提醒</string>
+  <string name="price_alerts_added_increases_by">已添加价格上涨 %1$s 时的提醒</string>
+  <string name="price_alerts_added_decreases_by">已添加价格下跌 %1$s 时的提醒</string>
   <string name="price_alerts_state_empty_title">价格提醒将显示在这里</string>
   <string name="price_alerts_state_empty_description">请添加币种，即可开始追踪资产</string>
   <string name="price_alerts_auto_footer">当价格发生重大变动时，警报就会触发。</string>

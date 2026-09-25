@@ -117,7 +117,7 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
     override fun approveSession(proposal: WalletConnectSessionProposal, namespaces: Map<String, WalletConnectSessionNamespace>, properties: Map<String, String>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val sessionProposal = proposal.pendingReownProposal()
         if (sessionProposal == null) {
-            onError("WalletConnect session proposal is no longer available")
+            onError("Session proposal expired")
             return
         }
         WalletKit.approveSession(

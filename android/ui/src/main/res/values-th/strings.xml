@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">ไม่รองรับสินทรัพย์นี้</string>
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
   <string name="errors_connections_unsupported_chain">ไม่รองรับโซ่ที่ให้มา</string>
+  <string name="errors_authentication_unavailable">อุปกรณ์นี้ยังไม่ได้ตั้งค่าการยืนยันตัวตน เปิดไบโอเมตริกซ์หรือรหัสผ่านในการตั้งค่าอุปกรณ์</string>
+  <string name="errors_authentication_locked_out">ลองไม่สำเร็จหลายครั้งเกินไป โปรดลองใหม่ภายหลัง</string>
+  <string name="errors_authentication_failed">การยืนยันตัวตนล้มเหลว โปรดลองอีกครั้ง</string>
+  <string name="errors_connections_expired">ลิงก์เชื่อมต่อนี้หมดอายุแล้ว รับคิวอาร์โค้ดใหม่แล้วลองอีกครั้ง</string>
+  <string name="errors_connections_not_found">การเชื่อมต่อนี้ไม่มีอยู่แล้ว</string>
+  <string name="errors_connections_relay_unavailable">เชื่อมต่อ WalletConnect ไม่ได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง</string>
   <string name="errors_swap_amount_too_small">จำนวนเงินน้อยเกินไป</string>
   <string name="errors_scan_transaction_malicious_description">ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="errors_scan_transaction_memo_required">ที่อยู่กระเป๋าเงินปลายทาง %1$s ต้องมีแท็กปลายทาง / บันทึกช่วยจำ</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">เมื่อราคาลดลง</string>
   <string name="price_alerts_set_alert_set_target_price">ตั้งราคาเป้าหมาย</string>
   <string name="price_alerts_set_alert_current_price">ราคาปัจจุบัน</string>
-  <string name="price_alerts_added_for">ตั้งค่าการแจ้งเตือนราคา %1$s</string>
+  <string name="price_alerts_added_price_over">เพิ่มการแจ้งเตือนเมื่อราคาสูงกว่า %1$s แล้ว</string>
+  <string name="price_alerts_added_price_under">เพิ่มการแจ้งเตือนเมื่อราคาต่ำกว่า %1$s แล้ว</string>
+  <string name="price_alerts_added_increases_by">เพิ่มการแจ้งเตือนเมื่อราคาเพิ่มขึ้น %1$s แล้ว</string>
+  <string name="price_alerts_added_decreases_by">เพิ่มการแจ้งเตือนเมื่อราคาลดลง %1$s แล้ว</string>
   <string name="price_alerts_state_empty_title">การแจ้งเตือนของคุณจะปรากฏที่นี่</string>
   <string name="price_alerts_state_empty_description">เปิดใช้งานได้โดยการเพิ่มเหรียญเพื่อติดตาม</string>
   <string name="price_alerts_auto_footer">การแจ้งเตือนจะเกิดขึ้นเมื่อราคามีการเปลี่ยนแปลงอย่างมีนัยสำคัญ</string>

@@ -4,6 +4,7 @@ use super::rules;
 use crate::formatted_number::GemFormattedNumber;
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
+use crate::services::localization::GemLocalizedText;
 use number_formatter::price_suggestion;
 
 const SUGGESTION_OFFSET_PERCENT: f64 = 5.0;
@@ -27,7 +28,7 @@ pub struct GemPriceAlertViewState {
     pub is_saving: bool,
     pub percentage_suggestions: Vec<GemFormattedNumber>,
     pub price_suggestions: Vec<GemFormattedNumber>,
-    pub saved_value: Option<GemFormattedNumber>,
+    pub saved_message: Option<GemLocalizedText>,
     pub current_price: Option<GemFormattedNumber>,
     pub price_change: Option<GemFormattedNumber>,
 }
@@ -111,7 +112,7 @@ impl GemPriceAlertSession {
                 .into_iter()
                 .map(|value| self.price_number(value))
                 .collect(),
-            saved_value: self.input.map(|input| self.input_number(input)),
+            saved_message: self.saved_message(),
             current_price: price.map(|price| self.price_number(price)),
             price_change: self.price_change.map(|change| GemFormattedNumber::percentage(change, GemPercentageStyle::Signed).toned()),
         }
@@ -127,6 +128,17 @@ impl GemPriceAlertSession {
         match self.notification_type {
             PriceAlertNotificationType::PricePercentChange => GemFormattedNumber::percentage(input, GemPercentageStyle::UnsignedCompact),
             PriceAlertNotificationType::Price | PriceAlertNotificationType::Auto => self.price_number(input),
+        }
+    }
+
+    fn saved_message(&self) -> Option<GemLocalizedText> {
+        let value = self.input_number(self.input?);
+        match self.prompt() {
+            GemPriceAlertPrompt::PriceOver => Some(GemLocalizedText::PriceAlertAddedPriceOver { value }),
+            GemPriceAlertPrompt::PriceUnder => Some(GemLocalizedText::PriceAlertAddedPriceUnder { value }),
+            GemPriceAlertPrompt::IncreasesBy => Some(GemLocalizedText::PriceAlertAddedIncreasesBy { value }),
+            GemPriceAlertPrompt::DecreasesBy => Some(GemLocalizedText::PriceAlertAddedDecreasesBy { value }),
+            GemPriceAlertPrompt::TargetPrice => None,
         }
     }
 
@@ -213,14 +225,23 @@ mod tests {
     }
 
     #[test]
-    fn test_the_saved_value_carries_the_unit_the_alert_was_set_in() {
+    fn test_the_saved_message_names_the_kind_and_direction_with_the_value_in_its_unit() {
         let price = GemPriceAlertSession::mock().on_input(Some(120.0));
         let percent = price.on_type(PriceAlertNotificationType::PricePercentChange).on_input(Some(5.0));
 
-        assert_eq!(price.view_state().saved_value.map(|value| value.unit), Some(GemNumberUnit::Currency { code: Currency::USD.to_string() }));
-        assert_eq!(percent.view_state().saved_value.map(|value| value.unit), Some(GemNumberUnit::Percent));
-        assert_eq!(percent.view_state().saved_value.map(|value| value.value), Some(5.0));
-        assert_eq!(GemPriceAlertSession::mock().view_state().saved_value, None, "nothing typed names no value");
+        assert_eq!(
+            price.view_state().saved_message,
+            Some(GemLocalizedText::PriceAlertAddedPriceOver {
+                value: GemFormattedNumber::currency(120.0, Currency::USD, GemCurrencyStyle::Currency)
+            })
+        );
+        assert_eq!(
+            percent.on_direction(PriceAlertDirection::Down).view_state().saved_message,
+            Some(GemLocalizedText::PriceAlertAddedDecreasesBy {
+                value: GemFormattedNumber::percentage(5.0, GemPercentageStyle::UnsignedCompact)
+            })
+        );
+        assert_eq!(GemPriceAlertSession::mock().view_state().saved_message, None, "nothing typed names no message");
         assert!(
             price.view_state().percentage_suggestions.iter().all(|value| value.unit == GemNumberUnit::Percent),
             "a percentage suggestion carries its unit instead of a pasted %"

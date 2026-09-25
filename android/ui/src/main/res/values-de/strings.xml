@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Nicht unterstütztes Asset.</string>
   <string name="errors_connections_no_supported_wallets">Es sind keine unterstützten Wallets verfügbar.</string>
   <string name="errors_connections_unsupported_chain">Die bereitgestellte Kette wird nicht unterstützt.</string>
+  <string name="errors_authentication_unavailable">Auf diesem Gerät ist keine Authentifizierung eingerichtet. Aktivieren Sie Biometrie oder einen Code in den Geräteeinstellungen.</string>
+  <string name="errors_authentication_locked_out">Zu viele fehlgeschlagene Versuche. Bitte versuchen Sie es später erneut.</string>
+  <string name="errors_authentication_failed">Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.</string>
+  <string name="errors_connections_expired">Dieser Verbindungslink ist abgelaufen. Holen Sie sich einen neuen QR-Code und versuchen Sie es erneut.</string>
+  <string name="errors_connections_not_found">Diese Verbindung besteht nicht mehr.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect ist nicht erreichbar. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
   <string name="errors_swap_amount_too_small">Menge zu gering</string>
   <string name="errors_scan_transaction_malicious_description">Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Wenn der Preis sinkt um</string>
   <string name="price_alerts_set_alert_set_target_price">Zielpreis festlegen</string>
   <string name="price_alerts_set_alert_current_price">Aktueller Preis</string>
-  <string name="price_alerts_added_for">Preisalarm einstellen %1$s</string>
+  <string name="price_alerts_added_price_over">Alarm hinzugefügt für Preis über %1$s</string>
+  <string name="price_alerts_added_price_under">Alarm hinzugefügt für Preis unter %1$s</string>
+  <string name="price_alerts_added_increases_by">Alarm hinzugefügt für Preisanstieg um %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alarm hinzugefügt für Preisrückgang um %1$s</string>
   <string name="price_alerts_state_empty_title">Ihre Benachrichtigungen werden hier angezeigt</string>
   <string name="price_alerts_state_empty_description">Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen</string>
   <string name="price_alerts_auto_footer">Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.</string>

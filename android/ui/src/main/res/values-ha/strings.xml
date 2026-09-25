@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Ba a goyan bayan kadari.</string>
   <string name="errors_connections_no_supported_wallets">Babu goyan bayan walat.</string>
   <string name="errors_connections_unsupported_chain">Ba a tallafawa sarkar da aka bayar.</string>
+  <string name="errors_authentication_unavailable">Ba a saita tabbatarwa a wannan na\'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na\'urar.</string>
+  <string name="errors_authentication_locked_out">An yi ƙoƙari da yawa da suka gaza. Da fatan za a sake gwadawa daga baya.</string>
+  <string name="errors_authentication_failed">Tabbatarwa ta gaza. Da fatan za a sake gwadawa.</string>
+  <string name="errors_connections_expired">Wannan hanyar haɗin ta ƙare. Samo sabon lambar QR ka sake gwadawa.</string>
+  <string name="errors_connections_not_found">Wannan haɗin ba ya nan kuma.</string>
+  <string name="errors_connections_relay_unavailable">Ba a iya isa WalletConnect ba. Duba haɗin intanet ɗinka ka sake gwadawa.</string>
   <string name="errors_swap_amount_too_small">Adadin yayi ƙanƙanta</string>
   <string name="errors_scan_transaction_malicious_description">Ba za a iya kammala wannan ma\'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Adireshin walat ɗin manufa yana buƙatar alamar manufa / memo</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Lokacin da farashin ya ragu da</string>
   <string name="price_alerts_set_alert_set_target_price">Saita farashin manufa</string>
   <string name="price_alerts_set_alert_current_price">Farashin yanzu</string>
-  <string name="price_alerts_added_for">Saita faɗakarwar farashi %1$s</string>
+  <string name="price_alerts_added_price_over">An ƙara faɗakarwa don farashi sama da %1$s</string>
+  <string name="price_alerts_added_price_under">An ƙara faɗakarwa don farashi ƙasa da %1$s</string>
+  <string name="price_alerts_added_increases_by">An ƙara faɗakarwa don ƙaruwar farashi da %1$s</string>
+  <string name="price_alerts_added_decreases_by">An ƙara faɗakarwa don raguwar farashi da %1$s</string>
   <string name="price_alerts_state_empty_title">Faɗin farashin ku zai bayyana anan</string>
   <string name="price_alerts_state_empty_description">Kunna su ta ƙara tsabar kudi don waƙa</string>
   <string name="price_alerts_auto_footer">Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.</string>

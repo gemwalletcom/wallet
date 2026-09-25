@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">不支援此資產。</string>
   <string name="errors_connections_no_supported_wallets">目前沒有支援的錢包可用。</string>
   <string name="errors_connections_unsupported_chain">不支援指定的區塊鏈。</string>
+  <string name="errors_authentication_unavailable">此裝置未設定身分驗證。請在裝置設定中開啟生物辨識或密碼。</string>
+  <string name="errors_authentication_locked_out">失敗次數過多，請稍後再試。</string>
+  <string name="errors_authentication_failed">身分驗證失敗，請重試。</string>
+  <string name="errors_connections_expired">此連線連結已過期。請取得新的 QR 碼後重試。</string>
+  <string name="errors_connections_not_found">此連線已不存在。</string>
+  <string name="errors_connections_relay_unavailable">無法連線至 WalletConnect。請檢查網路連線後重試。</string>
   <string name="errors_swap_amount_too_small">金額太小，請輸入更大的金額試試</string>
   <string name="errors_scan_transaction_malicious_description">無法完成此交易：收款錢包位址與可疑或惡意行為有關。</string>
   <string name="errors_scan_transaction_memo_required">%1$s目標錢包位址需要目標標籤/備註</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">當價格下跌</string>
   <string name="price_alerts_set_alert_set_target_price">設定目標價格</string>
   <string name="price_alerts_set_alert_current_price">目前價格</string>
-  <string name="price_alerts_added_for">價格提醒已設定：%1$s</string>
+  <string name="price_alerts_added_price_over">已新增價格高於 %1$s 時的提醒</string>
+  <string name="price_alerts_added_price_under">已新增價格低於 %1$s 時的提醒</string>
+  <string name="price_alerts_added_increases_by">已新增價格上漲 %1$s 時的提醒</string>
+  <string name="price_alerts_added_decreases_by">已新增價格下跌 %1$s 時的提醒</string>
   <string name="price_alerts_state_empty_title">價格提醒將顯示在這裡</string>
   <string name="price_alerts_state_empty_description">請添加幣種，即可開始追蹤資產</string>
   <string name="price_alerts_auto_footer">價格大幅變動時會觸發提醒。</string>

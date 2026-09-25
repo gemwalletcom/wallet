@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Aset tidak disokong.</string>
   <string name="errors_connections_no_supported_wallets">Tiada dompet yang disokong tersedia.</string>
   <string name="errors_connections_unsupported_chain">Rantaian yang disediakan tidak disokong.</string>
+  <string name="errors_authentication_unavailable">Pengesahan belum disediakan pada peranti ini. Hidupkan biometrik atau kod laluan dalam tetapan peranti.</string>
+  <string name="errors_authentication_locked_out">Terlalu banyak percubaan gagal. Sila cuba lagi kemudian.</string>
+  <string name="errors_authentication_failed">Pengesahan gagal. Sila cuba lagi.</string>
+  <string name="errors_connections_expired">Pautan sambungan ini telah tamat tempoh. Dapatkan kod QR baharu dan cuba lagi.</string>
+  <string name="errors_connections_not_found">Sambungan ini tidak lagi wujud.</string>
+  <string name="errors_connections_relay_unavailable">Tidak dapat mencapai WalletConnect. Semak sambungan internet anda dan cuba lagi.</string>
   <string name="errors_swap_amount_too_small">Jumlah terlalu kecil</string>
   <string name="errors_scan_transaction_malicious_description">Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="errors_scan_transaction_memo_required">%1$s alamat dompet destinasi memerlukan teg / memo destinasi</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Apabila harga menurun sebanyak</string>
   <string name="price_alerts_set_alert_set_target_price">Tetapkan harga sasaran</string>
   <string name="price_alerts_set_alert_current_price">Harga semasa</string>
-  <string name="price_alerts_added_for">Tetapkan makluman harga %1$s</string>
+  <string name="price_alerts_added_price_over">Makluman ditambah untuk harga melebihi %1$s</string>
+  <string name="price_alerts_added_price_under">Makluman ditambah untuk harga di bawah %1$s</string>
+  <string name="price_alerts_added_increases_by">Makluman ditambah untuk kenaikan harga sebanyak %1$s</string>
+  <string name="price_alerts_added_decreases_by">Makluman ditambah untuk penurunan harga sebanyak %1$s</string>
   <string name="price_alerts_state_empty_title">Makluman anda akan dipaparkan di sini</string>
   <string name="price_alerts_state_empty_description">Dayakan mereka dengan menambahkan syiling untuk dijejaki</string>
   <string name="price_alerts_auto_footer">Makluman mencetuskan pergerakan harga yang ketara.</string>

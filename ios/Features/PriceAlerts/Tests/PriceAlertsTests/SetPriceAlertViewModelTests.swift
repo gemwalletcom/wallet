@@ -1,5 +1,6 @@
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import Localization
 @testable import PriceAlerts
 import PriceAlertsTestKit
 import Primitives
@@ -58,6 +59,7 @@ struct SetPriceAlertViewModelTests {
 
         #expect(service.isEnabled())
         #expect(messages.messages.count == 1)
+        #expect(messages.messages.first?.hasPrefix(Localized.PriceAlerts.addedPriceOver("")) == true, "one whole sentence, not a lowercased title")
         #expect(viewModel.isPresentingAlertMessage == nil)
     }
 

@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Ikke understøttet aktiv.</string>
   <string name="errors_connections_no_supported_wallets">Ingen understøttede tegnebøger er tilgængelige.</string>
   <string name="errors_connections_unsupported_chain">Den angivne kæde understøttes ikke.</string>
+  <string name="errors_authentication_unavailable">Godkendelse er ikke konfigureret på denne enhed. Slå biometri eller en adgangskode til i enhedens indstillinger.</string>
+  <string name="errors_authentication_locked_out">For mange mislykkede forsøg. Prøv igen senere.</string>
+  <string name="errors_authentication_failed">Godkendelsen mislykkedes. Prøv igen.</string>
+  <string name="errors_connections_expired">Dette forbindelseslink er udløbet. Hent en ny QR-kode, og prøv igen.</string>
+  <string name="errors_connections_not_found">Denne forbindelse findes ikke længere.</string>
+  <string name="errors_connections_relay_unavailable">Kunne ikke få forbindelse til WalletConnect. Tjek din internetforbindelse, og prøv igen.</string>
   <string name="errors_swap_amount_too_small">Beløbet er for lille</string>
   <string name="errors_scan_transaction_malicious_description">Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.</string>
   <string name="errors_scan_transaction_memo_required">%1$s destinations-wallet-adresse kræver et destinationstag / en destinations-memo</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Når prisen falder med</string>
   <string name="price_alerts_set_alert_set_target_price">Sæt målpris</string>
   <string name="price_alerts_set_alert_current_price">Nuværende pris</string>
-  <string name="price_alerts_added_for">Indstil prisalarm %1$s</string>
+  <string name="price_alerts_added_price_over">Alarm tilføjet for pris over %1$s</string>
+  <string name="price_alerts_added_price_under">Alarm tilføjet for pris under %1$s</string>
+  <string name="price_alerts_added_increases_by">Alarm tilføjet for prisstigning på %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alarm tilføjet for prisfald på %1$s</string>
   <string name="price_alerts_state_empty_title">Dine alarmer vises her</string>
   <string name="price_alerts_state_empty_description">Aktivér dem ved at tilføje mønter til sporet</string>
   <string name="price_alerts_auto_footer">Advarsler udløses ved betydelige prisbevægelser.</string>

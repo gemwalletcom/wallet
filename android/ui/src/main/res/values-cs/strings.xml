@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Nepodporované aktivum.</string>
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
   <string name="errors_connections_unsupported_chain">Zadaný řetězec není podporován.</string>
+  <string name="errors_authentication_unavailable">Ověřování není na tomto zařízení nastaveno. Zapněte biometrii nebo kód v nastavení zařízení.</string>
+  <string name="errors_authentication_locked_out">Příliš mnoho neúspěšných pokusů. Zkuste to prosím později.</string>
+  <string name="errors_authentication_failed">Ověření se nezdařilo. Zkuste to prosím znovu.</string>
+  <string name="errors_connections_expired">Platnost tohoto odkazu pro připojení vypršela. Získejte nový QR kód a zkuste to znovu.</string>
+  <string name="errors_connections_not_found">Toto připojení už neexistuje.</string>
+  <string name="errors_connections_relay_unavailable">Nepodařilo se spojit s WalletConnect. Zkontrolujte připojení k internetu a zkuste to znovu.</string>
   <string name="errors_swap_amount_too_small">Příliš malé množství</string>
   <string name="errors_scan_transaction_malicious_description">Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="errors_scan_transaction_memo_required">Cílová adresa peněženky %1$s vyžaduje cílovou značku / poznámku</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Když cena klesne o</string>
   <string name="price_alerts_set_alert_set_target_price">Stanovte cílovou cenu</string>
   <string name="price_alerts_set_alert_current_price">Aktuální cena</string>
-  <string name="price_alerts_added_for">Nastavit cenové upozornění %1$s</string>
+  <string name="price_alerts_added_price_over">Upozornění přidáno pro cenu nad %1$s</string>
+  <string name="price_alerts_added_price_under">Upozornění přidáno pro cenu pod %1$s</string>
+  <string name="price_alerts_added_increases_by">Upozornění přidáno pro nárůst ceny o %1$s</string>
+  <string name="price_alerts_added_decreases_by">Upozornění přidáno pro pokles ceny o %1$s</string>
   <string name="price_alerts_state_empty_title">Vaše upozornění se zobrazí zde</string>
   <string name="price_alerts_state_empty_description">Povolte je přidáním mincí do sledování</string>
   <string name="price_alerts_auto_footer">Upozornění se spouštějí při významných cenových pohybech.</string>

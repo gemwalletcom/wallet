@@ -15,10 +15,10 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.stringRes
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -106,9 +106,6 @@ class PriceAlertTargetViewModel @Inject constructor(
     val priceChange: StateFlow<GemFormattedNumber?> = viewState.map { it.priceChange }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val resolvedDirection: StateFlow<PriceAlertDirection?> = viewState.map { it.direction?.toPrimitives() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     val buttonState: StateFlow<ButtonState> = viewState.map { buttonState(enabled = it.canConfirm, loading = it.isSaving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))
 
@@ -131,14 +128,12 @@ class PriceAlertTargetViewModel @Inject constructor(
         _type.update { type }
     }
 
-    fun onConfirm(onSaved: (PriceAlertConfirmResult) -> Unit) {
-        val type = type.value
-        val direction = resolvedDirection.value ?: return
+    fun onConfirm(onSaved: (String) -> Unit) {
         val priceAlert = session.value.alert() ?: return
         isSaving.value = true
         viewModelScope.launch {
             runCatchingCancellable { withContext(ioDispatcher) { service.enablePriceAlert(priceAlert) } }
-                .onSuccess { onSaved(PriceAlertConfirmResult(type, direction, viewState.value.savedValue?.text().orEmpty())) }
+                .onSuccess { onSaved(viewState.value.savedMessage?.string(context).orEmpty()) }
                 .onFailure { errorState.value = it.errorText().text(context) }
             isSaving.value = false
         }

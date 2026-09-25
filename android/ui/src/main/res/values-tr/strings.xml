@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Desteklenmeyen varlık.</string>
   <string name="errors_connections_no_supported_wallets">Desteklenen cüzdan yok.</string>
   <string name="errors_connections_unsupported_chain">Sağlanan zincir desteklenmiyor.</string>
+  <string name="errors_authentication_unavailable">Bu cihazda kimlik doğrulama ayarlanmamış. Cihaz ayarlarından biyometriyi veya bir parolayı açın.</string>
+  <string name="errors_authentication_locked_out">Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin.</string>
+  <string name="errors_authentication_failed">Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.</string>
+  <string name="errors_connections_expired">Bu bağlantı linkinin süresi doldu. Yeni bir QR kodu alıp tekrar deneyin.</string>
+  <string name="errors_connections_not_found">Bu bağlantı artık mevcut değil.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect\'e ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.</string>
   <string name="errors_swap_amount_too_small">Miktar çok küçük</string>
   <string name="errors_scan_transaction_malicious_description">Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.</string>
   <string name="errors_scan_transaction_memo_required">%1$s hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Fiyat düştüğünde</string>
   <string name="price_alerts_set_alert_set_target_price">Hedef fiyatı belirle</string>
   <string name="price_alerts_set_alert_current_price">Güncel fiyat</string>
-  <string name="price_alerts_added_for">Fiyat uyarısı ayarla %1$s</string>
+  <string name="price_alerts_added_price_over">Fiyat %1$s üzerine çıktığında uyarı eklendi</string>
+  <string name="price_alerts_added_price_under">Fiyat %1$s altına düştüğünde uyarı eklendi</string>
+  <string name="price_alerts_added_increases_by">Fiyat %1$s arttığında uyarı eklendi</string>
+  <string name="price_alerts_added_decreases_by">Fiyat %1$s düştüğünde uyarı eklendi</string>
   <string name="price_alerts_state_empty_title">Uyarılarınız burada görünecek</string>
   <string name="price_alerts_state_empty_description">Paraları takip sistemine ekleyerek onları etkinleştirin</string>
   <string name="price_alerts_auto_footer">Önemli fiyat hareketlerinde uyarılar tetiklenir.</string>

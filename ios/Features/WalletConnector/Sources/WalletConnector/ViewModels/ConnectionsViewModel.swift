@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemConnection
 import struct Gemstone.GemConnectionsView
 import protocol Gemstone.GemWalletConnectServiceProtocol
+import func Gemstone.walletConnectErrorText
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -107,7 +108,7 @@ extension ConnectionsViewModel {
         do {
             try await disconnect(connection: connection)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(message: walletConnectErrorText(message: error.localizedDescription).text)
             debugLog("disconnect error: \(error)")
         }
     }
@@ -118,7 +119,7 @@ extension ConnectionsViewModel {
             try await pair(uri: uri)
         } catch {
             hideConnectionBar()
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(message: walletConnectErrorText(message: error.localizedDescription).text)
             debugLog("connectURI error: \(error)")
         }
     }

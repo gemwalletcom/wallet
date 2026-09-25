@@ -461,6 +461,18 @@ errors_swap_not_supported_asset = Not supported asset.
 errors_connections_no_supported_wallets = No supported wallets are available.
 # Used in error cards and validation UI for the connections unsupported chain label.
 errors_connections_unsupported_chain = The provided chain is not supported.
+# Shown when turning on app authentication on a device with no biometrics or passcode set up.
+errors_authentication_unavailable = Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings.
+# Shown when biometric authentication is locked after too many failed attempts.
+errors_authentication_locked_out = Too many failed attempts. Please try again later.
+# Shown when biometric or passcode authentication fails.
+errors_authentication_failed = Authentication failed. Please try again.
+# WalletConnect error when the scanned connection link (QR code) has expired.
+errors_connections_expired = This connection link has expired. Get a new QR code and try again.
+# WalletConnect error when the connection being paired or disconnected no longer exists.
+errors_connections_not_found = This connection no longer exists.
+# WalletConnect error when its relay server can't be reached.
+errors_connections_relay_unavailable = Couldn't reach WalletConnect. Check your internet connection and try again.
 # Used in error cards and validation UI for the swap amount too small label.
 errors_swap_amount_too_small = Amount too small
 # Used in error cards and validation UI for the scan transaction malicious description.
@@ -945,8 +957,14 @@ price_alerts_set_alert_price_decreases_by = When price decreases by
 price_alerts_set_alert_set_target_price = Set target price
 # Used in Price Alerts screens for the set alert current price label.
 price_alerts_set_alert_current_price = Current price
-# Used in Price Alerts screens for the added for label. Contains 1 string placeholder.
-price_alerts_added_for = Set price alert %@
+# Confirmation after adding a price alert. %@ is the target price, for example $100.
+price_alerts_added_price_over = Alert added for price over %@
+# Confirmation after adding a price alert. %@ is the target price, for example $100.
+price_alerts_added_price_under = Alert added for price under %@
+# Confirmation after adding a price alert. %@ is the percentage, for example 5%.
+price_alerts_added_increases_by = Alert added for price increase of %@
+# Confirmation after adding a price alert. %@ is the percentage, for example 5%.
+price_alerts_added_decreases_by = Alert added for price decrease of %@
 # Used in Price Alerts screens for the state empty title.
 price_alerts_state_empty_title = Your price alerts will appear here
 # Used in Price Alerts screens for the state empty description.

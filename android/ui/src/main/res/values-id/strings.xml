@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Aset yang tidak didukung.</string>
   <string name="errors_connections_no_supported_wallets">Tidak ada dompet yang didukung tersedia.</string>
   <string name="errors_connections_unsupported_chain">Rantai yang disediakan tidak didukung.</string>
+  <string name="errors_authentication_unavailable">Otentikasi belum diatur di perangkat ini. Aktifkan biometrik atau kode sandi di pengaturan perangkat.</string>
+  <string name="errors_authentication_locked_out">Terlalu banyak percobaan gagal. Silakan coba lagi nanti.</string>
+  <string name="errors_authentication_failed">Otentikasi gagal. Silakan coba lagi.</string>
+  <string name="errors_connections_expired">Tautan koneksi ini sudah kedaluwarsa. Dapatkan kode QR baru dan coba lagi.</string>
+  <string name="errors_connections_not_found">Koneksi ini sudah tidak ada.</string>
+  <string name="errors_connections_relay_unavailable">Tidak dapat menjangkau WalletConnect. Periksa koneksi internet Anda dan coba lagi.</string>
   <string name="errors_swap_amount_too_small">Jumlahnya terlalu kecil</string>
   <string name="errors_scan_transaction_malicious_description">Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.</string>
   <string name="errors_scan_transaction_memo_required">%1$s alamat dompet tujuan memerlukan tag / memo tujuan</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Ketika harga turun sebesar</string>
   <string name="price_alerts_set_alert_set_target_price">Tetapkan target harga</string>
   <string name="price_alerts_set_alert_current_price">Harga saat ini</string>
-  <string name="price_alerts_added_for">Tetapkan peringatan harga %1$s</string>
+  <string name="price_alerts_added_price_over">Peringatan ditambahkan untuk harga di atas %1$s</string>
+  <string name="price_alerts_added_price_under">Peringatan ditambahkan untuk harga di bawah %1$s</string>
+  <string name="price_alerts_added_increases_by">Peringatan ditambahkan untuk kenaikan harga sebesar %1$s</string>
+  <string name="price_alerts_added_decreases_by">Peringatan ditambahkan untuk penurunan harga sebesar %1$s</string>
   <string name="price_alerts_state_empty_title">Peringatan Anda akan muncul di sini</string>
   <string name="price_alerts_state_empty_description">Aktifkan mereka dengan menambahkan koin untuk dilacak</string>
   <string name="price_alerts_auto_footer">Peringatan dipicu pada pergerakan harga yang signifikan.</string>

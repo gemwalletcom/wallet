@@ -110,8 +110,8 @@ extension SecurityViewModel {
             isPrivacyLockEnabled = service.isPrivacyLockEnabled
             storedLockPeriod = service.lockPeriod
         } catch let error as BiometryAuthenticationError {
-            if !error.isAuthenticationCancelled {
-                isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            if let text = error.promptOutcome.errorText() {
+                isPresentingAlertMessage = AlertMessage(message: text.text)
             }
             isEnabled.toggle()
         } catch {

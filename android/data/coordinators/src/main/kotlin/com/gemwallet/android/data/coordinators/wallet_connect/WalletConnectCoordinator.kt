@@ -42,6 +42,7 @@ import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.walletConnectErrorText
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletConnectCoordinator(
@@ -269,4 +270,4 @@ class WalletConnectCoordinator(
     }
 }
 
-private fun clientErrorText(message: String): GemErrorText = message.ifBlank { null }?.let { GemErrorText.Message(it) } ?: GemErrorText.Unknown
+private fun clientErrorText(message: String): GemErrorText = walletConnectErrorText(message)

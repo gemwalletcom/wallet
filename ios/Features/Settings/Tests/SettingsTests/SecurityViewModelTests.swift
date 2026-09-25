@@ -4,6 +4,7 @@ import enum Gemstone.GemLockPeriod
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
+import Localization
 import Primitives
 import PrimitivesComponents
 @testable import Settings
@@ -68,6 +69,19 @@ struct SecurityViewModelTests {
 
         #expect(model.isEnabled == false)
         #expect(model.isPresentingAlertMessage == nil)
+    }
+
+    @Test
+    func aLockedOutPromptSaysSoInTheUsersLanguage() async {
+        let service = BiometryAuthenticationMock(requiresAuthentication: false)
+        service.enableError = BiometryAuthenticationError.lockedOut
+        let model = SecurityViewModel.mock(service: service)
+        model.isEnabled = true
+
+        await model.toggleBiometrics()
+
+        #expect(model.isEnabled == false)
+        #expect(model.isPresentingAlertMessage?.message == Localized.Errors.authenticationLockedOut)
     }
 
     @Test

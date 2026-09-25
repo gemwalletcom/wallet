@@ -212,6 +212,12 @@
   <string name="errors_swap_not_supported_asset">Tài sản không được hỗ trợ.</string>
   <string name="errors_connections_no_supported_wallets">Không có ví nào được hỗ trợ.</string>
   <string name="errors_connections_unsupported_chain">Chuỗi được cung cấp không được hỗ trợ.</string>
+  <string name="errors_authentication_unavailable">Thiết bị này chưa thiết lập xác thực. Hãy bật sinh trắc học hoặc mật mã trong cài đặt thiết bị.</string>
+  <string name="errors_authentication_locked_out">Quá nhiều lần thử không thành công. Vui lòng thử lại sau.</string>
+  <string name="errors_authentication_failed">Xác thực không thành công. Vui lòng thử lại.</string>
+  <string name="errors_connections_expired">Liên kết kết nối này đã hết hạn. Hãy lấy mã QR mới và thử lại.</string>
+  <string name="errors_connections_not_found">Kết nối này không còn tồn tại.</string>
+  <string name="errors_connections_relay_unavailable">Không thể kết nối tới WalletConnect. Hãy kiểm tra kết nối internet và thử lại.</string>
   <string name="errors_swap_amount_too_small">Số lượng quá nhỏ</string>
   <string name="errors_scan_transaction_malicious_description">Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.</string>
   <string name="errors_scan_transaction_memo_required">%1$s địa chỉ ví đích yêu cầu thẻ đích / ghi nhớ</string>
@@ -422,7 +428,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Khi giá giảm xuống</string>
   <string name="price_alerts_set_alert_set_target_price">Đặt giá mục tiêu</string>
   <string name="price_alerts_set_alert_current_price">Giá hiện tại</string>
-  <string name="price_alerts_added_for">Đặt cảnh báo giá %1$s</string>
+  <string name="price_alerts_added_price_over">Đã thêm cảnh báo khi giá trên %1$s</string>
+  <string name="price_alerts_added_price_under">Đã thêm cảnh báo khi giá dưới %1$s</string>
+  <string name="price_alerts_added_increases_by">Đã thêm cảnh báo khi giá tăng %1$s</string>
+  <string name="price_alerts_added_decreases_by">Đã thêm cảnh báo khi giá giảm %1$s</string>
   <string name="price_alerts_state_empty_title">Cảnh báo giá của bạn sẽ xuất hiện ở đây</string>
   <string name="price_alerts_state_empty_description">Cho phép chúng bằng cách thêm tiền xu để theo dõi</string>
   <string name="price_alerts_auto_footer">Cảnh báo sẽ được kích hoạt khi giá biến động đáng kể.</string>

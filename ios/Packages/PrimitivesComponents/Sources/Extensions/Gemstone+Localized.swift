@@ -122,6 +122,14 @@ public extension GemLocalizedText {
             Localized.Asset.Verification.unverified
         case let .rewardsRedeemAsset(value):
             Localized.Rewards.WaysSpend.Asset.title(value.text())
+        case let .priceAlertAddedPriceOver(value):
+            Localized.PriceAlerts.addedPriceOver(value.text())
+        case let .priceAlertAddedPriceUnder(value):
+            Localized.PriceAlerts.addedPriceUnder(value.text())
+        case let .priceAlertAddedIncreasesBy(value):
+            Localized.PriceAlerts.addedIncreasesBy(value.text())
+        case let .priceAlertAddedDecreasesBy(value):
+            Localized.PriceAlerts.addedDecreasesBy(value.text())
         case let .signInWith(chain):
             Localized.Common.signInWith(Chain(core: chain).networkName)
         case .reviewRequest:
@@ -549,6 +557,12 @@ public extension GemErrorText {
         case .invalidPrivateKey: Localized.Errors.Import.invalidPrivateKey
         case .invalidAddress: Localized.Errors.invalidAddressName
         case .noAccountForChain: Localized.Errors.walletAccountMissing
+        case .authenticationUnavailable: Localized.Errors.authenticationUnavailable
+        case .authenticationLockedOut: Localized.Errors.authenticationLockedOut
+        case .authenticationFailed: Localized.Errors.authenticationFailed
+        case .connectionExpired: Localized.Errors.Connections.expired
+        case .connectionNotFound: Localized.Errors.Connections.notFound
+        case .relayUnavailable: Localized.Errors.Connections.relayUnavailable
         case .unknown: Localized.Errors.unknown
         case let .message(text): text
         }

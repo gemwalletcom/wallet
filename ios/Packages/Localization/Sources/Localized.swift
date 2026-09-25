@@ -395,6 +395,12 @@ public enum Localized {
     }
   }
   public enum Errors {
+    /// Authentication failed. Please try again.
+    public static let authenticationFailed = Localized.tr("Localizable", "errors.authentication_failed", fallback: "Authentication failed. Please try again.")
+    /// Too many failed attempts. Please try again later.
+    public static let authenticationLockedOut = Localized.tr("Localizable", "errors.authentication_locked_out", fallback: "Too many failed attempts. Please try again later.")
+    /// Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings.
+    public static let authenticationUnavailable = Localized.tr("Localizable", "errors.authentication_unavailable", fallback: "Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings.")
     /// Balances and activity may be outdated.
     public static let balancesActivityOutdated = Localized.tr("Localizable", "errors.balances_activity_outdated", fallback: "Balances and activity may be outdated.")
     /// Camera permission not granted. Please enable camera access in settings to scan QR code.
@@ -466,10 +472,16 @@ public enum Localized {
     /// This wallet has no account for this network
     public static let walletAccountMissing = Localized.tr("Localizable", "errors.wallet_account_missing", fallback: "This wallet has no account for this network")
     public enum Connections {
+      /// This connection link has expired. Get a new QR code and try again.
+      public static let expired = Localized.tr("Localizable", "errors.connections.expired", fallback: "This connection link has expired. Get a new QR code and try again.")
       /// This connection comes from an untrusted source.
       public static let maliciousOrigin = Localized.tr("Localizable", "errors.connections.malicious_origin", fallback: "This connection comes from an untrusted source.")
       /// No supported wallets are available.
       public static let noSupportedWallets = Localized.tr("Localizable", "errors.connections.no_supported_wallets", fallback: "No supported wallets are available.")
+      /// This connection no longer exists.
+      public static let notFound = Localized.tr("Localizable", "errors.connections.not_found", fallback: "This connection no longer exists.")
+      /// Couldn't reach WalletConnect. Check your internet connection and try again.
+      public static let relayUnavailable = Localized.tr("Localizable", "errors.connections.relay_unavailable", fallback: "Couldn't reach WalletConnect. Check your internet connection and try again.")
       /// The provided chain is not supported.
       public static let unsupportedChain = Localized.tr("Localizable", "errors.connections.unsupported_chain", fallback: "The provided chain is not supported.")
       /// User cancelled
@@ -991,9 +1003,21 @@ public enum Localized {
     }
   }
   public enum PriceAlerts {
-    /// Set price alert %@
-    public static func addedFor(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "price_alerts.added_for", String(describing: p1), fallback: "Set price alert %@")
+    /// Alert added for price decrease of %@
+    public static func addedDecreasesBy(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "price_alerts.added_decreases_by", String(describing: p1), fallback: "Alert added for price decrease of %@")
+    }
+    /// Alert added for price increase of %@
+    public static func addedIncreasesBy(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "price_alerts.added_increases_by", String(describing: p1), fallback: "Alert added for price increase of %@")
+    }
+    /// Alert added for price over %@
+    public static func addedPriceOver(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "price_alerts.added_price_over", String(describing: p1), fallback: "Alert added for price over %@")
+    }
+    /// Alert added for price under %@
+    public static func addedPriceUnder(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "price_alerts.added_price_under", String(describing: p1), fallback: "Alert added for price under %@")
     }
     /// Alerts trigger on significant price moves.
     public static let autoFooter = Localized.tr("Localizable", "price_alerts.auto_footer", fallback: "Alerts trigger on significant price moves.")

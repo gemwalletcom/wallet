@@ -1,5 +1,6 @@
 use super::model::{GemAuthPromptOutcome, GemLockPeriod};
 use crate::constants::LOCK_PERIODS;
+use crate::services::error_text::GemErrorText;
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
@@ -29,6 +30,15 @@ impl GemAuthPromptOutcome {
         match self {
             Self::CancelledByUser | Self::CancelledBySystem => true,
             Self::Unavailable | Self::LockedOut | Self::Transient | Self::Failed => false,
+        }
+    }
+
+    pub fn error_text(self) -> Option<GemErrorText> {
+        match self {
+            Self::CancelledByUser | Self::CancelledBySystem => None,
+            Self::Unavailable => Some(GemErrorText::AuthenticationUnavailable),
+            Self::LockedOut => Some(GemErrorText::AuthenticationLockedOut),
+            Self::Transient | Self::Failed => Some(GemErrorText::AuthenticationFailed),
         }
     }
 
@@ -63,6 +73,16 @@ mod tests {
         assert_eq!(GemAuthPromptOutcome::LockedOut.retry_delay_milliseconds(), Some(30_000));
         assert_eq!(GemAuthPromptOutcome::Unavailable.retry_delay_milliseconds(), None, "no enrolled biometry cannot be retried into working");
         assert_eq!(GemAuthPromptOutcome::Failed.retry_delay_milliseconds(), None);
+    }
+
+    #[test]
+    fn test_a_failed_prompt_names_why_and_a_cancelled_one_says_nothing() {
+        assert_eq!(GemAuthPromptOutcome::CancelledByUser.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::CancelledBySystem.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::Unavailable.error_text(), Some(GemErrorText::AuthenticationUnavailable));
+        assert_eq!(GemAuthPromptOutcome::LockedOut.error_text(), Some(GemErrorText::AuthenticationLockedOut));
+        assert_eq!(GemAuthPromptOutcome::Transient.error_text(), Some(GemErrorText::AuthenticationFailed));
+        assert_eq!(GemAuthPromptOutcome::Failed.error_text(), Some(GemErrorText::AuthenticationFailed));
     }
 
     #[test]
