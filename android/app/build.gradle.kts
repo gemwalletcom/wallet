@@ -262,8 +262,8 @@ dependencies {
     implementation(project(":features:assets:presents"))
     implementation(project(":features:assets:viewmodels"))
     implementation(project(":features:perpetuals:presents"))
-    implementation(project(":features:referral:viewmodels"))
-    implementation(project(":features:referral:presents"))
+    implementation(project(":features:rewards:viewmodels"))
+    implementation(project(":features:rewards:presents"))
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)

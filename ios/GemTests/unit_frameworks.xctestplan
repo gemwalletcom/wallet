@@ -191,7 +191,7 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/Settings",
+        "containerPath": "container:Features/Rewards",
         "identifier": "RewardsTests",
         "name": "RewardsTests"
       }

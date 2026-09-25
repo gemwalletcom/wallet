@@ -19,6 +19,7 @@
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
 		8349F1472D5E4FF4003A0A93 /* Wallets in Frameworks */ = {isa = PBXBuildFile; productRef = 8349F1462D5E4FF4003A0A93 /* Wallets */; };
+		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
 		834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* AppLock */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
@@ -167,6 +168,7 @@
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
 		8349F1452D5E4D04003A0A93 /* Wallets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Wallets; sourceTree = "<group>"; };
+		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
 		834B38182D1D858D009D58D4 /* AppLock */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AppLock; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
@@ -301,6 +303,7 @@
 				E1B4C7092E85B00000EARN02 /* Stake in Frameworks */,
 				F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */,
 				8349F1472D5E4FF4003A0A93 /* Wallets in Frameworks */,
+				E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */,
 				8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */,
 				C366791D2A18623800F1D74D /* QRScanner in Frameworks */,
 				0741683A2D3AFDBB00AC26A4 /* NFT in Frameworks */,
@@ -627,6 +630,7 @@
 				836281AD2DEF32F600CA5C75 /* Assets */,
 				838383112D5E677A00D1CAF2 /* WalletTab */,
 				8349F1452D5E4D04003A0A93 /* Wallets */,
+				E1B4C7082E85B00000RWD001 /* Rewards */,
 				8361BB5C2D3FDBF1008D89CF /* Transactions */,
 				074168342D3AF81E00AC26A4 /* NFT */,
 				83A4F8042D30434E000E09BB /* Onboarding */,
@@ -757,6 +761,7 @@
 				8361BB602D3FE5F2008D89CF /* Transactions */,
 				83B6C20F2D5E3F2600F9DF8A /* WalletTab */,
 				8349F1462D5E4FF4003A0A93 /* Wallets */,
+				E1B4C7082E85B00000RWD003 /* Rewards */,
 				B66AFC6B2DDB260A0082C026 /* AppService */,
 				0FF1CEBA22E20000000000C1 /* ConnectionStatusService */,
 				836281AF2DEF34DC00CA5C75 /* Assets */,
@@ -1555,6 +1560,10 @@
 		8349F1462D5E4FF4003A0A93 /* Wallets */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Wallets;
+		};
+		E1B4C7082E85B00000RWD003 /* Rewards */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Rewards;
 		};
 		834B38192D1D85E2009D58D4 /* AppLock */ = {
 			isa = XCSwiftPackageProductDependency;

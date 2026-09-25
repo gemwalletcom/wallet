@@ -11,6 +11,7 @@ import InAppNotifications
 import PriceAlerts
 import Primitives
 import PrimitivesComponents
+import Rewards
 import Settings
 import Store
 import Support

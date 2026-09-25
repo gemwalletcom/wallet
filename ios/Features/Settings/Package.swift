@@ -83,19 +83,6 @@ let package = Package(
             ],
         ),
         .testTarget(
-            name: "RewardsTests",
-            dependencies: [
-                "Settings",
-                "SettingsTestKit",
-                "Primitives",
-                "Gemstone",
-                "Components",
-                "Localization",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
-            ],
-        ),
-        .testTarget(
             name: "CurrencyTests",
             dependencies: [
                 "Settings",
