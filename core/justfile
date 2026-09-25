@@ -11,7 +11,7 @@ clean:
 build-gemstone:
     just gemstone build
 
-install: install-sccache install-typeshare install-postgres install-diesel
+install: install-sccache install-postgres install-diesel
 
 install-sccache:
     @echo Install sccache
@@ -23,10 +23,6 @@ install-rust:
     @which rustup &>/dev/null || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     @source ~/.cargo/env
     @rustc --version
-
-install-typeshare:
-    @echo Install typeshare-cli
-    cargo install typeshare-cli@1.13.3
 
 install-postgres:
 	brew install libpq postgresql@15

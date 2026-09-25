@@ -13,12 +13,11 @@ Use this skill for Android environment setup and bootstrap work.
 
 ```bash
 just core install-rust
-just core install-typeshare
 cd android
 just install
 ```
 
-`just install` installs Temurin JDK 17, Android Rust targets, cargo-ndk, and the NDK, using the shared Rust and TypeShare tools installed above. When the SDK at `ANDROID_HOME` has no `sdkmanager`, it installs the `android-commandlinetools` cask, accepts the SDK licenses, and installs the command-line tools into that SDK first, so a machine needs no Android Studio step. Setup verifies Java by running `./gradlew --version`. The JDK installer can require a password prompt; `just install-java` remains available separately.
+`just install` installs Temurin JDK 17, Android Rust targets, cargo-ndk, and the NDK, using the shared Rust toolchain installed above. When the SDK at `ANDROID_HOME` has no `sdkmanager`, it installs the `android-commandlinetools` cask, accepts the SDK licenses, and installs the command-line tools into that SDK first, so a machine needs no Android Studio step. Setup verifies Java by running `./gradlew --version`. The JDK installer can require a password prompt; `just install-java` remains available separately.
 
 From the repo root, `just install` installs shared tools once and then both platforms' dependencies. `just android install` installs only Android-specific dependencies and assumes shared tools are already installed. Run setup before `just generate`, which uses the installed TypeShare CLI.
 

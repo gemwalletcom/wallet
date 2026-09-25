@@ -165,7 +165,7 @@ localize:
 generate: generate-models
 
 generate-models:
-    @echo "==> Generate typeshare for iOS"
+    @echo "==> Generate models for iOS"
     @cd ../core && cargo run --package generate --bin generate ios ../ios/Packages
 
 generate-stone BUILD_MODE="":

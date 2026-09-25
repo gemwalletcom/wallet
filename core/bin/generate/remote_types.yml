@@ -456,3 +456,19 @@ declared:
   BigUint: GemBigUint
   BigIntValue: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>
+
+type_mappings:
+  swift:
+    BigInt: String
+    BigIntValue: BigIntValue
+    BigUint: String
+    DateTime: Date
+    UInt64: UInt64
+    Value: AnyCodableValue
+  kotlin:
+    BigInt: String
+    BigIntValue: SerializedBigInteger
+    BigUint: String
+    DateTime: SerializedDate
+    UInt64: Long
+    Value: JsonValue
