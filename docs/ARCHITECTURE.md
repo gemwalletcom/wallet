@@ -1027,7 +1027,7 @@ Observed queries stay native. Their product contract specifies wallet scope, inc
 
 ### Publish each source of a refresh as it answers
 
-A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently, and on each chain the coin, staking, token and earn balances separately — writes each chain as soon as that chain has answered, so the fastest network shows first ([product/wallet.md](product/wallet.md)). The contract each app's observers rely on:
+A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently, and on each chain the coin, staking, token and earn balances separately — writes each chain as soon as that chain has answered, so the fastest network shows first ([product/wallet_tab.md](product/wallet_tab.md)). The contract each app's observers rely on:
 
 - **One write per chain, and it is atomic.** Both adapters write a chain's batch inside a single database transaction, so an observed query never sees a chain half updated.
 - **A source that fails holds nothing back.** On a chain, the components that answered are written even when another failed; across chains, one chain's failure never delays another's write. The first failure in request order is returned after every chain has finished, so the caller can report it without discarding good data. `published_balances` owns the component split and is tested on its own.

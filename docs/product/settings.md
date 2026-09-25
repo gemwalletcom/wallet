@@ -6,6 +6,9 @@ Reach the wallets, protect the app, tune currency, language and appearance, choo
 - Preferences: Currency (a searchable list with "Recommended" above "All", offering only currencies with an exchange rate; every value in the app converts at once), Language (opens the system's per-app language setting), Appearance (System, Light, Dark), Networks, Contacts, and the Perpetuals switch with its default leverage, take profit and stop loss.
 - Security: "Enable Face ID" (or Touch ID, or "Enable Passcode"), then "Require authentication" after Immediately, 1 minute, 5, 15, 1 hour or 6 hours; on iOS also Privacy Lock. Hide Balance masks balances everywhere with no prompt.
 - Networks: a Status row with the API, the Stream and each Gem Wallet Node with its latency; per network, the node in use (Gem Wallet Node per region, or one the user added) and the block explorer.
+- Settings, Notifications holds one switch for push and a link to Price Alerts; the app asks the system for permission when the switch is turned on.
+- The app offers push right after a wallet is created or imported, and asks again no sooner than 30 days later unless the user turned push off.
+- Pushes cover the wallet's transactions, its Price Alerts and support replies; tapping one opens the transaction, the asset or the chat, switching first to the wallet the push belongs to.
 
 ```mermaid
 flowchart LR
@@ -28,3 +31,4 @@ flowchart LR
 ## Rules
 
 - The lock always re-engages once the lock period has passed, whatever the app was doing; an open WalletConnect request cannot hold it off.
+- Nothing is pushed without the user's permission.

@@ -19,22 +19,25 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 ## Areas
 
 - [Onboarding](product/onboarding.md) — create a wallet, import a wallet, and what happens right after
-- [Wallet](product/wallet.md) — the wallet screen, balances, the asset screen, search, manage tokens, recent assets
+- [Wallet](product/wallet_tab.md) — the wallet screen, balances, search
+- [Assets](product/assets.md) — the asset screen, manage tokens, recent assets
+- [Market](product/market.md) — an asset's price chart and market data
 - [Wallets](product/wallets.md) — the wallets list, switching, pinning, rename, avatar, secrets, delete
 - [Transfer](product/transfer.md) — send, recipient, amount, confirm, and scanned payment codes and links
 - [Transactions](product/transactions.md) — activity, filters, transaction details, pending tracking
 - [Swap](product/swap.md) — quotes, providers, slippage, price impact, approval
-- [Fiat](product/fiat.md) — buy and sell through providers
-- [Staking](product/staking.md) — validators, stake, unstake, rewards, earn
+- [Buy and Sell](product/fiat_connect.md) — buy and sell through providers
+- [Stake](product/stake.md) — validators, stake, unstake, rewards, earn
 - [Perpetuals](product/perpetuals.md) — markets, positions, leverage, take profit and stop loss
 - [NFT](product/nft.md) — collections, an NFT's details and actions, unverified collections
-- [WalletConnect](product/walletconnect.md) — connecting dapps, requests, signing, WalletConnect Pay
-- [Notifications](product/notifications.md) — push and price alerts
-- [Settings](product/settings.md) — preferences, security and lock, networks, about, app update
+- [WalletConnect](product/wallet_connector.md) — connecting dapps, requests, signing, WalletConnect Pay
+- [Price Alerts](product/price_alerts.md) — alerts on an asset's price
+- [In-app Notifications](product/in_app_notifications.md) — the notifications list in Settings
+- [Settings](product/settings.md) — preferences, security and lock, push notifications, networks, about, app update
 - [Contacts](product/contacts.md) — saved addresses and the recipient picker
 - [Rewards](product/rewards.md) — referral codes, points, redeeming
 - [Support](product/support.md) — support chat and help
 
 ## Writing a page
 
-One page per area, under 40 lines: one sentence on what the area is for, a diagram of the main flow with one-line labels (at most two per page), the success path as user stories one line each, and only the rules that someone might otherwise simplify away. Use the product's own names from the app strings. No internals, no code, no test names, no edge cases, no platform differences or open questions; those belong in [TODO.md](TODO.md).
+One page per area, named after the area's feature module on both apps (`product/<android_module>.md`, [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md)), under 40 lines: one sentence on what the area is for, a diagram of the main flow with one-line labels (at most two per page), the success path as user stories one line each, and only the rules that someone might otherwise simplify away. Use the product's own names from the app strings. No internals, no code, no test names, no edge cases, no platform differences or open questions; those belong in [TODO.md](TODO.md).

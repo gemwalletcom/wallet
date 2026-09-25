@@ -664,10 +664,10 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **iOS:** `Assets` holds `AssetScene`, `AddAssetScene`, `SelectAssetScene`, `AddressDetailsScene` and `AssetsFilterScene`.
   - **Android:** split over `features/asset`, `features/add_asset` and `features/asset_select`; `swap`, `perpetual`, `settings/price_alerts` and the wallet tab depend on `asset_select`.
   - **Expected:** one Android `assets` module; the dependents point at it.
-- **MOD309** **M** **Send, receive and amount are one `transfer` module.** Lands with MOD310.
+- **MOD309** **M** **Send, receive, amount and confirm are one `transfer` module.** Lands with MOD310.
   - **iOS:** `Transfer` holds `RecipientScene`, `AmountScene`, `ReceiveScene`, `ConfirmTransferScene`, `PaymentVerificationScene` and `GetAssetScene`.
   - **Android:** split over `features/recipient` (package `recipient.viewmodel`), `features/transfer_amount`, `features/receive` and `features/confirm`; `transfer_amount` also holds `ValidatorsScene`.
-  - **Expected:** Android `recipient`, `transfer_amount` and `receive` become one `transfer` module; `ValidatorsScene` moves to `stake`; `confirm` stays a module of its own (MOD314).
+  - **Expected:** Android `recipient`, `transfer_amount`, `receive` and `confirm` become one `transfer` module; `ValidatorsScene` moves to `stake`. Lands after MOD314, so no other feature imports the confirm screen.
 - **MOD310** **S** **Android `earn/stake` and `earn/delegation` become one `stake` module**, as iOS `Stake` (`EarnScene`, `StakeScene`, `DelegationScene`, `ValidatorSelectScene`). Their namespaces are `features.stake` and `features.earn.delegation`, which do not match the path; the `earn` level goes.
 - **MOD311** **M** **Onboarding is one module.**
   - **iOS:** `Onboarding` holds `OnboardingScene`, `AcceptTermsScene`, the create, import and verify-phrase flows, `SecurityReminderScene`, `ShowSecretDataScene` and `WalletImageScene`.
@@ -678,10 +678,10 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **Android:** nine modules under `features/settings` (`aboutus`, `contacts`, `currency`, `develop`, `in_app_notifications`, `networks`, `price_alerts`, `security`, `settings`), with `SupportChatScene` inside `settings/settings`.
   - **Expected:** Android `aboutus`, `currency`, `develop`, `networks`, `security` and `settings` become one `settings` module; `contacts`, `price_alerts` and `in_app_notifications` move to the top level; `SupportChatScene` moves to a `support` module.
 - **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
-- **MOD314** **M** **Confirmation is its own `Confirm` module on both apps.** Transfer, swap, stake, perpetuals and WalletConnect all end on it, and it is where signing happens.
-  - **iOS:** the 12 confirm files (`ConfirmTransferScene`, `ConfirmTransferSceneViewModel`, `Confirm*ViewModel`, `ConfirmTransferRequest`, `ConfirmTransferSection`, `ConfirmTransferState`, `ConfirmTransferSheetType`, `ConfirmSimulationState`) are in `Transfer`, which imports `WalletConnector` and `Swap` only for them; the app opens the screen (`ConfirmTransferNavigationView`).
-  - **Android:** `features/confirm` is its own module, but `bridge` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`).
-  - **Expected:** iOS moves the confirm files into a `Confirm` package and `Transfer` drops the `WalletConnector` and `Swap` imports; Android `bridge` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS.
+- **MOD314** **S** **Confirmation stays in Transfer, and only the app opens it.** Transfer, swap, stake, perpetuals and WalletConnect all end on it.
+  - **iOS:** the confirm scene and its view models are in `Transfer`; the app opens the screen (`ConfirmTransferNavigationView`), and no other feature imports it.
+  - **Android:** `features/confirm` is its own module; `bridge` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
+  - **Expected:** Android `bridge` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
   - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `ManageWallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
   - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallet-details`; create-wallet draws the phrase with its own `WordChip` view.
