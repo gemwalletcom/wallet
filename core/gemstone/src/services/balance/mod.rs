@@ -115,6 +115,11 @@ impl GemBalanceService {
         }
     }
 
+    pub async fn sync_assets_and_update(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        self.assets.sync_missing_assets(asset_ids.clone()).await?;
+        self.update(wallet_id, asset_ids).await
+    }
+
     async fn write_network_balances(&self, wallet_id: &WalletId, sequence: u64, balances: Vec<(BalanceKind, AssetBalance)>) -> Result<(), GemServiceError> {
         if balances.is_empty() {
             return Ok(());
