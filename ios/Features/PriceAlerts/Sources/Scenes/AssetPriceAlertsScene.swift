@@ -46,6 +46,7 @@ public struct AssetPriceAlertsScene: View {
 
             if model.showsEmpty(assetAlerts) {
                 EmptyContentView(model: model.emptyContentModel)
+                    .padding(.top, .extraLarge)
                     .cleanListRow()
             }
         }
