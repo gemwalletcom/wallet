@@ -42,6 +42,13 @@ pub fn derive_private_key_from_mnemonic(phrase: &str, chain: Chain) -> Result<Ze
     derive_private_key_by_chain(seed.as_slice(), entropy.as_slice(), chain).map(|derived| derived.private_key)
 }
 
+pub const SOLANA_LEGACY_DERIVATION_PATH: &str = "m/44'/501'/0'";
+
+pub fn derive_legacy_solana_private_key_from_mnemonic(phrase: &str) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
+    let seed = Mnemonic::seed(phrase)?;
+    slip10::derive_ed25519_private_key(seed.as_slice(), SOLANA_LEGACY_DERIVATION_PATH)
+}
+
 fn unique_chains(chains: Vec<Chain>) -> Vec<Chain> {
     let mut unique = Vec::with_capacity(chains.len());
     for chain in chains {

@@ -38,7 +38,7 @@ impl GemAuthService {
         let nonce = self.get_nonce().await?;
         let message = create_auth_message(&account.address, nonce.clone());
         let password = decode_password(&self.password.get_password(false)?);
-        let signature = self.keystore.sign_auth(keystore_id_for_wallet(wallet.id.id()), rules::AUTH_CHAIN, message.hash, password)?;
+        let signature = self.keystore.sign_auth(keystore_id_for_wallet(wallet.id.id()), rules::AUTH_CHAIN, &account.address, message.hash, password)?;
         Ok(AuthPayload {
             device_id: self.device_key.device_id()?,
             chain: rules::AUTH_CHAIN,

@@ -10,4 +10,4 @@ mod slip10;
 #[cfg(test)]
 mod tests;
 
-pub use derivation::{derive_accounts_from_mnemonic, derive_private_key_from_mnemonic};
+pub use derivation::{SOLANA_LEGACY_DERIVATION_PATH, derive_accounts_from_mnemonic, derive_legacy_solana_private_key_from_mnemonic, derive_private_key_from_mnemonic};

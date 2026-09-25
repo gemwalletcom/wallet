@@ -133,7 +133,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(ioDispatcher) {
             val signature = try {
-                service.signMessage(request.wallet.id.id, request.signMessage)
+                service.signMessage(request.wallet.id.id, request.account.toGem(), request.signMessage)
             } catch (err: GemServiceException) {
                 Log.e(TAG, "Sign message failed topic=${request.pending.sessionId}", err)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }

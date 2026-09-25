@@ -1,12 +1,90 @@
-use primitives::{Chain, WalletType};
+use gem_ton::Address as TonAddress;
+use primitives::{Asset, Chain, SignerError, SignerInput, TransactionInputType, WalletType};
 use tempfile::TempDir;
 use zeroize::Zeroizing;
 
 use super::testkit::mock_phrase_words;
 use super::*;
+use crate::GemstoneError;
 use crate::auth::sign_auth_message_hash;
 use crate::message::sign_type::{SignDigestType, SignMessage};
 use crate::message::signer::MessageSigner;
+use crate::models::transaction::GemSignerInput;
+use gem_derivation::{derive_account_from_private_key, derive_legacy_solana_private_key_from_mnemonic};
+
+#[test]
+fn test_gem_keystore_rejects_unrelated_transaction_sender() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let stored = keystore.create_store(GemImportType::mock_private_key(), b"password".to_vec()).unwrap();
+    let mut input: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock() }, "1", 21000).into();
+    input.input.sender_address = stored.accounts[0].address.to_lowercase();
+    assert_eq!(keystore.sign(stored.keystore_id.clone(), Chain::Ethereum, input.clone(), b"password".to_vec()).unwrap().len(), 1);
+
+    input.input.sender_address = input.input.destination_address.clone();
+    assert_eq!(
+        keystore.sign(stored.keystore_id, Chain::Ethereum, input, b"password".to_vec()).unwrap_err(),
+        GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
+    );
+}
+
+#[test]
+fn test_signing_key_binds_mnemonic_accounts_and_accepts_equivalent_encodings() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let chains = vec![
+        Chain::Ethereum,
+        Chain::Solana,
+        Chain::Bitcoin,
+        Chain::BitcoinCash,
+        Chain::Cardano,
+        Chain::Ton,
+        Chain::Near,
+        Chain::Tron,
+        Chain::Stellar,
+        Chain::Polkadot,
+        Chain::Cosmos,
+        Chain::Aptos,
+        Chain::Sui,
+        Chain::Xrp,
+        Chain::Algorand,
+    ];
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(chains), b"password".to_vec()).unwrap();
+    for account in &stored.accounts {
+        assert!(keystore.signing_key(&stored.keystore_id, account.chain, &account.address, b"password".to_vec()).is_ok(), "{}", account.chain);
+        assert_eq!(
+            keystore.signing_key(&stored.keystore_id, account.chain, "unrelated", b"password".to_vec()).err().unwrap(),
+            GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
+        );
+    }
+    let ton = stored.accounts.iter().find(|account| account.chain == Chain::Ton).unwrap();
+    let bounceable = TonAddress::parse(&ton.address).unwrap().encode_bounceable();
+    assert!(keystore.signing_key(&stored.keystore_id, Chain::Ton, &bounceable, b"password".to_vec()).is_ok());
+    let bitcoin_cash = stored.accounts.iter().find(|account| account.chain == Chain::BitcoinCash).unwrap();
+    let prefixed = format!("bitcoincash:{}", bitcoin_cash.address);
+    assert!(keystore.signing_key(&stored.keystore_id, Chain::BitcoinCash, &prefixed, b"password".to_vec()).is_ok());
+}
+
+#[test]
+fn test_signing_key_accepts_the_legacy_solana_derivation_only_for_its_address() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let stored = keystore.create_store(GemImportType::mock_single_phrase(), b"password".to_vec()).unwrap();
+    let legacy_key = derive_legacy_solana_private_key_from_mnemonic(&mock_phrase_words().join(" ")).unwrap();
+    let legacy_address = derive_account_from_private_key(&legacy_key, Chain::Solana).unwrap().address;
+    assert_eq!(legacy_address, "GjJyeC1r2RgkuoCWMyPYkCWSGSGLcz266EaAkLA27AhL");
+    assert_ne!(legacy_address, stored.accounts[0].address);
+
+    assert_eq!(*keystore.signing_key(&stored.keystore_id, Chain::Solana, &legacy_address, b"password".to_vec()).unwrap(), *legacy_key);
+    assert_eq!(
+        *keystore.signing_key(&stored.keystore_id, Chain::Solana, &stored.accounts[0].address, b"password".to_vec()).unwrap(),
+        keystore.private_key(stored.keystore_id.clone(), Chain::Solana, b"password".to_vec()).unwrap()
+    );
+    assert_eq!(
+        keystore.signing_key(&stored.keystore_id, Chain::Solana, "unrelated", b"password".to_vec()).unwrap_err(),
+        GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
+    );
+}
 
 #[test]
 fn test_gem_keystore_private_key_create_export_delete() {
@@ -40,8 +118,12 @@ fn test_gem_keystore_sign_with_keystore_matches_raw_key() {
         data: b"hello world".to_vec(),
     });
     let expected = signer.sign(Zeroizing::new(raw_key)).unwrap();
-    let actual = signer.sign_with_keystore(keystore, stored.keystore_id, b"password".to_vec()).unwrap();
+    let actual = signer.sign_with_keystore(keystore.clone(), stored.keystore_id.clone(), &stored.accounts[0].address, b"password".to_vec()).unwrap();
     assert_eq!(actual, expected);
+    assert_eq!(
+        signer.sign_with_keystore(keystore, stored.keystore_id, "", b"password".to_vec()).unwrap_err(),
+        GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
+    );
 }
 
 #[test]
@@ -54,8 +136,12 @@ fn test_gem_keystore_sign_auth_matches_raw_key() {
     // Auth signing through the keystore must match signing the hash with the exported raw key.
     let hash = [7u8; 32];
     let expected = sign_auth_message_hash(hash, Zeroizing::new(raw_key)).unwrap();
-    let actual = keystore.sign_auth(stored.keystore_id, Chain::Ethereum, hash, b"password".to_vec()).unwrap();
+    let actual = keystore.sign_auth(stored.keystore_id.clone(), Chain::Ethereum, &stored.accounts[0].address, hash, b"password".to_vec()).unwrap();
     assert_eq!(actual, expected);
+    assert_eq!(
+        keystore.sign_auth(stored.keystore_id, Chain::Ethereum, "", hash, b"password".to_vec()).unwrap_err(),
+        GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
+    );
 }
 
 #[test]
