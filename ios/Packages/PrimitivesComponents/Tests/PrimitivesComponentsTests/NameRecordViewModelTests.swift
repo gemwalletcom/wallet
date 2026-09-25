@@ -11,7 +11,7 @@ import Testing
 struct NameRecordViewModelTests {
     @Test
     func keepsTheResolvedStateAndSkipsARepeatedName() async {
-        let record = NameRecord.mock()
+        let record = NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890")
         let nameService = GemNameServiceMock(nameRecord: record)
         let model = NameRecordViewModel(nameService: nameService)
 

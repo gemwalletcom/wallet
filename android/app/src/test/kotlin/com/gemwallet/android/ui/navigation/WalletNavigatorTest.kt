@@ -343,7 +343,7 @@ class WalletNavigatorTest {
 
         navigator.openRecipient()
         navigator.openRecipient(assetId)
-        val nft = mockNftAsset()
+        val nft = mockNftAsset(chain = Chain.Ethereum)
         navigator.openNftRecipient(nft)
 
         assertEquals(

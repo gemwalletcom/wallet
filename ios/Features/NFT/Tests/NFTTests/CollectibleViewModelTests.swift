@@ -15,7 +15,7 @@ import Testing
 struct CollectibleViewModelTests {
     @Test
     func aSavedImageShowsTheSuccessToastOnlyAfterPhotosFinishes() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(), gallery: ImageGallerySaverMock(result: {
+        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: {
             try? await Task.sleep(for: .milliseconds(50))
             return nil
         }))
@@ -28,7 +28,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func aFailedPhotosWriteShowsTheErrorInsteadOfASuccessToast() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(), gallery: ImageGallerySaverMock(result: { .saveFailed(AnyError("disk")) }))
+        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .saveFailed(AnyError("disk")) }))
 
         await model.saveToGallery()
 
@@ -38,7 +38,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func deniedPhotosAccessOffersTheSettings() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(), gallery: ImageGallerySaverMock(result: { .permissionDenied }))
+        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .permissionDenied }))
 
         await model.saveToGallery()
 

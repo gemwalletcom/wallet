@@ -14,6 +14,13 @@ codes:
   - Chain
 identifiers:
   - WalletId
+mocks:
+  - Account
+  - NFTImages
+  - PriceAlert
+  - PriceAlertNotification:
+      path: "m/44'/0'/0'/0/0"
+      state: NotReachable
 
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone

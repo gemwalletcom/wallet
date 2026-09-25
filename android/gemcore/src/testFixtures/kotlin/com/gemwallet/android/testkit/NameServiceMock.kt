@@ -11,8 +11,9 @@ class NameServiceMock : GemNameServiceInterface {
     val requests = mutableListOf<Pair<String, Chain>>()
 
     override suspend fun getNameRecord(name: String, chain: uniffi.gemstone.Chain): GemNameRecordState {
-        requests.add(name to Chain.entries.first { it.string == chain })
-        return GemNameRecordState.Complete(mockNameRecord().toGem())
+        val requested = Chain.entries.first { it.string == chain }
+        requests.add(name to requested)
+        return GemNameRecordState.Complete(mockNameRecord(name = name, chain = requested).toGem())
     }
 
     override fun nameInputStep(state: GemNameRecordState, name: String, chain: uniffi.gemstone.Chain?): GemNameInputStep = when {

@@ -105,12 +105,23 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
     }
     write_generated(remote_mappers::REMOTE_TYPES_PATH, generator.remote_types());
 
-    let (contents, path) = match generator_type {
-        GeneratorType::Swift => (generator.swift(), format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift")),
-        GeneratorType::Kotlin => (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),
+    let files = match generator_type {
+        GeneratorType::Swift => [
+            (generator.swift(), format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift")),
+            (generator.swift_mocks(), format!("{platform_directory_path}/Primitives/TestKit/GeneratedMocks.swift")),
+        ],
+        GeneratorType::Kotlin => [
+            (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),
+            (
+                generator.kotlin_mocks(),
+                format!("{platform_directory_path}/../../../../../testFixtures/kotlin/com/gemwallet/android/testkit/GeneratedMocks.kt"),
+            ),
+        ],
         GeneratorType::TypeScript => return,
     };
-    write_generated(&path, contents);
+    for (contents, path) in files {
+        write_generated(&path, contents);
+    }
 }
 
 fn write_generated(path: &str, contents: String) {

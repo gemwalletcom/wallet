@@ -17,8 +17,8 @@ struct CollectionsViewModelTests {
         #expect(model.content.unverifiedCount == nil)
 
         model.query.value = [
-            .mock(collection: .mock(id: .mock(), status: .verified)),
-            .mock(collection: .mock(id: NFTCollectionId(chain: .ethereum, contractAddress: "0xunverified"), status: .unverified)),
+            .mock(collection: .mock(id: .mock(), status: .verified), assets: [.mock()]),
+            .mock(collection: .mock(id: NFTCollectionId(chain: .ethereum, contractAddress: "0xunverified"), status: .unverified), assets: [.mock()]),
         ]
 
         #expect(model.content.unverifiedCount == "1")
@@ -27,7 +27,7 @@ struct CollectionsViewModelTests {
     @Test
     func aFailedRefreshOverOnlyUnverifiedCollectionsShowsNoErrorRow() {
         let model = CollectionsViewModel.mock()
-        model.query.value = [.mock(collection: .mock(status: .unverified))]
+        model.query.value = [.mock(collection: .mock(status: .unverified), assets: [.mock()])]
         model.loadState = .error(error: .Gateway(msg: "offline"))
 
         #expect(model.content.items.isEmpty)
@@ -40,7 +40,7 @@ struct CollectionsViewModelTests {
 
         #expect(model.screen.hasContent == false)
 
-        model.query.value = [.mock(collection: .mock(status: .unverified))]
+        model.query.value = [.mock(collection: .mock(status: .unverified), assets: [.mock()])]
 
         #expect(model.content.items.isEmpty == false)
         #expect(model.content.unverifiedCount == nil)
@@ -52,7 +52,7 @@ struct CollectionsViewModelTests {
 
         #expect(model.screen.title.text == Localized.Nft.collections, "a collection with nothing in it still names the screen")
 
-        model.query.value = [.mock(collection: .mock(name: "Punks"))]
+        model.query.value = [.mock(collection: .mock(name: "Punks"), assets: [.mock()])]
 
         #expect(model.screen.title.text == "Punks")
         #expect(model.screen.offersReceive)

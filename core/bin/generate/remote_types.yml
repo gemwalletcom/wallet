@@ -215,6 +215,22 @@ identifiers:
   - TransactionId
   - WalletId
 
+# The types `just generate-models` writes a test mock for, one per type on both apps, with the
+# defaults the generator's rules give each field. An entry that maps a type to fields overrides
+# those fields where the rule would build an invalid value.
+mocks:
+  - AddressName
+  - AssetScore
+  - NameRecord
+  - NFTAsset
+  - NFTAssetData
+  - NFTCollection
+  - NFTData
+  - NFTImages
+  - NFTResource
+  - PriceAlert
+  - TotalFiatValue
+
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone
 # custom type, and the declarations import it).

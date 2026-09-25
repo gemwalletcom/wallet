@@ -70,7 +70,7 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
         #expect(model.actionButtonState == .normal)
     }
 
@@ -91,7 +91,7 @@ struct RecipientSceneViewModelTests {
 
         recipientAddress = nil
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: address).toGem())
         model.onContinue()
 
         #expect(recipientAddress == checksummed)

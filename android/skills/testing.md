@@ -42,12 +42,13 @@
 
 ## Shared TestKit
 
-A mock exists once, beside its type, so every test reuses it instead of rebuilding the value. Test data factories live in the owning module's `testFixtures` source set, one file per type: shared models in `gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/` (`AssetMock.kt`, `AssetInfoMock.kt`, `DelegationMock.kt`), database entities and store doubles in `data/services/store/src/testFixtures` (`DbAssetInfoMock.kt`, `StoreTransactionRunnerMock.kt`). Consumer modules add `testImplementation(testFixtures(project(":gemcore")))` or the owning module's equivalent.
+A data mock exists once per type and is the same on both apps, so every test reuses it instead of rebuilding the value. Mocks live in the owning module's `testFixtures` source set: shared models in `gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`, database entities and store doubles in `data/services/store/src/testFixtures`. Consumer modules add `testImplementation(testFixtures(project(":gemcore")))` or the owning module's equivalent.
 
-- `mockType()` returns a sensible default; expose only the fields tests vary, override one or two at the call site, and use `copy()` for one-offs
-- A test file declares no `mock*()`, `create*()`, `make*()`, or `build*()` helper of its own for any type, even for one test. Search the owning `testFixtures` first and extend an existing factory rather than adding a near-duplicate; merge near-duplicate factories into one with sensible defaults and delete factories nothing calls
-- A concrete shape used by more than one test becomes a named fixture (`mockAssetSolanaUSDC()`, `mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0)`), not a repeated `mockAsset(chain = ..., symbol = ..., ...)` call. A shape used once stays an override at the call site
-- Do not turn a mock helper into a second constructor by passing every field. Do not mock what you can construct directly; use MockK only for interfaces that cannot be constructed
+- A generated model gets its `mockType(...)` from `just generate-models` once it is listed under `mocks:` in `core/bin/generate/remote_types.yml`, written to `testkit/GeneratedMocks.kt` (iOS gets the same mock). To mock one, add it to that list and regenerate; never hand-write it. Every field is a parameter with a default, in declaration order: `""`, zero, `false`, `null`, `emptyList()`, the first enum entry (`Chain.Bitcoin`), the epoch for a date, and the nested type's or identifier's own mock. A field the rules cannot fill fails generation and names it; list its type, or override that field in `mocks:` only when the rule would build an invalid value
+- A type the generator cannot reach (identifiers, hand-written app types, entities) gets its hand-written `mockType(...)` in the module's one `Mocks.kt`, under the same rules. Behavioural doubles (service fakes, stores, `PasswordStoreMock`) are classes in files of their own
+- No named presets (`mockAssetSolanaUSDC()`, `mockWalletMulticoin()`): a test passes the values it asserts on, so every input it depends on is visible at the call site; use `copy()` for one-offs
+- A test file declares no `mock*()`, `create*()`, `make*()`, or `build*()` helper of its own for any type, even for one test. Search the owning `testFixtures` first; merge near-duplicate factories into one and delete factories nothing calls
+- Do not mock what you can construct directly; use MockK only for interfaces that cannot be constructed
 - Prefer the simplest test that proves the behavior: no extra fixtures, mocks, or assertions that do not move the behavior under test
 
 ## Formatting

@@ -25,3 +25,6 @@ ktlint = disabled
 
 [gemcore/src/main/kotlin/com/gemwallet/android/ext/GemConstants.kt]
 ktlint = disabled
+
+[gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/GeneratedMocks.kt]
+ktlint = disabled

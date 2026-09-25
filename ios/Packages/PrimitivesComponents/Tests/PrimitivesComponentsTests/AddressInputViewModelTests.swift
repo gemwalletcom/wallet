@@ -24,13 +24,13 @@ struct AddressInputViewModelTests {
         model.nameRecordViewModel.state = .error
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
         #expect(model.validate())
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth").toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: "test.eth").toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "test.eth").toGem())
         #expect(model.validate() == false)
 
         model.chain = .near
@@ -49,7 +49,7 @@ struct AddressInputViewModelTests {
         #expect(model.validate() == false)
         #expect(model.inputModel.error == nil, "a name the resolver still owns must not read as a bad address")
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
         #expect(model.validate())
         #expect(model.inputModel.error == nil)
     }
@@ -76,7 +76,7 @@ struct AddressInputViewModelTests {
         let model = AddressInputViewModel.mock()
 
         model.inputModel.text = "sometext"
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
         model.chain = .bitcoin
 
         #expect(model.nameResolveState == .none)
@@ -92,7 +92,7 @@ struct AddressInputViewModelTests {
         model.inputModel.text = " \n\(address)\r "
         #expect(model.resolvedAddress == checksummed)
 
-        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: address).toGem())
         #expect(model.resolvedAddress == checksummed)
     }
 }

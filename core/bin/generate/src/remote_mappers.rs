@@ -21,6 +21,17 @@ pub struct Config {
     conversions: BTreeMap<String, BTreeMap<String, Vec<String>>>,
     #[serde(default)]
     defaults: BTreeMap<String, String>,
+    #[serde(default)]
+    mocks: Vec<Mock>,
+}
+
+/// A `mocks:` entry: a type name, or a type name with the values of the fields the default rules
+/// would build invalid.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum Mock {
+    Plain(String),
+    Overridden(BTreeMap<String, BTreeMap<String, String>>),
 }
 
 impl Config {
@@ -52,6 +63,23 @@ impl Config {
     }
 
     /// The declared names that are gemstone custom types, which the declarations import.
+    fn mocked(&self) -> Vec<&str> {
+        self.mocks
+            .iter()
+            .flat_map(|mock| match mock {
+                Mock::Plain(name) => vec![name.as_str()],
+                Mock::Overridden(types) => types.keys().map(String::as_str).collect(),
+            })
+            .collect()
+    }
+
+    fn mock_override(&self, record: &str, field: &str) -> Option<&str> {
+        self.mocks.iter().find_map(|mock| match mock {
+            Mock::Plain(_) => None,
+            Mock::Overridden(types) => types.get(record)?.get(field).map(String::as_str),
+        })
+    }
+
     fn custom_types<'a>(&'a self, types: &'a [RemoteType]) -> Vec<&'a str> {
         self.declared
             .iter()
@@ -126,6 +154,14 @@ impl RemoteType {
 pub struct Generator {
     config: Config,
     types: Vec<RemoteType>,
+    mocked: Vec<RemoteType>,
+    app_types: BTreeMap<String, AppType>,
+}
+
+/// A TypeShare declaration as the apps see it: its module, and for an enum its variants.
+struct AppType {
+    module: String,
+    variants: Option<Vec<Variant>>,
 }
 
 impl Generator {
@@ -135,6 +171,9 @@ impl Generator {
 
     pub fn parse(config: Config, primitives: &Path) -> Self {
         let mut found = Vec::new();
+        let mut mocked = Vec::new();
+        let mut app_types = BTreeMap::new();
+        let mocks = config.mocked();
         for path in source_files(primitives) {
             let Ok(source) = fs::read_to_string(&path) else { continue };
             let module = path
@@ -158,6 +197,24 @@ impl Generator {
                 let declared = std::mem::take(&mut typeshare);
                 let camel = std::mem::take(&mut camel_case_fields);
                 let tagged_content = content.take();
+                let remote = config.remote.contains(&name);
+                let mock = declared && keyword == "struct" && mocks.contains(&name.as_str());
+                if !declared && !remote {
+                    continue;
+                }
+                let body = body(&mut lines);
+                if declared {
+                    let variants = (keyword == "enum").then(|| variants(&name, &body));
+                    app_types.insert(name.clone(), AppType { module: module.clone(), variants });
+                }
+                if mock {
+                    mocked.push(RemoteType::Record {
+                        name: name.clone(),
+                        module: module.clone(),
+                        fields: fields(&body, camel),
+                        typeshared: declared,
+                    });
+                }
                 if config.codes.contains(&name) {
                     if !declared {
                         continue;
@@ -166,10 +223,9 @@ impl Generator {
                     found.push(RemoteType::Code { name });
                     continue;
                 }
-                if !config.remote.contains(&name) {
+                if !remote {
                     continue;
                 }
-                let body = body(&mut lines);
                 found.push(match keyword {
                     "enum" => RemoteType::Enum {
                         variants: variants(&name, &body),
@@ -199,8 +255,13 @@ impl Generator {
                 primitives.display()
             );
         }
+        for name in &mocks {
+            let declarations = mocked.iter().filter(|mock| mock.name() == *name).count();
+            assert!(declarations == 1, "{name} is listed under mocks: and has {declarations} TypeShare structs in {}, expected one", primitives.display());
+        }
         found.sort_by_key(|remote| (matches!(remote, RemoteType::Record { .. }), remote.name().to_string()));
-        Self { config, types: found }
+        mocked.sort_by_key(|mock| mock.name().to_string());
+        Self { config, types: found, mocked, app_types }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -264,6 +325,115 @@ impl Generator {
 
     pub fn kotlin(&self) -> String {
         self.mappers(&KOTLIN)
+    }
+
+    pub fn swift_mocks(&self) -> String {
+        self.mocks(&SWIFT)
+    }
+
+    pub fn kotlin_mocks(&self) -> String {
+        self.mocks(&KOTLIN)
+    }
+
+    /// One `mock(...)` per type listed under `mocks:`, taking every field with the default the
+    /// rules give its type.
+    fn mocks(&self, language: &Language) -> String {
+        let mut body = String::new();
+        let mut imports = Vec::new();
+        for mock in &self.mocked {
+            let RemoteType::Record { name, fields, .. } = mock else { continue };
+            imports.push(name.as_str());
+            body.push_str(&language.mock_open.replace("{type}", name).replace("{function}", &uniffi_type_name(name)));
+            for field in fields.iter().filter(|field| !field.skipped) {
+                imports.extend(self.named_types(language, &field.type_name));
+                let value = match self.config.mock_override(name, &field.rust) {
+                    Some(value) => self.mock_literal(language, name, field, value),
+                    None => self.mock_default(language, name, field),
+                };
+                body.push_str(
+                    &language
+                        .mock_parameter
+                        .replace("{label}", &field.serialized)
+                        .replace("{type}", &self.app_type(language, &field.type_name))
+                        .replace("{value}", &value),
+                );
+            }
+            body.push_str(&language.mock_body.replace("{type}", name));
+            for field in fields.iter().filter(|field| !field.skipped) {
+                body.push_str(&language.field.replace("{label}", &field.serialized).replace("{value}", &field.serialized));
+            }
+            body.push_str(language.mock_close);
+        }
+        let mut out = format!("{HEADER}\n{}", language.mock_header);
+        if !language.mock_import.is_empty() {
+            let mut imports = imports
+                .into_iter()
+                .map(|name| match self.app_types.get(name).map(|app| app.module.as_str()).unwrap_or_default() {
+                    "" => format!("{}.{name}", language.app_module),
+                    module => format!("{}.{module}.{name}", language.app_module),
+                })
+                .collect::<Vec<_>>();
+            imports.sort_unstable();
+            imports.dedup();
+            out.push('\n');
+            for import in imports {
+                out.push_str(&language.mock_import.replace("{}", &import));
+            }
+        }
+        out.push_str(&body);
+        out
+    }
+
+    /// The app types a field type names, which a Kotlin mock file imports.
+    fn named_types<'a>(&self, language: &Language, type_name: &'a str) -> Vec<&'a str> {
+        match unwrap(type_name) {
+            (inner, Wrapper::Option | Wrapper::Vec) => self.named_types(language, inner),
+            (name, Wrapper::None) if self.app_types.contains_key(name) || self.config.identifiers.iter().any(|identifier| identifier == name) => vec![name],
+            (name, Wrapper::None) => language.app_type_imports.iter().filter(|(rust, _)| *rust == name).map(|(_, app)| *app).collect(),
+        }
+    }
+
+    fn app_type(&self, language: &Language, type_name: &str) -> String {
+        match unwrap(type_name) {
+            (inner, Wrapper::Option) => language.optional_type.replace("{}", &self.app_type(language, inner)),
+            (inner, Wrapper::Vec) => language.list_type.replace("{}", &self.app_type(language, inner)),
+            (name, Wrapper::None) => language.app_types.iter().find(|(rust, ..)| *rust == name).map_or(name, |(_, app, _)| app).to_string(),
+        }
+    }
+
+    fn mock_default(&self, language: &Language, record: &str, field: &Field) -> String {
+        let name = match unwrap(&field.type_name) {
+            (_, Wrapper::Option) => return language.none.to_string(),
+            (_, Wrapper::Vec) => return language.empty_vec.to_string(),
+            (name, Wrapper::None) => name,
+        };
+        if let Some((_, _, zero)) = language.app_types.iter().find(|(rust, ..)| *rust == name) {
+            return zero.to_string();
+        }
+        if self.config.identifiers.iter().any(|identifier| identifier == name) || self.mocked.iter().any(|mock| mock.name() == name) {
+            return language.mock_reference.replace("{function}", &uniffi_type_name(name));
+        }
+        match self.app_types.get(name).and_then(|app| app.variants.as_ref()).and_then(|variants| variants.first()) {
+            Some(variant) if variant.fields.is_empty() => language.enum_value.replace("{type}", name).replace("{case}", &(language.cases[1])(&variant.name)),
+            Some(variant) => panic!("{record}.{}: the first variant of {name}, {}, carries data; add an override under mocks:", field.rust, variant.name),
+            None => panic!("{record}.{}: {name} has no mock and no default rule; list {name} under mocks: or add an override", field.rust),
+        }
+    }
+
+    /// An override from `mocks:`, written as the field's type spells it: a string is quoted, an
+    /// enum names its variant, a number or a flag stays as written.
+    fn mock_literal(&self, language: &Language, record: &str, field: &Field, value: &str) -> String {
+        let name = match unwrap(&field.type_name) {
+            (inner, Wrapper::Option) => inner,
+            (_, Wrapper::Vec) => panic!("{record}.{} is a list; a mock override takes a string, number, flag or enum variant", field.rust),
+            (name, Wrapper::None) => name,
+        };
+        match self.app_types.get(name).and_then(|app| app.variants.as_ref()) {
+            Some(_) => language.enum_value.replace("{type}", name).replace("{case}", &(language.cases[1])(value)),
+            None if name == "String" => format!("{value:?}"),
+            None if self.config.is_scalar(name) => value.to_string(),
+            None => panic!("{record}.{}: {name} cannot be overridden; a mock override takes a string, number, flag or enum variant", field.rust),
+        }
     }
 
     /// One `map()` / `toPrimitives()` / `toGem()` per direction for every remote type that has a
@@ -596,6 +766,18 @@ struct Language {
     none: &'static str,
     empty_vec: &'static str,
     element: &'static str,
+    app_types: &'static [(&'static str, &'static str, &'static str)],
+    app_type_imports: &'static [(&'static str, &'static str)],
+    optional_type: &'static str,
+    list_type: &'static str,
+    enum_value: &'static str,
+    mock_header: &'static str,
+    mock_import: &'static str,
+    mock_open: &'static str,
+    mock_parameter: &'static str,
+    mock_body: &'static str,
+    mock_close: &'static str,
+    mock_reference: &'static str,
 }
 
 const SWIFT: Language = Language {
@@ -626,6 +808,34 @@ const SWIFT: Language = Language {
     none: "nil",
     empty_vec: "[]",
     element: "$0",
+    app_types: &[
+        ("String", "String", "\"\""),
+        ("bool", "Bool", "false"),
+        ("i8", "Int8", "0"),
+        ("i16", "Int16", "0"),
+        ("i32", "Int32", "0"),
+        ("i64", "Int64", "0"),
+        ("u8", "UInt8", "0"),
+        ("u16", "UInt16", "0"),
+        ("u32", "UInt32", "0"),
+        ("u64", "UInt64", "0"),
+        ("f32", "Float", "0"),
+        ("f64", "Double", "0"),
+        ("BigInt", "String", "\"0\""),
+        ("BigUint", "String", "\"0\""),
+        ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
+    ],
+    app_type_imports: &[],
+    optional_type: "{}?",
+    list_type: "[{}]",
+    enum_value: ".{case}",
+    mock_header: "import Foundation\nimport Primitives\n",
+    mock_import: "",
+    mock_open: "\npublic extension {type} {\n    static func mock(\n",
+    mock_parameter: "        {label}: {type} = {value},\n",
+    mock_body: "    ) -> {type} {\n        {type}(\n",
+    mock_close: "        )\n    }\n}\n",
+    mock_reference: ".mock()",
 };
 
 const KOTLIN: Language = Language {
@@ -656,6 +866,34 @@ const KOTLIN: Language = Language {
     none: "null",
     empty_vec: "emptyList()",
     element: "it",
+    app_types: &[
+        ("String", "String", "\"\""),
+        ("bool", "Boolean", "false"),
+        ("i8", "Byte", "0"),
+        ("i16", "Short", "0"),
+        ("i32", "Int", "0"),
+        ("i64", "Long", "0"),
+        ("u8", "UByte", "0u"),
+        ("u16", "UShort", "0u"),
+        ("u32", "UInt", "0u"),
+        ("u64", "ULong", "0u"),
+        ("f32", "Float", "0f"),
+        ("f64", "Double", "0.0"),
+        ("BigInt", "String", "\"0\""),
+        ("BigUint", "String", "\"0\""),
+        ("DateTime<Utc>", "SerializedDate", "0L"),
+    ],
+    app_type_imports: &[("DateTime<Utc>", "SerializedDate")],
+    optional_type: "{}?",
+    list_type: "List<{}>",
+    enum_value: "{type}.{case}",
+    mock_header: "package com.gemwallet.android.testkit\n",
+    mock_import: "import {}\n",
+    mock_open: "\nfun mock{function}(\n",
+    mock_parameter: "    {label}: {type} = {value},\n",
+    mock_body: ") = {type}(\n",
+    mock_close: ")\n",
+    mock_reference: "mock{function}()",
 };
 
 impl Language {
@@ -804,6 +1042,32 @@ mod tests {
     #[test]
     fn test_kotlin_mappers_match_the_expected_file() {
         expect_generated("RemoteTypeMappers.kt", Generator::mock().kotlin());
+    }
+
+    #[test]
+    fn test_swift_mocks_match_the_expected_file() {
+        expect_generated("GeneratedMocks.swift", Generator::mock().swift_mocks());
+    }
+
+    #[test]
+    fn test_kotlin_mocks_match_the_expected_file() {
+        expect_generated("GeneratedMocks.kt", Generator::mock().kotlin_mocks());
+    }
+
+    #[test]
+    #[should_panic(expected = "Wallet.accounts is a list")]
+    fn test_a_mock_override_on_a_list_names_the_field() {
+        let yaml = include_str!("../testdata/remote_types.yml").replace("mocks:\n", "mocks:\n  - Wallet:\n      accounts: none\n");
+        let testdata = Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata");
+        Generator::parse(Config::from_yaml(&yaml), &testdata.join("primitives")).kotlin_mocks();
+    }
+
+    #[test]
+    #[should_panic(expected = "Delegation.validator: DelegationValidator has no mock and no default rule")]
+    fn test_a_field_without_a_mock_or_a_rule_names_the_field() {
+        let yaml = include_str!("../testdata/remote_types.yml").replace("mocks:\n", "mocks:\n  - Delegation\n");
+        let testdata = Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata");
+        Generator::parse(Config::from_yaml(&yaml), &testdata.join("primitives")).swift_mocks();
     }
 
     #[test]
