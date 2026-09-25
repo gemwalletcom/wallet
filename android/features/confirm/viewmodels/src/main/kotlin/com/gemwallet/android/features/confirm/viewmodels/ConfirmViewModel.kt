@@ -243,7 +243,7 @@ class ConfirmViewModel @Inject constructor(
             amount = fee.value,
             additionalFees = fee.additionalFees,
             feeAsset = content.feeAssetUIModel.asset,
-            price = content.feeAssetUIModel.price?.price?.price,
+            price = content.load.metadata.feePrice()?.price,
             currency = content.currency,
             priority = fee.selectedPriority.toPrimitives(),
             display = fee.formatted,
@@ -409,10 +409,9 @@ class ConfirmViewModel @Inject constructor(
     }
 
     private data class ConfirmContent(val session: GemConfirmation, val currency: Currency, val load: GemConfirmLoad) {
-        val feeAssetUIModel: FeeAssetUIModel =
-            FeeAssetUIModel.from(load.feeAsset.toPrimitives(), load.metadata.feeAssetBalance, load.metadata.feePrice(), currency)
+        val feeAssetUIModel: FeeAssetUIModel = FeeAssetUIModel(load.feeAsset.toPrimitives(), load.feeAssetRow(currency.toGem()))
 
-        val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel(currency) }
+        val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel() }
 
         fun assetPrice(asset: Asset): AssetPriceValue = AssetPriceValue(asset, load.metadata.price(asset.id.toIdentifier())?.toAssetPriceInfo(currency))
     }

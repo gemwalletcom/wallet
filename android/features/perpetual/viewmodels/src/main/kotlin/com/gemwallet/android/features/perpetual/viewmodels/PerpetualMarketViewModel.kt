@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,14 +18,12 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.ui.components.perpetual.listItem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,7 +59,6 @@ class PerpetualMarketViewModel @Inject constructor(
     private val service: GemPerpetualServiceInterface,
     private val perpetualObserver: PerpetualObserver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
     private val connectionStatusObserver: ConnectionStatusObserver,
 ) : ViewModel() {
 
@@ -107,7 +103,7 @@ class PerpetualMarketViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
-        .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context)) } }
+        .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.row) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balanceHeader: StateFlow<GemPerpetualBalanceHeader?> = combine(
         getBalance.getBalance(),

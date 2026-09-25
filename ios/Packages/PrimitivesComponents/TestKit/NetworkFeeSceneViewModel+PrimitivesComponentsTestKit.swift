@@ -3,12 +3,14 @@
 import BigInt
 import func Gemstone.feeAmount
 import enum Gemstone.FeeOption
+import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -48,6 +50,7 @@ public extension NetworkFeeSceneViewModel {
             fee: feeAmount.map(formatted),
             additionalFees: additionalFees.map { GemFeeOptionItem(option: $0.0, value: $0.1, amount: formatted($0.1)) },
             feeAssets: feeAssets,
+            selectedFeeAsset: feeAssets.first(where: { $0.asset.id == feeAsset.id }),
             showsFeeAssets: showsFeeAssets,
             onSelect: onSelect,
             onSelectFeeAsset: onSelectFeeAsset,
@@ -57,6 +60,6 @@ public extension NetworkFeeSceneViewModel {
 
 public extension FeeAssetItem {
     static func mock(asset: Asset = .mockEthereum()) -> FeeAssetItem {
-        FeeAssetItem(asset: asset, balance: .zero, price: nil, currency: .usd, isSelected: false)
+        FeeAssetItem(asset: asset, row: .mock(asset: asset), isSelected: false)
     }
 }

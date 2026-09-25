@@ -6,7 +6,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use crate::services::assets::model::GemFeeAmount;
+use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount};
 use crate::services::balance::GemAssetBalance;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
@@ -19,7 +19,7 @@ use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::BlockExplorerLink;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
-use primitives::{AssetPrice, PaymentVerification};
+use primitives::{AssetPrice, Currency, PaymentVerification};
 
 pub type GemAccount = Account;
 
@@ -185,6 +185,7 @@ pub struct GemFeeAsset {
     pub asset: Asset,
     pub balance: GemAssetBalance,
     pub price: Option<AssetPrice>,
+    pub row: GemAssetItemRow,
 }
 
 impl GemConfirmSimulation {
@@ -339,6 +340,10 @@ pub struct GemConfirmButton {
 
 #[uniffi::export]
 impl GemConfirmLoad {
+    pub fn fee_asset_row(&self, currency: Currency) -> GemAssetItemRow {
+        super::rules::fee_asset_row(&self.fee_asset, &self.metadata.fee_asset_balance, self.metadata.fee_price().map(|price| price.price), &currency)
+    }
+
     pub fn shows_fee_assets(&self) -> bool {
         let fee_asset_ids: Vec<AssetId> = self.fee_assets.iter().map(|fee_asset| fee_asset.asset.id.clone()).collect();
         super::rules::shows_fee_assets(&fee_asset_ids, Some(&self.fee_asset.id))

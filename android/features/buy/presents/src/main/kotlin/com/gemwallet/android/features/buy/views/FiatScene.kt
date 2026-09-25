@@ -19,11 +19,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.ui.R
@@ -41,6 +43,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.Spacer16
@@ -125,7 +128,7 @@ fun BuyScene(
         AssetListItem(
             asset = asset,
             listPosition = ListPosition.Single,
-            support = { ListItemSupportText(assetInfo?.balance ?: " ") },
+            support = { ListItemSupportText(assetInfo?.row?.trailingValue?.text?.string(LocalContext.current) ?: " ") },
             trailing = {
                 FiatSuggestionRow(
                     suggestedAmounts = assetRowSuggestions,

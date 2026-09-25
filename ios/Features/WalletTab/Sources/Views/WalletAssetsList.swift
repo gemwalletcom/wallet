@@ -37,9 +37,9 @@ struct WalletAssetsList: View {
     }
 
     var body: some View {
-        ForEach(Array(zip(assets, itemsModel.items(assets, showBalancePrivacy: $showBalancePrivacy))), id: \.0.id) { asset, model in
+        ForEach(Array(zip(assets, itemsModel.rows(assets))), id: \.0.id) { asset, row in
             NavigationLink(value: Scenes.Asset(asset: asset.asset)) {
-                ListAssetItemView(model: model)
+                ListAssetItemView(row: row, isPrivacyEnabled: $showBalancePrivacy)
                     .contextMenu(
                         AssetContextMenu.items(
                             for: asset,

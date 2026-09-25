@@ -151,7 +151,7 @@ impl GemConfirmTransferService {
         let chain = input_type.transaction_asset().chain();
         let (metadata, fee_assets, address_name) = futures::join!(
             self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id),
-            self.confirm.fee_assets(wallet_id, chain),
+            self.confirm.fee_assets(wallet_id, chain, self.get_currency()),
             self.names.address_name(chain, input.transfer.recipient.address.clone()),
         );
         Ok(GemConfirmLoad {

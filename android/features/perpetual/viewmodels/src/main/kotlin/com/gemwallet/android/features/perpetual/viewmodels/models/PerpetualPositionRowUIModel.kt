@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.perpetual.viewmodels.models
 
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetItemRow
 
-data class PerpetualPositionRowUIModel(val asset: Asset, val model: ListItemModel)
+data class PerpetualPositionRowUIModel(val asset: Asset, val row: GemAssetItemRow, val hideBalance: Boolean = false)

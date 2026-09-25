@@ -53,10 +53,6 @@ public final class AssetPriceAlertsViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    func autoAlertItemModel(_ assetAlerts: GemAssetPriceAlerts) -> PriceAlertItemViewModel {
-        PriceAlertItemViewModel(row: assetAlerts.autoRow)
-    }
-
     func isAutoAlertEnabledBinding(_ assetAlerts: GemAssetPriceAlerts) -> Binding<Bool> {
         Binding(
             get: { assetAlerts.autoAlert == .enabled },

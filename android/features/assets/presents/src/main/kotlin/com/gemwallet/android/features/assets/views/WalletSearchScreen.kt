@@ -25,8 +25,6 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.NftListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.assetPriceSupport
-import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -175,8 +173,6 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                 autoFocus = true,
             )
         },
-        titleBadge = { item -> item.symbol },
-        support = { assetPriceSupport(it.price) },
         query = viewModel.queryState,
         pinned = pinned,
         popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
@@ -208,7 +204,6 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             }
         },
         recentsSheetEnabled = true,
-        itemTrailing = { asset -> getBalanceInfo(asset)() },
         contextActions = AssetContextActions(
             onTogglePin = { handleAction(WalletSearchAction.PinAsset(it)) },
             onAddToWallet = { handleAction(WalletSearchAction.AddToWallet(it)) },

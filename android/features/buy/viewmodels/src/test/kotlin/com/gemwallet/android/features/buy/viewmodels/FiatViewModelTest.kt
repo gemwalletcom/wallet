@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
@@ -54,6 +55,7 @@ import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.formattedCurrency
 import java.math.BigInteger
@@ -343,7 +345,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.balance)
+            assertEquals("1 BTC", (viewModel.assetInfoUIModel.value?.row?.trailingValue?.text as? GemLocalizedText.Number)?.number?.text())
         } finally {
             viewModel.viewModelScope.cancel()
         }

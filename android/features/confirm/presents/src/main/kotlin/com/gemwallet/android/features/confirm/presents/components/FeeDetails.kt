@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.list_item.Badge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -70,6 +71,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
+import uniffi.gemstone.GemAssetItemTrailing
 import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -271,11 +273,10 @@ private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosi
                 AsyncImage(model = asset, placeholderText = asset.id.icon().placeholder, size = listItemIconSize)
             }
         },
-        title = { ListItemTitleText(asset.symbol) },
-        subtitle = asset.name.takeUnless { it == asset.symbol }?.let { { ListItemSupportText(it) } },
+        title = { ListItemTitleText(feeAsset.row.title, { Badge(text = feeAsset.row.titleExtra) }) },
         trailing = {
             DataBadgeChevron {
-                getBalanceInfo(feeAsset.balance, feeAsset.equivalent, feeAsset.isZeroBalance).invoke()
+                (feeAsset.row.trailing as? GemAssetItemTrailing.Value)?.let { getBalanceInfo(it.value, it.extra).invoke() }
             }
         },
     )

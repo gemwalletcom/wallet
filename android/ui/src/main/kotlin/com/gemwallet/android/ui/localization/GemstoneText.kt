@@ -47,6 +47,7 @@ import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemPositionChange
+import uniffi.gemstone.GemPriceAlertLabel
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemSimulationPayloadTitle
@@ -197,6 +198,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"
 
     is GemLocalizedText.Position -> "${context.getString(direction.toPrimitives().stringRes()).uppercase()} ${leverage.text()}"
+
+    is GemLocalizedText.PriceAlertLabel -> context.getString(label.stringRes())
 
     is GemLocalizedText.Apr -> context.getString(R.string.stake_apr, value?.text().orEmpty())
 
@@ -721,4 +724,12 @@ fun GemLatencyStatus.text(context: Context): String = when (this) {
     is GemLatencyStatus.Loading -> ""
     is GemLatencyStatus.Error -> context.getString(R.string.errors_error)
     is GemLatencyStatus.Result -> context.getString(R.string.common_latency_in_ms, latency.value.toLong())
+}
+
+@StringRes
+private fun GemPriceAlertLabel.stringRes(): Int = when (this) {
+    GemPriceAlertLabel.OVER -> R.string.price_alerts_direction_over
+    GemPriceAlertLabel.UNDER -> R.string.price_alerts_direction_under
+    GemPriceAlertLabel.INCREASES_BY -> R.string.price_alerts_direction_increases_by
+    GemPriceAlertLabel.DECREASES_BY -> R.string.price_alerts_direction_decreases_by
 }

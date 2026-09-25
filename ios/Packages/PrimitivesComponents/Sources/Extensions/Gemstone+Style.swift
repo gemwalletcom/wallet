@@ -7,24 +7,13 @@ import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemNoticeKind
-import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
 import enum Gemstone.LinkType
-import enum Gemstone.PriceAlertDirection
 import Primitives
 import Style
 import SwiftUI
-
-public extension PriceAlertDirection {
-    var color: Color {
-        switch self {
-        case .up: Colors.green
-        case .down: Colors.red
-        }
-    }
-}
 
 public extension GemEmptyStateImage {
     var image: Image {
@@ -68,12 +57,6 @@ public extension GemValueTone {
         case .warning: Colors.orange.opacity(.light)
         case .negative: Colors.redLight
         }
-    }
-}
-
-public extension GemPriceAlertRow {
-    var directionColor: Color {
-        direction?.color ?? Colors.gray
     }
 }
 

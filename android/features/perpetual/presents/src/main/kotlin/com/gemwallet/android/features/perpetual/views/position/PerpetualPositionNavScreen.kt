@@ -42,7 +42,7 @@ fun PerpetualPositionNavScreen(
     }
 
     val details by viewModel.details.collectAsStateWithLifecycle()
-    val positionListItem by viewModel.positionListItem.collectAsStateWithLifecycle()
+    val positionRow by viewModel.positionRow.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
@@ -53,7 +53,7 @@ fun PerpetualPositionNavScreen(
 
     PerpetualPositionScene(
         details = details,
-        positionListItem = positionListItem,
+        positionRow = positionRow,
         transactions = transactions,
         chart = chart,
         tooltip = viewModel::tooltip,

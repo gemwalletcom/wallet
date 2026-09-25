@@ -104,7 +104,7 @@ extension NetworkAssetsSceneViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives(), rowStyle: service.assetRowStyle())
+        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives())
     }
 }
 

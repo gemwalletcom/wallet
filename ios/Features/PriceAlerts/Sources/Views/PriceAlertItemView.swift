@@ -12,7 +12,7 @@ struct PriceAlertItemView: View {
     let onDelete: (PriceAlert) -> Void
 
     var body: some View {
-        ListAssetItemView(model: item.model)
+        ListAssetItemView(row: item.row)
             .swipeActions(edge: .trailing) {
                 Button(Localized.Common.delete, role: .destructive) {
                     onDelete(item.data.priceAlert)

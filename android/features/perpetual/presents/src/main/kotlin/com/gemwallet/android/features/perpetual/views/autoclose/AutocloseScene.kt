@@ -15,9 +15,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.isKeyboardVisible
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.MainActionWidth
 import com.gemwallet.android.ui.components.screen.Scene
@@ -28,10 +27,11 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseViewState
 
 @Composable
-internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, snackbar: SnackbarHostState, onAction: (AutocloseAction) -> Unit) {
+internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetItemRow?, takeProfitText: String, stopLossText: String, snackbar: SnackbarHostState, onAction: (AutocloseAction) -> Unit) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
 
     val activeField = focusedField?.let { type ->
@@ -74,7 +74,7 @@ internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: List
     ) {
         LazyColumn {
             item {
-                positionListItem?.let { ListItem(model = it, listPosition = ListPosition.Single) }
+                positionRow?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
                 Spacer16()
             }
             item {

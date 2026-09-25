@@ -48,6 +48,7 @@ import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
+import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -80,8 +81,6 @@ fun AssetSelectScene(
     unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
     state: GemSelectAssetState,
-    titleBadge: (AssetInfoDataAggregate) -> String?,
-    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
     isAddAvailable: Boolean = false,
     availableChains: List<Chain> = emptyList(),
@@ -91,7 +90,7 @@ fun AssetSelectScene(
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
     closeIcon: Boolean = false,
-    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
     recentsSheetEnabled: Boolean = false,
@@ -111,8 +110,6 @@ fun AssetSelectScene(
         unpinned = unpinned,
         recent = recent,
         state = state,
-        titleBadge = titleBadge,
-        support = support,
         query = query,
         isAddAvailable = isAddAvailable,
         availableChains = availableChains,
@@ -122,7 +119,7 @@ fun AssetSelectScene(
         searchable = searchable,
         onAction = onAction,
         closeIcon = closeIcon,
-        itemTrailing = itemTrailing,
+        onItemAction = onItemAction,
         actions = actions,
         contextActions = contextActions,
         recentsSheetEnabled = recentsSheetEnabled,
@@ -138,8 +135,6 @@ fun AssetSelectScene(
     unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
     state: GemSelectAssetState,
-    titleBadge: (AssetInfoDataAggregate) -> String?,
-    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
     isAddAvailable: Boolean = false,
     availableChains: List<Chain> = emptyList(),
@@ -150,7 +145,7 @@ fun AssetSelectScene(
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
     closeIcon: Boolean = false,
-    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
     recentsSheetEnabled: Boolean = false,
@@ -225,7 +220,7 @@ fun AssetSelectScene(
             state = listState,
         ) {
             recent(recent, onSelectRecent, onOpenRecentsSheet)
-            assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(popular, AssetsGroupType.Popular, onSelect, onItemAction, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
                 item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
                 val pinnedTotal = pinnedPerpetualRows.size + pinned.size
@@ -235,9 +230,7 @@ fun AssetSelectScene(
                 assetRows(
                     pinned,
                     onSelect,
-                    support,
-                    titleBadge,
-                    itemTrailing,
+                    onItemAction,
                     longPressedAsset,
                     contextActions,
                     indexOffset = pinnedPerpetualRows.size,
@@ -252,7 +245,7 @@ fun AssetSelectScene(
                     SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
                 }
             }
-            assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(unpinned, AssetsGroupType.None, onSelect, onItemAction, longPressedAsset, contextActions)
             searchState(
                 state = state,
                 isAddAvailable = isAddAvailable,
@@ -279,9 +272,7 @@ private fun LazyListScope.assets(
     items: List<AssetInfoDataAggregate>,
     group: AssetsGroupType,
     onSelect: ((Asset) -> Unit)?,
-    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetInfoDataAggregate) -> String?,
-    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
 ) {
@@ -289,15 +280,13 @@ private fun LazyListScope.assets(
 
     item { PinnedAssetsHeaderItem(group) }
 
-    assetRows(items, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+    assetRows(items, onSelect, onItemAction, longPressedAsset, contextActions)
 }
 
 fun LazyListScope.assetRows(
     items: List<AssetInfoDataAggregate>,
     onSelect: ((Asset) -> Unit)?,
-    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetInfoDataAggregate) -> String?,
-    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
     indexOffset: Int = 0,
@@ -307,9 +296,7 @@ fun LazyListScope.assetRows(
         AssetSelectRow(
             position = position,
             item = item,
-            support = support,
-            titleBadge = titleBadge,
-            itemTrailing = itemTrailing,
+            onItemAction = onItemAction,
             longPressedAsset = longPressedAsset,
             onSelect = onSelect,
             contextActions = contextActions,
@@ -321,9 +308,7 @@ fun LazyListScope.assetRows(
 fun AssetSelectRow(
     position: ListPosition,
     item: AssetInfoDataAggregate,
-    support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
-    titleBadge: (AssetInfoDataAggregate) -> String?,
-    itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     onSelect: ((Asset) -> Unit)?,
     contextActions: AssetContextActions,
@@ -341,9 +326,7 @@ fun AssetSelectRow(
             modifier = rowModifier,
             listPosition = position,
             asset = item,
-            support = support?.invoke(item),
-            badge = titleBadge.invoke(item),
-            trailing = { itemTrailing?.invoke(item) },
+            onAction = onItemAction?.let { handler -> { action -> handler(item, action) } },
         )
     }
 }
@@ -419,8 +402,6 @@ fun PreviewAssetScreenUI() {
             recent = emptyList<Asset>().toImmutableList(),
             state = GemSelectAssetState.IDLE,
             title = "Send",
-            titleBadge = { it.asset.symbol },
-            support = null,
             query = rememberTextFieldState(),
             onAction = {},
         )

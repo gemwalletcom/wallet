@@ -25,8 +25,6 @@ import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChart
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.perpetual.listItem
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -63,6 +61,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -131,7 +130,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positionListItem: StateFlow<ListItemModel?> = detailsState.map { it?.positionRow?.listItem(context) }
+    val positionRow: StateFlow<GemAssetItemRow?> = detailsState.map { it?.positionRow?.row }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), null)
 
     val details: StateFlow<PerpetualDetailsUIModel?> = detailsState.map { it?.uiModel(context) }

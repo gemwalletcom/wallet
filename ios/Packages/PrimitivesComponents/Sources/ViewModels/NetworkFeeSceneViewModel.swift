@@ -23,6 +23,7 @@ public struct NetworkFeeSceneViewModel {
     private let fee: GemFeeAmount?
     private let additionalFees: [GemFeeOptionItem]
     private let feeAssets: [FeeAssetItem]
+    private let selectedFeeAsset: FeeAssetItem?
     private let showsFeeAssets: Bool
     private let onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
@@ -37,6 +38,7 @@ public struct NetworkFeeSceneViewModel {
         fee: GemFeeAmount? = nil,
         additionalFees: [GemFeeOptionItem] = [],
         feeAssets: [FeeAssetItem] = [],
+        selectedFeeAsset: FeeAssetItem? = nil,
         showsFeeAssets: Bool = false,
         onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
@@ -50,6 +52,7 @@ public struct NetworkFeeSceneViewModel {
         self.fee = fee
         self.additionalFees = additionalFees
         self.feeAssets = feeAssets
+        self.selectedFeeAsset = selectedFeeAsset
         self.showsFeeAssets = showsFeeAssets
         self.onSelect = onSelect
         self.onSelectFeeAsset = onSelectFeeAsset
@@ -76,12 +79,11 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var showFeeAssets: Bool {
-        onSelectFeeAsset != nil && showsFeeAssets
+        onSelectFeeAsset != nil && showsFeeAssets && selectedFeeAsset != nil
     }
 
-    var selectedFeeAssetItem: FeeAssetItem {
-        feeAssets.first(where: { $0.asset.id == feeAsset.id })
-            ?? FeeAssetItem(asset: feeAsset, balance: .zero, price: nil, currency: currency, isSelected: false)
+    var selectedFeeAssetItem: FeeAssetItem? {
+        selectedFeeAsset
     }
 
     var feeAssetsViewModel: FeeAssetsViewModel {

@@ -14,8 +14,9 @@ use strum::IntoEnumIterator;
 
 use super::model::{
     GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualBalanceHeader, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind,
-    GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketRow, GemPerpetualMarketSection, GemPerpetualOpenRow,
-    GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
+    GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
+    PerpetualPositionLine,
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
@@ -708,8 +709,8 @@ fn tooltip_cell(row: GemCandleTooltipRow, value: GemFormattedNumber) -> GemCandl
     GemCandleTooltipCell { row, value }
 }
 
-pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow {
-    GemPerpetualMarketRow {
+pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> PerpetualMarketLine {
+    PerpetualMarketLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),
         asset_id: perpetual.asset_id.clone(),
         title: match perpetual.name.is_empty() {
@@ -723,8 +724,8 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow
     }
 }
 
-pub fn open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
-    GemPerpetualOpenRow {
+pub fn open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> PerpetualOpenLine {
+    PerpetualOpenLine {
         position: position_text(&direction, leverage),
         direction_tone: direction_tone(&direction),
         size: (size > 0.0).then(|| GemFormattedNumber::currency(size, Currency::USD, GemCurrencyStyle::Currency)),
@@ -732,8 +733,12 @@ pub fn open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPe
 }
 
 pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> GemPerpetualPositionRow {
+    position_line(perpetual, asset, position).into()
+}
+
+pub fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
     let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
-    GemPerpetualPositionRow {
+    PerpetualPositionLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),
         id: position.id.clone(),
         asset_id: perpetual.asset_id.clone(),
@@ -744,7 +749,6 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
         position: position_text(&position.direction, position.leverage),
         direction_tone: direction_tone(&position.direction),
         margin: GemFormattedNumber::currency(position.margin_amount, Currency::USD, GemCurrencyStyle::Fiat),
-        direction: position.direction.clone(),
         pnl,
         pnl_tone,
     }
@@ -836,7 +840,7 @@ fn autoclose_lines(position: &PerpetualPosition) -> Vec<GemLocalizedText> {
     }
 }
 
-fn info_rows(row: GemPerpetualMarketRow) -> Vec<GemListRow> {
+fn info_rows(row: PerpetualMarketLine) -> Vec<GemListRow> {
     vec![
         GemListRow::Amount {
             title: GemListRowTitle::DailyVolume,
@@ -1403,12 +1407,24 @@ mod tests {
             direction: PerpetualDirection::Short,
             ..PerpetualPosition::mock()
         };
-        let holding = position_row(&Perpetual::mock(), &Asset::from_chain(Chain::HyperCore), &held);
+        let holding = position_line(&Perpetual::mock(), &Asset::from_chain(Chain::HyperCore), &held);
 
         assert_eq!(opening.position, holding.position, "a position about to open is labelled like one already open");
         assert_eq!(opening.direction_tone, holding.direction_tone);
         assert_eq!(opening.size.expect("a sized order shows its size").value, 1_000.0);
         assert_eq!(open_row(PerpetualDirection::Long, 1, 0.0).size, None, "an order with no size yet shows none");
+    }
+
+    #[test]
+    fn test_a_held_position_hides_its_figures_with_the_balance_and_an_opening_one_does_not() {
+        use crate::services::assets::model::GemAssetItemTrailing;
+        let held = position_row(&Perpetual::mock(), &Asset::from_chain(Chain::HyperCore), &PerpetualPosition::mock()).row;
+        assert!(held.masks_balance);
+        assert!(matches!(held.trailing, GemAssetItemTrailing::Value { extra: Some(_), .. }), "the margin trails with the change");
+
+        let opening = super::super::model::perpetual_open_row(Perpetual::mock().asset_id, "BTC".to_string(), PerpetualDirection::Long, 5, 0.0);
+        assert!(!opening.masks_balance);
+        assert_eq!(opening.trailing, GemAssetItemTrailing::None, "an order with no size yet trails with nothing");
     }
 
     #[test]
@@ -1419,9 +1435,9 @@ mod tests {
         let symboled = Asset::from_chain(Chain::HyperCore);
         let unsymboled = Asset { symbol: String::new(), ..symboled.clone() };
 
-        assert_eq!(position_row(&market, &symboled, &held).title, symboled.symbol);
-        assert_eq!(position_row(&market, &unsymboled, &held).title, "BTC");
-        assert_eq!(position_row(&market, &symboled, &held).position, position_text(&held.direction, 40));
+        assert_eq!(position_line(&market, &symboled, &held).title, symboled.symbol);
+        assert_eq!(position_line(&market, &unsymboled, &held).title, "BTC");
+        assert_eq!(position_line(&market, &symboled, &held).position, position_text(&held.direction, 40));
     }
 
     #[test]
@@ -1435,7 +1451,7 @@ mod tests {
             ..PerpetualPosition::mock()
         };
 
-        let row = position_row(&market, &Asset::from_chain(Chain::HyperCore), &held);
+        let row = position_line(&market, &Asset::from_chain(Chain::HyperCore), &held);
 
         assert_eq!(row.margin.value, 0.5432);
         assert_eq!(row.margin.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });

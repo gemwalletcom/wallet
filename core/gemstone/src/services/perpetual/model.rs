@@ -2,7 +2,7 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
-use crate::services::assets::model::{GemHeaderActions, GemPriceRow};
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemHeaderActions, GemPriceRow, GemRowText};
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
@@ -87,9 +87,15 @@ pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPer
 pub struct GemPerpetualPositionRow {
     pub id: String,
     pub asset_id: AssetId,
+    pub row: GemAssetItemRow,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualPositionLine {
+    pub id: String,
+    pub asset_id: AssetId,
     pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
-    pub direction: PerpetualDirection,
     pub position: GemLocalizedText,
     pub direction_tone: GemValueTone,
     pub margin: GemFormattedNumber,
@@ -97,16 +103,55 @@ pub struct GemPerpetualPositionRow {
     pub pnl_tone: GemValueTone,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualOpenRow {
+impl From<PerpetualPositionLine> for GemPerpetualPositionRow {
+    fn from(line: PerpetualPositionLine) -> Self {
+        Self {
+            id: line.id,
+            asset_id: line.asset_id,
+            row: GemAssetItemRow {
+                icon: line.icon,
+                title: line.title,
+                title_extra: None,
+                subtitle: Some(GemRowText {
+                    text: line.position,
+                    tone: line.direction_tone,
+                }),
+                subtitle_extra: None,
+                trailing: GemAssetItemTrailing::Value {
+                    value: GemRowText::number(line.margin),
+                    extra: Some(GemRowText { text: line.pnl, tone: line.pnl_tone }),
+                },
+                masks_balance: true,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualOpenLine {
     pub position: GemLocalizedText,
     pub direction_tone: GemValueTone,
     pub size: Option<GemFormattedNumber>,
 }
 
 #[uniffi::export]
-pub fn perpetual_open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
-    rules::open_row(direction, leverage, size)
+pub fn perpetual_open_row(asset_id: AssetId, title: String, direction: PerpetualDirection, leverage: u8, size: f64) -> GemAssetItemRow {
+    let line = rules::open_row(direction, leverage, size);
+    GemAssetItemRow {
+        icon: crate::services::assets::icon::asset_icon(&asset_id),
+        title,
+        title_extra: None,
+        subtitle: Some(GemRowText {
+            text: line.position,
+            tone: line.direction_tone,
+        }),
+        subtitle_extra: None,
+        trailing: line.size.map_or(GemAssetItemTrailing::None, |size| GemAssetItemTrailing::Value {
+            value: GemRowText::number(size),
+            extra: None,
+        }),
+        masks_balance: false,
+    }
 }
 
 #[uniffi::export]
@@ -114,8 +159,8 @@ pub fn perpetual_position_rows(positions: Vec<PerpetualPositionData>) -> Vec<Gem
     positions.iter().map(|data| rules::position_row(&data.perpetual, &data.asset, &data.position)).collect()
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualMarketRow {
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualMarketLine {
     pub asset_id: AssetId,
     pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
@@ -125,15 +170,33 @@ pub struct GemPerpetualMarketRow {
     pub funding_apr: GemFormattedNumber,
 }
 
+impl PerpetualMarketLine {
+    pub fn item_row(self) -> GemAssetItemRow {
+        let price = self.price.price;
+        GemAssetItemRow {
+            icon: self.icon,
+            title: self.title,
+            title_extra: None,
+            subtitle_extra: self.price.change.filter(|_| price.is_some()).map(GemRowText::number),
+            subtitle: price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })),
+            trailing: GemAssetItemTrailing::Value {
+                value: GemRowText::number(self.volume_24h),
+                extra: None,
+            },
+            masks_balance: false,
+        }
+    }
+}
+
 #[uniffi::export]
-pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemPerpetualMarketRow> {
-    markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset)).collect()
+pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemAssetItemRow> {
+    markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset).item_row()).collect()
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemPerpetualMarketItem {
     pub data: PerpetualData,
-    pub row: GemPerpetualMarketRow,
+    pub row: GemAssetItemRow,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -147,7 +210,7 @@ pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMar
     let (pinned, markets): (Vec<_>, Vec<_>) = markets
         .into_iter()
         .map(|data| GemPerpetualMarketItem {
-            row: rules::market_row(&data.perpetual, &data.asset),
+            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
             data,
         })
         .partition(|item| item.data.metadata.is_pinned);

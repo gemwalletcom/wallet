@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -24,7 +25,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
@@ -41,10 +41,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertSession
 import uniffi.gemstone.GemPriceAlertViewState
+import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
@@ -67,7 +69,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     private val assetPrice = assetInfo.map { it?.price?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val asset: StateFlow<Asset?> = assetInfo.map { it?.asset }
+    val assetRow: StateFlow<GemAssetItemRow?> = assetInfo.map { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle)?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
@@ -102,9 +104,6 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val currentPrice: StateFlow<String> = viewState.map { it.currentPrice?.text().orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    val priceChange: StateFlow<GemFormattedNumber?> = viewState.map { it.priceChange }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val buttonState: StateFlow<ButtonState> = viewState.map { buttonState(enabled = it.canConfirm, loading = it.isSaving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))

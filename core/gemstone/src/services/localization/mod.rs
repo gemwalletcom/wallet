@@ -2,6 +2,7 @@ use primitives::{AddressType, Chain, DelegationState, FeeUnitType, PerpetualDire
 
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
+use crate::services::price_alert::rules::GemPriceAlertLabel;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemLocalizedText {
@@ -30,6 +31,7 @@ pub enum GemLocalizedText {
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: GemFormattedNumber },
+    PriceAlertLabel { label: GemPriceAlertLabel },
     Apr { value: Option<GemFormattedNumber> },
     PriceImpactWarning { percent: GemFormattedNumber, symbol: String },
     Balance { amount: GemFormattedNumber },

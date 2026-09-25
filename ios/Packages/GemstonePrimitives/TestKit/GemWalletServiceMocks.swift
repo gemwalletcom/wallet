@@ -227,10 +227,6 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func assetRowStyle() -> Gemstone.GemAssetRowStyle {
-        Gemstone.GemAssetRowStyle(title: .asset, showsSymbol: false, subtitle: .price, trailing: .balance)
-    }
-
     public func viewState(wallet _: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner]) -> GemWalletHomeViewState {
         let collateral: Double = perpetual.map { ($0.balance.available + $0.balance.reserved) * $0.price } ?? 0
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + collateral

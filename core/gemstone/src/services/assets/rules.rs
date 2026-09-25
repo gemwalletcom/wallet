@@ -8,10 +8,10 @@ use primitives::{
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
-    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
-    GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
-    GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetListRowInput, GemAssetMenuAction,
+    GemAssetMenuInput, GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton,
+    GemHeaderButtonKind, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
+    GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -24,6 +24,7 @@ use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::rules::{balance_amount, balance_resource_rows};
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRow, GemBalanceRowValue};
+use crate::services::localization::GemLocalizedText;
 use crate::services::nft::rules::nft_chains;
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
@@ -223,7 +224,7 @@ pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText
     }
 }
 
-pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
+pub fn asset_list_row(input: GemAssetListRowInput, style: GemAssetRowStyle) -> GemAssetItemRow {
     let GemAssetListRowInput {
         asset,
         balance,
@@ -231,22 +232,42 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
         price,
         change,
         currency,
-        style,
+        is_enabled,
     } = input;
     let value = match scope {
         GemAssetBalanceScope::Total => balance.total(),
         GemAssetBalanceScope::Available => balance.available,
     };
-    GemAssetListRow {
+    let text = asset_row_text(&asset, style);
+    let prices = price_row(price, change, currency.clone(), GemCurrencyStyle::Short);
+    let (subtitle, subtitle_extra) = match style.subtitle {
+        GemAssetSubtitleStyle::Price => (prices.price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })), prices.change.map(GemRowText::number)),
+        GemAssetSubtitleStyle::Network => (text.network.map(|network| GemRowText::neutral(GemLocalizedText::Text { text: network })), None),
+    };
+    GemAssetItemRow {
         icon: super::icon::asset_icon(&asset.id),
-        text: asset_row_text(&asset, style),
-        price: price_row(price, change, currency.clone(), GemCurrencyStyle::Short),
-        amount: GemFormattedNumber {
-            tone: if value > GemBigUint::ZERO { GemValueTone::Plain } else { GemValueTone::Neutral },
-            ..crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short)
+        title: text.title,
+        title_extra: text.symbol,
+        subtitle,
+        subtitle_extra,
+        trailing: match style.trailing {
+            GemAssetTrailingStyle::Balance => GemAssetItemTrailing::Value {
+                value: balance_text(&value, &asset),
+                extra: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            },
+            GemAssetTrailingStyle::Toggle => GemAssetItemTrailing::Toggle { is_on: is_enabled },
+            GemAssetTrailingStyle::Copy => GemAssetItemTrailing::Copy,
+            GemAssetTrailingStyle::None => GemAssetItemTrailing::None,
         },
-        fiat: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short),
+        masks_balance: style.trailing == GemAssetTrailingStyle::Balance,
     }
+}
+
+pub fn balance_text(value: &GemBigUint, asset: &Asset) -> GemRowText {
+    GemRowText::number(GemFormattedNumber {
+        tone: if *value > GemBigUint::ZERO { GemValueTone::Plain } else { GemValueTone::Neutral },
+        ..crate::services::balance::rules::balance_amount_styled(value, asset, crate::precision::GemValueStyle::Short)
+    })
 }
 
 pub fn wallet_asset_row_style() -> GemAssetRowStyle {
@@ -730,15 +751,26 @@ mod tests {
     fn test_a_list_row_carries_the_balance_its_fiat_and_whether_there_is_any() {
         let usdc = Asset::mock_ethereum_usdc();
         let row = |balance: GemAssetBalance, scope, price| {
-            asset_list_row(GemAssetListRowInput {
-                asset: usdc.clone(),
-                balance,
-                scope,
-                price,
-                change: Some(-2.5),
-                currency: Currency::USD,
-                style: wallet_asset_row_style(),
-            })
+            asset_list_row(
+                GemAssetListRowInput {
+                    asset: usdc.clone(),
+                    balance,
+                    scope,
+                    price,
+                    change: Some(-2.5),
+                    currency: Currency::USD,
+                    is_enabled: true,
+                },
+                wallet_asset_row_style(),
+            )
+        };
+        let value = |row: &GemAssetItemRow| match &row.trailing {
+            GemAssetItemTrailing::Value { value, extra } => (value.clone(), extra.clone()),
+            other => panic!("a wallet row shows its balance, got {other:?}"),
+        };
+        let number = |text: &GemRowText| match &text.text {
+            GemLocalizedText::Number { number } => number.clone(),
+            other => panic!("expected a number, got {other:?}"),
         };
         let held = GemAssetBalance {
             staked: GemBigUint::from(2_000_000u32),
@@ -746,20 +778,47 @@ mod tests {
         };
 
         let total = row(held.clone(), GemAssetBalanceScope::Total, Some(1.0));
-        assert_eq!(total.amount.value, 3.0);
-        assert_eq!(total.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
-        assert_eq!(total.fiat.expect("a priced balance is worth something").value, 3.0);
-        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short), "the row's price is the list-width one");
-        assert_eq!(total.amount.tone, GemValueTone::Plain);
+        let (amount, fiat) = value(&total);
+        assert_eq!(number(&amount).value, 3.0);
+        assert_eq!(number(&amount).unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
+        assert_eq!(number(&fiat.expect("a priced balance is worth something")).value, 3.0);
+        let prices = price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short);
+        assert_eq!(
+            (total.subtitle.clone(), total.subtitle_extra.clone()),
+            (prices.price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })), prices.change.map(GemRowText::number)),
+            "the row's price is the list-width one"
+        );
+        assert_eq!(amount.tone, GemValueTone::Plain);
+        assert!(total.masks_balance, "a balance hides with the privacy toggle");
 
         let available = row(held.clone(), GemAssetBalanceScope::Available, Some(1.0));
-        assert_eq!(available.amount.value, 1.0, "the buy screen spends what is available, not what is staked");
+        assert_eq!(number(&value(&available).0).value, 1.0, "the buy screen spends what is available, not what is staked");
 
-        assert_eq!(row(held, GemAssetBalanceScope::Total, None).fiat, None, "an unpriced asset is worth nothing the row can name");
+        assert_eq!(value(&row(held, GemAssetBalanceScope::Total, None)).1, None, "an unpriced asset is worth nothing the row can name");
 
         let empty = row(GemAssetBalance::mock(), GemAssetBalanceScope::Total, Some(1.0));
-        assert_eq!(empty.amount.tone, GemValueTone::Neutral, "an empty balance greys the row on both apps");
-        assert_eq!(empty.fiat, None);
+        assert_eq!(value(&empty).0.tone, GemValueTone::Neutral, "an empty balance greys the row on both apps");
+        assert_eq!(value(&empty).1, None);
+    }
+
+    #[test]
+    fn test_a_row_trails_with_the_control_its_list_asks_for() {
+        let input = |is_enabled| GemAssetListRowInput {
+            asset: Asset::mock_ethereum_usdc(),
+            balance: GemAssetBalance::mock(),
+            scope: GemAssetBalanceScope::Total,
+            price: None,
+            change: None,
+            currency: Currency::USD,
+            is_enabled,
+        };
+        let style = |trailing| GemAssetRowStyle { trailing, ..wallet_asset_row_style() };
+
+        let toggle = asset_list_row(input(false), style(GemAssetTrailingStyle::Toggle));
+        assert_eq!(toggle.trailing, GemAssetItemTrailing::Toggle { is_on: false });
+        assert!(!toggle.masks_balance, "a switch has no balance to hide");
+        assert_eq!(asset_list_row(input(true), style(GemAssetTrailingStyle::Copy)).trailing, GemAssetItemTrailing::Copy);
+        assert_eq!(asset_list_row(input(true), style(GemAssetTrailingStyle::None)).trailing, GemAssetItemTrailing::None);
     }
 
     #[test]

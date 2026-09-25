@@ -13,12 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAssetRowStyle
 import java.util.Locale
 
-class GetActiveAssetsInfoImpl(getWalletAssets: GetWalletAssets, userConfig: UserConfig, rowStyle: GemAssetRowStyle, scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) : GetActiveAssetsInfo {
+class GetActiveAssetsInfoImpl(getWalletAssets: GetWalletAssets, userConfig: UserConfig, scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) : GetActiveAssetsInfo {
 
-    private val rows = AssetRows(rowStyle)
+    private val rows = AssetRows()
 
     private val assetsInfo: StateFlow<List<AssetInfoDataAggregate>> =
         combine(getWalletAssets(), userConfig.isHideBalances()) { items, hideBalance ->
@@ -30,7 +29,7 @@ class GetActiveAssetsInfoImpl(getWalletAssets: GetWalletAssets, userConfig: User
     override fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>> = assetsInfo
 }
 
-internal class AssetRows(private val style: GemAssetRowStyle) {
+internal class AssetRows {
 
     private data class Presentation(val hideBalance: Boolean, val locale: Locale)
 
@@ -41,7 +40,7 @@ internal class AssetRows(private val style: GemAssetRowStyle) {
         val presentation = Presentation(hideBalance = hideBalance, locale = Locale.getDefault())
         val reused = if (presentation == this.presentation) previous else emptyMap()
         val missing = items.filterNot(reused::containsKey).distinct()
-        val built = missing.zip(missing.toAssetInfoDataAggregates(style = style, hideBalance = hideBalance)).toMap()
+        val built = missing.zip(missing.toAssetInfoDataAggregates(hideBalance = hideBalance)).toMap()
         val aggregates = items.map { reused[it] ?: built.getValue(it) }
         this.presentation = presentation
         previous = items.zip(aggregates).toMap()

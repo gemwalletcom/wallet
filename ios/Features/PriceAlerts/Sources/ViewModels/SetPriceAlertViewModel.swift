@@ -94,15 +94,8 @@ public final class SetPriceAlertViewModel {
         )
     }
 
-    func assetItemViewModel(for assetData: AssetData) -> ListAssetItemViewModel {
-        ListAssetItemViewModel(
-            showBalancePrivacy: .constant(false),
-            assetDataModel: AssetDataViewModel(
-                assetData: assetData,
-                currency: currency,
-            ),
-            rowStyle: GemSelectAssetType.priceAlert.flow().rowStyle,
-        )
+    var assetRow: GemAssetItemRow {
+        assetListRow(input: assetData.rowInput(currency: currency), style: GemSelectAssetType.priceAlert.flow().rowStyle)
     }
 
     func onChangeAlertType(_: SetPriceAlertType, type: SetPriceAlertType) {

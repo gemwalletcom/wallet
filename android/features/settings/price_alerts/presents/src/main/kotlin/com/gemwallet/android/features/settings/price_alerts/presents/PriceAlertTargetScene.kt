@@ -41,8 +41,6 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
-import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -52,10 +50,10 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import uniffi.gemstone.GemAssetItemRow
 
 private val tabs = listOf(
     PriceAlertNotificationType.Price,
@@ -73,10 +71,7 @@ fun PriceAlertTargetScene(
     currentPriceFormatted: String,
     priceSuggestions: List<Pair<String, String>> = emptyList(),
     percentageSuggestions: List<Pair<String, String>> = emptyList(),
-    asset: Asset? = null,
-    assetPriceFormatted: String = "",
-    assetPriceChangeFormatted: String = "",
-    assetValueStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
+    assetRow: GemAssetItemRow? = null,
     buttonState: ButtonState,
     snackbar: SnackbarHostState? = null,
     onType: (PriceAlertNotificationType) -> Unit,
@@ -227,21 +222,9 @@ fun PriceAlertTargetScene(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            if (asset != null) {
+            if (assetRow != null) {
                 item {
-                    AssetListItem(
-                        asset = asset,
-                        listPosition = ListPosition.Single,
-                        badge = asset.symbol,
-                        support = {
-                            PriceInfo(
-                                price = assetPriceFormatted,
-                                changes = assetPriceChangeFormatted,
-                                changeStyle = assetValueStyle,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        },
-                    )
+                    AssetListItem(row = assetRow, listPosition = ListPosition.Single)
                 }
             }
         }

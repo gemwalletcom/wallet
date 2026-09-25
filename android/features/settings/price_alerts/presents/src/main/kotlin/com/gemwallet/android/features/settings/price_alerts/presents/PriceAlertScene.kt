@@ -136,12 +136,11 @@ internal fun PriceAlertScene(
 
 private fun LazyListScope.autoAlertToggle(asset: AssetInfoDataAggregate?, assetAlerts: GemAssetPriceAlerts?, onToggleAutoAlert: (Boolean) -> Unit) {
     item {
-        val currentAsset = asset ?: return@item
+        asset ?: return@item
         val alerts = assetAlerts ?: return@item
 
         PriceAlertAutoAssetItem(
-            asset = currentAsset,
-            row = alerts.autoRow,
+            row = alerts.autoRow.row,
             enabled = alerts.autoAlert == GemPriceAlertToggle.ENABLED,
             onCheckedChange = onToggleAutoAlert,
         )

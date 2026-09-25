@@ -5,11 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertTargetViewModel
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.style.textStyle
-import uniffi.gemstone.GemValueTone
 
 @Composable
 fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: PriceAlertTargetViewModel = hiltViewModel()) {
@@ -20,8 +17,7 @@ fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit
     val prompt by viewModel.prompt.collectAsStateWithLifecycle()
     val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
     val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
-    val asset by viewModel.asset.collectAsStateWithLifecycle()
-    val priceChange by viewModel.priceChange.collectAsStateWithLifecycle()
+    val assetRow by viewModel.assetRow.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -35,10 +31,7 @@ fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit
         currentPriceFormatted = currentPriceFormatted,
         priceSuggestions = priceSuggestions,
         percentageSuggestions = percentageSuggestions,
-        asset = asset,
-        assetPriceFormatted = currentPriceFormatted,
-        assetPriceChangeFormatted = priceChange?.text().orEmpty(),
-        assetValueStyle = (priceChange?.tone ?: GemValueTone.NEUTRAL).textStyle(),
+        assetRow = assetRow,
         buttonState = buttonState,
         snackbar = snackbar,
         onType = viewModel::onType,

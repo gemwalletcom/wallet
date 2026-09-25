@@ -20,8 +20,8 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -71,7 +71,7 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                 .padding(horizontal = paddingDefault)
                 .imePadding(),
         ) {
-            provider.openPositionListItem(amount)?.let { ListItem(model = it, listPosition = ListPosition.Single) }
+            provider.openPositionRow(amount)?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
             Spacer16()
             viewState.priceRows.forEachIndexed { index, row ->
                 GemListRowView(row = row, listPosition = ListPosition.getPosition(index, viewState.priceRows.size))

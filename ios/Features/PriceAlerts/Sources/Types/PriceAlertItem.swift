@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemPriceAlertItem
 import GemstonePrimitives
 import Primitives
 
 struct PriceAlertItem: Identifiable {
     let data: PriceAlertData
-    let model: PriceAlertItemViewModel
+    let row: GemAssetItemRow
 
     init(item: GemPriceAlertItem) {
         data = item.data.toPrimitives()
-        model = PriceAlertItemViewModel(row: item.row)
+        row = item.row.row
     }
 
     var id: String {

@@ -11,8 +11,7 @@ use crate::services::localization::GemLocalizedText;
 use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::{GemAssetRowStyle, GemHeaderActions};
-use crate::services::assets::rules as asset_rules;
+use crate::services::assets::model::GemHeaderActions;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
@@ -67,10 +66,6 @@ impl GemWalletHomeService {
 
     pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
-    }
-
-    pub fn asset_row_style(&self) -> GemAssetRowStyle {
-        asset_rules::wallet_asset_row_style()
     }
 
     pub fn view_state(&self, wallet: Wallet, balances: Vec<AssetFiatValue>, perpetual: Option<GemPerpetualCollateral>, banners: Vec<Banner>) -> GemWalletHomeViewState {

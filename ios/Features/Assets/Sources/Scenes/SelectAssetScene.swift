@@ -98,9 +98,9 @@ public struct SelectAssetScene: View {
     }
 
     func assetsList(assets: [AssetData], assetItems: ListAssetItemsViewModel) -> some View {
-        let items = assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
-        return ForEach(Array(zip(assets, items)), id: \.0.id) { assetData, item in
-            let itemView = ListAssetItemView(model: item)
+        let rows = assetItems.rows(assets.map(model.displayAssetData))
+        return ForEach(Array(zip(assets, rows)), id: \.0.id) { assetData, row in
+            let itemView = ListAssetItemView(row: row) { model.onAssetAction(action: $0, assetData: assetData) }
             switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {

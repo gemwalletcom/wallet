@@ -24,7 +24,6 @@ import com.gemwallet.android.features.perpetual.views.components.positionPropert
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
@@ -44,6 +43,7 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
@@ -55,7 +55,7 @@ import uniffi.gemstone.GemValueTone
 @Composable
 internal fun PerpetualPositionScene(
     details: PerpetualDetailsUIModel?,
-    positionListItem: ListItemModel?,
+    positionRow: GemAssetItemRow?,
     transactions: List<GemTransactionRow>,
     chart: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
@@ -102,7 +102,7 @@ internal fun PerpetualPositionScene(
                         is PerpetualDetailsSectionUIModel.Position -> {
                             item { SubheaderItem(section.title) }
                             positionProperties(
-                                position = positionListItem,
+                                position = positionRow,
                                 rows = section.rows,
                                 onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) },
                             )
@@ -202,7 +202,7 @@ private fun PerpetualPositionScenePreview() {
                 ),
                 position = null,
             ),
-            positionListItem = null,
+            positionRow = null,
             transactions = emptyList(),
             chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition, LocalContext.current)),
             tooltip = { CandlestickTooltipUIModel(emptyList(), emptyList()) },

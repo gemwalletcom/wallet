@@ -10,7 +10,7 @@ import Style
 import SwiftUI
 
 struct AssetHeaderViewModel {
-    let assetDataModel: AssetDataViewModel
+    let assetId: AssetId
     let details: GemAssetDetails
 }
 
@@ -20,7 +20,7 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var assetImage: AssetImage? {
-        assetDataModel.assetImage
+        AssetIdViewModel(assetId: assetId).assetImage
     }
 
     var title: String {

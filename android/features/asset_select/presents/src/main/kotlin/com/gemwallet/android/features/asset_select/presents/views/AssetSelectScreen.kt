@@ -1,34 +1,20 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.assetPriceSupport
-import com.gemwallet.android.ui.components.list_item.getBalanceInfo
+import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.screen.SceneTitle
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import kotlinx.collections.immutable.toImmutableList
-import uniffi.gemstone.GemAssetSubtitleStyle
-import uniffi.gemstone.GemAssetTrailingStyle
 
 @Composable
 fun AssetSelectScreen(
@@ -47,39 +33,6 @@ fun AssetSelectScreen(
     val title = flow.title
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.subtitle) {
-        GemAssetSubtitleStyle.NETWORK -> { item ->
-            item.network?.let { network -> @Composable { ListItemSupportText(network) } }
-        }
-
-        GemAssetSubtitleStyle.PRICE -> { item -> assetPriceSupport(item.price) }
-    }
-    val itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = when (flow.trailing) {
-        GemAssetTrailingStyle.BALANCE -> { item -> getBalanceInfo(item)() }
-
-        GemAssetTrailingStyle.TOGGLE -> { item ->
-            Switch(
-                checked = item.balanceEnabled,
-                onCheckedChange = { viewModel.onChangeVisibility(item.asset.id, it) },
-            )
-        }
-
-        GemAssetTrailingStyle.COPY -> { item ->
-            IconButton(
-                onClick = { clipboardManager.setCopy(context, viewModel.addressCopy(item)) },
-                modifier = Modifier.size(iconSize),
-            ) {
-                Icon(
-                    imageVector = AppIcons.ContentCopyOutlined,
-                    contentDescription = "",
-                    modifier = Modifier.size(compactIconSize),
-                    tint = MaterialTheme.colorScheme.secondary,
-                )
-            }
-        }
-
-        GemAssetTrailingStyle.NONE -> null
-    }
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -102,9 +55,7 @@ fun AssetSelectScreen(
 
     AssetSelectScene(
         title = titleContent ?: { SceneTitle(title) },
-        titleBadge = { item -> item.symbol },
         closeIcon = closeIcon,
-        support = support,
         query = viewModel.queryState,
         pinned = pinned,
         popular = popular,
@@ -131,7 +82,12 @@ fun AssetSelectScreen(
             }
         },
         recentsSheetEnabled = showRecents,
-        itemTrailing = itemTrailing,
+        onItemAction = { item, action ->
+            when (action) {
+                is AssetItemAction.Switch -> viewModel.onChangeVisibility(item.asset.id, action.enabled)
+                AssetItemAction.Copy -> clipboardManager.setCopy(context, viewModel.addressCopy(item))
+            }
+        },
         actions = actions,
     )
 

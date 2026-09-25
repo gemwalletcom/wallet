@@ -6,7 +6,8 @@ use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
-use crate::services::assets::rules::{asset_text, fee_amount};
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemRowText};
+use crate::services::assets::rules::{asset_text, balance_text, fee_amount};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
@@ -297,16 +298,36 @@ pub fn shows_fee_assets(fee_asset_ids: &[AssetId], selected: Option<&AssetId>) -
     fee_asset_ids.iter().any(|asset_id| Some(asset_id) != selected)
 }
 
-pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Vec<GemFeeAsset> {
+pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>, currency: &Currency) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
         .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
         .filter_map(|balance| {
             let asset = assets.iter().find(|asset| asset.id == balance.asset_id)?.clone();
             let price = prices.iter().find(|price| price.asset_id == balance.asset_id).cloned();
-            Some(GemFeeAsset { asset, balance, price })
+            Some(GemFeeAsset {
+                row: fee_asset_row(&asset, &balance, price.as_ref().map(|price| price.price), currency),
+                asset,
+                balance,
+                price,
+            })
         })
         .collect()
+}
+
+pub fn fee_asset_row(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: &Currency) -> GemAssetItemRow {
+    GemAssetItemRow {
+        icon: crate::services::assets::icon::asset_icon(&asset.id),
+        title: asset.symbol.clone(),
+        title_extra: (asset.name != asset.symbol).then(|| asset.name.clone()),
+        subtitle: None,
+        subtitle_extra: None,
+        trailing: GemAssetItemTrailing::Value {
+            value: balance_text(&balance.available, asset),
+            extra: crate::services::assets::rules::fiat_amount_of(asset, &balance.available, price, currency.clone(), GemCurrencyStyle::Currency).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+        },
+        masks_balance: false,
+    }
 }
 
 pub fn build_metadata(asset_id: AssetId, fee_asset_id: AssetId, balances: Vec<GemAssetBalance>, prices: Vec<AssetPrice>) -> Result<GemConfirmMetadata, GemConfirmError> {
@@ -1331,9 +1352,11 @@ mod tests {
             },
         ];
 
-        let selectable = selectable_fee_assets(assets, balances, vec![]);
+        let selectable = selectable_fee_assets(assets, balances, vec![], &Currency::USD);
 
         assert_eq!(selectable.iter().map(|fee| fee.asset.id.clone()).collect::<Vec<_>>(), vec![funded.id]);
+        assert_eq!(selectable[0].row.title, funded.symbol, "a fee asset reads by its symbol");
+        assert!(matches!(&selectable[0].row.trailing, GemAssetItemTrailing::Value { extra: None, .. }), "an unpriced fee asset shows its balance and no value");
     }
 
     #[test]
@@ -1541,6 +1564,7 @@ mod tests {
                     ..GemAssetBalance::mock_with_available(1)
                 },
                 price: None,
+                row: fee_asset_row(&eth, &GemAssetBalance::mock_with_available(1), None, &Currency::USD),
             }],
             address_name: Some(AddressName::mock("0xrecipient", "recipient.eth", AddressType::Address, VerificationStatus::Verified)),
             ..GemConfirmLoad::mock()

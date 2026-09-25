@@ -299,10 +299,29 @@ public extension Gemstone.GemFeeAsset {
         balance: Gemstone.GemAssetBalance? = nil,
         price: Gemstone.AssetPrice? = nil,
     ) -> Gemstone.GemFeeAsset {
-        Gemstone.GemFeeAsset(
+        let balance = balance ?? .mock(assetId: asset.id.identifier)
+        return Gemstone.GemFeeAsset(
             asset: asset.toGem(),
-            balance: balance ?? .mock(assetId: asset.id.identifier),
+            balance: balance,
             price: price,
+            row: .mock(asset: asset, balance: balance),
+        )
+    }
+}
+
+public extension Gemstone.GemAssetItemRow {
+    static func mock(asset: Primitives.Asset = .mock(), balance: Gemstone.GemAssetBalance? = nil) -> Gemstone.GemAssetItemRow {
+        assetListRow(
+            input: GemAssetListRowInput(
+                asset: asset.toGem(),
+                balance: balance ?? .mock(assetId: asset.id.identifier),
+                scope: .available,
+                price: nil,
+                change: nil,
+                currency: Primitives.Currency.usd.toGem(),
+                isEnabled: true,
+            ),
+            style: GemSelectAssetType.send.flow().rowStyle,
         )
     }
 }

@@ -179,7 +179,7 @@ public final class AssetSceneViewModel: Sendable {
             input: GemAssetDetailsInput(
                 wallet: wallet.toGem(),
                 asset: asset.toGem(),
-                ownerAddress: assetDataModel.address,
+                ownerAddress: assetData.account.address,
                 metadata: assetData.metadata.toGem(),
                 balance: stakeBalance,
                 price: assetData.price?.price,
@@ -209,15 +209,8 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    var assetDataModel: AssetDataViewModel {
-        AssetDataViewModel(
-            assetData: assetData,
-            currency: preferences.currency,
-        )
-    }
-
     func assetHeaderModel(_ details: GemAssetDetails) -> AssetHeaderViewModel {
-        AssetHeaderViewModel(assetDataModel: assetDataModel, details: details)
+        AssetHeaderViewModel(assetId: asset.id, details: details)
     }
 
     public func shareAssetUrl(_ details: GemAssetDetails) -> URL {

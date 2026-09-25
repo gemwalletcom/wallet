@@ -31,7 +31,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
-import com.gemwallet.android.features.perpetual.views.components.previewPriceRow
+import com.gemwallet.android.features.perpetual.views.components.previewPerpetual
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
@@ -42,7 +42,7 @@ import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.components.list_head.uiModel
-import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -62,11 +62,8 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualMarketSection
@@ -156,8 +153,8 @@ internal fun PerpetualMarketScene(
                         GemPerpetualMarketSection.POSITIONS -> {
                             section.stringRes()?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(positions) { position, item ->
-                                ListItem(
-                                    model = item.model,
+                                AssetListItem(
+                                    row = item.row,
                                     listPosition = position,
                                     modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
                                 )
@@ -256,106 +253,99 @@ fun PreviewPerpetualMarketScene() {
             ),
             positions = emptyList(),
             unpinnedPerpetuals = listOf(
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val title: String = "BTC/USD"
-                    override val price = previewPriceRow(95420.50, 2.5)
-                    override val volume: String = "15234567890123"
-                    override val asset = Asset(
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Bitcoin),
                         name = "Bitcoin",
                         symbol = "BTC",
                         decimals = 8,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val title: String = "ETH/USD"
-                    override val price = previewPriceRow(3625.75, 1.8)
-                    override val volume: String = "8456789012345"
-                    override val asset = Asset(
+                    ),
+                    title = "BTC/USD",
+                    price = 95420.50,
+                    change = 2.5,
+                    volume = "15234567890123",
+                ),
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Ethereum),
                         name = "Ethereum",
                         symbol = "ETH",
                         decimals = 18,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "SOL")
-                    override val title: String = "SOL/USD"
-                    override val price = previewPriceRow(235.40, -0.5)
-                    override val volume: String = "3123847573745"
-                    override val asset = Asset(
+                    ),
+                    title = "ETH/USD",
+                    price = 3625.75,
+                    change = 1.8,
+                    volume = "8456789012345",
+                ),
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Solana),
                         name = "Solana",
                         symbol = "SOL",
                         decimals = 9,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "AVAX")
-                    override val title: String = "AVAX/USD"
-                    override val price = previewPriceRow(41.85, 4.1)
-                    override val volume: String = "1234567890123"
-                    override val asset = Asset(
+                    ),
+                    title = "SOL/USD",
+                    price = 235.40,
+                    change = -0.5,
+                    volume = "3123847573745",
+                ),
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.AvalancheC),
                         name = "Avalanche",
                         symbol = "AVAX",
                         decimals = 18,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "LINK")
-                    override val title: String = "LINK/USD"
-                    override val price = previewPriceRow(21.45, 2.7)
-                    override val volume: String = "987654321098"
-                    override val asset = Asset(
+                    ),
+                    title = "AVAX/USD",
+                    price = 41.85,
+                    change = 4.1,
+                    volume = "1234567890123",
+                ),
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Ethereum, "0x514910771af9ca656af840dff83e8264ecf986ca"),
                         name = "Chainlink",
                         symbol = "LINK",
                         decimals = 18,
                         type = AssetType.ERC20,
-                    )
-                    override val isPinned: Boolean = false
-                },
+                    ),
+                    title = "LINK/USD",
+                    price = 21.45,
+                    change = 2.7,
+                    volume = "987654321098",
+                ),
             ),
             pinnedPerpetuals = listOf(
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val title: String = "BTC/USD"
-                    override val price = previewPriceRow(95420.50, 2.5)
-                    override val volume: String = "15234567890123"
-                    override val asset = Asset(
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Bitcoin),
                         name = "Bitcoin",
                         symbol = "BTC",
                         decimals = 8,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
-                object : PerpetualDataAggregate {
-                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val title: String = "ETH/USD"
-                    override val price = previewPriceRow(3625.75, 1.8)
-                    override val volume: String = "8456789012345"
-                    override val asset = Asset(
+                    ),
+                    title = "BTC/USD",
+                    price = 95420.50,
+                    change = 2.5,
+                    volume = "15234567890123",
+                ),
+                previewPerpetual(
+                    asset = Asset(
                         id = AssetId(Chain.Ethereum),
                         name = "Ethereum",
                         symbol = "ETH",
                         decimals = 18,
                         type = AssetType.NATIVE,
-                    )
-                    override val isPinned: Boolean = false
-                },
+                    ),
+                    title = "ETH/USD",
+                    price = 3625.75,
+                    change = 1.8,
+                    volume = "8456789012345",
+                ),
             ),
             onAction = {},
         )

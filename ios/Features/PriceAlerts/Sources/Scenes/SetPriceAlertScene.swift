@@ -37,7 +37,7 @@ struct SetPriceAlertScene: View {
             .cleanListRow()
 
             Section {
-                ListAssetItemView(model: model.assetItemViewModel(for: model.assetData))
+                ListAssetItemView(row: model.assetRow)
             }
         }
         .bindQuery(model.assetQuery)

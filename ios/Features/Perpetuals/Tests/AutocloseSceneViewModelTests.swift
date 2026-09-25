@@ -3,6 +3,7 @@
 @testable import Perpetuals
 @testable import PerpetualsTestKit
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 
@@ -45,6 +46,26 @@ struct AutocloseSceneViewModelTests {
         #expect(model.input.takeProfit.text.isNotEmpty)
         #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
         #expect(model.input.stopLoss.text.isEmpty)
+    }
+
+    @Test
+    func anOpeningPositionNamesTheSymbolAndItsDirection() throws {
+        let row = { (data: AutocloseOpenData) in
+            let model = AutocloseSceneViewModel(type: .mock(data: data))
+            return model.positionRow(model.viewState)
+        }
+        let sized = try #require(row(.mock(symbol: "ETH", direction: .short, leverage: 5, size: 250)))
+        let empty = try #require(row(.mock(size: 0)))
+
+        #expect(sized.title == "ETH")
+        #expect(sized.subtitle?.text.text == "SHORT 5x")
+        #expect(sized.subtitle?.tone == .negative)
+        guard case let .value(size, _) = sized.trailing else {
+            Issue.record("a sized order shows its size")
+            return
+        }
+        #expect(size.text.text == "$250.00")
+        #expect(empty.trailing == .none)
     }
 
     @Test

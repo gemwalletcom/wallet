@@ -20,10 +20,10 @@ public struct NetworkFeeScene: View {
 
     public var body: some View {
         List {
-            if model.showFeeAssets {
+            if model.showFeeAssets, let selectedFeeAsset = model.selectedFeeAssetItem {
                 Section {
                     NavigationCustomLink(
-                        with: SimpleListItemView(model: model.selectedFeeAssetItem),
+                        with: SimpleListItemView(model: selectedFeeAsset),
                         action: { isPresentingFeeAssetSelection = true },
                     )
                 } header: {

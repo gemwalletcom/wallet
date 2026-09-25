@@ -253,6 +253,6 @@ extension WalletSceneViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: observablePreferences.currency, rowStyle: service.assetRowStyle())
+        ListAssetItemsViewModel(currency: observablePreferences.currency)
     }
 }

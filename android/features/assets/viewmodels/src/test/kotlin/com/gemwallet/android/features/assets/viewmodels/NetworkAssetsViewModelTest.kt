@@ -11,7 +11,6 @@ import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetEthereumUSDT
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
-import com.gemwallet.android.testkit.mockGemAssetRowStyle
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -70,9 +69,7 @@ class NetworkAssetsViewModelTest {
         }
     }
 
-    private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true) {
-        every { assetRowStyle() } returns mockGemAssetRowStyle()
-    }
+    private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true)
 
     @Before
     fun setUp() {

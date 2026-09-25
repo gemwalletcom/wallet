@@ -18,8 +18,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.assetPriceSupport
-import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -71,9 +69,6 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                     assetRows(
                         items = pinned,
                         onSelect = onAssetClick,
-                        support = { assetPriceSupport(it.price) },
-                        titleBadge = { item -> item.symbol },
-                        itemTrailing = { getBalanceInfo(it)() },
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
                     )
@@ -81,9 +76,6 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                 assetRows(
                     items = unpinned,
                     onSelect = onAssetClick,
-                    support = { assetPriceSupport(it.price) },
-                    titleBadge = { item -> item.symbol },
-                    itemTrailing = { getBalanceInfo(it)() },
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,
                 )

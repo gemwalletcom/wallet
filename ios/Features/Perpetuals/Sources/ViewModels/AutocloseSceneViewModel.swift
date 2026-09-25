@@ -4,9 +4,11 @@ import Components
 import Foundation
 import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
+import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
+import func Gemstone.perpetualOpenRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -74,10 +76,10 @@ public final class AutocloseSceneViewModel {
         AutocloseViewModel(state: viewState.stopLoss)
     }
 
-    func positionItemViewModel(_ viewState: GemAutocloseViewState) -> (any ListAssetItemViewable)? {
+    func positionRow(_ viewState: GemAutocloseViewState) -> GemAssetItemRow? {
         switch type {
-        case .modify: viewState.positionRow.map { PerpetualPositionItemViewModel(row: $0) }
-        case let .open(data, _): OpenPositionItemViewModel(data: data)
+        case .modify: viewState.positionRow?.row
+        case let .open(data, _): perpetualOpenRow(assetId: data.assetId.identifier, title: data.symbol, direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
         }
     }
 

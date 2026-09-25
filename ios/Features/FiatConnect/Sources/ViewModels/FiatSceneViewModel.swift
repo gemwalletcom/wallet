@@ -141,15 +141,20 @@ public final class FiatSceneViewModel {
     }
 
     var assetBalance: String {
-        assetListRow(input: GemAssetListRowInput(
-            asset: asset.toGem(),
-            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
-            scope: .available,
-            price: nil,
-            change: nil,
-            currency: GemConstants.fiatQuoteCurrency.toGem(),
+        let row = assetListRow(
+            input: GemAssetListRowInput(
+                asset: asset.toGem(),
+                balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
+                scope: .available,
+                price: nil,
+                change: nil,
+                currency: GemConstants.fiatQuoteCurrency.toGem(),
+                isEnabled: assetData.metadata.isBalanceEnabled,
+            ),
             style: GemSelectAssetType.buy.flow().rowStyle,
-        )).amount.text()
+        )
+        guard case let .value(value, _) = row.trailing else { return .empty }
+        return value.text.text
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {

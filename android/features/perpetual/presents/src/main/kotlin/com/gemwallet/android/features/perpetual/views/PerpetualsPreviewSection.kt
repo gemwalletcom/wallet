@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualsPreviewViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -32,10 +33,11 @@ fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetualDetail
             )
         } else {
             positions.forEachIndexed { index, position ->
-                ListItem(
-                    model = position.model,
+                AssetListItem(
+                    row = position.row,
                     listPosition = ListPosition.getPosition(index, positions.size),
                     modifier = Modifier.clickable { onOpenPerpetualDetails(position.asset.id) },
+                    hideBalance = position.hideBalance,
                 )
             }
         }

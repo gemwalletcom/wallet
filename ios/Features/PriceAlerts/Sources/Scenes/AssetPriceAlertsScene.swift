@@ -27,7 +27,7 @@ public struct AssetPriceAlertsScene: View {
 
             Section {
                 Toggle(isOn: model.isAutoAlertEnabledBinding(assetAlerts)) {
-                    ListAssetItemView(model: model.autoAlertItemModel(assetAlerts))
+                    ListAssetItemView(row: assetAlerts.autoRow.row)
                 }
                 .toggleStyle(AppToggleStyle())
             } footer: {

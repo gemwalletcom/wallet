@@ -47,8 +47,7 @@ import javax.inject.Singleton
 object AssetModule {
     @Provides
     @Singleton
-    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, userConfig: UserConfig, walletHomeService: GemWalletHomeServiceInterface): GetActiveAssetsInfo =
-        GetActiveAssetsInfoImpl(getWalletAssets, userConfig, walletHomeService.assetRowStyle())
+    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, userConfig: UserConfig): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, userConfig)
 
     @Provides
     @Singleton

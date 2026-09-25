@@ -6,16 +6,14 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
@@ -38,6 +36,7 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -159,20 +158,14 @@ class AmountPerpetualProvider(
         )
     }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
-    fun openPositionListItem(amount: String): ListItemModel? {
+    fun openPositionRow(amount: String): GemAssetItemRow? {
         val market = perpetual.value ?: return null
-        val row = perpetualOpenRow(
+        return perpetualOpenRow(
+            assetId = market.asset.id.toIdentifier(),
+            title = market.asset.symbol,
             direction = direction.toGem(),
             leverage = leverageState.value?.current?.value ?: 1u,
             size = amount.parseInputNumberOrNull()?.toDouble() ?: 0.0,
-        )
-        return ListItemModel(
-            title = market.asset.symbol,
-            titleExtra = row.position.string(context),
-            titleExtraStyle = row.directionTone.textStyle(),
-            subtitle = row.size?.text(),
-            subtitleStyle = ListItemTextStyle.Body,
-            image = ListItemImage.Asset(market.asset.id),
         )
     }
 

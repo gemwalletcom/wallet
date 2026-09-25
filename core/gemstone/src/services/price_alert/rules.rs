@@ -5,10 +5,13 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetId, Currency, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
 
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::placeholder::EMPTY_VALUE;
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemRowText};
 use crate::services::collections::stale;
+use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPriceAlertKind {
@@ -52,15 +55,33 @@ pub enum GemPriceAlertLabel {
     DecreasesBy,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPriceAlertText {
     Empty,
     Label { label: GemPriceAlertLabel },
     Number { value: GemFormattedNumber },
 }
 
+impl GemPriceAlertText {
+    fn localized(self) -> GemLocalizedText {
+        match self {
+            Self::Empty => GemLocalizedText::Text { text: EMPTY_VALUE.to_string() },
+            Self::Label { label } => GemLocalizedText::PriceAlertLabel { label },
+            Self::Number { value } => GemLocalizedText::Number { number: value },
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPriceAlertRow {
+    pub asset_id: AssetId,
+    pub kind: GemPriceAlertKind,
+    pub direction: Option<PriceAlertDirection>,
+    pub row: GemAssetItemRow,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PriceAlertLine {
     pub asset_id: AssetId,
     pub icon: GemAssetIcon,
     pub title: String,
@@ -69,6 +90,30 @@ pub struct GemPriceAlertRow {
     pub direction: Option<PriceAlertDirection>,
     pub prefix: GemPriceAlertText,
     pub suffix: GemPriceAlertText,
+}
+
+impl From<PriceAlertLine> for GemPriceAlertRow {
+    fn from(line: PriceAlertLine) -> Self {
+        let tone = match line.direction {
+            Some(PriceAlertDirection::Up) => GemValueTone::Positive,
+            Some(PriceAlertDirection::Down) => GemValueTone::Negative,
+            None => GemValueTone::Neutral,
+        };
+        Self {
+            asset_id: line.asset_id,
+            kind: line.kind,
+            direction: line.direction,
+            row: GemAssetItemRow {
+                icon: line.icon,
+                title: line.title,
+                title_extra: line.symbol,
+                subtitle: Some(GemRowText::neutral(line.prefix.localized())),
+                subtitle_extra: Some(GemRowText { text: line.suffix.localized(), tone }),
+                trailing: GemAssetItemTrailing::None,
+                masks_balance: false,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -219,6 +264,10 @@ pub fn price_alert_toggle(alerts: &[PriceAlert]) -> GemPriceAlertToggle {
 }
 
 pub fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {
+    price_alert_line(data, price_currency).into()
+}
+
+pub fn price_alert_line(data: &PriceAlertData, price_currency: Currency) -> PriceAlertLine {
     let PriceAlertData {
         asset, price: market, price_alert: alert, ..
     } = data;
@@ -242,7 +291,7 @@ pub fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPr
         GemPriceAlertKind::Decrease => (label(GemPriceAlertLabel::DecreasesBy), text(percent)),
     };
 
-    GemPriceAlertRow {
+    PriceAlertLine {
         asset_id: asset.id.clone(),
         icon: asset_icon(&asset.id),
         title: asset.name.clone(),
@@ -453,6 +502,26 @@ mod tests {
     }
 
     #[test]
+    fn test_the_row_reads_the_label_then_the_target_in_the_alert_direction() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let over = PriceAlert::new_price(asset.id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
+        let row = price_alert_row(&PriceAlertData::mock(over, Some(100.0), None), Currency::USD).row;
+
+        assert_eq!((row.title.as_str(), row.trailing), (asset.name.as_str(), GemAssetItemTrailing::None));
+        assert_eq!(row.subtitle, Some(GemRowText::neutral(GemLocalizedText::PriceAlertLabel { label: GemPriceAlertLabel::Over })));
+        assert_eq!(
+            row.subtitle_extra,
+            Some(GemRowText {
+                text: GemLocalizedText::Number {
+                    number: GemFormattedNumber::currency(120.0, Currency::USD, GemCurrencyStyle::Currency)
+                },
+                tone: GemValueTone::Positive,
+            }),
+            "the target takes the colour of the direction it waits for"
+        );
+    }
+
+    #[test]
     fn test_the_row_leaves_out_a_symbol_that_repeats_the_name() {
         let named = |name: &str, symbol: &str| PriceAlertData {
             asset: Asset {
@@ -463,15 +532,15 @@ mod tests {
             ..PriceAlertData::mock(PriceAlert::mock(Chain::Bitcoin, None), None, None)
         };
 
-        assert_eq!(price_alert_row(&named("Lido Staked ETH", "stETH"), Currency::USD).symbol.as_deref(), Some("stETH"));
-        assert_eq!(price_alert_row(&named("USDC", "USDC"), Currency::USD).symbol, None);
+        assert_eq!(price_alert_line(&named("Lido Staked ETH", "stETH"), Currency::USD).symbol.as_deref(), Some("stETH"));
+        assert_eq!(price_alert_line(&named("USDC", "USDC"), Currency::USD).symbol, None);
     }
 
     #[test]
     fn test_each_kind_names_which_slot_holds_the_price_and_which_the_percent() {
         let asset = Asset::from_chain(Chain::Bitcoin);
         let asset_id = asset.id.clone();
-        let row = |alert: PriceAlert| price_alert_row(&PriceAlertData::mock(alert, Some(100.0), Some(-2.0)), Currency::USD);
+        let row = |alert: PriceAlert| price_alert_line(&PriceAlertData::mock(alert, Some(100.0), Some(-2.0)), Currency::USD);
         let is_price = |text: &GemPriceAlertText| matches!(text, GemPriceAlertText::Number { value } if matches!(value.unit, GemNumberUnit::Currency { .. }));
         let is_percent = |text: &GemPriceAlertText| matches!(text, GemPriceAlertText::Number { value } if matches!(value.unit, GemNumberUnit::Percent));
 
@@ -498,14 +567,14 @@ mod tests {
         let asset_id = asset.id.clone();
         let directed = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(directed.clone(), Some(100.0), None), Currency::USD).suffix,
+            price_alert_line(&PriceAlertData::mock(directed.clone(), Some(100.0), None), Currency::USD).suffix,
             GemPriceAlertText::Number {
                 value: GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned)
             }
         );
 
         let undirected = PriceAlert { price_direction: None, ..directed };
-        let row = price_alert_row(&PriceAlertData::mock(undirected.clone(), Some(100.0), None), Currency::USD);
+        let row = price_alert_line(&PriceAlertData::mock(undirected.clone(), Some(100.0), None), Currency::USD);
         assert_eq!(row.kind, GemPriceAlertKind::Auto);
         assert_eq!(
             row.suffix,
@@ -522,8 +591,8 @@ mod tests {
         let asset_id = asset.id.clone();
         let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(auto.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
-            GemPriceAlertRow {
+            price_alert_line(&PriceAlertData::mock(auto.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
+            PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
@@ -538,12 +607,12 @@ mod tests {
                 direction: Some(PriceAlertDirection::Down),
             }
         );
-        assert_eq!(price_alert_row(&PriceAlertData::mock(auto.clone(), Some(100.0), None), Currency::USD).direction, None, "no change is neutral");
+        assert_eq!(price_alert_line(&PriceAlertData::mock(auto.clone(), Some(100.0), None), Currency::USD).direction, None, "no change is neutral");
 
         let over = PriceAlert::new_price(asset_id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(over.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
-            GemPriceAlertRow {
+            price_alert_line(&PriceAlertData::mock(over.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
+            PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
@@ -559,7 +628,7 @@ mod tests {
         );
 
         let increase = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
-        let increase_row = price_alert_row(&PriceAlertData::mock(increase.clone(), Some(100.0), None), Currency::USD);
+        let increase_row = price_alert_line(&PriceAlertData::mock(increase.clone(), Some(100.0), None), Currency::USD);
         assert_eq!(increase_row.kind, GemPriceAlertKind::Increase);
         assert_eq!(
             (increase_row.prefix, increase_row.suffix),
@@ -574,8 +643,8 @@ mod tests {
 
         let under = PriceAlert::new_price(asset_id.clone(), Currency::USD, 80.0, PriceAlertDirection::Down);
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(under.clone(), Some(100.0), Some(2.0)), Currency::USD),
-            GemPriceAlertRow {
+            price_alert_line(&PriceAlertData::mock(under.clone(), Some(100.0), Some(2.0)), Currency::USD),
+            PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
@@ -590,18 +659,18 @@ mod tests {
         );
 
         let decrease = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Down);
-        assert_eq!(price_alert_row(&PriceAlertData::mock(decrease.clone(), Some(100.0), None), Currency::USD).kind, GemPriceAlertKind::Decrease);
+        assert_eq!(price_alert_line(&PriceAlertData::mock(decrease.clone(), Some(100.0), None), Currency::USD).kind, GemPriceAlertKind::Decrease);
 
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(auto.clone(), None, None), Currency::USD).direction,
+            price_alert_line(&PriceAlertData::mock(auto.clone(), None, None), Currency::USD).direction,
             None,
             "an alert with no price to compare shows no direction"
         );
 
         let priced = PriceAlert { price: Some(120.0), ..auto.clone() };
         assert_eq!(
-            price_alert_row(&PriceAlertData::mock(priced.clone(), Some(100.0), Some(-2.0)), Currency::USD),
-            GemPriceAlertRow {
+            price_alert_line(&PriceAlertData::mock(priced.clone(), Some(100.0), Some(-2.0)), Currency::USD),
+            PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
                 title: asset.name.clone(),

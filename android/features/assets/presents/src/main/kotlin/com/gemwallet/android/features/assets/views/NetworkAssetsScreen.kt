@@ -23,8 +23,6 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.assetPriceSupport
-import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
@@ -86,9 +84,6 @@ private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, 
     assetRows(
         items = items,
         onSelect = { onSelect(it.id) },
-        support = { assetPriceSupport(it.price) },
-        titleBadge = { item -> item.symbol },
-        itemTrailing = { getBalanceInfo(it)() },
         longPressedAsset = longPressedAsset,
         contextActions = contextActions,
     )

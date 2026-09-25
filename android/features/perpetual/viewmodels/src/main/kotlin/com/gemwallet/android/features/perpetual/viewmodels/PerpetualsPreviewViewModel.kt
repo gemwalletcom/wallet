@@ -12,7 +12,6 @@ import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPosit
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.perpetual.listItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +33,7 @@ class PerpetualsPreviewViewModel @Inject constructor(userConfig: UserConfig, get
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
 
     val positions = combine(getPositions.getPerpetualPositions(), userConfig.isHideBalances()) { positions, hideBalance ->
-        positions.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context, hideBalance)) }
+        positions.map { PerpetualPositionRowUIModel(it.asset, it.row, hideBalance) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }

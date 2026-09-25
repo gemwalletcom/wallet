@@ -23,9 +23,9 @@ public struct AutocloseScene: View {
         let viewState = model.viewState
         let takeProfitModel = model.takeProfitModel(viewState)
         return List {
-            if let positionItemViewModel = model.positionItemViewModel(viewState) {
+            if let positionRow = model.positionRow(viewState) {
                 Section {
-                    ListAssetItemView(model: positionItemViewModel)
+                    ListAssetItemView(row: positionRow)
                 }
             }
 

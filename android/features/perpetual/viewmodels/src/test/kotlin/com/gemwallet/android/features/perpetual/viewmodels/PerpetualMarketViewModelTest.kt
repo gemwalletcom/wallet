@@ -41,7 +41,6 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButtonKind
-import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualServiceInterface
@@ -136,7 +135,6 @@ class PerpetualMarketViewModelTest {
             service = service,
             perpetualObserver = perpetualObserver,
             ioDispatcher = dispatcher,
-            context = mockk(relaxed = true),
             connectionStatusObserver = mockk(relaxed = true),
         ).also { model = it }
     }
@@ -147,8 +145,6 @@ class PerpetualMarketViewModelTest {
             every { title } returns "Bitcoin"
             every { perpetualId } returns PerpetualId(PerpetualProvider.Hypercore, "BTC-USD")
             every { asset } returns mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC")
-            every { positionLabel } returns GemLocalizedText.Text("LONG 5x")
-            every { pnl } returns GemLocalizedText.Text("+$1.00 (+1.00%)")
         }
         val viewModel = viewModel(mockk(relaxed = true), positions = listOf(position))
         viewModel.setQuery("btc-usd")

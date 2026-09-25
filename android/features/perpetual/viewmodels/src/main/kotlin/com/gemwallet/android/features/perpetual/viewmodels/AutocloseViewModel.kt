@@ -13,8 +13,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.perpetual.listItem
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
@@ -35,6 +33,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
 import uniffi.gemstone.autocloseSession
@@ -86,7 +85,7 @@ class AutocloseViewModel @Inject constructor(
         position?.let { session(it, takeProfit, stopLoss).let { session -> if (attempted) session.onSubmitAttempt() else session }.viewState() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positionListItem: StateFlow<ListItemModel?> = viewState.map { it?.positionRow?.listItem(context) }
+    val positionRow: StateFlow<GemAssetItemRow?> = viewState.map { it?.positionRow?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onTakeProfitChanged(text: String) {

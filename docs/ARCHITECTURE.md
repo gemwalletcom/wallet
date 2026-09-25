@@ -416,6 +416,7 @@ A row that acts carries what the act needs, and Core decides it: `Url` says whet
 
 | Family | Record | Lists that read it |
 |---|---|---|
+| Asset | [`GemAssetItemRow`](../core/gemstone/src/services/assets/model.rs) | wallet, network assets, search, select asset, buy, price alerts, perpetual markets and positions, fee assets |
 | Transaction | [`GemTransactionRow`](../core/gemstone/src/services/transactions/model.rs) | activity, asset details, perpetual position |
 | Wallet | [`GemWalletRow`](../core/gemstone/src/services/wallet/model.rs) | wallets list, wallet detail, confirm sender |
 | Validator | [`GemValidatorRow`](../core/gemstone/src/services/stake/model.rs) | stake, earn, delegation |
@@ -423,7 +424,7 @@ A row that acts carries what the act needs, and Core decides it: `Url` says whet
 
 A shared rich row lives with the service that owns its domain, not in `models/list.rs`, because its payload is that domain's type (`Asset`, `TransactionId`). The rich record does not contain a `GemListRow`: a plain row's title is a case of `GemListRowTitle`, while an asset or transaction row's title is data the row carries. A plain section can still hold one rich row, which is what `GemListRow::Wallet` does on confirm and sign-message. What a rich row reuses is the smaller shared pieces — `GemFormattedNumber` for an amount, `GemCopy` for a copyable value, `GemListRowTitle` for a labelled sub-field, `GemLoadState` for its list's state.
 
-A `Gem…Row` record carries **one row's data**. Which fields a shared row shows on a given screen is a different decision and a different type, named `…Style` and never `Row`: [`GemAssetRowStyle`](../core/gemstone/src/services/assets/model.rs) says whether the asset row titles itself with the asset, its canonical name or its network, whether it repeats the symbol, and what its subtitle and trailing hold. The app keeps the store record (`AssetData` on iOS, `AssetInfo` on Android) and projects it through `asset_list_row`, which returns the title, symbol, network, amount, fiat and price as [`GemAssetListRow`](../core/gemstone/src/services/assets/model.rs). Pin, balance privacy and the account address stay on the app record. A screen reads the style from the flow it is in (`GemSelectAssetFlow.row_style`, `GemWalletHomeService::asset_row_style()`) and passes it to the one row view; it never re-declares the style enums app-side.
+A `Gem…Row` record carries **one row's data**. Which fields a shared row shows on a given screen is a different decision and a different type, named `…Style` and never `Row`: [`GemAssetRowStyle`](../core/gemstone/src/services/assets/model.rs) says whether the asset row titles itself with the asset, its canonical name or its network, whether it repeats the symbol, and what its subtitle and trailing hold. The app keeps the store record (`AssetData` on iOS, `AssetInfo` on Android) and projects it through `asset_list_rows` with the style of the flow it is in (`GemSelectAssetFlow.row_style`), or `wallet_asset_rows` for the wallet lists, which applies the wallet style in Core. Both return [`GemAssetItemRow`](../core/gemstone/src/services/assets/model.rs): the icon, a title with an extra, a subtitle with an extra and a trailing `Value`, `Toggle`, `Copy` or `None`, each text a `GemLocalizedText` with its `GemValueTone`, plus `masks_balance` for the rows the balance privacy switch hides. Price alerts, perpetual markets, positions and orders being opened, and fee assets return the same record next to their identity, so each app draws every asset-like list with one renderer. Pin and the account address stay on the app record; the app never re-declares the style enums.
 
 **3. Per-screen rich rows — one screen, one layout.** The transaction header, swap progress and the confirm recipient row are drawn one way on one screen, so the record stays with that screen ([a row that a screen only ever draws one way](#a-row-that-a-screen-only-ever-draws-one-way-keeps-its-shape-app-side)). If a second screen starts drawing it, it has become family 2 and moves.
 
@@ -494,7 +495,7 @@ Core shortens the address (`address_copy` calls `format_address`), so the toast 
 
 `GemAssetRowStyle` carries the layout because the same asset row is drawn four ways: the wallet list prices it, select-asset names its network, manage-tokens toggles it, receive copies it. The choice varies, so Core makes it once and both apps switch on `subtitle` and `trailing`.
 
-The rows that do not vary keep their shape in the app. A perpetual market row always shows its price under the name and its volume at the end; a position row always shows direction and leverage under the name. Their records (`GemPerpetualMarketRow`, `GemPerpetualPositionRow`) carry the finished values, and the slot each value lands in stays in the view: a subtitle-and-accessory layout enum that every row carried would add redundant per-row payload and type surface without settling a variable decision — the cost [Keep the crossings few](#keep-the-crossings-few) warns about, paid for a decision no one is making twice.
+The rows that do not vary keep their shape in the app. The transaction header and the swap progress row are drawn one way on one screen, so their records carry the finished values and the slot each value lands in stays in the view: a layout enum that every row carried would add redundant per-row payload and type surface without settling a variable decision — the cost [Keep the crossings few](#keep-the-crossings-few) warns about, paid for a decision no one is making twice. A row that draws another row's slots is not one of these: a perpetual market, a position, a price alert and a fee asset fill the asset row's slots, so they return `GemAssetItemRow` and share its renderer.
 
 The test is whether the same row is drawn differently somewhere: if it is, the shape is a choice and belongs in the record; if it is not, it is layout and belongs in the view.
 
@@ -821,11 +822,9 @@ struct ChainNodeViewModel {
 The type that conforms to a list protocol reads the same way:
 
 ```swift
-struct PriceAlertItemViewModel: ListAssetItemViewable {
-    private let row: GemPriceAlertRow
-
-    var name: String { row.title }
-    var symbol: String? { row.symbol }
+extension FeeAssetItem: SimpleListItemViewable {
+    public var title: String { row.title }
+    public var titleExtra: String? { row.titleExtra }
 }
 ```
 
@@ -845,29 +844,32 @@ Four questions settle where a member goes, in order:
 
 1. **Is it a decision?** Which label, which order, which style, whether a thing is shown — it goes in the Core row. Never recompute it from the domain object the row was built from.
 2. **Is it a displayed number?** Approximate quantities use `GemFormattedNumber` and the existing `text()` renderer. Exact atomic amounts retain their typed value, decimals and display policy as specified above. Reuse the corresponding renderer; add a shared number shape only for a real missing display requirement.
-3. **Is it which slot a value lands in?** Whether a row shows a label on the left and a price on the right, or a price and a percentage, is a decision. Core names the slots — `prefix` and `suffix` carrying a text key, a number, or nothing — so neither app switches on the kind to lay the row out.
-4. **Is it a platform value?** A `Color`, an `Image`, a Compose or SwiftUI value — these are the only things the apps decide, and they go on a row extension in the module's mapper files, never inline in the row model. The model reads `row.directionColor`; it never switches on a Core enum itself.
+3. **Is it which slot a value lands in?** Whether a row shows a label on the left and a price on the right, or a price and a percentage, is a decision. Core names the slots — `GemAssetItemRow`'s `subtitle`, `subtitle_extra` and `trailing`, each a `GemLocalizedText` with its tone — so neither app switches on the kind to lay the row out.
+4. **Is it a platform value?** A `Color`, an `Image`, a Compose or SwiftUI value — these are the only things the apps decide, and they go on an extension in the module's mapper files, never inline in the row model. The view reads `text.tone.color`; it never switches on a Core enum itself.
 
 A row model whose body is anything but `row.` lookups has taken back a decision Core had already made. If you are writing `switch row.kind` in an app, the row is missing a field.
 
 ```swift
 // Gemstone+Style.swift
-extension GemPriceAlertRow {
-    public var directionColor: Color { direction?.color ?? Colors.gray }
+extension GemValueTone {
+    public var color: Color { ... }
 }
 
 // Gemstone+Localized.swift
-extension GemPriceAlertRow {
-    public var prefixText: String { prefix.text }
+extension GemLocalizedText {
+    public var text: String {
+        switch self {
+        case let .priceAlertLabel(label): label.text
+        ...
+        }
+    }
 }
 ```
 
 ```kotlin
-@Composable
-internal fun GemPriceAlertText.string(): String = when (this) {
-    is GemPriceAlertText.Empty -> EMPTY
-    is GemPriceAlertText.Number -> value.text()
-    is GemPriceAlertText.Label -> label.string()
+fun GemLocalizedText.string(context: Context): String = when (this) {
+    is GemLocalizedText.PriceAlertLabel -> context.getString(label.stringRes())
+    ...
 }
 ```
 

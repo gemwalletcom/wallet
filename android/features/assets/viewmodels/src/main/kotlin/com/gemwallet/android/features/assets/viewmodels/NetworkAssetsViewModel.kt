@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemAssetRowStyle
 import uniffi.gemstone.GemNetworkAssetSections
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.networkAssetSections
@@ -57,8 +56,6 @@ class NetworkAssetsViewModel @Inject constructor(
     private val chain: Chain = savedStateHandle.requireChain()
 
     val title: String = context.getString(R.string.assets_title)
-
-    val rowStyle: GemAssetRowStyle = service.assetRowStyle()
 
     private val assetGroups: StateFlow<NetworkAssetGroups> = getCurrentWalletId()
         .flatMapLatest { walletId ->
@@ -101,7 +98,7 @@ class NetworkAssetsViewModel @Inject constructor(
             hidden = hidden.map { it.asset.id.toIdentifier() },
         )
         val byId = (active + hidden).associateBy { it.asset.id.toIdentifier() }
-        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates(rowStyle) }
+        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates() }
         return NetworkAssetGroups(
             pinned = assets(ids.pinned),
             unpinned = assets(ids.unpinned),

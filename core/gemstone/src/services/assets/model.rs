@@ -1,11 +1,12 @@
 use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, Wallet};
 
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle};
 use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
 use crate::services::banner::GemBannerRow;
+use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
@@ -120,7 +121,46 @@ pub struct GemAssetListRowInput {
     pub price: Option<f64>,
     pub change: Option<f64>,
     pub currency: Currency,
-    pub style: GemAssetRowStyle,
+    pub is_enabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRowText {
+    pub text: GemLocalizedText,
+    pub tone: GemValueTone,
+}
+
+impl GemRowText {
+    pub fn number(number: GemFormattedNumber) -> Self {
+        Self {
+            tone: number.tone,
+            text: GemLocalizedText::Number { number },
+        }
+    }
+
+    pub fn neutral(text: GemLocalizedText) -> Self {
+        Self { text, tone: GemValueTone::Neutral }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemAssetItemTrailing {
+    Value { value: GemRowText, extra: Option<GemRowText> },
+    Toggle { is_on: bool },
+    Copy,
+    None,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetItemRow {
+    pub icon: super::icon::GemAssetIcon,
+    pub title: String,
+    pub title_extra: Option<String>,
+    pub subtitle: Option<GemRowText>,
+    pub subtitle_extra: Option<GemRowText>,
+    pub trailing: GemAssetItemTrailing,
+    pub masks_balance: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -129,23 +169,19 @@ pub struct GemPriceRow {
     pub change: Option<GemFormattedNumber>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAssetListRow {
-    pub icon: super::icon::GemAssetIcon,
-    pub text: GemAssetRowText,
-    pub price: GemPriceRow,
-    pub amount: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
+#[uniffi::export]
+pub fn asset_list_row(input: GemAssetListRowInput, style: GemAssetRowStyle) -> GemAssetItemRow {
+    super::rules::asset_list_row(input, style)
 }
 
 #[uniffi::export]
-pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
-    super::rules::asset_list_row(input)
+pub fn asset_list_rows(inputs: Vec<GemAssetListRowInput>, style: GemAssetRowStyle) -> Vec<GemAssetItemRow> {
+    inputs.into_iter().map(|input| super::rules::asset_list_row(input, style)).collect()
 }
 
 #[uniffi::export]
-pub fn asset_list_rows(inputs: Vec<GemAssetListRowInput>) -> Vec<GemAssetListRow> {
-    inputs.into_iter().map(super::rules::asset_list_row).collect()
+pub fn wallet_asset_rows(inputs: Vec<GemAssetListRowInput>) -> Vec<GemAssetItemRow> {
+    asset_list_rows(inputs, super::rules::wallet_asset_row_style())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

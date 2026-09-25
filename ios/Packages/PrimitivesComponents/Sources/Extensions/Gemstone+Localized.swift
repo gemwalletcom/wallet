@@ -23,8 +23,6 @@ import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLocalizedText
 import enum Gemstone.GemPriceAlertLabel
-import struct Gemstone.GemPriceAlertRow
-import enum Gemstone.GemPriceAlertText
 import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemSelectAssetSection
@@ -110,6 +108,8 @@ public extension GemLocalizedText {
             "\(amount.text()) (\(marginType.toPrimitives().title))"
         case let .position(direction, leverage):
             "\(direction.toPrimitives().title.uppercased()) \(leverage.text())"
+        case let .priceAlertLabel(label):
+            label.text
         case let .apr(value):
             Localized.Stake.apr(value?.text() ?? .empty)
         case let .priceImpactWarning(percent, symbol):
@@ -179,26 +179,6 @@ public extension Gemstone.DelegationState {
         case .deactivating: Localized.Stake.deactivating
         case .awaitingWithdrawal: Localized.Stake.awaitingWithdrawal
         }
-    }
-}
-
-public extension GemPriceAlertText {
-    var text: String {
-        switch self {
-        case .empty: Placeholder.empty
-        case let .number(value): value.text()
-        case let .label(label): label.text
-        }
-    }
-}
-
-public extension GemPriceAlertRow {
-    var prefixText: String {
-        prefix.text
-    }
-
-    var suffixText: String {
-        suffix.text
     }
 }
 

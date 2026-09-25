@@ -217,13 +217,13 @@ impl GemConfirmService {
         self.assets.ensure_simulation_assets(asset_ids).await
     }
 
-    pub async fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
+    pub async fn fee_assets(&self, wallet_id: WalletId, chain: Chain, currency: Currency) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         let fee_asset_ids = chain_fee_asset_ids(chain);
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
         let (assets, balances, prices) = futures::join!(self.assets.assets(fee_asset_ids.clone()), self.balance.balances(wallet_id, fee_asset_ids.clone()), self.price.prices(fee_asset_ids),);
-        Ok(rules::selectable_fee_assets(assets?, balances?, prices?))
+        Ok(rules::selectable_fee_assets(assets?, balances?, prices?, &currency))
     }
 
     async fn fee_asset(&self, asset_id: AssetId) -> Result<Asset, GemConfirmError> {

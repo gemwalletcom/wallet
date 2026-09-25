@@ -134,7 +134,7 @@ public struct PerpetualScene: View {
 
     @ViewBuilder
     private func positionContent(_ row: GemPerpetualPositionRow, rows: [GemPerpetualPositionDetail]) -> some View {
-        ListAssetItemView(model: PerpetualPositionItemViewModel(row: row))
+        ListAssetItemView(row: row.row)
 
         ForEach(rows, id: \.kind) { detail in
             switch detail.kind {

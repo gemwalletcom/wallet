@@ -1,36 +1,30 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
-import func Gemstone.fiatEquivalent
+import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemFeeAsset
+import struct Gemstone.GemRowText
 import GemstonePrimitives
 import Primitives
 import Style
 
 public struct FeeAssetItem: Sendable {
     public let asset: Asset
-    public let balance: Balance
-    public let price: Price?
-    public let currency: Currency
+    public let row: GemAssetItemRow
     public let isSelected: Bool
 
-    public init(asset: Asset, balance: Balance, price: Price?, currency: Currency, isSelected: Bool) {
+    public init(asset: Asset, row: GemAssetItemRow, isSelected: Bool) {
         self.asset = asset
-        self.balance = balance
-        self.price = price
-        self.currency = currency
+        self.row = row
         self.isSelected = isSelected
     }
 }
 
 extension FeeAssetItem: SimpleListItemViewable {
-    public var title: String { asset.symbol }
-    public var titleExtra: String? { asset.name == title ? nil : asset.name }
-    public var subtitle: String? { ValueFormatter(style: .short).string(balance.available, asset: asset) }
-    public var subtitleExtra: String? {
-        fiatEquivalent(asset: asset.toGem(), value: balance.available, price: price?.price, currency: currency.toGem())?.text()
-    }
+    public var title: String { row.title }
+    public var titleExtra: String? { row.titleExtra }
+    public var subtitle: String? { trailingValue?.value.text.text }
+    public var subtitleExtra: String? { trailingValue?.extra?.text.text }
 
     public var titleStyle: TextStyle {
         TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
@@ -45,13 +39,18 @@ extension FeeAssetItem: SimpleListItemViewable {
     }
 
     public var assetImage: AssetImage {
-        let image = AssetIdViewModel(assetId: asset.id).assetImage
+        let image = AssetImage(icon: row.icon)
         return AssetImage(
             type: image.type,
             imageURL: image.imageURL,
             placeholder: image.placeholder,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
+    }
+
+    private var trailingValue: (value: GemRowText, extra: GemRowText?)? {
+        guard case let .value(value, extra) = row.trailing else { return nil }
+        return (value, extra)
     }
 }
 
@@ -71,13 +70,12 @@ extension FeeAssetItem: Hashable {
 
 public extension FeeAssetItem {
     func selected(_ isSelected: Bool) -> FeeAssetItem {
-        FeeAssetItem(asset: asset, balance: balance, price: price, currency: currency, isSelected: isSelected)
+        FeeAssetItem(asset: asset, row: row, isSelected: isSelected)
     }
 }
 
 public extension GemFeeAsset {
-    func feeAssetItem(currency: Currency) -> FeeAssetItem {
-        let mapped = toPrimitives()
-        return FeeAssetItem(asset: mapped.asset, balance: mapped.balance, price: mapped.price, currency: currency, isSelected: false)
+    var feeAssetItem: FeeAssetItem {
+        FeeAssetItem(asset: asset.toPrimitives(), row: row, isSelected: false)
     }
 }
