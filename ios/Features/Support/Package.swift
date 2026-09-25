@@ -65,6 +65,8 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "Store",
+                "Gemstone",
+                "PrimitivesComponents",
             ],
         ),
     ],

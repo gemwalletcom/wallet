@@ -41,13 +41,6 @@ fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, scrollState: ScrollSt
         onPauseOrDispose { }
     }
 
-    val onRowAction: (SettingsSceneAction) -> Unit = { action ->
-        if (action == SettingsSceneAction.Support) {
-            viewModel.openSupport()
-        }
-        onAction(action)
-    }
-
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(space0),
@@ -63,7 +56,7 @@ fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, scrollState: ScrollSt
                     GemListRowView(
                         row = row,
                         listPosition = ListPosition.getPosition(index, section.rows.size),
-                        modifier = Modifier.clickable { action?.let(onRowAction) },
+                        modifier = Modifier.clickable { action?.let(onAction) },
                     )
                 }
             }

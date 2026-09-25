@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSupportServiceInterface
 import uniffi.gemstone.loadError
 import javax.inject.Inject
@@ -41,6 +43,7 @@ class SupportChatSceneViewModel @Inject constructor(
     private val getSupportMessages: GetSupportMessages,
     private val getSupportTyping: GetSupportTyping,
     private val clearSupportTyping: ClearSupportTyping,
+    private val enablePushForSupport: EnablePushForSupport,
     private val imageAttachmentFactory: SupportImageAttachmentFactory,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
@@ -69,6 +72,13 @@ class SupportChatSceneViewModel @Inject constructor(
     val errorRow: StateFlow<GemListRow?> = combine(loadState, messages) { state, shown ->
         loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    init {
+        viewModelScope.launch(ioDispatcher) {
+            val state = enablePushForSupport.enablePushForSupport() ?: return@launch
+            (state.result as? GemPushResult.NotRegistered)?.let { errorState.value = it.error.text(context) }
+        }
+    }
 
     fun fetch() = viewModelScope.launch(ioDispatcher) {
         val shown = messages.first()
