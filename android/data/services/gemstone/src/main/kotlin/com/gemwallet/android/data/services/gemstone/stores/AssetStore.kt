@@ -4,7 +4,6 @@ import com.gemwallet.android.application.assets.values.toQueryFilter
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.toAssetBasic
-import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModels
 import com.gemwallet.android.data.services.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.services.store.database.entities.toDTO
@@ -13,15 +12,12 @@ import com.gemwallet.android.data.services.store.database.entities.toUpdateRecor
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetStore
@@ -87,8 +83,4 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
         isVisible = isVisible,
         updatedAt = null,
     )
-
-    fun observeAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> = assetsDao.getAssetsInfoByChain(walletId, chain).toAssetInfoModel()
-
-    fun observeHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> = assetsDao.getHiddenAssetsInfoByChain(walletId, chain).toAssetInfoModel()
 }

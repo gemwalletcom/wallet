@@ -142,4 +142,16 @@ class AssetsQueryTest {
         assertEquals(emptyList<AssetId>(), query(WalletId("wallet-1"), "bitcoin", AssetsQueryScope.Wallet, emptySet(), 10).first().map { it.asset.id })
         assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), "bitcoin", AssetsQueryScope.AllAssets, emptySet(), 10).first().map { it.asset.id })
     }
+
+    @Test
+    fun aChainListsTheWalletVisibleRankedAssetsOfThatChain() = runBlocking(Dispatchers.IO) {
+        assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), Chain.Ethereum).first().map { it.asset.id })
+        assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), Chain.Bitcoin).first().map { it.asset.id })
+    }
+
+    @Test
+    fun theHiddenAssetsOfAChainAreTheOnesWithABalance() = runBlocking(Dispatchers.IO) {
+        assertEquals(listOf(AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")), query.hidden(WalletId("wallet-1"), Chain.Ethereum).first().map { it.asset.id })
+        assertEquals(emptyList<AssetId>(), query.hidden(WalletId("wallet-2"), Chain.Ethereum).first().map { it.asset.id })
+    }
 }

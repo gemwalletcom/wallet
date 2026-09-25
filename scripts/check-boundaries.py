@@ -226,9 +226,7 @@ def only_services_reach_infra():
 
 ANDROID_FEATURES = ROOT / "android/features"
 DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
-DATA_INTERNAL_DEPENDENTS = {
-    "android/features/assets/viewmodels/build.gradle.kts",
-}
+DATA_INTERNAL_DEPENDENTS = set()
 
 
 def android_features_stay_off_data_internals():
@@ -249,9 +247,7 @@ def android_features_stay_off_data_internals():
 IOS_STORES = ROOT / "ios/Packages/Store/Sources/Stores"
 IOS_STORE_TYPE = re.compile(r"^public (?:final )?(?:class|struct|actor) (\w+Store)\b", re.M)
 ANDROID_STORE_TYPE = re.compile(r"\b(?:Gemstone\w*Store|\w+Dao)\b")
-STORE_HOLDING_FEATURES = {
-    "android/features/assets/viewmodels/src/main/kotlin/com/gemwallet/android/features/assets/viewmodels/NetworkAssetsViewModel.kt",
-}
+STORE_HOLDING_FEATURES = set()
 
 
 def features_never_hold_a_store():

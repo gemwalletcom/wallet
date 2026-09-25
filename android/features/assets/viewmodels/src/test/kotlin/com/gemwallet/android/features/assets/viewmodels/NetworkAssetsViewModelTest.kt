@@ -3,7 +3,7 @@ package com.gemwallet.android.features.assets.viewmodels
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
@@ -62,13 +62,13 @@ class NetworkAssetsViewModelTest {
 
     private val walletId = MutableStateFlow(WalletId(FIRST_WALLET))
 
-    private val assetStore = mockk<GemstoneAssetStore> {
-        every { observeAssetsInfoByChain(any(), any()) } answers {
-            val assets = if (firstArg<String>() == FIRST_WALLET) active else otherWalletActive
+    private val assetsQuery = mockk<AssetsQuery> {
+        every { this@mockk(any<WalletId>(), Chain.Ethereum) } answers {
+            val assets = if (firstArg<WalletId>().id == FIRST_WALLET) active else otherWalletActive
             assets.onSubscription { activeSubscriptions += 1 }
         }
-        every { observeHiddenAssetsInfoByChain(any(), any()) } answers {
-            if (firstArg<String>() == FIRST_WALLET) hidden else otherWalletHidden
+        every { hidden(any(), Chain.Ethereum) } answers {
+            if (firstArg<WalletId>().id == FIRST_WALLET) hidden else otherWalletHidden
         }
     }
 
@@ -147,7 +147,7 @@ class NetworkAssetsViewModelTest {
     }
 
     private fun createViewModel() = NetworkAssetsViewModel(
-        assetStore = assetStore,
+        assetsQuery = assetsQuery,
         getCurrentWalletId = object : GetCurrentWalletId {
             override fun invoke(): Flow<WalletId> = walletId
         },

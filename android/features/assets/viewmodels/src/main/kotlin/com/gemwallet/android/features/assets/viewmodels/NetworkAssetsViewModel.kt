@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ext.errorText
@@ -44,7 +44,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NetworkAssetsViewModel @Inject constructor(
-    assetStore: GemstoneAssetStore,
+    assetsQuery: AssetsQuery,
     getCurrentWalletId: GetCurrentWalletId,
     private val service: GemWalletHomeServiceInterface,
     savedStateHandle: SavedStateHandle,
@@ -60,8 +60,8 @@ class NetworkAssetsViewModel @Inject constructor(
     private val assetGroups: StateFlow<NetworkAssetGroups> = getCurrentWalletId()
         .flatMapLatest { walletId ->
             combine(
-                assetStore.observeAssetsInfoByChain(walletId.id, chain).flowOn(ioDispatcher),
-                assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain).flowOn(ioDispatcher),
+                assetsQuery(walletId, chain).flowOn(ioDispatcher),
+                assetsQuery.hidden(walletId, chain).flowOn(ioDispatcher),
             ) { active, hidden -> groups(active, hidden) }
         }
         .flowOn(ioDispatcher)
