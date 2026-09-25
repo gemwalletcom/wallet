@@ -2,7 +2,7 @@
 
 The goal is that Gemstone decides once and both clients read that decision. Shared rules, records, sessions and orchestration live in Core; rendering, observation, scheduling, OS ports and locale formatting live in the apps. A view model, UI model, aggregate, factory or provider that still decides, re-derives, composes text or formats a number is debt; a model that holds one Core record and maps it to platform values is the target shape. Contracts and worked examples are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-Every open item carries a stable id and a size (**S**/**M**/**L**); ids are never reused. Namespaces: `VM` (consolidation into Gemstone), `AUD` (correctness found by review), `BD` (a behaviour difference), `D` (a decided product or security choice being built), `GEN` (code `just generate-models` writes instead of hand-written test mocks and mappers), `MOD` (feature modules named and grouped the same way on both apps), `CLN` (a cleanup sweep across every platform) `BLD` (build and test speed, each with the cost measured before it was filed) and `X` (blocked upstream).
+Every open item carries a stable id and a size (**S**/**M**/**L**); ids are never reused. Namespaces: `VM` (consolidation into Gemstone), `AUD` (correctness found by review), `BD` (a behaviour difference), `D` (a decided product or security choice being built), `GEN` (code `just generate-models` writes instead of hand-written test mocks and mappers), `MOD` (feature modules named and grouped the same way on both apps), `CLN` (a cleanup sweep across every platform) and `X` (blocked upstream).
 
 - **Closing an item:** delete its line and commit at once. If it settles an important user-facing rule someone might simplify away, write that rule on its area page under [product/](product/) in the same commit, following [PRODUCT.md § Writing a page](PRODUCT.md#writing-a-page); most items have none. Nothing else is recorded here: git history carries the detail.
 - **Comparing the apps:** say what each does on its own line — **iOS:**, **Android:**, then **Expected:** (the agreed behaviour, or "needs a decision") — never in one sentence covering both. When the apps differ and no item decides otherwise, iOS is the reference behaviour.
@@ -30,9 +30,7 @@ These need no further answer; work them in this order, one family per change.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Build and test speed runs beside that order, one item per change, each measured before and after: BLD324, BLD325, BLD326, BLD327, BLD328, then BLD329 to BLD339 by the size of the saving.
-
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold), BLD332 (the user agent), BLD340 (when release builds are checked). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -722,28 +720,6 @@ Two passes over the whole repository, Core, iOS and Android, run after the items
   - **Check:** for each test kept on a business rule, invert the rule, run the test, confirm it fails, and restore ([engineering principles](../skills/engineering-principles.md#tests)). A contract found with no test gets the smallest one at its owner.
   - **Run:** `cd core && just test <CRATE>`, `cd ios && just test-package <Package>` (confirm the target is still in the test plan and the expected tests ran), `cd android && ./gradlew :<module>:testDebugUnitTest`. Record the test count per module before and after in the commit.
   - **Done when:** every Core crate, iOS package and Android module has been reviewed once.
-
-## 13. Build and test speed
-
-Measured on an 18-core Mac in a clean worktree, and from the last six green CI runs on `main`. An item lands with its before and after numbers in the commit message.
-
-- **BLD324** **S** **Each CI Rust job restores a cache built for it.** Every job shares the `ci-rust` key ([setup-rust-ci](../.github/actions/setup-rust-ci/action.yml)); Core CI `unit_test` restores it with a full match and still compiles 662 crates, 4 of its 5.2 minutes. Key the cache per job and install `diesel_cli` and `cargo-ndk` as prebuilt binaries.
-- **BLD325** **S** **Android unit tests start their JVMs for short runs.** The first test in each module pays about 2 to 5 s of JVM warm-up, 97 of the 142 s the suite spends. `-XX:TieredStopAtLevel=1 -XX:+UseSerialGC` on every `Test` task ([build.gradle.kts](../android/build.gradle.kts)) measured 157 s to 90 s summed.
-- **BLD326** **S** **A debug APK packages only the Core it just built.** `buildCargoNdk` writes into a `jniLibs` source folder that keeps every ABI ever built, while debug builds refresh arm64 only; the google flavor still packages an `armeabi-v7a` library from an older Core (84 MB). Build into a folder keyed by the ABI set, or derive debug `abiFilters` from `GEMSTONE_ANDROID_ABIS` ([gemstone/build.gradle.kts](../android/gemstone/build.gradle.kts)).
-- **BLD327** **S** **`just generate-models` is instant when nothing changed.** [`write_generated`](../core/bin/generate/src/main.rs) rewrites `remote_types.rs`, `RemoteTypeMappers` and `GemConstants` on every run, so a no-op run costs a 12 s gemstone rebuild and a 14 s iOS relink of 30 targets, and it starts `typeshare` once per source file. Write a file only when its content changes.
-- **BLD328** **S** **`RequestSwapQuotesImplTest` runs on virtual time.** Seven tests use `runBlocking` with a real 500 ms debounce and `delay`, 6 s in `data/coordinators`, the slowest Android test module. Use `runTest` with an injected test dispatcher.
-- **BLD329** **M** **`just test-package` builds and tests one package.** It runs the `Gem` scheme with `-only-testing` ([justfile](../ios/justfile)), which builds the app and links all 35 test bundles. Through the package's own scheme, TransferTests measured 13 s to 9 s no-op, 26 s to 9 s after a Core change and 27 s to 12 s after `generate-models`.
-- **BLD330** **S** **The empty app-hosted `GemTests` target goes.** It has no sources, is the only target with a `TEST_HOST`, and makes every full run build, install and launch the app: 22.7 s before its tests start, against 2.2 s for a package target.
-- **BLD331** **M** **Test and app builds share one Rust feature set.** `just test <crate>` enables `--all-features`, the workspace run `unit_tests` and the Android host library the defaults, so one `primitives` edit compiles the same 39 crates three times on the host: 49 s, then 23 s and 20 s more. Keep integration features out of unit runs and unify the rest.
-- **BLD332** **M** **A version bump rebuilds no Rust.** `bump.sh` writes the app version into `core/Cargo.toml`, so every bump recompiles every workspace crate on every target, about 3.5 minutes per developer (71 s host tests, 41 s iOS, 50 s Android, 45 s host library). The only reader is the `Gem/Rust/<version>` user agent in `gem_client`. Needs a decision: where the user agent takes the app version from.
-- **BLD333** **M** **Android compiles Core once per edit.** Debug bindings come from a separate host library, so a Core edit compiles `buildCargoNdk` (15 s) beside `buildGemstoneHost` and `bindgenKotlin` (17 s), about 17 s of CPU more than needed. Generate the Kotlin bindings from the Android library and keep the host build for tests.
-- **BLD334** **M** **Android skips cargo when Core is unchanged.** `buildGemstoneHost` and `buildCargoNdk` declare `upToDateWhen { false }` and start a login shell, 1 s of a 2.6 s no-op assemble. Declare cargo's dep-info as inputs.
-- **BLD335** **S** **gemstone builds only the rlib by default.** Every mobile build passes `--crate-type`; the default `staticlib` and `cdylib` cost 0.7 to 0.9 s per gemstone edit and 563 MB per build variant ([Cargo.toml](../core/gemstone/Cargo.toml)).
-- **BLD336** **M** **iOS features do not depend on each other sideways.** Transfer imports WalletConnector for `TransferDataCallback`, which brings reown-swift into its graph, and a Swap edit relinks six targets for TransferTests (4 s). Move shared types down a layer.
-- **BLD337** **L** **iOS links Rust once.** The 459 MB static library is linked into every test bundle (5.8 GB), so a Core change relinks 35 bundles, 12 s of a TransferTests run. Link the `cdylib` as an xcframework instead.
-- **BLD338** **S** **iOS CI reuses compilation between runs.** The SwiftPM cache hashes submodule example projects and caches nothing the build uses, and `CompilationCache.noindex` is never saved; iOS CI `unit_test` is 23.6 minutes, 10.2 of them building.
-- **BLD339** **S** **Android CI builds once.** `unit_test` (10 minutes) and `integration_tests` (7.9 minutes) each compile the host Rust library and every Kotlin module to run a different test filter.
-- **BLD340** **S** **Release builds are checked before a release.** CI has built nothing in release mode since `archive_release` was removed (22 minutes on every push), so LTO or Release-only failures first appear when a tag is archived. Needs a decision: run it on `release/**` pushes, nightly, or not at all.
 
 ## Blocked upstream
 
