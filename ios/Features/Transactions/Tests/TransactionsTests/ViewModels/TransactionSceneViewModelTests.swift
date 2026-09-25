@@ -219,7 +219,7 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func explorerLinkItemModel() {
-        #expect(listRows(TransactionSceneViewModel.mock()).contains(.explorer(name: "Blockchair", url: "https://blockchair.com/bitcoin/transaction/1")))
+        #expect(listRows(TransactionSceneViewModel.mock(id: .mock(hash: "1"))).contains(.explorer(name: "Blockchair", url: "https://blockchair.com/bitcoin/transaction/1")))
     }
 
     @Test

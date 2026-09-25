@@ -10,6 +10,7 @@ import Transactions
 public extension TransactionSceneViewModel {
     @MainActor
     static func mock(
+        id: TransactionId = .mock(),
         type: TransactionType = .transfer,
         state: TransactionState = .confirmed,
         direction: TransactionDirection = .outgoing,
@@ -37,13 +38,14 @@ public extension TransactionSceneViewModel {
         return TransactionSceneViewModel(
             transaction: .mock(
                 transaction: .mock(
-                    type: type,
-                    state: state,
-                    direction: direction,
+                    id: id,
                     assetId: asset.id,
                     from: from,
                     to: to,
+                    type: type,
+                    state: state,
                     memo: memo,
+                    direction: direction,
                     metadata: metadata ?? swapMetadata,
                 ),
                 asset: asset,

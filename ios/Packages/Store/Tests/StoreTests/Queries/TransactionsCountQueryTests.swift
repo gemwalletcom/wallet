@@ -20,7 +20,7 @@ struct TransactionsCountQueryTests {
             .mock(.mock(id: TransactionId(chain: .bitcoin, hash: "1"), state: .pending)),
             .mock(.mock(id: TransactionId(chain: .bitcoin, hash: "2"), state: .inTransit)),
             .mock(.mock(id: TransactionId(chain: .bitcoin, hash: "3"), state: .confirmed)),
-            .mock(.mock(id: TransactionId(chain: .smartChain, hash: "4"), state: .pending, assetId: AssetId(chain: .smartChain))),
+            .mock(.mock(id: TransactionId(chain: .smartChain, hash: "4"), assetId: AssetId(chain: .smartChain), state: .pending)),
         ])
 
         let filters: [TransactionsQueryFilter] = [.assetRankGreaterThan(15), .states([TransactionState.pending, .inTransit].map(\.rawValue))]

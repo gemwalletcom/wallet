@@ -19,7 +19,7 @@ struct TransactionStoreTests {
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(.mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId)),
+            .mock(.mock(id: transactionId, assetId: Chain.robinhood.assetId, state: .pending, feeAssetId: Chain.robinhood.assetId)),
         ])
 
         let transactions = try store.getTransactions(states: [.pending])
@@ -51,8 +51,8 @@ struct TransactionStoreTests {
             .mock(
                 .mock(
                     id: transactionId,
-                    type: .swap,
                     assetId: btc,
+                    type: .swap,
                     metadata: .encode(TransactionSwapMetadata.mock(
                         fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
                     )),
@@ -65,8 +65,8 @@ struct TransactionStoreTests {
             .mock(
                 .mock(
                     id: transactionId,
-                    type: .swap,
                     assetId: btc,
+                    type: .swap,
                     metadata: .encode(TransactionSwapMetadata.mock(
                         fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
                     )),
@@ -94,15 +94,15 @@ struct TransactionStoreTests {
         let targetId = TransactionId(chain: .ethereum, hash: "confirmed")
         let source = Transaction.mock(
             id: sourceId,
+            assetId: ethereum,
             type: .swap,
             state: .pending,
-            assetId: ethereum,
             metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200")),
         )
         let target = Transaction.mock(
             id: targetId,
-            type: .swap,
             assetId: ethereum,
+            type: .swap,
             fee: "42",
             metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300")),
         )

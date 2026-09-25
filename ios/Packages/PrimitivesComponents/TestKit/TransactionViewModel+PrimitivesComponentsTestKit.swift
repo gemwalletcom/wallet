@@ -21,12 +21,12 @@ public extension TransactionViewModel {
         TransactionViewModel(
             transaction: .mock(
                 transaction: .mock(
-                    type: type,
-                    state: state,
-                    direction: direction,
                     from: from,
                     to: to,
+                    type: type,
+                    state: state,
                     value: value,
+                    direction: direction,
                     metadata: metadata,
                 ),
                 asset: asset,

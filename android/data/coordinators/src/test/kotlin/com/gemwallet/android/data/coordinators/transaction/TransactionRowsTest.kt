@@ -21,7 +21,7 @@ class TransactionRowsTest {
     private val activity = TransactionsQueryFilter.activityDefaults()
     private val asset = listOf(TransactionsQueryFilter.Chains(listOf(Chain.Bitcoin)))
 
-    private val first = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "first")))
+    private val first = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "first"), state = TransactionState.Confirmed))
     private val second = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "second")))
 
     @Test

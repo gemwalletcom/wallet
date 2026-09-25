@@ -20,6 +20,7 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.JsonValue
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
@@ -33,11 +34,23 @@ import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.PerpetualBasic
+import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.SerializedDate
 import com.wallet.core.primitives.TotalFiatValue
+import com.wallet.core.primitives.Transaction
+import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionExtended
+import com.wallet.core.primitives.TransactionId
+import com.wallet.core.primitives.TransactionListItem
+import com.wallet.core.primitives.TransactionPerpetualMetadata
+import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionSwapMetadata
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransactionUtxoInput
 import com.wallet.core.primitives.VerificationStatus
 
 fun mockAddressName(
@@ -324,4 +337,112 @@ fun mockTotalFiatValue(
     value = value,
     pnlAmount = pnlAmount,
     pnlPercentage = pnlPercentage,
+)
+
+fun mockTransaction(
+    id: TransactionId = mockTransactionId(),
+    assetId: AssetId = mockAssetId(),
+    from: String = "",
+    to: String = "",
+    contract: String? = null,
+    type: TransactionType = TransactionType.Transfer,
+    state: TransactionState = TransactionState.Pending,
+    blockNumber: String? = null,
+    sequence: String? = null,
+    fee: String = "0",
+    feeAssetId: AssetId = mockAssetId(),
+    value: String = "0",
+    memo: String? = null,
+    direction: TransactionDirection = TransactionDirection.SelfTransfer,
+    utxoInputs: List<TransactionUtxoInput>? = null,
+    utxoOutputs: List<TransactionUtxoInput>? = null,
+    metadata: JsonValue? = null,
+    createdAt: SerializedDate = 0L,
+) = Transaction(
+    id = id,
+    assetId = assetId,
+    from = from,
+    to = to,
+    contract = contract,
+    type = type,
+    state = state,
+    blockNumber = blockNumber,
+    sequence = sequence,
+    fee = fee,
+    feeAssetId = feeAssetId,
+    value = value,
+    memo = memo,
+    direction = direction,
+    utxoInputs = utxoInputs,
+    utxoOutputs = utxoOutputs,
+    metadata = metadata,
+    createdAt = createdAt,
+)
+
+fun mockTransactionExtended(
+    recordId: Long = 0,
+    transaction: Transaction = mockTransaction(),
+    asset: Asset = mockAsset(),
+    feeAsset: Asset = mockAsset(),
+    price: Price? = null,
+    feePrice: Price? = null,
+    assets: List<Asset> = emptyList(),
+    prices: List<AssetPrice> = emptyList(),
+    fromAddress: AddressName? = null,
+    toAddress: AddressName? = null,
+    confirmationEtaSeconds: UInt? = null,
+) = TransactionExtended(
+    recordId = recordId,
+    transaction = transaction,
+    asset = asset,
+    feeAsset = feeAsset,
+    price = price,
+    feePrice = feePrice,
+    assets = assets,
+    prices = prices,
+    fromAddress = fromAddress,
+    toAddress = toAddress,
+    confirmationEtaSeconds = confirmationEtaSeconds,
+)
+
+fun mockTransactionListItem(
+    transaction: Transaction = mockTransaction(),
+    asset: Asset = mockAsset(),
+    assets: List<Asset> = emptyList(),
+    fromAddress: AddressName? = null,
+    toAddress: AddressName? = null,
+) = TransactionListItem(
+    transaction = transaction,
+    asset = asset,
+    assets = assets,
+    fromAddress = fromAddress,
+    toAddress = toAddress,
+)
+
+fun mockTransactionPerpetualMetadata(
+    pnl: Double = 0.0,
+    price: Double = 0.0,
+    direction: PerpetualDirection = PerpetualDirection.Short,
+    isLiquidation: Boolean? = null,
+    provider: PerpetualProvider? = null,
+) = TransactionPerpetualMetadata(
+    pnl = pnl,
+    price = price,
+    direction = direction,
+    isLiquidation = isLiquidation,
+    provider = provider,
+)
+
+fun mockTransactionSwapMetadata(
+    fromAsset: AssetId = mockAssetId(),
+    fromValue: String = "0",
+    toAsset: AssetId = mockAssetId(),
+    toValue: String = "0",
+    provider: String? = null,
+) = TransactionSwapMetadata(
+    fromAsset = fromAsset,
+    fromValue = fromValue,
+    toAsset = toAsset,
+    toValue = toValue,
+    provider = provider,
 )

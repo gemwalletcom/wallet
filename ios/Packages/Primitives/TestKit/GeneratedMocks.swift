@@ -369,3 +369,131 @@ public extension TotalFiatValue {
         )
     }
 }
+
+public extension Transaction {
+    static func mock(
+        id: TransactionId = .mock(),
+        assetId: AssetId = .mock(),
+        from: String = "",
+        to: String = "",
+        contract: String? = nil,
+        type: TransactionType = .transfer,
+        state: TransactionState = .pending,
+        blockNumber: String? = nil,
+        sequence: String? = nil,
+        fee: String = "0",
+        feeAssetId: AssetId = .mock(),
+        value: String = "0",
+        memo: String? = nil,
+        direction: TransactionDirection = .selfTransfer,
+        utxoInputs: [TransactionUtxoInput]? = nil,
+        utxoOutputs: [TransactionUtxoInput]? = nil,
+        metadata: AnyCodableValue? = nil,
+        createdAt: Date = Date(timeIntervalSince1970: 0),
+    ) -> Transaction {
+        Transaction(
+            id: id,
+            assetId: assetId,
+            from: from,
+            to: to,
+            contract: contract,
+            type: type,
+            state: state,
+            blockNumber: blockNumber,
+            sequence: sequence,
+            fee: fee,
+            feeAssetId: feeAssetId,
+            value: value,
+            memo: memo,
+            direction: direction,
+            utxoInputs: utxoInputs,
+            utxoOutputs: utxoOutputs,
+            metadata: metadata,
+            createdAt: createdAt,
+        )
+    }
+}
+
+public extension TransactionExtended {
+    static func mock(
+        recordId: UInt64 = 0,
+        transaction: Transaction = .mock(),
+        asset: Asset = .mock(),
+        feeAsset: Asset = .mock(),
+        price: Price? = nil,
+        feePrice: Price? = nil,
+        assets: [Asset] = [],
+        prices: [AssetPrice] = [],
+        fromAddress: AddressName? = nil,
+        toAddress: AddressName? = nil,
+        confirmationEtaSeconds: UInt32? = nil,
+    ) -> TransactionExtended {
+        TransactionExtended(
+            recordId: recordId,
+            transaction: transaction,
+            asset: asset,
+            feeAsset: feeAsset,
+            price: price,
+            feePrice: feePrice,
+            assets: assets,
+            prices: prices,
+            fromAddress: fromAddress,
+            toAddress: toAddress,
+            confirmationEtaSeconds: confirmationEtaSeconds,
+        )
+    }
+}
+
+public extension TransactionListItem {
+    static func mock(
+        transaction: Transaction = .mock(),
+        asset: Asset = .mock(),
+        assets: [Asset] = [],
+        fromAddress: AddressName? = nil,
+        toAddress: AddressName? = nil,
+    ) -> TransactionListItem {
+        TransactionListItem(
+            transaction: transaction,
+            asset: asset,
+            assets: assets,
+            fromAddress: fromAddress,
+            toAddress: toAddress,
+        )
+    }
+}
+
+public extension TransactionPerpetualMetadata {
+    static func mock(
+        pnl: Double = 0,
+        price: Double = 0,
+        direction: PerpetualDirection = .short,
+        isLiquidation: Bool? = nil,
+        provider: PerpetualProvider? = nil,
+    ) -> TransactionPerpetualMetadata {
+        TransactionPerpetualMetadata(
+            pnl: pnl,
+            price: price,
+            direction: direction,
+            isLiquidation: isLiquidation,
+            provider: provider,
+        )
+    }
+}
+
+public extension TransactionSwapMetadata {
+    static func mock(
+        fromAsset: AssetId = .mock(),
+        fromValue: String = "0",
+        toAsset: AssetId = .mock(),
+        toValue: String = "0",
+        provider: String? = nil,
+    ) -> TransactionSwapMetadata {
+        TransactionSwapMetadata(
+            fromAsset: fromAsset,
+            fromValue: fromValue,
+            toAsset: toAsset,
+            toValue: toValue,
+            provider: provider,
+        )
+    }
+}

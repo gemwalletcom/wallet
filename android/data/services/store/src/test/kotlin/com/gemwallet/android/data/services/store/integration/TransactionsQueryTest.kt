@@ -49,11 +49,14 @@ class TransactionsQueryTest {
         value = "123456789012345678901234567890",
         direction = TransactionDirection.Incoming,
         createdAt = 100,
+        state = TransactionState.Confirmed,
+        feeAssetId = bitcoin.id,
     )
-    private val swap = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "swap"), type = TransactionType.Swap, state = TransactionState.Pending, value = "42", createdAt = 300)
-    private val airdrop = mockTransaction(assetId = spam.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "airdrop"), feeAssetId = ethereum.id, createdAt = 400)
-    private val failed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "failed"), state = TransactionState.Failed, value = "7", createdAt = 200)
-    private val otherWalletSend = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "other"), value = "9", createdAt = 500)
+    private val swap =
+        mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "swap"), type = TransactionType.Swap, state = TransactionState.Pending, value = "42", createdAt = 300, feeAssetId = ethereum.id)
+    private val airdrop = mockTransaction(assetId = spam.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "airdrop"), feeAssetId = ethereum.id, createdAt = 400, state = TransactionState.Confirmed)
+    private val failed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "failed"), state = TransactionState.Failed, value = "7", createdAt = 200, feeAssetId = ethereum.id)
+    private val otherWalletSend = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "other"), value = "9", createdAt = 500, state = TransactionState.Confirmed, feeAssetId = bitcoin.id)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
@@ -125,5 +128,5 @@ class TransactionsQueryTest {
         assertEquals(emptyList<Transaction>(), query(wallet.id, pending, 1000).first().map { it.transaction })
     }
 
-    private fun Transaction.stored(): Transaction = copy(sequence = "", utxoInputs = emptyList(), utxoOutputs = emptyList())
+    private fun Transaction.stored(): Transaction = copy(blockNumber = blockNumber.orEmpty(), sequence = "", utxoInputs = emptyList(), utxoOutputs = emptyList())
 }

@@ -239,6 +239,11 @@ mocks:
   - Price
   - PriceAlert
   - TotalFiatValue
+  - Transaction
+  - TransactionExtended
+  - TransactionListItem
+  - TransactionPerpetualMetadata
+  - TransactionSwapMetadata
 
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone

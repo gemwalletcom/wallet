@@ -42,8 +42,8 @@ struct TransactionQueryTests {
         let walletId = WalletId.mock()
         let pendingId = TransactionId(chain: .ethereum, hash: "pending")
         let confirmedId = TransactionId(chain: .ethereum, hash: "confirmed")
-        let pending = Transaction.mock(id: pendingId, state: .pending, assetId: Chain.ethereum.assetId, fee: "1")
-        let confirmed = Transaction.mock(id: confirmedId, state: .confirmed, assetId: Chain.ethereum.assetId, fee: "42")
+        let pending = Transaction.mock(id: pendingId, assetId: Chain.ethereum.assetId, state: .pending, fee: "1", feeAssetId: Chain.ethereum.assetId)
+        let confirmed = Transaction.mock(id: confirmedId, assetId: Chain.ethereum.assetId, state: .confirmed, fee: "42", feeAssetId: Chain.ethereum.assetId)
         try store.addTransactions(walletId: walletId, transactions: [.mock(pending)])
         if existingTarget {
             try store.addTransactions(walletId: walletId, transactions: [.mock(confirmed)])
@@ -64,7 +64,7 @@ struct TransactionQueryTests {
             try store.getTransaction(walletId: walletId, transactionId: pendingId)
         }
 
-        let updated = Transaction.mock(id: confirmedId, state: .confirmed, assetId: Chain.ethereum.assetId, fee: "84")
+        let updated = Transaction.mock(id: confirmedId, assetId: Chain.ethereum.assetId, state: .confirmed, fee: "84", feeAssetId: Chain.ethereum.assetId)
         try await expectUpdate(query) {
             try store.addTransactions(walletId: walletId, transactions: [.mock(updated)])
         }
@@ -86,7 +86,7 @@ struct TransactionQueryTests {
         let store = TransactionStore(db: db)
         let oldId = TransactionId(chain: .ethereum, hash: "pending")
         let newId = TransactionId(chain: .ethereum, hash: "confirmed")
-        try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: oldId, assetId: Chain.ethereum.assetId))])
+        try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: oldId, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId))])
         let stored = try store.getTransaction(walletId: .mock(), transactionId: oldId)
         let query = ObservableQuery(TransactionQuery(walletId: .mock(), recordId: stored.recordId), initialValue: stored)
 

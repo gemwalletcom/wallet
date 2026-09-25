@@ -38,12 +38,12 @@ class TransactionsCountQueryTest {
     private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val spam = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xspam"), name = "Spam", symbol = "SPAM", decimals = 18, type = AssetType.ERC20)
-    private val sending = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "sending"), state = TransactionState.Pending)
-    private val bridging = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "bridging"), type = TransactionType.Swap, state = TransactionState.InTransit)
-    private val confirmed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "confirmed"))
-    private val failed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "failed"), state = TransactionState.Failed)
+    private val sending = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "sending"), state = TransactionState.Pending, feeAssetId = bitcoin.id)
+    private val bridging = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "bridging"), type = TransactionType.Swap, state = TransactionState.InTransit, feeAssetId = ethereum.id)
+    private val confirmed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "confirmed"), state = TransactionState.Confirmed, feeAssetId = ethereum.id)
+    private val failed = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "failed"), state = TransactionState.Failed, feeAssetId = ethereum.id)
     private val spamPending = mockTransaction(assetId = spam.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "spam"), feeAssetId = ethereum.id, state = TransactionState.Pending)
-    private val otherWalletPending = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "other"), state = TransactionState.Pending)
+    private val otherWalletPending = mockTransaction(assetId = bitcoin.id, id = mockTransactionId(chain = Chain.Bitcoin, hash = "other"), state = TransactionState.Pending, feeAssetId = bitcoin.id)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {

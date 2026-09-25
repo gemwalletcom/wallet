@@ -407,7 +407,7 @@ impl Generator {
             (_, Wrapper::Vec) => return language.empty_vec.to_string(),
             (name, Wrapper::None) => name,
         };
-        if let Some((_, _, zero)) = language.app_types.iter().find(|(rust, ..)| *rust == name) {
+        if let Some((_, _, zero)) = language.app_types.iter().find(|(rust, _, zero)| *rust == name && !zero.is_empty()) {
             return zero.to_string();
         }
         if self.config.identifiers.iter().any(|identifier| identifier == name) || self.mocked.iter().any(|mock| mock.name() == name) {
@@ -824,6 +824,8 @@ const SWIFT: Language = Language {
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
         ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
+        ("UInt64", "UInt64", "0"),
+        ("serde_json::Value", "AnyCodableValue", ""),
     ],
     app_type_imports: &[],
     optional_type: "{}?",
@@ -882,8 +884,10 @@ const KOTLIN: Language = Language {
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
         ("DateTime<Utc>", "SerializedDate", "0L"),
+        ("UInt64", "Long", "0"),
+        ("serde_json::Value", "JsonValue", ""),
     ],
-    app_type_imports: &[("DateTime<Utc>", "SerializedDate")],
+    app_type_imports: &[("DateTime<Utc>", "SerializedDate"), ("serde_json::Value", "JsonValue")],
     optional_type: "{}?",
     list_type: "List<{}>",
     enum_value: "{type}.{case}",

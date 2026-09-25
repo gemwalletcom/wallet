@@ -12,6 +12,15 @@ public extension AssetId {
     }
 }
 
+public extension TransactionId {
+    static func mock(
+        chain: Chain = .bitcoin,
+        hash: String = "tx-id",
+    ) -> TransactionId {
+        TransactionId(chain: chain, hash: hash)
+    }
+}
+
 public extension AssetAddress {
     static func mock(
         asset: Asset = .mock(),

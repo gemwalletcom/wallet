@@ -50,7 +50,7 @@ class TransactionQueryTest {
         value = "123456789012345678901234567890",
         createdAt = 100,
     )
-    private val otherWalletSend = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "0xother"), value = "5", createdAt = 200)
+    private val otherWalletSend = mockTransaction(assetId = ethereum.id, id = mockTransactionId(chain = Chain.Ethereum, hash = "0xother"), value = "5", createdAt = 200, state = TransactionState.Confirmed, feeAssetId = ethereum.id)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
@@ -97,5 +97,5 @@ class TransactionQueryTest {
         assertNull(query(wallet.id, send.id).first())
     }
 
-    private fun Transaction.stored(): Transaction = copy(sequence = "", utxoInputs = emptyList(), utxoOutputs = emptyList())
+    private fun Transaction.stored(): Transaction = copy(blockNumber = blockNumber.orEmpty(), sequence = "", utxoInputs = emptyList(), utxoOutputs = emptyList())
 }
