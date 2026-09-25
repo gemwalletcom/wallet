@@ -203,12 +203,23 @@ pub struct GemStakeValidatorSelection {
     pub can_select: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
     pub apr_row: GemListRow,
     pub providers: Vec<DelegationValidator>,
     pub deposit_provider: Option<DelegationValidator>,
-    pub positions: Vec<Delegation>,
+    pub positions: Vec<GemStakeDelegationItem>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemEarnInput {
+    pub wallet_type: WalletType,
+    pub asset: Asset,
+    pub providers: Vec<DelegationValidator>,
+    pub delegations: Vec<Delegation>,
+    pub asset_apr: Option<f64>,
+    pub price: Option<f64>,
+    pub currency: Currency,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

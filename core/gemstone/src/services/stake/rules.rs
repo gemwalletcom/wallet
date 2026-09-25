@@ -12,8 +12,8 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
-    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap,
+    GemStakeAmountInput, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -549,12 +549,28 @@ impl GemAssetBalance {
     }
 }
 
-pub fn earn_view(wallet_type: WalletType, providers: Vec<DelegationValidator>, delegations: Vec<Delegation>, asset_apr: Option<f64>) -> GemEarnView {
+pub fn earn_view(input: GemEarnInput) -> GemEarnView {
+    let GemEarnInput {
+        wallet_type,
+        asset,
+        providers,
+        delegations,
+        asset_apr,
+        price,
+        currency,
+    } = input;
     let providers = selectable_validators(providers);
     GemEarnView {
         apr_row: earn_apr_row(&providers, asset_apr),
         deposit_provider: (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten(),
-        positions: positions(delegations),
+        positions: sorted_delegations(positions(delegations))
+            .into_iter()
+            .map(|delegation| GemStakeDelegationItem {
+                row: delegation_list_row(&delegation, &asset, price, currency.clone()),
+                destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
+                delegation,
+            })
+            .collect(),
         providers,
     }
 }
@@ -1753,6 +1769,32 @@ mod tests {
     }
 
     #[test]
+    fn test_earn_positions_sort_by_balance_and_carry_their_tap() {
+        let small = Delegation::mock_base(DelegationBase::mock_with_balance(10, 0));
+        let awaiting = Delegation::mock_base(DelegationBase {
+            state: DelegationState::AwaitingWithdrawal,
+            ..DelegationBase::mock_with_balance(50, 0)
+        });
+        let view = |wallet_type| {
+            earn_view(GemEarnInput {
+                wallet_type,
+                asset: Asset::from_chain(Chain::Ethereum),
+                providers: vec![],
+                delegations: vec![small.clone(), awaiting.clone()],
+                asset_apr: None,
+                price: None,
+                currency: Currency::USD,
+            })
+        };
+
+        let positions = view(WalletType::Multicoin).positions;
+        assert_eq!(positions.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), vec![awaiting.clone(), small.clone()]);
+        assert!(!matches!(positions[0].destination, GemDelegationDestination::Details), "an awaiting withdrawal opens Withdraw");
+        assert!(matches!(positions[1].destination, GemDelegationDestination::Details));
+        assert!(matches!(view(WalletType::View).positions[0].destination, GemDelegationDestination::Details), "a watch wallet only opens details");
+    }
+
+    #[test]
     fn test_only_a_signing_wallet_deposits_and_it_deposits_with_the_best_provider() {
         let mut best = DelegationValidator::mock_cosmos("best");
         best.apr = 9.0;
@@ -1761,12 +1803,23 @@ mod tests {
         let mut inactive = DelegationValidator::mock_cosmos("inactive");
         inactive.is_active = false;
 
-        let deposit = |wallet_type, providers| earn_view(wallet_type, providers, vec![], None).deposit_provider;
+        let earn = |wallet_type, providers, asset_apr| {
+            earn_view(GemEarnInput {
+                wallet_type,
+                asset: Asset::from_chain(Chain::Cosmos),
+                providers,
+                delegations: vec![],
+                asset_apr,
+                price: None,
+                currency: Currency::USD,
+            })
+        };
+        let deposit = |wallet_type, providers| earn(wallet_type, providers, None).deposit_provider;
         assert_eq!(deposit(WalletType::Multicoin, vec![worse.clone(), best.clone()]).map(|provider| provider.id), Some(best.id.clone()));
         assert_eq!(deposit(WalletType::View, vec![best.clone()]), None, "a watch wallet cannot deposit");
         assert_eq!(deposit(WalletType::Multicoin, vec![inactive.clone()]), None, "an inactive provider is no provider");
 
-        let view = earn_view(WalletType::Multicoin, vec![worse, inactive, best], vec![], Some(1.0));
+        let view = earn(WalletType::Multicoin, vec![worse, inactive, best], Some(1.0));
         assert_eq!(view.providers.first().map(|provider| provider.apr), Some(9.0), "the listed providers are the selectable ones, best first");
         assert_eq!(view.providers.len(), 2);
         assert_eq!(view.apr_row, earn_apr_row(&view.providers, Some(1.0)), "the rate comes from the provider that would take the deposit");

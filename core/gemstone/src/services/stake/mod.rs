@@ -19,8 +19,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput, GemStakeDelegationItem,
-    GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
+    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -95,12 +95,8 @@ impl GemStakeService {
         GemLoadState::refreshed(self.sync_earn(asset_id).await, has_rows)
     }
 
-    pub fn earn_view(&self, wallet_type: WalletType, providers: Vec<DelegationValidator>, delegations: Vec<Delegation>, asset_apr: Option<f64>) -> GemEarnView {
-        rules::earn_view(wallet_type, providers, delegations, asset_apr)
-    }
-
-    pub fn delegation_destination(&self, wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
-        rules::delegation_destination(wallet_type, asset, delegation)
+    pub fn earn_view(&self, input: GemEarnInput) -> GemEarnView {
+        rules::earn_view(input)
     }
 
     pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
@@ -115,17 +111,9 @@ impl GemStakeService {
         rules::stake_view_state(input)
     }
 
-    pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
-        rules::sorted_delegations(delegations)
-    }
-
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
         rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
-    }
-
-    pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
-        rules::selectable_validators(validators)
     }
 }
 

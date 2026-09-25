@@ -10,16 +10,19 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.DelegationRowUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.delegationRows
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,9 +39,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLoadState
@@ -77,22 +80,32 @@ class EarnViewModel @Inject constructor(
         .flatMapLatest { current -> getDelegations(current.wallet.id, assetId, StakeProviderType.Earn) }
 
     private val earnView = combine(providers, delegations, assetInfo, session) { providers, delegations, assetInfo, current ->
+        val info = assetInfo ?: return@combine null
         stakeService.earnView(
-            (current?.wallet?.type ?: WalletType.View).toGem(),
-            providers.map { it.toGem() },
-            delegations.map { it.toGem() },
-            assetInfo?.metadata?.earnApr,
+            GemEarnInput(
+                walletType = (current?.wallet?.type ?: WalletType.View).toGem(),
+                asset = info.asset.toGem(),
+                providers = providers.map { it.toGem() },
+                delegations = delegations.map { it.toGem() },
+                assetApr = info.metadata?.earnApr,
+                price = info.price?.price?.price,
+                currency = (info.price?.currency ?: Currency.USD).toGem(),
+            ),
         )
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positions = earnView.map { view -> view?.positions?.map { it.toPrimitives() }.orEmpty() }
+    private val positions = earnView.map { view -> view?.positions.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val positionRows = combine(positions, assetInfo.filterNotNull()) { positions, assetInfo -> positions.delegationRows(assetInfo) }
-        .flowOn(ioDispatcher)
+    val positionRows = positions.map { items -> items.map { DelegationRowUIModel(it.delegation.toPrimitives(), it.row) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun onPosition(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
+        val item = positions.value.firstOrNull { it.delegation.toPrimitives() == delegation } ?: return
+        item.destination.open(delegation, onOpenDetail, onAmount, onConfirm)
+    }
 
     val aprRow: StateFlow<GemListRow> = earnView.map { it?.aprRow ?: GemListRow.Text(GemListRowTitle.STAKE_APR, "") }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))

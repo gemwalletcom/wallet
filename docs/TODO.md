@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+1. **Settled differences:** BD61, BD62, BD63, BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -52,7 +52,6 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
-| Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, BD62 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
@@ -198,10 +197,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### iOS and Android differ
 
-- **BD60** **S** **An earn position's tap and order.**
-  - **iOS:** an awaiting-withdrawal position in a signing wallet opens Withdraw through `delegation_destination` (`EarnSceneViewModel.swift:92`); positions keep Core's unsorted order (`positions()` in `earn_view`).
-  - **Android:** always opens details (`EarnScreen.kt:102`); positions are sorted by `sorted_delegations` in `StakeReadsImpl.kt:28,35`.
-  - **Expected:** iOS's tap on both, and Core sorts the positions: `GemEarnView.positions` carries `GemStakeDelegationItem { row, destination }` in Core's order, as stake does, and the `delegation_destination`, `sorted_delegations` and `selectable_validators` exports go.
 - **BD61** **S** **The Buy screen balance.**
   - **iOS:** formats with a hard-coded US locale (`ValueFormatter(locale: .US, style: .auto)`) and hides a zero balance (`FiatSceneViewModel.swift:42,179-184`).
   - **Android:** uses Core `asset_list_row` (short style, available scope, the device locale) and shows zero (`FiatViewModel.kt:102-111`).

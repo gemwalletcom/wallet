@@ -286,12 +286,15 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         refreshState
     }
 
-    public func earnView(walletType: Gemstone.WalletType, providers: [Gemstone.DelegationValidator], delegations: [Gemstone.Delegation], assetApr _: Double?) -> GemEarnView {
-        GemEarnView(
+    public func earnView(input: GemEarnInput) -> GemEarnView {
+        let positions = input.delegations.filter { BigInt($0.base.balance) > 0 }
+        return GemEarnView(
             aprRow: .text(title: .stakeApr, value: ""),
-            providers: providers,
-            depositProvider: walletType == .view ? nil : providers.first,
-            positions: delegations.filter { BigInt($0.base.balance) > 0 },
+            providers: input.providers,
+            depositProvider: input.walletType == .view ? nil : input.providers.first,
+            positions: zip(positions, Gemstone.delegationListRows(delegations: positions, asset: input.asset, price: input.price, currency: input.currency)).map {
+                GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
+            },
         )
     }
 }
