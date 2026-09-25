@@ -25,10 +25,20 @@ struct CollectionsViewModelTests {
     }
 
     @Test
+    func aFailedRefreshOverOnlyUnverifiedCollectionsShowsNoErrorRow() {
+        let model = CollectionsViewModel.mock()
+        model.query.value = [.mock(collection: .mock(status: .unverified))]
+        model.loadState = .error(error: .Gateway(msg: "offline"))
+
+        #expect(model.content.items.isEmpty)
+        #expect(model.loadError(model.screen) == nil)
+    }
+
+    @Test
     func unverifiedCollectionsListsOnlyWhatTheQueryHolds() {
         let model = CollectionsViewModel.mock(list: .unverified)
 
-        #expect(model.content.isEmpty)
+        #expect(model.screen.hasContent == false)
 
         model.query.value = [.mock(collection: .mock(status: .unverified))]
 

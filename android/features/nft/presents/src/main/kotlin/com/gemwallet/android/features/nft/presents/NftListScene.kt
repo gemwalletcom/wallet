@@ -14,9 +14,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
@@ -65,6 +68,8 @@ fun NftListNavScreen(
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     LaunchedEffect(walletId) {
         viewModel.syncIfNeeded()
@@ -78,6 +83,7 @@ fun NftListNavScreen(
         title = title,
         showReceiveAction = showReceiveAction,
         listState = listState,
+        snackbar = snackbar,
         onAction = { action ->
             when (action) {
                 NftListAction.Refresh -> viewModel.refresh()
@@ -100,6 +106,7 @@ internal fun NftListScene(
     title: String,
     showReceiveAction: Boolean,
     listState: LazyGridState = rememberLazyGridState(),
+    snackbar: SnackbarHostState? = null,
     onAction: (NftListAction) -> Unit,
 ) {
     Scene(
@@ -115,6 +122,7 @@ internal fun NftListScene(
             }
         },
         onClose = { onAction(NftListAction.Close) },
+        snackbar = snackbar,
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),

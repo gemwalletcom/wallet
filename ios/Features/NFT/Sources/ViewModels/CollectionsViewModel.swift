@@ -22,6 +22,7 @@ public final class CollectionsViewModel: Sendable {
     private let list: GemNftList
 
     public var loadState: GemLoadState = .loading
+    public var isPresentingToastMessage: ToastMessage?
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
     public init(
@@ -52,12 +53,16 @@ public final class CollectionsViewModel: Sendable {
         EmptyContentTypeViewModel(type: EmptyContentType(.nfts, actions: [.receive: onSelectReceive]))
     }
 
-    public func loadError(_ content: CollectionsContent) -> Error? {
-        Gemstone.loadError(state: loadState, hasRows: !content.isEmpty)
+    public func loadError(_ screen: GemNftListScreen) -> Error? {
+        Gemstone.loadError(state: loadState, hasRows: screen.hasContent)
     }
 
     public func load() async {
-        loadState = await service.refresh(hasCollections: !content.isEmpty)
+        let result = await service.refresh(hasContent: screen.hasContent)
+        loadState = result.state
+        if let toast = result.toast {
+            isPresentingToastMessage = .error(toast.text().text)
+        }
     }
 
     public func onSelectReceive() {

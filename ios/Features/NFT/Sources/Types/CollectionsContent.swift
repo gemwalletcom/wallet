@@ -13,10 +13,6 @@ public struct CollectionsContent: Sendable {
         unverifiedCount.map { ListItemModel(title: Localized.Asset.Verification.unverified, subtitle: $0) }
     }
 
-    public var isEmpty: Bool {
-        items.isEmpty && unverifiedCount == nil
-    }
-
     public init(
         items: [GridPosterViewItem],
         unverifiedCount: String? = nil,

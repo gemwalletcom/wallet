@@ -38,6 +38,7 @@ pub struct GemNftListScreen {
     pub syncs_on_appear: bool,
     pub items: Vec<GemNftEntry>,
     pub unverified_row: Option<GemNftUnverifiedRow>,
+    pub has_content: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

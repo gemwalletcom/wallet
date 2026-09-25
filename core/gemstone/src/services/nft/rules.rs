@@ -17,19 +17,23 @@ fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
 }
 
 pub fn list_screen(data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
-    GemNftListScreen {
-        title: match list {
-            GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
-                Some(name) => GemLocalizedText::Text { text: name },
-                None => GemLocalizedText::NftCollections,
-            },
-            GemNftList::Unverified => GemLocalizedText::NftUnverified,
-            GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
+    let title = match list {
+        GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
+            Some(name) => GemLocalizedText::Text { text: name },
+            None => GemLocalizedText::NftCollections,
         },
+        GemNftList::Unverified => GemLocalizedText::NftUnverified,
+        GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
+    };
+    let unverified_row = unverified_row(data.clone(), list);
+    let items = entries(list_items(data, list));
+    GemNftListScreen {
+        title,
         offers_receive: !matches!(list, GemNftList::Unverified),
         syncs_on_appear: matches!(list, GemNftList::Collections | GemNftList::Avatar),
-        unverified_row: unverified_row(data.clone(), list),
-        items: entries(list_items(data, list)),
+        has_content: !items.is_empty() || unverified_row.is_some(),
+        unverified_row,
+        items,
     }
 }
 
@@ -526,5 +530,14 @@ mod tests {
         assert_eq!(unverified_row(data.clone(), GemNftList::Collections).map(|row| row.count_text), Some("1".to_string()));
         assert_eq!(unverified_row(vec![NFTData::mock_with("verified", VerificationStatus::Verified, 1)], GemNftList::Collections), None);
         assert_eq!(unverified_row(data, GemNftList::Unverified), None);
+    }
+
+    #[test]
+    fn test_an_unverified_row_alone_is_content() {
+        let spam = vec![NFTData::mock_with("spam", VerificationStatus::Unverified, 1)];
+
+        assert!(list_screen(spam.clone(), GemNftList::Collections).items.is_empty());
+        assert!(list_screen(spam, GemNftList::Collections).has_content);
+        assert!(!list_screen(vec![], GemNftList::Collections).has_content);
     }
 }

@@ -49,16 +49,16 @@ public struct CollectionsScene: View {
                 )
             }
             .scrollIndicators(
-                content.isEmpty ? .hidden : .automatic,
+                screen.hasContent ? .automatic : .hidden,
             )
         }
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if let error = model.loadError(content) {
+            if let error = model.loadError(screen) {
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     .padding(.horizontal, .medium)
-            } else if content.isEmpty {
+            } else if !screen.hasContent {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
@@ -66,6 +66,7 @@ public struct CollectionsScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(screen.title.text)
         .refreshable { await model.load() }
+        .toast(message: $model.isPresentingToastMessage)
         .task {
             guard screen.syncsOnAppear else { return }
             await model.load()
