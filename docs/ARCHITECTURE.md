@@ -1764,7 +1764,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAddAssetService` | — | `AddAssetSceneViewModel` | `AddAssetViewModel` |
 | `GemAddressDetailsService` | — | `AddressDetailsSceneViewModel` | `AddressDetailsViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
-| `GemAppUpdateService` | — | `AboutUsViewModel` | `AppUpdateCoordinator` (adds the Play vs universal-APK delivery channel) |
+| `GemAppUpdateService` | — | `AboutUsViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
 | `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` |
