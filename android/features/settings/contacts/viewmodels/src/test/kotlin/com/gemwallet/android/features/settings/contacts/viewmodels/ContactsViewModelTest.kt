@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
 import android.content.Context
-import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.data.services.store.requests.ContactsRequest
 import com.wallet.core.primitives.Contact
 import io.mockk.coEvery
 import io.mockk.every
@@ -35,7 +35,7 @@ class ContactsViewModelTest {
     private val contact = Contact(id = "1", name = "Alice", description = null, imageUrl = null, createdAt = 0L, updatedAt = 0L)
 
     private fun model(service: GemContactServiceInterface): ContactsViewModel = ContactsViewModel(
-        mockk<GetContacts>(relaxed = true) { every { getContacts() } returns flowOf(emptyList()) },
+        mockk<ContactsRequest> { every { this@mockk() } returns flowOf(emptyList()) },
         service,
         dispatcher,
         mockk<Context> {
