@@ -19,7 +19,6 @@ pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
     balance_amount_styled(value, asset, GemValueStyle::Auto)
 }
 
-#[uniffi::export]
 pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
     GemLocalizedText::Balance {
         amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals.unsigned_abs()), None, GemValueStyle::Auto),

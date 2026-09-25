@@ -4,9 +4,8 @@ import BigInt
 import Components
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmMetadata
-import struct Gemstone.GemSwapQuoteSummary
 import func Gemstone.perpetualConfirmDetails
-import func Gemstone.swapQuoteSummary
+import func Gemstone.swapQuoteDetails
 import enum Gemstone.TransactionInputType
 import GemstonePrimitives
 import Primitives
@@ -35,17 +34,16 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
     public var itemModel: ConfirmTransferItemModel {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
-            let quote = swapData.quote
-            let fromAssetPrice = AssetPriceValue(asset: fromAsset.toPrimitives(), price: metadata?.assetPrice)
-            let toAssetPrice = AssetPriceValue(asset: toAsset.toPrimitives(), price: metadata?.price(for: toAsset.id))
-            let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: fromAssetPrice.price?.price, toPrice: toAssetPrice.price?.price)
             return .swapDetails(
                 SwapDetailsViewModel(
-                    fromAssetPrice: fromAssetPrice,
-                    toAssetPrice: toAssetPrice,
-                    summary: summary,
-                    slippagePercent: summary.slippagePercent(),
-                    currency: confirmation.currency.rawValue,
+                    details: swapQuoteDetails(
+                        quote: swapData.quote,
+                        fromAsset: fromAsset,
+                        toAsset: toAsset,
+                        fromPrice: metadata?.assetPrice?.price,
+                        toPrice: metadata?.price(for: toAsset.id)?.price,
+                        currency: confirmation.currency.toGem(),
+                    ),
                     allowSelectProvider: false,
                 ),
             )

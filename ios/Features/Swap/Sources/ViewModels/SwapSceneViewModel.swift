@@ -6,7 +6,9 @@ import Formatters
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
+import struct Gemstone.GemAssetBalance
 import enum Gemstone.GemSlippageSelection
+import struct Gemstone.GemSwapAssetData
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
@@ -18,7 +20,6 @@ import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapViewState
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
-import func Gemstone.swapperQuoteSummary
 import enum Gemstone.SwapProvider
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
@@ -39,7 +40,7 @@ public final class SwapSceneViewModel {
     public let wallet: Wallet
 
     public var session: GemSwapSession
-    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, availableBalance: BigInt, state: GemSwapViewState)?
+    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: GemSwapAssetData?, receive: GemSwapAssetData?, state: GemSwapViewState)?
     public var isPresentingInfoSheet: SwapSheetType?
 
     public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
@@ -58,12 +59,13 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var viewState: GemSwapViewState {
-        let availableBalance = fromAsset?.balance.available ?? .zero
-        if let cache = viewStateCache, cache.session == session, cache.availableBalance == availableBalance {
+        let pay = fromAsset?.swapAssetData
+        let receive = toAsset?.swapAssetData
+        if let cache = viewStateCache, cache.session == session, cache.pay == pay, cache.receive == receive {
             return cache.state
         }
-        let state = session.viewState(availableBalance: availableBalance, payAsset: fromAsset?.asset.toGem())
-        viewStateCache = (session, availableBalance, state)
+        let state = session.viewState(pay: pay, receive: receive, currency: service.currency.toGem())
+        viewStateCache = (session, pay, receive, state)
         return state
     }
 
@@ -114,37 +116,16 @@ public final class SwapSceneViewModel {
     }
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
-        guard let selectedSwapQuote, let fromAsset, let toAsset else { return nil }
-        let summary = swapperQuoteSummary(
-            quote: selectedSwapQuote,
-            fromAsset: fromAsset.asset.toGem(),
-            toAsset: toAsset.asset.toGem(),
-            fromPrice: fromAsset.price?.price,
-            toPrice: toAsset.price?.price,
-        )
-        let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
-        let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
+        let state = viewState
+        guard let details = state.details else { return nil }
         return SwapDetailsViewModel(
-            state: quotesState.map { _ in providerItems(toAssetPrice: toAssetPrice) },
-            fromAssetPrice: fromAssetPrice,
-            toAssetPrice: toAssetPrice,
-            summary: summary,
-            slippagePercent: selectedSlippage.bps.map { service.slippagePercent(bps: $0) },
-            currency: service.currency.rawValue,
-            allowSelectProvider: viewState.allowsProviderSelection,
+            state: providersState(state),
+            details: details,
+            allowSelectProvider: state.allowsProviderSelection,
             swapProviderSelectAction: { [weak self] provider in
                 self?.onFinishSwapProviderSelection(provider)
             },
         )
-    }
-
-    private func providerItems(toAssetPrice: AssetPriceValue) -> [SwapProviderItem] {
-        let rows = session.providerRows(
-            receiveAsset: toAssetPrice.asset.toGem(),
-            receivePrice: toAssetPrice.price?.price,
-            currency: service.currency.toGem(),
-        )
-        return rows.map(SwapProviderItem.init(row:))
     }
 
     var showsSlippageIndicator: Bool {
@@ -174,10 +155,6 @@ public final class SwapSceneViewModel {
         !viewState.isQuoteLoading
     }
 
-    var isQuoteLoading: Bool {
-        viewState.isQuoteLoading
-    }
-
     var isTransferDataLoading: Bool {
         viewState.isTransferLoading
     }
@@ -204,25 +181,11 @@ public final class SwapSceneViewModel {
     }
 
     func swapTokenModel(type: SelectAssetSwapType) -> SwapTokenViewModel {
-        let interaction = switch type {
-        case .pay: viewState.pay
-        case .receive: viewState.receive
+        let state = viewState
+        return switch type {
+        case .pay: SwapTokenViewModel(asset: fromAsset?.asset, side: state.pay)
+        case .receive: SwapTokenViewModel(asset: toAsset?.asset, side: state.receive)
         }
-        guard let assetData: AssetData = type == .pay ? fromAsset : toAsset else {
-            return SwapTokenViewModel(
-                type: .placeholder,
-                interaction: interaction,
-            )
-        }
-        return SwapTokenViewModel(
-            type: .selected(
-                AssetDataViewModel(
-                    assetData: assetData,
-                    currency: service.currency,
-                ),
-            ),
-            interaction: interaction,
-        )
     }
 }
 
@@ -353,19 +316,12 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
-    private var quotesState: StateViewType<[SwapperQuote]> {
-        switch viewState.quotesState {
+    private func providersState(_ state: GemSwapViewState) -> StateViewType<[SwapProviderItem]> {
+        switch state.quotesState {
         case .loading: .loading
         case let .failed(error): .error(error)
-        case .quotes: .data(session.quotes?.quotes ?? [])
+        case .quotes: .data(state.providers.map(SwapProviderItem.init(row:)))
         case .empty: .noData
-        }
-    }
-
-    private var selectedSlippageBps: UInt32? {
-        switch selectedSlippage {
-        case .auto: nil
-        case let .manual(bps): bps
         }
     }
 
@@ -375,7 +331,7 @@ extension SwapSceneViewModel {
             payAsset: fromAsset?.asset.toGem(),
             receiveAsset: toAsset?.asset.toGem(),
             availableValue: fromAsset?.balance.available ?? .zero,
-            slippageBps: selectedSlippageBps,
+            slippageBps: selectedSlippage.bps,
             format: NumberInput.format(),
         )
     }
@@ -390,7 +346,7 @@ extension SwapSceneViewModel {
     }
 
     private func setToValue() {
-        toValue = session.receiveAmount()?.text() ?? ""
+        toValue = viewState.receiveAmount?.text() ?? ""
     }
 
     private func setFromValue(percent: Int, assetData: AssetData) {
@@ -481,5 +437,15 @@ extension SwapSceneViewModel {
             }
             swap()
         }
+    }
+}
+
+private extension AssetData {
+    var swapAssetData: GemSwapAssetData {
+        GemSwapAssetData(
+            asset: asset.toGem(),
+            balance: GemAssetBalance(balance, assetId: asset.id, isActive: metadata.isActive),
+            price: price?.price,
+        )
     }
 }

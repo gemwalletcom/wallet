@@ -18,7 +18,7 @@ public struct SwapDetailsListView: View {
 
             Spacer(minLength: .extraSmall)
 
-            if let rate = model.rateText {
+            if let rate = model.rateText(isInverse: false) {
                 HStack(spacing: .tiny) {
                     Text(rate)
                         .textStyle(.calloutSecondary)

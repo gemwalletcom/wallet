@@ -79,10 +79,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         available * BigInt(percent) / BigInt(100)
     }
 
-    public func slippagePercent(bps: UInt32) -> Double {
-        Double(bps) / 100
-    }
-
     public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
         switch side {
         case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)

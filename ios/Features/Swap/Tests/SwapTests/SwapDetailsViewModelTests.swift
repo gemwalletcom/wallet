@@ -25,10 +25,8 @@ struct SwapDetailsViewModelTests {
     func switchRate() {
         let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
-        #expect(model.rateText == "1 ETH ≈ 250,000.00 USDT")
-
-        model.switchRateDirection()
-        #expect(model.rateText == "1 USDT ≈ 0.000004 ETH")
+        #expect(model.rateText(isInverse: false) == "1 ETH ≈ 250,000.00 USDT")
+        #expect(model.rateText(isInverse: true) == "1 USDT ≈ 0.000004 ETH")
     }
 
     @Test

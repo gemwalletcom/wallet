@@ -41,7 +41,7 @@ struct SwapTokenView: View {
     }
 
     private var fiatBalanceView: some View {
-        Text(model.fiatBalance(amount: text) ?? " ")
+        Text(model.fiatText ?? " ")
             .lineLimit(1, reservesSpace: true)
             .font(.app.callout)
             .foregroundStyle(Colors.secondaryText)

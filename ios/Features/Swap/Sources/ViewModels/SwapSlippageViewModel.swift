@@ -3,6 +3,7 @@
 import Foundation
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSlippageSession
+import struct Gemstone.GemSlippageSuggestion
 import struct Gemstone.GemSlippageViewState
 import func Gemstone.newSlippageSession
 import GemstonePrimitives
@@ -53,28 +54,20 @@ public final class SwapSlippageViewModel {
         set { update(session.onInput(text: newValue)) }
     }
 
-    var errorText: String? {
-        guard viewState.showsCheck else { return nil }
-        return viewState.check.errorText(minimum: viewState.minimum, maximum: viewState.maximum)
+    var footerText: String? {
+        viewState.footer?.text
     }
 
     var isConfirmEnabled: Bool {
         viewState.allowsConfirm
     }
 
-    var warningText: String? {
-        guard errorText == nil, viewState.showsWarning else { return nil }
-        return Localized.Swap.slippageWarning
+    var suggestions: [GemSlippageSuggestion] {
+        viewState.suggestions
     }
 
-    var suggestions: [SlippageSuggestion] {
-        viewState.suggestions.map {
-            SlippageSuggestion(bps: $0.bps, title: $0.percent.text(), inputValue: $0.input)
-        }
-    }
-
-    func onSelect(suggestion: SlippageSuggestion) {
-        input = suggestion.inputValue
+    func onSelect(suggestion: GemSlippageSuggestion) {
+        input = suggestion.input
     }
 
     func onSelectInfo() {

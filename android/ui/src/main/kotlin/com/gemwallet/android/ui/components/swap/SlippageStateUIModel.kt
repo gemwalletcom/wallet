@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.components.swap
 
 import android.content.Context
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.localization.footerText
+import com.gemwallet.android.ui.localization.text
 import uniffi.gemstone.GemSlippageViewState
 
 data class SlippageSuggestionUIModel(val label: String, val input: String)
@@ -13,6 +13,6 @@ fun GemSlippageViewState.uiModel(context: Context): SlippageStateUIModel = Slipp
     isAuto = isAuto,
     input = input,
     placeholder = placeholder,
-    footerText = if (showsCheck) check.footerText(context, minimum.text(), maximum.text()) else null,
+    footerText = footer?.text(context),
     suggestions = suggestions.map { SlippageSuggestionUIModel(it.percent.text(), it.input) },
 )

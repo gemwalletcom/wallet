@@ -50,8 +50,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
-import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
+import com.gemwallet.android.ui.models.swap.uiModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -104,8 +103,7 @@ import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.perpetualConfirmDetails
-import uniffi.gemstone.swapProviderRow
-import uniffi.gemstone.swapQuoteSummary
+import uniffi.gemstone.swapQuoteDetails
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -438,26 +436,8 @@ class ConfirmViewModel @Inject constructor(
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val summary = swapQuoteSummary(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem(), fromAsset.price?.price?.price, toAsset.price?.price?.price)
-
-        val provider = swapProviderRow(
-            provider = swapData.quote.providerData.provider,
-            title = swapData.quote.providerData.protocolName,
-            toValue = swapData.quote.toValue,
-            receiveAsset = toAsset.asset.toGem(),
-            receivePrice = toAsset.price?.price?.price,
-            currency = content.currency.toGem(),
-            isSelected = true,
-        )
-        val model = SwapDetailsUIModelFactory.create(
-            SwapDetailsUIModelInput(
-                summary = summary,
-                provider = provider,
-                slippageBps = swapData.quote.slippageBps,
-                selectedSlippage = swapData.quote.slippageBps,
-                isProviderSelectable = false,
-            ),
-        ) ?: return null
+        val model = swapQuoteDetails(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem(), fromAsset.price?.price?.price, toAsset.price?.price?.price, content.currency.toGem())
+            .uiModel() ?: return null
 
         return ConfirmDetailElement.SwapDetails(model)
     }

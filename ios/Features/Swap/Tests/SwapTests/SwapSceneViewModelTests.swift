@@ -103,15 +103,15 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
 
         model.session = .mockLoading()
-        #expect(model.isQuoteLoading)
+        #expect(model.viewState.isQuoteLoading)
         #expect(model.isTransferDataLoading == false)
-        #expect(model.viewState.pay.isAmountEditable)
+        #expect(model.viewState.pay.interaction.isAmountEditable)
         #expect(model.isReceiveFieldLoading)
 
         model.session = try #require(GemSwapSession.mockReady().startTransfer())
-        #expect(model.isQuoteLoading == false)
+        #expect(model.viewState.isQuoteLoading == false)
         #expect(model.isTransferDataLoading)
-        #expect(model.viewState.pay.isAmountEditable == false)
+        #expect(model.viewState.pay.interaction.isAmountEditable == false)
         #expect(model.isReceiveFieldLoading == false)
     }
 
@@ -125,7 +125,7 @@ struct SwapSceneViewModelTests {
         model.session = try #require(model.session.startTransfer())
         await model.load()
 
-        #expect(model.isQuoteLoading == false)
+        #expect(model.viewState.isQuoteLoading == false)
         #expect(model.toValue == previousToValue)
         #expect(model.selectedSwapQuote == previousQuote)
     }
@@ -266,7 +266,7 @@ struct SwapSceneViewModelTests {
         model.session = .mockFailed(.NoQuoteAvailable)
         model.buttonViewModel.action()
         let firstRetry = model.loadTrigger
-        #expect(model.isQuoteLoading)
+        #expect(model.viewState.isQuoteLoading)
 
         model.session = .mockFailed(.NoQuoteAvailable)
         model.buttonViewModel.action()
@@ -316,7 +316,7 @@ struct SwapSceneViewModelTests {
 
         model.session = model.session.onFetchStarted(request: .mock)
 
-        #expect(model.isQuoteLoading)
+        #expect(model.viewState.isQuoteLoading)
         #expect(model.selectedSwapQuote != nil)
         #expect(model.swapDetailsViewModel != nil)
     }

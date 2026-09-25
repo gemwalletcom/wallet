@@ -22,8 +22,7 @@ struct SwapSlippageViewModelTests {
 
         #expect(model.input.isEmpty)
         #expect(model.isConfirmEnabled == false)
-        #expect(model.errorText == nil)
-        #expect(model.warningText == nil)
+        #expect(model.footerText == nil)
     }
 
     @Test
@@ -67,8 +66,8 @@ struct SwapSlippageViewModelTests {
         model.isAuto = false
         model.input = input
 
-        #expect(model.errorText != nil)
-        #expect(model.warningText == nil)
+        #expect(model.footerText != nil)
+        #expect(model.viewState.footer != .warning)
         #expect(model.isConfirmEnabled == false)
     }
 
@@ -78,7 +77,7 @@ struct SwapSlippageViewModelTests {
         model.isAuto = false
         model.input = input
 
-        #expect(model.errorText == nil)
+        #expect(model.footerText == nil)
         #expect(model.isConfirmEnabled == false)
     }
 
@@ -120,8 +119,7 @@ struct SwapSlippageViewModelTests {
     func highSlippageWarnsButKeepsConfirmEnabled(bps: UInt32, expected: Bool) {
         let model = SwapSlippageViewModel.mock(slippage: .manual(bps: bps))
 
-        #expect((model.warningText != nil) == expected)
-        #expect(model.errorText == nil)
+        #expect((model.viewState.footer == .warning) == expected)
         #expect(model.isConfirmEnabled)
     }
 }

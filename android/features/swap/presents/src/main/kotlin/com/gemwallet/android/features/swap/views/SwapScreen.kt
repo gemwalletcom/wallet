@@ -23,9 +23,8 @@ import com.wallet.core.primitives.AssetId
 
 @Composable
 fun SwapScreen(
-    payId: AssetId?,
-    receiveId: AssetId?,
     select: SwapItemType?,
+    selectedAssetId: AssetId?,
     viewModel: SwapViewModel = hiltViewModel(),
     onSelectionConsumed: () -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
@@ -35,10 +34,6 @@ fun SwapScreen(
     val context = LocalContext.current
     val pay by viewModel.payAsset.collectAsStateWithLifecycle()
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
-    val fromEquivalent by viewModel.payEquivalentFormatted.collectAsStateWithLifecycle()
-    val toEquivalent by viewModel.toEquivalentFormatted.collectAsStateWithLifecycle()
-    val payBalance by viewModel.payBalance.collectAsStateWithLifecycle()
-    val receiveBalance by viewModel.receiveBalance.collectAsStateWithLifecycle()
     val swapState by viewModel.uiState.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
@@ -48,17 +43,9 @@ fun SwapScreen(
 
     ObserveStartedState(viewModel::setRefreshEnabled)
 
-    LaunchedEffect(payId, receiveId, select) {
+    LaunchedEffect(select, selectedAssetId) {
         select ?: return@LaunchedEffect
-        val assetId = when (select) {
-            SwapItemType.Pay -> payId
-            SwapItemType.Receive -> receiveId
-        } ?: run {
-            onSelectionConsumed()
-            return@LaunchedEffect
-        }
-
-        viewModel.onSelect(select, assetId)
+        selectedAssetId?.let { viewModel.onSelect(select, it) }
         onSelectionConsumed()
     }
 
@@ -67,10 +54,10 @@ fun SwapScreen(
         pay = pay,
         receive = receive,
         swapDetails = swapDetails,
-        payEquivalent = fromEquivalent,
-        receiveEquivalent = toEquivalent,
-        payBalance = payBalance,
-        receiveBalance = receiveBalance,
+        payEquivalent = swapState.payEquivalent,
+        receiveEquivalent = swapState.receiveEquivalent,
+        payBalance = swapState.payBalance,
+        receiveBalance = swapState.receiveBalance,
         payValue = viewModel.payValue,
         receiveValue = viewModel.receiveValue,
         showsSlippageIndicator = selectedSlippage != null,

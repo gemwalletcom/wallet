@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object WalletRootRoute : NavKey
 
-data class SwapSelection(val itemType: SwapItemType, val payAssetId: AssetId?, val receiveAssetId: AssetId?)
+data class SwapSelection(val itemType: SwapItemType, val assetId: AssetId)
 
 @Composable
 fun rememberWalletNavigationState(startDestination: NavKey, currentTab: MutableState<String>): WalletNavigator {

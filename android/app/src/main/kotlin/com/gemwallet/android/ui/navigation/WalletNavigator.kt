@@ -286,20 +286,13 @@ class WalletNavigator(
     }
     fun openSwapTo(assetId: AssetId) {
         clearSwapSelections()
-        swapSelections[SwapRoute] = SwapSelection(
-            itemType = SwapItemType.Receive,
-            payAssetId = null,
-            receiveAssetId = assetId,
-        )
+        swapSelections[SwapRoute] = SwapSelection(itemType = SwapItemType.Receive, assetId = assetId)
         push(SwapRoute)
     }
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
     }
-    fun finishSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) = popWithResult(
-        swapSelections,
-        SwapSelection(itemType = itemType, payAssetId = payAssetId, receiveAssetId = receiveAssetId),
-    )
+    fun finishSwapSelect(itemType: SwapItemType, assetId: AssetId) = popWithResult(swapSelections, SwapSelection(itemType = itemType, assetId = assetId))
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)

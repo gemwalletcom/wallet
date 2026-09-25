@@ -50,7 +50,7 @@ import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemSimulationPayloadTitle
-import uniffi.gemstone.GemSlippageCheck
+import uniffi.gemstone.GemSlippageFooter
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
@@ -689,11 +689,10 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.BANDWIDTH -> context.getString(R.string.stake_resource_bandwidth)
 }
 
-fun GemSlippageCheck.footerText(context: Context, minimumText: String, maximumText: String): String? = when (this) {
-    GemSlippageCheck.BELOW_MINIMUM -> context.getString(R.string.common_minimum_value, minimumText)
-    GemSlippageCheck.ABOVE_MAXIMUM -> context.getString(R.string.common_maximum_value, maximumText)
-    GemSlippageCheck.HIGH -> context.getString(R.string.swap_slippage_warning)
-    GemSlippageCheck.VALID -> null
+fun GemSlippageFooter.text(context: Context): String = when (this) {
+    is GemSlippageFooter.Minimum -> context.getString(R.string.common_minimum_value, value.text())
+    is GemSlippageFooter.Maximum -> context.getString(R.string.common_maximum_value, value.text())
+    GemSlippageFooter.Warning -> context.getString(R.string.swap_slippage_warning)
 }
 
 @StringRes

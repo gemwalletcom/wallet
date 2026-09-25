@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+1. **Shared records:** VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 2. **Balances and storage:** D76, D77, VM98 (an Android migration).
 3. **Server:** BD23, BD30, BD51, BD52.
 
@@ -43,7 +43,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM166 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
@@ -81,10 +81,6 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
 
 A screen whose state changes is a session, and a screen that reads gets one record ([a screen whose state changes is a session](ARCHITECTURE.md#a-screen-whose-state-changes-is-a-session), [one phase enum](ARCHITECTURE.md#a-screens-state-is-one-phase-enum-never-a-bag-of-flags), [sections, actions and destinations are records](ARCHITECTURE.md#sections-actions-and-destinations-are-records-too)). Each item below is a screen that still makes several Core calls per render or emission, or rebuilds a phase from flags Core hands back separately.
 
-- **VM166** **M** **Swap reads one Core view: token sides, fiat equivalents, receive amount, details and the slippage footer.** Both apps make about seven Core calls per emission and compose the rest. `GemSwapSession::view_state` ([`swap/session.rs`](../core/gemstone/src/services/swap/session.rs)) takes the pay and receive asset data and the currency and returns each side (`balance`, `fiat`, where the pay fiat does not wait for a receive asset and the receive fiat comes from the exact `to_value`), the receive amount, the provider rows, and the quote summary with the selected provider row and `has_selected_slippage`, all with the stale-pair check applied. `GemSlippageViewState` returns one `footer: Option<GemSlippageFooter>` (`Error { minimum | maximum }` or `Warning`). `SwapSheetType.info` carries a `GemInfoTopic` (VM88); its other cases are navigation.
-  - **iOS:** `SwapTokenViewModel` calls `availableBalanceText` twice per side per render and parses the typed text into `fiatEquivalent` (`:31-44,67-75`); the receive fiat comes from the rounded receive text (`SwapSceneViewModel.swift:401-403`); `swapDetailsViewModel` is a computed `@Observable` rebuilt per render (`:124-147`, so the rate toggle can reset while the sheet is open), fed by `slippagePercent` (only nil-checked) and `swapProviderRow(isSelected: false)`; `selectedSlippageBps` repeats `GemSlippageSelection.bps`; the stale-pair check is repeated at `:458`; `SwapSlippageViewModel` composes `errorText`/`warningText` from `check`, `minimum` and `maximum` and re-types suggestions as `SlippageSuggestion`. Delete the balance and fiat members, `SlippageSuggestion`, `AssetPriceValue`, `isQuoteLoading` (test-only) and the unread `SwapDetailsViewModel` members (`valueFormatter`, `fromAssetPrice`, `providerData`, `priceViewModel`, `minReceiveValue`, `etaSeconds`).
-  - **Android:** `SwapViewModel` holds `payBalance`, `receiveBalance`, `payEquivalentFormatted` and `toEquivalentFormatted` flows and re-checks the stale pair (`:137-193`); `SwapDetailsUIModelFactory`/`SwapDetailsUIModelInput` only call a constructor, with unread `slippageBps`, `selectedSlippage` and `etaInSeconds`; `SlippageStateUIModel` composes the footer; `SwapSlippage.numberFormat()` copies `numberFormat()`; `SwapSelection` echoes the unselected side back (`SwapSelectViewModel.kt:50-56`, `RootRoute.kt:19`). Delete the four flows, the factory, the copy and the echo.
-  - **Expected:** the receive fiat moves to the exact value on iOS (a few cents); Core's `GemSwapQuoteService::slippage_percent` and `GemSwapQuoteSummary::slippage_percent` go.
 
 ## 3. Decisions the apps still make
 

@@ -444,11 +444,7 @@ class WalletNavigatorTest {
 
         assertEquals(listOf(WalletRootRoute, SwapRoute), navigator.backStack.toList())
         assertEquals(
-            SwapSelection(
-                itemType = SwapItemType.Receive,
-                payAssetId = null,
-                receiveAssetId = receiveAssetId,
-            ),
+            SwapSelection(itemType = SwapItemType.Receive, assetId = receiveAssetId),
             navigator.swapSelection(SwapRoute),
         )
     }
@@ -457,26 +453,17 @@ class WalletNavigatorTest {
     fun finishSwapSelect_popsSelectorAndStoresSelectionForTargetRoute() {
         val route = SwapPairRoute(mockAssetId(Chain.Bitcoin), to = null)
         val selectedPayAssetId = mockAssetId(Chain.Solana)
-        val selectedReceiveAssetId = mockAssetId(Chain.Ethereum)
         val navigator = navigatorWith(
             WalletRootRoute,
             route,
             SwapSelectRoute(SwapItemType.Pay, payAssetId = null, receiveAssetId = null),
         )
 
-        navigator.finishSwapSelect(
-            itemType = SwapItemType.Pay,
-            payAssetId = selectedPayAssetId,
-            receiveAssetId = selectedReceiveAssetId,
-        )
+        navigator.finishSwapSelect(itemType = SwapItemType.Pay, assetId = selectedPayAssetId)
 
         assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
         assertEquals(
-            SwapSelection(
-                SwapItemType.Pay,
-                payAssetId = selectedPayAssetId,
-                receiveAssetId = selectedReceiveAssetId,
-            ),
+            SwapSelection(SwapItemType.Pay, assetId = selectedPayAssetId),
             navigator.swapSelection(route),
         )
         assertNull(navigator.swapSelection(SwapRoute))

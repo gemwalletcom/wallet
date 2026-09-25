@@ -11,13 +11,14 @@ import SwiftUI
 
 public struct SwapDetailsView: View {
     @Environment(\.dismiss) private var dismiss
-    @Bindable private var model: SwapDetailsViewModel
+    private let model: SwapDetailsViewModel
 
     @State private var isPresentingProviderSelection = false
+    @State private var isRateInverse = false
     @State private var infoSheet: InfoSheetType?
 
-    public init(model: Bindable<SwapDetailsViewModel>) {
-        _model = model
+    public init(model: SwapDetailsViewModel) {
+        self.model = model
     }
 
     public var body: some View {
@@ -72,11 +73,11 @@ public struct SwapDetailsView: View {
             }
 
             Section {
-                if let rateText = model.rateText {
+                if let rateText = model.rateText(isInverse: isRateInverse) {
                     ListItemRotateView(
                         title: model.rateTitle,
                         subtitle: rateText,
-                        action: model.switchRateDirection,
+                        action: { isRateInverse.toggle() },
                     )
                 }
                 ForEach(Array(model.detailRows.enumerated()), id: \.offset) { _, row in

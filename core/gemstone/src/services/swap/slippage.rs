@@ -21,19 +21,22 @@ pub struct GemSlippageSuggestion {
     pub input: String,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSlippageFooter {
+    Minimum { value: GemFormattedNumber },
+    Maximum { value: GemFormattedNumber },
+    Warning,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSlippageViewState {
     pub is_auto: bool,
     pub input: String,
     pub placeholder: String,
-    pub check: GemSlippageCheck,
-    pub shows_check: bool,
+    pub footer: Option<GemSlippageFooter>,
     pub allows_confirm: bool,
-    pub shows_warning: bool,
     pub selection: GemSlippageSelection,
     pub suggestions: Vec<GemSlippageSuggestion>,
-    pub minimum: GemFormattedNumber,
-    pub maximum: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -82,10 +85,13 @@ impl GemSlippageSession {
             is_auto: self.is_auto,
             input: self.input.clone(),
             placeholder: self.placeholder.clone(),
-            check,
-            shows_check: !self.is_auto && bps.is_some(),
+            footer: bps.filter(|_| !self.is_auto).and_then(|_| match check {
+                GemSlippageCheck::Valid => None,
+                GemSlippageCheck::High => Some(GemSlippageFooter::Warning),
+                GemSlippageCheck::BelowMinimum => Some(GemSlippageFooter::Minimum { value: percent(config.min_slippage_bps) }),
+                GemSlippageCheck::AboveMaximum => Some(GemSlippageFooter::Maximum { value: percent(config.max_slippage_bps) }),
+            }),
             allows_confirm: self.is_auto || check.allows_confirm(),
-            shows_warning: !self.is_auto && check == GemSlippageCheck::High,
             selection: match self.is_auto {
                 true => GemSlippageSelection::Auto,
                 false => GemSlippageSelection::Manual { bps: bps.unwrap_or(0) },
@@ -99,8 +105,6 @@ impl GemSlippageSession {
                     input: rules::slippage_percent_text(*bps, &self.format.decimal_separator),
                 })
                 .collect(),
-            minimum: percent(config.min_slippage_bps),
-            maximum: percent(config.max_slippage_bps),
         }
     }
 }
@@ -129,8 +133,6 @@ mod tests {
             "a percent the apps append a literal sign to reads wrong in fr and tr"
         );
         assert_eq!(state.suggestions.iter().map(|suggestion| suggestion.input.as_str()).collect::<Vec<_>>(), vec!["0.3", "0.5", "3"]);
-        assert_eq!(state.minimum.value, rules::slippage_percent(get_swap_config().min_slippage_bps));
-        assert_eq!(state.maximum.value, rules::slippage_percent(get_swap_config().max_slippage_bps));
     }
 
     #[test]
@@ -159,14 +161,14 @@ mod tests {
     fn test_an_incomplete_input_blocks_confirm_without_showing_the_check() {
         for text in ["", "0", "0.", "abc"] {
             let state = session(GemSlippageSelection::Manual { bps: 100 }).on_input(text.to_string()).view_state();
-            assert!(!state.shows_check, "{text}");
+            assert_eq!(state.footer, None, "{text}");
             assert!(!state.allows_confirm, "{text}");
         }
-        for text in ["25", "0.05"] {
-            let state = session(GemSlippageSelection::Manual { bps: 100 }).on_input(text.to_string()).view_state();
-            assert!(state.shows_check, "{text}");
-            assert!(!state.allows_confirm, "{text}");
-        }
+        let config = get_swap_config();
+        let footer = |text: &str| session(GemSlippageSelection::Manual { bps: 100 }).on_input(text.to_string()).view_state();
+        assert_eq!(footer("25").footer, Some(GemSlippageFooter::Maximum { value: percent(config.max_slippage_bps) }));
+        assert_eq!(footer("0.05").footer, Some(GemSlippageFooter::Minimum { value: percent(config.min_slippage_bps) }));
+        assert!(!footer("25").allows_confirm && !footer("0.05").allows_confirm);
     }
 
     #[test]
@@ -178,8 +180,7 @@ mod tests {
         assert!(!above_maximum.view_state().allows_confirm);
         let auto = above_maximum.on_auto(true).view_state();
         assert!(auto.allows_confirm, "auto does not read the input");
-        assert!(!auto.shows_warning);
-        assert!(!auto.shows_check);
+        assert_eq!(auto.footer, None);
         assert_eq!(auto.selection, GemSlippageSelection::Auto);
     }
 
@@ -190,8 +191,7 @@ mod tests {
         })
         .view_state();
 
-        assert_eq!(state.check, GemSlippageCheck::High);
-        assert!(state.shows_warning);
+        assert_eq!(state.footer, Some(GemSlippageFooter::Warning));
         assert!(state.allows_confirm);
     }
 }

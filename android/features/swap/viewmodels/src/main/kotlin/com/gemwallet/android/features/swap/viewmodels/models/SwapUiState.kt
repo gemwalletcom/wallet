@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.gemwallet.android.features.swap.viewmodels.localization.stringRes
 import com.gemwallet.android.features.swap.viewmodels.localization.text
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.GemSwapSideInteraction
 import uniffi.gemstone.GemSwapViewState
@@ -24,6 +26,10 @@ data class SwapUiState(
     val payItemInteraction: GemSwapSideInteraction = GemSwapSideInteraction(isAmountEditable = true, isAssetSelectable = true, isBalanceActionEnabled = true),
     val receiveItemInteraction: GemSwapSideInteraction = GemSwapSideInteraction(isAmountEditable = false, isAssetSelectable = true, isBalanceActionEnabled = false),
     val isReceiveLoading: Boolean = false,
+    val payBalance: GemLocalizedText? = null,
+    val receiveBalance: GemLocalizedText? = null,
+    val payEquivalent: String = "",
+    val receiveEquivalent: String = "",
 ) {
     val isQuoteInteractionEnabled: Boolean
         get() = !isTransferLoading
@@ -37,7 +43,11 @@ internal fun createSwapUiState(state: GemSwapViewState, context: Context) = Swap
     isQuoteLoading = state.isQuoteLoading,
     isTransferLoading = state.isTransferLoading,
     isInputEmpty = state.isInputEmpty,
-    payItemInteraction = state.pay,
-    receiveItemInteraction = state.receive,
+    payItemInteraction = state.pay.interaction,
+    receiveItemInteraction = state.receive.interaction,
     isReceiveLoading = state.isReceiveLoading,
+    payBalance = state.pay.balance,
+    receiveBalance = state.receive.balance,
+    payEquivalent = state.pay.fiat?.text().orEmpty(),
+    receiveEquivalent = state.receive.fiat?.text().orEmpty(),
 )

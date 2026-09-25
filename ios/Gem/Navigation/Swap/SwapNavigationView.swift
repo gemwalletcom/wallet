@@ -32,7 +32,7 @@ struct SwapNavigationView: View {
                 case .swapDetails:
                     if let model = model.swapDetailsViewModel {
                         NavigationStack {
-                            SwapDetailsView(model: Bindable(model))
+                            SwapDetailsView(model: model)
                         }
                         .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }

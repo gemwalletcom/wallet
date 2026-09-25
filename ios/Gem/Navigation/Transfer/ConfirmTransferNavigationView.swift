@@ -69,7 +69,7 @@ struct ConfirmTransferNavigationView: View {
                 case .swapDetails:
                     if case let .swapDetails(model) = model.detailsViewModel.itemModel {
                         NavigationStack {
-                            SwapDetailsView(model: Bindable(model))
+                            SwapDetailsView(model: model)
                         }
                         .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }

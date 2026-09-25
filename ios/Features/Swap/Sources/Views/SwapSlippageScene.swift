@@ -46,11 +46,8 @@ public struct SwapSlippageScene: View {
                             )
                         }
                     } footer: {
-                        if let error = model.errorText {
-                            Text(.init(error))
-                                .foregroundStyle(Colors.red)
-                        } else if let warning = model.warningText {
-                            Text(warning)
+                        if let footer = model.footerText {
+                            Text(.init(footer))
                                 .foregroundStyle(Colors.red)
                         }
                     }

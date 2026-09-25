@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemFormattedNumber
-import enum Gemstone.GemSlippageCheck
+import enum Gemstone.GemSlippageFooter
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapErrorDisplay
 import GemstonePrimitives
@@ -33,12 +32,12 @@ extension GemSwapErrorDisplay: @retroactive LocalizedError {
     }
 }
 
-extension GemSlippageCheck {
-    func errorText(minimum: GemFormattedNumber, maximum: GemFormattedNumber) -> String? {
+extension GemSlippageFooter {
+    var text: String {
         switch self {
-        case .belowMinimum: Localized.Common.minimumValue(minimum.text())
-        case .aboveMaximum: Localized.Common.maximumValue(maximum.text())
-        case .valid, .high: nil
+        case let .minimum(value): Localized.Common.minimumValue(value.text())
+        case let .maximum(value): Localized.Common.maximumValue(value.text())
+        case .warning: Localized.Swap.slippageWarning
         }
     }
 }

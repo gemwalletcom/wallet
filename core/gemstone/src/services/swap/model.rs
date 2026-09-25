@@ -2,10 +2,11 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
-use primitives::{Asset, AssetId};
-use swapper::{Quote, SwapperError};
+use primitives::{Asset, AssetId, Currency};
+use swapper::SwapperError;
 
 use super::rules;
+use super::session::{GemSwapProviderRow, provider_row};
 use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
@@ -53,12 +54,7 @@ pub struct GemSwapPriceImpactRow {
     pub warning: Option<GemLocalizedText>,
 }
 
-#[uniffi::export]
 impl GemSwapQuoteSummary {
-    pub fn slippage_percent(&self) -> f64 {
-        rules::slippage_percent(self.quote.slippage_bps)
-    }
-
     /// Every detail row but the provider and the rate, which each app renders richly.
     pub fn detail_rows(&self, has_selected_slippage: bool) -> Vec<GemListRow> {
         let receive_asset = &self.to_asset;
@@ -91,7 +87,7 @@ impl GemSwapQuoteSummary {
                 title: GemListRowTitle::Slippage,
                 text: match has_selected_slippage {
                     true => GemLocalizedText::Number {
-                        number: GemFormattedNumber::percentage(self.slippage_percent(), GemPercentageStyle::Unsigned),
+                        number: GemFormattedNumber::percentage(rules::slippage_percent(self.quote.slippage_bps), GemPercentageStyle::Unsigned),
                     },
                     false => GemLocalizedText::SlippageAuto,
                 },
@@ -106,7 +102,28 @@ impl GemSwapQuoteSummary {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapDetails {
+    pub summary: GemSwapQuoteSummary,
+    pub provider: GemSwapProviderRow,
+    pub rows: Vec<GemListRow>,
+}
+
 #[uniffi::export]
+pub fn swap_quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: Currency) -> GemSwapDetails {
+    quote_details(quote, from_asset, to_asset, from_price, to_price, &currency, true)
+}
+
+pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: &Currency, has_selected_slippage: bool) -> GemSwapDetails {
+    let provider = provider_row(quote.provider_data.provider, quote.provider_data.protocol_name.clone(), &quote.to_value, &to_asset, to_price, currency, false);
+    let summary = swap_quote_summary(quote, from_asset, to_asset, from_price, to_price);
+    GemSwapDetails {
+        rows: summary.detail_rows(has_selected_slippage),
+        provider,
+        summary,
+    }
+}
+
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>) -> GemSwapQuoteSummary {
     let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals as u32, from_price);
     let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals as u32, to_price);
@@ -119,11 +136,6 @@ pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
         to_asset,
         quote,
     }
-}
-
-#[uniffi::export]
-pub fn swapper_quote_summary(quote: Quote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>) -> GemSwapQuoteSummary {
-    swap_quote_summary(rules::swap_quote(&quote), from_asset, to_asset, from_price, to_price)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -252,7 +264,7 @@ mod tests {
 
         assert_eq!(slippage(false), GemLocalizedText::SlippageAuto);
         assert!(
-            matches!(slippage(true), GemLocalizedText::Number { number } if number.value == summary.slippage_percent()),
+            matches!(slippage(true), GemLocalizedText::Number { number } if number.value == super::rules::slippage_percent(summary.quote.slippage_bps)),
             "a chosen slippage reads as the percent the quote was priced with"
         );
     }

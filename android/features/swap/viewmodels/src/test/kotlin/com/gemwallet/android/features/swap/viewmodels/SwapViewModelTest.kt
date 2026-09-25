@@ -9,16 +9,16 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemSwapSession
 import com.gemwallet.android.testkit.mockGemSwapTransfer
 import com.gemwallet.android.testkit.mockSession
@@ -30,16 +30,13 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
-import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
+import com.wallet.core.primitives.Currency
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.slot
-import io.mockk.unmockkObject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,11 +62,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
-import uniffi.gemstone.GemSwapPriceImpactRow
-import uniffi.gemstone.GemSwapProviderRow
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.GemTransferData
@@ -103,6 +97,7 @@ class SwapViewModelTest {
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
         every { newSession() } answers { mockGemSwapSession() }
+        every { getCurrency() } returns Currency.USD.toGem()
         every { selectPairAsset(any(), any(), any()) } answers { pairSelection }
     }
 
@@ -113,14 +108,12 @@ class SwapViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        mockkObject(SwapDetailsUIModelFactory)
         clearMocks(getSession, getAssetInfo, requestSwapQuotes)
         clearMocks(swapQuoteService, answers = false)
         every { getSession() } returns MutableStateFlow(null)
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns emptyFlow()
-        every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
     }
 
     @After
@@ -128,7 +121,6 @@ class SwapViewModelTest {
         createdViewModels.forEach { it.viewModelScope.coroutineContext.job.cancelAndJoin() }
         createdViewModels.clear()
         Dispatchers.resetMain()
-        unmockkObject(SwapDetailsUIModelFactory)
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
@@ -330,7 +322,7 @@ class SwapViewModelTest {
         val quotesState = seedReadyQuote(viewModel, quotesFlow)
         assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         assertNull(viewModel.uiState.value.errorText)
-        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
+        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
         var confirmCalls = 0
         viewModel.swap { confirmCalls++ }
@@ -340,7 +332,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isTransferLoading)
-        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
+        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
         assertEquals(0, confirmCalls)
 
         confirmInputGate.complete(Unit)
@@ -369,7 +361,7 @@ class SwapViewModelTest {
         awaitCondition { viewModel.uiState.value.errorText != null }
 
         assertEquals(InfoSheetEntity.NoQuoteInfo, viewModel.uiState.value.errorInfo)
-        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
+        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
     }
 
     @Test
@@ -394,7 +386,7 @@ class SwapViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(R.string.wallet_swap, state.actionTitle)
         assertEquals(ButtonState.Enabled, state.buttonState)
-        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
+        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
         coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
 
@@ -608,20 +600,8 @@ class SwapViewModelTest {
 
     @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
-        every { SwapDetailsUIModelFactory.create(any()) } returns SwapDetailsUIModel(
-            rows = emptyList(),
-            provider = GemSwapProviderRow(
-                provider = SwapProvider.UNISWAP_V3,
-                title = "Uniswap v3",
-                amount = mockFormattedNumber(1.0),
-                fiat = null,
-                isSelected = true,
-            ),
-            rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
-            priceImpact = GemSwapPriceImpactRow(value = mockFormattedNumber(-15.0), showsInSummary = true, warning = GemLocalizedText.Text(text = "high impact")),
-            slippageBps = 50u,
-            selectedSlippage = 50u,
-        )
+        every { getAssetInfo(solAsset.id) } returns flowOf(solInfo.copy(price = mockAssetPriceInfo(price = 100.0)))
+        every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo.copy(price = mockAssetPriceInfo(price = 1.0)))
 
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow

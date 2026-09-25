@@ -11,17 +11,10 @@ import com.gemwallet.android.features.swap.viewmodels.SwapSelectViewModel
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun SwapSelectScreen(onCancel: () -> Unit, onSelect: (select: SwapItemType, payId: AssetId?, receiveId: AssetId?) -> Unit, viewModel: SwapSelectViewModel = hiltViewModel(), recentsViewModel: RecentsSheetViewModel = hiltViewModel()) {
+fun SwapSelectScreen(onCancel: () -> Unit, onSelect: (select: SwapItemType, assetId: AssetId) -> Unit, viewModel: SwapSelectViewModel = hiltViewModel(), recentsViewModel: RecentsSheetViewModel = hiltViewModel()) {
     val select by viewModel.select.collectAsStateWithLifecycle()
-    val payId by viewModel.payAssetId.collectAsStateWithLifecycle()
-    val receiveId by viewModel.receiveAssetId.collectAsStateWithLifecycle()
 
-    val onSelectAsset: (AssetId) -> Unit = { assetId ->
-        when (select) {
-            SwapItemType.Pay -> onSelect(SwapItemType.Pay, assetId, receiveId)
-            SwapItemType.Receive -> onSelect(SwapItemType.Receive, payId, assetId)
-        }
-    }
+    val onSelectAsset: (AssetId) -> Unit = { assetId -> onSelect(select, assetId) }
 
     AssetSelectScreen(
         onCancel = onCancel,

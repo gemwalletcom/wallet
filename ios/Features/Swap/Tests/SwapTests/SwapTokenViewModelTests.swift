@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapSideInteraction
+import struct Gemstone.GemSwapSideState
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -11,27 +14,31 @@ import Testing
 struct SwapTokenViewModelTests {
     @Test
     func aPlaceholderRowAsksForAnAssetAndShowsNoBalance() {
-        let model = SwapTokenViewModel(type: .placeholder, interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: true))
+        let model = SwapTokenViewModel(asset: nil, side: side(isBalanceActionEnabled: false, fiat: nil))
 
         #expect(model.availableBalanceText == nil)
         #expect(model.assetImage == nil)
         #expect(model.amountPlaceholder.isEmpty)
         #expect(model.isBalanceDisabled)
-        #expect(model.fiatBalance(amount: "1") == nil)
+        #expect(model.fiatText == nil)
     }
 
     @Test
-    func aSelectedRowPricesWhatWasTyped() {
+    func aSelectedRowShowsTheValueCoreFormatted() {
         let asset = Asset.mock(decimals: 8)
-        let assetData = AssetDataViewModel(
-            assetData: .mock(asset: asset, price: .mock(price: 50000)),
-            currency: .usd,
-        )
-        let model = SwapTokenViewModel(type: .selected(assetData), interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: true))
+        let model = SwapTokenViewModel(asset: asset, side: side(isBalanceActionEnabled: true, fiat: .mock(value: 100_000, notation: .plain)))
 
         #expect(model.actionTitle == asset.symbol)
         #expect(model.amountPlaceholder == "0")
-        #expect(model.fiatBalance(amount: "0") == nil)
-        #expect(model.fiatBalance(amount: "2") == "$100,000.00")
+        #expect(model.isBalanceDisabled == false)
+        #expect(model.fiatText == "$100,000.00")
+    }
+
+    private func side(isBalanceActionEnabled: Bool, fiat: GemFormattedNumber?) -> GemSwapSideState {
+        GemSwapSideState(
+            interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: isBalanceActionEnabled),
+            balance: nil,
+            fiat: fiat,
+        )
     }
 }

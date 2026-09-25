@@ -273,8 +273,6 @@ class RequestSwapQuotesImplTest {
 
         override fun selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String): GemSwapPairSelection = throw UnsupportedOperationException()
 
-        override fun slippagePercent(bps: UInt): Double = throw UnsupportedOperationException()
-
         override suspend fun refreshPair(assetIds: List<String>): List<GemSwapPairFailure> = emptyList()
     }
 }
