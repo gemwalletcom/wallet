@@ -1781,8 +1781,8 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemNftService` | — | `CollectionsViewModel` | `NftListViewModels` (+ `NFTQuery`) |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
-| `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
-| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity) |
+| `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
+| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |
 | `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertViewModel` | `PriceAlertViewModel`, `PriceAlertTargetViewModel` |
 | `GemReceiveService` | — | `ReceiveViewModel` | `ReceiveViewModel` |
@@ -1829,7 +1829,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | `GemSubscriptionService` | composed by `device` |
 | `GemAppStartService` | iOS `OnstartService`, Android `MainViewModel` — launch orchestration, not a screen |
 | `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `RefreshInterval` |
-| `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps |
+| `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps; Android view models subscribe through its `PerpetualObserver` port |
 | `GemPushNotificationService` | iOS `NavigationRouter`, Android notification routing |
 | `GemTransactionStateService` | composed by `confirm`; tracked off-thread by the `TransactionStatusService` port on both apps |
 | `GemSecurityService` | iOS `BiometryAuthenticationService` (used by `LockSceneViewModel`), Android `LockTimer` |

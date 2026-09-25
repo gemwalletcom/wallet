@@ -6,12 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.perpetual.cases.GetPerpetual
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
@@ -74,8 +74,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PerpetualDetailsViewModel @Inject constructor(
-    private val getPerpetual: GetPerpetual,
-    private val getPerpetualPosition: GetPerpetualPosition,
+    private val perpetualQuery: PerpetualQuery,
+    private val perpetualPositionsQuery: PerpetualPositionsQuery,
     private val getTransactions: GetTransactions,
     private val perpetualObserver: PerpetualObserver,
     private val service: GemPerpetualDetailsServiceInterface,
@@ -109,7 +109,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .onStart { emit(Unit) }
         .flowOn(ioDispatcher)
 
-    val perpetual = getPerpetual.getPerpetualByAssetId(assetId)
+    val perpetual = perpetualQuery(assetId)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -119,7 +119,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         ::Pair,
     )
         .flatMapLatest { (perpetualId, walletId) ->
-            perpetualId?.let { getPerpetualPosition.getPositionByPerpetual(walletId, it) } ?: flowOf(null)
+            perpetualId?.let { perpetualPositionsQuery(walletId, it).map { data -> data?.position } } ?: flowOf(null)
         }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

@@ -4,14 +4,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
-import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.PerpetualSections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
+import com.gemwallet.android.domains.perpetual.aggregates.marketSections
+import com.gemwallet.android.domains.perpetual.aggregates.positionAggregates
+import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -25,12 +28,15 @@ import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,13 +53,15 @@ import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.perpetualBalanceHeader
+import uniffi.gemstone.perpetualMarketQuery
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PerpetualMarketViewModel @Inject constructor(
-    private val getPerpetuals: GetPerpetuals,
-    private val getPositions: GetPerpetualPositions,
-    private val getBalance: GetPerpetualBalance,
+    private val perpetualsQuery: PerpetualsQuery,
+    private val perpetualPositionsQuery: PerpetualPositionsQuery,
+    private val perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
     private val getSession: GetSession,
     private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
@@ -82,13 +90,22 @@ class PerpetualMarketViewModel @Inject constructor(
         session.update { it.onQueryChanged(value) }
     }
     val isRefreshing = MutableStateFlow(false)
-    private val perpetualSections = getPerpetuals.getPerpetualSections(query)
+    private val perpetualSections = query
+        .flatMapLatest { search -> perpetualMarketQuery(search.orEmpty()).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
+        .map { it.marketSections() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
     val unpinnedPerpetuals = perpetualSections.map { it.markets }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val pinnedPerpetuals = perpetualSections.map { it.pinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val positions = combine(getPositions.getPerpetualPositions(), query) { items, q ->
+    private val positionAggregates = getSession()
+        .filterNotNull()
+        .flatMapLatest { perpetualPositionsQuery(it.wallet.id) }
+        .map { it.positionAggregates() }
+        .flowOn(ioDispatcher)
+
+    val positions = combine(positionAggregates, query) { items, q ->
         val needle = q.orEmpty()
         if (needle.isEmpty()) {
             items
@@ -106,7 +123,12 @@ class PerpetualMarketViewModel @Inject constructor(
         .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.row) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balanceHeader: StateFlow<GemPerpetualBalanceHeader?> = combine(
-        getBalance.getBalance(),
+        getSession()
+            .filterNotNull()
+            .distinctUntilChangedBy { it.wallet.id }
+            .flatMapLatest { perpetualWalletBalanceQuery(it.wallet.id, HypercoreUSDC.id) }
+            .map { it?.balance }
+            .distinctUntilChanged(),
         getSession().filterNotNull().map { it.wallet.type }.distinctUntilChanged(),
     ) { balance, walletType -> perpetualBalanceHeader(balance?.toGem(), walletType.toGem()) }
         .flowOn(ioDispatcher)

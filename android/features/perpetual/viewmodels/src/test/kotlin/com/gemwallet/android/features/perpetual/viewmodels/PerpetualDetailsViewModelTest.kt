@@ -2,11 +2,11 @@ package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.GetPerpetual
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetual
@@ -15,8 +15,10 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -74,7 +76,7 @@ class PerpetualDetailsViewModelTest {
         },
         data: PerpetualData? = null,
         perpetuals: Flow<PerpetualData?> = flowOf(data),
-        positions: GetPerpetualPosition = mockk(relaxed = true),
+        positions: PerpetualPositionsQuery = mockk(relaxed = true),
         observer: PerpetualObserver = mockk(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
         },
@@ -82,8 +84,8 @@ class PerpetualDetailsViewModelTest {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }
-        val perpetual: GetPerpetual = mockk {
-            every { getPerpetualByAssetId(any()) } returns perpetuals
+        val perpetual: PerpetualQuery = mockk {
+            every { this@mockk(any<AssetId>()) } returns perpetuals
         }
         val transactions: GetTransactions = mockk {
             every { getTransactions(any()) } returns emptyFlow()
@@ -111,7 +113,7 @@ class PerpetualDetailsViewModelTest {
             every { marketSubscription(any()) } answers { GemPerpetualSubscription.MarketData(firstArg<uniffi.gemstone.Perpetual>().name) }
         }
         val markets = MutableStateFlow<PerpetualData?>(mockPerpetualData(perpetual = mockPerpetual(price = 1.0), asset = asset))
-        val positions: GetPerpetualPosition = mockk(relaxed = true)
+        val positions: PerpetualPositionsQuery = mockk(relaxed = true)
         val observer: PerpetualObserver = mockk(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
         }
@@ -124,7 +126,7 @@ class PerpetualDetailsViewModelTest {
 
         verify(exactly = 2) { observer.subscribe(any()) }
         verify(exactly = 0) { observer.unsubscribe(any()) }
-        verify(exactly = 1) { positions.getPositionByPerpetual(any(), any()) }
+        verify(exactly = 1) { positions(any(), any<PerpetualId>()) }
     }
 
     @Test

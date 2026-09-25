@@ -8,7 +8,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
@@ -24,6 +23,7 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -74,14 +74,14 @@ object AssetModule {
     fun provideGetWalletSummary(
         getSession: GetSession,
         assetStore: GemstoneAssetStore,
-        getPerpetualBalance: GetPerpetualBalance,
+        perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
         bannerStore: GemstoneBannerStore,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
     ): GetWalletSummary = GetWalletSummaryImpl(
         getSession = getSession,
         assetStore = assetStore,
-        getPerpetualBalance = getPerpetualBalance,
+        perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,
         bannerStore = bannerStore,
         userConfig = userConfig,
         walletHomeService = walletHomeService,

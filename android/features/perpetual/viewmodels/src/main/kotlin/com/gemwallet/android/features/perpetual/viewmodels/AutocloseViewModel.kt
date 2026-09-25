@@ -5,8 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
@@ -28,8 +29,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -42,7 +45,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutocloseViewModel @Inject constructor(
-    private val getPositionByAsset: GetPerpetualPositionByAsset,
+    private val perpetualQuery: PerpetualQuery,
+    private val perpetualPositionsQuery: PerpetualPositionsQuery,
     private val getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -53,7 +57,11 @@ class AutocloseViewModel @Inject constructor(
 
     val position: StateFlow<PerpetualPositionData?> = getSession()
         .filterNotNull()
-        .flatMapLatest { session -> getPositionByAsset(session.wallet.id, assetId) }
+        .flatMapLatest { session ->
+            perpetualQuery(assetId)
+                .distinctUntilChanged()
+                .flatMapLatest { data -> data?.let { perpetualPositionsQuery(session.wallet.id, it.perpetual.id) } ?: flowOf(null) }
+        }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

@@ -6,11 +6,12 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
+import com.gemwallet.android.domains.perpetual.aggregates.marketAggregates
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.domains.search.walletSearchTagOf
@@ -41,6 +42,7 @@ import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
+import uniffi.gemstone.perpetualMarketQuery
 import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
@@ -51,7 +53,7 @@ class AssetsResultsViewModel @Inject constructor(
     searchService: AssetsSearchService,
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
-    getPerpetuals: GetPerpetuals,
+    perpetualsQuery: PerpetualsQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -77,7 +79,7 @@ class AssetsResultsViewModel @Inject constructor(
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = when (scope) {
         is WalletSearchTag.List ->
             combine(
-                getPerpetuals.getPerpetuals(searchKey),
+                perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }.map { it.marketAggregates() },
                 getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false },
             ) { items, show ->
                 if (show) items.take(resultsLimit()) else emptyList()

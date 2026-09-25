@@ -2,18 +2,23 @@ package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetual
+import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPositionData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -51,15 +56,19 @@ class AutocloseViewModelTest {
 
     private val asset = mockAsset()
 
-    private fun viewModel(position: PerpetualPositionData? = mockPerpetualPositionData()): AutocloseViewModel {
+    private val positions: PerpetualPositionsQuery = mockk()
+
+    private fun viewModel(position: PerpetualPositionData? = mockPerpetualPositionData(), market: PerpetualData? = mockPerpetualData()): AutocloseViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }
-        val byAsset: GetPerpetualPositionByAsset = mockk {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(position)
+        val perpetual: PerpetualQuery = mockk {
+            every { this@mockk(asset.id) } returns flowOf(market)
         }
+        every { positions(mockSession().wallet.id, any<PerpetualId>()) } returns flowOf(position)
         return AutocloseViewModel(
-            byAsset,
+            perpetual,
+            positions,
             session,
             SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
             dispatcher,
@@ -134,5 +143,24 @@ class AutocloseViewModelTest {
 
         assertEquals(1, errors.size)
         assertEquals(0, model.confirmRequests.replayCache.size)
+    }
+
+    @Test
+    fun `the position is read for the market of the asset in the session wallet`() = runTest(dispatcher) {
+        val market = mockPerpetualData()
+        val model = viewModel(market = market)
+
+        model.position.first { it != null }
+
+        verify(exactly = 1) { positions(mockSession().wallet.id, market.perpetual.id) }
+    }
+
+    @Test
+    fun `an asset without a stored market has no position`() = runTest(dispatcher) {
+        val model = viewModel(market = null)
+        advanceUntilIdle()
+
+        assertNull(model.position.value)
+        verify(exactly = 0) { positions(any(), any<PerpetualId>()) }
     }
 }

@@ -3,14 +3,15 @@ package com.gemwallet.android.features.assets.viewmodels
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.application.perpetual.cases.PerpetualSections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.store.queries.NFTQuery
+import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
+import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -43,6 +44,7 @@ import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchInput
 import uniffi.gemstone.GemWalletSearchView
+import uniffi.gemstone.perpetualMarketQuery
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,7 +54,7 @@ class WalletSearchViewModel @Inject constructor(
     searchService: AssetsSearchService,
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
-    getPerpetuals: GetPerpetuals,
+    perpetualsQuery: PerpetualsQuery,
     nftQuery: NFTQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
@@ -70,7 +72,9 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val perpetualSections: StateFlow<PerpetualSections> = getPerpetuals.getPerpetualSections(currentQuery.map { it.takeIf(String::isNotEmpty) })
+    private val perpetualSections: StateFlow<PerpetualSections> = currentQuery
+        .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
+        .map { it.marketSections() }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
 

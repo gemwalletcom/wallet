@@ -1,16 +1,10 @@
-package com.gemwallet.android.data.coordinators.perpetuals
+package com.gemwallet.android.domains.perpetual.aggregates
 
-import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.wallet.core.primitives.Currency
-import io.mockk.every
-import io.mockk.mockk
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -23,7 +17,7 @@ import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.formattedCurrency
 import java.util.Locale
 
-class GetPerpetualsImplTest {
+class PerpetualDataAggregateImplTest {
     private val defaultLocale = Locale.getDefault()
 
     @Before
@@ -37,17 +31,11 @@ class GetPerpetualsImplTest {
     }
 
     @Test
-    fun rowsCarryFormattedPriceAndVolume() = runTest {
-        val store = mockk<GemstonePerpetualStore> {
-            every { observePerpetuals(any()) } returns flowOf(
-                listOf(
-                    mockPerpetualData(perpetual = mockPerpetual(price = 95420.5, pricePercentChange24h = 2.5, volume24h = 15_000.0)),
-                    mockPerpetualData(perpetual = mockPerpetual(price = 0.0, pricePercentChange24h = -1.25, volume24h = 0.0)),
-                ),
-            )
-        }
-
-        val rows = GetPerpetualsImpl(store).getPerpetuals(null).first()
+    fun rowsCarryFormattedPriceAndVolume() {
+        val rows = listOf(
+            mockPerpetualData(perpetual = mockPerpetual(price = 95420.5, pricePercentChange24h = 2.5, volume24h = 15_000.0)),
+            mockPerpetualData(perpetual = mockPerpetual(price = 0.0, pricePercentChange24h = -1.25, volume24h = 0.0)),
+        ).marketAggregates()
 
         val quoted = rows[0].row
         assertEquals("$95,420.50", quoted.subtitle.number)

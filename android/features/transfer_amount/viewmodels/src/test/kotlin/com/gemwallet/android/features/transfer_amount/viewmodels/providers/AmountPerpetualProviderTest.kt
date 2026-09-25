@@ -1,13 +1,14 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -94,15 +95,15 @@ class AmountPerpetualProviderTest {
             every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Lines(GemListRowTitle.AUTO_CLOSE, emptyList(), null)
         }
         val perpetualAggregate = mockPerpetualData()
-        val getPerpetual = mockk<GetPerpetual>(relaxed = true) {
-            every { getPerpetual(any()) } returns flowOf(perpetualAggregate)
+        val perpetualQuery = mockk<PerpetualQuery> {
+            every { this@mockk(any<PerpetualId>()) } returns flowOf(perpetualAggregate)
         }
         return AmountPerpetualProvider(
             params = mockAmountParamsPerpetual(positionAction),
             context = mockk(relaxed = true),
             service = service,
             getAssetInfo = getAssetInfo,
-            getPerpetual = getPerpetual,
+            perpetualQuery = perpetualQuery,
             scope = scope,
         )
     }

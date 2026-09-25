@@ -2,7 +2,7 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import android.content.Context
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
@@ -51,7 +51,7 @@ class AmountPerpetualProvider(
     private val context: Context,
     private val service: GemAmountServiceInterface,
     getAssetInfo: GetAssetInfo,
-    getPerpetual: GetPerpetual,
+    perpetualQuery: PerpetualQuery,
     private val scope: CoroutineScope,
 ) {
 
@@ -59,7 +59,7 @@ class AmountPerpetualProvider(
         params.positionAction is GemPerpetualPositionAction.Open
 
     val perpetual: StateFlow<PerpetualData?> =
-        getPerpetual.getPerpetual(params.perpetualId)
+        perpetualQuery(params.perpetualId)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     val direction: PerpetualDirection = params.direction
