@@ -1211,7 +1211,7 @@ The NFT list, fiat transaction row and curated asset list use title left, second
 
 ### Dispatch Core work that can block
 
-The `flowOn` above is not decoration. A synchronous Core call such as `transactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI polls the Rust future on the calling thread — so without it the read lands on main, where Room throws before any work happens.
+The `flowOn` above is not decoration. A synchronous Core call such as `GemTransactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI polls the Rust future on the calling thread — so without it the read lands on main, where Room throws before any work happens.
 
 The coordinator dispatches; it does not leave that to its caller. Whether a Core method touches a store is Core's business and can change without the call site noticing.
 
@@ -1226,10 +1226,18 @@ override suspend fun setCurrentWallet(walletId: WalletId) = withContext(Dispatch
 }
 
 // Flow: flowOn after the operator that calls Core
-override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = observed(id)
-    .mapNotNull { (session, data) -> transactionDetailsService.detailRows(data.toGem(), session.wallet.type.toGem()) ... }
-    .flowOn(Dispatchers.IO)
+val data: StateFlow<GemTransactionDetailRows?> = getSession()
+    .flatMapLatest { session ->
+        session ?: return@flatMapLatest flowOf(null)
+        transactionQuery(session.wallet.id, transactionId).map { transaction ->
+            transaction?.let { service.detailRows(it.toGem(), session.wallet.type.toGem()) }
+        }
+    }
+    .flowOn(ioDispatcher)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
+
+The Flow example is [`TransactionDetailsViewModel`](../android/features/activities/viewmodels/src/main/kotlin/com/gemwallet/android/features/activities/viewmodels/TransactionDetailsViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
 
 ## 6. Where derived domain answers live
 
@@ -1281,7 +1289,7 @@ The identifier string matches native database storage. Mapping the binding direc
 
 ## 7. At most one Core service; observed reads are queries
 
-An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the queries the screen observes (`PriceAlertsQuery`; the remaining cases such as `GetTransactions`, `GetWalletAssets` and `GetSession` move to queries under MOD320). A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the queries the screen observes (`PriceAlertsQuery`, `TransactionQuery`; the remaining cases such as `GetWalletAssets` and `GetSession` move to queries under MOD320). A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
 
 **Native observation is intentional.** iOS holds `ObservableQuery<Query>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a query returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
 
@@ -1795,7 +1803,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
-| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `GetTransactionDetailsImpl` (observed read + links) |
+| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionDetailsViewModel` (with `TransactionQuery`) |
 | `GemTransactionsService` | — | `TransactionsViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsViewModel` (+ `ConnectionsQuery`) | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |

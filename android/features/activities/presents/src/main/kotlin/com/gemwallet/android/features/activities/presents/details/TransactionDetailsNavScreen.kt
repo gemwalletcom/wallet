@@ -37,13 +37,13 @@ fun TransactionDetailsNavScreen(onAction: (TransactionDetailsAction.Navigation) 
     }
 
     TransactionDetailsScene(
-        title = model.rows.title.string(context),
+        title = model.title.string(context),
         sections = sections,
         headerTarget = headerTarget,
-        chain = model.rows.chain(),
+        chain = model.chain(),
         onAction = {
             when (it) {
-                TransactionDetailsAction.Share -> onShare(model.rows.explorer.link, model.rows.explorer.name)
+                TransactionDetailsAction.Share -> onShare(model.explorer.link, model.explorer.name)
                 TransactionDetailsAction.ShowFeeDetails -> isShowFeeDetails = true
                 is TransactionDetailsAction.Navigation -> onAction(it)
             }

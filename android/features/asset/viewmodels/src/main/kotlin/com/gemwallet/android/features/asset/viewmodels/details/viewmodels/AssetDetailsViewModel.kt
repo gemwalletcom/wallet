@@ -10,7 +10,7 @@ import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.store.queries.BannersQuery
@@ -100,7 +100,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId()
 
-    private val transactionFilters = listOf(TransactionsRequestFilter.Asset(assetId))
+    private val transactionFilters = listOf(TransactionsQueryFilter.Asset(assetId))
 
     val transactions = getTransactions.getTransactions(transactionFilters)
         .map { it.toImmutableList() }

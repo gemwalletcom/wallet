@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
+import com.gemwallet.android.data.services.store.queries.TransactionsCountQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,10 +17,10 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class MainScreenViewModel @Inject constructor(private val getSession: GetSession, private val pendingNavigationCoordinator: PendingNavigationCoordinator, getTransactions: GetPendingTransactionsCount) : ViewModel() {
+class MainScreenViewModel @Inject constructor(private val getSession: GetSession, private val pendingNavigationCoordinator: PendingNavigationCoordinator, transactionsCountQuery: TransactionsCountQuery) : ViewModel() {
     val pendingTxCount = getSession()
         .filterNotNull()
-        .flatMapLatest { getTransactions.getPendingTransactionsCount() }
+        .flatMapLatest { session -> transactionsCountQuery(session.wallet.id, TransactionsQueryFilter.pendingActivity()) }
         .filterNotNull()
         .map { if (it == 0) null else it.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

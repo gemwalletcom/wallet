@@ -2,7 +2,8 @@ package com.gemwallet.android
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
+import com.gemwallet.android.data.services.store.queries.TransactionsCountQuery
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.testkit.mockSession
 import io.mockk.every
@@ -41,8 +42,9 @@ class MainScreenViewModelTest {
     }
 
     private fun viewModel(pending: Int?, coordinator: PendingNavigationCoordinator = mockk(relaxed = true)): MainScreenViewModel {
-        val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession()) }
-        val counts: GetPendingTransactionsCount = mockk { every { getPendingTransactionsCount() } returns flowOf(pending) }
+        val wallet = mockSession().wallet
+        val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
+        val counts: TransactionsCountQuery = mockk { every { this@mockk(wallet.id, TransactionsQueryFilter.pendingActivity()) } returns flowOf(pending) }
         return MainScreenViewModel(session, coordinator, counts).also { models.add(it) }
     }
 

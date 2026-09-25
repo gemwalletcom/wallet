@@ -3,7 +3,6 @@ package com.gemwallet.android.features.activities.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
@@ -94,10 +93,8 @@ class TransactionsViewModelFiltersTest {
 
     @Test
     fun `a details route that is not a transaction id is refused`() {
-        val details: GetTransactionDetails = mockk(relaxed = true)
-
         assertThrows(IllegalArgumentException::class.java) {
-            TransactionDetailsViewModel(details, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), mockk(relaxed = true))
+            TransactionDetailsViewModel(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), dispatcher, mockk(relaxed = true))
         }
     }
 }

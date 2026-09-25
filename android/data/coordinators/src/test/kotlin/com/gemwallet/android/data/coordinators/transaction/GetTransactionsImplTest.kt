@@ -2,8 +2,9 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
+import com.gemwallet.android.data.services.store.queries.TransactionsQuery
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -27,8 +28,8 @@ class GetTransactionsImplTest {
 
     private val wallet = mockWallet()
     private val subscriptions = AtomicInteger()
-    private val store = mockk<GemstoneTransactionStore> {
-        every { observeTransactions(any(), any()) } returns flow {
+    private val transactionsQuery = mockk<TransactionsQuery> {
+        every { this@mockk(any(), any(), GemConstants.transactionsListLimit) } returns flow {
             subscriptions.incrementAndGet()
             emit(emptyList<TransactionListItem>())
             awaitCancellation()
@@ -43,9 +44,9 @@ class GetTransactionsImplTest {
 
     @Test
     fun screensOnOneFilterShareOneQuery() = runTest {
-        val subject = GetTransactionsImpl(getSession, getCurrentWalletId, store, backgroundScope)
-        val filters = listOf(TransactionsRequestFilter.Chains(listOf(Chain.Bitcoin)))
-        subject.getTransactions(TransactionsRequestFilter.activityDefaults()).first()
+        val subject = GetTransactionsImpl(getSession, getCurrentWalletId, transactionsQuery, backgroundScope)
+        val filters = listOf(TransactionsQueryFilter.Chains(listOf(Chain.Bitcoin)))
+        subject.getTransactions(TransactionsQueryFilter.activityDefaults()).first()
         val baseline = subscriptions.get()
 
         backgroundScope.launch { subject.getTransactions(filters).collect {} }
@@ -57,10 +58,10 @@ class GetTransactionsImplTest {
 
     @Test
     fun theActivityScreenSharesTheDefaultObservation() = runTest {
-        val subject = GetTransactionsImpl(getSession, getCurrentWalletId, store, backgroundScope)
+        val subject = GetTransactionsImpl(getSession, getCurrentWalletId, transactionsQuery, backgroundScope)
 
-        subject.getTransactions(TransactionsRequestFilter.activityDefaults()).first()
-        subject.getTransactions(TransactionsRequestFilter.activityDefaults()).first()
+        subject.getTransactions(TransactionsQueryFilter.activityDefaults()).first()
+        subject.getTransactions(TransactionsQueryFilter.activityDefaults()).first()
 
         assertEquals(1, subscriptions.get())
     }

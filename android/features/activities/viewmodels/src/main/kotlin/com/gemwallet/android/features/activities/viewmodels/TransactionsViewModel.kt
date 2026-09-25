@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
@@ -105,13 +105,13 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter,
         typeFilter,
     ) { chains, types ->
-        TransactionsRequestFilter.activity(chains, types)
+        TransactionsQueryFilter.activity(chains, types)
     }
         .flatMapLatest { filters -> getTransactions.getTransactions(filters) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(TransactionsRequestFilter.activityDefaults()).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(TransactionsQueryFilter.activityDefaults()).takeIf { it.isNotEmpty() },
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)

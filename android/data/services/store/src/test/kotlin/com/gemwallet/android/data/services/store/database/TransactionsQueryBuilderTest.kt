@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.store.database
 
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
@@ -32,12 +32,12 @@ class TransactionsQueryBuilderTest {
         val chainsOnly = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.Chains(emptyList())),
+            filters = listOf(TransactionsQueryFilter.Chains(emptyList())),
         ).sql
         val typesOnly = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.Types(emptyList())),
+            filters = listOf(TransactionsQueryFilter.Types(emptyList())),
         ).sql
         assertEquals(baseline, chainsOnly)
         assertEquals(baseline, typesOnly)
@@ -48,7 +48,7 @@ class TransactionsQueryBuilderTest {
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.Chains(listOf(Chain.Ethereum, Chain.Bitcoin))),
+            filters = listOf(TransactionsQueryFilter.Chains(listOf(Chain.Ethereum, Chain.Bitcoin))),
         )
         assertTrue(query.sql.contains("AND asset.chain IN (?,?)"))
         assertEquals(Chain.Ethereum.string, query.args[baseArgCount])
@@ -60,7 +60,7 @@ class TransactionsQueryBuilderTest {
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.Types(listOf(TransactionType.Transfer, TransactionType.Swap))),
+            filters = listOf(TransactionsQueryFilter.Types(listOf(TransactionType.Transfer, TransactionType.Swap))),
         )
         assertTrue(query.sql.contains("AND tx.type IN (?,?)"))
         assertEquals("Transfer", query.args[baseArgCount])
@@ -72,7 +72,7 @@ class TransactionsQueryBuilderTest {
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.AssetRankGreaterThan(15)),
+            filters = listOf(TransactionsQueryFilter.AssetRankGreaterThan(15)),
         )
         assertTrue(query.sql.contains("AND asset.rank > ?"))
         assertEquals(15, query.args[baseArgCount])
@@ -84,7 +84,7 @@ class TransactionsQueryBuilderTest {
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.Asset(assetId)),
+            filters = listOf(TransactionsQueryFilter.Asset(assetId)),
         )
         assertTrue(
             query.sql.contains("(tx.assetId = ? OR EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?))"),
@@ -97,7 +97,7 @@ class TransactionsQueryBuilderTest {
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
-            filters = listOf(TransactionsRequestFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit))),
+            filters = listOf(TransactionsQueryFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit))),
         )
         assertTrue(query.sql.contains("AND tx.state IN (?,?)"))
         assertEquals("Pending", query.args[baseArgCount])
@@ -112,9 +112,9 @@ class TransactionsQueryBuilderTest {
             walletId,
             limit = limit,
             filters = listOf(
-                TransactionsRequestFilter.Chains(listOf(Chain.Ethereum)),
-                TransactionsRequestFilter.Types(listOf(TransactionType.Transfer)),
-                TransactionsRequestFilter.AssetRankGreaterThan(15),
+                TransactionsQueryFilter.Chains(listOf(Chain.Ethereum)),
+                TransactionsQueryFilter.Types(listOf(TransactionType.Transfer)),
+                TransactionsQueryFilter.AssetRankGreaterThan(15),
             ),
         )
         val totalAndCount = " AND ".toRegex().findAll(query.sql).count()
@@ -127,8 +127,8 @@ class TransactionsQueryBuilderTest {
     @Test
     fun countSql_sharesFilterClausesWithExtendedSql() {
         val filters = listOf(
-            TransactionsRequestFilter.AssetRankGreaterThan(15),
-            TransactionsRequestFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit)),
+            TransactionsQueryFilter.AssetRankGreaterThan(15),
+            TransactionsQueryFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit)),
         )
         val query = buildTransactionsCountSql(walletId, filters)
         assertTrue(query.sql.trimStart().startsWith("SELECT COUNT(DISTINCT tx.id)"))

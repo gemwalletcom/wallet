@@ -9,7 +9,7 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -93,8 +93,8 @@ class PerpetualDetailsViewModel @Inject constructor(
     val assetId = savedStateHandle.requireAssetId()
 
     private val transactionFilters = listOf(
-        TransactionsRequestFilter.Asset(assetId),
-        TransactionsRequestFilter.Types(GemConstants.perpetualActivityTypes),
+        TransactionsQueryFilter.Asset(assetId),
+        TransactionsQueryFilter.Types(GemConstants.perpetualActivityTypes),
     )
 
     private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)

@@ -3,7 +3,7 @@ package com.gemwallet.android.data.services.store.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.data.services.store.database.entities.toDTO
@@ -72,7 +72,7 @@ class TransactionAssetsTest {
     fun theAssetFilterMatchesAnyAssetTheTransactionTouches() = runBlocking(Dispatchers.IO) {
         val transactions = database.transactionsDao()
 
-        assertEquals(1, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(usdt.id)), 100).first().size)
-        assertEquals(0, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id)), 100).first().size)
+        assertEquals(1, transactions.getTransactionListItems(wallet.id, listOf(TransactionsQueryFilter.Asset(usdt.id)), 100).first().size)
+        assertEquals(0, transactions.getTransactionListItems(wallet.id, listOf(TransactionsQueryFilter.Asset(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id)), 100).first().size)
     }
 }

@@ -204,6 +204,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:services:native-provider"))
     implementation(project(":data:services:gemstone"))
+    implementation(project(":data:services:store"))
     implementation(project(":data:coordinators"))
 
     // Features
