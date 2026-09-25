@@ -121,7 +121,7 @@ impl GemWalletService {
     }
 
     pub fn create_wallet(&self) -> Result<Vec<String>, GemServiceError> {
-        Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
+        Ok(Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })?.to_vec())
     }
 
     pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemLocalizedText, GemServiceError> {
