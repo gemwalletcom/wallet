@@ -12,9 +12,9 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegation
-import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -37,6 +37,7 @@ import com.gemwallet.android.ui.style.amountSymbol
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
+import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -79,9 +80,9 @@ class AmountViewModel @Inject constructor(
     stakeService: GemStakeServiceInterface,
     getAssetInfo: GetAssetInfo,
     getPerpetual: GetPerpetual,
-    getDelegation: GetDelegation,
-    getStakeValidator: GetStakeValidator,
-    getValidators: GetValidators,
+    delegationQuery: DelegationQuery,
+    validatorQuery: ValidatorQuery,
+    validatorsQuery: ValidatorsQuery,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
@@ -90,7 +91,7 @@ class AmountViewModel @Inject constructor(
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, getValidators(it.assetId), stakeService, viewModelScope, ioDispatcher) }
+    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getAssetInfo, getPerpetual, viewModelScope) }
 
@@ -106,10 +107,10 @@ class AmountViewModel @Inject constructor(
 
         is AmountParams.Withdraw -> flowOf(GemAmountRequest.Transfer(GemAmountTransfer.Withdraw))
 
-        is AmountParams.Earn.Deposit -> assetInfo.map { current -> current?.let { getStakeValidator(it.asset.id, params.providerId)?.toGem() }?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
+        is AmountParams.Earn.Deposit -> assetInfo.map { current -> current?.let { validatorQuery(it.asset.id, params.providerId)?.toGem() }?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
 
         is AmountParams.Earn.Withdraw -> getSession()
-            .flatMapLatest { session -> session?.wallet?.id?.let { getDelegation(it, params.validatorId, params.delegationId) } ?: flowOf(null) }
+            .flatMapLatest { session -> session?.wallet?.id?.let { delegationQuery(it, params.validatorId, params.delegationId) } ?: flowOf(null) }
             .map { delegation -> delegation?.let { GemAmountRequest.Earn(EarnType.Withdraw(it.toGem())) } }
 
         is AmountParams.Stake, is AmountParams.Perpetual -> flowOf(null)

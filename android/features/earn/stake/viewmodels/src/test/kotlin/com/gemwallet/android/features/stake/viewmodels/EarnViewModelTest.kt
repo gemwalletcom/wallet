@@ -3,8 +3,8 @@ package com.gemwallet.android.features.stake.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationsQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
@@ -80,10 +80,10 @@ class EarnViewModelTest {
 
     private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty)) = EarnViewModel(
         getAssetInfo = getAssetInfo,
-        getDelegations = mockk<GetDelegations> {
+        delegationsQuery = mockk<DelegationsQuery> {
             every { this@mockk(any(), asset.id, StakeProviderType.Earn) } returns flowOf(positions)
         },
-        getValidators = mockk<GetValidators> {
+        validatorsQuery = mockk<ValidatorsQuery> {
             every { this@mockk(asset.id, StakeProviderType.Earn) } returns flowOf(providers)
         },
         stakeService = stakeService,

@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationsQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -53,8 +53,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EarnViewModel @Inject constructor(
     getAssetInfo: GetAssetInfo,
-    getDelegations: GetDelegations,
-    getValidators: GetValidators,
+    delegationsQuery: DelegationsQuery,
+    validatorsQuery: ValidatorsQuery,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
@@ -72,12 +72,12 @@ class EarnViewModel @Inject constructor(
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val providers = getValidators(assetId, StakeProviderType.Earn)
+    private val providers = validatorsQuery(assetId, StakeProviderType.Earn)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val delegations = session.filterNotNull()
-        .flatMapLatest { current -> getDelegations(current.wallet.id, assetId, StakeProviderType.Earn) }
+        .flatMapLatest { current -> delegationsQuery(current.wallet.id, assetId, StakeProviderType.Earn) }
 
     private val earnView = combine(providers, delegations, assetInfo, session) { providers, delegations, assetInfo, current ->
         val info = assetInfo ?: return@combine null

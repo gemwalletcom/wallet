@@ -5,14 +5,15 @@ import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationsQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.StakeProviderType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -53,11 +54,11 @@ class StakeViewModelTest {
     private val getWalletAssets = mockk<GetWalletAssets> {
         every { this@mockk() } returns MutableStateFlow(emptyList())
     }
-    private val getDelegations = mockk<GetDelegations> {
-        every { this@mockk(any(), asset.id) } returns flowOf(listOf(delegation))
+    private val delegationsQuery = mockk<DelegationsQuery> {
+        every { this@mockk(any(), asset.id, StakeProviderType.Stake) } returns flowOf(listOf(delegation))
     }
-    private val getValidators = mockk<GetValidators> {
-        every { this@mockk(asset.id) } returns flowOf(emptyList())
+    private val validatorsQuery = mockk<ValidatorsQuery> {
+        every { this@mockk(asset.id, StakeProviderType.Stake) } returns flowOf(emptyList())
     }
     private val getSession = mockk<GetSession> {
         every { this@mockk() } returns MutableStateFlow(mockSession())
@@ -94,8 +95,8 @@ class StakeViewModelTest {
         val viewModel = StakeViewModel(
             getAssetInfo = getAssetInfo,
             getWalletAssets = getWalletAssets,
-            getDelegations = getDelegations,
-            getValidators = getValidators,
+            delegationsQuery = delegationsQuery,
+            validatorsQuery = validatorsQuery,
             stakeService = stakeService,
             getSession = getSession,
             stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),

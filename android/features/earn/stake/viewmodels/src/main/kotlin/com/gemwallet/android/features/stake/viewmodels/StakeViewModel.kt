@@ -9,8 +9,8 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationsQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -27,6 +27,7 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
+import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,8 +59,8 @@ import javax.inject.Inject
 class StakeViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getWalletAssets: GetWalletAssets,
-    private val getDelegations: GetDelegations,
-    private val getValidators: GetValidators,
+    private val delegationsQuery: DelegationsQuery,
+    private val validatorsQuery: ValidatorsQuery,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
@@ -86,11 +87,11 @@ class StakeViewModel @Inject constructor(
     val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
         session.wallet.id to assetId
     }
-        .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
+        .flatMapLatest { (walletId, assetId) -> delegationsQuery(walletId, assetId, StakeProviderType.Stake) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val validators = assetId
-        .flatMapLatest { getValidators(it) }
+        .flatMapLatest { validatorsQuery(it, StakeProviderType.Stake) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val viewState: StateFlow<GemStakeViewState?> = combine(

@@ -50,6 +50,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
+    implementation(project(":data:services:store"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

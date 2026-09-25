@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.stake.cases.GetDelegation
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.store.queries.DelegationQuery
+import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.StakeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,8 +41,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DelegationViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
-    private val getDelegation: GetDelegation,
-    getValidators: GetValidators,
+    private val delegationQuery: DelegationQuery,
+    validatorsQuery: ValidatorsQuery,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -57,7 +58,7 @@ class DelegationViewModel @Inject constructor(
         getSession().filterNotNull(),
     ) { validatorId, delegationId, session -> Triple(validatorId, delegationId, session.wallet.id) }
         .flatMapLatest { (validatorId, delegationId, walletId) ->
-            getDelegation(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
+            delegationQuery(walletId = walletId, validatorId = validatorId, delegationId = delegationId)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -66,7 +67,7 @@ class DelegationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val validators = delegation.filterNotNull()
-        .flatMapLatest { getValidators(it.base.assetId) }
+        .flatMapLatest { validatorsQuery(it.base.assetId, StakeProviderType.Stake) }
 
     val properties = combine(
         delegation,

@@ -19,8 +19,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.DelegationValidator
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -217,9 +217,9 @@ class AmountViewModelTest {
             stakeService = stakeService,
             getAssetInfo = getAssetInfo,
             getPerpetual = mockk(relaxed = true),
-            getDelegation = mockk(relaxed = true),
-            getStakeValidator = mockk(relaxed = true),
-            getValidators = mockk { every { this@mockk.invoke(any()) } returns flowOf(emptyList<DelegationValidator>()) },
+            delegationQuery = mockk(relaxed = true),
+            validatorQuery = mockk(relaxed = true),
+            validatorsQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList<DelegationValidator>()) },
             getSession = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
             context = context,
