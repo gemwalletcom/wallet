@@ -222,6 +222,7 @@ mocks:
   - Account
   - AddressName
   - ApplicationMetadata
+  - ApprovalData
   - Asset
   - AssetBasic
   - AssetFull
@@ -238,11 +239,14 @@ mocks:
   - Contact
   - ContactAddress
   - ContactData
+  - ContractCallData
   - CoreListItem
   - Delegation
   - DelegationBase
   - DelegationValidator
   - Device
+  - FiatProvider
+  - FiatQuote
   - FiatRate
   - FiatTransaction
   - FiatTransactionAssetData
@@ -261,10 +265,14 @@ mocks:
   - GemFeeAmount
   - GemFeeAsset
   - GemFeeRateRows
+  - GemFiatQuoteRequest
+  - GemFiatQuoteRow
+  - GemFiatQuotesResult
   - GemFormattedNumber
   - GemLocalizedText
   - GemNumberDisplay
   - GemNumberUnit
+  - GemPaymentRecipient
   - GemPrecision
   - GemRecipient
   - GemRowText
@@ -279,6 +287,12 @@ mocks:
   - NFTData
   - NFTImages
   - NFTResource
+  - PaymentInvoice
+  - PaymentLink
+  - PaymentMerchant
+  - PaymentPrice
+  - PaymentQuote
+  - PaymentRequest
   - Perpetual
   - PerpetualAccountSummary
   - PerpetualData
@@ -291,6 +305,7 @@ mocks:
   - PriceAlert
   - PriceAlertData
   - RedelegateData
+  - SignMessage
   - SimulationPayloadField
   - SimulationResult
   - SimulationWarning
@@ -299,6 +314,10 @@ mocks:
   - SupportAgent
   - SupportMessage
   - SupportMessageImage
+  - SwapData
+  - SwapProviderData
+  - SwapQuote
+  - SwapQuoteData
   - TotalFiatValue
   - Transaction
   - TransactionExtended
@@ -306,6 +325,7 @@ mocks:
   - TransactionListItem
   - TransactionPerpetualMetadata
   - TransactionSwapMetadata
+  - TransferDataExtra
   - Wallet
   - WalletConnection
   - WalletConnectionSession

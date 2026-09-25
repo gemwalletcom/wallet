@@ -6,6 +6,8 @@ import FiatConnectTestKit
 import Formatters
 import Foundation
 import struct Gemstone.FiatQuote
+import func Gemstone.formattedAmount
+import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -129,7 +131,10 @@ final class FiatSceneViewModelTests {
     func rateValue() {
         let asset = Asset.mock(name: "Bitcoin", symbol: "BTC", decimals: 8)
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(asset: asset, fiatAmount: 1200, cryptoAmount: 2.0)]))
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 50),
+            quotes: [.mock(asset: asset.toGem(), provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 1200, fiatCurrency: "USD", cryptoAmount: 2.0)],
+        ))
 
         guard case let .rate(_, rate, _) = model.viewState.rateRow else {
             Issue.record("a selected quote shows its rate")
@@ -155,22 +160,22 @@ final class FiatSceneViewModelTests {
     @Test
     func selectingProviderRevalidatesSellBalance() {
         let asset = Asset.mock(name: "Bitcoin", symbol: "BTC", decimals: 8)
-        let affordable = FiatQuote.mock(asset: asset, fiatAmount: 100, cryptoAmount: 1, type: .sell)
-        let unaffordable = FiatQuote.mock(asset: asset, fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: .transak)
+        let affordable = FiatQuote.mock(asset: asset.toGem(), provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: .sell, fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)
+        let unaffordable = FiatQuote.mock(asset: asset.toGem(), provider: .mock(id: .transak, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: .sell, fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 3)
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset), type: .sell)
 
         model.onAssetDataChange(
             .mock(asset: asset, metadata: .mock(isSellEnabled: true)),
             .mock(asset: asset, balance: .mock(available: BigInt(200_000_000)), metadata: .mock(isSellEnabled: true)),
         )
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [affordable, unaffordable], amount: 100, type: .sell))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .sell, amount: 100), quotes: [affordable, unaffordable]))
 
         #expect(model.viewState.selectedQuoteRow?.quoteId == affordable.id)
         #expect(model.viewState.canSelectProvider)
         #expect(model.amountError(model.viewState) == nil)
         #expect(model.viewState.buttonState.state == .normal)
 
-        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak))])
+        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak, cryptoAmount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiatAmount: formattedCurrency(value: 0, code: "USD", style: .fiat)))])
 
         #expect(model.viewState.selectedQuoteRow?.quoteId == unaffordable.id)
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
@@ -183,7 +188,7 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModel.mock()
         #expect(model.viewState.buttonState.state == .loading(showProgress: true))
 
-        model.session = model.session.onQuoteResults(results: .mock())
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50)))
         #expect(model.viewState.buttonState.state == .disabled)
         #expect(model.emptyTitle(model.viewState) == Localized.Buy.noResults)
 
@@ -192,7 +197,10 @@ final class FiatSceneViewModelTests {
         #expect(model.emptyTitle(model.viewState) == Localized.Input.enterAmountTo(Localized.Wallet.buy))
 
         model.amount = "100"
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100))
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
         #expect(model.viewState.buttonState.state == .normal)
         #expect(model.viewState.buttonAction.title == Localized.Common.continue)
 
@@ -203,7 +211,7 @@ final class FiatSceneViewModelTests {
     @Test
     func aFailedQuoteReadsAsAnErrorAndItsActionAsRetry() {
         let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
 
         #expect(model.quotesState(model.viewState).isError)
         #expect(model.viewState.buttonAction.title == Localized.Common.tryAgain)
@@ -212,7 +220,7 @@ final class FiatSceneViewModelTests {
     @Test
     func aFailedQuoteStopsTheClockUntilTheAmountChanges() async {
         let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
 
         await model.refreshQuotes()
         #expect(model.viewState.buttonAction == .retryQuote, "the timer leaves the failure to the retry button")
@@ -284,7 +292,7 @@ final class FiatSceneViewModelTests {
     @Test
     func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
         let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
 
         model.onSelect(amount: 250)
 
@@ -329,17 +337,20 @@ final class FiatSceneViewModelTests {
         #expect(model.quotesState(model.viewState).isLoading)
         #expect(model.amountError(model.viewState) == nil)
 
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100))
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
         #expect(model.viewState.selectedQuoteRow != nil)
         #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "200"
-        model.session = model.session.onQuoteResults(results: .mock(amount: 200))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 200)))
         #expect(model.quotesState(model.viewState).isNoData)
         #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "300"
-        model.session = model.session.onQuoteResults(results: .mock(amount: 300, error: .Api(msg: "offline")))
+        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 300), error: .Api(msg: "offline")))
         #expect(model.quotesState(model.viewState).isError)
         #expect(model.amountError(model.viewState) == nil)
     }
@@ -362,13 +373,19 @@ final class FiatSceneViewModelTests {
     @Test
     func aBalanceOrProviderChangeDoesNotRefetch() {
         let model = FiatSceneViewModel.mock(type: .sell)
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(cryptoAmount: 1, type: .sell), .mock(cryptoAmount: 2, type: .sell, providerId: .transak)], amount: 100, type: .sell))
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .sell, amount: 100),
+            quotes: [
+                .mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: .sell, fiatCurrency: "USD", cryptoAmount: 1),
+                .mock(provider: .mock(id: .transak, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: .sell, fiatCurrency: "USD", cryptoAmount: 2),
+            ],
+        ))
         let trigger = model.loadTrigger
 
         model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
-        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak))])
+        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak, cryptoAmount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiatAmount: formattedCurrency(value: 0, code: "USD", style: .fiat)))])
         #expect(model.loadTrigger == trigger)
     }
 
@@ -403,7 +420,10 @@ final class FiatSceneViewModelTests {
     @Test
     func fiatProviderRowsUseUsdPriceSource() {
         let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 50, cryptoAmount: 0.000488)]))
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 50),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 50, fiatCurrency: "USD", cryptoAmount: 0.000488)],
+        ))
         model.priceUsdQuery.value = 100_000
 
         let row = model.fiatProviderViewModel.state.value?.items.first

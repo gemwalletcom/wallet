@@ -17,6 +17,8 @@ import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
+import com.wallet.core.primitives.TransferDataOutputType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -27,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemWalletConnectTransactionAction
+import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
@@ -37,7 +40,7 @@ class WalletConnectSignerTest {
 
     @Test
     fun `sign message waits for the approved pending request`() = runTest {
-        val request = mockGemWalletConnectMessageRequest(wallet = wallet, session = session, message = mockSignMessage(data = "hello".toByteArray()))
+        val request = mockGemWalletConnectMessageRequest(wallet = wallet, session = session, message = mockSignMessage(chain = Chain.Ethereum.string, signType = SignDigestType.EIP191, data = "hello".toByteArray()))
         val result = async { pendingRequests.signMessage(request) }
         val pending = pendingRequests.current.filterNotNull().first()
         assertEquals(wallet.id, pending.wallet.id)
@@ -53,7 +56,13 @@ class WalletConnectSignerTest {
             inputType = TransactionInputType.Generic(
                 asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9).toGem(),
                 metadata = mockApplicationMetadata().toGem(),
-                extra = mockTransferDataExtra(data = "tx".toByteArray(), transactionType = TransactionType.SmartContractCall),
+                extra = mockTransferDataExtra(
+                    to = "recipient",
+                    data = "tx".toByteArray(),
+                    outputType = TransferDataOutputType.EncodedTransaction.toGem(),
+                    outputAction = TransferDataOutputAction.Send.toGem(),
+                    transactionType = TransactionType.SmartContractCall.toGem(),
+                ),
             ),
             recipient = GemRecipient(address = "recipient"),
             value = BigInteger.ONE,

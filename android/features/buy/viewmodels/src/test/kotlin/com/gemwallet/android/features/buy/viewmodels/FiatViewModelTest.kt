@@ -21,6 +21,7 @@ import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
+import com.gemwallet.android.testkit.mockFiatProvider
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemFiatSession
@@ -31,6 +32,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -92,7 +94,18 @@ class FiatViewModelTest {
         every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)), GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)))
         every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
-        coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote())
+        coEvery { quotes(any(), any(), any()) } returns
+            listOf(
+                mockFiatQuote(
+                    id = "quote-1",
+                    asset = mockAsset().toGem(),
+                    provider = mockFiatProvider(id = FiatProviderName.Mercuryo.toGem(), name = "Mercuryo", enabled = true, buyEnabled = true, sellEnabled = true),
+                    quoteType = FiatQuoteType.Buy.toGem(),
+                    fiatAmount = 100.0,
+                    fiatCurrency = "USD",
+                    cryptoAmount = 0.17,
+                ),
+            )
     }
 
     @Before
@@ -250,7 +263,18 @@ class FiatViewModelTest {
             assertTrue(viewModel.uiState.value.retries)
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
-            coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote())
+            coEvery { service.quotes(any(), any(), any()) } returns
+                listOf(
+                    mockFiatQuote(
+                        id = "quote-1",
+                        asset = mockAsset().toGem(),
+                        provider = mockFiatProvider(id = FiatProviderName.Mercuryo.toGem(), name = "Mercuryo", enabled = true, buyEnabled = true, sellEnabled = true),
+                        quoteType = FiatQuoteType.Buy.toGem(),
+                        fiatAmount = 100.0,
+                        fiatCurrency = "USD",
+                        cryptoAmount = 0.17,
+                    ),
+                )
             viewModel.retry()
             runCurrent()
 
@@ -299,7 +323,18 @@ class FiatViewModelTest {
     @Test
     fun `a sell quote above the balance keeps the providers and moves the error onto the amount`() = runTest(testDispatcher) {
         assetInfoFlow.value = mockAssetInfo(asset = asset, price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 100.0)), metadata = mockAssetMetaData(isSellEnabled = true))
-        coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote(quoteType = FiatQuoteType.Sell, asset = asset))
+        coEvery { service.quotes(any(), any(), any()) } returns
+            listOf(
+                mockFiatQuote(
+                    id = "quote-1",
+                    asset = asset.toGem(),
+                    provider = mockFiatProvider(id = FiatProviderName.Mercuryo.toGem(), name = "Mercuryo", enabled = true, buyEnabled = true, sellEnabled = true),
+                    quoteType = FiatQuoteType.Sell.toGem(),
+                    fiatAmount = 100.0,
+                    fiatCurrency = "USD",
+                    cryptoAmount = 0.17,
+                ),
+            )
         val viewModel = createViewModel(initialType = FiatQuoteType.Sell)
 
         try {

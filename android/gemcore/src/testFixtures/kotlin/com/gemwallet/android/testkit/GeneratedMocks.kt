@@ -1042,6 +1042,76 @@ fun mockWalletConnectionSessionProposal(
     metadata = metadata,
 )
 
+fun mockApprovalData(
+    token: String = "",
+    spender: String = "",
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    isUnlimited: Boolean = false,
+) = uniffi.gemstone.ApprovalData(
+    token = token,
+    spender = spender,
+    value = value,
+    isUnlimited = isUnlimited,
+)
+
+fun mockContractCallData(
+    contractAddress: String = "",
+    callData: String = "",
+    approval: uniffi.gemstone.ApprovalData? = null,
+    gasLimit: String? = null,
+) = uniffi.gemstone.ContractCallData(
+    contractAddress = contractAddress,
+    callData = callData,
+    approval = approval,
+    gasLimit = gasLimit,
+)
+
+fun mockFiatProvider(
+    id: uniffi.gemstone.FiatProviderName = uniffi.gemstone.FiatProviderName.MERCURYO,
+    name: String = "",
+    imageUrl: String? = null,
+    priority: Int? = null,
+    thresholdBps: Int? = null,
+    enabled: Boolean = false,
+    buyEnabled: Boolean = false,
+    sellEnabled: Boolean = false,
+    paymentMethods: List<uniffi.gemstone.PaymentType> = emptyList(),
+) = uniffi.gemstone.FiatProvider(
+    id = id,
+    name = name,
+    imageUrl = imageUrl,
+    priority = priority,
+    thresholdBps = thresholdBps,
+    enabled = enabled,
+    buyEnabled = buyEnabled,
+    sellEnabled = sellEnabled,
+    paymentMethods = paymentMethods,
+)
+
+fun mockFiatQuote(
+    id: String = "",
+    asset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    provider: uniffi.gemstone.FiatProvider = mockFiatProvider(),
+    quoteType: uniffi.gemstone.FiatQuoteType = uniffi.gemstone.FiatQuoteType.BUY,
+    fiatAmount: Double = 0.0,
+    fiatCurrency: String = "",
+    cryptoAmount: Double = 0.0,
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    latency: ULong = 0u,
+    paymentMethods: List<uniffi.gemstone.PaymentType> = emptyList(),
+) = uniffi.gemstone.FiatQuote(
+    id = id,
+    asset = asset,
+    provider = provider,
+    quoteType = quoteType,
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    cryptoAmount = cryptoAmount,
+    value = value,
+    latency = latency,
+    paymentMethods = paymentMethods,
+)
+
 fun mockGemAssetBalance(
     assetId: String = mockAssetId().toIdentifier(),
     available: java.math.BigInteger = java.math.BigInteger.ZERO,
@@ -1226,6 +1296,40 @@ fun mockGemFeeRateRows(
     customRate = customRate,
 )
 
+fun mockGemFiatQuoteRequest(
+    quoteType: uniffi.gemstone.FiatQuoteType = uniffi.gemstone.FiatQuoteType.BUY,
+    amount: Double = 0.0,
+) = uniffi.gemstone.GemFiatQuoteRequest(
+    quoteType = quoteType,
+    amount = amount,
+)
+
+fun mockGemFiatQuoteRow(
+    quoteId: String = "",
+    provider: uniffi.gemstone.FiatProviderName = uniffi.gemstone.FiatProviderName.MERCURYO,
+    providerName: String = "",
+    cryptoAmount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiatAmount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    rate: uniffi.gemstone.GemAssetRate? = null,
+) = uniffi.gemstone.GemFiatQuoteRow(
+    quoteId = quoteId,
+    provider = provider,
+    providerName = providerName,
+    cryptoAmount = cryptoAmount,
+    fiatAmount = fiatAmount,
+    rate = rate,
+)
+
+fun mockGemFiatQuotesResult(
+    request: uniffi.gemstone.GemFiatQuoteRequest = mockGemFiatQuoteRequest(),
+    quotes: List<uniffi.gemstone.FiatQuote> = emptyList(),
+    error: uniffi.gemstone.GemServiceException? = null,
+) = uniffi.gemstone.GemFiatQuotesResult(
+    request = request,
+    quotes = quotes,
+    error = error,
+)
+
 fun mockGemFormattedNumber(
     value: Double = 0.0,
     unit: uniffi.gemstone.GemNumberUnit = mockGemNumberUnit(),
@@ -1249,6 +1353,14 @@ fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.G
 fun mockGemNumberDisplay(): uniffi.gemstone.GemNumberDisplay = uniffi.gemstone.GemNumberDisplay.Number(precision = mockGemPrecision())
 
 fun mockGemNumberUnit(): uniffi.gemstone.GemNumberUnit = uniffi.gemstone.GemNumberUnit.Currency(code = "")
+
+fun mockGemPaymentRecipient(
+    recipient: uniffi.gemstone.GemRecipient = mockGemRecipient(),
+    amount: String? = null,
+) = uniffi.gemstone.GemPaymentRecipient(
+    recipient = recipient,
+    amount = amount,
+)
 
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
 
@@ -1294,6 +1406,74 @@ fun mockGemTransferData(
     recipient = recipient,
     value = value,
     useMaxAmount = useMaxAmount,
+)
+
+fun mockPaymentInvoice(
+    link: uniffi.gemstone.PaymentLink = mockPaymentLink(),
+    merchant: uniffi.gemstone.PaymentMerchant = mockPaymentMerchant(),
+    price: uniffi.gemstone.PaymentPrice? = null,
+    quotes: List<uniffi.gemstone.PaymentQuote> = emptyList(),
+    verification: uniffi.gemstone.PaymentVerification? = null,
+) = uniffi.gemstone.PaymentInvoice(
+    link = link,
+    merchant = merchant,
+    price = price,
+    quotes = quotes,
+    verification = verification,
+)
+
+fun mockPaymentLink(): uniffi.gemstone.PaymentLink = uniffi.gemstone.PaymentLink.SolanaPay(url = "")
+
+fun mockPaymentMerchant(
+    name: String = "",
+    icon: String = "",
+) = uniffi.gemstone.PaymentMerchant(
+    name = name,
+    icon = icon,
+)
+
+fun mockPaymentPrice(
+    currency: String = "",
+    amount: Double = 0.0,
+) = uniffi.gemstone.PaymentPrice(
+    currency = currency,
+    amount = amount,
+)
+
+fun mockPaymentQuote(
+    id: String = "",
+    assetId: String = mockAssetId().toIdentifier(),
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+) = uniffi.gemstone.PaymentQuote(
+    id = id,
+    assetId = assetId,
+    value = value,
+)
+
+fun mockPaymentRequest(
+    address: String = "",
+    amount: uniffi.gemstone.PaymentAmount? = null,
+    memo: String? = null,
+    label: String? = null,
+    references: List<String>? = null,
+    assetId: String? = null,
+) = uniffi.gemstone.PaymentRequest(
+    address = address,
+    amount = amount,
+    memo = memo,
+    label = label,
+    references = references,
+    assetId = assetId,
+)
+
+fun mockSignMessage(
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    signType: uniffi.gemstone.SignDigestType = uniffi.gemstone.SignDigestType.EIP191,
+    data: ByteArray = byteArrayOf(),
+) = uniffi.gemstone.SignMessage(
+    chain = chain,
+    signType = signType,
+    data = data,
 )
 
 fun mockSimulationPayloadField(
@@ -1342,4 +1522,82 @@ fun mockSimulationWarningApproval(
 
 fun mockSimulationWarningType(): uniffi.gemstone.SimulationWarningType = uniffi.gemstone.SimulationWarningType.TokenApproval(mockSimulationWarningApproval())
 
+fun mockSwapData(
+    quote: uniffi.gemstone.SwapQuote = mockSwapQuote(),
+    data: uniffi.gemstone.SwapQuoteData = mockSwapQuoteData(),
+) = uniffi.gemstone.SwapData(
+    quote = quote,
+    data = data,
+)
+
+fun mockSwapProviderData(
+    provider: uniffi.gemstone.SwapProvider = uniffi.gemstone.SwapProvider.UNISWAP_V3,
+    name: String = "",
+    protocolName: String = "",
+) = uniffi.gemstone.SwapProviderData(
+    provider = provider,
+    name = name,
+    protocolName = protocolName,
+)
+
+fun mockSwapQuote(
+    fromAddress: String = "",
+    fromValue: java.math.BigInteger = java.math.BigInteger.ZERO,
+    minFromValue: java.math.BigInteger? = null,
+    toAddress: String = "",
+    toValue: java.math.BigInteger = java.math.BigInteger.ZERO,
+    providerData: uniffi.gemstone.SwapProviderData = mockSwapProviderData(),
+    slippageBps: UInt = 0u,
+    etaInSeconds: UInt? = null,
+    useMaxAmount: Boolean? = null,
+) = uniffi.gemstone.SwapQuote(
+    fromAddress = fromAddress,
+    fromValue = fromValue,
+    minFromValue = minFromValue,
+    toAddress = toAddress,
+    toValue = toValue,
+    providerData = providerData,
+    slippageBps = slippageBps,
+    etaInSeconds = etaInSeconds,
+    useMaxAmount = useMaxAmount,
+)
+
+fun mockSwapQuoteData(
+    to: String = "",
+    dataType: uniffi.gemstone.SwapQuoteDataType = uniffi.gemstone.SwapQuoteDataType.CONTRACT,
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    data: String = "",
+    memo: String? = null,
+    approval: uniffi.gemstone.ApprovalData? = null,
+    gasLimit: String? = null,
+) = uniffi.gemstone.SwapQuoteData(
+    to = to,
+    dataType = dataType,
+    value = value,
+    data = data,
+    memo = memo,
+    approval = approval,
+    gasLimit = gasLimit,
+)
+
 fun mockTransactionInputType(): uniffi.gemstone.TransactionInputType = uniffi.gemstone.TransactionInputType.Transfer(asset = mockAsset().toGem())
+
+fun mockTransferDataExtra(
+    to: String = "",
+    gasLimit: java.math.BigInteger? = null,
+    gasPrice: uniffi.gemstone.GasPriceType? = null,
+    data: ByteArray? = null,
+    outputType: uniffi.gemstone.TransferDataOutputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION,
+    outputAction: uniffi.gemstone.TransferDataOutputAction = uniffi.gemstone.TransferDataOutputAction.SIGN,
+    transactionType: uniffi.gemstone.TransactionType = uniffi.gemstone.TransactionType.TRANSFER,
+    approval: uniffi.gemstone.ApprovalData? = null,
+) = uniffi.gemstone.TransferDataExtra(
+    to = to,
+    gasLimit = gasLimit,
+    gasPrice = gasPrice,
+    data = data,
+    outputType = outputType,
+    outputAction = outputAction,
+    transactionType = transactionType,
+    approval = approval,
+)

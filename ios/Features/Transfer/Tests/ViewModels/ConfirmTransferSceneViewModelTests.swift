@@ -43,9 +43,9 @@ import Testing
 struct ConfirmTransferSceneViewModelTests {
     @Test
     func selectingAnotherPaymentAssetReloadsWithIt() async {
-        let invoice = PaymentInvoice.mock(quotes: [
-            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
-            .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)),
+        let invoice = PaymentInvoice.mock(link: .walletConnectPay(paymentId: "pay_123"), merchant: .mock(name: "Merchant", icon: "https://example.com/icon.png"), price: .mock(currency: "USD", amount: 0.30), quotes: [
+            .mock(id: "option-ethereum", assetId: "ethereum", value: 1_000_000_000_000_000),
+            .mock(id: "option-smartchain", assetId: "smartchain", value: 1_000_000_000_000_000),
         ])
         let bnb = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let confirmation = GemConfirmationMock(
@@ -81,13 +81,25 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func gatedPaymentAssetReplacesTheFeeRowAndOpensTheForm() async {
         let invoice = PaymentInvoice.mock(
-            quotes: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)), .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))],
+            link: .walletConnectPay(paymentId: "pay_123"),
+            merchant: .mock(name: "Merchant", icon: "https://example.com/icon.png"),
+            price: .mock(currency: "USD", amount: 0.30),
+            quotes: [.mock(id: "option-ethereum", assetId: "ethereum", value: 1_000_000_000_000_000), .mock(id: "option-smartchain", assetId: "smartchain", value: 1_000_000_000_000_000)],
             verification: PaymentVerification(url: "https://walletconnect.com/collect"),
         )
         let gated = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let confirmation = GemConfirmationMock(state: .mock(fee: nil), load: .success(.mock(transfer: gated, fee: nil)))
         let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), invoice: .mock(), extra: .mock(data: Data("transaction".utf8)))),
+            data: .mock(inputType: .payment(
+                asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(),
+                invoice: .mock(
+                    link: .walletConnectPay(paymentId: "pay_123"),
+                    merchant: .mock(name: "Merchant", icon: "https://example.com/icon.png"),
+                    price: .mock(currency: "USD", amount: 0.30),
+                    quotes: [.mock(id: "option-ethereum", assetId: "ethereum", value: 1_000_000_000_000_000)],
+                ),
+                extra: .mock(data: Data("transaction".utf8)),
+            )),
             confirmation: confirmation,
         )
 
@@ -109,9 +121,9 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func failedPaymentAssetSwitchShowsTheErrorOnTheAssetItBelongsTo() async {
-        let invoice = PaymentInvoice.mock(quotes: [
-            .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)),
-            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
+        let invoice = PaymentInvoice.mock(link: .walletConnectPay(paymentId: "pay_123"), merchant: .mock(name: "Merchant", icon: "https://example.com/icon.png"), price: .mock(currency: "USD", amount: 0.30), quotes: [
+            .mock(id: "option-smartchain", assetId: "smartchain", value: 1_000_000_000_000_000),
+            .mock(id: "option-ethereum", assetId: "ethereum", value: 1_000_000_000_000_000),
         ])
         let shown = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let picked = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
@@ -137,7 +149,12 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func selectingTheSamePaymentAssetOnlyClosesTheSheet() async {
-        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))])
+        let invoice = PaymentInvoice.mock(
+            link: .walletConnectPay(paymentId: "pay_123"),
+            merchant: .mock(name: "Merchant", icon: "https://example.com/icon.png"),
+            price: .mock(currency: "USD", amount: 0.30),
+            quotes: [.mock(id: "option-smartchain", assetId: "smartchain", value: 1_000_000_000_000_000)],
+        )
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .payment(
             asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(),
             invoice: invoice,

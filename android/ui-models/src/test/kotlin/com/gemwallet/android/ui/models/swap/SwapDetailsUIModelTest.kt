@@ -3,20 +3,24 @@ package com.gemwallet.android.ui.models.swap
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.text
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetPriceValue
+import com.gemwallet.android.testkit.mockSwapProviderData
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.SwapProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.swapQuoteDetails
+import java.math.BigInteger
 
 class SwapDetailsUIModelTest {
 
@@ -78,7 +82,15 @@ class SwapDetailsUIModelTest {
     }
 
     private fun swapDetails(fromValue: String = DEFAULT_FROM_VALUE, toValue: String, isProviderSelectable: Boolean = false, pay: AssetPriceValue = payAsset, receive: AssetPriceValue = receiveAsset): SwapDetailsUIModel? = swapQuoteDetails(
-        mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = DEFAULT_SLIPPAGE_BPS),
+        mockSwapQuote(
+            fromAddress = mockAccount().address,
+            fromValue = fromValue.toBigInteger(),
+            toAddress = mockAccount().address,
+            toValue = toValue.toBigInteger(),
+            providerData = mockSwapProviderData(provider = SwapProvider.Hyperliquid.toGem(), name = SwapProvider.Hyperliquid.string, protocolName = SwapProvider.Hyperliquid.string),
+            slippageBps = DEFAULT_SLIPPAGE_BPS,
+            useMaxAmount = false,
+        ),
         pay.asset.toGem(),
         receive.asset.toGem(),
         pay.price?.price?.price,

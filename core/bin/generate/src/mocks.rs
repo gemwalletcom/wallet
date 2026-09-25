@@ -26,6 +26,7 @@ pub(crate) struct MockSyntax {
     app_types: &'static [(&'static str, &'static str, &'static str)],
     app_type_imports: &'static [(&'static str, &'static str)],
     core_qualifier: &'static str,
+    core_error_suffix: &'static str,
     core_types: &'static [(&'static str, &'static str, &'static str)],
     core_bytes: (&'static str, &'static str),
     core_identifiers: &'static [(&'static str, &'static str)],
@@ -81,6 +82,7 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
     ],
     app_type_imports: &[],
     core_qualifier: "Gemstone.",
+    core_error_suffix: "Error",
     core_types: &[
         ("String", "String", "\"\""),
         ("bool", "Bool", "false"),
@@ -160,6 +162,7 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     ],
     app_type_imports: &[("DateTime<Utc>", "SerializedDate"), ("serde_json::Value", "JsonValue"), ("BigIntValue", "SerializedBigInteger")],
     core_qualifier: "uniffi.gemstone.",
+    core_error_suffix: "Exception",
     core_types: &[
         ("String", "String", "\"\""),
         ("bool", "Boolean", "false"),
@@ -401,9 +404,12 @@ impl Generator {
                 if let Some((_, core, _)) = syntax.core_types.iter().find(|(rust, ..)| *rust == name) {
                     return core.to_string();
                 }
-                match self.config.identifiers.iter().chain(&self.config.codes).any(|identifier| identifier == name) {
-                    true => "String".to_string(),
-                    false => format!("{}{}", syntax.core_qualifier, uniffi_type_name(name)),
+                if self.config.identifiers.iter().chain(&self.config.codes).any(|identifier| identifier == name) {
+                    return "String".to_string();
+                }
+                match name.strip_suffix("Error").filter(|_| !self.core_types.contains_key(name)) {
+                    Some(stem) => format!("{}{}{}", syntax.core_qualifier, uniffi_type_name(stem), syntax.core_error_suffix),
+                    None => format!("{}{}", syntax.core_qualifier, uniffi_type_name(name)),
                 }
             }
         }

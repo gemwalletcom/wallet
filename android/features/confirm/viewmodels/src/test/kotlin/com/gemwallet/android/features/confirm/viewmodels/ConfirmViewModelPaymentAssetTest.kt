@@ -21,6 +21,8 @@ import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPaymentInvoice
+import com.gemwallet.android.testkit.mockPaymentMerchant
+import com.gemwallet.android.testkit.mockPaymentQuote
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.gemwallet.android.testkit.mockWallet
@@ -29,6 +31,9 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
+import com.wallet.core.primitives.TransferDataOutputType
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -59,6 +64,7 @@ import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PaymentLink
 import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
@@ -149,7 +155,17 @@ class ConfirmViewModelPaymentAssetTest {
     }
 
     private fun payment(asset: Asset) = mockGemTransferData(
-        inputType = TransactionInputType.Payment(asset = asset.toGem(), invoice = mockPaymentInvoice(quotes = listOf(ethereum, usdt)), extra = mockTransferDataExtra()),
+        inputType = TransactionInputType.Payment(
+            asset = asset.toGem(),
+            invoice = mockPaymentInvoice(
+                link = PaymentLink.SolanaPay("https://example.com/pay"),
+                merchant = mockPaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
+                quotes = listOf(ethereum, usdt).map {
+                    mockPaymentQuote(id = it.id.toIdentifier(), assetId = it.id.toIdentifier(), value = java.math.BigInteger.ONE)
+                },
+            ),
+            extra = mockTransferDataExtra(to = "recipient", outputType = TransferDataOutputType.EncodedTransaction.toGem(), outputAction = TransferDataOutputAction.Send.toGem(), transactionType = TransactionType.Transfer.toGem()),
+        ),
         recipient = GemRecipient(address = "recipient"),
         value = BigInteger.ONE,
     )

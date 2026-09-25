@@ -5,12 +5,13 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnectionSession
 import uniffi.gemstone.GemWalletConnectMessageRequest
+import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 
 fun mockGemWalletConnectMessageRequest(
     wallet: Wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))),
     session: WalletConnectionSession = mockWalletConnectionSession(),
-    message: SignMessage = mockSignMessage(),
+    message: SignMessage = mockSignMessage(chain = Chain.Ethereum.string, signType = SignDigestType.EIP191, data = "Sign in".toByteArray()),
 ) = GemWalletConnectMessageRequest(
     sessionId = session.sessionId,
     chain = Chain.Ethereum.string,
