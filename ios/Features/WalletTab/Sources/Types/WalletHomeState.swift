@@ -8,5 +8,5 @@ struct WalletHomeState {
     let header: WalletHeaderViewModel
     let showPerpetuals: Bool
     let showCollections: Bool
-    let visibleBanners: [GemBannerRow]
+    let banner: GemBannerRow?
 }

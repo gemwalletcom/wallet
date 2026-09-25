@@ -158,7 +158,7 @@ class AssetDetailsViewModel @Inject constructor(
                 feeBalanceMetadata = chainInfo.feeAssetInfo.balance.metadata?.toGem(),
             ),
         )
-        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = details.visibleBanners)
+        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details)
     }
 
     fun refresh() {

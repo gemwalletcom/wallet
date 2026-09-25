@@ -20,7 +20,7 @@ public extension GemWalletHomeViewState {
             headerActions: headerActions,
             showCollections: false,
             showsPerpetuals: false,
-            visibleBanners: [],
+            banner: nil,
         )
     }
 }

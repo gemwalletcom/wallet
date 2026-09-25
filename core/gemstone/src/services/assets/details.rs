@@ -157,7 +157,7 @@ impl GemAssetDetailsService {
             balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
             fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),
             state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
-            visible_banners,
+            banner: visible_banners.into_iter().next(),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
                 asset: &asset,

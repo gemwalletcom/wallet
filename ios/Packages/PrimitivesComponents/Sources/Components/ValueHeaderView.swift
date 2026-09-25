@@ -214,7 +214,7 @@ public struct ValueHeaderView: View {
         headerActions: .buttons(buttons: []),
         showCollections: false,
         showsPerpetuals: false,
-        visibleBanners: [],
+        banner: nil,
     ))
 
     ValueHeaderView(

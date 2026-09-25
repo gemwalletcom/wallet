@@ -614,7 +614,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
-    pub visible_banners: Vec<GemBannerRow>,
+    pub banner: Option<GemBannerRow>,
     pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,

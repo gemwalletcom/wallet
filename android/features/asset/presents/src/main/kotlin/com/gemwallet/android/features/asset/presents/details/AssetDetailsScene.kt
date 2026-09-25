@@ -92,10 +92,11 @@ internal fun AssetDetailsScene(
                         onSwap = swapAction,
                     )
                 }
-                if (detailsState.showsBanners) {
+                val banner = uiState.banner
+                if (detailsState.showsBanners && banner != null) {
                     item {
                         BannerItem(
-                            banners = uiState.banners,
+                            banner = banner,
                             onStake = { onAction(AssetDetailsAction.Stake(uiState.asset.id)) },
                             onActivate = { onAction(AssetDetailsAction.Confirm(ConfirmTransferInput(it))) },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },

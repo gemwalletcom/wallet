@@ -42,7 +42,7 @@ import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.components.AssetsHead
 import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
-import com.gemwallet.android.features.banner.views.BannersScene
+import com.gemwallet.android.features.banner.views.BannerScene
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
@@ -78,7 +78,7 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
-    val bannerRows by viewModel.bannerRows.collectAsStateWithLifecycle()
+    val bannerRow by viewModel.bannerRow.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
@@ -146,23 +146,25 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                 item(key = InAppUpdateBannerItemKey) {
                     InAppUpdateBanner()
                 }
-                item(key = BannersItemKey) {
-                    BannersScene(
-                        banners = bannerRows,
-                        onSelect = { destination ->
-                            when (destination) {
-                                is GemBannerDestination.Url -> uriHandler.open(context, destination.url)
+                bannerRow?.let { banner ->
+                    item(key = BannersItemKey) {
+                        BannerScene(
+                            banner = banner,
+                            onSelect = { destination ->
+                                when (destination) {
+                                    is GemBannerDestination.Url -> uriHandler.open(context, destination.url)
 
-                                GemBannerDestination.Stake,
-                                GemBannerDestination.Perpetuals,
-                                is GemBannerDestination.ActivateAsset,
-                                -> Unit
-                            }
-                        },
-                        onClose = viewModel::closeBanner,
-                        onBuy = { onAction(AssetsAction.Buy) },
-                        onReceive = { onAction(AssetsAction.Receive) },
-                    )
+                                    GemBannerDestination.Stake,
+                                    GemBannerDestination.Perpetuals,
+                                    is GemBannerDestination.ActivateAsset,
+                                    -> Unit
+                                }
+                            },
+                            onClose = viewModel::closeBanner,
+                            onBuy = { onAction(AssetsAction.Buy) },
+                            onReceive = { onAction(AssetsAction.Receive) },
+                        )
+                    }
                 }
                 if (importing) {
                     item(key = ImportingItemKey) {

@@ -130,7 +130,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             header: WalletHeaderViewModel(state: viewState),
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
-            visibleBanners: viewState.visibleBanners,
+            banner: viewState.banner,
         )
     }
 }

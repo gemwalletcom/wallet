@@ -33,7 +33,7 @@ public struct AssetScene: View {
             }
             .cleanListRow()
 
-            if details.state.showsBanners, let banner = details.visibleBanners.first {
+            if details.state.showsBanners, let banner = details.banner {
                 Section {
                     BannerView(
                         model: BannerViewModel(row: banner),

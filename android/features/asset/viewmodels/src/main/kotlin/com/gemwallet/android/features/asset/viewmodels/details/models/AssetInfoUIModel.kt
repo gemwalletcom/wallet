@@ -14,7 +14,7 @@ class AssetInfoUIModel(
     val details: GemAssetDetails,
     val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
     val emptyTransactions: EmptyTransactionsUIModel = EmptyTransactionsUIModel(showsBuy = false, showsSwap = false),
-    val banners: List<BannerRowUIModel>,
+    val banner: BannerRowUIModel?,
     val sections: List<SectionUIModel> = emptyList(),
 ) {
 

@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+1. **Settled differences:** D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -37,7 +37,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM172 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM167, BD64 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
@@ -117,11 +117,6 @@ The same product rule written in both apps, or in one app while the other reads 
 - **VM171** **S** **The validator picker takes `GemStakeValidatorSelection` with explorer links.** `stake_validator_selection` ([`stake/mod.rs`](../core/gemstone/src/services/stake/mod.rs)) fills `explorer` on its rows, and the single-row `validator_row` export goes.
   - **iOS:** turns the selection's `GemValidatorRow`s back into `DelegationValidator`s (`AmountStakeViewModel.swift:55`, `AmountNavigationView.swift:59-60`), then re-crosses `validatorRows` with a `validator_row` fallback and rebuilds the Recommended and Active sections (`ValidatorSelectSceneViewModel.swift:35-55,83-85`), because the selection rows lack the explorer link. Delete `rowsById`, `recommendedValidators` and the round trip.
   - **Android:** maps the selection directly (`ValidatorsUIModel.kt`); `ValidatorRowUIModel` copies five row fields and `Double.aprText()` repeats Core's APR rule for previews only (`ValidatorRowUIModel.kt:8-18`). Hold the row.
-- **D74** **S** **How many banners a screen shows.** Core orders `visible_banners` by state and event priority ([`banner/rules.rs`](../core/gemstone/src/services/banner/rules.rs)) and hands back the whole list, so how many a screen shows is decided twice.
-  - **iOS:** shows only `visibleBanners.first` (`WalletScene.swift:50`, `AssetScene.swift:36`).
-  - **Android:** pages through every visible banner in a `HorizontalPager` (`BannersScene.kt:44-67`).
-  - **Expected:** iOS: one banner. Core returns the one row, and Android's pager goes.
-
 ## 4. Numbers and text the apps still format
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.

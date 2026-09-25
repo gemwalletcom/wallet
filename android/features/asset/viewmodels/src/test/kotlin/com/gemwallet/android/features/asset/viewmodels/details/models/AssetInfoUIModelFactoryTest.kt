@@ -141,6 +141,5 @@ class AssetInfoUIModelFactoryTest {
     ) = AssetInfoUIModelFactory(context).create(
         mockChainAssetInfo(assetInfo),
         mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true), sections, fiatValue, balanceValue),
-        banners = emptyList(),
     )
 }

@@ -251,7 +251,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
             headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
             showCollections: false,
             showsPerpetuals: false,
-            visibleBanners: [],
+            banner: nil,
         )
     }
 
