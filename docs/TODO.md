@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD61, BD62, BD63, BD64, BD56, AUD50.
+1. **Settled differences:** BD62, BD63, BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -48,7 +48,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM168, VM170, BD63 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50, VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
-| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169, BD61 |
+| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
@@ -197,10 +197,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### iOS and Android differ
 
-- **BD61** **S** **The Buy screen balance.**
-  - **iOS:** formats with a hard-coded US locale (`ValueFormatter(locale: .US, style: .auto)`) and hides a zero balance (`FiatSceneViewModel.swift:42,179-184`).
-  - **Android:** uses Core `asset_list_row` (short style, available scope, the device locale) and shows zero (`FiatViewModel.kt:102-111`).
-  - **Expected:** both use Core's `asset_list_row` (the device locale; a zero balance shows).
 - **BD62** **S** **A refresh failure on an NFT list that holds only unverified collections.**
   - **iOS:** counts the unverified row as content, so no error row shows (`CollectionsViewModel.swift`, `hasRows: !content.isEmpty`).
   - **Android:** counts only items and shows the error row (`NftListViewModels.kt`).

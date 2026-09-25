@@ -88,6 +88,16 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
+    func aZeroBalanceShows() {
+        let asset = Asset.mockTron()
+        let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
+
+        model.assetQuery.value = .mock(asset: asset, balance: .zero)
+
+        #expect(model.assetBalance == "0 TRX")
+    }
+
+    @Test
     func theTypePickerShowsWhenSellIsEnabledWithZeroBalance() {
         let model = FiatSceneViewModel.mock()
 

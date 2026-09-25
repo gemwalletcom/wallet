@@ -4,7 +4,10 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import func Gemstone.assetListRow
 import enum Gemstone.FiatProviderName
+import struct Gemstone.GemAssetBalance
+import struct Gemstone.GemAssetListRowInput
 import enum Gemstone.GemFiatAmountCheck
 import struct Gemstone.GemFiatQuoteRow
 import protocol Gemstone.GemFiatQuoteServiceProtocol
@@ -12,6 +15,7 @@ import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
+import enum Gemstone.GemSelectAssetType
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
@@ -31,7 +35,6 @@ public final class FiatSceneViewModel {
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
     private let locale: Locale
-    private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
 
     public let priceUsdQuery: ObservableQuery<PriceUsdRequest>
     public let assetQuery: ObservableQuery<AssetRequest>
@@ -168,11 +171,16 @@ public final class FiatSceneViewModel {
         service.suggestedAmounts()
     }
 
-    var assetBalance: String? {
-        guard !assetData.balance.available.isZero else {
-            return nil
-        }
-        return valueFormatter.string(assetData.balance.available, asset: asset)
+    var assetBalance: String {
+        assetListRow(input: GemAssetListRowInput(
+            asset: asset.toGem(),
+            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
+            scope: .available,
+            price: nil,
+            change: nil,
+            currency: GemConstants.fiatQuoteCurrency.toGem(),
+            style: GemSelectAssetType.buy.flow().rowStyle,
+        )).amount.text()
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {
