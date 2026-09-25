@@ -40,4 +40,35 @@ struct LocalKeystorePasswordTests {
         #expect(try keystorePassword.getPassword() == "secret")
         #expect(try keystorePassword.getAuthentication() == .passcode)
     }
+
+    @Test
+    func creationKeepsThePasswordAnotherWriterStoredFirst() throws {
+        let storage = KeychainStorage()
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        try keystorePassword.setPassword("first", authentication: .none)
+
+        #expect(try keystorePassword.createPassword("second", authentication: .none) == "first")
+        #expect(try keystorePassword.getPassword() == "first")
+    }
+
+    @Test
+    func creationReplacesAnEmptyLegacyPassword() throws {
+        let storage = KeychainStorage()
+        storage.set(Data(), key: "password", accessibility: .afterFirstUnlock)
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        #expect(try keystorePassword.createPassword("new", authentication: .passcode) == "new")
+        #expect(try keystorePassword.getPassword() == "new")
+        #expect(try keystorePassword.getAuthentication() == .passcode)
+    }
+
+    @Test
+    func creationStoresAnAbsentPassword() throws {
+        let storage = KeychainStorage()
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        #expect(try keystorePassword.createPassword("new", authentication: .none) == "new")
+        #expect(try keystorePassword.getPassword() == "new")
+        #expect(throws: KeystoreError.self) { try keystorePassword.createPassword("", authentication: .none) }
+    }
 }

@@ -125,7 +125,7 @@ Android:
 - The shared password may be created only while importing the first stored wallet.
 - WalletCore v3 migration and v4 APIs pass decoded raw bytes.
 
-Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy compatibility. On iOS an empty password is never written; an authentication policy chosen before any password exists is stored alone and applied when the first password is created (`LocalKeystorePasswordTests`).
+Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy compatibility. On iOS an empty password is never written; an authentication policy chosen before any password exists is stored alone and applied when the first password is created. Creation is add-only and serialized process-wide: when another writer stored a password first, that value is re-read and kept (`LocalKeystorePasswordTests`).
 
 ## Keystore-Internal Signing
 

@@ -37,6 +37,14 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         passwordAuthentication = authentication
     }
 
+    public func createPassword(_ password: String, authentication: KeystoreAuthentication) throws -> String {
+        if memoryPassword.isNotEmpty {
+            return memoryPassword
+        }
+        try setPassword(password, authentication: authentication)
+        return password
+    }
+
     public func getPassword() throws -> String {
         getPasswordCallsCount += 1
         return memoryPassword

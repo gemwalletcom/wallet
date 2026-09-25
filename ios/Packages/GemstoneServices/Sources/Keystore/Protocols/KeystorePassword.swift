@@ -7,6 +7,7 @@ import Primitives
 
 public protocol KeystorePassword: Sendable {
     func setPassword(_ password: String, authentication: KeystoreAuthentication) throws
+    func createPassword(_ password: String, authentication: KeystoreAuthentication) throws -> String
     func getPassword() throws -> String
     func getAuthentication() throws -> KeystoreAuthentication
     func getAvailableAuthentication() -> KeystoreAuthentication
