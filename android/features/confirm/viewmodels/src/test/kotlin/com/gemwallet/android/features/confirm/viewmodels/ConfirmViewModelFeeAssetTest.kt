@@ -90,7 +90,7 @@ class ConfirmViewModelFeeAssetTest {
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
-        every { confirmation.header() } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(ethereum.toGem()))
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(ethereum.toGem()))
         coEvery { confirmation.state() } returns mockGemConfirmLoad(ethereum)
         coEvery { confirmation.load(any()) } answers {
             val options = firstArg<GemConfirmLoadOptions>()

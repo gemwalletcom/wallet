@@ -4,10 +4,10 @@ use chrono::Utc;
 use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetId, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
 
-use super::model::{GemConfirmLoad, GemSimulationValue, GemTransferAmountResult};
+use super::model::{GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemSimulationValue, GemTransferAmountResult};
 use super::rules;
 use crate::config::image::GemImage;
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::perpetual::GemPerpetual;
 use crate::services::transactions::model::{GemAmountSign, GemTransactionAmount, GemTransactionHeader, GemTransactionHeaderKind};
 use crate::services::transfer::model::GemTransferData;
@@ -16,11 +16,12 @@ use crate::services::transfer::model::GemTransferData;
 #[allow(clippy::large_enum_variant)]
 pub enum GemConfirmHeader {
     Placeholder { asset_id: AssetId },
+    Reserved { header: GemTransactionHeader },
     Value { value: GemSimulationValue },
     Transaction { header: GemTransactionHeader },
 }
 
-pub fn header(transfer: &GemTransferData, requested: Option<&SimulationResult>, load: Option<&GemConfirmLoad>, currency: Currency) -> GemConfirmHeader {
+pub fn header(transfer: &GemTransferData, requested: Option<&SimulationResult>, load: Option<&GemConfirmLoad>, currency: Currency, screen: &GemConfirmScreen) -> GemConfirmHeader {
     if let Some(value) = load.and_then(|load| load.simulation.simulation.as_ref()).and_then(|simulation| simulation.header.clone()) {
         return GemConfirmHeader::Value { value };
     }
@@ -35,9 +36,15 @@ pub fn header(transfer: &GemTransferData, requested: Option<&SimulationResult>, 
     if let (TransactionInputType::Generic { .. }, Some(header)) = (&transfer.input_type, requested.and_then(|result| result.valid_header())) {
         return GemConfirmHeader::Placeholder { asset_id: header.asset_id.clone() };
     }
-    GemConfirmHeader::Transaction {
-        header: transaction_header(transfer, load, currency),
+    let header = transaction_header(transfer, load, currency);
+    if screen.phase == GemConfirmPhase::Loading && is_amountless_payment(transfer) {
+        return GemConfirmHeader::Reserved { header };
     }
+    GemConfirmHeader::Transaction { header }
+}
+
+fn is_amountless_payment(transfer: &GemTransferData) -> bool {
+    matches!(transfer.input_type, TransactionInputType::Payment { .. }) && transfer.value == GemBigInt::ZERO
 }
 
 fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, currency: Currency) -> GemTransactionHeader {
@@ -108,14 +115,22 @@ fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransaction
 
 #[cfg(test)]
 mod tests {
-    use primitives::{ApprovalData, NFTAsset};
+    use primitives::{ApprovalData, NFTAsset, PaymentInvoice, TransferDataExtra};
 
+    use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
 
     use super::*;
 
     fn transfer(input_type: TransactionInputType) -> GemTransferData {
         GemTransferData::mock(input_type)
+    }
+
+    fn ready() -> GemConfirmScreen {
+        GemConfirmScreen {
+            phase: GemConfirmPhase::Ready,
+            ..GemConfirmScreen::initial(None)
+        }
     }
 
     #[test]
@@ -134,6 +149,7 @@ mod tests {
             None,
             None,
             Currency::USD,
+            &ready(),
         );
 
         assert_eq!(
@@ -147,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_a_withdrawal_shows_the_asset_it_moves_rather_than_the_one_it_is_priced_in() {
-        let header = header(&transfer(TransactionInputType::Withdrawal { asset: Asset::mock() }), None, None, Currency::USD);
+        let header = header(&transfer(TransactionInputType::Withdrawal { asset: Asset::mock() }), None, None, Currency::USD, &ready());
 
         let GemConfirmHeader::Transaction {
             header: GemTransactionHeader::Amount { amount, .. },
@@ -180,6 +196,7 @@ mod tests {
                 Some(&simulation),
                 None,
                 Currency::USD,
+                &ready(),
             ),
             GemConfirmHeader::Placeholder { asset_id: asset.id },
             "the head keeps its place until the simulation answers"
@@ -195,7 +212,7 @@ mod tests {
 
         let GemConfirmHeader::Transaction {
             header: GemTransactionHeader::Amount { amount, shows_fiat },
-        } = header(&sent, None, None, Currency::USD)
+        } = header(&sent, None, None, Currency::USD, &ready())
         else {
             panic!("a transfer reads as an amount")
         };
@@ -214,6 +231,7 @@ mod tests {
             None,
             None,
             Currency::USD,
+            &ready(),
         );
 
         assert!(matches!(header, GemConfirmHeader::Transaction { header: GemTransactionHeader::Nft { ref asset_id, .. } } if *asset_id == nft.id));
@@ -221,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_a_payment_is_priced_by_its_invoice_in_the_invoice_currency_only() {
-        use primitives::{PaymentInvoice, PaymentPrice, TransferDataExtra};
+        use primitives::PaymentPrice;
         let asset = Asset::mock();
         let payment = GemTransferData {
             value: 250_000u32.into(),
@@ -237,7 +255,7 @@ mod tests {
 
         let GemConfirmHeader::Transaction {
             header: GemTransactionHeader::Amount { amount, shows_fiat: true },
-        } = header(&payment, None, None, Currency::USD)
+        } = header(&payment, None, None, Currency::USD, &ready())
         else {
             panic!("a payment reads as an amount with its fiat");
         };
@@ -246,10 +264,40 @@ mod tests {
 
         let GemConfirmHeader::Transaction {
             header: GemTransactionHeader::Amount { amount, .. },
-        } = header(&payment, None, None, Currency::EUR)
+        } = header(&payment, None, None, Currency::EUR, &ready())
         else {
             panic!("a payment reads as an amount");
         };
         assert_eq!(amount.price, None, "another wallet currency falls back to the market price");
+    }
+
+    #[test]
+    fn test_an_amountless_payment_reserves_its_head_until_the_load_ends() {
+        let payment = GemTransferData {
+            value: GemBigInt::ZERO,
+            ..transfer(TransactionInputType::Payment {
+                asset: Asset::mock(),
+                invoice: PaymentInvoice::mock(),
+                extra: TransferDataExtra::mock(),
+            })
+        };
+        let loading = GemConfirmScreen::initial(None);
+
+        assert!(matches!(header(&payment, None, None, Currency::USD, &loading), GemConfirmHeader::Reserved { .. }));
+        assert!(matches!(header(&payment, None, None, Currency::USD, &ready()), GemConfirmHeader::Transaction { .. }));
+        assert!(
+            matches!(
+                header(&payment, None, None, Currency::USD, &loading.on_load_failed(GemConfirmError::Load { msg: "offline".into() })),
+                GemConfirmHeader::Transaction { .. }
+            ),
+            "a failed load shows the head"
+        );
+        assert!(
+            matches!(
+                header(&transfer(TransactionInputType::Transfer { asset: Asset::mock() }), None, None, Currency::USD, &loading),
+                GemConfirmHeader::Transaction { .. }
+            ),
+            "only an amountless payment waits"
+        );
     }
 }

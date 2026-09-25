@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemConfirmError
 import Localization
 import Primitives
 
 struct ConfirmErrorViewModel {
-    private let error: ConfirmTransferError?
-    private let onSelectListError: (ConfirmTransferError) -> Void
+    private let error: GemConfirmError?
+    private let onSelectListError: (GemConfirmError) -> Void
 
     init(
-        error: ConfirmTransferError?,
-        onSelectListError: @escaping (ConfirmTransferError) -> Void,
+        error: GemConfirmError?,
+        onSelectListError: @escaping (GemConfirmError) -> Void,
     ) {
         self.error = error
         self.onSelectListError = onSelectListError
@@ -24,8 +25,8 @@ extension ConfirmErrorViewModel: ItemModelProvidable {
         guard let error else { return .empty }
         return .error(
             title: Localized.Errors.errorOccurred,
-            error: error.displayError,
-            onInfoAction: error.hasInfoSheet ? { onSelectListError(error) } : nil,
+            error: error,
+            onInfoAction: error.display().hasInfoSheet() ? { onSelectListError(error) } : nil,
         )
     }
 }

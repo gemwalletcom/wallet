@@ -17,7 +17,6 @@ import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
-import enum Gemstone.GemTransferAmountResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
 import GemstonePrimitives
@@ -90,13 +89,6 @@ public final class ConfirmTransferSceneViewModel {
         state.screen.phase == .confirming
     }
 
-    var isHeaderVisible: Bool {
-        guard case .payment = transfer.inputType, transfer.value.isZero else {
-            return true
-        }
-        return state.fee != nil
-    }
-
     var simulationWarnings: [GemListRow] {
         state.simulation.warnings
     }
@@ -165,7 +157,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(header: confirmation.header(), currency: confirmation.currency)
+            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen), currency: confirmation.currency)
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case let .row(index):
@@ -189,7 +181,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             )
         case .error:
             ConfirmErrorViewModel(
-                error: state.transactionError,
+                error: state.loadError,
                 onSelectListError: onSelectListError,
             )
         }
@@ -199,9 +191,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 // MARK: - Business Logic
 
 extension ConfirmTransferSceneViewModel {
-    func onSelectListError(error: ConfirmTransferError) {
-        guard case let .confirm(confirmError) = error,
-              let info = confirmation.errorInfo(error: confirmError) else { return }
+    func onSelectListError(error: GemConfirmError) {
+        guard let info = confirmation.errorInfo(error: error) else { return }
         isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
             for: info,
             onGetAsset: { [weak self] asset, acquire in self?.onSelectGetAsset(asset, acquire: acquire) },
@@ -296,13 +287,8 @@ extension ConfirmTransferSceneViewModel {
 
     private func onStateChange(state: ConfirmTransferState) {
         viewState = confirmation.viewState(screen: state.screen, addressName: state.addressName?.toGem())
-        guard let error = state.transactionError else { return }
-        switch error {
-        case .confirm:
-            onSelectListError(error: error)
-        case .other:
-            break
-        }
+        guard state.screen.presentsSheet(), let error = state.loadError else { return }
+        onSelectListError(error: error)
     }
 
     func changeFeeSelection(_ selection: GemConfirmFeeSelection) {

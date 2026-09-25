@@ -22,10 +22,9 @@ struct ConfirmTransferStateTests {
     }
 
     @Test
-    func loadWithAFeeCarriesTheTransferAmount() {
+    func loadWithAFeeCarriesTheFee() {
         let state = ConfirmTransferState(.mock(fee: .mock()), screen: .mock())
 
         #expect(state.fee != nil)
-        #expect(state.transferAmount != nil)
     }
 }

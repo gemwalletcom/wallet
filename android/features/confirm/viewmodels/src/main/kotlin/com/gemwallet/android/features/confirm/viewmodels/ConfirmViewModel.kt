@@ -173,6 +173,7 @@ class ConfirmViewModel @Inject constructor(
                 val load = session.load(options)
                 emit(load)
                 screen.update { it.onLoaded(load) }
+                isErrorSheetVisible.value = screen.value.presentsSheet()
             } catch (error: CancellationException) {
                 throw error
             } catch (err: Throwable) {
@@ -204,9 +205,6 @@ class ConfirmViewModel @Inject constructor(
 
     val verification = transfer.map { it?.verification() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val isPaymentPlaceholder = transfer.map { it?.inputType is TransactionInputType.Payment && it.value == BigInteger.ZERO }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val simulation = content
         .map { it?.load?.simulation?.toSimulation(context) ?: Simulation() }
@@ -308,7 +306,7 @@ class ConfirmViewModel @Inject constructor(
 
     private fun showError(error: Throwable) {
         screen.update { it.onLoadFailed(error.toConfirmError()) }
-        isErrorSheetVisible.value = error.toConfirmError().display().hasInfoSheet()
+        isErrorSheetVisible.value = screen.value.presentsSheet()
     }
 
     val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset, showsFeeAssets, verification) { fee, asset, showsFeeAssets, verification ->
@@ -328,20 +326,14 @@ class ConfirmViewModel @Inject constructor(
     val executeErrorText: StateFlow<String?> = screen.map { it.failure?.takeIf { failure -> failure.stage == GemConfirmStage.EXECUTE }?.error?.broadcastLabel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val isLoading: StateFlow<Boolean> = screen.map { it.phase == GemConfirmPhase.LOADING }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
     val buttonLabel: StateFlow<String> = button.map { it.kind.label(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, context.getString(R.string.transfer_confirm))
 
     val buttonState: StateFlow<ButtonState> = button.map { it.state.buttonState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
-    val header: StateFlow<ConfirmHeaderUIModel?> = combine(
-        combine(confirmation, load, currency.filterNotNull(), ::Triple),
-        combine(isLoading, isPaymentPlaceholder, ::Pair),
-    ) { (confirmation, _, currency), (loading, isPlaceholder) ->
-        confirmation?.let { confirmHeader(it.header(), loading, isPlaceholder, context, currency) }
+    val header: StateFlow<ConfirmHeaderUIModel?> = combine(confirmation, load, currency.filterNotNull(), screen) { confirmation, _, currency, screen ->
+        confirmation?.let { confirmHeader(it.header(screen), context, currency) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = loadOptions.filterNotNull()
