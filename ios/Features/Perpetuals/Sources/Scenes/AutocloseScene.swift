@@ -20,29 +20,31 @@ public struct AutocloseScene: View {
     }
 
     public var body: some View {
-        List {
-            if let positionItemViewModel = model.positionItemViewModel {
+        let viewState = model.viewState
+        let takeProfitModel = model.takeProfitModel(viewState)
+        return List {
+            if let positionItemViewModel = model.positionItemViewModel(viewState) {
                 Section {
                     ListAssetItemView(model: positionItemViewModel)
                 }
             }
 
             Section {
-                ForEach(model.priceRows, id: \.self) { row in
+                ForEach(viewState.priceRows, id: \.self) { row in
                     GemListRowView(row: row)
                 }
             }
 
             AutocloseInputSection(
                 inputModel: $model.input.takeProfit,
-                sectionModel: model.takeProfitModel,
+                sectionModel: takeProfitModel,
                 field: Field.takeProfit,
                 focusedField: $focusedField,
             )
 
             AutocloseInputSection(
                 inputModel: $model.input.stopLoss,
-                sectionModel: model.stopLossModel,
+                sectionModel: model.stopLossModel(viewState),
                 field: Field.stopLoss,
                 focusedField: $focusedField,
             )
@@ -53,12 +55,12 @@ public struct AutocloseScene: View {
         .safeAreaView {
             InputAccessoryView(
                 isEditing: model.isEditing(field: focusedField),
-                suggestions: model.takeProfitModel.percentSuggestions,
+                suggestions: takeProfitModel.percentSuggestions,
                 onSelect: { model.onSelectPercent($0.value) },
                 onDone: { focusedField = nil },
                 button: StateButton(
                     text: Localized.Transfer.confirm,
-                    type: model.confirmButtonType,
+                    type: model.confirmButtonType(viewState),
                     action: onSelectConfirm,
                 ),
             )

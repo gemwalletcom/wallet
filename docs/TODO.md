@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Derive once:** VM178, VM179.
+1. **Derive once:** VM179.
 2. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 3. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 4. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
@@ -38,8 +38,8 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM178 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM167, VM178, BD64 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM167, BD64 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
@@ -55,11 +55,11 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, BD62 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172, VM178 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | BD59 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM178; retain native locale/theme application |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | BD59; retain Android-only one-click auth |
@@ -173,15 +173,6 @@ The same product rule written in both apps, or in one app while the other reads 
 [A screen derives its record once and passes it down](ARCHITECTURE.md#a-screen-derives-its-record-once-and-passes-it-down). Android gets this from collecting once per emission; on iOS a computed property that calls Core crosses again for every getter the body reads. These are the screens that still cross per getter.
 
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
-- **VM178** **M** **iOS list and settings screens derive once per render.** Each computed property below calls Core again for every getter the body reads; Android derives once per emission. No Core change.
-  - `SelectAssetViewModel` (the manage-tokens list, thousands of rows): `sections` calls `assetSections` over the whole list for each of about ten reads, `listState` twice, `currency` three times.
-  - `NetworkAssetsSceneViewModel`: `networkAssetSections` about ten times per render.
-    - **iOS:** `.task(id: model.assetIds)` re-fetches every balance on the network when a pin changes the order.
-    - **Android:** updates balances once, after the first load (`NetworkAssetsViewModel.kt:90-104`).
-    - **Expected:** fetch on open, as Android does; the order is not an identity.
-  - `AssetPriceAlertsViewModel.assetAlerts` (about ten crossings per render); `AutocloseSceneViewModel.viewState` (six); `SetPriceAlertViewModel.session`, which rebuilds the session chain on every access; `AboutUsViewModel` (the view state once per row); `PerpetualsSceneViewModel` sections (twice); `WalletsSceneViewModel.currentWalletId` (once per wallet row).
-  - `NetworkSelectorViewModel` crosses `getMatchingChains` once per chain while searching (about 100 per render) through `ListSearch`; one call per list, as Android's `SelectFilterChain` makes.
-  - `FiatTransactionsViewModel.sections` runs `fiatTransactionRows` on every body pass (a `MappedRequest` transform instead); `AssetViewModel` computes `assetText` in `init` at eleven sites that read only `assetImage` (use `AssetIdViewModel` there).
 - **VM179** **S** **iOS transfer screens derive once per render.** Android holds these as flows; no Core change.
   - `ConfirmTransferSceneViewModel` crosses Core and the keystore port per render (lands with VM168).
   - `AmountSceneViewModel.input` rebuilds `GemAmountInput` (two FFI calls) on every getter, re-run by eight properties and the body on each keystroke (`:73-137,252-254`), and `AmountEarnViewModel.providerRow` and `AmountPerpetualViewModel`'s autoclose row cross the same way; store `input` beside `entry` in `refreshEntry()`.

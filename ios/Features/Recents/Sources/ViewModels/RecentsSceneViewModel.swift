@@ -24,11 +24,10 @@ public final class RecentsSceneViewModel {
     var searchQuery: String = ""
 
     func listItem(for asset: Asset) -> ListItemModel {
-        let assetModel = AssetViewModel(asset: asset)
-        return ListItemModel(
-            title: assetModel.name,
+        ListItemModel(
+            title: asset.name,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-            imageStyle: .asset(assetImage: assetModel.assetImage),
+            imageStyle: .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage),
         )
     }
 

@@ -30,12 +30,13 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         self.selectedItems = Set(selectedItems)
         self.title = title
         search = ListSearch(
-            filter: filter(chain:query:),
+            filter: filter(chains:query:),
             emptyContent: EmptyContentTypeViewModel(type: EmptyContentType(.searchNetworks)),
         )
     }
 
-    private func filter(chain: Chain, query: String) -> Bool {
-        !GemChainService.shared.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
+    private func filter(chains: [Chain], query: String) -> [Chain] {
+        let matching = Set(GemChainService.shared.getMatchingChains(chains: chains.map(\.rawValue), query: query))
+        return chains.filter { matching.contains($0.rawValue) }
     }
 }

@@ -16,10 +16,10 @@ struct NetworkAssetsSceneViewModelTests {
     func anEmptyNetworkShowsOnlyTheEmptyState() {
         let model = NetworkAssetsSceneViewModel.mock()
 
-        #expect(model.showEmpty)
-        #expect(model.showPinned == false)
-        #expect(model.showUnpinned == false)
-        #expect(model.showHidden == false)
+        #expect(model.groups.sections.showsEmpty)
+        #expect(model.groups.sections.showsPinned == false)
+        #expect(model.groups.sections.showsUnpinned == false)
+        #expect(model.groups.sections.showsHidden == false)
     }
 
     @Test
@@ -27,9 +27,9 @@ struct NetworkAssetsSceneViewModelTests {
         let model = NetworkAssetsSceneViewModel.mock()
         model.activeQuery.value = [.mock(asset: .mockEthereum()), .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
 
-        #expect(model.unpinned.map(\.asset.id) == [Asset.mockEthereumUSDT().id])
-        #expect(model.showUnpinned)
-        #expect(model.showEmpty == false)
+        #expect(model.groups.unpinned.map(\.asset.id) == [Asset.mockEthereumUSDT().id])
+        #expect(model.groups.sections.showsUnpinned)
+        #expect(model.groups.sections.showsEmpty == false)
     }
 
     @Test
@@ -41,10 +41,10 @@ struct NetworkAssetsSceneViewModelTests {
             .mock(asset: .mockSolanaUSDC(), metadata: .mock(isPinned: false)),
         ]
 
-        #expect(model.pinned.count == 1)
-        #expect(model.unpinned.count == 2)
-        #expect(model.showPinned)
-        #expect(model.showUnpinned)
+        #expect(model.groups.pinned.count == 1)
+        #expect(model.groups.unpinned.count == 2)
+        #expect(model.groups.sections.showsPinned)
+        #expect(model.groups.sections.showsUnpinned)
     }
 
     @Test
@@ -52,8 +52,8 @@ struct NetworkAssetsSceneViewModelTests {
         let model = NetworkAssetsSceneViewModel.mock()
         model.hiddenQuery.value = [.mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
 
-        #expect(model.showHidden)
-        #expect(model.showEmpty == false)
+        #expect(model.groups.sections.showsHidden)
+        #expect(model.groups.sections.showsEmpty == false)
         #expect(model.assetIds.count == 1)
     }
 

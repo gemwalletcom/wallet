@@ -59,7 +59,8 @@ struct PerpetualsScene: View {
     }
 
     var list: some View {
-        List {
+        let marketSections = model.marketSectionList
+        return List {
             if !model.isSearching {
                 Section {} header: {
                     ValueHeaderView(
@@ -74,7 +75,7 @@ struct PerpetualsScene: View {
                 .cleanListRow()
             }
 
-            ForEach(model.marketSectionList, id: \.self) { section in
+            ForEach(marketSections, id: \.self) { section in
                 marketSection(section)
             }
         }
@@ -82,7 +83,7 @@ struct PerpetualsScene: View {
             $0.contentMargins([.top], .space12, for: .scrollContent)
         }
         .overlay {
-            if model.showSearchEmptyState {
+            if marketSections.contains(.empty) {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

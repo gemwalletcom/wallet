@@ -84,7 +84,7 @@ public final class SetPriceAlertViewModel {
             .onSaving(isSaving: isSaving)
     }
 
-    var currencyInputConfig: any CurrencyInputConfigurable {
+    func currencyInputConfig(_ viewState: GemPriceAlertViewState) -> any CurrencyInputConfigurable {
         SetPriceAlertCurrencyInputConfig(
             type: state.type,
             alertDirection: state.selectedDirection,

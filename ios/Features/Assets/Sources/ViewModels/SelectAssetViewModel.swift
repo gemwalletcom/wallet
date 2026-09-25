@@ -90,18 +90,6 @@ public final class SelectAssetViewModel {
         AssetsSections.from(assets, showsPopular: flow.popularSection)
     }
 
-    var showPopularSection: Bool {
-        sections.popular.isNotEmpty
-    }
-
-    var showPinnedSection: Bool {
-        sections.pinned.isNotEmpty
-    }
-
-    var showAssetsSection: Bool {
-        sections.assets.isNotEmpty
-    }
-
     var popularImage: Image {
         Images.System.starFill
     }
@@ -126,8 +114,7 @@ public final class SelectAssetViewModel {
         flow.networkSearch
     }
 
-    var listState: GemSelectAssetState {
-        let sections = sections
+    func listState(_ sections: AssetsSections) -> GemSelectAssetState {
         let counts = GemAssetSectionCounts(
             pinned: UInt32(sections.pinned.count),
             popular: UInt32(sections.popular.count),
@@ -136,24 +123,12 @@ public final class SelectAssetViewModel {
         return flow.state(counts: counts, isSearching: state.isLoading)
     }
 
-    var showLoading: Bool {
-        listState == .loading
-    }
-
-    var showEmpty: Bool {
-        listState != .idle
-    }
-
     var showRecents: Bool {
         flow.showsRecents(isSearching: !searchableQuery.isEmpty, hasRecents: recentModel.hasAssets)
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, rowStyle: flow.rowStyle)
-    }
-
-    var currency: Currency {
-        service.getCurrency().toPrimitives()
+        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives(), rowStyle: flow.rowStyle)
     }
 }
 

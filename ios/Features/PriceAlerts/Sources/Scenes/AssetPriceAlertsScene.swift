@@ -16,7 +16,9 @@ public struct AssetPriceAlertsScene: View {
     }
 
     public var body: some View {
-        List {
+        let assetAlerts = model.assetAlerts
+        let alerts = model.alerts(assetAlerts)
+        return List {
             if let error = model.loadError {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
@@ -24,17 +26,17 @@ public struct AssetPriceAlertsScene: View {
             }
 
             Section {
-                Toggle(isOn: model.isAutoAlertEnabledBinding) {
-                    ListAssetItemView(model: model.autoAlertItemModel)
+                Toggle(isOn: model.isAutoAlertEnabledBinding(assetAlerts)) {
+                    ListAssetItemView(model: model.autoAlertItemModel(assetAlerts))
                 }
                 .toggleStyle(AppToggleStyle())
             } footer: {
                 Text(Localized.PriceAlerts.autoFooter)
             }
 
-            if model.alerts.isNotEmpty {
+            if alerts.isNotEmpty {
                 Section {
-                    ForEach(model.alerts) { item in
+                    ForEach(alerts) { item in
                         PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
                     }
                 } header: {
@@ -42,7 +44,7 @@ public struct AssetPriceAlertsScene: View {
                 }
             }
 
-            if model.showsEmpty {
+            if model.showsEmpty(assetAlerts) {
                 EmptyContentView(model: model.emptyContentModel)
                     .cleanListRow()
             }

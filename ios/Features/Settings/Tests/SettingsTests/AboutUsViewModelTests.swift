@@ -17,8 +17,8 @@ struct AboutUsViewModelTests {
     func theSectionsComeFromCore() {
         let model = AboutUsViewModel.mock()
 
-        #expect(model.sections.isNotEmpty)
-        #expect(model.sections.count > 1)
+        #expect(model.viewState.sections.isNotEmpty)
+        #expect(model.viewState.sections.count > 1)
     }
 
     @Test
@@ -56,14 +56,14 @@ struct AboutUsViewModelTests {
         let preferences = ObservablePreferences.mock()
         preferences.isDeveloperEnabled = false
         let model = AboutUsViewModel.mock(preferences: preferences)
-        let offTitle = model.developerToggleTitle
+        let offTitle = model.viewState.developerToggle.text
 
         model.toggleDeveloperMode()
 
         #expect(preferences.isDeveloperEnabled)
-        #expect(model.developerToggleTitle != offTitle)
-        #expect(model.contextMenuItems(for: .text(title: .version, value: "1.0 (1)")).count == 2)
-        #expect(model.contextMenuItems(for: .loading).isEmpty)
+        #expect(model.viewState.developerToggle.text != offTitle)
+        #expect(model.contextMenuItems(for: .text(title: .version, value: "1.0 (1)"), viewState: model.viewState).count == 2)
+        #expect(model.contextMenuItems(for: .loading, viewState: model.viewState).isEmpty)
     }
 
     @Test
@@ -76,7 +76,7 @@ struct AboutUsViewModelTests {
 
 private extension AboutUsViewModel {
     var versionRowValue: String? {
-        sections.flatMap(\.values).map(\.row).compactMap { row in
+        viewState.sections.flatMap(\.rows).compactMap { row in
             switch row {
             case let .text(title, value) where title == .version: value
             default: nil
@@ -85,7 +85,7 @@ private extension AboutUsViewModel {
     }
 
     var updateVersion: String? {
-        sections.flatMap(\.values).map(\.row).compactMap { row in
+        viewState.sections.flatMap(\.rows).compactMap { row in
             switch row {
             case let .url(title, value, _, _, _) where title == .updateApp: value
             default: nil

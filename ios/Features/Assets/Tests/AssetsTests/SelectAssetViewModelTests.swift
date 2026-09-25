@@ -2,6 +2,7 @@
 
 @testable import Assets
 import AssetsTestKit
+import enum Gemstone.GemSelectAssetState
 import enum Gemstone.GemServiceError
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -33,16 +34,16 @@ struct SelectAssetViewModelTests {
 
     @Test
     func showEmpty() {
-        #expect(SelectAssetViewModel.mock(assets: []).showEmpty == true)
-        #expect(SelectAssetViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: true))]).showEmpty == false)
-        #expect(SelectAssetViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: false))]).showEmpty == false)
+        #expect(listState(SelectAssetViewModel.mock(assets: [])) != .idle)
+        #expect(listState(SelectAssetViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: true))])) == .idle)
+        #expect(listState(SelectAssetViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: false))])) == .idle)
     }
 
     @Test
     func showLoading() {
         let pinnedAsset = AssetData.mock(metadata: .mock(isPinned: true))
-        #expect(SelectAssetViewModel.mock(assets: [], state: .loading).showLoading == true)
-        #expect(SelectAssetViewModel.mock(assets: [pinnedAsset], state: .loading).showLoading == false)
+        #expect(listState(SelectAssetViewModel.mock(assets: [], state: .loading)) == .loading)
+        #expect(listState(SelectAssetViewModel.mock(assets: [pinnedAsset], state: .loading)) != .loading)
     }
 
     @Test
@@ -108,5 +109,9 @@ struct SelectAssetViewModelTests {
         await model.setAssetEnabled(assetId: .mock(), enabled: true)
 
         #expect(model.isPresentingToastMessage != nil)
+    }
+
+    private func listState(_ model: SelectAssetViewModel) -> GemSelectAssetState {
+        model.listState(model.sections)
     }
 }

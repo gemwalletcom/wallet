@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemNetworkAssetIds
 import struct Gemstone.GemNetworkAssetSections
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import func Gemstone.networkAssetSections
@@ -57,58 +56,20 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         onManageAssetsAction()
     }
 
-    var currency: Currency {
-        service.getCurrency().toPrimitives()
-    }
-
-    var pinned: [AssetData] {
-        assets(networkIds.pinned)
-    }
-
-    var unpinned: [AssetData] {
-        assets(networkIds.unpinned)
-    }
-
-    var hidden: [AssetData] {
-        assets(networkIds.hidden)
-    }
-
-    var showPinned: Bool {
-        sections.showsPinned
-    }
-
-    var showUnpinned: Bool {
-        sections.showsUnpinned
-    }
-
-    var showHidden: Bool {
-        sections.showsHidden
-    }
-
     var hiddenTitle: String {
         Localized.Common.hidden
     }
 
-    var showEmpty: Bool {
-        sections.showsEmpty
-    }
-
-    private var sections: GemNetworkAssetSections {
-        networkIds.sections
-    }
-
-    private var networkIds: GemNetworkAssetIds {
+    var groups: NetworkAssetGroups {
         let active = activeQuery.value
-        return networkAssetSections(
+        let ids = networkAssetSections(
             active: active.map(\.asset.id.identifier),
             pinned: active.filter(\.metadata.isPinned).map(\.asset.id.identifier),
             hidden: hiddenQuery.value.map(\.asset.id.identifier),
         )
-    }
-
-    private func assets(_ ids: [String]) -> [AssetData] {
-        let byId = Dictionary((activeQuery.value + hiddenQuery.value).map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
-        return ids.compactMap { byId[$0] }
+        let byId = Dictionary((active + hiddenQuery.value).map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
+        let assets = { (assetIds: [String]) in assetIds.compactMap { byId[$0] } }
+        return NetworkAssetGroups(pinned: assets(ids.pinned), unpinned: assets(ids.unpinned), hidden: assets(ids.hidden), sections: ids.sections)
     }
 
     var emptyModel: EmptyContentTypeViewModel {
@@ -116,7 +77,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var assetIds: [AssetId] {
-        (pinned + unpinned + hidden).map(\.asset.id)
+        let groups = groups
+        return (groups.pinned + groups.unpinned + groups.hidden).map(\.asset.id)
     }
 
     func updateBalances() async {
@@ -142,6 +104,13 @@ extension NetworkAssetsSceneViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, rowStyle: service.assetRowStyle())
+        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives(), rowStyle: service.assetRowStyle())
     }
+}
+
+struct NetworkAssetGroups {
+    let pinned: [AssetData]
+    let unpinned: [AssetData]
+    let hidden: [AssetData]
+    let sections: GemNetworkAssetSections
 }

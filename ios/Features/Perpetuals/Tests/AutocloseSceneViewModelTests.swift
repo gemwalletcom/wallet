@@ -27,12 +27,12 @@ struct AutocloseSceneViewModelTests {
     func fieldStates() {
         let model = AutocloseSceneViewModel(type: .mock())
 
-        #expect(model.takeProfitModel.title == "Take profit")
-        #expect(model.stopLossModel.title == "Stop loss")
-        #expect(model.takeProfitModel.profitTitle == "Expected profit")
-        #expect(model.stopLossModel.profitTitle == "Expected loss")
-        #expect(model.takeProfitModel.expectedPnL == "-")
-        #expect(model.takeProfitModel.percentSuggestions.map(\.value) == [15, 25, 50])
+        #expect(model.takeProfitModel(model.viewState).title == "Take profit")
+        #expect(model.stopLossModel(model.viewState).title == "Stop loss")
+        #expect(model.takeProfitModel(model.viewState).profitTitle == "Expected profit")
+        #expect(model.stopLossModel(model.viewState).profitTitle == "Expected loss")
+        #expect(model.takeProfitModel(model.viewState).expectedPnL == "-")
+        #expect(model.takeProfitModel(model.viewState).percentSuggestions.map(\.value) == [15, 25, 50])
     }
 
     @Test
@@ -43,7 +43,7 @@ struct AutocloseSceneViewModelTests {
         model.onSelectPercent(50)
 
         #expect(model.input.takeProfit.text.isNotEmpty)
-        #expect(model.takeProfitModel.expectedPnL != "-")
+        #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
         #expect(model.input.stopLoss.text.isEmpty)
     }
 
@@ -52,8 +52,8 @@ struct AutocloseSceneViewModelTests {
         let model = AutocloseSceneViewModel(type: .mock(data: .mock(takeProfit: "110")))
 
         #expect(model.input.takeProfit.text == "110")
-        #expect(model.takeProfitModel.expectedPnL != "-")
-        #expect(model.confirmButtonType == .primary(.normal))
+        #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
+        #expect(model.confirmButtonType(model.viewState) == .primary(.normal))
     }
 
     @Test
