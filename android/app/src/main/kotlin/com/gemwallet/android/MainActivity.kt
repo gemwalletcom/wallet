@@ -25,7 +25,6 @@ import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.ext.GemConstants
-import com.gemwallet.android.localization.stringRes
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.LocalAddressService
@@ -37,6 +36,7 @@ import com.gemwallet.android.ui.LocalNavigationService
 import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionComponent
 import dagger.hilt.android.AndroidEntryPoint

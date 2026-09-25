@@ -119,8 +119,6 @@ private fun AssetItemSupport(text: String, tone: GemValueTone, extra: Pair<Strin
     }
 }
 
-private fun GemRowText.string(context: Context): String = text.string(context)
-
 @Composable
 fun AssetListItem(
     asset: Asset,

@@ -17,7 +17,6 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transfer_amount.viewmodels.localization.text
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountUiState
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorPickerUIModel
@@ -30,6 +29,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.amountSymbol

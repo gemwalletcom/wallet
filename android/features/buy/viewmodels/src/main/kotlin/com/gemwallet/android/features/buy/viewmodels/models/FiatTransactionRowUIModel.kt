@@ -3,12 +3,12 @@ package com.gemwallet.android.features.buy.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.buy.localization.actionRes
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.iconResource
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.localization.actionRes
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.FiatTransactionAssetData

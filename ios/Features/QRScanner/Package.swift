@@ -17,6 +17,7 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Style", path: "../../Packages/Style"),
+        .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
     ],
     targets: [
         .target(
@@ -26,6 +27,7 @@ let package = Package(
                 "Components",
                 "Localization",
                 "Style",
+                "PrimitivesComponents",
             ],
             path: "Sources",
         ),

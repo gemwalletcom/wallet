@@ -7,12 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
-import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.importWallet
+import com.gemwallet.android.ui.localization.fieldStringRes
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.tabStringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.NameRecordController
 import com.gemwallet.android.ui.style.indicator

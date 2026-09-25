@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
@@ -222,14 +223,6 @@ private fun candleColor(candle: CandleUIModel, up: Color, down: Color, flat: Col
     CandleDirection.Up -> up
     CandleDirection.Down -> down
     CandleDirection.Flat -> flat
-}
-
-@Composable
-private fun GemPerpetualChartLineKind.color(): Color = when (this) {
-    GemPerpetualChartLineKind.ENTRY -> MaterialTheme.colorScheme.outline
-    GemPerpetualChartLineKind.LIQUIDATION -> MaterialTheme.colorScheme.error
-    GemPerpetualChartLineKind.STOP_LOSS -> pendingColor
-    GemPerpetualChartLineKind.TAKE_PROFIT -> MaterialTheme.colorScheme.tertiary
 }
 
 private fun DrawScope.drawYAxis(

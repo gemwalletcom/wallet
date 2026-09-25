@@ -179,7 +179,7 @@ Node selection illustrates this boundary: `GemChainSettingsService.check_node` o
 
 ### No trivial exports
 
-An export earns its place by making a decision. A function that looks up a constant for a variant, or wraps a value the app already holds so the app can ask for it back, is not a decision — it is a second spelling of a `match` the app will write anyway, plus an FFI crossing per call. An icon name per row key and a title per enum case are the two usual forms; both belong on the enum as data the screen record already carries, resolved once in the app's [module mapper](#one-mapper-per-module-names-every-core-key-it-renders).
+An export earns its place by making a decision. A function that looks up a constant for a variant, or wraps a value the app already holds so the app can ask for it back, is not a decision — it is a second spelling of a `match` the app will write anyway, plus an FFI crossing per call. An icon name per row key and a title per enum case are the two usual forms; both belong on the enum as data the screen record already carries, resolved once in the app's [mapper](#one-mapper-per-app-names-every-core-key-it-renders).
 
 The test is what the caller could not have worked out: if the answer depends only on the variant, the variant is the answer and the app maps it. If it depends on state, configuration, a chain rule or several values at once, it is a decision and Core owns it.
 
@@ -511,7 +511,7 @@ Once Core owns the row, the app-side model has nothing left to decide. `GemWalle
 
 Two things a record cannot carry are a localized string and a bundled image asset, and both have one home per platform.
 
-**Every Core case that becomes localized text maps in the module's mapper file** ([one mapper per module](#one-mapper-per-module-names-every-core-key-it-renders)): Core returns the case, the file returns the string. Never push the app's string catalog into Core through a foreign localizer — that trades a maintained translation for an FFI crossing per row. Text Core composes itself, such as a default wallet name, is a `GemLocalizedText` case (`WalletDefaultName { index }`) that the mapper renders like any other.
+**Every Core case that becomes localized text maps in the app's mapper file** ([one mapper per app](#one-mapper-per-app-names-every-core-key-it-renders)): Core returns the case, the file returns the string. Never push the app's string catalog into Core through a foreign localizer — that trades a maintained translation for an FFI crossing per row. Text Core composes itself, such as a default wallet name, is a `GemLocalizedText` case (`WalletDefaultName { index }`) that the mapper renders like any other.
 
 **A Core case that becomes a bundled image maps in the module's style mapper**, beside the colours: `GemEmptyStateImage.image` in iOS `Gemstone+Style.swift` and `GemEmptyStateImage.image()` in Android `style/GemstoneStyle.kt` are that mapping, one place per platform, read by every screen.
 
@@ -873,7 +873,7 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 }
 ```
 
-Those extensions live in the module's [two mapper files](#one-mapper-per-module-names-every-core-key-it-renders), never in one file per type. A number's text never belongs in either — it comes from `GemFormattedNumber.text()`, which both apps already have once.
+Those extensions live in the app's [two mapper files](#one-mapper-per-app-names-every-core-key-it-renders), never in one file per type. A number's text never belongs in either — it comes from `GemFormattedNumber.text()`, which both apps already have once.
 
 ### Keep the crossings few
 
@@ -1138,7 +1138,7 @@ var amountError: (any Error)? {
 // composable
 error = uiState.amountError ?: ""
 
-// the module's localization/GemstoneText.kt, called from the view model: the Core enum stops here
+// ui/localization/GemstoneText.kt, called from the view model: the Core enum stops here
 fun GemFiatViewState.amountErrorText(context: Context): String? = when (val phase = phase) {
     GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
     is GemFiatQuotePhase.Invalid -> phase.check.string(context)
@@ -1151,30 +1151,28 @@ Naming a Core type is not the test; deciding from one is. A view that iterates a
 
 The shapes that close a leak are a row model with an app kind or destination where a view would switch on a Core row key, a model the view model vends where a Core record would pass through to a child view, and a closure typed by the view model where a view would declare a Core-typed callback; navigation payloads are the app's inputs (`ConfirmTransferInput`, `AmountInput`).
 
-What to grep for is a view that interprets a domain answer outside its mapper: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the module's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
+What to grep for is a view that interprets a domain answer outside its mapper: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the app's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
 
 ```
-rg -tkotlin -U 'when \([^)]*\)\s*\{[^}]*(stringResource|R\.string)' android/features --glob '**/presents/**' --glob '!**/localization/**'
+rg -tkotlin -U 'when \([^)]*\)\s*\{[^}]*(stringResource|R\.string)' android/features --glob '**/presents/**'
 ```
 
-and its Swift equivalent over `Sources/Scenes/` and `Sources/Views/`, excluding the module's `Gemstone+Localized.swift`. The pattern also matches switches over app enums; a hit over a Core type is a decision that has to move one layer down, and everything else the type-name grep finds is the contract working.
+and its Swift equivalent over `Sources/Scenes/` and `Sources/Views/`. The pattern also matches switches over app enums; a hit over a Core type is a decision that has to move one layer down, and everything else the type-name grep finds is the contract working.
 
-### One mapper per module names every Core key it renders
+### One mapper per app names every Core key it renders
 
-Every Core value a module turns into an app value goes into one of exactly two files, and a new `SomeGemType+Module.swift` is always the wrong answer:
+Every Core value an app turns into a platform value goes into one of exactly two files per app, and a new `SomeGemType+Module.swift` or a feature-level mapper is always the wrong answer:
 
 | | iOS | Android |
 |---|---|---|
-| Core key → localized text | `Gemstone+Localized.swift` | `localization/GemstoneText.kt` |
-| Core enum → colour, image, or other platform value | `Gemstone+Style.swift` | `style/GemstoneStyle.kt` |
+| Core key → localized text | `PrimitivesComponents/Sources/Extensions/Gemstone+Localized.swift` | `ui/src/main/kotlin/.../ui/localization/GemstoneText.kt` |
+| Core enum → colour, image, or other platform value | `PrimitivesComponents/Sources/Extensions/Gemstone+Style.swift` | `ui/src/main/kotlin/.../ui/style/GemstoneStyle.kt` |
 
-On iOS they usually sit in the module's `Types/` folder (`Sources/Extensions/` in `PrimitivesComponents`); on Android in the `presents` or `viewmodels` module that renders the key, or in `:ui` for the shared ones. A view model, a scene or a composable that maps a key somewhere else has taken the module's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels.
+Every feature already imports `PrimitivesComponents` or depends on `:ui`, so a feature reads the shared mapping and never writes its own; the members are public. One file per app means one Core enum has one mapping per app: a feature that needs a second phrasing of the same key — a tab title and a field label — adds it to that file under a different name, the way Android's `tabStringRes` and `fieldStringRes` do. A view model, a scene or a composable that maps a key somewhere else has taken the app's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels. A service that turns a Core failure into an `Error` is not a presentation mapper and stays with the service (`GemWalletConnectFailure+WalletConnectorService.swift`).
 
-The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` parses each app's `Gemstone+Localized.swift` and `GemstoneText.kt` files into variant → key, resolves both keys to their English text, and fails on every variant the two apps resolve differently. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file.
+The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` reads the two localization files into variant → key, resolves both keys to their English text, fails on every variant the two apps resolve differently, and fails on any other `Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt` or `GemstoneStyle.kt`. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file.
 
-The mapper check compares variants found in both mapper sets; it does not prove coverage or domain parity. `just check-boundaries` is the structural gate (MIG5): a rule joins it when a regex can decide it exactly and stays a review lead when it cannot. Treat a census hit as a review lead and explicitly exempt shared renderers, native ports, DI and legitimate child dependencies.
-
-Two files per module, no exceptions: if a screen needs a second phrasing of the same key — a tab title and a field label — both live in that one file under different names, the way Android's `tabStringRes` and `fieldStringRes` do.
+The mapper check compares variants found in both mapper files; it does not prove coverage or domain parity. `just check-boundaries` is the structural gate (MIG5): a rule joins it when a regex can decide it exactly and stays a review lead when it cannot. Treat a census hit as a review lead and explicitly exempt shared renderers, native ports, DI and legitimate child dependencies.
 
 Chain and asset icons come from Core: `ChainConfig.icon_chain` supplies the chain logo; `GemAssetConfigService::asset_icon` chooses the asset image and badge. An EVM layer 2's native coin uses Ethereum's image only when it is ETH; the family alone does not decide its gas coin.
 

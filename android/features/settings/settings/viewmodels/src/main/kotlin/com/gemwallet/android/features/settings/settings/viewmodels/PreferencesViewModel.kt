@@ -11,10 +11,10 @@ import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.settings.settings.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.settings.viewmodels.models.PerpetualSetting
 import com.gemwallet.android.features.settings.settings.viewmodels.models.value
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext

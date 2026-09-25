@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.perpetual.viewmodels.model
 
 import android.content.Context
-import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
+import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPerpetualButton
 import uniffi.gemstone.GemPerpetualButtonRow

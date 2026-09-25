@@ -2,8 +2,8 @@ package com.gemwallet.android.features.perpetual.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.format.SectionDateFormatter
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod

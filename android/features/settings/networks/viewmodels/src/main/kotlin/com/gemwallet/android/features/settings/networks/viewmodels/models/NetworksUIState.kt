@@ -2,11 +2,11 @@ package com.gemwallet.android.features.settings.networks.viewmodels.models
 
 import android.content.Context
 import androidx.annotation.StringRes
-import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
-import com.gemwallet.android.features.settings.networks.viewmodels.localization.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.listItemModel
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeRow

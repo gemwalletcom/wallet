@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import androidx.annotation.StringRes
-import com.gemwallet.android.features.asset.viewmodels.localization.toastRes
-import com.gemwallet.android.features.asset.viewmodels.style.symbol
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.localization.toastRes
+import com.gemwallet.android.ui.style.symbol
 import uniffi.gemstone.GemAssetEmptyAction
 import uniffi.gemstone.GemPriceAlertToggle
 

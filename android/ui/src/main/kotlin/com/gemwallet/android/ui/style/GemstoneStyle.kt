@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.SwapProgressMarkerUIModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Emoji
 import com.gemwallet.android.ui.theme.pendingColor
@@ -35,6 +36,10 @@ import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoImage
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNoticeKind
+import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
@@ -247,3 +252,37 @@ val GemInfoImage.placeholder: String?
         is GemInfoImage.TransactionState -> icon.placeholder
         GemInfoImage.Logo, GemInfoImage.NetworkFee, GemInfoImage.WatchWallet, is GemInfoImage.AssetStatus, is GemInfoImage.SwapProvider -> null
     }
+
+fun GemSwapProgressMarker.markerUIModel(): SwapProgressMarkerUIModel = when (this) {
+    GemSwapProgressMarker.CHECK -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Check)
+    GemSwapProgressMarker.CROSS -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Close)
+    GemSwapProgressMarker.SWAP -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Swap)
+    GemSwapProgressMarker.SPINNER -> SwapProgressMarkerUIModel.Spinner
+    GemSwapProgressMarker.DOTS -> SwapProgressMarkerUIModel.Dots
+}
+
+fun GemPriceAlertToggle.symbol(): ListItemSymbol = when (this) {
+    GemPriceAlertToggle.ENABLED -> ListItemSymbol.Notifications
+    GemPriceAlertToggle.DISABLED -> ListItemSymbol.NotificationsOutlined
+}
+
+fun GemSecurityReminderItem.emoji(): String = when (this) {
+    GemSecurityReminderItem.KEEP_SAFE -> Emoji.lock
+    GemSecurityReminderItem.DO_NOT_SHARE -> Emoji.warning
+    GemSecurityReminderItem.NO_RECOVERY -> Emoji.gem
+}
+
+@Composable
+fun GemPerpetualChartLineKind.color(): Color = when (this) {
+    GemPerpetualChartLineKind.ENTRY -> MaterialTheme.colorScheme.outline
+    GemPerpetualChartLineKind.LIQUIDATION -> MaterialTheme.colorScheme.error
+    GemPerpetualChartLineKind.STOP_LOSS -> pendingColor
+    GemPerpetualChartLineKind.TAKE_PROFIT -> MaterialTheme.colorScheme.tertiary
+}
+
+@Composable
+fun GemValueTone.buttonColor(): Color = when (this) {
+    GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
+    GemValueTone.PLAIN, GemValueTone.NEUTRAL, GemValueTone.WARNING -> MaterialTheme.colorScheme.primary
+}

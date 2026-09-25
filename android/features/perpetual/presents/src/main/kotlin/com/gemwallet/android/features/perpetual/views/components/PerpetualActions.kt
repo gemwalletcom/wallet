@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.style.buttonColor
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemPerpetualButton
@@ -34,13 +35,6 @@ internal fun PerpetualActions(buttons: List<PerpetualButtonUIModel>, onSelect: (
             }
         }
     }
-}
-
-@Composable
-private fun GemValueTone.buttonColor(): Color = when (this) {
-    GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
-    GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
-    GemValueTone.PLAIN, GemValueTone.NEUTRAL, GemValueTone.WARNING -> MaterialTheme.colorScheme.primary
 }
 
 @Preview

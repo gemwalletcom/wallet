@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.settings.viewmodels.PreferencesViewModel
-import com.gemwallet.android.features.settings.settings.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.settings.viewmodels.models.PreferencesRowAction
 import com.gemwallet.android.features.settings.settings.viewmodels.models.of
 import com.gemwallet.android.features.settings.settings.viewmodels.models.opensPicker
@@ -40,6 +39,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.theme.Spacer4

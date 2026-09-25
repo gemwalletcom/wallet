@@ -35,7 +35,6 @@ import com.gemwallet.android.features.confirm.presents.components.AddressRow
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
-import com.gemwallet.android.features.confirm.presents.localization.string
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel

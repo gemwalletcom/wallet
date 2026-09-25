@@ -36,11 +36,6 @@ public enum InfoSheetButton: Sendable {
     }
 }
 
-public enum InfoSheetImage: Sendable {
-    case image(Image)
-    case assetImage(AssetImage)
-}
-
 public struct InfoSheetModel: Sendable {
     public let title: String
     public let description: String

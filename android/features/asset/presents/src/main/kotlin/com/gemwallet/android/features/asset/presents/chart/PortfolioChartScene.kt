@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
@@ -34,6 +33,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.PortfolioType
 import uniffi.gemstone.PortfolioChartType

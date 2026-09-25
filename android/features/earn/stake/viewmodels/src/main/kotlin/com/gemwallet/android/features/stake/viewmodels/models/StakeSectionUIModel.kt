@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.stake.viewmodels.models
 
 import android.content.Context
-import com.gemwallet.android.features.stake.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.components.list_item.DelegationRowUIModel
+import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemStakeSection
 

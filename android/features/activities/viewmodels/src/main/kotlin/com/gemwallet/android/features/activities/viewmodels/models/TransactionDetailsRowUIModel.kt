@@ -3,10 +3,10 @@ package com.gemwallet.android.features.activities.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.activities.viewmodels.localization.stringRes
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId

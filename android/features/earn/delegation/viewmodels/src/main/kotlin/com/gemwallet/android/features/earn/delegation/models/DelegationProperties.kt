@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.earn.delegation.models
 
 import android.content.Context
-import com.gemwallet.android.features.earn.delegation.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationDetails

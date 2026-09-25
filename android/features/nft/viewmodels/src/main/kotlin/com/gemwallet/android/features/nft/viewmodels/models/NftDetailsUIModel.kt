@@ -3,8 +3,8 @@ package com.gemwallet.android.features.nft.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.titleRes
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.ReportReason

@@ -16,7 +16,6 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.bridge.viewmodels.localization.text
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.map

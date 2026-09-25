@@ -6,7 +6,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.confirm.viewmodels.localization.title
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
@@ -15,6 +14,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.components.list_item.listItemImage
 import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.localization.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink

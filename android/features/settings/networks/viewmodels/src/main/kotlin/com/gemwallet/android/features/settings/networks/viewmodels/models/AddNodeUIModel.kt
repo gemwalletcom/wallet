@@ -3,10 +3,9 @@ package com.gemwallet.android.features.settings.networks.viewmodels.models
 import android.content.Context
 import androidx.annotation.StringRes
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.features.settings.networks.viewmodels.localization.stringRes
-import com.gemwallet.android.features.settings.networks.viewmodels.localization.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState

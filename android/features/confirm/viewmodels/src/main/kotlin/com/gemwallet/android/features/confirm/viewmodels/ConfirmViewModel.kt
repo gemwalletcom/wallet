@@ -25,9 +25,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.features.confirm.viewmodels.localization.broadcastLabel
-import com.gemwallet.android.features.confirm.viewmodels.localization.label
-import com.gemwallet.android.features.confirm.viewmodels.localization.text
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequest
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireOptionUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmErrorUIModel
@@ -45,6 +42,8 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.broadcastLabel
+import com.gemwallet.android.ui.localization.label
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction

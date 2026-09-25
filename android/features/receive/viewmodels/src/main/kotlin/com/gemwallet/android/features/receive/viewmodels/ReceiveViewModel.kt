@@ -11,7 +11,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.receive.viewmodels.localization.text
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain

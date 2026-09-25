@@ -21,7 +21,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
-import com.gemwallet.android.features.asset.viewmodels.localization.toastRes
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.toGem
@@ -29,6 +28,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.localization.toastRes
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage

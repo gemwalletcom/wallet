@@ -36,7 +36,6 @@ import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.features.confirm.presents.localization.suffix
 import com.gemwallet.android.features.confirm.viewmodels.models.FeeRateRowUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.NetworkFeeCustomViewModel
@@ -61,6 +60,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.suffix
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize

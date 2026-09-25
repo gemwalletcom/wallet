@@ -9,10 +9,10 @@ import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl

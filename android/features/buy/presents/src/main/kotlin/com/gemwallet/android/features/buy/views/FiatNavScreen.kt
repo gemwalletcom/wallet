@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.features.buy.localization.titleRes
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.model.text
@@ -34,6 +33,7 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize

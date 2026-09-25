@@ -1,21 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemWalletPlaceholder
 import struct Gemstone.GemWalletRow
 import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
-
-public extension GemWalletPlaceholder {
-    var image: Image {
-        switch self {
-        case .multicoin: Images.Logo.logo
-        case let .chain(chain): ChainImage(chain: Primitives.Chain(core: chain)).image
-        }
-    }
-}
 
 public extension GemWalletRow {
     var image: Image {

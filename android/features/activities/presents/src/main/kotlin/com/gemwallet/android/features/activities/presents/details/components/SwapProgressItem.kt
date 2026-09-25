@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.features.activities.viewmodels.models.SwapProgressMarkerUIModel
 import com.gemwallet.android.features.activities.viewmodels.models.SwapProgressStepUIModel
 import com.gemwallet.android.features.activities.viewmodels.models.SwapProgressUIModel
 import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.SwapProgressMarkerUIModel
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16

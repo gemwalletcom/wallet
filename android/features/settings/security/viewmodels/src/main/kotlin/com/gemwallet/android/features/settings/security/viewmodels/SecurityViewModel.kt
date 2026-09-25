@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.GemConstants
-import com.gemwallet.android.features.settings.security.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.security.viewmodels.models.LockPeriodOption
+import com.gemwallet.android.ui.localization.stringRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher

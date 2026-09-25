@@ -2,12 +2,12 @@ package com.gemwallet.android.features.swap.viewmodels.models
 
 import android.content.Context
 import androidx.annotation.StringRes
-import com.gemwallet.android.features.swap.viewmodels.localization.stringRes
-import com.gemwallet.android.features.swap.viewmodels.localization.text
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemLocalizedText

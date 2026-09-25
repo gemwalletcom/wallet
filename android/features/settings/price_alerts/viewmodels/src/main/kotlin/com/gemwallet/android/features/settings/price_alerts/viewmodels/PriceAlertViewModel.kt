@@ -14,10 +14,10 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.footer
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.title
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.footer
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.localization.title
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
