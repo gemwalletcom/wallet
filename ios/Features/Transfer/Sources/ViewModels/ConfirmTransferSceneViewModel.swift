@@ -65,7 +65,7 @@ public final class ConfirmTransferSceneViewModel {
         let loadOptions = confirmation.loadOptions()
         let state = ConfirmTransferState(
             transfer: request.data,
-            simulation: ConfirmSimulationState(result: request.simulation),
+            simulation: ConfirmSimulationState(),
             screen: confirmation.screen(),
         )
         self.loadOptions = loadOptions
@@ -90,7 +90,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var simulationWarnings: [GemListRow] {
-        state.simulation.warnings
+        viewState.simulationWarnings
     }
 
     public var primaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.primaryFields }

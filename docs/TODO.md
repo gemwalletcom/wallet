@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD63, BD64, BD56, AUD50.
+1. **Settled differences:** BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -45,7 +45,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM125 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM168, VM170, BD63 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM168, VM170 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50, VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169 |
@@ -197,10 +197,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### iOS and Android differ
 
-- **BD63** **S** **Simulation warnings before the confirm load finishes.**
-  - **iOS:** shows the warnings of the pre-load simulation (`ConfirmSimulationState.swift:37`, from `ConfirmTransferSceneViewModel.swift:69`).
-  - **Android:** shows none until the load finishes (`ConfirmViewModel.kt:213`).
-  - **Expected:** iOS: both show the pre-load warnings; Core puts them in the confirm view state and `simulation_warning_rows` stops being an export.
 - **BD64** **S** **Chain search matching the token standard.**
   - **iOS:** matches the chain name and symbol through Core (`NetworkSelectorViewModel.swift:38-40`); Android's add-asset search does the same (`AddAssetViewModel.kt:76`).
   - **Android:** the asset and activity filters also match the token standard, so "erc20" finds Ethereum (`SelectFilterChain.kt:22-29`).

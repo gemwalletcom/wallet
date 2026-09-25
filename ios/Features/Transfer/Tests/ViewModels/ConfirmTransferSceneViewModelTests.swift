@@ -307,16 +307,18 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let priorities: [Gemstone.FeePriority] = [.normal, .fast]
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)])))
+        let warning: GemListRow = .notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]), warnings: [warning]))
+
+        #expect(model.simulationWarnings == [warning], "the request's warnings show before the load")
 
         await model.load()
         #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
 
-        model.state.simulation = .mock(warnings: [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
         model.changeFeeSelection(.priority(priority: .fast))
         await model.load()
 
-        #expect(model.state.simulation.warnings.isEmpty)
+        #expect(model.simulationWarnings.isEmpty)
         #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
     }
 
@@ -555,31 +557,6 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .deposit(.mock()))).title == "Deposit")
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: send)).title == Localized.Transfer.reviewRequest)
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: sign)).title == Localized.Transfer.reviewRequest)
-    }
-
-    @Test
-    func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
-        let model = ConfirmTransferSceneViewModel.mock(
-            simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
-                .mock(warning: .externallyOwnedSpender),
-            ]),
-        )
-
-        #expect(model.simulationWarnings == [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
-        #expect(model.viewState.button.state != .disabled)
-    }
-
-    @Test
-    func simulationWarningsPassThroughValidationWarnings() {
-        let model = ConfirmTransferSceneViewModel.mock(
-            simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
-                .mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract"),
-            ]),
-        )
-
-        #expect(model.simulationWarnings == [.notice(title: .error, message: .text(text: "Unable to verify spender is a contract"), kind: .error)])
     }
 
     @Test

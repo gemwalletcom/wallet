@@ -15,7 +15,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows, simulation_warning_rows};
+use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows, warning_rows};
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::model::GemWalletConnectMessageRequest;
@@ -73,7 +73,7 @@ impl GemSignMessageService {
         } = request;
         let signer = MessageSigner::new(message);
         let has_critical_warning = simulation.has_critical_warning();
-        let warnings = simulation_warning_rows(simulation.warnings.clone());
+        let warnings = warning_rows(&simulation.warnings);
         let header = GemSimulationValue::from_simulation(&simulation, &assets);
         let payload_fields = self.simulation_formatter.payload_fields(simulation.payload, header.is_some());
         let address_url = |chain, address| self.explorer.get_address_url(chain, address);

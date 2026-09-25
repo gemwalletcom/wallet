@@ -212,6 +212,9 @@ class ConfirmViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
+    val simulationWarnings = viewState.map { it?.simulationWarnings.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val button = viewState.map { it?.button ?: GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING))
 

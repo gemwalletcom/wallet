@@ -11,13 +11,11 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmSimulationState
-import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSimulationBalanceChange
 import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemValueStyle
 
 data class Simulation(
-    val warnings: List<GemListRow> = emptyList(),
     val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<GemSimulationPayloadRow> = emptyList(),
     val secondaryPayloadFields: List<GemSimulationPayloadRow> = emptyList(),
@@ -27,11 +25,9 @@ data class Simulation(
 )
 
 fun GemConfirmSimulationState.toSimulation(context: Context): Simulation {
-    val simulationWarnings = warnings
-    val details = simulation ?: return Simulation(warnings = simulationWarnings)
+    val details = simulation ?: return Simulation()
 
     return Simulation(
-        warnings = simulationWarnings,
         hasCriticalWarning = details.hasCriticalWarning,
         primaryPayloadFields = details.primaryFields,
         secondaryPayloadFields = details.secondaryFields,

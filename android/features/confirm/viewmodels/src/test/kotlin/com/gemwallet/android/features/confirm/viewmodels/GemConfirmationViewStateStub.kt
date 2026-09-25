@@ -8,6 +8,6 @@ import uniffi.gemstone.GemConfirmation
 internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
     every { viewState(any(), any()) } answers {
         val screen = firstArg<GemConfirmScreen>()
-        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(secondArg()))
+        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(secondArg()), emptyList())
     }
 }

@@ -117,6 +117,7 @@ fun ConfirmScreen(
     val showsFeeAssets by viewModel.showsFeeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
+    val simulationWarnings by viewModel.simulationWarnings.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
@@ -254,7 +255,7 @@ fun ConfirmScreen(
                     onClick = { selectedDetailElement = item },
                 )
             }
-            itemsPositioned(simulation.warnings) { position, row -> GemListRowView(row = row, listPosition = position) }
+            itemsPositioned(simulationWarnings) { position, row -> GemListRowView(row = row, listPosition = position) }
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
                 onAddressClick = openPayloadAddress,

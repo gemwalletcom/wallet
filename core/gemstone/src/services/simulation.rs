@@ -346,11 +346,6 @@ impl WarningKind {
     }
 }
 
-#[uniffi::export]
-pub fn simulation_warning_rows(warnings: Vec<SimulationWarning>) -> Vec<GemListRow> {
-    warning_rows(&warnings)
-}
-
 pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemListRow> {
     warnings
         .iter()

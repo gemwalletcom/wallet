@@ -357,6 +357,7 @@ pub struct GemConfirmViewState {
     pub fee_row: GemConfirmFeeRow,
     pub fee_rates: Option<GemFeeRateRows>,
     pub row_contents: Vec<GemConfirmRowContent>,
+    pub simulation_warnings: Vec<GemListRow>,
 }
 
 #[cfg(test)]

@@ -13,6 +13,7 @@ use super::{
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
+use crate::services::simulation::warning_rows;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
 
@@ -67,6 +68,13 @@ impl GemConfirmation {
         Ok(screen?.with_fee(fee, requested))
     }
 
+    fn simulation_warnings(&self) -> Vec<GemListRow> {
+        match self.stored().as_ref() {
+            Some(state) => state.load.simulation.warnings.clone(),
+            None => warning_rows(self.simulation.as_ref().map(|simulation| simulation.warnings.as_slice()).unwrap_or_default()),
+        }
+    }
+
     async fn load_fee(&self, input: &GemConfirmInput, options: &GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let input_type = &input.transfer.input_type;
         let fee = match self.service.confirm().load(&self.wallet.id, input, options).await {
@@ -114,6 +122,7 @@ impl GemConfirmation {
                     content => content,
                 })
                 .collect(),
+            simulation_warnings: self.simulation_warnings(),
         }
     }
 
@@ -232,6 +241,7 @@ mod tests {
 
     use super::super::testkit::ConfirmTestkit;
     use crate::services::confirm::{ConfirmState, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions};
+    use crate::services::simulation::warning_rows;
     use crate::services::transfer::{GemRecipient, GemTransferData};
 
     #[test]
@@ -287,6 +297,27 @@ mod tests {
         assert_eq!(state.fee_row, screen.fee_row());
         assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
         assert_eq!(state.row_contents, confirmation.row_contents(None));
+    }
+
+    #[test]
+    fn test_the_request_warnings_show_before_the_load() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+        };
+        let warnings = vec![SimulationWarning::validation_error("careful")];
+        let simulation = SimulationResult {
+            warnings: warnings.clone(),
+            ..SimulationResult::default()
+        };
+        let confirmation = testkit.service.confirmation(wallet, transfer, Some(simulation));
+
+        let state = confirmation.view_state(confirmation.screen(), None);
+
+        assert_eq!(state.simulation_warnings, warning_rows(&warnings));
+        assert!(!state.simulation_warnings.is_empty());
     }
 
     #[test]

@@ -30,6 +30,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
     private let selection: GemTransferData?
     private let feeRates: GemFeeRateRows?
+    private let warnings: [GemListRow]
     private var loaded: GemConfirmLoad?
     private var selected: GemTransferData?
     public private(set) var requestedOptions: [GemConfirmLoadOptions] = []
@@ -43,6 +44,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
         selection: GemTransferData? = nil,
         feeRates: GemFeeRateRows? = nil,
+        warnings: [GemListRow] = [],
     ) {
         initialState = state
         loadResult = load
@@ -51,6 +53,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         self.rows = rows
         self.selection = selection
         self.feeRates = feeRates
+        self.warnings = warnings
     }
 
     public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem()))
@@ -73,6 +76,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
             feeRow: screen.feeRow(),
             feeRates: feeRateRows(),
             rowContents: rowContents(addressName: addressName),
+            simulationWarnings: loaded?.simulation.warnings ?? warnings,
         )
     }
 
