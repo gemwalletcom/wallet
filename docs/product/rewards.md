@@ -31,5 +31,6 @@ flowchart LR
 ## Rules
 
 - A username is permanent; a wallet that has one cannot set another.
+- "Redeem code" is offered only while the device and its wallets are new enough to be referred, because the server refuses a code after that window; a code opened from a referral link still reaches the server, which accepts it from partner codes that have no window.
 - A disabled account sees why in its own language, never the internal reason the server stored.
 - Redeeming with too few points, or an option that has run out, says so instead of a generic error.

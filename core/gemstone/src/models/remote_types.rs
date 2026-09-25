@@ -1629,6 +1629,7 @@ pub struct Rewards {
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
     pub referral_allowance: ReferralAllowance,
+    pub use_referral_code_until: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[uniffi::remote(Record)]

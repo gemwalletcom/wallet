@@ -22,6 +22,7 @@ fun mockRewards(code: String? = null, usedReferralCode: String? = null, points: 
     redemptionOptions = emptyList(),
     disableReason = null,
     referralAllowance = ReferralAllowance(daily = ReferralQuota(limit = 5, available = 5), weekly = ReferralQuota(limit = 20, available = 20)),
+    useReferralCodeUntil = null,
 )
 
 fun mockGemRewardsState(referralCode: String? = null, usedReferralCode: String? = null, canUseReferralCode: Boolean = false, showsPendingActivation: Boolean = false) = GemRewardsState(

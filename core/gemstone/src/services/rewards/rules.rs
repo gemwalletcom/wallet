@@ -35,8 +35,9 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let can_invite = has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution);
     let used_referral_code = rewards.used_referral_code.clone().filter(|code| !code.is_empty());
     let pending_code = (has_pending_referral && !is_unverified).then(|| used_referral_code.clone()).flatten();
+    let can_use_referral_code = !has_referral_code && !has_used_referral_code && rewards.use_referral_code_until.is_none_or(|until| now < until);
     GemRewardsState {
-        actions: actions(has_referral_code, can_invite, !has_referral_code && !has_used_referral_code, pending_code, can_activate_pending_referral),
+        actions: actions(has_referral_code, can_invite, can_use_referral_code, pending_code, can_activate_pending_referral),
         error_notice: rewards.disable_reason.clone().map(|reason| GemListRow::Notice {
             title: GemListRowTitle::Error,
             message: Some(GemLocalizedText::Text { text: reason }),
@@ -375,6 +376,21 @@ mod tests {
         assert_eq!(state.actions, vec![GemRewardsAction::CreateCode, GemRewardsAction::UseReferralCode]);
         assert!(state.sections.is_empty(), "a wallet with nothing to show has no info section");
         assert_eq!(state.status_notice, None);
+    }
+
+    #[test]
+    fn test_state_offers_a_code_only_while_the_device_and_wallet_are_eligible() {
+        let eligible = Rewards {
+            use_referral_code_until: Some(now() + TimeDelta::days(1)),
+            ..Rewards::mock(Some(""), RewardStatus::Unverified)
+        };
+        assert!(state(Some(&eligible), now()).actions.contains(&GemRewardsAction::UseReferralCode));
+
+        let expired = Rewards {
+            use_referral_code_until: Some(now()),
+            ..eligible
+        };
+        assert_eq!(state(Some(&expired), now()).actions, vec![GemRewardsAction::CreateCode]);
     }
 
     #[test]

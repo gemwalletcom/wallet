@@ -42,6 +42,7 @@ public extension Rewards {
             redemptionOptions: redemptionOptions,
             disableReason: disableReason,
             referralAllowance: .mock(),
+            useReferralCodeUntil: nil,
         )
     }
 }

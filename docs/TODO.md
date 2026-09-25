@@ -17,11 +17,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 ## Ready next
 
-These need no further answer; work them in this order, one family per change.
-
-1. **Server:** BD30.
-
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
+Nothing is ready without an answer. Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -116,7 +112,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Same rule, different answers
 
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
-- **BD30** **S** **"Use code" is offered when it can't succeed.** Core always offers `UseReferralCode` (`core/gemstone/src/services/rewards/rules.rs`, `actions`), but the server only accepts a code on a device and wallet set up within the eligibility window (`core/crates/rewards/src/referral.rs`, `validate_use`; attribution referrers skip it in `rewards_client.rs`). Hiding it needs the device and wallet age facts in the rewards summary.
 
 ### Freshness
 
