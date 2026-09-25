@@ -13,7 +13,7 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
 
     is TransactionsRequestFilter.Asset -> {
         val id = assetId.toIdentifier()
-        SqlClause.raw("(tx.assetId = ? OR swap.from_asset_id = ? OR swap.to_asset_id = ?)", id, id, id)
+        SqlClause.raw("(tx.assetId = ? OR EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?))", id, id)
     }
 
     is TransactionsRequestFilter.States -> SqlClause.inList("tx.state", states.map { it.name })

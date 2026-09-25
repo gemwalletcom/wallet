@@ -10,19 +10,12 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 
-fun mockDbTransactionExtended(
-    type: TransactionType = TransactionType.Transfer,
-    priceValue: Double? = null,
-    fromAsset: Asset? = null,
-    toAsset: Asset? = null,
-    fromPriceValue: Double? = null,
-    fromPriceDayChanged: Double? = null,
-    toPriceValue: Double? = null,
-): DbTransactionExtended {
+fun mockDbTransactionExtended(type: TransactionType = TransactionType.Transfer, priceValue: Double? = null, assets: List<Asset> = emptyList(), prices: List<DbPrice> = emptyList()): DbTransactionExtended {
     val asset = mockAssetEthereum()
+    val id = TransactionId(asset.id.chain, "0xhash")
     return DbTransactionExtended(
         transaction = DbTransaction(
-            id = TransactionId(asset.id.chain, "0xhash"),
+            id = id,
             walletId = WalletId("wallet-1"),
             hash = "0xhash",
             assetId = asset.id,
@@ -45,14 +38,11 @@ fun mockDbTransactionExtended(
         priceDayChanged = null,
         feePriceValue = null,
         feePriceDayChanged = null,
-        fromPriceValue = fromPriceValue,
-        fromPriceDayChanged = fromPriceDayChanged,
-        toPriceValue = toPriceValue,
-        toPriceDayChanged = null,
-        fromAsset = fromAsset?.toDbAssetProjection(),
-        toAsset = toAsset?.toDbAssetProjection(),
         fromAddress = null,
         toAddress = null,
+        transactionKey = id.identifier,
+        assets = assets.map { it.toDbAssetProjection() },
+        prices = prices,
     )
 }
 

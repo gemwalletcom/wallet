@@ -31,11 +31,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbRecentActivi
 import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.DbSupportMessage
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
-import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionAsset
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 98,
+    version = 99,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -46,7 +46,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbBalance::class,
         DbPrice::class,
         DbTransaction::class,
-        DbTransactionSwapMetadata::class,
+        DbTransactionAsset::class,
         DbConnection::class,
         DbDelegationValidator::class,
         DbDelegationBase::class,

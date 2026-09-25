@@ -19,8 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Balances and storage:** VM98 (an Android migration).
-2. **Server:** BD23, BD30, BD51, BD52.
+1. **Server:** BD23, BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -43,7 +42,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM98 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | — |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
@@ -59,7 +58,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
+| Stores and persistence | `Gem*Store` traits and both adapters | — |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -109,10 +108,6 @@ Taps on rows that already exist, not new row types.
 
 ## 8. Persistence and parity
 
-- **VM98** **M** **Transaction assets are stored two ways.**
-  - **iOS:** stores every asset a transaction touches through `transactionAssetIds` into its transaction-assets table.
-  - **Android:** stores only swap pairs through `transactionSwapPair` into `DbTransactionSwapMetadata`.
-  - **Expected:** iOS's schema. Android gains the transaction-assets table in a Room migration that carries the existing swap pairs over.
 
 ## 9. Behavior differences
 

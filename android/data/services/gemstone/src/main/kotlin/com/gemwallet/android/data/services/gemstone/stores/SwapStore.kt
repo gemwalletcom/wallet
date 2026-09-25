@@ -2,8 +2,12 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -11,11 +15,12 @@ import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemSwapPair
 import uniffi.gemstone.GemSwapStore
 import uniffi.gemstone.RecentActivityType
+import uniffi.gemstone.transactionSwapPair
 
 class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactionsDao: TransactionsDao) : GemSwapStore {
 
     override suspend fun getSwapPairs(walletId: String): List<GemSwapPair> = withContext(Dispatchers.IO) {
-        transactionsDao.getSwapPairs(walletId).map { GemSwapPair(it.fromAssetId, it.toAssetId) }
+        transactionsDao.getTransactionsByType(WalletId(walletId), TransactionType.Swap).mapNotNull { transactionSwapPair(it.toDTO().toGem()) }
     }
 
     override suspend fun getRecentAssetIds(walletId: String, types: List<RecentActivityType>, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {

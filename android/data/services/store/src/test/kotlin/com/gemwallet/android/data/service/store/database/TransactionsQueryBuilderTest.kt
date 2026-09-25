@@ -79,7 +79,7 @@ class TransactionsQueryBuilderTest {
     }
 
     @Test
-    fun assetFilter_matchesMainAndSwapAssets_bindsIdThreeTimes() {
+    fun assetFilter_matchesMainAndTransactionAssets_bindsIdTwice() {
         val assetId = AssetId(chain = Chain.Ethereum, tokenId = "0xABC")
         val query = buildExtendedTransactionsSql(
             walletId,
@@ -87,11 +87,9 @@ class TransactionsQueryBuilderTest {
             filters = listOf(TransactionsRequestFilter.Asset(assetId)),
         )
         assertTrue(
-            query.sql.contains("(tx.assetId = ? OR swap.from_asset_id = ? OR swap.to_asset_id = ?)"),
+            query.sql.contains("(tx.assetId = ? OR EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?))"),
         )
-        assertEquals("ethereum_0xABC", query.args[baseArgCount])
-        assertEquals("ethereum_0xABC", query.args[baseArgCount + 1])
-        assertEquals("ethereum_0xABC", query.args[baseArgCount + 2])
+        assertEquals(listOf("ethereum_0xABC", "ethereum_0xABC"), query.args.drop(baseArgCount).take(2))
     }
 
     @Test
