@@ -16,6 +16,7 @@ import Transfer
 
 @Observable
 final class NavigationPresenter: Sendable {
+    @MainActor private var _isPresentingAddressDetails: ChainAddress?
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
     @MainActor private var _isPresentingPayment: PaymentDestination?
     @MainActor private var _isPresentingPriceAlert: Asset?
@@ -35,6 +36,10 @@ final class NavigationPresenter: Sendable {
 
 @MainActor
 extension NavigationPresenter {
+    var isPresentingAddressDetails: Binding<ChainAddress?> {
+        Binding(get: { self._isPresentingAddressDetails }, set: { self._isPresentingAddressDetails = $0 })
+    }
+
     var isPresentingAssetInput: Binding<SelectedAssetInput?> {
         Binding(get: { self._isPresentingAssetInput }, set: { self._isPresentingAssetInput = $0 })
     }

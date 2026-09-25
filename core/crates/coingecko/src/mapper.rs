@@ -88,6 +88,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Ton => "the-open-network",
         Chain::Tron => "tron",
         Chain::Doge => "dogecoin",
+        Chain::Dash => "dash",
         Chain::Zcash => "zcash",
         Chain::Aptos => "aptos",
         Chain::AvalancheC => "avalanche-2",

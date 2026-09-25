@@ -14,6 +14,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.localization.text
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
@@ -74,7 +75,7 @@ class WCRequestViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val sceneState = combine(state, request, namedRequest) { state, request, named ->
-        state.toSceneState(named?.takeIf { it.pending === request?.pending } ?: request, ReviewTexts(context))
+        state.toSceneState(named?.takeIf { it.pending === request?.pending } ?: request)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     val buttonState = sceneState.map { scene ->
@@ -167,7 +168,9 @@ class WCRequestViewModel @Inject constructor(
         }
         requestJob?.cancel()
         val sessionRequest = state.value.sessionRequest ?: return
-        respond(sessionRequest, service.userRejectedError().toJsonRpcResponse(), onError = { Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it") })
+        respond(sessionRequest, WalletConnectJsonRpcResponse.Error(code = GemConstants.walletConnectUserRejectedErrorCode, message = GemConstants.walletConnectUserRejectedErrorMessage), onError = {
+            Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it")
+        })
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest {
@@ -198,9 +201,9 @@ class WCRequestViewModel @Inject constructor(
 }
 
 private data class RequestViewModelState(val sessionRequest: WalletConnectSessionRequest? = null, val approved: WCRequest? = null, val responseState: RequestResponseState = RequestResponseState.Idle) {
-    fun toSceneState(request: WCRequest?, texts: ReviewTexts): RequestSceneState {
+    fun toSceneState(request: WCRequest?): RequestSceneState {
         request ?: return RequestSceneState.Loading
-        val requestState = RequestSceneState.Request(walletName = request.wallet.name, request = request)
+        val requestState = RequestSceneState.Request(request = request)
         return when (responseState) {
             RequestResponseState.Idle -> requestState
             RequestResponseState.Responding -> RequestSceneState.Responding(requestState)
@@ -217,14 +220,12 @@ sealed interface RequestSceneState {
     data object Loading : RequestSceneState
 
     sealed interface Content : RequestSceneState {
-        val walletName: String
         val request: WCRequest
     }
 
-    class Request(override val walletName: String, override val request: WCRequest) : Content
+    class Request(override val request: WCRequest) : Content
 
     class Responding(private val requestState: Request) : Content {
-        override val walletName: String get() = requestState.walletName
         override val request: WCRequest get() = requestState.request
     }
 }

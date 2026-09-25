@@ -59,28 +59,38 @@ impl GemBalanceService {
     }
 
     pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        let newly_enabled = self.store_assets_enabled(wallet_id.clone(), asset_ids, enabled).await?;
+        self.refresh_enabled_assets(wallet_id, newly_enabled).await
+    }
+
+    pub async fn enable_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let newly_enabled = self.store_assets_enabled(wallet_id.clone(), asset_ids, true).await?;
+        let _ = self.refresh_enabled_assets(wallet_id, newly_enabled).await;
+        Ok(())
+    }
+
+    async fn store_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<Vec<AssetId>, GemServiceError> {
         let asset_ids = rules::unique_asset_ids(asset_ids);
         let asset_ids = if enabled { rules::exclude_native_mirrors(asset_ids) } else { asset_ids };
         if asset_ids.is_empty() {
-            return Ok(());
+            return Ok(vec![]);
         }
         if enabled {
             self.assets.sync_missing_assets(asset_ids.clone()).await?;
         }
         let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
         self.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
-        self.store.set_asset_configuration(wallet_id.clone(), asset_ids.clone(), rules::enabled_configuration(enabled)).await?;
-        if enabled {
-            self.refresh_enabled_assets(wallet_id, rules::missing_asset_ids(&asset_ids, &enabled_ids)).await;
-        } else {
+        self.store.set_asset_configuration(wallet_id, asset_ids.clone(), rules::enabled_configuration(enabled)).await?;
+        if !enabled {
             let _ = self.stream.resubscribe().await;
+            return Ok(vec![]);
         }
-        Ok(())
+        Ok(rules::missing_asset_ids(&asset_ids, &enabled_ids))
     }
 
     pub async fn set_asset_pinned(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
         if pinned {
-            self.set_assets_enabled(wallet_id.clone(), vec![asset_id.clone()], true).await?;
+            self.enable_assets(wallet_id.clone(), vec![asset_id.clone()]).await?;
         }
         self.store.set_asset_configuration(wallet_id, vec![asset_id], rules::pinned_configuration(pinned)).await
     }
@@ -119,7 +129,7 @@ impl GemBalanceService {
         if wallet_rules::is_new_wallet(&wallet.source, has_synced) {
             let _ = self.stream.resubscribe().await;
         } else {
-            self.refresh_enabled_assets(wallet.id, enabled).await;
+            let _ = self.refresh_enabled_assets(wallet.id, enabled).await;
         }
         Ok(())
     }
@@ -129,12 +139,12 @@ impl GemBalanceService {
         self.assets.add_missing_balances(wallet_id, rules::missing_asset_ids(&asset_ids, &stored_ids)).await
     }
 
-    async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) {
+    async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         if asset_ids.is_empty() {
-            return;
+            return Ok(());
         }
         let _ = self.stream.resubscribe().await;
-        let _ = self.update(wallet_id, asset_ids).await;
+        self.update(wallet_id, asset_ids).await
     }
 
     pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
@@ -369,6 +379,31 @@ mod tests {
             );
             assert!(created_kit.provider.requested_paths().is_empty(), "a created wallet has nothing to fetch yet");
             assert!(!imported_kit.provider.requested_paths().is_empty(), "an imported wallet asks the chains for what it holds");
+        });
+    }
+
+    #[test]
+    fn test_a_toggle_reports_a_failed_first_balance_fetch_and_a_side_effect_enable_does_not() {
+        block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
+            let ethereum = AssetId::from_chain(Chain::Ethereum);
+            let kit = || async {
+                let testkit = DiscoveryTestkit::with_provider(Arc::new(TestAlienProvider::with_status(503)), wallet.clone());
+                testkit.asset_store.save_assets(vec![default_asset_basic(Asset::from_chain(Chain::Ethereum))]).await.unwrap();
+                testkit
+            };
+
+            let toggled = kit().await;
+            let toggle = toggled.balance.set_assets_enabled(wallet.id.clone(), vec![ethereum.clone()], true).await;
+            let side_effect = kit().await;
+            let enable = side_effect.balance.enable_assets(wallet.id.clone(), vec![ethereum.clone()]).await;
+
+            assert!(toggle.is_err(), "the user sees that the first balance fetch failed");
+            assert!(enable.is_ok(), "a side-effect caller does not fail its own action on the fetch");
+            for testkit in [&toggled, &side_effect] {
+                let writes = testkit.balances.configuration_writes.lock().unwrap().clone();
+                assert_eq!(writes.last().map(|(_, configuration)| configuration.is_enabled), Some(Some(true)), "the asset is enabled either way");
+            }
         });
     }
 

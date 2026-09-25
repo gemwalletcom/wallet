@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.delegationListRows
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
@@ -14,10 +16,9 @@ struct DelegationViewModelTests {
             .mock(base: .mock(state: .active, assetId: .mock(.tron), balance: 500_000_000, delegationId: "2")),
         ]
 
-        let items = DelegationViewModel.items(delegations, asset: Chain.tron.asset, price: 2.0, currency: .usd)
+        let models = delegationListRows(delegations: delegations.map { $0.toGem() }, asset: Chain.tron.asset.toGem(), price: 2.0, currency: Currency.usd.toGem()).map(DelegationViewModel.init(row:))
 
-        #expect(items.map(\.delegation) == delegations)
-        #expect(items.map(\.model.balanceText) == ["1,500 TRX", "500 TRX"])
-        #expect(items.map(\.model.fiatValueText) == ["$3,000.00", "$1,000.00"])
+        #expect(models.map(\.balanceText) == ["1,500 TRX", "500 TRX"])
+        #expect(models.map(\.fiatValueText) == ["$3,000.00", "$1,000.00"])
     }
 }

@@ -2,17 +2,18 @@
 
 import Components
 import Localization
+import Primitives
 import SwiftUI
 
 public struct AssetStatusView: View {
-    private let model: VerificationStatusViewModel
+    private let status: VerificationStatus
     private let action: () -> Void
 
     public init(
-        model: VerificationStatusViewModel,
+        status: VerificationStatus,
         action: @escaping () -> Void,
     ) {
-        self.model = model
+        self.status = status
         self.action = action
     }
 
@@ -20,9 +21,9 @@ public struct AssetStatusView: View {
         NavigationCustomLink(with:
             ListItemImageView(
                 title: Localized.Transaction.status,
-                subtitle: model.title,
-                subtitleStyle: model.statusStyle,
-                assetImage: model.assetImage,
+                subtitle: status.statusTitle,
+                subtitleStyle: status.statusStyle,
+                assetImage: status.statusAssetImage,
                 infoAction: action,
             )) {
                 action()

@@ -11,7 +11,7 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct FiatTransactionViewModel: Sendable, Identifiable {
+public struct FiatTransactionViewModel: Sendable, Identifiable, Equatable {
     public let id: String
     public let createdAt: Date
     private let row: GemFiatTransactionRow

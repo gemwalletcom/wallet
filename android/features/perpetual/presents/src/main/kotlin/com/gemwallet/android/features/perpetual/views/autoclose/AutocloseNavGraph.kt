@@ -3,6 +3,7 @@ package com.gemwallet.android.features.perpetual.views.autoclose
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -34,7 +35,9 @@ import com.gemwallet.android.features.asset.presents.address.AddressDetailsScree
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
@@ -63,7 +66,12 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
 
     val backStack = remember { mutableStateListOf<NavKey>(AutocloseRoute) }
+    val snackbar = remember { SnackbarHostState() }
     var transfer by remember { mutableStateOf<ConfirmTransferInput?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.errors.collect { message -> snackbar.showSnackbar(message, R.drawable.ic_error) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.confirmRequests.collect { input ->
@@ -86,6 +94,7 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
                 positionListItem = positionListItem,
                 takeProfitText = takeProfitText,
                 stopLossText = stopLossText,
+                snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
                         AutocloseAction.Close -> onDismiss()

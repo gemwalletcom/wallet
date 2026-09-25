@@ -45,7 +45,22 @@ impl GemNotificationsService {
         Some(self.set_enabled(true).await)
     }
 
+    pub async fn enable_for_new_wallet(&self) -> Option<GemPushState> {
+        if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() || !self.preferences.should_ask_notifications() {
+            return None;
+        }
+        Some(self.set_enabled(true).await)
+    }
+
     pub async fn set_enabled(&self, enabled: bool) -> GemPushState {
+        let state = self.push_state(enabled).await;
+        let _ = self.preferences.set_notifications_asked();
+        state
+    }
+}
+
+impl GemNotificationsService {
+    async fn push_state(&self, enabled: bool) -> GemPushState {
         let wanted = enabled && self.permissions.is_available();
         if wanted {
             match self.permissions.request_permissions_or_open_settings().await {
@@ -59,9 +74,7 @@ impl GemNotificationsService {
             Err(error) => self.state(GemPushResult::NotRegistered { error: error.text() }),
         }
     }
-}
 
-impl GemNotificationsService {
     fn state(&self, result: GemPushResult) -> GemPushState {
         GemPushState { is_enabled: self.is_enabled(), result }
     }
@@ -175,6 +188,24 @@ mod tests {
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
 
             assert!(service.enable_for_support().await.is_none(), "opening support again never asks twice");
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
+        })
+    }
+
+    #[test]
+    fn test_a_new_wallet_asks_once_and_the_ask_is_recorded() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            permissions.available.store(true, Ordering::SeqCst);
+            let service = service(503, permissions.clone());
+
+            let state = service.enable_for_new_wallet().await;
+
+            assert_eq!(state.map(|state| state.result), Some(GemPushResult::PermissionDenied));
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
+            assert!(!service.preferences.should_ask_notifications(), "the ask is recorded, so the 30-day wait applies");
+
+            assert!(service.enable_for_new_wallet().await.is_none(), "the next wallet within the wait does not ask again");
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
         })
     }

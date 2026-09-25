@@ -96,6 +96,17 @@ mod tests {
             }
         );
         assert_eq!(
+            decode(Some(Chain::Dash), "XfcbSaK1dtEe6GmNRE5pMS3WYpoJ2D1BDm?amount=42").unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: "XfcbSaK1dtEe6GmNRE5pMS3WYpoJ2D1BDm".to_string(),
+                    amount: Some(PaymentAmount::ExactValue { value: "42".to_string() }),
+                    asset_id: Some(AssetId::from_chain(Chain::Dash)),
+                    ..PaymentRequest::mock()
+                }
+            }
+        );
+        assert_eq!(
             decode(None, &format!("{BITCOIN_ADDRESS}?amount=50.72")).unwrap(),
             Payment::Request {
                 request: PaymentRequest {

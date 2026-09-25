@@ -184,18 +184,14 @@ fn map_transaction_object(transaction: &WcEthereumTransactionData) -> Transactio
     }
 }
 
-#[derive(Default, uniffi::Object)]
+#[derive(Default)]
 pub struct GemSimulationFormatter {}
 
-#[uniffi::export]
 impl GemSimulationFormatter {
-    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
     }
-}
 
-impl GemSimulationFormatter {
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
         if !shows_header {
             return payload;

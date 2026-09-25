@@ -28,17 +28,8 @@ interface PricesDao {
         conversion?.let { updateValues(it.currency, it.rate) }
     }
 
-    @Transaction
-    suspend fun updateValues(currency: Currency, rate: Double) {
-        updatePriceValues(currency, rate)
-        updateMarketValues(rate)
-    }
-
     @Query("UPDATE prices SET value = usd_value * :rate, currency = :currency")
-    suspend fun updatePriceValues(currency: Currency, rate: Double)
-
-    @Query("UPDATE asset_market SET marketCap = marketCapUsd * :rate, marketCapFdv = marketCapFdvUsd * :rate, totalVolume = totalVolumeUsd * :rate, allTimeHigh = allTimeHighUsd * :rate, allTimeLow = allTimeLowUsd * :rate")
-    suspend fun updateMarketValues(rate: Double)
+    suspend fun updateValues(currency: Currency, rate: Double)
 
     @Query("SELECT * FROM prices")
     fun getAll(): Flow<List<DbPrice>>

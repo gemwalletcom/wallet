@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailRowItem
@@ -35,12 +34,13 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemTransactionRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetDetailsScene(
     uiState: AssetInfoUIModel,
-    transactions: List<TransactionDataAggregate>,
+    transactions: List<GemTransactionRow>,
     transactionsErrorRow: GemListRow?,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
@@ -92,10 +92,11 @@ internal fun AssetDetailsScene(
                         onSwap = swapAction,
                     )
                 }
-                if (detailsState.showsBanners) {
+                val banner = uiState.banner
+                if (detailsState.showsBanners && banner != null) {
                     item {
                         BannerItem(
-                            banners = uiState.banners,
+                            banner = banner,
                             onStake = { onAction(AssetDetailsAction.Stake(uiState.asset.id)) },
                             onActivate = { onAction(AssetDetailsAction.Confirm(ConfirmTransferInput(it))) },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
@@ -107,7 +108,7 @@ internal fun AssetDetailsScene(
                 uiState.sections.forEach { section ->
                     section.title?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->
-                        AssetDetailRowItem(uiState = uiState, row = row, listPosition = position, onAction = onAction)
+                        AssetDetailRowItem(row = row, listPosition = position, onAction = onAction)
                     }
                 }
                 item {

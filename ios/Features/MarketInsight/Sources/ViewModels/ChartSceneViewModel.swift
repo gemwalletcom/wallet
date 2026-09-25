@@ -9,7 +9,6 @@ import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
 import enum Gemstone.GemInfoTopic
-import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -27,7 +26,6 @@ public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
     private let preferences: ObservablePreferences
 
-    let walletId: WalletId
     let assetModel: AssetViewModel
 
     private var session: GemChartSession
@@ -81,37 +79,18 @@ public final class ChartSceneViewModel: ChartListViewable {
         }
     }
 
-    func rowAction(for row: GemListRow) -> ChartRowAction? {
-        switch row {
-        case .link(.priceAlerts, _, _): .priceAlerts
-        case .link(.setPriceAlert, _, _): .setPriceAlert
-        default: nil
-        }
-    }
-
-    var sections: [GemListSection] {
-        guard let priceData else { return [] }
-        return service.sections(
-            asset: priceData.asset.toGem(),
-            price: priceData.price?.price,
-            market: priceData.market?.toGem(),
-            priceAlerts: priceData.priceAlerts.map { $0.toGem() },
-            links: priceData.links.map { $0.toGem() },
-        )
-    }
+    private(set) var sections: [GemListSection] = []
 
     public init(
         service: any GemChartServiceProtocol,
         preferences: ObservablePreferences,
         assetModel: AssetViewModel,
-        walletId: WalletId,
         onSetPriceAlert: @escaping (Asset) -> Void,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
         self.service = service
         self.preferences = preferences
         self.assetModel = assetModel
-        self.walletId = walletId
         session = service.newSession()
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert
@@ -135,15 +114,34 @@ public extension ChartSceneViewModel {
         }
     }
 
+    func updateSections() async {
+        guard let priceData else { return }
+        do {
+            let sections = try await service.sections(
+                asset: priceData.asset.toGem(),
+                price: priceData.price?.price,
+                market: priceData.market?.toGem(),
+                priceAlerts: priceData.priceAlerts.map { $0.toGem() },
+                links: priceData.links.map { $0.toGem() },
+            )
+            guard !Task.isCancelled, priceData == self.priceData else { return }
+            self.sections = sections
+        } catch {
+            debugLog("chart scene: sections error \(error)")
+        }
+    }
+
     var currency: Primitives.Currency {
         preferences.currency
     }
 
     func onChangeCurrency() async {
         let next = session.onCurrency(currency: currency.toGem())
-        guard next != session else { return }
-        session = next
-        await load()
+        if next != session {
+            session = next
+            await load()
+        }
+        await updateSections()
     }
 
     func onSelectSetPriceAlerts() {

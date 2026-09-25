@@ -249,7 +249,10 @@ impl GemConfirmService {
     }
 
     async fn store_pending(&self, input: &SendInput, hashes: &[String], signed: &[GemSignedTransaction]) {
-        let stored = self.record(input, hashes, signed).await.unwrap_or_default();
+        let stored = match self.record(input, hashes, signed).await {
+            Ok(stored) => stored,
+            Err(_) => self.record(input, hashes, signed).await.unwrap_or_default(),
+        };
         self.transaction_status.track(input.wallet.id.clone(), stored);
     }
 
@@ -312,12 +315,15 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
-        swap::SwapData,
+        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, TransactionType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID,
+        known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData,
     };
 
+    use num_bigint::BigInt;
+
     use super::testkit::ConfirmTestkit;
-    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions};
+    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendInput};
+    use crate::models::transaction::GemSignedTransaction;
     use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::testkit::TestAlienProvider;
@@ -372,6 +378,35 @@ mod tests {
             vec!["/v2/devices/scan/transaction", "https://gemnodes.com/hypercore/info"],
             "the transaction load runs once the scan clears, and only then"
         );
+    }
+
+    fn store_pending_with_failures(failures: usize) -> ConfirmTestkit {
+        block_on(async {
+            let mut input = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
+            input.value = BigInt::from(10);
+            let signed = vec![GemSignedTransaction::mock(TransactionType::Transfer)];
+            let testkit = ConfirmTestkit::new(input.wallet.clone(), input.wallet.clone());
+            *testkit.transaction_store.add_failures.lock().unwrap() = failures;
+
+            testkit.confirm.store_pending(&input, &["hash".to_string()], &signed).await;
+            testkit
+        })
+    }
+
+    #[test]
+    fn test_a_failed_pending_write_is_retried_once_and_tracked() {
+        let testkit = store_pending_with_failures(1);
+
+        assert_eq!(testkit.transaction_store.added.lock().unwrap().len(), 1);
+        assert_eq!(testkit.status.tracked.lock().unwrap().concat().len(), 1, "the row the retry stored is tracked");
+    }
+
+    #[test]
+    fn test_a_pending_write_that_fails_twice_is_left_to_the_activity_sync() {
+        let testkit = store_pending_with_failures(2);
+
+        assert!(testkit.transaction_store.added.lock().unwrap().is_empty());
+        assert!(testkit.status.tracked.lock().unwrap().concat().is_empty(), "nothing unstored is tracked");
     }
 
     #[test]

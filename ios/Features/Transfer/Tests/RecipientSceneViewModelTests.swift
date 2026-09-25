@@ -59,12 +59,10 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "0x1234567890123456789012345678901234567890"
-        _ = model.addressInputModel.update()
 
         #expect(model.actionButtonState == .normal)
 
         model.addressInputModel.text = "invalid"
-        _ = model.addressInputModel.update()
 
         #expect(model.actionButtonState == .disabled)
 

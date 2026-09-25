@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.style.badgeIconRes
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
 import uniffi.gemstone.GemInfoTopic
@@ -46,8 +47,9 @@ internal sealed interface GemListRowUIModel {
     data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
     data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
     data class Icon(val asset: Asset) : GemListRowUIModel
+    data class Avatar(val image: ListItemImage) : GemListRowUIModel
+    data class Address(val address: String, val copy: GemCopy, val menu: List<GemListRowMenuItem>) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
-    data class Address(val address: String, val copy: GemCopy) : GemListRowUIModel
     data class Social(val links: List<GemSocialLink>) : GemListRowUIModel
     data class Toggle(val model: ListItemModel, val title: GemListRowTitle, val isOn: Boolean) : GemListRowUIModel
     data class Picker(val model: ListItemModel, val title: GemListRowTitle) : GemListRowUIModel
@@ -182,7 +184,15 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
 
     is GemListRow.Icon -> GemListRowUIModel.Icon(asset = chain.requireChain().asset())
 
-    is GemListRow.Address -> GemListRowUIModel.Address(address = address, copy = copy)
+    is GemListRow.Avatar -> GemListRowUIModel.Avatar(image = avatar.listItemImage())
+
+    is GemListRow.WalletAvatar -> GemListRowUIModel.Avatar(image = walletListItemImage(imageUrl, placeholder))
+
+    is GemListRow.Address -> GemListRowUIModel.Address(
+        address = address,
+        copy = copy,
+        menu = listOf(GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value)),
+    )
 
     is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), title, isOn)
 
@@ -192,6 +202,8 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
 
     GemListRow.Loading -> GemListRowUIModel.Loading
 }
+
+fun GemAvatar.listItemImage(): ListItemImage = imageUrl?.let { ListItemImage.Stored(it, initials) } ?: ListItemImage.Initials(initials)
 
 internal fun GemSocialLink.uiModel(context: Context): GemListRowUIModel.Item = GemListRowUIModel.Item(
     ListItemModel(title = context.getString(linkType.stringRes()), subtitle = host, image = ListItemImage.Drawable(linkType.icon)),

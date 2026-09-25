@@ -2,6 +2,8 @@
 
 import class Gemstone.GemAmountService
 import struct Gemstone.GemPerpetualAutoclose
+import struct Gemstone.GemTransferData
+import enum Gemstone.PerpetualType
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -110,11 +112,34 @@ struct AmountPerpetualViewModelTests {
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock())).makeTransferData(value: 200, useMaxAmount: false)
         let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem())).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(open.transactionType().toPrimitives() == .perpetualOpenPosition)
-        #expect(increase.transactionType().toPrimitives() == .perpetualOpenPosition)
-        #expect(reduce.transactionType().toPrimitives() == .perpetualClosePosition)
+        #expect(perpetualType(open).map {
+            if case .open = $0 {
+                true
+            } else {
+                false
+            }
+        } == true)
+        #expect(perpetualType(increase).map {
+            if case .increase = $0 {
+                true
+            } else {
+                false
+            }
+        } == true)
+        #expect(perpetualType(reduce).map {
+            if case .reduce = $0 {
+                true
+            } else {
+                false
+            }
+        } == true)
         #expect(open.value == "100")
         #expect(increase.value == "200")
         #expect(reduce.value == "300")
+    }
+
+    private func perpetualType(_ data: GemTransferData) -> Gemstone.PerpetualType? {
+        guard case let .perpetual(_, perpetualType) = data.inputType else { return nil }
+        return perpetualType
     }
 }

@@ -22,7 +22,7 @@ struct NetworkSelectorViewModelTests {
     func filtersByQuery() throws {
         let search = try #require(model.search)
 
-        #expect(search.filter(.bitcoin, "bitc"))
-        #expect(!search.filter(.bitcoin, "ethereum"))
+        #expect(search.filter([.bitcoin, .ethereum], "bitc") == [.bitcoin])
+        #expect(search.filter([.bitcoin], "ethereum").isEmpty)
     }
 }

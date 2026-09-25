@@ -17,6 +17,8 @@ public struct AddressNameRequest: DatabaseQueryable {
         try AddressRecord
             .filter(AddressRecord.Columns.chain == chain.rawValue)
             .filter(AddressRecord.Columns.address == address)
+            .including(optional: AddressRecord.wallet)
+            .asRequest(of: AddressNameInfo.self)
             .fetchOne(db)?
             .mapToAddressName()
     }

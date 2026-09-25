@@ -13,13 +13,11 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
-import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
+import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
@@ -40,6 +38,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationPayloadRow
@@ -49,7 +48,7 @@ import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import uniffi.gemstone.applicationConnectionRow
-import uniffi.gemstone.walletRows
+import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
 @HiltViewModel
@@ -229,9 +228,9 @@ class WCAuthViewModel @Inject constructor(
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
         return AuthSceneState.Request(
             texts = ReviewTexts(context),
-            peer = applicationConnectionRow(prepared.proposal.metadata).headUIModel(),
+            peer = applicationConnectionRow(prepared.proposal.metadata),
             availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
-            availableWalletRows = walletRows(prepared.proposal.wallets).map { it.uiModel(context) },
+            availableWalletSections = walletSections(prepared.proposal.wallets).map { it.uiModel(context) },
             selectedWallet = selectedWallet,
             approval = buildApproval(request, selectedWallet),
         )
@@ -298,9 +297,9 @@ sealed interface AuthSceneState {
     sealed interface Content :
         AuthSceneState,
         WalletConnectReviewModel {
-        val peer: ConnectionHeadUIModel
+        val peer: GemConnectionRow
         val availableWallets: List<Wallet>
-        val availableWalletRows: List<WalletRowUIModel>
+        val availableWalletSections: List<WalletSectionUIModel>
         val selectedWallet: Wallet
         val approval: AuthApproval
         val texts: ReviewTexts
@@ -320,18 +319,18 @@ sealed interface AuthSceneState {
     }
 
     data class Request(
-        override val peer: ConnectionHeadUIModel,
+        override val peer: GemConnectionRow,
         override val availableWallets: List<Wallet>,
-        override val availableWalletRows: List<WalletRowUIModel>,
+        override val availableWalletSections: List<WalletSectionUIModel>,
         override val selectedWallet: Wallet,
         override val approval: AuthApproval,
         override val texts: ReviewTexts,
     ) : Content
 
     data class Approving(private val request: Request) : Content {
-        override val peer: ConnectionHeadUIModel get() = request.peer
+        override val peer: GemConnectionRow get() = request.peer
         override val availableWallets: List<Wallet> get() = request.availableWallets
-        override val availableWalletRows: List<WalletRowUIModel> get() = request.availableWalletRows
+        override val availableWalletSections: List<WalletSectionUIModel> get() = request.availableWalletSections
         override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
         override val texts: ReviewTexts get() = request.texts

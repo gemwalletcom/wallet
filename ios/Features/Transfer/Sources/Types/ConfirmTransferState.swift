@@ -47,21 +47,12 @@ extension ConfirmTransferState {
         )
     }
 
-    var transferAmount: TransferAmountValidation? {
-        fee?.amount.toPrimitives()
-    }
-
     var verification: PaymentVerification? {
         transfer.verification()
     }
 
-    var transactionError: ConfirmTransferError? {
-        if let failure = screen.failure, failure.stage == .load {
-            return ConfirmTransferError(error: failure.error)
-        }
-        if case let .failure(error)? = transferAmount {
-            return ConfirmTransferError(error: error)
-        }
-        return nil
+    var loadError: GemConfirmError? {
+        guard let failure = screen.failure, failure.stage == .load else { return nil }
+        return failure.error
     }
 }

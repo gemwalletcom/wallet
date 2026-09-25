@@ -1,5 +1,5 @@
 use primitives::contact::ContactAddress;
-use primitives::{Chain, Contact};
+use primitives::{AddressName, AddressType, Chain, Contact};
 
 use super::rules;
 
@@ -243,6 +243,20 @@ fn contact_avatar_image(image_url: Option<String>, name: &str) -> GemContactAvat
 
 pub fn contact_initials(name: String) -> String {
     name.trim().chars().take(2).collect::<String>().to_uppercase()
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAvatar {
+    pub image_url: Option<String>,
+    pub initials: String,
+}
+
+pub fn contact_avatar(address_name: Option<&AddressName>, name: Option<&str>) -> Option<GemAvatar> {
+    let address_name = address_name.filter(|address_name| address_name.address_type == AddressType::Contact)?;
+    Some(GemAvatar {
+        image_url: address_name.image_url.clone().filter(|url| !url.is_empty()),
+        initials: contact_initials(name.unwrap_or(&address_name.name).to_string()),
+    })
 }
 
 #[cfg(test)]

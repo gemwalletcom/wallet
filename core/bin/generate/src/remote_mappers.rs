@@ -702,7 +702,7 @@ impl Language {
     }
 }
 
-fn camel_case(name: &str) -> String {
+pub(crate) fn camel_case(name: &str) -> String {
     name.split('_')
         .enumerate()
         .map(|(index, part)| match index {
@@ -712,7 +712,7 @@ fn camel_case(name: &str) -> String {
         .collect()
 }
 
-fn screaming_snake_case(name: &str) -> String {
+pub(crate) fn screaming_snake_case(name: &str) -> String {
     let characters: Vec<char> = name.chars().collect();
     characters
         .iter()
@@ -724,7 +724,7 @@ fn screaming_snake_case(name: &str) -> String {
         .collect()
 }
 
-fn swift_case(variant: &str) -> String {
+pub(crate) fn swift_case(variant: &str) -> String {
     let characters: Vec<char> = variant.chars().collect();
     let run = match characters.iter().position(|character| !character.is_ascii_uppercase()) {
         None => characters.len(),
@@ -741,7 +741,7 @@ fn swift_case(variant: &str) -> String {
         .collect()
 }
 
-fn uniffi_swift_case(variant: &str) -> String {
+pub(crate) fn uniffi_swift_case(variant: &str) -> String {
     let mut words: Vec<String> = Vec::new();
     let characters: Vec<char> = variant.chars().collect();
     let mut word = String::new();

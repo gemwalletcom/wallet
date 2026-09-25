@@ -113,10 +113,6 @@ public final class PerpetualsSceneViewModel {
         ))
     }
 
-    var showSearchEmptyState: Bool {
-        marketSectionList.contains(.empty)
-    }
-
     var headerViewModel: PerpetualsHeaderViewModel {
         PerpetualsHeaderViewModel(header: balanceHeader)
     }

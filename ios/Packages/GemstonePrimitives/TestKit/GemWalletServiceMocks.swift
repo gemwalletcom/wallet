@@ -123,12 +123,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func notificationPrompt(isGranted: Bool) -> Gemstone.GemNotificationPrompt {
         isGranted ? .enable : .request
     }
-
-    public func shouldAskNotifications() -> Bool {
-        false
-    }
-
-    public func setNotificationsAsked() throws {}
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
@@ -236,34 +230,22 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Gemstone.GemAssetRowStyle(title: .asset, showsSymbol: false, subtitle: .price, trailing: .balance)
     }
 
-    public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner]) -> GemWalletHomeViewState {
+    public func viewState(wallet _: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner]) -> GemWalletHomeViewState {
         let collateral: Double = perpetual.map { ($0.balance.available + $0.balance.reserved) * $0.price } ?? 0
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + collateral
         let total = Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
         let isEnabled = !banners.contains { $0.event == .accountBlockedMultiSignature }
-        let context = GemBannerContext(
-            wallet: wallet,
-            asset: nil,
-            isStakeable: false,
-            hasStakeBalance: false,
-            hasAvailableBalance: false,
-            isAssetActivated: true,
-            assetRankScore: nil,
-            isWalletEmpty: balances.allSatisfy { $0.amount == 0 },
-        )
         let showsPnl = total.value > 0 && total.pnlAmount != 0
+        var pnlAmount = formattedCurrency(value: total.pnlAmount, code: Currency.usd.rawValue, style: .fiat)
+        pnlAmount.notation = .signed
         return GemWalletHomeViewState(
-            totalValue: total,
             total: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat),
-            pnl: showsPnl ? .pnl(
-                amount: formattedSignedCurrency(value: total.pnlAmount, code: Currency.usd.rawValue, style: .fiat),
-                percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned),
-            ) : nil,
-            pnlTone: valueTone(value: total.pnlAmount),
+            pnl: showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil,
+            pnlTone: total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral,
             headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
             showCollections: false,
             showsPerpetuals: false,
-            visibleBanners: context.visibleBanners(stored: banners, platform: .ios),
+            banner: nil,
         )
     }
 
@@ -376,7 +358,7 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
         if let newestError {
             throw newestError
         }
-        return newestValue.map { GemAppUpdateOffer(version: $0.version, canSkip: !$0.upgradeRequired) }
+        return newestValue.map { GemAppUpdateOffer(version: $0.version, canSkip: !$0.upgradeRequired, apkUrl: nil) }
     }
 
     public func isVersionHigher(new: String, current: String) -> Bool {

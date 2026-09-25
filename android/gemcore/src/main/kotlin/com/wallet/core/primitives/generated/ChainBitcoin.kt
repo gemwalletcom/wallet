@@ -17,6 +17,8 @@ enum class BitcoinChain(val string: String) {
 	Litecoin("litecoin"),
 	@SerialName("doge")
 	Doge("doge"),
+	@SerialName("dash")
+	Dash("dash"),
 	@SerialName("zcash")
 	Zcash("zcash"),
 }

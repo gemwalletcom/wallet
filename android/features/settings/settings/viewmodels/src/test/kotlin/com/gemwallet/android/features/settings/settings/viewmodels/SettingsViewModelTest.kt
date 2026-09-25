@@ -2,7 +2,6 @@ package com.gemwallet.android.features.settings.settings.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
@@ -55,7 +54,6 @@ class SettingsViewModelTest {
         every { this@mockk() } returns wallets
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
-    private val enablePushForSupport = mockk<EnablePushForSupport>(relaxed = true)
     private val getPushEnabled = object : GetPushEnabled {
         override fun getPushEnabled() = MutableStateFlow(true)
     }
@@ -133,10 +131,10 @@ class SettingsViewModelTest {
         userConfig = userConfig,
         getWallets = getWallets,
         switchPushEnabled = switchPushEnabled,
-        enablePushForSupport = enablePushForSupport,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
+        isWalletConnectEnabled = mockk { every { isWalletConnectEnabled() } returns true },
         ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } answers { "string:${firstArg<Int>()}" } },
     )

@@ -55,12 +55,6 @@ public struct AddressStore: Sendable {
     }
 
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
-        try db.read { db in
-            try AddressRecord
-                .filter(AddressRecord.Columns.chain == chain.rawValue)
-                .filter(AddressRecord.Columns.address == address)
-                .fetchOne(db)?
-                .mapToAddressName()
-        }
+        try db.read { try AddressNameRequest(chain: chain, address: address).fetch($0) }
     }
 }

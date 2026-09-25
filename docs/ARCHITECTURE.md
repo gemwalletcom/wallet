@@ -185,7 +185,9 @@ The test is what the caller could not have worked out: if the answer depends onl
 
 The one exception is a [projection](#a-row-is-projected-from-its-value-never-fetched-from-a-service).
 
-**An export also loses its place when the last app caller goes**, because the generated interface, the wrapper and the mock requirement stay behind on both apps. `just check-ffi` reports every `#[uniffi::export] pub fn` that no app names; a function Core still uses keeps its body and loses only the export, one nothing uses is deleted. The composition services are where this happens most, and `GemExplorerService` is the finished shape: only its constructor is exported, because the composition root builds the object, while `get_address_url` and `get_transaction_link` sit in a plain `impl` block that the screen services call — every screen reads its explorer link through [its own screen service](#composition-services-are-reached-through-the-screen-service).
+**A fixed value is a generated constant, not an export.** A debounce, a timeout, a limit or a fixed list of options takes no input, so asking Core for it is a crossing per read. It lives in [`constants.rs`](../core/gemstone/src/constants.rs), which Core's own code reads, and `just generate-models` writes it to both apps as `GemConstants`. A constant is a plain value: a number, a string, a duration (Swift `Duration`, Kotlin `kotlin.time.Duration`) or a list of enum cases (a TypeShare enum as the app's own type). A record is not a constant; its fields are, and whoever needs the record builds it. A generator test fails when a checked-in constants file is stale. A value that depends on an input (a chain, a locale, a wallet) or is built by a formatter stays a function.
+
+**An export also loses its place when the last app caller goes**, because the generated interface, the wrapper and the mock requirement stay behind on both apps. `just check-ffi` reports every exported function and method of an exported `impl` that no app calls outside its tests, mocks and previews; a function Core still uses keeps its body and loses only the export, one nothing uses is deleted. The composition services are where this happens most, and `GemExplorerService` is the finished shape: only its constructor is exported, because the composition root builds the object, while `get_address_url` and `get_transaction_link` sit in a plain `impl` block that the screen services call — every screen reads its explorer link through [its own screen service](#composition-services-are-reached-through-the-screen-service).
 
 ### A staged load names what each stage waits for
 
@@ -525,19 +527,21 @@ pub struct GemWalletDetails {
 }
 ```
 
-Android's `WalletDetailsAggregateImpl(details)` and iOS's `WalletDetailViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
+Android's `GemWalletDetails.uiModel()` and iOS's `WalletDetailViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
 
 ```kotlin
-class WalletDetailsAggregateImpl(details: GemWalletDetails) : WalletDetailsAggregate {
-    override val row: GemWalletRow = details.row
-    override val address: ChainAddress? = details.address?.toPrimitives()
-}
+internal fun GemWalletDetails.uiModel() = WalletDetailsUIModel(
+    walletId = WalletId(row.id),
+    name = row.name,
+    address = address?.toPrimitives(),
+    addressExplorer = addressExplorer?.toPrimitives(),
+)
 ```
 
 ```swift
-var address: WalletDetailAddress? {
-    guard let account = details.address?.toPrimitives() else { return .none }
-    return .account(SimpleAccount(chain: account.chain, address: account.address), link: ...)
+var addressModel: AddressListItemViewModel? {
+    guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
+    return AddressListItemViewModel(title: Localized.Common.address, account: SimpleAccount(...), mode: .auto(addressStyle: .short), addressLink: link)
 }
 ```
 
@@ -952,6 +956,10 @@ pub trait GemPerpetualStore: Send + Sync {
 An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**. Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
+
+**The native store speaks primitives only.** `ios/Packages/Store` and `android/data/services/store` never reference Gemstone, and a Core store trait is implemented only in the adapter layer (`GemstoneServices`, `data/services/gemstone`). Core types stop at the adapter, which maps them to primitives or store-owned types (`AssetsRequestFilter`) and passes Core values such as `transactionsListLimit()` in as parameters.
+
+**Migrations fail loudly.** iOS `run()` only creates tables or recreates a cache; a column change belongs in `runChanges()`, which also runs on fresh installs, so each step checks what exists instead of `try?`. A cache of server data is dropped and recreated, not migrated. The Room version ships with its exported schema and a registered migration, and never falls back to a destructive migration.
 
 ### Choose the persistence owner
 
@@ -1775,7 +1783,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemDeveloperService` | — | `DeveloperViewModel` | `DevelopViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemContactEditorService` | — | `ContactEditorViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
-| `GemNftService` | — | `CollectionsViewModel`, `CollectionViewModel`, `UnverifiedCollectionsViewModel` | `NftListViewModels` |
+| `GemNftService` | — | `CollectionsViewModel` | `NftListViewModels` |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsViewModel` | `DevicePushSettings` (the push cases `SettingsViewModel` calls) |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
@@ -1865,7 +1873,7 @@ These choices explain apparent parity gaps. They do not authorize copying shared
 | Authentication | Privacy lock is iOS-only; WalletConnect one-click auth is Android-only. Android gates secret reads at each call site, while iOS gates the secret read itself. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
 | Autoclose | One app enables confirmation on a pending change and displays validation after tapping; the other enables only a buildable change. Both consume the same Core outcome from `GemAutocloseSession`, including the Android open-position sheet through `AmountPerpetualProvider`. |
 | Refresh | Wallet home receives socket prices and refreshes on pull; it intentionally has no interval timer. Socket reconnect delay is capped at 30 seconds. `debugLog` and stream diagnostic logging compile out in release. |
-| One-sided features | iOS support-image previews use `image_file`; Android uses notification-prompt tracking, post-search `sync_assets`, and invalid-mnemonic highlighting. Developer tools may differ (`deeplink_url` on iOS, `platform_store` on Android). Add the counterpart only when the feature is required. |
+| One-sided features | iOS support-image previews use `image_file`; Android uses post-search `sync_assets` and invalid-mnemonic highlighting. Developer tools may differ (`deeplink_url` on iOS, `platform_store` on Android). Add the counterpart only when the feature is required. |
 | Equivalent integration | Both apps choose the collectible receive network through `GemSelectAssetType::ReceiveCollection`. Payment prefills reach iOS through `GemAmountTransfer::prefilled_amount` and Android through Core-built `GemRecipientNext::Amount` carried in navigation. Perpetual banners use native navigation on each app; both observable preference adapters call `GemPreferencesService.set_perpetual_enabled`. |
 | Platform authentication outcomes | iOS uses `GemAuthPromptOutcome.is_cancelled`; Android uses `retry_delay_milliseconds`. They ask different questions of the same Core result. |
 | Notifications | Android's adapter retains application context for permission status and system settings (`FLAG_ACTIVITY_NEW_TASK`); the permission request itself runs through the activity collector. |
@@ -1877,4 +1885,4 @@ These choices explain apparent parity gaps. They do not authorize copying shared
 
 Different export usage is not evidence of duplicated policy. Android already gets fee assets and swap quotes from Core records, observes the current wallet through its session store and checks releases through `check`. iOS receives rejection errors from `process_request`, projects `AssetBasic` from an existing `AssetFull`, and reads connection status through its component extension; only Android needs `chain_from_caip2`. Check the actual path before adding calls for symmetry.
 
-Tests and nested fields are callers too: `GemTransferData::transaction_type` and `GemPaymentService::decode_url` still have mobile test consumers. The keystore `preview_import` fixtures must migrate under X172 before its export is removed. Production-only searches are insufficient.
+A test, a mock or a preview is not a caller: an export only they read is trimmed, and the fixture is built literally or from the list form (`just check-ffi` reports the rest). The exception is a test double that has to answer as Core does, such as the confirmation doubles that ask `GemConfirmScreen` for their button; the check names those. Nested fields are callers too, and the keystore `preview_import` fixtures must migrate under X172 before its export is removed.

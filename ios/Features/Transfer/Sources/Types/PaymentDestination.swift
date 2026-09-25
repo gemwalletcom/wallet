@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemPaymentLoad
 import struct Gemstone.GemTransferData
 import enum Gemstone.PaymentLink
 import GemstonePrimitives
@@ -20,18 +19,6 @@ public enum PaymentDestination: Identifiable, Sendable {
         case let .verify(url, _): "verify-\(url)"
         case let .recipient(input): "recipient-\(input.id)"
         case let .selectAsset(type, _): "selectAsset-\(type.id)"
-        }
-    }
-
-    public init(_ load: GemPaymentLoad) throws {
-        switch load {
-        case let .sign(transfer):
-            self = .confirm(transfer)
-        case let .verify(invoice, _, url):
-            guard let url = URL(string: url) else {
-                throw AnyError("Invalid payment verification URL")
-            }
-            self = .verify(url, link: invoice.link)
         }
     }
 }

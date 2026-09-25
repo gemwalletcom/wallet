@@ -29,6 +29,7 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Ton => ("UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", Some("gyjq/7IJ5KpSvZlnwixaS3RjI2xk1+5pup0k++S/yXY=")),
         Chain::Tron => ("TFdTEn9dJuqh351y8fyJ3eMmghFsZNwakb", None),
         Chain::Doge => ("DMKhUaRmnxJXfDxyFguMnMjVdgvnNipFzt", Some("a3d087183ce022bb679682aa989589bb0456180f34ed5daa96f8e4988b26968b")),
+        Chain::Dash => ("XfcbSaK1dtEe6GmNRE5pMS3WYpoJ2D1BDm", Some("c4046771f3056a7191fd59bd0427125d5f36db51e1bae742c949d1e905b2ec67")),
         Chain::Zcash => ("t1bGQcsCLuyYJyRHep6pKwtMYdi1XFrvjho", Some("b1038ceffc1ce6eeab15d9254e7fe84e81808e1d40affba2b8792b21314c1f03")),
         Chain::Optimism => (DEFAULT_EVM_ADDRESS, Some("0xc4edd56597745ae8fc8486b2cdf003ea52d9b37b0f72361eff3b5d73d62ae731")),
         Chain::Aptos => ("0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc", None),

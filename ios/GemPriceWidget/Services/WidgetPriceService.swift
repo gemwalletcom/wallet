@@ -31,11 +31,9 @@ struct WidgetPriceService {
             return PriceWidgetEntry(
                 date: Date(),
                 coinPrices: Self.coinPrices(assetIds: assetIds, assets: assets, currency: currency, widgetFamily: widgetFamily),
-                currency: currency,
-                widgetFamily: widgetFamily,
             )
         } catch {
-            return PriceWidgetEntry.error(error: isNetworkError(error) ? error.localizedDescription : WidgetLocalized.Widget.empty, widgetFamily: widgetFamily)
+            return PriceWidgetEntry.error(error: isNetworkError(error) ? error.localizedDescription : WidgetLocalized.Widget.empty)
         }
     }
 }

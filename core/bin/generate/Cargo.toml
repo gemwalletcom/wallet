@@ -9,3 +9,5 @@ primitives = { path = "../../crates/primitives" }
 config = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+syn = { version = "2", features = ["full"] }
+quote = "1"

@@ -15,26 +15,28 @@ public struct NetworkAssetsScene: View {
     }
 
     public var body: some View {
-        List {
-            if model.showPinned {
+        let groups = model.groups
+        let assetItems = model.assetItems
+        return List {
+            if groups.sections.showsPinned {
                 Section {
-                    assetsList(model.pinned)
+                    assetsList(groups.pinned, itemsModel: assetItems)
                 } header: {
                     PinnedSectionHeader()
                 }
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showUnpinned {
+            if groups.sections.showsUnpinned {
                 Section {
-                    assetsList(model.unpinned)
+                    assetsList(groups.unpinned, itemsModel: assetItems)
                 }
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showHidden {
+            if groups.sections.showsHidden {
                 Section(model.hiddenTitle) {
-                    assetsList(model.hidden, onAddToWallet: model.onAddToWallet)
+                    assetsList(groups.hidden, itemsModel: assetItems, onAddToWallet: model.onAddToWallet)
                 }
                 .listRowInsets(.assetListRowInsets)
             }
@@ -45,13 +47,13 @@ public struct NetworkAssetsScene: View {
         .scrollContentBackground(.hidden)
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.showEmpty {
+            if groups.sections.showsEmpty {
                 EmptyContentView(model: model.emptyModel)
             }
         }
         .bindQuery(model.activeQuery, model.hiddenQuery)
-        .task(id: model.assetIds) {
-            await model.updateBalances()
+        .taskOnce {
+            Task { await model.updateBalances() }
         }
         .toast(message: $model.isPresentingToastMessage)
         .navigationTitle(model.title)
@@ -65,10 +67,10 @@ public struct NetworkAssetsScene: View {
         }
     }
 
-    private func assetsList(_ assets: [AssetData], onAddToWallet: AssetIdAction = nil) -> some View {
+    private func assetsList(_ assets: [AssetData], itemsModel: ListAssetItemsViewModel, onAddToWallet: AssetIdAction = nil) -> some View {
         WalletAssetsList(
             assets: assets,
-            itemsModel: model.assetItems,
+            itemsModel: itemsModel,
             onHideAsset: model.onHideAsset,
             onPinAsset: model.onPinAsset,
             onAddToWallet: onAddToWallet,

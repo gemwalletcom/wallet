@@ -8,7 +8,7 @@ use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
-    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData, NFTAssetId, NFTData, PortfolioAssets,
+    AddressDetails, AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData, NFTAssetId, NFTData, PortfolioAssets,
     PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
     WalletSubscriptionChains, transactions_page_limit,
 };
@@ -225,6 +225,10 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
 
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, ClientError> {
         self.send(GemDeviceApiTarget::GetAddressNames(requests)).await
+    }
+
+    pub async fn get_address_details(&self, request: ChainAddress) -> Result<AddressDetails, ClientError> {
+        self.send(GemDeviceApiTarget::GetAddressDetails(request)).await
     }
 
     pub async fn get_portfolio_assets(&self, period: ChartPeriod, request: PortfolioAssetsRequest) -> Result<PortfolioAssets, ClientError> {

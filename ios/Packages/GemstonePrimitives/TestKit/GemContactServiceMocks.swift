@@ -116,10 +116,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     }
 
     public func shouldProcessProposal(proposerPublicKey: String) -> Bool {
-        shouldProcessMessage(messageId: "proposal-\(proposerPublicKey)")
-    }
-
-    public func shouldProcessMessage(messageId: String) -> Bool {
+        let messageId = "proposal-\(proposerPublicKey)"
         let seen = seenMessageIds.contains(messageId)
         seenMessageIds.append(messageId)
         return !seen
@@ -131,10 +128,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {
         updatedSessions.append(sessions)
-    }
-
-    public func userRejectedError() -> GemWalletConnectRpcError {
-        GemWalletConnectRpcError(code: 4001, message: "User rejected")
     }
 }
 

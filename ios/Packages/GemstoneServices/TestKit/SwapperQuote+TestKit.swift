@@ -4,12 +4,22 @@ import BigInt
 import Foundation
 import struct Gemstone.SwapperQuote
 import enum Gemstone.SwapProvider
+import struct Gemstone.SwapProviderData
 import struct Gemstone.SwapQuote
-import func Gemstone.swapQuote
 
 public extension SwapperQuote {
     var swapQuote: SwapQuote {
-        Gemstone.swapQuote(quote: self)
+        SwapQuote(
+            fromAddress: request.walletAddress,
+            fromValue: fromValue,
+            minFromValue: minFromValue,
+            toAddress: request.destinationAddress,
+            toValue: toValue,
+            providerData: SwapProviderData(provider: data.provider.id, name: data.provider.name, protocolName: data.provider.protocol),
+            slippageBps: data.slippageBps,
+            etaInSeconds: etaInSeconds,
+            useMaxAmount: request.options.useMaxAmount,
+        )
     }
 
     static func mock(

@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
+import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -70,7 +72,7 @@ public struct SwapScene: View {
         }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
-        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
+        .debouncedTask(id: model.loadTrigger, interval: GemConstants.swapQuoteDebounce) {
             await model.load()
         }
         .debounce(
@@ -87,7 +89,7 @@ public struct SwapScene: View {
             }
         }
         .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
-        .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
+        .onTimer(every: GemConstants.swapQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.load()
         }
         .onAppear(perform: model.onAppear)

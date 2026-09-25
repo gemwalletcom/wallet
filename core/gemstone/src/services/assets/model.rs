@@ -129,11 +129,6 @@ pub struct GemPriceRow {
     pub change: Option<GemFormattedNumber>,
 }
 
-#[uniffi::export]
-pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> GemPriceRow {
-    super::rules::price_row(price, change, currency, style)
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetListRow {
     pub icon: super::icon::GemAssetIcon,
@@ -619,7 +614,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
-    pub visible_banners: Vec<GemBannerRow>,
+    pub banner: Option<GemBannerRow>,
     pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,

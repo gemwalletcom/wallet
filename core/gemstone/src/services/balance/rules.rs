@@ -31,7 +31,6 @@ pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyl
     GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }
 
-#[uniffi::export]
 pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemListRow> {
     let Some(metadata) = metadata else { return Vec::new() };
     let row = |title, available: u32, total: u32| GemListRow::Text {

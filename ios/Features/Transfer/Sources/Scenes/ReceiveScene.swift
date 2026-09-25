@@ -101,8 +101,8 @@ public struct ReceiveScene: View {
                     listContent: {
                         ChainView(
                             model: ChainViewModel(
-                                chain: $0.assetId.chain,
-                                assetType: $0.assetId.assetType,
+                                chain: $0.chain,
+                                assetType: $0.assetType,
                             ),
                         )
                     },

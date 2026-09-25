@@ -4,8 +4,8 @@ import Components
 import Foundation
 import struct Gemstone.GemWalletRow
 import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.walletAvatarEmojis
 import func Gemstone.walletRow
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -36,7 +36,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     let emojiViewSize: Sizing = .image.extraLarge
-    let emojiList: [EmojiValue] = walletAvatarEmojis().map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
+    let emojiList: [EmojiValue] = GemConstants.walletAvatarEmojis.map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
 
     public init(
         wallet: Wallet,

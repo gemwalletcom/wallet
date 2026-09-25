@@ -69,6 +69,9 @@ public struct SupportChatScene: View {
         .task {
             await model.load()
         }
+        .taskOnce {
+            Task { await model.enableNotificationsForSupport() }
+        }
         .onChange(of: scenePhase, model.onScenePhaseChange)
         .onDisappear { model.onDisappear() }
         .quickLookPreview($model.previewURL)

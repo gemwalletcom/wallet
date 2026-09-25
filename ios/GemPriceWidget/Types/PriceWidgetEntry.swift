@@ -9,30 +9,23 @@ import WidgetKit
 struct PriceWidgetEntry: TimelineEntry {
     let date: Date
     let coinPrices: [CoinPrice]
-    let currency: String
     let error: String?
-    let widgetFamily: WidgetFamily
 
     init(
         date: Date,
         coinPrices: [CoinPrice],
-        currency: String = "USD",
         error: String? = .none,
-        widgetFamily: WidgetFamily = .systemMedium,
     ) {
         self.date = date
         self.coinPrices = coinPrices
-        self.currency = currency
         self.error = error
-        self.widgetFamily = widgetFamily
     }
 
-    static func error(error: String, widgetFamily: WidgetFamily = .systemMedium) -> PriceWidgetEntry {
+    static func error(error: String) -> PriceWidgetEntry {
         PriceWidgetEntry(
             date: Date(),
             coinPrices: [],
             error: error,
-            widgetFamily: widgetFamily,
         )
     }
 
@@ -46,7 +39,6 @@ struct PriceWidgetEntry: TimelineEntry {
             date: Date(),
             coinPrices: widgetFamily == .systemSmall ? Array(placeholderCoins.prefix(1)) : placeholderCoins,
             error: .none,
-            widgetFamily: widgetFamily,
         )
     }
 }

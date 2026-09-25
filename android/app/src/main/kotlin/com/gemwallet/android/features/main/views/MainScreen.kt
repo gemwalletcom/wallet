@@ -237,7 +237,6 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
 
                             else -> SettingsScene(
                                 scrollState = settingsScrollState,
-                                walletConnectEnabled = viewModel.isWalletConnectEnabled,
                                 onAction = { action ->
                                     when (action) {
                                         SettingsSceneAction.Wallets -> navigator.openWallets()

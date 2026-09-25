@@ -8,7 +8,6 @@ import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
-import struct Gemstone.GemBannerRow
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemListRow
@@ -217,10 +216,6 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    func bannerModel(for row: GemBannerRow) -> BannerViewModel {
-        BannerViewModel(row: row)
-    }
-
     func assetHeaderModel(_ details: GemAssetDetails) -> AssetHeaderViewModel {
         AssetHeaderViewModel(assetDataModel: assetDataModel, details: details)
     }
@@ -252,8 +247,8 @@ public final class AssetSceneViewModel: Sendable {
         .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap(\.self)
     }
 
-    func statusViewModel(_ details: GemAssetDetails) -> VerificationStatusViewModel? {
-        details.verificationStatus.map { VerificationStatusViewModel(status: $0.toPrimitives()) }
+    func verificationStatus(_ details: GemAssetDetails) -> VerificationStatus? {
+        details.verificationStatus?.toPrimitives()
     }
 
     var swapAssetType: SelectedAssetType {
@@ -364,7 +359,7 @@ public extension AssetSceneViewModel {
     }
 
     func onSelectTokenStatus() {
-        guard let status = statusViewModel(details)?.status else { return }
+        guard let status = verificationStatus(details) else { return }
         isPresentingAssetSheet = .info(.assetStatus(status))
     }
 
@@ -398,6 +393,8 @@ public extension AssetSceneViewModel {
             do {
                 try await service.setAssetsEnabled(assetIds: [asset.id.identifier], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
             }

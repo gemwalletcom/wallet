@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetNetworkDestination
+import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 
@@ -37,6 +38,13 @@ fun GemListRow.detailsAction(assetId: AssetId): AssetDetailsAction? = when (this
     }
 
     else -> null
+}
+
+fun GemBalanceRow.detailsAction(assetId: AssetId): AssetDetailsAction? = when (this) {
+    is GemBalanceRow.Available, is GemBalanceRow.PendingUnconfirmed -> null
+    is GemBalanceRow.Staked -> AssetDetailsAction.Stake(assetId)
+    is GemBalanceRow.Earn -> AssetDetailsAction.Earn(assetId)
+    is GemBalanceRow.Reserved -> url?.let { AssetDetailsAction.OpenUrl(it) }
 }
 
 internal fun GemListRow.networkAction(network: AssetDetailsAction.Navigation?): AssetDetailsAction? = when (this) {

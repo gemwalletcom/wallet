@@ -35,7 +35,7 @@ pub(crate) fn sign_plan(chain: BitcoinChain, plan: &SpendPlan, private_key: &[u8
 
     let transaction = match chain {
         BitcoinChain::BitcoinCash => sign_bitcoin_cash(plan, &secret_key.0, &public_key, &secp)?,
-        BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::Doge => sign_standard(plan, &secret_key.0, &public_key, &secp)?,
+        BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Dash => sign_standard(plan, &secret_key.0, &public_key, &secp)?,
         BitcoinChain::Zcash => {
             let branch_id = zcash_branch_id.ok_or_else(|| SignerError::invalid_input("missing Zcash branch id"))?;
             return sign_transparent(plan, branch_id, &secret_key.0, &public_key, &secp);
@@ -117,7 +117,7 @@ fn validate_chain_input_types(chain: BitcoinChain, plan: &SpendPlan) -> Result<(
     for input in &plan.inputs {
         match chain {
             BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::Doge => {}
-            BitcoinChain::BitcoinCash | BitcoinChain::Zcash => {
+            BitcoinChain::BitcoinCash | BitcoinChain::Dash | BitcoinChain::Zcash => {
                 (input.unlocking_script == UnlockingScript::P2pkh)
                     .then_some(())
                     .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address type is unsupported", chain.get_chain())))?;

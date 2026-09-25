@@ -36,13 +36,6 @@ public struct PushNotificationEnablerService: Sendable {
         }
     }
 
-    public func requestPermissionsIfNotDetermined() async throws -> Bool {
-        switch try await preferencesService.notificationPrompt(isGranted: getNotificationSettingsStatus().isGranted) {
-        case .request: try await requestPermissions()
-        case .enable, .openSettings: false
-        }
-    }
-
     public func getNotificationSettingsStatus() async throws -> UNAuthorizationStatus {
         let center = UNUserNotificationCenter.current()
         return await center.notificationSettings().authorizationStatus

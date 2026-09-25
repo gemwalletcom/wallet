@@ -278,6 +278,7 @@ mod tests {
 
         assert!(!thorchain.supported_assets().iter().any(|asset| asset.get_chain() == Chain::Arbitrum));
         assert!(mayachain.supported_assets().iter().any(|asset| asset.get_chain() == Chain::Arbitrum));
+        assert!(mayachain.supported_assets().iter().any(|asset| asset.get_chain() == Chain::Dash));
         assert!(
             mayachain
                 .supported_assets()

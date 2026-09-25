@@ -10,12 +10,9 @@ import com.wallet.core.primitives.PerpetualPositionData
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualPositionRow
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.perpetualPositionRow
 import uniffi.gemstone.perpetualPositionRows
 
 class PerpetualPositionDataAggregateImpl(private val data: PerpetualPositionData, row: GemPerpetualPositionRow) : PerpetualPositionDataAggregate {
-    constructor(data: PerpetualPositionData) : this(data, perpetualPositionRow(data.perpetual.toGem(), data.asset.toGem(), data.position.toGem()))
-
     override val perpetualId: PerpetualId
         get() = data.perpetual.id
     override val asset: Asset = data.asset

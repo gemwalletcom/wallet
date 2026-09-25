@@ -148,7 +148,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
-    public var activityTypesValue: [Gemstone.TransactionType] = [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]
     public var detailsValue: GemPerpetualDetails = .mock()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
@@ -165,10 +164,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var setChartPeriods: [Gemstone.ChartPeriod] = []
 
     public init() {}
-
-    public func activityTypes() -> [Gemstone.TransactionType] {
-        activityTypesValue
-    }
 
     public func candleSubscription(perpetual: Gemstone.Perpetual, period: Gemstone.ChartPeriod) -> GemPerpetualSubscription {
         .candle(symbol: perpetual.name, interval: period.toPrimitives().rawValue)

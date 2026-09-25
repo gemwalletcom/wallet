@@ -1,7 +1,6 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId

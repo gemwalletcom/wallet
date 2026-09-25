@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsUIModel
@@ -50,13 +49,14 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualButton
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemValueTone
 
 @Composable
 internal fun PerpetualPositionScene(
     details: PerpetualDetailsUIModel?,
     positionListItem: ListItemModel?,
-    transactions: List<TransactionDataAggregate>,
+    transactions: List<GemTransactionRow>,
     chart: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
     tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,

@@ -169,6 +169,19 @@ struct AssetsRequestTests {
         }
     }
 
+    @Test func typedSearchKeepsPinnedFirst() throws {
+        let db = DB.mockAssets()
+        let usdt = Asset.mockEthereumUSDT().id
+        try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [usdt], configuration: .pinned(true))
+
+        try db.dbQueue.read { db in
+            let assets = try AssetsRequest.mock(searchBy: "t").fetch(db)
+
+            #expect(assets.count > 1)
+            #expect(assets.first?.asset.id == usdt)
+        }
+    }
+
     @Test func searchPrioritySortsHeldBalanceFirst() throws {
         let db = DB.mockAssets()
         let searchStore = SearchStore(db: db)

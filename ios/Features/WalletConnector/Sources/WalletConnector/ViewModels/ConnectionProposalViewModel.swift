@@ -7,7 +7,7 @@ import struct Gemstone.GemConnectionRow
 import enum Gemstone.GemVerificationLevel
 import func Gemstone.verificationLevel
 import func Gemstone.walletRow
-import func Gemstone.walletRows
+import func Gemstone.walletSections
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -32,7 +32,7 @@ public struct ConnectionProposalViewModel {
         row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
         verification = verificationLevel(status: pairingProposal.verificationStatus.toGem())
         walletSelectorModel = SelectWalletViewModel(
-            rows: walletRows(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
+            sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )
     }

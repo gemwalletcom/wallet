@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.delegationListRows
 import struct Gemstone.GemDelegationListRow
 import GemstonePrimitives
 import Primitives
@@ -16,13 +15,6 @@ public struct DelegationViewModel: Sendable {
 
     init(row: GemDelegationListRow) {
         self.row = row
-    }
-
-    static func items(_ delegations: [Delegation], asset: Asset, price: Double?, currency: Currency) -> [(delegation: Delegation, model: DelegationViewModel)] {
-        let rows = delegationListRows(delegations: delegations.map { $0.toGem() }, asset: asset.toGem(), price: price, currency: currency.toGem())
-        return zip(delegations, rows).map { delegation, row in
-            (delegation, DelegationViewModel(row: row))
-        }
     }
 
     public var listItem: ListItemModel {

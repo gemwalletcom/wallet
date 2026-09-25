@@ -8,17 +8,15 @@ import Style
 import SwiftUI
 
 struct ShowSecretDataScene: View {
-    let model: any SecretPhraseViewableModel
+    let model: SecretDataViewModel
     @State private var isPresentingCopyToast = false
 
     var body: some View {
         List {
-            if let calloutViewStyle = model.calloutViewStyle {
-                Section {
-                    CalloutView(style: calloutViewStyle)
-                }
-                .cleanListRow()
+            Section {
+                CalloutView(style: model.calloutViewStyle)
             }
+            .cleanListRow()
 
             Section {
                 SecretDataTypeView(type: model.type)

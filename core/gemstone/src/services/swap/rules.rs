@@ -133,17 +133,6 @@ pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Res
     })
 }
 
-const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 30_000;
-const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
-
-pub fn quote_refresh_interval_milliseconds() -> u64 {
-    QUOTE_REFRESH_INTERVAL_MILLISECONDS
-}
-
-pub fn quote_debounce_milliseconds() -> u64 {
-    QUOTE_DEBOUNCE_MILLISECONDS
-}
-
 pub fn swap_rate(from_asset: &Asset, from_value: &BigUint, to_asset: &Asset, to_value: &BigUint) -> Option<GemSwapRate> {
     let from_amount = amount(from_value, from_asset.decimals)?;
     let to_amount = amount(to_value, to_asset.decimals)?;

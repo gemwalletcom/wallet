@@ -2,10 +2,10 @@
 
 import Foundation
 import typealias Gemstone.AssetId
+import struct Gemstone.AssetMarket
 import struct Gemstone.AssetPrice
 import enum Gemstone.Currency
 import struct Gemstone.FiatRate
-import struct Gemstone.GemMarketUpdate
 import protocol Gemstone.GemPriceStore
 import struct Gemstone.GemPriceUpdate
 import GemstonePrimitives
@@ -52,11 +52,7 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
         try priceStore.convertPrices(rate: rate)
     }
 
-    public func saveMarket(market: GemMarketUpdate) async throws {
-        try priceStore.updateMarket(
-            assetId: Primitives.AssetId(id: market.assetId),
-            market: market.market.toPrimitives(),
-            marketUsd: market.marketUsd.toPrimitives(),
-        )
+    public func saveMarket(assetId: Gemstone.AssetId, market: Gemstone.AssetMarket) async throws {
+        try priceStore.updateMarket(assetId: Primitives.AssetId(id: assetId), market: market.toPrimitives())
     }
 }

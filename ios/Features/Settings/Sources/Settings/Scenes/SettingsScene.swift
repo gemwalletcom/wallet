@@ -41,7 +41,7 @@ public struct SettingsScene: View {
 extension SettingsScene {
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch model.destination(for: row) {
+        switch SettingsRowDestination(row: row) {
         case .wallets:
             NavigationCustomLink(with: GemListRowView(row: row), action: onOpenWallets)
         case .security:
@@ -81,6 +81,5 @@ extension SettingsScene {
 
     private func onOpenSupport() {
         isPresentingSupport = true
-        Task { await model.openSupport() }
     }
 }

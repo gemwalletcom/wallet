@@ -64,23 +64,21 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 @Preview
 @Composable
 fun PreviewWalletScreen() {
-    val wallet = { id: String, name: String, isCurrent: Boolean, isPinned: Boolean ->
+    val wallet = { id: String, name: String, isCurrent: Boolean ->
         WalletItemUIModel(
-            walletId = WalletId(id),
             row = WalletRowUIModel(id = id, name = name, subtitle = "Multicoin", icon = R.drawable.multicoin_wallet, supportIcon = null),
             isCurrent = isCurrent,
-            isPinned = isPinned,
         )
     }
     MaterialTheme {
         Box {
             WalletsScene(
                 unpinnedWallets = listOf(
-                    wallet("1", "Foo wallet #1", true, false),
-                    wallet("2", "Foo wallet #2", false, false),
-                    wallet("3", "Foo wallet #3", false, false),
+                    wallet("1", "Foo wallet #1", true),
+                    wallet("2", "Foo wallet #2", false),
+                    wallet("3", "Foo wallet #3", false),
                 ),
-                pinnedWallets = listOf(wallet("4", "Foo wallet #4", true, true)),
+                pinnedWallets = listOf(wallet("4", "Foo wallet #4", true)),
                 onAction = {},
             )
         }

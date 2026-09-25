@@ -34,6 +34,25 @@ LOCALIZED_HOMES = {"Gemstone+Localized.swift", "GemstoneText.kt"}
 KEYSTORE = re.compile(r"\bGemKeystore\b")
 KEYSTORE_LAYERS = re.compile(r"(ios/Packages/GemstoneServices/|android/data/services/gemstone/)")
 
+NATIVE_STORES = ("ios/Packages/Store/", "android/data/services/store/")
+GEMSTONE = re.compile(r"\bGemstone\w*|\buniffi\.gemstone\b")
+
+STORE_TRAIT = re.compile(r"pub trait (Gem\w+Store)\b")
+STORE_ADAPTERS = ("ios/Packages/GemstoneServices/", "android/data/services/gemstone/")
+SWIFT_CONFORMANCE = re.compile(r"\b(?:class|struct|actor|enum|extension)\s+[\w.]+(?:<[^>]*>)?\s*:\s*([^{]*)\{")
+KOTLIN_SUPERTYPES = re.compile(r"\b(?:class|object|interface)\s+\w+(?:\s*\((?:[^()]|\([^()]*\))*\))?\s*:\s*([^{=]*)")
+
+IOS_MIGRATIONS = ROOT / "ios/Packages/Store/Sources/Migrations.swift"
+IOS_START_MIGRATIONS = re.compile(r"mutating func run\(.*?mutating func runChanges\(", re.S)
+ALTERATION = re.compile(r"\balter\(table:|\baddColumnIfMissing\(|\bdrop\(column:")
+
+ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/GemDatabase.kt"
+ROOM_MIGRATIONS = ROOM_DATABASE.parent / "di"
+ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.service.store.database.GemDatabase"
+ROOM_VERSION = re.compile(r"^\s*version\s*=\s*(\d+)", re.M)
+ROOM_MIGRATION = re.compile(r"\b(?:object|class)\s+(\w+)[^:{]*:\s*Migration\((\d+),\s*(\d+)\)")
+DESTRUCTIVE_FALLBACK = re.compile(r"\bfallbackToDestructiveMigration\w*\(")
+
 
 def app_files():
     for roots in SOURCES:
@@ -90,6 +109,76 @@ def the_keystore_stays_in_its_layer():
                 yield f"{relative}:{number} reaches for the keystore outside its layer"
 
 
+
+def native_stores_speak_primitives():
+    """§ 4: the native store never references Gemstone; its adapter maps at the boundary."""
+    for path in app_files():
+        relative = str(path.relative_to(ROOT))
+        if not relative.startswith(NATIVE_STORES):
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if GEMSTONE.search(line):
+                yield f"{relative}:{number} references Gemstone from the native store"
+
+
+def store_traits():
+    return {name for path in CORE.rglob("*.rs") for name in STORE_TRAIT.findall(path.read_text())}
+
+
+def store_traits_live_in_their_adapters():
+    """§ 4: a Core store trait is implemented only in the Gemstone adapter layer, never by a DAO, a native store or a feature."""
+    traits = store_traits()
+    for path in app_files():
+        relative = str(path.relative_to(ROOT))
+        if relative.startswith(STORE_ADAPTERS):
+            continue
+        text = path.read_text()
+        declaration = SWIFT_CONFORMANCE if path.suffix == ".swift" else KOTLIN_SUPERTYPES
+        for match in declaration.finditer(text):
+            for name in sorted(traits & set(re.findall(r"\b\w+\b", match.group(1)))):
+                number = text.count("\n", 0, match.start()) + 1
+                yield f"{relative}:{number} implements {name} outside the store adapters"
+
+
+def ios_start_migrations_only_create():
+    """§ 4: run() only creates or recreates tables; a column change belongs in runChanges(), after the tables it alters exist."""
+    text = IOS_MIGRATIONS.read_text()
+    start = IOS_START_MIGRATIONS.search(text)
+    if start is None:
+        yield f"{IOS_MIGRATIONS.relative_to(ROOT)} no longer has run() before runChanges()"
+        return
+    for match in ALTERATION.finditer(start.group(0)):
+        number = text.count("\n", 0, start.start() + match.start()) + 1
+        yield f"{IOS_MIGRATIONS.relative_to(ROOT)}:{number} alters a table in run()"
+
+
+def ios_migrations_fail_loudly():
+    """§ 4: a migration checks what exists instead of swallowing the error with try?."""
+    for number, line in enumerate(IOS_MIGRATIONS.read_text().splitlines(), start=1):
+        if "try?" in line:
+            yield f"{IOS_MIGRATIONS.relative_to(ROOT)}:{number} swallows a migration error with try?"
+
+
+def room_version_ships_with_its_migration():
+    """§ 4: the Room version has its exported schema and a registered migration that reaches it."""
+    version = int(ROOM_VERSION.search(ROOM_DATABASE.read_text()).group(1))
+    if not (ROOM_SCHEMAS / f"{version}.json").exists():
+        yield f"{ROOM_SCHEMAS.relative_to(ROOT)}/{version}.json is missing for version {version}"
+    registered = set(re.findall(r"\b(Migration_\w+)\b", (ROOM_MIGRATIONS / "GemDatabaseMigrations.kt").read_text()))
+    reaching = [name for path in ROOM_MIGRATIONS.glob("Migration_*.kt") for name, _, end in ROOM_MIGRATION.findall(path.read_text()) if int(end) == version]
+    if not set(reaching) & registered:
+        yield f"{ROOM_MIGRATIONS.relative_to(ROOT)}/GemDatabaseMigrations.kt registers no migration to version {version}"
+
+
+def room_never_drops_user_data():
+    """§ 4: a missing migration is a bug to fix, never a reason to wipe the database."""
+    for path in app_files():
+        if path.suffix != ".kt":
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if DESTRUCTIVE_FALLBACK.search(line):
+                yield f"{path.relative_to(ROOT)}:{number} falls back to a destructive migration"
+
 BACKEND = ROOT / "core"
 INFRA_CRATES = {"storage", "cacher", "streamer", "search_index", "pusher"}
 INFRA_DEPENDENTS = {
@@ -139,6 +228,12 @@ RULES = [
     ("services are injected, never constructed at a call site", services_are_injected),
     ("one localization mapper names every Core key it renders", one_localization_mapper),
     ("the keystore stays in its layer", the_keystore_stays_in_its_layer),
+    ("the native store speaks primitives only", native_stores_speak_primitives),
+    ("store traits live in their adapters", store_traits_live_in_their_adapters),
+    ("iOS start migrations only create tables", ios_start_migrations_only_create),
+    ("iOS migrations fail loudly", ios_migrations_fail_loudly),
+    ("the Room version ships with its migration", room_version_ships_with_its_migration),
+    ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
 ]
 

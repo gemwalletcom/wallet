@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import func Gemstone.recentAssetsLimit
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -30,7 +29,7 @@ public final class RecentAssetsModel {
         query = ObservableQuery(
             RecentActivityRequest(
                 walletId: walletId,
-                limit: Int(recentAssetsLimit()),
+                limit: GemConstants.recentAssetsLimit,
                 types: types,
                 filters: filters,
             ),

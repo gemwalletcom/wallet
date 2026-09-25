@@ -265,10 +265,6 @@ class RequestSwapQuotesImplTest {
 
         override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
-        override fun quoteDebounceMilliseconds(): ULong = 0u
-
-        override fun refreshIntervalMilliseconds(): ULong = 0u
-
         override fun setSlippageBps(bps: UInt?) = Unit
 
         override fun slippageBps(): UInt? = null

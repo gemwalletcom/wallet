@@ -50,7 +50,7 @@ public extension ViewModelFactory {
     func addressDetailsScene(chainAddress: ChainAddress) -> AddressDetailsSceneViewModel {
         AddressDetailsSceneViewModel(
             chainAddress: chainAddress,
-            service: gatewayService.addressDetailsService(explorer: explorerService, names: nameService),
+            service: addressDetailsService,
         )
     }
 
@@ -68,7 +68,7 @@ public extension ViewModelFactory {
         WalletSceneViewModel(
             service: walletHomeService(),
             observablePreferences: observablePreferences,
-            collectionsModel: CollectionsViewModel(service: nftService, wallet: wallet),
+            collectionsModel: collectionsScene(wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
@@ -125,7 +125,6 @@ public extension ViewModelFactory {
     @MainActor
     func chartScene(
         asset: Asset,
-        walletId: WalletId,
         onSetPriceAlert: @escaping (Asset) -> Void,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> ChartSceneViewModel {
@@ -138,7 +137,6 @@ public extension ViewModelFactory {
             ),
             preferences: observablePreferences,
             assetModel: AssetViewModel(asset: asset),
-            walletId: walletId,
             onSetPriceAlert: onSetPriceAlert,
             onSelectAddress: onSelectAddress,
         )

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAddressDetailsService
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemAppUpdateService
-import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
@@ -35,13 +35,11 @@ import class Gemstone.GemRewardsService
 import class Gemstone.GemSearchService
 import class Gemstone.GemServiceStatus
 import class Gemstone.GemSignMessageService
-import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemSupportServiceProtocol
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionsService
-import class Gemstone.GemTransactionStateService
 import class Gemstone.GemWalletConnectService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
@@ -54,8 +52,8 @@ import Store
 import SwiftUI
 
 public struct ViewModelFactory: Sendable {
+    let addressDetailsService: GemAddressDetailsService
     let apiClient: GemApiClient
-    let assetConfig: GemAssetConfigService
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService
@@ -80,11 +78,9 @@ public struct ViewModelFactory: Sendable {
     let priceService: GemPriceService
     let rewardsService: GemRewardsService
     let searchService: GemSearchService
-    let simulationFormatter: GemSimulationFormatter
     let stakeService: GemStakeService
     let streamSubscriptionService: GemStreamSubscriptionService
     let swapService: GemSwapService
-    let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService

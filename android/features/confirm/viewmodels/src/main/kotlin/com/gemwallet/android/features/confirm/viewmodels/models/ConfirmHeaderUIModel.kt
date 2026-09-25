@@ -31,15 +31,11 @@ sealed interface ConfirmHeaderUIModel {
 
 data class FeeSelectionUIModel(val selectedPriority: FeePriority?, val customRate: BigInteger?)
 
-internal fun confirmHeader(header: GemConfirmHeader, isLoading: Boolean, isPayment: Boolean, context: Context, currency: Currency): ConfirmHeaderUIModel = when (header) {
+internal fun confirmHeader(header: GemConfirmHeader, context: Context, currency: Currency): ConfirmHeaderUIModel = when (header) {
     is GemConfirmHeader.Value -> ConfirmHeaderUIModel.Simulation(header.value.headerUIModel(context))
     is GemConfirmHeader.Placeholder -> ConfirmHeaderUIModel.Placeholder(header.assetId.toAssetId())
-    is GemConfirmHeader.Transaction -> header.header.uiModel(currency).reservedWhile(isLoading && isPayment)
-}
-
-private fun ConfirmHeaderUIModel.reservedWhile(reserved: Boolean): ConfirmHeaderUIModel = when {
-    reserved -> ConfirmHeaderUIModel.ReservedSpace(headerIcon())
-    else -> this
+    is GemConfirmHeader.Reserved -> ConfirmHeaderUIModel.ReservedSpace(header.header.uiModel(currency).headerIcon())
+    is GemConfirmHeader.Transaction -> header.header.uiModel(currency)
 }
 
 private fun ConfirmHeaderUIModel.headerIcon(): Any? = when (this) {

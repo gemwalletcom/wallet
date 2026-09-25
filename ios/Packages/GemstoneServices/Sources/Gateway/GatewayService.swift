@@ -36,10 +36,6 @@ public actor GatewayService: Sendable {
         GemChainSettingsService(nodes: nodes, explorer: explorer, gateway: gateway)
     }
 
-    public nonisolated func addressDetailsService(explorer: GemExplorerService, names: GemNameService) -> GemAddressDetailsService {
-        GemAddressDetailsService(gateway: gateway, explorer: explorer, names: names)
-    }
-
     public nonisolated func stakeService(
         staticApi: GemStaticApiClient,
         store: any GemStakeStore,

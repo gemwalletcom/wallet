@@ -1,12 +1,19 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.ReceiveSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemSelectAssetType
 
 @Composable
-fun SelectReceiveScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)?, titleContent: (@Composable () -> Unit)? = null, closeIcon: Boolean = false, showFilter: Boolean? = null, viewModel: ReceiveSelectViewModel = hiltViewModel()) {
+fun SelectReceiveScreen(
+    onCancel: () -> Unit,
+    onSelect: ((AssetId) -> Unit)?,
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
+    showFilter: Boolean? = null,
+    viewModel: AssetSelectViewModel = assetSelectViewModel(GemSelectAssetType.Receive),
+) {
     AssetSelectScreen(
         titleContent = titleContent,
         closeIcon = closeIcon,

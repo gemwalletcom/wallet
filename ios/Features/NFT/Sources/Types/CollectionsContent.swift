@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNftListScreen
 import Localization
 
 public struct CollectionsContent: Sendable {
@@ -22,5 +23,9 @@ public struct CollectionsContent: Sendable {
     ) {
         self.items = items
         self.unverifiedCount = unverifiedCount
+    }
+
+    init(_ screen: GemNftListScreen) {
+        self.init(items: NFTGridPosterBuilder.items(screen.items), unverifiedCount: screen.unverifiedRow?.countText)
     }
 }

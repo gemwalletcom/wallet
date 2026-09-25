@@ -34,12 +34,13 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.theme.paddingLarge
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 
 @Composable
-fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
+fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
     val aprRow by viewModel.aprRow.collectAsStateWithLifecycle()
@@ -99,7 +100,7 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
                         DelegationItem(
                             item = item,
                             listPosition = ListPosition.getPosition(index, positions.size),
-                            onClick = { onDelegation(item.delegation.validator.id, item.delegation.base.delegationId) },
+                            onClick = { viewModel.onPosition(item.delegation, onDelegation, amountAction, onConfirm) },
                         )
                     }
                 }

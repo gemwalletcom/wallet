@@ -108,17 +108,8 @@ public final class AddAssetSceneViewModel {
             title: Localized.Asset.Verification.warningTitle,
             titleExtra: Localized.Asset.Verification.warningMessage,
             titleStyleExtra: .bodySecondary,
-            imageStyle: warningImageStyle,
+            imageStyle: .emoji(Emoji.WalletAvatar.warning.rawValue),
             infoAction: infoAction,
-        )
-    }
-
-    var warningImageStyle: ListItemImageStyle? {
-        ListItemImageStyle(
-            assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
-            imageSize: .image.semiMedium,
-            alignment: .top,
-            cornerRadiusType: .none,
         )
     }
 

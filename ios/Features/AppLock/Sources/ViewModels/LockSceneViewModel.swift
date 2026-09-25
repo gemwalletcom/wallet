@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemLockPeriod
 import class Gemstone.GemSecurityService
 import GemstoneServices
 import LocalAuthentication
@@ -60,10 +59,6 @@ public class LockSceneViewModel {
 
     var shouldShowLockScreen: Bool {
         isLocked || showPlaceholderPreview
-    }
-
-    var lockPeriod: GemLockPeriod {
-        service.lockPeriod
     }
 
     var isPrivacyLockEnabled: Bool {

@@ -53,6 +53,8 @@ extension AccountRecord: CreateTable {
 }
 
 extension AccountRecord {
+    static let wallet = belongsTo(WalletRecord.self, using: ForeignKey(["walletId"], to: ["id"]))
+
     func mapToAccount() -> Account {
         Account(
             chain: chain,

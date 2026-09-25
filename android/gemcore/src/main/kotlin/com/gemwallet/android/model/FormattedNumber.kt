@@ -7,6 +7,7 @@ import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberRounding
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.GemTransactionRowValue
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -120,3 +121,9 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
 private fun GemFormattedNumber.numberFormat(locale: Locale): NumberFormat = currencyCode?.let { code ->
     NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) }
 } ?: NumberFormat.getInstance(locale)
+
+fun GemTransactionRowValue.text(): String? = when (this) {
+    GemTransactionRowValue.None -> null
+    is GemTransactionRowValue.AssetSymbol -> asset.symbol
+    is GemTransactionRowValue.Number -> number.text()
+}

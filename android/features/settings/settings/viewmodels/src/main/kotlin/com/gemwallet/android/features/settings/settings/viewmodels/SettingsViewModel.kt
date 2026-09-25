@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.NotificationsAvailable
@@ -35,30 +35,25 @@ class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val getWallets: GetWallets,
     private val switchPushEnabled: SwitchPushEnabled,
-    private val enablePushForSupport: EnablePushForSupport,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
     private val settingsService: GemSettingsServiceInterface,
+    private val isWalletConnectEnabled: IsWalletConnectEnabled,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val wallets = getWallets()
     private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
-    private val walletConnectAvailable = MutableStateFlow(true)
 
-    val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
+    val sections = combine(wallets, developerEnabled) { wallets, _ ->
         settingsService.sections(
             wallets = wallets.map { it.toGem() },
             notificationsAvailable = notificationsAvailable,
-            walletConnectAvailable = walletConnect,
+            walletConnectAvailable = isWalletConnectEnabled.isWalletConnectEnabled(),
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    fun setWalletConnectAvailable(available: Boolean) {
-        walletConnectAvailable.value = available
-    }
 
     val pushEnabled = getPushEnabled.getPushEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
@@ -73,13 +68,6 @@ class SettingsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
-
-    fun openSupport() {
-        viewModelScope.launch(ioDispatcher) {
-            val state = enablePushForSupport.enablePushForSupport() ?: return@launch
-            errorState.value = (state.result as? GemPushResult.NotRegistered)?.error?.text(context)
-        }
-    }
 
     fun enableNotifications() = switchNotifications(true)
 

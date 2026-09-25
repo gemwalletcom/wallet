@@ -3,7 +3,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::precision::GemValueStyle;
-use crate::services::balance::GemBalanceRequirement;
+use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::stake::model::GemValidatorRow;
 use primitives::{Asset, Delegation, PerpetualDirection, Resource};
 
@@ -69,8 +69,8 @@ impl GemAmountTransfer {
         super::rules::transfer_display_asset(self, asset)
     }
 
-    pub fn prefilled_amount(&self) -> Option<String> {
-        super::rules::transfer_prefilled_amount(self)
+    pub fn input(&self, asset: Asset, balance: GemAssetBalance) -> GemAmountInput {
+        super::rules::transfer_input(self, &asset, &balance)
     }
 }
 
@@ -108,6 +108,8 @@ pub struct GemAmountInput {
     pub can_change_value: bool,
     pub shows_asset_balance: bool,
     pub uses_whole_amounts: bool,
+    pub prefill: Option<GemAmountMaxEntry>,
+    pub focuses_input: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

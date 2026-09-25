@@ -9,7 +9,6 @@ import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
-import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -72,7 +71,7 @@ public final class PerpetualSceneViewModel {
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
             MappedRequest(
-                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, types: service.activityTypes().map { $0.toPrimitives() }, limit: Int(transactionsListLimit())),
+                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
                 transform: TransactionViewModel.sections,
             ),
             initialValue: [],

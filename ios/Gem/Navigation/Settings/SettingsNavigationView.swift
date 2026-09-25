@@ -66,7 +66,6 @@ struct SettingsNavigationView: View {
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,
-                    walletId: walletId,
                     onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                     onSelectAddress: { isPresentingAddressDetails = $0 },
                 ),

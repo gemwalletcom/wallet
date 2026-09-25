@@ -54,7 +54,7 @@ impl Mnemonic {
         if prefix.is_empty() {
             return Vec::new();
         }
-        let words = Language::English.words_by_prefix(prefix).iter().map(|word| word.to_string());
+        let words = Language::English.words_by_prefix_iter(prefix).map(str::to_string);
         match limit {
             Some(limit) => words.take(limit).collect(),
             None => words.collect(),

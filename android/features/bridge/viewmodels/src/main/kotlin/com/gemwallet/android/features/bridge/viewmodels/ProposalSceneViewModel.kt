@@ -12,8 +12,6 @@ import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConne
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
-import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -31,7 +29,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -45,7 +42,7 @@ import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.applicationConnectionRow
-import uniffi.gemstone.walletRows
+import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
 @HiltViewModel
@@ -65,13 +62,10 @@ class ProposalSceneViewModel @Inject constructor(
     val proposal = _sessionProposal.map { prepared -> prepared?.let { applicationConnectionRow(it.proposal.metadata) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val peerHead: StateFlow<ConnectionHeadUIModel?> = proposal.map { it?.headUIModel() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletRows = _sessionProposal.map { prepared -> walletRows(prepared?.proposal?.wallets.orEmpty()).map { it.uiModel(context) } }
+    val availableWalletSections = _sessionProposal.map { prepared -> walletSections(prepared?.proposal?.wallets.orEmpty()).map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedWallet = MutableStateFlow<com.wallet.core.primitives.Wallet?>(null)

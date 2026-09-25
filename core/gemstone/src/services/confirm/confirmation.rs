@@ -91,10 +91,10 @@ impl GemConfirmation {
         GemConfirmLoadOptions::initial(&self.transfer())
     }
 
-    pub fn header(&self) -> GemConfirmHeader {
+    pub fn header(&self, screen: GemConfirmScreen) -> GemConfirmHeader {
         let transfer = self.transfer();
         let stored = self.stored();
-        header::header(&transfer, self.simulation.as_ref(), stored.as_ref().map(|state| &state.load), self.service.get_currency())
+        header::header(&transfer, self.simulation.as_ref(), stored.as_ref().map(|state| &state.load), self.service.get_currency(), &screen)
     }
 
     pub fn view_state(&self, screen: GemConfirmScreen, address_name: Option<AddressName>) -> GemConfirmViewState {

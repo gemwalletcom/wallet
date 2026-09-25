@@ -38,7 +38,7 @@ extension ConfirmRowViewModel: ItemModelProvidable {
                         chain: Chain(core: chain),
                         address: address,
                         memo: memo,
-                        assetImage: avatar.map { AssetImage(type: .text($0.initials), imageURL: $0.imageUrl.map { ImageSource($0).url }) },
+                        assetImage: avatar.map(\.assetImage),
                     ),
                     mode: .text(text),
                     addressLink: link.toPrimitives(),

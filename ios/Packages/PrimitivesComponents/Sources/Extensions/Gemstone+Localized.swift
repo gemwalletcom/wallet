@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import enum Gemstone.AddressType
 import enum Gemstone.DelegationState
 import enum Gemstone.FeeOption
 import enum Gemstone.GemApprovalValue
@@ -21,7 +22,6 @@ import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLocalizedText
-import class Gemstone.GemPerpetual
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
@@ -38,7 +38,6 @@ import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
-import enum Gemstone.PerpetualType
 import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Localization
@@ -99,6 +98,8 @@ public extension GemLocalizedText {
             Localized.Simulation.warningExternallyOwnedSpenderDescription
         case .suspiciousAddress:
             Localized.Common.suspiciousAddress
+        case let .addressType(addressType):
+            addressType.title
         case .invalidTokenId:
             Localized.Errors.Token.invalidId
         case let .triggerOrder(order, price):
@@ -138,6 +139,14 @@ public extension GemLocalizedText {
             switch change {
             case .increase: Localized.Perpetual.increaseDirection(direction.toPrimitives().title)
             case .reduce: Localized.Perpetual.reduceDirection(direction.toPrimitives().title)
+            }
+        case let .perpetualConfirmed(action):
+            switch action {
+            case let .open(direction): Localized.Perpetual.openDirection(direction.toPrimitives().title)
+            case .close: Localized.Perpetual.closePosition
+            case .modify: Localized.Perpetual.modifyPosition
+            case .increase: Localized.Perpetual.increasePosition
+            case .reduce: Localized.Perpetual.reducePosition
             }
         }
     }
@@ -413,18 +422,6 @@ public extension GemAssetMenuAction {
         case .addToWallet: Localized.Asset.addToWallet
         case .copyAddress: Localized.Wallet.copyAddress
         case .pin, .hide: nil
-        }
-    }
-}
-
-public extension PerpetualType {
-    var confirmedTitle: String {
-        switch self {
-        case let .open(data): Localized.Perpetual.openDirection(data.direction.toPrimitives().title)
-        case .close: Localized.Perpetual.closePosition
-        case .modify: Localized.Perpetual.modifyPosition
-        case .increase: Localized.Perpetual.increasePosition
-        case .reduce: Localized.Perpetual.reducePosition
         }
     }
 }
@@ -814,6 +811,18 @@ extension GemCopyKind {
         case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
         case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
         case let .address(chain): Localized.Common.copied(String(format: "%@ (%@)", Chain(core: chain).networkName, display))
+        }
+    }
+}
+
+extension Gemstone.AddressType {
+    var title: String {
+        switch self {
+        case .address: Localized.Common.address
+        case .contract: Localized.Asset.contract
+        case .validator: Localized.Stake.validator
+        case .contact: Localized.Contacts.contact
+        case .internalWallet: Localized.Common.wallet
         }
     }
 }

@@ -12,12 +12,12 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
+import com.gemwallet.android.ui.components.list_item.listItemImage
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemListRow
@@ -69,8 +69,6 @@ private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRow
         )
     }
 }
-
-private fun GemAvatar.listItemImage(): ListItemImage = imageUrl?.let { ListItemImage.Stored(it, initials) } ?: ListItemImage.Initials(initials)
 
 fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol: Boolean = false): ListItemModel {
     val title = context.getString(R.string.transfer_network_fee)

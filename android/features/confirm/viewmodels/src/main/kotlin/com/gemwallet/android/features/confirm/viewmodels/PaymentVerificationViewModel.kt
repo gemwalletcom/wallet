@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
@@ -25,8 +24,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPaymentException
-import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentServiceInterface
+import uniffi.gemstone.GemPaymentTarget
+import uniffi.gemstone.Payment
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,7 +45,9 @@ class PaymentVerificationViewModel @Inject constructor(
 
     val url: StateFlow<String> = urlState.asStateFlow()
     val confirm: StateFlow<ConfirmTransferInput?> = confirmState.asStateFlow()
-    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
+    private val failedState = MutableStateFlow(false)
+    val isFailed: StateFlow<Boolean> = failedState.asStateFlow()
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified) { failedState.value = true }
     private var verifying: Job? = null
 
     private fun onPaymentVerified() {
@@ -53,9 +55,10 @@ class PaymentVerificationViewModel @Inject constructor(
         verifying = viewModelScope.launch(ioDispatcher) {
             val wallet = getSession().value?.wallet ?: return@launch
             try {
-                when (val load = paymentService.load(link, wallet.chainAddresses.map { it.toGem() })) {
-                    is GemPaymentLoad.Sign -> confirmState.value = ConfirmTransferInput(load.transfer)
-                    is GemPaymentLoad.Verify -> urlState.value = load.url
+                when (val target = paymentService.prepare(Payment.Link(link), wallet.toGem())) {
+                    is GemPaymentTarget.Confirm -> confirmState.value = ConfirmTransferInput(target.transfer)
+                    is GemPaymentTarget.Verify -> urlState.value = target.url
+                    is GemPaymentTarget.Recipient, is GemPaymentTarget.SelectAsset, GemPaymentTarget.Unsupported -> Unit
                 }
             } catch (error: CancellationException) {
                 throw error

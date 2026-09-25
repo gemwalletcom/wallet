@@ -197,24 +197,13 @@ fn unit(symbol: Option<String>) -> GemNumberUnit {
     }
 }
 
-#[uniffi::export]
 pub fn value_tone(value: f64) -> GemValueTone {
     GemValueTone::of(value)
 }
 
 #[uniffi::export]
-pub fn formatted_adaptive(value: f64, symbol: Option<String>) -> GemFormattedNumber {
-    GemFormattedNumber::adaptive(value, symbol)
-}
-
-#[uniffi::export]
 pub fn formatted_currency(value: f64, code: String, style: GemCurrencyStyle) -> GemFormattedNumber {
     GemFormattedNumber::currency_code(value, code, style)
-}
-
-#[uniffi::export]
-pub fn formatted_signed_currency(value: f64, code: String, style: GemCurrencyStyle) -> GemFormattedNumber {
-    GemFormattedNumber::currency_code(value, code, style).signed()
 }
 
 #[uniffi::export]

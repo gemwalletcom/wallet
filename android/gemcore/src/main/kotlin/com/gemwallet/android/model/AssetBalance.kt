@@ -5,17 +5,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
-import java.math.BigInteger
 
-data class AssetBalance(
-    val asset: Asset,
-    val balance: Balance<BigInteger> = Balance.zero(),
-    val balanceAmount: Balance<Double> = Balance(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-    val totalAmount: Double = 0.0,
-    val fiatTotalAmount: Double = 0.0,
-    val metadata: BalanceMetadata? = null,
-    val isActive: Boolean = true,
-)
+data class AssetBalance(val asset: Asset, val balance: Balance = Balance.zero(), val metadata: BalanceMetadata? = null, val isActive: Boolean = true)
 
 fun AssetBalance.toGem() = GemAssetBalance(
     assetId = asset.id.toIdentifier(),

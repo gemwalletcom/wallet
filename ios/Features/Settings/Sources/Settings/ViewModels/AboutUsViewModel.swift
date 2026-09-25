@@ -33,13 +33,13 @@ public final class AboutUsViewModel: Sendable {
         Localized.Settings.aboutus
     }
 
-    func contextMenuItems(for row: GemListRow) -> [ContextMenuItemType] {
+    func contextMenuItems(for row: GemListRow, viewState: GemAboutViewState) -> [ContextMenuItemType] {
         switch row {
         case let .text(.version, value):
             [
                 .copy(value: value),
                 .custom(
-                    title: developerToggleTitle,
+                    title: viewState.developerToggle.text,
                     systemImage: SystemImage.info,
                     action: toggleDeveloperMode,
                 ),
@@ -48,23 +48,13 @@ public final class AboutUsViewModel: Sendable {
         }
     }
 
-    var developerToggleTitle: String {
-        viewState.developerToggle.text
-    }
-
-    private var viewState: GemAboutViewState {
+    var viewState: GemAboutViewState {
         aboutViewState(
             version: Bundle.main.releaseVersionNumber,
             build: String(Bundle.main.buildVersionNumber),
             update: release?.toGem(),
             developerEnabled: preferences.isDeveloperEnabled,
         )
-    }
-}
-
-extension AboutUsViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
-        viewState.sections.listSections
     }
 }
 

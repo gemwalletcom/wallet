@@ -15,7 +15,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.RecentActivityType

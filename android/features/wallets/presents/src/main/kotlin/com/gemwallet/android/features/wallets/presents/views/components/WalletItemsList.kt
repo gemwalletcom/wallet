@@ -17,6 +17,7 @@ import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIMode
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.components.list_item.pinnedHeader
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.WalletId
@@ -33,8 +34,8 @@ internal fun LazyListScope.wallets(
     if (isPinned && wallets.isNotEmpty()) {
         pinnedHeader()
     }
-    itemsIndexed(items = wallets, key = { _, item -> item.walletId.id }) { index, item ->
-        val walletId = item.walletId
+    itemsIndexed(items = wallets, key = { _, item -> item.row.id }) { index, item ->
+        val walletId = WalletId(item.row.id)
 
         DropDownContextItem(
             isExpanded = longPressedWallet.value == walletId.id,
@@ -50,8 +51,8 @@ internal fun LazyListScope.wallets(
             },
             menuItems = {
                 WalletDropDownItem(
-                    if (item.isPinned) R.string.common_unpin else R.string.common_pin,
-                    if (item.isPinned) R.drawable.keep_off else AppIcons.PushPin,
+                    if (isPinned) R.string.common_unpin else R.string.common_pin,
+                    if (isPinned) R.drawable.keep_off else AppIcons.PushPin,
                 ) {
                     onTogglePin(walletId)
                     longPressedWallet.value = ""

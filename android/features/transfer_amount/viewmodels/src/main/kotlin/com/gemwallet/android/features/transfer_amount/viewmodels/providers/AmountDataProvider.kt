@@ -22,8 +22,6 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 
-    open val prefilledAmount: String? get() = null
-
     val title: StateFlow<GemAmountTitle?> by lazy {
         amountType.map { it?.title() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
@@ -34,9 +32,11 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
 
     val input: StateFlow<GemAmountInput?> by lazy {
         combine(amountType, assetInfo, balance) { type, current, currentBalance ->
-            if (type == null || current == null || currentBalance == null) null else type.input(current.asset.toGem(), currentBalance)
+            if (type == null || current == null || currentBalance == null) null else amountInput(type, current, currentBalance)
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
+
+    protected open fun amountInput(type: GemAmountType, current: AssetInfo, balance: GemAssetBalance): GemAmountInput = type.input(current.asset.toGem(), balance)
 
     open val extras: StateFlow<AmountExtrasUIModel> by lazy { MutableStateFlow(AmountExtrasUIModel.None) }
 

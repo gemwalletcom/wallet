@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.activities.viewmodels.TransactionsFilterSummaryUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -36,12 +35,13 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemTransactionRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TransactionsScene(
     isRefreshing: Boolean,
-    transactions: List<TransactionDataAggregate>?,
+    transactions: List<GemTransactionRow>?,
     errorRow: GemListRow?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,

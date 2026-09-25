@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemLockPeriod
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -14,11 +15,14 @@ struct SecurityViewModelTests {
     @Test
     func theSceneStartsFromWhatTheKeystoreReports() {
         let service = BiometryAuthenticationMock(requiresAuthentication: true, lockPeriod: .oneMinute, isPrivacyLockEnabled: true)
-        let model = SecurityViewModel.mock(service: service)
+        let settings = GemSettingsServiceMock()
+        let model = SecurityViewModel.mock(service: service, settings: settings)
+
+        _ = model.sections
 
         #expect(model.isEnabled)
         #expect(model.isPrivacyLockEnabled)
-        #expect(model.lockPeriod == .oneMinute)
+        #expect(settings.securitySectionsCalls.map(\.lockPeriod) == [GemLockPeriod.oneMinute.title])
     }
 
     @Test
@@ -107,11 +111,13 @@ struct SecurityViewModelTests {
     func aFailedLockPeriodFallsBackToTheStoredOne() {
         let service = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         service.lockPeriodError = AnyError("write failed")
-        let model = SecurityViewModel.mock(service: service)
+        let settings = GemSettingsServiceMock()
+        let model = SecurityViewModel.mock(service: service, settings: settings)
 
         model.updateLockPeriod(to: .fiveMinutes)
+        _ = model.sections
 
-        #expect(model.lockPeriod == .oneMinute)
+        #expect(settings.securitySectionsCalls.map(\.lockPeriod) == [GemLockPeriod.oneMinute.title])
         #expect(model.isPresentingAlertMessage?.message == "write failed")
     }
 

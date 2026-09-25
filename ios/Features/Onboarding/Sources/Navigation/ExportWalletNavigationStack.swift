@@ -4,11 +4,6 @@ import enum Gemstone.GemWalletSecret
 import Primitives
 import SwiftUI
 
-enum ExportWalletDestination: Hashable {
-    case words([String])
-    case privateKey(String)
-}
-
 public struct ExportWalletNavigationStack: View {
     private let flow: GemWalletSecret
     @State private var navigationPath: NavigationPath = .init()
@@ -27,13 +22,8 @@ public struct ExportWalletNavigationStack: View {
             )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: ExportWalletDestination.self) {
-                switch $0 {
-                case let .words(words):
-                    ShowSecretDataScene(model: ShowSecretPhraseViewModel(words: words))
-                case let .privateKey(key):
-                    ShowSecretDataScene(model: ShowPrivateKeyViewModel(text: key))
-                }
+            .navigationDestination(for: GemWalletSecret.self) {
+                ShowSecretDataScene(model: SecretDataViewModel(secret: $0))
             }
         }
     }
@@ -41,11 +31,6 @@ public struct ExportWalletNavigationStack: View {
 
 extension ExportWalletNavigationStack {
     private func onNext() {
-        switch flow {
-        case let .words(words):
-            navigationPath.append(ExportWalletDestination.words(words))
-        case let .privateKey(key):
-            navigationPath.append(ExportWalletDestination.privateKey(key))
-        }
+        navigationPath.append(flow)
     }
 }

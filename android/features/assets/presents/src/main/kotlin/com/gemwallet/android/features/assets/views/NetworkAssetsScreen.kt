@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -25,6 +26,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.AssetId
@@ -45,8 +47,12 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
         AssetContextActions(onTogglePin = viewModel::togglePin, onAddToWallet = viewModel::addToWallet)
     }
 
+    val snackbar = remember { SnackbarHostState() }
+    ToastEffect(viewModel.toastEvents, snackbar)
+
     Scene(
         title = viewModel.title,
+        snackbar = snackbar,
         onClose = onCancel,
         actions = {
             IconButton(onClick = onManageAssets) {

@@ -2,9 +2,11 @@
 
 import BigInt
 import Foundation
+import struct Gemstone.GemAmountInput
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountTransfer
 import enum Gemstone.GemAmountType
+import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
@@ -34,8 +36,8 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         transfer.amountType()
     }
 
-    var prefilledAmount: String? {
-        transfer.prefilledAmount()
+    func input(from assetData: AssetData) -> GemAmountInput {
+        transfer.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {

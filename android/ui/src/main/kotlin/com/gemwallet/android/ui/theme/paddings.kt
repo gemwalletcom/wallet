@@ -82,11 +82,6 @@ fun Modifier.middlePadding(): Modifier = padding(paddingMiddle)
 fun Modifier.defaultPadding(): Modifier = padding(paddingDefault)
 
 @Composable
-fun Spacer2() {
-    Spacer(modifier = Modifier.size(space2))
-}
-
-@Composable
 fun Spacer4() {
     Spacer(modifier = Modifier.size(space4))
 }

@@ -2,8 +2,11 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemLatencyStatus
 import struct Gemstone.GemListSection
 import protocol Gemstone.GemServiceStatusProtocol
+import struct Gemstone.GemServiceStatusSession
+import enum Gemstone.GemServiceStatusTarget
 import Localization
 import PrimitivesComponents
 
@@ -11,27 +14,37 @@ import PrimitivesComponents
 @MainActor
 public final class ServiceStatusViewModel {
     private let service: any GemServiceStatusProtocol
-    private var items: [GemListSection]
+    private var session: GemServiceStatusSession
 
     public init(service: any GemServiceStatusProtocol) {
         self.service = service
-        items = service.sections()
+        session = service.newSession()
     }
 
     var title: String { Localized.Transaction.status }
 }
 
 extension ServiceStatusViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] { items.listSections }
+    public var sections: [ListSection<GemListSectionRow>] { session.sections().listSections }
 }
 
 // MARK: - Actions
 
 extension ServiceStatusViewModel {
     func load() async {
-        items = service.sections()
-        let result = await service.load()
-        guard !Task.isCancelled else { return }
-        items = result
+        session = service.newSession()
+        let service = service
+        await withTaskGroup(of: (GemServiceStatusTarget, GemLatencyStatus).self) { group in
+            for target in session.targets() {
+                group.addTask {
+                    await (target, service.status(target: target))
+                }
+            }
+
+            for await (target, status) in group {
+                guard !Task.isCancelled else { return }
+                session = session.onStatus(target: target, status: status)
+            }
+        }
     }
 }

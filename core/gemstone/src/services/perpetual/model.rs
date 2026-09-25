@@ -7,7 +7,7 @@ use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -107,11 +107,6 @@ pub struct GemPerpetualOpenRow {
 #[uniffi::export]
 pub fn perpetual_open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
     rules::open_row(direction, leverage, size)
-}
-
-#[uniffi::export]
-pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: PerpetualPosition) -> GemPerpetualPositionRow {
-    rules::position_row(&perpetual, &asset, &position)
 }
 
 #[uniffi::export]

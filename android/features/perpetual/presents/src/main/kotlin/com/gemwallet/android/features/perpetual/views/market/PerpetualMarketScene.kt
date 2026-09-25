@@ -29,9 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
+import com.gemwallet.android.features.perpetual.views.components.previewPriceRow
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
@@ -72,11 +72,10 @@ import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
-import uniffi.gemstone.priceRow
 
 @Composable
 internal fun PerpetualMarketScene(
-    sceneState: PerpetualMarketSceneState,
+    isRefreshing: Boolean,
     balanceHeader: GemPerpetualBalanceHeader?,
     positions: List<PerpetualPositionRowUIModel>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
@@ -117,7 +116,7 @@ internal fun PerpetualMarketScene(
         },
     ) {
         PullToRefreshBox(
-            isRefreshing = sceneState.isRefreshing,
+            isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualMarketAction.Refresh) },
         ) {
             LazyColumn(
@@ -247,7 +246,7 @@ private fun LazyListScope.recentPerpetuals(items: List<Asset>, onSeeAll: () -> U
 fun PreviewPerpetualMarketScene() {
     WalletTheme {
         PerpetualMarketScene(
-            sceneState = PerpetualMarketSceneState.Idle,
+            isRefreshing = false,
             query = androidx.compose.foundation.text.input.TextFieldState(),
             sections = emptyList(),
             isSearching = false,
@@ -260,7 +259,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val title: String = "BTC/USD"
-                    override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(95420.50, 2.5)
                     override val volume: String = "15234567890123"
                     override val asset = Asset(
                         id = AssetId(Chain.Bitcoin),
@@ -274,7 +273,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val title: String = "ETH/USD"
-                    override val price = priceRow(price = 3625.75, change = 1.8, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(3625.75, 1.8)
                     override val volume: String = "8456789012345"
                     override val asset = Asset(
                         id = AssetId(Chain.Ethereum),
@@ -288,7 +287,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "SOL")
                     override val title: String = "SOL/USD"
-                    override val price = priceRow(price = 235.40, change = -0.5, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(235.40, -0.5)
                     override val volume: String = "3123847573745"
                     override val asset = Asset(
                         id = AssetId(Chain.Solana),
@@ -302,7 +301,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "AVAX")
                     override val title: String = "AVAX/USD"
-                    override val price = priceRow(price = 41.85, change = 4.1, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(41.85, 4.1)
                     override val volume: String = "1234567890123"
                     override val asset = Asset(
                         id = AssetId(Chain.AvalancheC),
@@ -316,7 +315,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "LINK")
                     override val title: String = "LINK/USD"
-                    override val price = priceRow(price = 21.45, change = 2.7, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(21.45, 2.7)
                     override val volume: String = "987654321098"
                     override val asset = Asset(
                         id = AssetId(Chain.Ethereum, "0x514910771af9ca656af840dff83e8264ecf986ca"),
@@ -332,7 +331,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val title: String = "BTC/USD"
-                    override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(95420.50, 2.5)
                     override val volume: String = "15234567890123"
                     override val asset = Asset(
                         id = AssetId(Chain.Bitcoin),
@@ -346,7 +345,7 @@ fun PreviewPerpetualMarketScene() {
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val title: String = "ETH/USD"
-                    override val price = priceRow(price = 3625.75, change = 1.8, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+                    override val price = previewPriceRow(3625.75, 1.8)
                     override val volume: String = "8456789012345"
                     override val asset = Asset(
                         id = AssetId(Chain.Ethereum),

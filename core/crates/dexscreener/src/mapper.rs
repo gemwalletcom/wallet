@@ -45,6 +45,7 @@ pub fn chain_id(chain: Chain) -> Option<&'static str> {
         | Chain::Cosmos
         | Chain::Osmosis
         | Chain::Doge
+        | Chain::Dash
         | Chain::Zcash
         | Chain::Aptos
         | Chain::Xrp

@@ -14,7 +14,6 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
-import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -23,7 +22,6 @@ import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.list_item.DelegationRowUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -49,7 +47,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
@@ -173,11 +170,7 @@ class StakeViewModel @Inject constructor(
 
     fun onDelegation(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val item = viewState.value?.delegations?.firstOrNull { it.delegation.toPrimitives() == delegation } ?: return
-        when (val destination = item.destination) {
-            GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
-            is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
-        }
+        item.destination.open(delegation, onOpenDetail, onAmount, onConfirm)
     }
 
     private companion object {

@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +37,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -48,7 +47,6 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.ReportReason
-import kotlinx.coroutines.launch
 
 @Composable
 fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
@@ -56,15 +54,10 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
     val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val refresh = stringResource(R.string.common_refresh)
-    val refreshFailed = stringResource(R.string.errors_error_occurred)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val model = assetData ?: return
     var isReportVisible by remember { mutableStateOf(false) }
-    val reported = stringResource(R.string.transaction_status_confirmed)
-    val avatarSet = stringResource(R.string.nft_set_as_avatar)
-    val imageSaved = stringResource(R.string.nft_save_to_photos)
     Scene(
         titleContent = {
             NftTitle(
@@ -98,33 +91,9 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                         canSend = model.canSend,
                         actions = model.actions,
                         onSend = { onRecipient(model.asset) },
-                        onRefresh = {
-                            scope.launch {
-                                if (viewModel.refresh()) {
-                                    snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
-                                } else {
-                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
-                                }
-                            }
-                        },
-                        onSaveImage = {
-                            scope.launch {
-                                if (viewModel.saveImage()) {
-                                    snackbar.showSnackbar(imageSaved, R.drawable.ic_check_circle)
-                                } else {
-                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
-                                }
-                            }
-                        },
-                        onSetAsAvatar = {
-                            scope.launch {
-                                if (viewModel.setAsAvatar()) {
-                                    snackbar.showSnackbar(avatarSet, R.drawable.ic_check_circle)
-                                } else {
-                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
-                                }
-                            }
-                        },
+                        onRefresh = { viewModel.refresh() },
+                        onSaveImage = { viewModel.saveImage() },
+                        onSetAsAvatar = { viewModel.setAsAvatar() },
                         onReport = { isReportVisible = true },
                     )
                 }
@@ -154,15 +123,7 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
         isVisible = isReportVisible,
         reasons = viewModel.reportReasons,
         onDismiss = { isReportVisible = false },
-        onSelect = { reason ->
-            scope.launch {
-                if (viewModel.report(reason)) {
-                    snackbar.showSnackbar(reported, R.drawable.ic_check_circle)
-                } else {
-                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
-                }
-            }
-        },
+        onSelect = { reason -> viewModel.report(reason) },
     )
 }
 

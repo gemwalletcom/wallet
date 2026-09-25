@@ -9,6 +9,7 @@ import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
 import struct Gemstone.GemSelectAssetWalletFlow
+import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -38,8 +39,8 @@ public final class SelectAssetViewModel {
         assetsQuery.value
     }
 
-    var isPresentingCopyToast: Bool = false
-    var copyTypeViewModel: CopyTypeViewModel?
+    var copyToast: CopyTypeViewModel?
+    var isPresentingToastMessage: ToastMessage?
 
     public var isPresentingAddToken: Bool = false
     public var assetSelection: SelectAssetInput?
@@ -72,7 +73,7 @@ public final class SelectAssetViewModel {
         )
         filterModel = filter
 
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters, limit: GemConstants.assetResultsLimit), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,
@@ -87,18 +88,6 @@ public final class SelectAssetViewModel {
 
     var sections: AssetsSections {
         AssetsSections.from(assets, showsPopular: flow.popularSection)
-    }
-
-    var showPopularSection: Bool {
-        sections.popular.isNotEmpty
-    }
-
-    var showPinnedSection: Bool {
-        sections.pinned.isNotEmpty
-    }
-
-    var showAssetsSection: Bool {
-        sections.assets.isNotEmpty
     }
 
     var popularImage: Image {
@@ -125,8 +114,7 @@ public final class SelectAssetViewModel {
         flow.networkSearch
     }
 
-    var listState: GemSelectAssetState {
-        let sections = sections
+    func listState(_ sections: AssetsSections) -> GemSelectAssetState {
         let counts = GemAssetSectionCounts(
             pinned: UInt32(sections.pinned.count),
             popular: UInt32(sections.popular.count),
@@ -135,28 +123,12 @@ public final class SelectAssetViewModel {
         return flow.state(counts: counts, isSearching: state.isLoading)
     }
 
-    var showLoading: Bool {
-        listState == .loading
-    }
-
-    var showEmpty: Bool {
-        listState != .idle
-    }
-
     var showRecents: Bool {
         flow.showsRecents(isSearching: !searchableQuery.isEmpty, hasRecents: recentModel.hasAssets)
     }
 
-    var searchDebounce: Duration {
-        .milliseconds(service.searchDebounceMilliseconds())
-    }
-
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, rowStyle: flow.rowStyle)
-    }
-
-    var currency: Currency {
-        service.getCurrency().toPrimitives()
+        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives(), rowStyle: flow.rowStyle)
     }
 }
 
@@ -180,6 +152,8 @@ extension SelectAssetViewModel {
         case .toggle:
             do {
                 try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
             } catch {
                 debugLog("SelectAssetViewModel set asset enabled error: \(error)")
             }
@@ -211,8 +185,7 @@ extension SelectAssetViewModel {
             }
         case .copy:
             let address = assetData.account.address
-            copyTypeViewModel = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
-            isPresentingCopyToast = true
+            copyToast = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
             Task {
                 await setAssetEnabled(assetId: asset.id, enabled: true)
             }

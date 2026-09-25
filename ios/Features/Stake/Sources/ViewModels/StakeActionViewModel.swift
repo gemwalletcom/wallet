@@ -9,11 +9,8 @@ import InfoSheet
 import Primitives
 import PrimitivesComponents
 
-struct StakeSectionViewModel: Identifiable {
-    let section: GemStakeSection
-    let title: String
-
-    var id: String { String(describing: section) }
+extension GemStakeSection: @retroactive Identifiable {
+    public var id: Self { self }
 }
 
 extension GemStakeDelegationItem: @retroactive Identifiable {

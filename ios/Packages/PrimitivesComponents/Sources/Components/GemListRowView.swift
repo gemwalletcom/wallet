@@ -20,6 +20,7 @@ public struct GemListRowView: View {
     private let onSelect: ((GemListRowTitle) -> Void)?
     private let onSelectAddress: ((String) -> Void)?
     private let onInfo: ((GemInfoTopic) -> Void)?
+    private let onCopy: ((CopyTypeViewModel) -> Void)?
 
     public init(
         row: GemListRow,
@@ -27,12 +28,14 @@ public struct GemListRowView: View {
         onSelect: ((GemListRowTitle) -> Void)? = nil,
         onSelectAddress: ((String) -> Void)? = nil,
         onInfo: ((GemInfoTopic) -> Void)? = nil,
+        onCopy: ((CopyTypeViewModel) -> Void)? = nil,
     ) {
         self.row = row
         self.onToggle = onToggle
         self.onSelect = onSelect
         self.onSelectAddress = onSelectAddress
         self.onInfo = onInfo
+        self.onCopy = onCopy
     }
 
     public var body: some View {
@@ -103,16 +106,14 @@ public struct GemListRowView: View {
             ListItemView(model: model)
                 .contextMenu(copy.map { [.copy(value: $0)] } ?? [])
         case let .social(links):
-            SocialLinksView(model: SocialLinksViewModel(links: links))
+            SocialLinksView(links: links)
         case let .icon(assetImage):
             AssetImageView(assetImage: assetImage, size: .image.semiLarge)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, .small)
                 .cleanListRow()
         case let .address(model):
-            AddressCardView(model: model, action: { presentation = .copy })
-                .cleanListRow()
-                .copyToast(model: model.copyModel, isPresenting: isPresentingCopyToast)
+            AddressRowView(model: model, onCopy: { onCopy?(model.copyModel) })
         case .loading:
             ListItemLoadingView()
         }
@@ -120,13 +121,6 @@ public struct GemListRowView: View {
 }
 
 extension GemListRowView {
-    private var isPresentingCopyToast: Binding<Bool> {
-        Binding(
-            get: { presentation == .copy },
-            set: { presentation = $0 ? .copy : nil },
-        )
-    }
-
     private var isPresentingUrl: Binding<URL?> {
         Binding(
             get: {

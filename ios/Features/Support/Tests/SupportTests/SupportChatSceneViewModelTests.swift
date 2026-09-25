@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemErrorText
+import struct Gemstone.GemPushState
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
@@ -13,6 +16,18 @@ import Testing
 
 @MainActor
 struct SupportChatSceneViewModelTests {
+    @Test
+    func aFailedPushRegistrationShowsOnTheChat() async {
+        let notifications = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline)))
+        notifications.offersForSupport = true
+        let model = SupportChatSceneViewModel.mock(notifications: notifications)
+
+        await model.enableNotificationsForSupport()
+
+        #expect(notifications.requested == [true])
+        #expect(model.isPresentingAlertMessage?.message == GemErrorText.networkOffline.text)
+    }
+
     @Test
     func anEmptyChatSaysSo() {
         let model = SupportChatSceneViewModel.mock()

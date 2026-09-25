@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,11 +38,11 @@ class DevicePushSettings(
     private val preferencesService: GemPreferencesServiceInterface,
     private val deviceService: Lazy<GemDeviceService>,
     private val notificationsService: Lazy<GemNotificationsService>,
-    private val userConfig: UserConfig,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher),
 ) : SwitchPushEnabled,
     EnablePushForSupport,
+    EnablePushForNewWallet,
     GetPushEnabled,
     GetPushToken,
     SetPushToken {
@@ -53,14 +53,18 @@ class DevicePushSettings(
 
     override suspend fun enablePushForSupport(): GemPushState? = withContext(ioDispatcher) {
         notificationsService.get().enableForSupport()?.also { state ->
-            userConfig.stopAskNotifications()
             pushEnabledState.value = state.isEnabled
+        }
+    }
+
+    override fun enablePushForNewWallet() {
+        scope.launch {
+            notificationsService.get().enableForNewWallet()?.let { state -> pushEnabledState.value = state.isEnabled }
         }
     }
 
     override suspend fun switchPushEnabled(enabled: Boolean): GemPushState = withContext(ioDispatcher) {
         val state = notificationsService.get().setEnabled(enabled)
-        userConfig.stopAskNotifications()
         pushEnabledState.value = state.isEnabled
         state
     }

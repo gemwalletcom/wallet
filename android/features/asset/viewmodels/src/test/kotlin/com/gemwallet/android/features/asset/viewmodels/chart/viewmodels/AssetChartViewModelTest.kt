@@ -23,9 +23,10 @@ import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertData
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -79,7 +80,7 @@ class AssetChartViewModelTest {
         every { getAssetLinks(asset.id) } returns linksFlow
         every { getAssetMarket(asset.id) } returns marketFlow
         every { getPriceAlerts(asset.id) } returns MutableStateFlow<List<PriceAlertData>>(emptyList())
-        every { chartService.sections(any(), any(), any(), any(), any()) } returns emptyList()
+        coEvery { chartService.sections(any(), any(), any(), any(), any()) } returns emptyList()
     }
 
     @After
@@ -90,16 +91,17 @@ class AssetChartViewModelTest {
     }
 
     @Test
-    fun `a stored asset gives the scene its sections and title before any flow emits`() = runTest(testDispatcher) {
+    fun `a stored asset gives the scene its title before any flow emits and its sections once core builds them`() = runTest(testDispatcher) {
         walletAssetsFlow.value = listOf(mockAssetInfo(asset))
-        every { chartService.sections(asset.toGem(), any(), null, any(), any()) } returns listOf(
+        coEvery { chartService.sections(asset.toGem(), any(), null, any(), any()) } returns listOf(
             section(listOf(GemListRow.Text(GemListRowTitle.TYPE, "SPL"))),
         )
 
         val viewModel = createViewModel()
-
-        assertEquals(1, viewModel.sections.value.size)
         assertEquals(asset.name, viewModel.title.value)
+
+        advanceUntilIdle()
+        assertEquals(1, viewModel.sections.value.size)
     }
 
     @Test
@@ -118,7 +120,7 @@ class AssetChartViewModelTest {
 
         val market = mockAssetMarket(marketCap = 1234.0)
         val link = mockAssetLink()
-        every { chartService.sections(asset.toGem(), any(), market.toGem(), any(), listOf(link.toGem())) } returns listOf(
+        coEvery { chartService.sections(asset.toGem(), any(), market.toGem(), any(), listOf(link.toGem())) } returns listOf(
             section(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1234.0), null))),
             section(listOf(GemListRow.Social(listOf(mockGemSocialLink()))), GemListSectionTitle.SOCIAL_LINKS),
         )
@@ -141,7 +143,7 @@ class AssetChartViewModelTest {
         createViewModel()
         advanceUntilIdle()
 
-        verify { chartService.sections(asset.toGem(), 2.5, null, listOf(alert.toGem()), emptyList()) }
+        coVerify { chartService.sections(asset.toGem(), 2.5, null, listOf(alert.toGem()), emptyList()) }
     }
 
     private fun createViewModel(): AssetChartViewModel = AssetChartViewModel(

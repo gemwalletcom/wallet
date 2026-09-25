@@ -17,7 +17,7 @@ fun mockGemAssetDetails(
     balanceValue: GemFormattedNumber = mockFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = asset.symbol)),
 ) = GemAssetDetails(
     state = state,
-    visibleBanners = emptyList(),
+    banner = null,
     balanceValue = balanceValue,
     sections = sections,
     title = asset.name,

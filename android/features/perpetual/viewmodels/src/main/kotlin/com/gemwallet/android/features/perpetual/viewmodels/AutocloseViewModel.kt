@@ -8,12 +8,14 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.perpetual.listItem
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualPositionData
@@ -58,6 +60,9 @@ class AutocloseViewModel @Inject constructor(
 
     private val _confirmRequests = MutableSharedFlow<ConfirmTransferInput>(extraBufferCapacity = 1)
     val confirmRequests: SharedFlow<ConfirmTransferInput> = _confirmRequests
+
+    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val errors: SharedFlow<String> = _errors
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -111,7 +116,10 @@ class AutocloseViewModel @Inject constructor(
         val position = position.value ?: return
         val session = session(position, takeProfitText.value, stopLossText.value).onSubmitAttempt()
         if (!session.viewState().confirmEnabled) return
-        val transfer = runCatching { session.modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()) }.getOrNull() ?: return
+        val transfer = runCatching { session.modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()) }.getOrElse { error ->
+            _errors.tryEmit(error.errorText().text(context))
+            return
+        }
         _confirmRequests.tryEmit(ConfirmTransferInput(transfer))
     }
 

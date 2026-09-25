@@ -15,12 +15,22 @@ final class QRScannerSceneViewModel {
     var isPresentingToastMessage: ToastMessage?
     var isScannerReady: Bool = false
 
-    let resources: QRScanResources
     let scanType: QRScanType
 
-    init(resources: QRScanResources, scanType: QRScanType) {
-        self.resources = resources
+    init(scanType: QRScanType) {
         self.scanType = scanType
+    }
+
+    var selectFromPhotos: String {
+        Localized.Library.selectFromPhotoLibrary
+    }
+
+    var openSettings: String {
+        Localized.Common.openSettings
+    }
+
+    var gallerySystemImage: String {
+        SystemImage.photo
     }
 
     var overlayConfig: QRScannerDisplayConfiguration {

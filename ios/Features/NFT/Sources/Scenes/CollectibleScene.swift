@@ -24,7 +24,7 @@ public struct CollectibleScene: View {
                 switch section {
                 case let .status(status):
                     Section {
-                        AssetStatusView(model: VerificationStatusViewModel(status: status.toPrimitives()), action: model.onSelectStatus)
+                        AssetStatusView(status: status.toPrimitives(), action: model.onSelectStatus)
                     }
                 case let .info(rows):
                     Section {
@@ -40,7 +40,7 @@ public struct CollectibleScene: View {
                     }
                 case let .links(links):
                     Section(Localized.Social.links) {
-                        SocialLinksView(model: SocialLinksViewModel(links: links))
+                        SocialLinksView(links: links)
                     }
                 }
             }

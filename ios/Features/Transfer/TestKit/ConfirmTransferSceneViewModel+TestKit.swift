@@ -22,7 +22,7 @@ public extension ConfirmTransferSceneViewModel {
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         load: Result<GemConfirmLoad, any Error>? = nil,
-        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], message: nil)),
         rows: ((Gemstone.AddressName?) -> [GemConfirmRowContent])? = nil,
         confirmation: GemConfirmationMock? = nil,
         onComplete: ((GemSubmitResult) -> Void)? = nil,

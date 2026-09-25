@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import func Gemstone.perpetualPositionRow
+import func Gemstone.perpetualPositionRows
 import GemstonePrimitives
 @testable import Perpetuals
 import Primitives
@@ -51,6 +51,6 @@ struct PerpetualPositionItemViewModelTests {
     }
 
     private func model(_ data: PerpetualPositionData) -> PerpetualPositionItemViewModel {
-        PerpetualPositionItemViewModel(row: perpetualPositionRow(perpetual: data.perpetual.toGem(), asset: data.asset.toGem(), position: data.position.toGem()))
+        PerpetualPositionItemViewModel(row: perpetualPositionRows(positions: [data.toGem()])[0])
     }
 }

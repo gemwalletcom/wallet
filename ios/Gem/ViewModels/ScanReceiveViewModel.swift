@@ -19,10 +19,6 @@ final class ScanReceiveViewModel {
         self.selectAssetModel = selectAssetModel
         self.onScan = onScan
     }
-
-    var modeModels: [ScanReceiveModeViewModel] {
-        ScanReceiveMode.allCases.map { ScanReceiveModeViewModel(mode: $0) }
-    }
 }
 
 // MARK: - Business Logic

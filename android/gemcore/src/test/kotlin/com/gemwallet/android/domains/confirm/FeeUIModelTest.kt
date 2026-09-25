@@ -49,7 +49,5 @@ class FeeUIModelTest {
         assertEquals("1 SOL", noPrice.cryptoAmount)
         assertEquals("", noPrice.fiatAmount)
         assertEquals("$200.00", withPrice.fiatAmount)
-        assertEquals("1 SOL", noPrice.cryptoAmountWithFiat)
-        assertEquals("1 SOL (~$200.00)", withPrice.cryptoAmountWithFiat)
     }
 }

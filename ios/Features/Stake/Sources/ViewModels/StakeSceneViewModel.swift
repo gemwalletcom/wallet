@@ -82,16 +82,12 @@ public final class StakeSceneViewModel {
         )
     }
 
-    func sectionModels(_ state: GemStakeViewState) -> [StakeSectionViewModel] {
-        state.sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
-    }
-
     func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
         !state.sections.contains(.delegations)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: assetModel.symbol))
+        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: asset.symbol))
     }
 
     func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
@@ -124,7 +120,7 @@ extension StakeSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: assetModel.assetImage)
+        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
     }
 
     func onStakeFrozenInfo() {

@@ -8,7 +8,8 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
-import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
+import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.GemWalletHomeViewState
 import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.walletBannerEvents
 import uniffi.gemstone.walletRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,7 +43,7 @@ class GetWalletSummaryImpl(
         combine(
             assetStore.observeAssetFiatValues(wallet.id.id),
             getPerpetualBalance.getCollateral(),
-            bannerStore.observeWalletBanners(wallet.id.id, walletBannerEvents().map { it.toPrimitives() }),
+            bannerStore.observeWalletBanners(wallet.id.id, GemConstants.walletBannerEvents),
             userConfig.isHideBalances(),
             userConfig.isPerpetualEnabled(),
         ) { balances, perpetualBalance, banners, hideBalances, _ ->
@@ -54,7 +54,7 @@ class GetWalletSummaryImpl(
                 banners = banners.map { it.toDTO().toGem() },
             )
 
-            WalletSummaryAggregateImpl(
+            WalletSummary(
                 state = state,
                 walletRow = walletRow(wallet.toGem()),
                 isBalanceHidden = hideBalances,
@@ -62,8 +62,5 @@ class GetWalletSummaryImpl(
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    override fun getWalletSummary(): Flow<WalletSummaryAggregate?> = walletSummary
+    override fun getWalletSummary(): Flow<WalletSummary?> = walletSummary
 }
-
-@Stable
-internal class WalletSummaryAggregateImpl(override val state: GemWalletHomeViewState, override val walletRow: GemWalletRow, override val isBalanceHidden: Boolean) : WalletSummaryAggregate

@@ -12,6 +12,7 @@ data class AmountUiState(
     val amountSymbol: AmountSymbolUIModel = AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),
     val canSwitchInputType: Boolean = false,
     val readOnly: Boolean = false,
+    val focusesInput: Boolean = false,
     val showsAssetBalance: Boolean = true,
     val usesWholeAmounts: Boolean = false,
     val availableBalance: String = "",

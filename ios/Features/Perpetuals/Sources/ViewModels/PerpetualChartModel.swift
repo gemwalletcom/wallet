@@ -70,6 +70,7 @@ public extension PerpetualChartModel {
     }
 
     func refresh(perpetual: Perpetual) async {
+        session = session.onRefresh()
         await updateCandlesticks(perpetual: perpetual)
     }
 }

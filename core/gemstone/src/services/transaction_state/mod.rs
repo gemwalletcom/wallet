@@ -118,7 +118,7 @@ impl GemTransactionStateService {
         if asset_ids.is_empty() {
             return Ok(());
         }
-        self.balance.set_assets_enabled(wallet_id, asset_ids, true).await
+        self.balance.enable_assets(wallet_id, asset_ids).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {

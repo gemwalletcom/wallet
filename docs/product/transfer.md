@@ -30,7 +30,7 @@ flowchart LR
     B -- WalletConnect code --> G[Connection proposal]
 ```
 
-- Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON transfers with a comment; WalletConnect Pay links.
+- Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON transfers with a comment; WalletConnect Pay links.
 - The scanner reads them from the camera or a picked image.
 - A complete payment (asset, amount and, where required, memo) opens Confirm directly; a partial one opens the recipient screen for review; a plain address that matches several networks asks which asset to send.
 - A WalletConnect Pay link opens a review of the merchant's request and, once confirmed, pays it and reports the result back to the merchant.
@@ -39,6 +39,9 @@ flowchart LR
 
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
+- When Confirm loads with a problem the user can act on (not enough balance or network fee, a required memo, a risky transaction), its explanation opens by itself; other load errors stay in the error row.
+- When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
+- Dash sends standard non-replaceable payments, which the Dash network automatically attempts to lock with InstantSend when their inputs are eligible; until the provider exposes that lock, Activity remains Pending until the transaction is mined.
 
 ## Test codes
 

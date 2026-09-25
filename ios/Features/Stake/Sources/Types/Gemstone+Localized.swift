@@ -3,7 +3,6 @@
 import enum Gemstone.GemDelegationAction
 import enum Gemstone.GemStakeSection
 import Localization
-import Primitives
 
 extension GemStakeSection {
     var title: String {
@@ -23,15 +22,6 @@ extension GemDelegationAction {
         case .redelegate: Localized.Transfer.Redelegate.title
         case .deposit: Localized.Wallet.deposit
         case .withdraw: Localized.Transfer.Withdraw.title
-        }
-    }
-}
-
-extension StakeProviderType {
-    var title: String {
-        switch self {
-        case .stake: Localized.Transfer.Stake.title
-        case .earn: Localized.Common.earn
         }
     }
 }

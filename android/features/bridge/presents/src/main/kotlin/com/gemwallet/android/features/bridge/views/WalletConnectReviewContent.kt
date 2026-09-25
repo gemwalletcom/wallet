@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -19,10 +18,10 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.WalletItem
-import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
+import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
@@ -100,7 +99,7 @@ internal fun WalletConnectFullMessageSheet(isVisible: Boolean, message: String, 
 }
 
 @Composable
-internal fun WalletSelectionSheet(isVisible: Boolean, walletRows: List<WalletRowUIModel>, selectedWalletId: WalletId?, onWalletSelected: (WalletId) -> Unit, onDismissRequest: () -> Unit) {
+internal fun WalletSelectionSheet(isVisible: Boolean, walletSections: List<WalletSectionUIModel>, selectedWalletId: WalletId?, onWalletSelected: (WalletId) -> Unit, onDismissRequest: () -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         dragHandle = { BottomSheetDefaults.DragHandle() },
@@ -108,16 +107,9 @@ internal fun WalletSelectionSheet(isVisible: Boolean, walletRows: List<WalletRow
     ) {
         LazyColumn {
             item { SubheaderItem(R.string.wallets_title) }
-            itemsIndexed(walletRows) { index, row ->
-                WalletItem(
-                    model = row,
-                    isCurrent = row.id == selectedWalletId?.id,
-                    listPosition = ListPosition.getPosition(index, walletRows.size),
-                    modifier = Modifier.clickable {
-                        onWalletSelected(WalletId(row.id))
-                        onDismissRequest()
-                    },
-                )
+            walletSections(walletSections, selectedWalletId?.id) { id ->
+                onWalletSelected(WalletId(id))
+                onDismissRequest()
             }
         }
     }

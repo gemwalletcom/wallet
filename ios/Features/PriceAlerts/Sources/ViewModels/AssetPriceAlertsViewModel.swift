@@ -53,24 +53,24 @@ public final class AssetPriceAlertsViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    var autoAlertItemModel: PriceAlertItemViewModel {
+    func autoAlertItemModel(_ assetAlerts: GemAssetPriceAlerts) -> PriceAlertItemViewModel {
         PriceAlertItemViewModel(row: assetAlerts.autoRow)
     }
 
-    var isAutoAlertEnabledBinding: Binding<Bool> {
+    func isAutoAlertEnabledBinding(_ assetAlerts: GemAssetPriceAlerts) -> Binding<Bool> {
         Binding(
-            get: { self.assetAlerts.autoAlert == .enabled },
+            get: { assetAlerts.autoAlert == .enabled },
             set: { newValue in
                 Task { await self.toggleAutoAlert(enabled: newValue) }
             },
         )
     }
 
-    var alerts: [PriceAlertItem] {
+    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [PriceAlertItem] {
         assetAlerts.alerts.map(PriceAlertItem.init(item:))
     }
 
-    var showsEmpty: Bool {
+    func showsEmpty(_ assetAlerts: GemAssetPriceAlerts) -> Bool {
         assetAlerts.showsEmpty && loadError == nil
     }
 
@@ -78,17 +78,13 @@ public final class AssetPriceAlertsViewModel: Sendable {
         EmptyContentTypeViewModel(type: EmptyContentType(.priceAlerts))
     }
 
-    private var assetAlerts: GemAssetPriceAlerts {
+    var assetAlerts: GemAssetPriceAlerts {
         PriceAlertFormatter.shared.assetAlerts(
             asset: asset.toGem(),
             price: priceQuery.value?.price?.toGem(),
             alerts: priceAlerts.map { $0.toGem() },
-            priceCurrency: currency.toGem(),
+            priceCurrency: service.getCurrency(),
         )
-    }
-
-    var currency: Currency {
-        service.getCurrency().toPrimitives()
     }
 }
 

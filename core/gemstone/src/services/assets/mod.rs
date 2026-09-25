@@ -53,10 +53,6 @@ impl GemAssetsService {
         }
     }
 
-    pub async fn wallet_assets(&self, wallet_id: WalletId, filters: Vec<GemAssetFilter>) -> Result<Vec<Asset>, GemServiceError> {
-        self.store.get_wallet_assets(wallet_id, filters).await
-    }
-
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
@@ -72,6 +68,10 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    pub async fn wallet_assets(&self, wallet_id: WalletId, filters: Vec<GemAssetFilter>) -> Result<Vec<Asset>, GemServiceError> {
+        self.store.get_wallet_assets(wallet_id, filters).await
+    }
+
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if asset_id.is_native_mirror() {
             return Err(GemServiceError::Unsupported {

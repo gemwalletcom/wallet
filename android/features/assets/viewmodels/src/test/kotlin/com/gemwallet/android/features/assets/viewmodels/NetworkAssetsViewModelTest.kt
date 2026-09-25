@@ -12,19 +12,24 @@ import com.gemwallet.android.testkit.mockAssetEthereumUSDT
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockGemAssetRowStyle
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -126,6 +131,19 @@ class NetworkAssetsViewModelTest {
         assertEquals(emptyList<Any>(), viewModel.pinned.first { it.isEmpty() })
         assertEquals(emptyList<Any>(), viewModel.hidden.first { it.isEmpty() })
         assertEquals(2, activeSubscriptions)
+    }
+
+    @Test
+    fun `adding an asset whose first balance fetch fails shows the error`() = runTest(testDispatcher) {
+        coEvery { service.setAssetsEnabled(any(), true) } throws RuntimeException("offline")
+        val viewModel = createViewModel()
+        val toast = CompletableDeferred<ToastMessage>()
+        val collector = launch { toast.complete(viewModel.toastEvents.first()) }
+
+        viewModel.addToWallet(hiddenToken.asset.id)
+
+        assertEquals(R.drawable.ic_error, toast.await().image)
+        collector.cancel()
     }
 
     private fun createViewModel() = NetworkAssetsViewModel(

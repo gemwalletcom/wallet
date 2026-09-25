@@ -16,6 +16,7 @@ Before editing these areas, identify the security invariants and confirm the cha
 ## Non-Negotiable Rules
 
 - Never log, print, persist, or transmit secret material outside the approved secure-storage path
+- A secret phrase or private key crosses into Gemstone only for the operation that needs it (import, export, signing), once, at that moment. Editing the input stays in the app: typing, pasting and trimming never hand the secret to Core, a session record never carries it between events, and a word suggestion takes only the word being typed. Every crossing is a copy Core cannot zero, so each one is kept out of the stack and memory as long as possible.
 - Never add test fixtures containing real secrets, production credentials, or reusable wallet material
 - Do not weaken existing confirmation, signing, simulation, or authentication checks for convenience
 - Keep transaction-critical values explicit: chain, asset, amount, recipient, fee, nonce, calldata, and signature context must not become ambiguous
@@ -54,8 +55,9 @@ Consider relevant available external skills for deeper review of these areas. Lo
 Before finishing a security-sensitive change, check:
 
 1. No secret material is exposed in logs, errors, analytics, snapshots, tests, or local storage
-2. Transaction inputs and outputs remain explicit, validated, and correctly typed
-3. Existing auth and confirmation gates still execute on every required path
-4. New external-input handling is validated against malformed or hostile input
-5. Affected platforms were verified when mobile interfaces, generated outputs, platform build inputs, or app-side integration changed
-6. Approval spenders, routers, transaction targets, and multi-call destinations are independently authorized rather than cross-checked only against values from the same response
+2. A secret phrase or private key crosses into Gemstone only at the import, export or signing call that needs it, not per keystroke or inside a session record
+3. Transaction inputs and outputs remain explicit, validated, and correctly typed
+4. Existing auth and confirmation gates still execute on every required path
+5. New external-input handling is validated against malformed or hostile input
+6. Affected platforms were verified when mobile interfaces, generated outputs, platform build inputs, or app-side integration changed
+7. Approval spenders, routers, transaction targets, and multi-call destinations are independently authorized rather than cross-checked only against values from the same response

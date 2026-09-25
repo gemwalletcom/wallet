@@ -5,7 +5,6 @@ import class Gemstone.GemChainService
 import enum Gemstone.GemWalletConnectError
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletConnectRejectionReason
-import enum Gemstone.GemWalletConnectResponse
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
@@ -191,7 +190,11 @@ extension WalletConnectorService {
 
     private func rejectRequest(_ request: Request, error: Error) async {
         do {
-            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: GemWalletConnectResponse.error(error: service.userRejectedError()).map())
+            try await WalletKit.instance.respond(
+                topic: request.topic,
+                requestId: request.id,
+                response: .error(JSONRPCError(code: Int(GemConstants.walletConnectUserRejectedErrorCode), message: GemConstants.walletConnectUserRejectedErrorMessage)),
+            )
         } catch {
             debugLog("Error rejecting request: \(error)")
         }

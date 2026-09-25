@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.WalletsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import dagger.Module
 import dagger.Provides
@@ -24,7 +26,7 @@ object AddressesModule {
 
     @Singleton
     @Provides
-    fun provideGemstoneAddressStore(addressesDao: AddressesDao): GemstoneAddressStore = GemstoneAddressStore(addressesDao)
+    fun provideGemstoneAddressStore(addressesDao: AddressesDao, accountsDao: AccountsDao, walletsDao: WalletsDao): GemstoneAddressStore = GemstoneAddressStore(addressesDao, accountsDao, walletsDao)
 
     @Singleton
     @Provides

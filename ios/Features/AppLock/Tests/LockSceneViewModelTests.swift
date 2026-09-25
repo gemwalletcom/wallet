@@ -300,7 +300,7 @@ struct LockSceneViewModelTests {
 
         try mockService.update(period: .fiveMinutes)
 
-        #expect(viewModel.lockPeriod == .fiveMinutes)
+        #expect(viewModel.state == .unlocked)
         #expect(viewModel.backgroundedAt == nil)
     }
 

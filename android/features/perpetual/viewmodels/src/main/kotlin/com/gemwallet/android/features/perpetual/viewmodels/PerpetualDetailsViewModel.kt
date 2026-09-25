@@ -13,6 +13,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -94,7 +95,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private val transactionFilters = listOf(
         TransactionsRequestFilter.Asset(assetId),
-        TransactionsRequestFilter.Types(service.activityTypes().map { it.toPrimitives() }),
+        TransactionsRequestFilter.Types(GemConstants.perpetualActivityTypes),
     )
 
     private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -125,7 +126,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val detailsState: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
-        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())) }
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.toGem())) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -159,7 +160,7 @@ class PerpetualDetailsViewModel @Inject constructor(
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position?.position, context))
+                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position, context))
             }
 
             else -> StateViewType.Error(error.errorText().text(context))
@@ -178,7 +179,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                     candles.value = selected
                     return@collectLatest
                 }
-                val request = session.request()?.takeIf { session.needsCandles() } ?: return@collectLatest
+                val request = session.request() ?: return@collectLatest
                 val result = withContext(ioDispatcher) { service.candles(request) }
                 candles.update { it.onResult(result) }
             }

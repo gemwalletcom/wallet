@@ -12,6 +12,8 @@ import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.domains.asset.assetSections
+import com.gemwallet.android.ext.GemConstants
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -23,10 +25,13 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAsset
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.uiModel
 import com.gemwallet.android.model.RecentAssetsRequest
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -105,7 +110,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = currentQuery.debounce(service.searchDebounceMilliseconds().toLong()).distinctUntilChanged()
+    private val searchRequests = currentQuery.debounce(GemConstants.searchDebounce).distinctUntilChanged()
 
     private val filters = combine(
         session,
@@ -241,7 +246,7 @@ open class BaseAssetSelectViewModel(
 
     private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), visible) }
-            .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
+            .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 
     fun setChainFilter(chains: List<Chain>) {
@@ -308,10 +313,9 @@ open class BaseAssetSelectViewModel(
 
     private fun assetFilters(chains: List<Chain>, hasBalance: Boolean): Set<GemAssetFilter> = flow.appliedFilters(chains.map { it.string }, hasBalance).toSet()
 
-    open fun assetsSearchLimit(query: String): Int = ASSETS_LIMIT
+    open fun assetsSearchLimit(query: String): Int = GemConstants.assetResultsLimit
 
     private companion object {
         private const val TAG = "AssetSelect"
-        private const val ASSETS_LIMIT = 100
     }
 }

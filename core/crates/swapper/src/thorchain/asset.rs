@@ -139,6 +139,9 @@ mod tests {
         let zcash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Zcash.as_ref()).unwrap();
         assert_eq!(zcash.quote_asset_name(), "ZEC.ZEC");
 
+        let dash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Dash.as_ref()).unwrap();
+        assert_eq!(dash.quote_asset_name(), "DASH.DASH");
+
         let cardano = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Cardano.as_ref()).unwrap();
         assert_eq!(cardano.quote_asset_name(), "ADA.ADA");
 

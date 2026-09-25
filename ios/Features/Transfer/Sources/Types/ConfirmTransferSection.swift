@@ -39,7 +39,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 }
 
 public enum ConfirmTransferItemModel {
-    case header(TransactionHeaderItemModel)
+    case header(TransactionHeaderType, isReserved: Bool)
     case row(GemListRow)
     case recipient(AddressListItemViewModel)
     case paymentAsset(ListItemModel, selectable: Bool)

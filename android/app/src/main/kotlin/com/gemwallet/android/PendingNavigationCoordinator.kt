@@ -4,7 +4,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,4 +1,4 @@
-use primitives::{Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, StakeProviderType, TransactionState};
+use primitives::{AddressType, Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, StakeProviderType, TransactionState};
 
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
@@ -24,6 +24,7 @@ pub enum GemLocalizedText {
     UnlimitedApprovalWarning,
     ExternallyOwnedSpenderWarning,
     SuspiciousAddress,
+    AddressType { address_type: AddressType },
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
@@ -41,6 +42,16 @@ pub enum GemLocalizedText {
     RewardsRedeemAsset { value: GemFormattedNumber },
     DisableDeveloper,
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
+    PerpetualConfirmed { action: GemPerpetualConfirmedAction },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualConfirmedAction {
+    Open { direction: PerpetualDirection },
+    Close,
+    Modify,
+    Increase,
+    Reduce,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

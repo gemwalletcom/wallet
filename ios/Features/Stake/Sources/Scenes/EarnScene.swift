@@ -44,9 +44,9 @@ public struct EarnScene: View {
 
             Section(model.positionsSectionTitle(earn)) {
                 if earn.positions.isNotEmpty {
-                    ForEach(model.positionItems(earn), id: \.delegation.id) { delegation, item in
-                        NavigationCustomLink(with: DelegationView(delegation: item)) {
-                            model.onSelect(delegation: delegation)
+                    ForEach(earn.positions) { item in
+                        NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
+                            model.onSelect(item: item)
                         }
                     }
                     .listRowInsets(.assetListRowInsets)

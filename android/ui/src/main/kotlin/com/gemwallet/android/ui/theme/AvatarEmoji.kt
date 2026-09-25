@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.theme
 
-import uniffi.gemstone.walletAvatarEmojis
+import com.gemwallet.android.ext.GemConstants
 
 object AvatarEmoji {
-    val all: List<String> by lazy { walletAvatarEmojis() }
+    val all: List<String> = GemConstants.walletAvatarEmojis
 }

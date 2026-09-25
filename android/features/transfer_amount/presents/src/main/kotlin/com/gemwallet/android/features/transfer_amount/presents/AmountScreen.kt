@@ -58,6 +58,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                 currency = viewModel.currency,
                 canSwitchInputType = uiState.canSwitchInputType,
                 readOnly = uiState.readOnly,
+                focusesInput = uiState.focusesInput,
                 usesWholeAmounts = uiState.usesWholeAmounts,
                 showsAssetBalance = uiState.showsAssetBalance,
                 error = uiState.error,

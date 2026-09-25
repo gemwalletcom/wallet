@@ -1,3 +1,4 @@
+mod address_details_client;
 mod address_names_client;
 mod fetch_address_transactions_consumer;
 mod fetch_blocks_consumer;
@@ -14,6 +15,7 @@ mod vault_address;
 mod vault_addresses_updater;
 mod wallet_stream_consumer;
 
+pub use address_details_client::AddressDetailsClient;
 pub use address_names_client::AddressNamesClient;
 pub use fetch_address_transactions_consumer::FetchAddressTransactionsConsumer;
 pub use fetch_blocks_consumer::FetchBlocksConsumer;

@@ -108,6 +108,7 @@ fun ConfirmScreen(
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeInfo by viewModel.feeInfo.collectAsStateWithLifecycle()
     val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
+    val isVerificationFailed by viewModel.isVerificationFailed.collectAsStateWithLifecycle()
     val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
@@ -357,6 +358,18 @@ fun ConfirmScreen(
         InfoBottomSheet(
             item = InfoSheetEntity.PaymentVerificationInfo.takeIf { isVerificationInfoVisible },
             onClose = { isVerificationInfoVisible = false },
+        )
+    }
+
+    if (isVerificationFailed) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissVerificationError,
+            confirmButton = {
+                Button(viewModel::dismissVerificationError) { Text(stringResource(R.string.common_done)) }
+            },
+            text = {
+                Text(stringResource(R.string.errors_error_occurred))
+            },
         )
     }
 

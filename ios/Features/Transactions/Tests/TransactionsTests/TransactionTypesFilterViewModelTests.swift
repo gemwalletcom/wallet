@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.transactionFilters
+import GemstonePrimitives
 import Primitives
 import Testing
 import Transactions
@@ -10,7 +10,7 @@ struct TransactionTypesFilterViewModelTests {
     func listsCoreFiltersAndSelectsTheirTypes() {
         var model = TransactionTypesFilterViewModel()
 
-        #expect(model.allTransactionsTypes == transactionFilters())
+        #expect(model.allTransactionsTypes == GemConstants.transactionFilters)
 
         model.selectedTypes = model.allTransactionsTypes
         #expect(model.isAnySelected)

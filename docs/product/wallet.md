@@ -5,6 +5,7 @@ The home screen: what the selected wallet holds, what it is worth, and the way i
 ## Wallet screen
 
 - The screen opens instantly with what the app already knows: wallet name, total with its 24h change, the action buttons, the asset rows with balance, price and value, and any banner.
+- The wallet and asset screens show at most one banner, the most important one; closing it brings up the next.
 - Send, Receive and Buy show for every wallet that can sign; Swap where a swap is possible; a watch-only wallet shows a notice instead of buttons, on the wallet and asset screens and in an empty transaction list.
 - Pinned assets come first, then the rest by value; a native coin is titled by its network.
 - One switch hides balances everywhere.

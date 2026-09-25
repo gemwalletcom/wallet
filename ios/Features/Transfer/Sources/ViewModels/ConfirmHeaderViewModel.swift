@@ -19,21 +19,7 @@ struct ConfirmHeaderViewModel {
 
 extension ConfirmHeaderViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
-        .header(
-            TransactionHeaderItemModel(
-                headerType: headerType,
-                showClearHeader: headerType.showsClearHeader,
-            ),
-        )
-    }
-}
-
-extension TransactionHeaderType {
-    var showsClearHeader: Bool {
-        switch self {
-        case .amount, .nft, .asset, .assetValue: true
-        case .swap: false
-        }
+        .header(headerType, isReserved: isReserved)
     }
 }
 
@@ -46,8 +32,15 @@ private extension ConfirmHeaderViewModel {
             .assetValue(AssetValueHeaderViewModel(data: value))
         case let .placeholder(assetId):
             .assetValue(AssetValueHeaderPlaceholder(assetImage: AssetIdViewModel(assetId: AssetId(core: assetId)).assetImage))
-        case let .transaction(header):
+        case let .transaction(header), let .reserved(header):
             header.headerType(currency: currency)
+        }
+    }
+
+    var isReserved: Bool {
+        switch header {
+        case .reserved: true
+        case .placeholder, .value, .transaction: false
         }
     }
 }

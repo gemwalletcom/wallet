@@ -170,6 +170,8 @@ extension NavigationRouter {
             navigationState.settings.append(Scenes.Referral(code: code))
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
+        case let .address(chain, address):
+            presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
         case let .transaction(asset, walletId, transaction, _):
             let stored = try transactionStore.getTransaction(walletId: Primitives.WalletId.from(id: walletId), transactionId: transaction.toPrimitives().id)
             try openTarget(path: getPath(for: asset.toPrimitives(), transactionId: stored.transaction.id), walletId: walletId)
@@ -268,7 +270,11 @@ extension NavigationRouter {
 extension NavigationRouter {
     private func showError(_ error: any Error) {
         debugLog("NavigationRouter error: \(error)")
-        toastPresenter.toastMessage = .error(error.localizedDescription)
+        showError(message: error.localizedDescription)
+    }
+
+    func showError(message: String) {
+        toastPresenter.toastMessage = .error(message)
     }
 
     private func selectTab(_ tab: GemNavigationTab?) {

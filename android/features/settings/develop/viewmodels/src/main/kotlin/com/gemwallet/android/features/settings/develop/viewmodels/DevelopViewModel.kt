@@ -8,7 +8,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel

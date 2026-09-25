@@ -34,6 +34,6 @@ pub(super) fn dust_threshold(chain: BitcoinChain, script_pubkey: &ScriptBuf) -> 
     let threshold = script_pubkey.minimal_non_dust().to_sat();
     match chain {
         BitcoinChain::Doge => threshold.saturating_mul(chain.minimum_byte_fee() as u64),
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Zcash => threshold,
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Dash | BitcoinChain::Zcash => threshold,
     }
 }

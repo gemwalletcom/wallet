@@ -7,6 +7,7 @@ use super::PlanInput;
 use crate::signer::address::script_for_address;
 
 const FINAL_SEQUENCE: u32 = 0xffff_ffff;
+const NON_RBF_SEQUENCE: u32 = 0xffff_fffe;
 const RBF_SEQUENCE: u32 = 0xffff_fffd;
 
 pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos: Vec<UTXO>) -> Result<Vec<PlanInput>, SignerError> {
@@ -18,9 +19,10 @@ pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos:
         .zip(sender.public_key_hash())
         .map(|(_, public_key_hash)| public_key_hash)
         .ok_or_else(|| SignerError::invalid_input(message("sender address type is unsupported")))?;
-    // RBF is signaled on every BTC-family chain; Zcash has no RBF and keeps the final sequence.
+    // Dash Core uses the highest non-final sequence for standard payments; it does not signal RBF.
     let sequence = match chain {
         BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => RBF_SEQUENCE,
+        BitcoinChain::Dash => NON_RBF_SEQUENCE,
         BitcoinChain::Zcash => FINAL_SEQUENCE,
     };
     let mut inputs = Vec::with_capacity(utxos.len());

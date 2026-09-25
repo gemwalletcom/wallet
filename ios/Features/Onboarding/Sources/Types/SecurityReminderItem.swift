@@ -7,9 +7,9 @@ import Style
 extension GemSecurityReminderItem {
     var image: ListItemImageStyle? {
         switch self {
-        case .keepSafe: .security(Emoji.WalletAvatar.lock.rawValue)
-        case .doNotShare: .security(Emoji.WalletAvatar.warning.rawValue)
-        case .noRecovery: .security(Emoji.WalletAvatar.gem.rawValue)
+        case .keepSafe: .emoji(Emoji.WalletAvatar.lock.rawValue)
+        case .doNotShare: .emoji(Emoji.WalletAvatar.warning.rawValue)
+        case .noRecovery: .emoji(Emoji.WalletAvatar.gem.rawValue)
         }
     }
 }

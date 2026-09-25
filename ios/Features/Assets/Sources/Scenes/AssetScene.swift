@@ -33,19 +33,19 @@ public struct AssetScene: View {
             }
             .cleanListRow()
 
-            if details.state.showsBanners, let banner = details.visibleBanners.first {
+            if details.state.showsBanners, let banner = details.banner {
                 Section {
                     BannerView(
-                        model: model.bannerModel(for: banner),
+                        model: BannerViewModel(row: banner),
                         action: model.onSelectBanner,
                     )
                 }
                 .listRowInsets(.zero)
             }
 
-            if let statusViewModel = model.statusViewModel(details) {
+            if let status = model.verificationStatus(details) {
                 Section {
-                    AssetStatusView(model: statusViewModel, action: model.onSelectTokenStatus)
+                    AssetStatusView(status: status, action: model.onSelectTokenStatus)
                 }
             }
 

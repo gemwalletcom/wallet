@@ -2,6 +2,7 @@
 
 import Components
 import struct Gemstone.GemStakeActionItem
+import enum Gemstone.GemStakeSection
 import struct Gemstone.GemStakeViewState
 import Localization
 import Primitives
@@ -21,7 +22,7 @@ public struct StakeScene: View {
         List {
             headerSection
             stakeInfoSection(state)
-            ForEach(model.sectionModels(state)) { section in
+            ForEach(state.sections) { section in
                 Section(section.title) {
                     content(for: section, state: state)
                 }
@@ -53,8 +54,8 @@ extension StakeScene {
     }
 
     @ViewBuilder
-    private func content(for section: StakeSectionViewModel, state: GemStakeViewState) -> some View {
-        switch section.section {
+    private func content(for section: GemStakeSection, state: GemStakeViewState) -> some View {
+        switch section {
         case .manage:
             ForEach(state.actions, id: \.action) { item in
                 actionLink(item)

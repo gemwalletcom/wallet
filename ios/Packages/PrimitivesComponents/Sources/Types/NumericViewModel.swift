@@ -48,7 +48,7 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var assetImage: AssetImage? {
-        AssetViewModel(asset: data.asset).assetImage
+        AssetIdViewModel(assetId: data.asset.id).assetImage
     }
 
     private var color: Color {

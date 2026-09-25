@@ -24,6 +24,7 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.ScanReceiveMode
 import com.wallet.core.primitives.TpslType
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.AddressType
 import uniffi.gemstone.AutocloseValidation
 import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
@@ -45,6 +46,7 @@ import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
@@ -185,6 +187,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.SuspiciousAddress -> context.getString(R.string.common_suspicious_address)
 
+    is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
+
     GemLocalizedText.InvalidTokenId -> context.getString(R.string.errors_token_invalid_id)
 
     is GemLocalizedText.TriggerOrder -> "${context.getString(order.stringRes())}: ${price?.text() ?: EMPTY_VALUE}"
@@ -223,6 +227,14 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.PositionChange -> when (change) {
         GemPositionChange.INCREASE -> context.getString(R.string.perpetual_increase_direction, context.getString(direction.toPrimitives().stringRes()))
         GemPositionChange.REDUCE -> context.getString(R.string.perpetual_reduce_direction, context.getString(direction.toPrimitives().stringRes()))
+    }
+
+    is GemLocalizedText.PerpetualConfirmed -> when (val action = action) {
+        is GemPerpetualConfirmedAction.Open -> context.getString(R.string.perpetual_open_direction, context.getString(action.direction.toPrimitives().stringRes()))
+        GemPerpetualConfirmedAction.Close -> context.getString(R.string.perpetual_close_position)
+        GemPerpetualConfirmedAction.Modify -> context.getString(R.string.perpetual_modify_position)
+        GemPerpetualConfirmedAction.Increase -> context.getString(R.string.perpetual_increase_position)
+        GemPerpetualConfirmedAction.Reduce -> context.getString(R.string.perpetual_reduce_position)
     }
 
     is GemLocalizedText.FeeRate -> when (unit) {
@@ -673,6 +685,15 @@ fun GemSlippageCheck.footerText(context: Context, minimumText: String, maximumTe
 fun GemTriggerOrder.stringRes(): Int = when (this) {
     GemTriggerOrder.TAKE_PROFIT -> R.string.perpetual_take_profit
     GemTriggerOrder.STOP_LOSS -> R.string.perpetual_stop_loss
+}
+
+@StringRes
+fun AddressType.stringRes(): Int = when (this) {
+    AddressType.ADDRESS -> R.string.common_address
+    AddressType.CONTRACT -> R.string.asset_contract
+    AddressType.VALIDATOR -> R.string.stake_validator
+    AddressType.CONTACT -> R.string.contacts_contact
+    AddressType.INTERNAL_WALLET -> R.string.common_wallet
 }
 
 @StringRes

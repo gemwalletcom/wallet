@@ -33,7 +33,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.update_app.viewmodels.DownloadState
 import com.gemwallet.android.features.update_app.viewmodels.InAppUpdateViewModel
-import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -45,6 +44,7 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.mainActionHeight
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
+import uniffi.gemstone.GemAppUpdateOffer
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,7 +141,7 @@ fun InAppUpdateBanner() {
 }
 
 @Composable
-private fun UpdateInfo(modifier: Modifier = Modifier, state: DownloadState, updateAvailable: AppUpdateOffer, onAction: () -> Unit) {
+private fun UpdateInfo(modifier: Modifier = Modifier, state: DownloadState, updateAvailable: GemAppUpdateOffer, onAction: () -> Unit) {
     Row(
         modifier = modifier
             .fillMaxWidth()

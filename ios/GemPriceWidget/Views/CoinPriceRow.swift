@@ -5,22 +5,22 @@ import Style
 import SwiftUI
 
 struct CoinPriceRow: View {
-    private let model: CoinPriceRowViewModel
+    private let coin: CoinPrice
 
-    init(model: CoinPriceRowViewModel) {
-        self.model = model
+    init(coin: CoinPrice) {
+        self.coin = coin
     }
 
     var body: some View {
         HStack(spacing: Spacing.small) {
-            AssetImageView(assetImage: model.assetImage, size: .list.assets.widget)
+            AssetImageView(assetImage: coin.assetImage, size: .list.assets.widget)
 
             VStack(alignment: .leading, spacing: Spacing.extraSmall) {
-                Text(model.name)
+                Text(coin.name)
                     .font(.app.Widget.callout)
                     .foregroundColor(Colors.black)
 
-                Text(model.symbol)
+                Text(coin.symbol)
                     .font(.caption)
                     .foregroundColor(Colors.secondaryText)
             }
@@ -28,13 +28,13 @@ struct CoinPriceRow: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: Spacing.extraSmall) {
-                Text(model.priceText)
+                Text(coin.priceText)
                     .font(.app.Widget.callout)
                     .foregroundColor(Colors.black)
 
-                Text(model.percentageText)
+                Text(coin.changeText)
                     .font(.caption)
-                    .foregroundColor(model.percentageColor)
+                    .foregroundColor(coin.changeTone.color)
             }
         }
         .padding(.vertical, Spacing.tiny)

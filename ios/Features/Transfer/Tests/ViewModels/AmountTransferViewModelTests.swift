@@ -2,7 +2,6 @@
 
 import BigInt
 import struct Gemstone.GemPaymentRecipient
-import class Gemstone.GemPerpetual
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -26,7 +25,7 @@ struct AmountTransferViewModelTests {
         #expect(AmountTransferViewModel.mock(asset: usdc, transfer: .deposit).displayAsset.id == usdc.id)
 
         let withdraw = AmountTransferViewModel.mock(asset: usdc, transfer: .withdraw).displayAsset
-        #expect(withdraw.id.identifier == GemPerpetual(provider: .hypercore).depositAsset().id)
+        #expect(withdraw.id.identifier == "arbitrum_0xaf88d065e77c8cC2239327C5EDb3A432268e5831")
         #expect(withdraw.type == .erc20)
     }
 
@@ -40,10 +39,11 @@ struct AmountTransferViewModelTests {
     }
 
     @Test
-    func prefilledAmount() {
+    func aPaymentAmountPrefillsTheInput() {
         let recipient = GemPaymentRecipient.mock(recipient: .mock(address: "0x123"), amount: "1.5")
-        #expect(AmountTransferViewModel.mock(transfer: .send(payment: recipient)).prefilledAmount == "1.5")
-        #expect(AmountTransferViewModel.mock(transfer: .deposit).prefilledAmount == nil)
+        let assetData = AssetData.mock(asset: .mock(decimals: 6))
+        #expect(AmountTransferViewModel.mock(asset: assetData.asset, transfer: .send(payment: recipient)).input(from: assetData).prefill?.value == 1_500_000)
+        #expect(AmountTransferViewModel.mock(transfer: .deposit).input(from: assetData).prefill == nil)
     }
 
     @Test
@@ -51,8 +51,20 @@ struct AmountTransferViewModelTests {
         let send = try await AmountTransferViewModel.mock().makeTransferData(value: 100, useMaxAmount: false)
         let deposit = try await AmountTransferViewModel.mock(transfer: .deposit).makeTransferData(value: 200, useMaxAmount: true)
 
-        #expect(send.transactionType().toPrimitives() == .transfer)
-        #expect(deposit.transactionType().toPrimitives() == .transfer)
+        #expect({
+            if case .transfer = send.inputType {
+                true
+            } else {
+                false
+            }
+        }())
+        #expect({
+            if case .deposit = deposit.inputType {
+                true
+            } else {
+                false
+            }
+        }())
         #expect(send.value == "100")
         #expect(deposit.value == "200")
         #expect(deposit.useMaxAmount)

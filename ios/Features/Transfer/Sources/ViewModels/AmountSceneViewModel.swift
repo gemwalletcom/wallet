@@ -40,6 +40,7 @@ public final class AmountSceneViewModel {
     public var transferState: StateViewType<GemTransferData> = .noData
     var amountInputModel: InputValidationViewModel
     public var isPresentingSheet: AmountSheetType?
+    private(set) var input: GemAmountInput
     private(set) var entry: GemAmountEntry
     private(set) var amountInputType: GemAmountInputType = .asset
 
@@ -57,13 +58,10 @@ public final class AmountSceneViewModel {
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
         provider = .make(from: input, service: service, stakeService: stakeService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty, currency: currency)
-        amountInputModel = InputValidationViewModel(mode: .manual)
-
-        if let amount = provider.prefilledAmount {
-            amountInputModel.text = amount
-            refreshEntry()
-        }
+        let amountInput = provider.input(from: assetQuery.value)
+        self.input = amountInput
+        entry = provider.entry(from: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
+        amountInputModel = InputValidationViewModel()
     }
 
     public var asset: Asset {
@@ -88,9 +86,9 @@ public final class AmountSceneViewModel {
 
     var assetImage: AssetImage {
         if case let .transfer(transfer) = provider {
-            return AssetViewModel(asset: transfer.displayAsset).assetImage
+            return AssetIdViewModel(assetId: transfer.displayAsset.id).assetImage
         }
-        return AssetViewModel(asset: asset).assetImage
+        return AssetIdViewModel(assetId: asset.id).assetImage
     }
 
     var assetName: String {
@@ -140,14 +138,12 @@ public final class AmountSceneViewModel {
 }
 
 extension AmountSceneViewModel {
-    var shouldFocusOnAppear: Bool {
-        canChangeValue
-    }
-
-    func onAppear() {
-        if !canChangeValue {
-            setMax()
-        }
+    func prefillAmount() {
+        guard let prefill = input.prefill,
+              let text = NumberInput.format().inputText(value: prefill.value.description, decimals: UInt32(asset.decimals)) else { return }
+        amountInputType = prefill.inputType
+        amountInputModel.text = text
+        refreshEntry()
     }
 
     public func onChangeAssetBalance(_: AssetData, _: AssetData) {
@@ -219,9 +215,7 @@ extension AmountSceneViewModel {
     public func onValidatorSelected(_ validator: DelegationValidator) {
         guard case let .stake(stake) = provider else { return }
         stake.select(validator)
-        if !canChangeValue {
-            setMax()
-        }
+        refreshEntry()
     }
 
     func infoAction(for error: Error) -> (() -> Void)? {
@@ -245,12 +239,9 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
+        input = provider.input(from: assetData)
+        entry = provider.entry(from: assetData, input: input, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
         amountInputModel.update(error: entry.error)
-    }
-
-    var input: GemAmountInput {
-        provider.input(from: assetData)
     }
 
     func cleanInput() {

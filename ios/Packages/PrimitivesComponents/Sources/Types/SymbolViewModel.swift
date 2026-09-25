@@ -10,7 +10,7 @@ public struct SymbolViewModel: Sendable, AmountDisplayable {
 
     public init(asset: Asset) {
         symbol = asset.symbol
-        image = AssetViewModel(asset: asset).assetImage
+        image = AssetIdViewModel(assetId: asset.id).assetImage
     }
 
     public var amount: TextValue {

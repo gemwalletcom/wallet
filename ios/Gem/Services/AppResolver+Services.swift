@@ -6,6 +6,7 @@ import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstoneServices
@@ -32,7 +33,7 @@ extension AppResolver {
         let rateService: RateService
         let onstartService: OnstartService
         let appStartService: any GemAppStartServiceProtocol
-        let pushNotificationEnablerService: PushNotificationEnablerService
+        let notificationsService: any GemNotificationsServiceProtocol
         let walletConnectorPresenter: WalletConnectorPresenter
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory

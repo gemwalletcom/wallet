@@ -58,7 +58,7 @@ public extension ViewModelFactory {
             wallet: wallet,
             confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] result in
-                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
+                Task { toastPresenter.present(.transfer(result)) }
                 onComplete?()
             },
         )

@@ -7,6 +7,7 @@ use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
@@ -103,8 +104,14 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemSubmitResult {
-    Signed { data: Vec<String>, warning: Option<GemErrorText> },
-    Sent { hashes: Vec<String>, warning: Option<GemErrorText> },
+    Signed { data: Vec<String>, message: Option<GemSubmitMessage> },
+    Sent { hashes: Vec<String>, message: Option<GemSubmitMessage> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSubmitMessage {
+    Warning { text: GemErrorText },
+    Confirmed { text: GemLocalizedText },
 }
 
 #[derive(Debug, Clone)]
@@ -468,11 +475,4 @@ pub enum GemConfirmRowContent {
         selectable: bool,
         asset_ids: Vec<AssetId>,
     },
-}
-
-/// What a contact shows next to a recipient: its picture when it has one, its initials otherwise.
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAvatar {
-    pub image_url: Option<String>,
-    pub initials: String,
 }

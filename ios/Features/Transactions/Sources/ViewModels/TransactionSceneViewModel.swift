@@ -96,12 +96,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     }
 
     private var headerItem: TransactionItemModel {
-        let headerType = rows.header.headerType(currency: service.getCurrency().toPrimitives())
-        let showClearHeader = switch headerType {
-        case .amount, .nft, .asset, .assetValue: true
-        case .swap: false
-        }
-        return .header(TransactionHeaderItemModel(headerType: headerType, showClearHeader: showClearHeader))
+        .header(rows.header.headerType(currency: service.getCurrency().toPrimitives()))
     }
 
     private var swapProgressItem: TransactionItemModel {

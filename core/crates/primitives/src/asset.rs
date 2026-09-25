@@ -45,6 +45,7 @@ impl ChainAsset {
             Chain::Ton => ChainAsset::with_network_name(chain, "TON", "Gram", "GRAM", 9),
             Chain::Tron => ChainAsset::new(chain, "TRON", "TRX", 6),
             Chain::Doge => ChainAsset::new(chain, "Dogecoin", "DOGE", 8),
+            Chain::Dash => ChainAsset::new(chain, "Dash", "DASH", 8),
             Chain::Zcash => ChainAsset::new(chain, "Zcash", "ZEC", 8),
             Chain::Optimism => ChainAsset::with_network_name(chain, "Optimism", "Optimism ETH", "ETH", 18),
             Chain::Aptos => ChainAsset::new(chain, "Aptos", "APT", 8),

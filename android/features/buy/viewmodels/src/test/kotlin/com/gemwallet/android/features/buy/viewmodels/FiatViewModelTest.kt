@@ -78,12 +78,9 @@ class FiatViewModelTest {
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
-        every { getCurrency() } returns Currency.USD.toGem()
         every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)), GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)))
         every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
-        every { quoteDebounceMilliseconds() } returns 250uL
-        every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
         coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote())
     }
 
@@ -405,7 +402,7 @@ class FiatViewModelTest {
             runCurrent()
 
             val provider = viewModel.providers.value.first()
-            assertEquals(fiatFormatter.string(200.0 * provider.cryptoAmount), provider.fiatFormatted)
+            assertEquals(fiatFormatter.string(200.0 * provider.row.cryptoAmount.value), provider.fiatFormatted)
         } finally {
             viewModel.viewModelScope.cancel()
         }

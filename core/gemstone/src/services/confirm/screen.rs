@@ -33,6 +33,10 @@ impl GemConfirmScreen {
         self.phase == GemConfirmPhase::Ready
     }
 
+    pub fn presents_sheet(&self) -> bool {
+        self.failure.as_ref().is_some_and(|failure| failure.stage == GemConfirmStage::Load && failure.error.display().has_info_sheet())
+    }
+
     pub fn button(&self) -> GemConfirmButton {
         let button = |kind, state| GemConfirmButton { kind, state };
         match self.phase {
@@ -121,6 +125,16 @@ mod tests {
     use super::super::model::{GemConfirmData, GemConfirmFee};
     use super::*;
     use crate::models::placeholder::EMPTY_VALUE;
+
+    #[test]
+    fn test_a_load_error_with_an_info_sheet_presents_it() {
+        let screen = GemConfirmScreen::initial(None);
+
+        assert!(!screen.presents_sheet());
+        assert!(screen.on_load_failed(GemConfirmError::ScanMalicious).presents_sheet());
+        assert!(!screen.on_load_failed(GemConfirmError::Load { msg: "offline".into() }).presents_sheet());
+        assert!(!screen.on_execute_failed(GemConfirmError::ScanMalicious).presents_sheet(), "an execute error stays in its row");
+    }
 
     #[test]
     fn test_only_a_ready_screen_refreshes_on_the_timer() {

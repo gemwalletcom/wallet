@@ -6,12 +6,13 @@ use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::GemCopy;
 use crate::models::custom_types::GemBigInt;
+use crate::services::contact::model::GemAvatar;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
 use crate::services::swap::GemAssetRate;
 use crate::services::transactions::GemTransactionStateTone;
-use crate::services::wallet::model::GemWalletRow;
+use crate::services::wallet::model::{GemWalletPlaceholder, GemWalletRow};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemListSectionTitle {
@@ -321,6 +322,13 @@ pub enum GemListRow {
     },
     Icon {
         chain: Chain,
+    },
+    Avatar {
+        avatar: GemAvatar,
+    },
+    WalletAvatar {
+        image_url: Option<String>,
+        placeholder: GemWalletPlaceholder,
     },
     Address {
         address: String,

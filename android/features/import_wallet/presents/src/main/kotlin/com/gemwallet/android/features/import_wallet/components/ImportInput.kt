@@ -16,20 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
@@ -43,8 +37,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: NameResolveIndicatorUIModel?, onValueChange: (TextFieldValue) -> Unit, invalidWords: (String) -> Set<String>) {
-    val errorColor = MaterialTheme.colorScheme.error
+internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: NameResolveIndicatorUIModel?, onValueChange: (TextFieldValue) -> Unit) {
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -61,13 +54,6 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                 ),
                 minLines = 2,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                visualTransformation = {
-                    if (input.isPhrase) {
-                        TransformedText(highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)), OffsetMapping.Identity)
-                    } else {
-                        TransformedText(it, OffsetMapping.Identity)
-                    }
-                },
                 decorationBox = { innerTextField ->
                     if (inputState.text.isEmpty()) {
                         Text(
@@ -107,7 +93,7 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""
-                val pastedText = if (input.isPhrase) "$newValue " else newValue.trim()
+                val pastedText = newValue.trim()
                 onValueChange(
                     TextFieldValue(
                         text = pastedText,
@@ -119,41 +105,5 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                 }
             }
         }
-    }
-}
-
-internal fun highlightInvalidPhraseWords(text: String, errorColor: Color, invalidWords: Set<String>): AnnotatedString {
-    return buildAnnotatedString {
-        append(text)
-        if (invalidWords.isEmpty()) {
-            return@buildAnnotatedString
-        }
-        text.wordRanges().forEach { range ->
-            val word = text.substring(range)
-            if (word in invalidWords) {
-                addStyle(
-                    style = SpanStyle(color = errorColor),
-                    start = range.first,
-                    end = range.last + 1,
-                )
-            }
-        }
-    }
-}
-
-private fun String.wordRanges(): Sequence<IntRange> = sequence {
-    var start = -1
-    for (index in indices) {
-        if (this@wordRanges[index].isWhitespace()) {
-            if (start != -1) {
-                yield(start until index)
-                start = -1
-            }
-        } else if (start == -1) {
-            start = index
-        }
-    }
-    if (start != -1) {
-        yield(start until length)
     }
 }

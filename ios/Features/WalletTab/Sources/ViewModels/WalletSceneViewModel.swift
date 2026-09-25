@@ -3,12 +3,10 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemBannerRow
 import enum Gemstone.GemHeaderButtonKind
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletHomeServiceProtocol
-import func Gemstone.walletBannerEvents
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -73,7 +71,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
         bannersQuery = ObservableQuery(
-            BannersRequest(walletId: wallet.id, assetId: .none, events: walletBannerEvents().map { $0.toPrimitives() }),
+            BannersRequest(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
             initialValue: [],
         )
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
@@ -121,7 +119,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var homeState: WalletHomeState {
-        let currency = observablePreferences.currency
         let viewState = service.viewState(
             wallet: wallet,
             balances: fiatValuesQuery.value,
@@ -130,21 +127,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
-            header: WalletHeaderViewModel(
-                total: viewState.total,
-                pnl: viewState.pnl,
-                pnlTone: viewState.pnlTone,
-                actions: viewState.headerActions,
-            ),
-            currency: currency,
+            header: WalletHeaderViewModel(state: viewState),
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
-            visibleBanners: viewState.visibleBanners,
+            banner: viewState.banner,
         )
-    }
-
-    func bannerModel(for row: GemBannerRow) -> BannerViewModel {
-        BannerViewModel(row: row)
     }
 }
 
