@@ -256,6 +256,36 @@ def android_features_stay_off_data_internals():
         yield f"{relative} no longer depends on the data internals; remove it from DATA_INTERNAL_DEPENDENTS"
 
 
+IOS_STORES = ROOT / "ios/Packages/Store/Sources/Stores"
+IOS_STORE_TYPE = re.compile(r"^public (?:final )?(?:class|struct|actor) (\w+Store)\b", re.M)
+ANDROID_STORE_TYPE = re.compile(r"\b(?:Gemstone\w*Store|\w+Dao)\b")
+STORE_HOLDING_FEATURES = {
+    "android/features/assets/viewmodels/src/main/kotlin/com/gemwallet/android/features/assets/viewmodels/NetworkAssetsViewModel.kt",
+}
+
+
+def features_never_hold_a_store():
+    """§ 7: a feature reads through queries and calls services; a store is the database side of a Core service."""
+    ios_stores = {name for path in IOS_STORES.rglob("*.swift") for name in IOS_STORE_TYPE.findall(path.read_text())}
+    ios_store_type = re.compile(r"\b(?:" + "|".join(sorted(ios_stores)) + r")\b")
+    found = set()
+    for path in app_files():
+        relative = str(path.relative_to(ROOT))
+        if relative.startswith("ios/Features/"):
+            pattern = ios_store_type
+        elif relative.startswith("android/features/"):
+            pattern = ANDROID_STORE_TYPE
+        else:
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if pattern.search(line):
+                found.add(relative)
+                if relative not in STORE_HOLDING_FEATURES:
+                    yield f"{relative}:{number} holds a store; read through a query and call the service"
+    for relative in sorted(STORE_HOLDING_FEATURES - found):
+        yield f"{relative} no longer holds a store; remove it from STORE_HOLDING_FEATURES"
+
+
 RULES = [
     ("services are injected, never constructed at a call site", services_are_injected),
     ("one localization mapper names every Core key it renders", one_localization_mapper),
@@ -268,6 +298,7 @@ RULES = [
     ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
     ("Android features stay off the data internals", android_features_stay_off_data_internals),
+    ("features never hold a store", features_never_hold_a_store),
 ]
 
 
