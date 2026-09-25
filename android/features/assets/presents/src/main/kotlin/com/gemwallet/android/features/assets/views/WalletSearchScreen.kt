@@ -17,7 +17,7 @@ import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHo
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.assets.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.assets.viewmodels.models.AssetListRowUIModel
-import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
+import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.AssetContextActions

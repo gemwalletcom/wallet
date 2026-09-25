@@ -3,12 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.gemwallet.android.features.assets.presents"
+    namespace = "com.gemwallet.android.features.perpetuals.viewmodels"
     compileSdk = 37
 
     defaultConfig {
@@ -37,9 +36,6 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
-    buildFeatures {
-        compose = true
-    }
     packaging {
         resources {
             excludes += "META-INF/*"
@@ -53,13 +49,17 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
-    implementation(project(":features:asset_select:viewmodels"))
-    implementation(project(":features:update_app:presents"))
-    implementation(project(":features:banner:presents"))
-    implementation(project(":features:perpetuals:presents"))
-    implementation(project(":features:nft:presents"))
+    api(project(":ui-models"))
+    implementation(project(":data:services:store"))
 
-    implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.savedstate)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    testImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk.android)
 }

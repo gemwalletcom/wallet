@@ -45,7 +45,7 @@ import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannerScene
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
-import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
+import com.gemwallet.android.features.perpetuals.presents.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions

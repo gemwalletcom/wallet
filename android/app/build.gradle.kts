@@ -261,7 +261,7 @@ dependencies {
     implementation(project(":features:wallet_connector:viewmodels"))
     implementation(project(":features:assets:presents"))
     implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:perpetual:presents"))
+    implementation(project(":features:perpetuals:presents"))
     implementation(project(":features:referral:viewmodels"))
     implementation(project(":features:referral:presents"))
 

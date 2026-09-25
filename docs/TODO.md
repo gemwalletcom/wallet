@@ -680,7 +680,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **iOS:** `RewardsScene`, its view models and `RewardsTests` live in the `Settings` package.
   - **Android:** `features/referral`, packages `referral.views` and `referral.viewmodels`.
   - **Expected:** iOS `Rewards` and Android `rewards`, as [rewards.md](product/rewards.md).
-- **MOD305** **S** **Android `perpetual` becomes `perpetuals`**, as iOS `Perpetuals` and [perpetuals.md](product/perpetuals.md).
 - **MOD306** **S** **Android `buy` becomes `fiat_connect`**, as iOS `FiatConnect`; it already holds sell and the fiat history.
 - **MOD307** **S** **The wallet tab is `wallet_tab`.**
   - **iOS:** `WalletTab` holds `WalletScene`, `NetworkAssetsScene`, `WalletSearchScene`, `AssetsResultsScene` and `PortfolioScene`.
@@ -688,7 +687,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **Expected:** Android `assets` becomes `wallet_tab` and takes `PortfolioChartScene`; the `update_app` module folds into it, its only consumer. Lands before MOD308, which reuses the name `assets`.
 - **MOD308** **M** **The asset screens are one `assets` module.**
   - **iOS:** `Assets` holds `AssetScene`, `AddAssetScene`, `SelectAssetScene`, `AddressDetailsScene` and `AssetsFilterScene`.
-  - **Android:** split over `features/asset`, `features/add_asset` and `features/asset_select`; `swap`, `perpetual`, `settings/price_alerts` and the wallet tab depend on `asset_select`.
+  - **Android:** split over `features/asset`, `features/add_asset` and `features/asset_select`; `swap`, `perpetuals`, `settings/price_alerts` and the wallet tab depend on `asset_select`.
   - **Expected:** one Android `assets` module; the dependents point at it.
 - **MOD309** **M** **Send, receive, amount and confirm are one `transfer` module.** Lands with MOD310.
   - **iOS:** `Transfer` holds `RecipientScene`, `AmountScene`, `ReceiveScene`, `ConfirmTransferScene`, `PaymentVerificationScene` and `GetAssetScene`.
@@ -706,8 +705,8 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
 - **MOD314** **S** **Confirmation stays in Transfer, and only the app opens it.** Transfer, swap, stake, perpetuals and WalletConnect all end on it.
   - **iOS:** the confirm scene and its view models are in `Transfer`; the app opens the screen (`ConfirmTransferNavigationView`), and no other feature imports it.
-  - **Android:** `features/confirm` is its own module; `wallet_connector` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
-  - **Expected:** Android `wallet_connector` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
+  - **Android:** `features/confirm` is its own module; `wallet_connector` and `perpetuals` build `ConfirmScreen` themselves, and `perpetuals` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
+  - **Expected:** Android `wallet_connector` and `perpetuals` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
   - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `Wallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
   - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallets`; create-wallet draws the phrase with its own `WordChip` view.

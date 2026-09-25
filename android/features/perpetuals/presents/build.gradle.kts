@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemwallet.android.features.assets.presents"
+    namespace = "com.gemwallet.android.features.perpetuals.presents"
     compileSdk = 37
 
     defaultConfig {
@@ -53,13 +53,18 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
+    implementation(project(":features:perpetuals:viewmodels"))
     implementation(project(":features:asset_select:viewmodels"))
-    implementation(project(":features:update_app:presents"))
-    implementation(project(":features:banner:presents"))
-    implementation(project(":features:perpetuals:presents"))
-    implementation(project(":features:nft:presents"))
+    implementation(project(":features:asset_select:presents"))
+    implementation(project(":features:confirm:presents"))
+    implementation(project(":features:asset:presents"))
+    implementation(project(":features:confirm:viewmodels"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
+
+    debugImplementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
 }
