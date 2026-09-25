@@ -62,29 +62,26 @@ public struct AmountScene: View {
 
             if let stake = model.stake {
                 switch stake.selection {
-                case let .validator(validatorSelection):
-                    Section(validatorSelection.title) {
-                        if validatorSelection.isEnabled {
-                            NavigationLink(value: validatorSelection.selectedValidator) {
-                                ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
+                case let .validator(validator, destination):
+                    Section(stake.validatorTitle) {
+                        if let destination {
+                            NavigationLink(value: destination) {
+                                ValidatorView(model: validator)
                             }
                         } else {
-                            ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
+                            ValidatorView(model: validator)
                         }
                     }
-
-                case let .resource(resourceSelection):
-                    @Bindable var resourceSelection = resourceSelection
+                case let .resource(options, selected):
                     Section {
-                        Picker("", selection: $resourceSelection.selected) {
-                            ForEach(resourceSelection.options) { resource in
+                        Picker("", selection: model.resourceBinding(selected: selected)) {
+                            ForEach(options) { resource in
                                 Text(resource.title)
                                     .tag(resource)
                             }
                         }
                         .pickerStyle(.segmented)
                         .frame(width: Sizing.picker.segmentedWidth)
-                        .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
                     .cleanListRow()
                 }

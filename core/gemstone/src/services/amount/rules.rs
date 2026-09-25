@@ -157,10 +157,7 @@ pub fn stake_amount_type(input: &GemStakeAmountInput) -> GemAmountType {
         GemStakeAmountInput::Redelegate { delegation, .. } => GemAmountStakeType::Redelegate { delegation: delegation.clone() },
         GemStakeAmountInput::Withdraw { delegation } => GemAmountStakeType::Withdraw { delegation: delegation.clone() },
         GemStakeAmountInput::Rewards { delegations, validator } => GemAmountStakeType::Rewards {
-            delegations: match stake_rules::rewards_validator(delegations, validator) {
-                Some(validator) => delegations.iter().filter(|delegation| delegation.validator.id == validator.id).cloned().collect(),
-                None => vec![],
-            },
+            delegations: delegations.iter().filter(|delegation| delegation.validator.id == validator.id).cloned().collect(),
         },
         GemStakeAmountInput::Freeze { resource } => GemAmountStakeType::Freeze { resource: *resource },
         GemStakeAmountInput::Unfreeze { resource } => GemAmountStakeType::Unfreeze { resource: *resource },
@@ -509,7 +506,7 @@ mod tests {
     fn test_a_request_answers_its_own_amount_type_and_display_asset() {
         use super::super::model::{GemAmountRequest, GemAmountStakeType, GemAmountTransfer, GemAmountType};
         use crate::services::stake::model::GemStakeAmountInput;
-        use primitives::{Asset, Chain};
+        use primitives::{Asset, Chain, DelegationValidator};
 
         let usdc = Asset::from_chain(Chain::Arbitrum);
         let deposit = GemAmountRequest::Transfer { transfer: GemAmountTransfer::Deposit };
@@ -517,7 +514,7 @@ mod tests {
         assert_eq!(deposit.display_asset(usdc.clone()), super::transfer_display_asset(&GemAmountTransfer::Deposit, usdc.clone()));
 
         let stake = GemAmountRequest::Stake {
-            input: GemStakeAmountInput::Stake { validators: vec![], validator: None },
+            input: GemStakeAmountInput::Stake { validator: DelegationValidator::mock() },
         };
         assert_eq!(stake.amount_type(), GemAmountType::Stake { stake_type: GemAmountStakeType::Stake });
         assert_eq!(stake.display_asset(usdc.clone()), usdc, "only a transfer shows another asset");
@@ -1291,13 +1288,8 @@ mod tests {
             },
             price: None,
         };
-        let validators = vec![delegation.validator.clone(), other.validator.clone()];
-
         assert_eq!(
-            stake_amount_type(&GemStakeAmountInput::Stake {
-                validators: validators.clone(),
-                validator: None
-            }),
+            stake_amount_type(&GemStakeAmountInput::Stake { validator: delegation.validator.clone() }),
             GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }
         );
         assert_eq!(
@@ -1308,9 +1300,8 @@ mod tests {
         );
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Redelegate {
-                validators,
                 delegation: delegation.clone(),
-                validator: Some(other.validator.clone()),
+                validator: other.validator.clone(),
             }),
             GemAmountType::Stake {
                 stake_type: GemAmountStakeType::Redelegate { delegation: delegation.clone() }
@@ -1319,7 +1310,7 @@ mod tests {
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Rewards {
                 delegations: vec![other.clone(), delegation.clone()],
-                validator: None,
+                validator: other.validator.clone(),
             }),
             GemAmountType::Stake {
                 stake_type: GemAmountStakeType::Rewards { delegations: vec![other.clone()] }
@@ -1328,7 +1319,7 @@ mod tests {
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Rewards {
                 delegations: vec![other.clone(), delegation.clone()],
-                validator: Some(delegation.validator.clone()),
+                validator: delegation.validator.clone(),
             }),
             GemAmountType::Stake {
                 stake_type: GemAmountStakeType::Rewards { delegations: vec![delegation] }

@@ -75,7 +75,7 @@ impl GemAmountService {
                 };
                 rules::transfer_data(asset, transfer, owner, value, use_max_amount)
             }
-            GemAmountRequest::Stake { input } => Ok(transfer_rules::stake_transfer_data(asset, input.stake_type()?, value, use_max_amount)),
+            GemAmountRequest::Stake { input } => Ok(transfer_rules::stake_transfer_data(asset, input.stake_type(), value, use_max_amount)),
             GemAmountRequest::Earn { earn_type } => {
                 let wallet = self.session.require_current_wallet().await?;
                 let account = required_account(&wallet, asset.chain())?;

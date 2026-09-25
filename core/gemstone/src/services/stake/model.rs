@@ -4,7 +4,6 @@ use crate::models::list::GemListRow;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::balance::GemAssetBalance;
-use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
 use primitives::{Asset, BalanceMetadata, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
@@ -26,7 +25,7 @@ pub struct GemDelegationStatus {
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,
     pub header: GemDelegationListRow,
-    pub actions: Vec<GemDelegationAction>,
+    pub actions: Vec<GemDelegationActionItem>,
     pub balance: GemFormattedNumber,
     pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
@@ -47,7 +46,7 @@ pub struct GemDelegationListRow {
 
 #[uniffi::export]
 pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new())
+    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[])
 }
 
 #[uniffi::export]
@@ -62,6 +61,12 @@ pub enum GemDelegationAction {
     Redelegate,
     Withdraw,
     Deposit,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemDelegationActionItem {
+    pub action: GemDelegationAction,
+    pub destination: GemDelegationDestination,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -136,38 +141,18 @@ pub struct GemStakeViewState {
     pub actions: Vec<GemStakeActionItem>,
     pub resource_rows: Vec<GemListRow>,
     pub delegations: Vec<GemStakeDelegationItem>,
-    pub validators: Vec<DelegationValidator>,
     pub docs_url: Option<String>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
 pub enum GemStakeAmountInput {
-    Stake {
-        validators: Vec<DelegationValidator>,
-        validator: Option<DelegationValidator>,
-    },
-    Redelegate {
-        validators: Vec<DelegationValidator>,
-        delegation: Delegation,
-        validator: Option<DelegationValidator>,
-    },
-    Unstake {
-        delegation: Delegation,
-    },
-    Withdraw {
-        delegation: Delegation,
-    },
-    Rewards {
-        delegations: Vec<Delegation>,
-        validator: Option<DelegationValidator>,
-    },
-    Freeze {
-        resource: Resource,
-    },
-    Unfreeze {
-        resource: Resource,
-    },
+    Stake { validator: DelegationValidator },
+    Redelegate { delegation: Delegation, validator: DelegationValidator },
+    Unstake { delegation: Delegation },
+    Withdraw { delegation: Delegation },
+    Rewards { delegations: Vec<Delegation>, validator: DelegationValidator },
+    Freeze { resource: Resource },
+    Unfreeze { resource: Resource },
 }
 
 #[uniffi::export]
@@ -183,27 +168,25 @@ impl GemStakeAmountInput {
     pub fn with_resource(&self, resource: Resource) -> GemStakeAmountInput {
         rules::with_resource(self, resource)
     }
-
-    pub fn resource(&self) -> Option<Resource> {
-        match self {
-            Self::Freeze { resource } | Self::Unfreeze { resource } => Some(*resource),
-            Self::Stake { .. } | Self::Redelegate { .. } | Self::Unstake { .. } | Self::Withdraw { .. } | Self::Rewards { .. } => None,
-        }
-    }
 }
 
 impl GemStakeAmountInput {
-    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
+    pub fn stake_type(&self) -> StakeType {
         rules::stake_type(self)
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemStakeAmountSelection {
+    Validator { validator: GemValidatorRow, can_select: bool },
+    Resource { options: Vec<Resource>, selected: Resource },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemStakeValidatorSelection {
-    pub options: Vec<GemValidatorRow>,
+pub struct GemStakeValidatorOptions {
     pub recommended: Vec<GemValidatorRow>,
-    pub validator: Option<GemValidatorRow>,
-    pub can_select: bool,
+    pub options: Vec<GemValidatorRow>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

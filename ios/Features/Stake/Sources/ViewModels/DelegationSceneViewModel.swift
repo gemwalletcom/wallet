@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemDelegationAction
+import struct Gemstone.GemDelegationActionItem
 import struct Gemstone.GemDelegationDetails
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemStakeServiceProtocol
@@ -11,13 +11,16 @@ import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
-public struct DelegationSceneViewModel {
+@MainActor
+@Observable
+public final class DelegationSceneViewModel {
     public let delegation: Delegation
-    public let validators: [DelegationValidator]
     public let onNavigate: StakeRouteAction
+    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
 
     private let wallet: Wallet
     private let asset: Asset
@@ -29,7 +32,6 @@ public struct DelegationSceneViewModel {
         delegation: Delegation,
         asset: Asset,
         service: any GemStakeServiceProtocol,
-        validators: [DelegationValidator],
         onNavigate: StakeRouteAction,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
@@ -37,9 +39,9 @@ public struct DelegationSceneViewModel {
         self.delegation = delegation
         self.asset = asset
         self.service = service
-        self.validators = validators
         self.onNavigate = onNavigate
         self.onSelectAddress = onSelectAddress
+        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: delegation.validator.chain, providerType: .stake), initialValue: [])
     }
 
     @MainActor
@@ -50,7 +52,14 @@ public struct DelegationSceneViewModel {
     }
 
     public var details: GemDelegationDetails {
-        service.delegationDetails(walletType: wallet.type.toGem(), delegation: delegation.toGem(), asset: asset.toGem(), price: price, currency: service.getCurrency())
+        service.delegationDetails(
+            walletType: wallet.type.toGem(),
+            delegation: delegation.toGem(),
+            asset: asset.toGem(),
+            price: price,
+            currency: service.getCurrency(),
+            validators: validatorsQuery.value.map { $0.toGem() },
+        )
     }
 
     public func header(_ details: GemDelegationDetails) -> ValueHeader {
@@ -76,8 +85,8 @@ public struct DelegationSceneViewModel {
         }
     }
 
-    public func actionListItem(_ action: GemDelegationAction) -> ListItemModel {
-        ListItemModel(title: action.title)
+    public func actionListItem(_ item: GemDelegationActionItem) -> ListItemModel {
+        ListItemModel(title: item.action.title)
     }
 
     public var manageTitle: String {
@@ -92,9 +101,8 @@ public struct DelegationSceneViewModel {
 // MARK: - Actions
 
 public extension DelegationSceneViewModel {
-    func onSelectAction(_ action: GemDelegationAction) {
-        let route = service.delegationActionDestination(asset: asset.toGem(), delegation: delegation.toGem(), action: action, validators: validators.map { $0.toGem() })
-            .route(delegation: delegation, validators: validators)
+    func onSelectAction(_ item: GemDelegationActionItem) {
+        let route = item.destination.route(delegation: delegation)
         switch route {
         case .delegation: break
         case .transfer: onNavigate?(route)
@@ -104,8 +112,4 @@ public extension DelegationSceneViewModel {
     func onClaimRewards(_ claim: GemTransferData) {
         onNavigate?(.transfer(.confirm(claim)))
     }
-}
-
-extension GemDelegationAction: @retroactive Identifiable {
-    public var id: Self { self }
 }

@@ -4,7 +4,8 @@ import android.content.Context
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
-import uniffi.gemstone.GemDelegationAction
+import uniffi.gemstone.GemDelegationActionItem
+import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemDelegationDetails
 import uniffi.gemstone.GemListRow
 
@@ -15,9 +16,9 @@ sealed interface DelegationRowUIModel {
     data object Rewards : DelegationRowUIModel
 }
 
-data class DelegationActionUIModel(val action: GemDelegationAction, val model: ListItemModel)
+data class DelegationActionUIModel(val destination: GemDelegationDestination, val model: ListItemModel)
 
-internal fun GemDelegationAction.uiModel(context: Context): DelegationActionUIModel = DelegationActionUIModel(
-    action = this,
-    model = ListItemModel(title = context.getString(stringRes())),
+internal fun GemDelegationActionItem.uiModel(context: Context): DelegationActionUIModel = DelegationActionUIModel(
+    destination = destination,
+    model = ListItemModel(title = context.getString(action.stringRes())),
 )

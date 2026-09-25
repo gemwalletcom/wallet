@@ -50,14 +50,12 @@ struct AmountNavigationView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: DelegationValidator.self) { validator in
-                if let stake = model.stake,
-                   case let .validator(validatorSelection) = stake.selection
-                {
+                if let stake = model.stake {
                     ValidatorSelectScene(
                         model: viewModelFactory.validatorSelectScene(
-                            currentValidator: validator,
-                            recommended: stake.recommendedValidators,
-                            validators: validatorSelection.options,
+                            chain: validator.chain,
+                            input: stake.stakeInput,
+                            currentValidatorId: validator.id,
                             selectValidator: model.onValidatorSelected,
                         ),
                     )

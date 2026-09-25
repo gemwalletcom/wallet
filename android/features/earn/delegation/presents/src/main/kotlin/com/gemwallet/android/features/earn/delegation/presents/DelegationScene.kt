@@ -78,7 +78,7 @@ fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransac
                 ListItem(
                     model = item.model,
                     listPosition = position,
-                    modifier = Modifier.clickable { viewModel.onAction(item.action, onAmount, onConfirm) },
+                    modifier = Modifier.clickable { viewModel.onAction(item.destination, onAmount, onConfirm) },
                     accessory = { DataBadgeChevron() },
                 )
             }

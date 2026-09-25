@@ -14,12 +14,12 @@ import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockDelegationValidator
-import com.gemwallet.android.testkit.mockGemStakeValidatorSelection
 import com.gemwallet.android.testkit.mockGemValidatorRow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.every
@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.resetMain
@@ -46,6 +47,7 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
+import uniffi.gemstone.GemStakeAmountSelection
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemTransferData
 import java.math.BigDecimal
@@ -68,7 +70,7 @@ class AmountViewModelTest {
         coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { stakeValidatorSelection(any(), any()) } returns mockGemStakeValidatorSelection(mockGemValidatorRow(mockDelegationValidator(chain = Chain.Cosmos)))
+        every { stakeAmountSelection(any(), any()) } returns GemStakeAmountSelection.Validator(mockGemValidatorRow(mockDelegationValidator(chain = Chain.Cosmos)), true)
     }
     private val getAssetInfo = mockk<GetAssetInfo> { every { this@mockk.invoke(any()) } returns assetInfoFlow }
 
@@ -194,7 +196,7 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `a stake max keeps the network fee back and says so`() = viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(emptyList(), null))) { viewModel ->
+    fun `a stake max keeps the network fee back and says so`() = viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(mockDelegationValidator(chain = Chain.Cosmos).toGem()))) { viewModel ->
         assetInfoFlow.value = assetInfo(BigInteger("2000000"))
         runCurrent()
 
@@ -217,6 +219,7 @@ class AmountViewModelTest {
             getPerpetual = mockk(relaxed = true),
             getDelegation = mockk(relaxed = true),
             getStakeValidator = mockk(relaxed = true),
+            getValidators = mockk { every { this@mockk.invoke(any()) } returns flowOf(emptyList<DelegationValidator>()) },
             getSession = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
             context = context,

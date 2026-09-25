@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
@@ -41,6 +41,7 @@ import javax.inject.Inject
 class DelegationViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getDelegation: GetDelegation,
+    getValidators: GetValidators,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -64,11 +65,15 @@ class DelegationViewModel @Inject constructor(
         .flatMapLatest { getAssetInfo(it.base.assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val validators = delegation.filterNotNull()
+        .flatMapLatest { getValidators(it.base.assetId) }
+
     val properties = combine(
         delegation,
         assetInfo,
         getSession().filterNotNull(),
-    ) { delegation, assetInfo, session ->
+        validators,
+    ) { delegation, assetInfo, session, validators ->
         if (delegation == null || assetInfo == null) {
             return@combine null
         }
@@ -78,6 +83,7 @@ class DelegationViewModel @Inject constructor(
             assetInfo.asset.toGem(),
             assetInfo.price?.price?.price,
             (assetInfo.price?.currency ?: Currency.USD).toGem(),
+            validators.map { it.toGem() },
         )
         DelegationProperties(
             rows = details.rows.map { DelegationRowUIModel.Row(it) } + listOfNotNull(DelegationRowUIModel.Rewards.takeIf { details.rewards != null }),
@@ -88,10 +94,8 @@ class DelegationViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun onAction(action: GemDelegationAction, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
-        val assetInfo = assetInfo.value ?: return
-        val delegation = delegation.value ?: return
-        when (val destination = stakeService.delegationActionDestination(assetInfo.asset.toGem(), delegation.toGem(), action, emptyList())) {
+    fun onAction(destination: GemDelegationDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
+        when (destination) {
             GemDelegationDestination.Details -> Unit
             is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))

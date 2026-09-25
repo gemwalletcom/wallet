@@ -25,6 +25,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
+import SwiftUI
 
 @MainActor
 @Observable
@@ -240,9 +241,16 @@ extension AmountSceneViewModel {
         isPresentingSheet = nil
     }
 
-    func onChangeResource(_: Resource, _ resource: Resource) {
+    func onSelectResource(_ resource: Resource) {
         stake?.select(resource)
         cleanInput()
+    }
+
+    func resourceBinding(selected: Resource) -> Binding<Resource> {
+        Binding(
+            get: { selected },
+            set: { [self] in onSelectResource($0) },
+        )
     }
 
     public func onChangeLeverage(_: LeverageOption, _: LeverageOption) {

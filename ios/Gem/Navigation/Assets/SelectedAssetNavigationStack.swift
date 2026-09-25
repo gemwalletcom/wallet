@@ -116,13 +116,12 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: DelegationInput.self) { input in
+            .navigationDestination(for: Delegation.self) { delegation in
                 DelegationScene(
                     model: viewModelFactory.delegationScene(
                         wallet: wallet,
-                        delegation: input.delegation,
-                        asset: input.delegation.base.assetId.chain.asset,
-                        validators: input.validators,
+                        delegation: delegation,
+                        asset: delegation.base.assetId.chain.asset,
                         onNavigate: navigate,
                         onSelectAddress: { isPresentingAddressDetails = $0 },
                     ),

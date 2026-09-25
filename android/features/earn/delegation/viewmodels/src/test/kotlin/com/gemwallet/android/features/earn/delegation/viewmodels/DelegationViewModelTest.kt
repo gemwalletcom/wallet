@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
@@ -15,6 +17,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +44,10 @@ class DelegationViewModelTest {
         every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val getDelegation = mockk<GetDelegation>()
+    private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
+    private val getValidators = mockk<GetValidators> {
+        every { this@mockk(asset.id, any()) } returns flowOf(listOf(validator))
+    }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -65,6 +72,7 @@ class DelegationViewModelTest {
         val viewModel = DelegationViewModel(
             getAssetInfo = getAssetInfo,
             getDelegation = getDelegation,
+            getValidators = getValidators,
             stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
                 every { getCurrency() } returns Currency.USD.toGem()
             },
@@ -80,5 +88,27 @@ class DelegationViewModelTest {
         runCurrent()
 
         assertEquals(ownDelegation, viewModel.delegation.value)
+    }
+
+    @Test
+    fun `the delegation actions are decided with the stored validators`() = runTest(testDispatcher) {
+        val walletId = mockWalletId("wallet-own")
+        every { getDelegation(walletId, "v1", "d1") } returns flowOf(mockDelegation(assetId = asset.id, validatorId = "v1", delegationId = "d1"))
+        val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
+            every { getCurrency() } returns Currency.USD.toGem()
+        }
+
+        DelegationViewModel(
+            getAssetInfo = getAssetInfo,
+            getDelegation = getDelegation,
+            getValidators = getValidators,
+            stakeService = stakeService,
+            getSession = mockk { every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id))) },
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.ValidatorId.key to "v1", RouteArgument.DelegationId.key to "d1")),
+            context = mockk(relaxed = true),
+        )
+        runCurrent()
+
+        verify { stakeService.delegationDetails(any(), any(), any(), any(), any(), listOf(validator.toGem())) }
     }
 }
