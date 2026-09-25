@@ -227,11 +227,9 @@ def only_services_reach_infra():
 ANDROID_FEATURES = ROOT / "android/features"
 DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
 DATA_INTERNAL_DEPENDENTS = {
-    "android/features/activities/viewmodels/build.gradle.kts",
     "android/features/asset/viewmodels/build.gradle.kts",
     "android/features/asset_select/viewmodels/build.gradle.kts",
     "android/features/assets/viewmodels/build.gradle.kts",
-    "android/features/confirm/viewmodels/build.gradle.kts",
     "android/features/perpetual/viewmodels/build.gradle.kts",
     "android/features/settings/aboutus/viewmodels/build.gradle.kts",
     "android/features/settings/price_alerts/viewmodels/build.gradle.kts",

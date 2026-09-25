@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.connection
 
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ConnectionComponent
@@ -21,7 +22,8 @@ import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemRefreshKind
 
-class ConnectionStatusObserver(private val monitors: List<ConnectionComponentMonitor>, private val connectionService: GemConnectionServiceInterface, private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+class ConnectionStatusObserver(private val monitors: List<ConnectionComponentMonitor>, private val connectionService: GemConnectionServiceInterface, private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) :
+    ObserveRefreshInterval {
     private val state = MutableStateFlow<Map<ConnectionComponent, Boolean>>(emptyMap())
 
     val isHealthyByComponent: StateFlow<Map<ConnectionComponent, Boolean>> = state.asStateFlow()
@@ -33,7 +35,7 @@ class ConnectionStatusObserver(private val monitors: List<ConnectionComponentMon
 
     private var jobs: List<Job> = emptyList()
 
-    fun refreshIntervalMillis(kind: GemRefreshKind): Flow<Long> = status.map { connectionService.refreshInterval(kind, it.toGem()).toMillis() }
+    override fun refreshIntervalMillis(kind: GemRefreshKind): Flow<Long> = status.map { connectionService.refreshInterval(kind, it.toGem()).toMillis() }
 
     fun start() {
         if (jobs.isNotEmpty()) return

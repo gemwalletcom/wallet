@@ -6,8 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -49,13 +49,13 @@ class ChartViewModel internal constructor(
     priceQuery: PriceQuery,
     private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
-    connectionStatusObserver: ConnectionStatusObserver,
+    observeRefreshInterval: ObserveRefreshInterval,
     private val ioDispatcher: CoroutineDispatcher,
     private val context: Context,
 ) : ViewModel() {
     private val session = MutableStateFlow(chartService.newSession())
 
-    val refreshIntervalMillis = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.CHART)
+    val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CHART)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
@@ -133,7 +133,7 @@ class ChartViewModel internal constructor(
         priceQuery: PriceQuery,
         chartService: GemChartServiceInterface,
         savedStateHandle: SavedStateHandle,
-        connectionStatusObserver: ConnectionStatusObserver,
+        observeRefreshInterval: ObserveRefreshInterval,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @ApplicationContext context: Context,
     ) : this(
@@ -141,7 +141,7 @@ class ChartViewModel internal constructor(
         priceQuery = priceQuery,
         chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),
-        connectionStatusObserver = connectionStatusObserver,
+        observeRefreshInterval = observeRefreshInterval,
         ioDispatcher = ioDispatcher,
         context = context,
     )

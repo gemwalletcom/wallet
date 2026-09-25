@@ -249,7 +249,7 @@ class ChartViewModelTest {
         priceQuery = mockk { every { this@mockk(asset.id) } returns flowOf(null) },
         chartService = chartService,
         assetId = asset.id,
-        connectionStatusObserver = mockk(relaxed = true),
+        observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
     ).also(viewModels::add)

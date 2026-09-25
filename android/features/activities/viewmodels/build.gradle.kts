@@ -49,7 +49,6 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":data:services:gemstone"))
     implementation(project(":data:services:store"))
     api(project(":ui-models"))
 

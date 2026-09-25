@@ -148,7 +148,7 @@ class AssetDetailsViewModelTest {
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,
-        connectionStatusObserver = mockk(relaxed = true),
+        observeRefreshInterval = mockk(relaxed = true),
         context = mockk(relaxed = true),
     ).also(viewModels::add)
 }

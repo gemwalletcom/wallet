@@ -145,7 +145,7 @@ class PerpetualMarketViewModelTest {
             service = service,
             perpetualObserver = perpetualObserver,
             ioDispatcher = dispatcher,
-            connectionStatusObserver = mockk(relaxed = true),
+            observeRefreshInterval = mockk(relaxed = true),
         ).also { model = it }
     }
 

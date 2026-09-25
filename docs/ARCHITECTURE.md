@@ -1836,7 +1836,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | `GemDeviceKeyService` | composed by `auth` and the device signer |
 | `GemSubscriptionService` | composed by `device` |
 | `GemAppStartService` | iOS `OnstartService`, Android `MainViewModel` — launch orchestration, not a screen |
-| `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `RefreshInterval` |
+| `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `ConnectionStatusObserver`, whose refresh intervals view models observe through the `ObserveRefreshInterval` port |
 | `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps; Android view models subscribe through its `PerpetualObserver` port |
 | `GemPushNotificationService` | iOS `NavigationRouter`, Android notification routing |
 | `GemTransactionStateService` | composed by `confirm`; tracked off-thread by the `TransactionStatusService` port on both apps |

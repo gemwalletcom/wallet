@@ -139,7 +139,7 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
-        connectionStatusObserver = mockk(relaxed = true),
+        observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true),
     )

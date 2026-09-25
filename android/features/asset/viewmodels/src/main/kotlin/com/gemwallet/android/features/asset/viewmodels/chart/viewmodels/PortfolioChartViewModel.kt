@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
@@ -49,7 +49,7 @@ class PortfolioChartViewModel internal constructor(
     private val service: GemPortfolioServiceInterface,
     getSession: GetSession,
     initialType: PortfolioType,
-    connectionStatusObserver: ConnectionStatusObserver,
+    observeRefreshInterval: ObserveRefreshInterval,
     private val ioDispatcher: CoroutineDispatcher,
     private val context: Context,
 ) : ViewModel() {
@@ -97,7 +97,7 @@ class PortfolioChartViewModel internal constructor(
         .map { it.showsChartTypePicker }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.showsChartTypePicker)
 
-    val refreshIntervalMillis = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.CHART)
+    val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CHART)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
@@ -141,14 +141,14 @@ class PortfolioChartViewModel internal constructor(
         service: GemPortfolioServiceInterface,
         getSession: GetSession,
         savedStateHandle: SavedStateHandle,
-        connectionStatusObserver: ConnectionStatusObserver,
+        observeRefreshInterval: ObserveRefreshInterval,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @ApplicationContext context: Context,
     ) : this(
         service = service,
         getSession = getSession,
         initialType = savedStateHandle.portfolioType(),
-        connectionStatusObserver = connectionStatusObserver,
+        observeRefreshInterval = observeRefreshInterval,
         ioDispatcher = ioDispatcher,
         context = context,
     )

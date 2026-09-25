@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
@@ -113,12 +113,12 @@ class ConfirmViewModel @Inject constructor(
     private val getSession: GetSession,
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
-    connectionStatusObserver: ConnectionStatusObserver,
+    observeRefreshInterval: ObserveRefreshInterval,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val refreshIntervalMillis = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.CONFIRM)
+    val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CONFIRM)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     private val reload = MutableSharedFlow<Unit>(extraBufferCapacity = 1)

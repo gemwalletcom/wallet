@@ -196,7 +196,7 @@ class PortfolioChartViewModelTest {
         service = service,
         getSession = getSession,
         initialType = initialType,
-        connectionStatusObserver = mockk(relaxed = true),
+        observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
     ).also(viewModels::add)

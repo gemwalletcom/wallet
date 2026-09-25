@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
@@ -67,7 +67,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val service: GemPerpetualServiceInterface,
     private val perpetualObserver: PerpetualObserver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val connectionStatusObserver: ConnectionStatusObserver,
+    private val observeRefreshInterval: ObserveRefreshInterval,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(GemPerpetualMarketSession(query = "", isSearching = false))
@@ -79,7 +79,7 @@ class PerpetualMarketViewModel @Inject constructor(
         session.update { it.onSearchingChanged(searching) }
     }
 
-    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.MARKET)
+    val refreshIntervalMillis: StateFlow<Long> = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.MARKET)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     private val query: StateFlow<String?> = session.map { it.searchQuery().takeIf(String::isNotEmpty) }

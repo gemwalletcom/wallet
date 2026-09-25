@@ -151,7 +151,7 @@ class ConfirmViewModelRequestTest {
         },
         confirmService = confirmService,
         savedStateHandle = handle,
-        connectionStatusObserver = mockk(relaxed = true),
+        observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Error"
