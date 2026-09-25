@@ -14,9 +14,11 @@ public final class LocalKeystorePassword: KeystorePassword {
         static let passwordAuthenticationPrivacyLock = "password_authentication_privacy_lock"
     }
 
-    private let keychain: Keychain = KeychainDefault()
+    private let keychain: Keychain
 
-    public init() {}
+    public init(keychain: Keychain = KeychainDefault()) {
+        self.keychain = keychain
+    }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {
         KeystoreAuthentication.availableAuthenticationType
@@ -98,6 +100,9 @@ extension LocalKeystorePassword {
         authentication: KeystoreAuthentication,
         context: LAContext,
     ) throws {
+        guard password.isNotEmpty else {
+            throw KeystoreError.emptyPassword
+        }
         try keychain
             .set(authentication.rawValue, key: Keys.passwordAuthentication)
 
@@ -109,6 +114,9 @@ extension LocalKeystorePassword {
 
     private func changeAuthentication(authentication: KeystoreAuthentication, context: LAContext) throws {
         let password = try getPassword(context: context)
+        guard password.isNotEmpty else {
+            return try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
+        }
         try setPassword(password, authentication: authentication, context: context)
     }
 }

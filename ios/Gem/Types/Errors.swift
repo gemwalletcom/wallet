@@ -10,7 +10,7 @@ import Swap
 extension KeystoreError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case .missingPassword: Localized.Errors.keystoreAccess
+        case .missingPassword, .emptyPassword: Localized.Errors.keystoreAccess
         }
     }
 }

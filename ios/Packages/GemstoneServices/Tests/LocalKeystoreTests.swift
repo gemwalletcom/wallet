@@ -101,6 +101,21 @@ struct LocalKeystoreTests {
     }
 
     @Test
+    func keystorePasswordIsCreatedUnderTheStoredAuthentication() throws {
+        let directory = UUID().uuidString
+        let baseDir = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: directory, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: baseDir) }
+        let keystorePassword = MockKeystorePassword(memoryPassword: "", availableAuthentication: .passcode)
+        let keystore = LocalKeystore(directory: directory, keystorePassword: keystorePassword)
+
+        _ = try keystore.keystorePassword(createIfMissing: true)
+
+        #expect(keystorePassword.passwordAuthentication == .passcode)
+    }
+
+    @Test
     func exportEthereumPrivateKey() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
