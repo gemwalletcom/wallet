@@ -15,6 +15,8 @@ import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import java.math.BigInteger
@@ -25,6 +27,11 @@ fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId
 )
 
 fun mockWalletId(address: String = "0x0000000000000000000000000000000000000000") = WalletId("multicoin_$address")
+
+fun mockPerpetualId(provider: PerpetualProvider = PerpetualProvider.Hypercore, symbol: String = "BTC") = PerpetualId(
+    provider = provider,
+    symbol = symbol,
+)
 
 fun mockTransactionId(chain: Chain = Chain.Bitcoin, hash: String = "tx-id") = TransactionId(
     chain = chain,

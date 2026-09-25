@@ -35,7 +35,13 @@ public extension PortfolioMarginUsage {
 public extension PortfolioChartData {
     static func mock(
         chartType: PortfolioChartType = .value,
-        values: [ChartDateValue] = Primitives.ChartDateValue.mockHistory().map { $0.toGem() },
+        values: [ChartDateValue] = [
+            Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100),
+            Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105),
+            Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 34560), value: 102),
+            Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108),
+            Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110),
+        ].map { $0.toGem() },
     ) -> PortfolioChartData {
         PortfolioChartData(chartType: chartType, values: values)
     }
@@ -55,8 +61,20 @@ public extension PortfolioData {
 
     static func mockPerpetual(
         charts: [PortfolioChartData] = [
-            .mock(chartType: .pnl, values: Primitives.ChartDateValue.mockHistory(values: [0, 5, 2, 8, 10]).map { $0.toGem() }),
-            .mock(chartType: .value, values: Primitives.ChartDateValue.mockHistory(values: [100, 105, 102, 108, 110]).map { $0.toGem() }),
+            .mock(
+                chartType: .pnl,
+                values: [Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 0), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 5), Primitives.ChartDateValue.mock(
+                    date: Date(timeIntervalSince1970: 34560),
+                    value: 2,
+                ), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 8), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 10)].map { $0.toGem() },
+            ),
+            .mock(
+                chartType: .value,
+                values: [Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105), Primitives.ChartDateValue.mock(
+                    date: Date(timeIntervalSince1970: 34560),
+                    value: 102,
+                ), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110)].map { $0.toGem() },
+            ),
         ],
         statistics: [PortfolioStatistic] = [
             .unrealizedPnl(value: 500),

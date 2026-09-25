@@ -29,6 +29,15 @@ public extension TransactionId {
     }
 }
 
+public extension PerpetualId {
+    static func mock(
+        provider: PerpetualProvider = .hypercore,
+        symbol: String = "BTC",
+    ) -> PerpetualId {
+        PerpetualId(provider: provider, symbol: symbol)
+    }
+}
+
 public extension AssetAddress {
     static func mock(
         asset: Asset = .mock(),
@@ -133,6 +142,32 @@ public extension PriceData {
             priceAlerts: priceAlerts,
             market: market,
             links: links,
+        )
+    }
+}
+
+public extension AutocloseOpenData {
+    static func mock(
+        assetId: AssetId = .mock(),
+        symbol: String = "",
+        direction: PerpetualDirection = .short,
+        marketPrice: Double = 0,
+        leverage: UInt8 = 0,
+        size: Double = 0,
+        assetDecimals: Int32 = 0,
+        takeProfit: String? = nil,
+        stopLoss: String? = nil,
+    ) -> AutocloseOpenData {
+        AutocloseOpenData(
+            assetId: assetId,
+            symbol: symbol,
+            direction: direction,
+            marketPrice: marketPrice,
+            leverage: leverage,
+            size: size,
+            assetDecimals: assetDecimals,
+            takeProfit: takeProfit,
+            stopLoss: stopLoss,
         )
     }
 }

@@ -19,6 +19,8 @@ import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChartCandleStick
+import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.JsonValue
@@ -34,9 +36,20 @@ import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
+import com.wallet.core.primitives.Perpetual
+import com.wallet.core.primitives.PerpetualAccountSummary
 import com.wallet.core.primitives.PerpetualBasic
+import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualMetadata
+import com.wallet.core.primitives.PerpetualPortfolio
+import com.wallet.core.primitives.PerpetualPortfolioTimeframeData
+import com.wallet.core.primitives.PerpetualPosition
+import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
@@ -232,6 +245,30 @@ fun mockAssetScore(
     rank = rank,
 )
 
+fun mockChartCandleStick(
+    date: SerializedDate = 0L,
+    open: Double = 0.0,
+    high: Double = 0.0,
+    low: Double = 0.0,
+    close: Double = 0.0,
+    volume: Double = 0.0,
+) = ChartCandleStick(
+    date = date,
+    open = open,
+    high = high,
+    low = low,
+    close = close,
+    volume = volume,
+)
+
+fun mockChartDateValue(
+    date: SerializedDate = 0L,
+    value: Double = 0.0,
+) = ChartDateValue(
+    date = date,
+    value = value,
+)
+
 fun mockNftAsset(
     id: NFTAssetId = mockNftAssetId(),
     collectionId: NFTCollectionId = mockNftCollectionId(),
@@ -318,6 +355,130 @@ fun mockNameRecord(
     chain = chain,
     address = address,
     provider = provider,
+)
+
+fun mockPerpetual(
+    id: PerpetualId = mockPerpetualId(),
+    name: String = "",
+    provider: PerpetualProvider = PerpetualProvider.Hypercore,
+    assetId: AssetId = mockAssetId(),
+    identifier: String = "",
+    price: Double = 0.0,
+    pricePercentChange24h: Double = 0.0,
+    openInterest: Double = 0.0,
+    volume24h: Double = 0.0,
+    funding: Double = 0.0,
+    maxLeverage: UByte = 0u,
+    isIsolatedOnly: Boolean = false,
+) = Perpetual(
+    id = id,
+    name = name,
+    provider = provider,
+    assetId = assetId,
+    identifier = identifier,
+    price = price,
+    pricePercentChange24h = pricePercentChange24h,
+    openInterest = openInterest,
+    volume24h = volume24h,
+    funding = funding,
+    maxLeverage = maxLeverage,
+    isIsolatedOnly = isIsolatedOnly,
+)
+
+fun mockPerpetualAccountSummary(
+    accountValue: Double = 0.0,
+    accountLeverage: Double = 0.0,
+    marginUsage: Double = 0.0,
+    unrealizedPnl: Double = 0.0,
+) = PerpetualAccountSummary(
+    accountValue = accountValue,
+    accountLeverage = accountLeverage,
+    marginUsage = marginUsage,
+    unrealizedPnl = unrealizedPnl,
+)
+
+fun mockPerpetualData(
+    perpetual: Perpetual = mockPerpetual(),
+    asset: Asset = mockAsset(),
+    metadata: PerpetualMetadata = mockPerpetualMetadata(),
+) = PerpetualData(
+    perpetual = perpetual,
+    asset = asset,
+    metadata = metadata,
+)
+
+fun mockPerpetualMetadata(
+    isPinned: Boolean = false,
+) = PerpetualMetadata(
+    isPinned = isPinned,
+)
+
+fun mockPerpetualPortfolio(
+    day: PerpetualPortfolioTimeframeData? = null,
+    week: PerpetualPortfolioTimeframeData? = null,
+    month: PerpetualPortfolioTimeframeData? = null,
+    allTime: PerpetualPortfolioTimeframeData? = null,
+    accountSummary: PerpetualAccountSummary? = null,
+) = PerpetualPortfolio(
+    day = day,
+    week = week,
+    month = month,
+    allTime = allTime,
+    accountSummary = accountSummary,
+)
+
+fun mockPerpetualPortfolioTimeframeData(
+    accountValueHistory: List<ChartDateValue> = emptyList(),
+    pnlHistory: List<ChartDateValue> = emptyList(),
+    volume: Double = 0.0,
+) = PerpetualPortfolioTimeframeData(
+    accountValueHistory = accountValueHistory,
+    pnlHistory = pnlHistory,
+    volume = volume,
+)
+
+fun mockPerpetualPosition(
+    id: String = "",
+    perpetualId: PerpetualId = mockPerpetualId(),
+    assetId: AssetId = mockAssetId(),
+    size: Double = 0.0,
+    sizeValue: Double = 0.0,
+    leverage: UByte = 0u,
+    entryPrice: Double = 0.0,
+    liquidationPrice: Double? = null,
+    marginType: PerpetualMarginType = PerpetualMarginType.Cross,
+    direction: PerpetualDirection = PerpetualDirection.Short,
+    marginAmount: Double = 0.0,
+    takeProfit: PerpetualTriggerOrder? = null,
+    stopLoss: PerpetualTriggerOrder? = null,
+    pnl: Double = 0.0,
+    funding: Float? = null,
+) = PerpetualPosition(
+    id = id,
+    perpetualId = perpetualId,
+    assetId = assetId,
+    size = size,
+    sizeValue = sizeValue,
+    leverage = leverage,
+    entryPrice = entryPrice,
+    liquidationPrice = liquidationPrice,
+    marginType = marginType,
+    direction = direction,
+    marginAmount = marginAmount,
+    takeProfit = takeProfit,
+    stopLoss = stopLoss,
+    pnl = pnl,
+    funding = funding,
+)
+
+fun mockPerpetualPositionData(
+    perpetual: Perpetual = mockPerpetual(),
+    asset: Asset = mockAsset(),
+    position: PerpetualPosition = mockPerpetualPosition(),
+) = PerpetualPositionData(
+    perpetual = perpetual,
+    asset = asset,
+    position = position,
 )
 
 fun mockPrice(

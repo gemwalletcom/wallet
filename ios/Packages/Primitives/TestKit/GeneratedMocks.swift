@@ -222,6 +222,38 @@ public extension AssetScore {
     }
 }
 
+public extension ChartCandleStick {
+    static func mock(
+        date: Date = Date(timeIntervalSince1970: 0),
+        open: Double = 0,
+        high: Double = 0,
+        low: Double = 0,
+        close: Double = 0,
+        volume: Double = 0,
+    ) -> ChartCandleStick {
+        ChartCandleStick(
+            date: date,
+            open: open,
+            high: high,
+            low: low,
+            close: close,
+            volume: volume,
+        )
+    }
+}
+
+public extension ChartDateValue {
+    static func mock(
+        date: Date = Date(timeIntervalSince1970: 0),
+        value: Double = 0,
+    ) -> ChartDateValue {
+        ChartDateValue(
+            date: date,
+            value: value,
+        )
+    }
+}
+
 public extension NFTAsset {
     static func mock(
         id: NFTAssetId = .mock(),
@@ -334,6 +366,162 @@ public extension NameRecord {
             chain: chain,
             address: address,
             provider: provider,
+        )
+    }
+}
+
+public extension Perpetual {
+    static func mock(
+        id: PerpetualId = .mock(),
+        name: String = "",
+        provider: PerpetualProvider = .hypercore,
+        assetId: AssetId = .mock(),
+        identifier: String = "",
+        price: Double = 0,
+        pricePercentChange24h: Double = 0,
+        openInterest: Double = 0,
+        volume24h: Double = 0,
+        funding: Double = 0,
+        maxLeverage: UInt8 = 0,
+        isIsolatedOnly: Bool = false,
+    ) -> Perpetual {
+        Perpetual(
+            id: id,
+            name: name,
+            provider: provider,
+            assetId: assetId,
+            identifier: identifier,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+            openInterest: openInterest,
+            volume24h: volume24h,
+            funding: funding,
+            maxLeverage: maxLeverage,
+            isIsolatedOnly: isIsolatedOnly,
+        )
+    }
+}
+
+public extension PerpetualAccountSummary {
+    static func mock(
+        accountValue: Double = 0,
+        accountLeverage: Double = 0,
+        marginUsage: Double = 0,
+        unrealizedPnl: Double = 0,
+    ) -> PerpetualAccountSummary {
+        PerpetualAccountSummary(
+            accountValue: accountValue,
+            accountLeverage: accountLeverage,
+            marginUsage: marginUsage,
+            unrealizedPnl: unrealizedPnl,
+        )
+    }
+}
+
+public extension PerpetualData {
+    static func mock(
+        perpetual: Perpetual = .mock(),
+        asset: Asset = .mock(),
+        metadata: PerpetualMetadata = .mock(),
+    ) -> PerpetualData {
+        PerpetualData(
+            perpetual: perpetual,
+            asset: asset,
+            metadata: metadata,
+        )
+    }
+}
+
+public extension PerpetualMetadata {
+    static func mock(
+        isPinned: Bool = false,
+    ) -> PerpetualMetadata {
+        PerpetualMetadata(
+            isPinned: isPinned,
+        )
+    }
+}
+
+public extension PerpetualPortfolio {
+    static func mock(
+        day: PerpetualPortfolioTimeframeData? = nil,
+        week: PerpetualPortfolioTimeframeData? = nil,
+        month: PerpetualPortfolioTimeframeData? = nil,
+        allTime: PerpetualPortfolioTimeframeData? = nil,
+        accountSummary: PerpetualAccountSummary? = nil,
+    ) -> PerpetualPortfolio {
+        PerpetualPortfolio(
+            day: day,
+            week: week,
+            month: month,
+            allTime: allTime,
+            accountSummary: accountSummary,
+        )
+    }
+}
+
+public extension PerpetualPortfolioTimeframeData {
+    static func mock(
+        accountValueHistory: [ChartDateValue] = [],
+        pnlHistory: [ChartDateValue] = [],
+        volume: Double = 0,
+    ) -> PerpetualPortfolioTimeframeData {
+        PerpetualPortfolioTimeframeData(
+            accountValueHistory: accountValueHistory,
+            pnlHistory: pnlHistory,
+            volume: volume,
+        )
+    }
+}
+
+public extension PerpetualPosition {
+    static func mock(
+        id: String = "",
+        perpetualId: PerpetualId = .mock(),
+        assetId: AssetId = .mock(),
+        size: Double = 0,
+        sizeValue: Double = 0,
+        leverage: UInt8 = 0,
+        entryPrice: Double = 0,
+        liquidationPrice: Double? = nil,
+        marginType: PerpetualMarginType = .cross,
+        direction: PerpetualDirection = .short,
+        marginAmount: Double = 0,
+        takeProfit: PerpetualTriggerOrder? = nil,
+        stopLoss: PerpetualTriggerOrder? = nil,
+        pnl: Double = 0,
+        funding: Float? = nil,
+    ) -> PerpetualPosition {
+        PerpetualPosition(
+            id: id,
+            perpetualId: perpetualId,
+            assetId: assetId,
+            size: size,
+            sizeValue: sizeValue,
+            leverage: leverage,
+            entryPrice: entryPrice,
+            liquidationPrice: liquidationPrice,
+            marginType: marginType,
+            direction: direction,
+            marginAmount: marginAmount,
+            takeProfit: takeProfit,
+            stopLoss: stopLoss,
+            pnl: pnl,
+            funding: funding,
+        )
+    }
+}
+
+public extension PerpetualPositionData {
+    static func mock(
+        perpetual: Perpetual = .mock(),
+        asset: Asset = .mock(),
+        position: PerpetualPosition = .mock(),
+    ) -> PerpetualPositionData {
+        PerpetualPositionData(
+            perpetual: perpetual,
+            asset: asset,
+            position: position,
         )
     }
 }

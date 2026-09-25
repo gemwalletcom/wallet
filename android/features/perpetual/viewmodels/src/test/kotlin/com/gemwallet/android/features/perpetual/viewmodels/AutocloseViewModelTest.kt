@@ -9,11 +9,14 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
+import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockPerpetualPositionData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import io.mockk.every
@@ -58,7 +61,13 @@ class AutocloseViewModelTest {
 
     private val positions: PerpetualPositionsQuery = mockk()
 
-    private fun viewModel(position: PerpetualPositionData? = mockPerpetualPositionData(), market: PerpetualData? = mockPerpetualData()): AutocloseViewModel {
+    private fun viewModel(
+        position: PerpetualPositionData? = mockPerpetualPositionData(
+            perpetual = mockPerpetual(price = 100.0),
+            position = mockPerpetualPosition(size = 10.0, sizeValue = 1000.0, leverage = 5u, entryPrice = 100.0, liquidationPrice = 50.0, marginType = PerpetualMarginType.Cross, direction = PerpetualDirection.Long, marginAmount = 200.0),
+        ),
+        market: PerpetualData? = mockPerpetualData(),
+    ): AutocloseViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }
@@ -131,7 +140,21 @@ class AutocloseViewModelTest {
 
     @Test
     fun `a transfer Core refuses reports its error instead of doing nothing`() = runTest(dispatcher) {
-        val model = viewModel(mockPerpetualPositionData(perpetual = mockPerpetual(price = 100.0).copy(identifier = "BTC")))
+        val model = viewModel(
+            mockPerpetualPositionData(
+                perpetual = mockPerpetual(identifier = "BTC", price = 100.0),
+                position = mockPerpetualPosition(
+                    size = 10.0,
+                    sizeValue = 1000.0,
+                    leverage = 5u,
+                    entryPrice = 100.0,
+                    liquidationPrice = 50.0,
+                    marginType = PerpetualMarginType.Cross,
+                    direction = PerpetualDirection.Long,
+                    marginAmount = 200.0,
+                ),
+            ),
+        )
         model.position.first { it != null }
         val errors = mutableListOf<String>()
         backgroundScope.launch { model.errors.collect { errors.add(it) } }

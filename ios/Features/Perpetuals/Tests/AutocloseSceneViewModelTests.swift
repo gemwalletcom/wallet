@@ -70,7 +70,7 @@ struct AutocloseSceneViewModelTests {
 
     @Test
     func openKeepsTheEnteredTrigger() {
-        let model = AutocloseSceneViewModel(type: .mock(data: .mock(takeProfit: "110")))
+        let model = AutocloseSceneViewModel(type: .mock(data: .mock(symbol: "BTC", direction: .long, marketPrice: 100, leverage: 10, size: 1, assetDecimals: 8, takeProfit: "110")))
 
         #expect(model.input.takeProfit.text == "110")
         #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
@@ -80,7 +80,10 @@ struct AutocloseSceneViewModelTests {
     @Test
     func aTransferCoreRefusesShowsTheError() {
         var transfers = 0
-        let data = PerpetualPositionData.mock(perpetual: .mock(identifier: "BTC"))
+        let data = PerpetualPositionData.mock(
+            perpetual: .mock(identifier: "BTC", price: 1000),
+            position: .mock(size: 1, sizeValue: 1000, leverage: 10, entryPrice: 1000, marginType: .isolated, direction: .long, marginAmount: 100),
+        )
         let model = AutocloseSceneViewModel(type: .modify(data, onTransferAction: { _ in transfers += 1 }))
         model.input.takeProfit.text = "1500"
         model.onChangePrice()

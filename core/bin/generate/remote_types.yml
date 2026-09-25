@@ -230,6 +230,8 @@ mocks:
   - AssetPrice
   - AssetProperties
   - AssetScore
+  - ChartCandleStick
+  - ChartDateValue
   - NameRecord
   - NFTAsset
   - NFTAssetData
@@ -237,6 +239,14 @@ mocks:
   - NFTData
   - NFTImages
   - NFTResource
+  - Perpetual
+  - PerpetualAccountSummary
+  - PerpetualData
+  - PerpetualMetadata
+  - PerpetualPortfolio
+  - PerpetualPortfolioTimeframeData
+  - PerpetualPosition
+  - PerpetualPositionData
   - Price
   - PriceAlert
   - TotalFiatValue
