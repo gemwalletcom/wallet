@@ -2,12 +2,13 @@ package com.gemwallet.android.features.asset_select.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.values.AssetsQueryFilter
+import com.gemwallet.android.application.assets.values.chains
+import com.gemwallet.android.application.assets.values.toQueryFilter
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.chains
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -104,7 +105,7 @@ class BaseAssetSelectViewModelTest {
         val search = object : SelectSearch {
             override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.filterNotNull().map { current ->
                 val query = current.queryFilters()
-                val chains = query.chains()
+                val chains = query.map { it.toQueryFilter() }.chains()
                 items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.balance.available.signum() > 0) }.take(current.limit)
             }
         }

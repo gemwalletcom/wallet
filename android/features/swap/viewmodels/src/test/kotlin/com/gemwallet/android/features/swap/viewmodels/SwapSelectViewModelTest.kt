@@ -4,7 +4,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -36,14 +36,14 @@ class SwapSelectViewModelTest {
     private val getSession = mockk<GetSession>()
     private val recentActivityQuery = mockk<RecentActivityQuery>()
     private val service = mockk<GemAssetSelectionServiceInterface>()
-    private val searchService = mockk<AssetsSearchService>()
+    private val assetsQuery = mockk<AssetsQuery>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getSession() } returns MutableStateFlow(null)
         every { recentActivityQuery(any(), any(), any(), any()) } returns flowOf(emptyList())
-        every { searchService.search(any(), any(), any(), any()) } returns flowOf(emptyList())
+        every { assetsQuery(any(), any(), any(), any(), any()) } returns flowOf(emptyList())
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
         every { service.walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
@@ -70,7 +70,7 @@ class SwapSelectViewModelTest {
         getSession = getSession,
         recentActivityQuery = recentActivityQuery,
         service = service,
-        searchService = searchService,
+        assetsQuery = assetsQuery,
         ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
         savedStateHandle = SavedStateHandle(

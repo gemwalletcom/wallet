@@ -3,11 +3,14 @@ package com.gemwallet.android.data.services.store.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.gemwallet.android.application.assets.values.AssetsQueryFilter
+import com.gemwallet.android.application.assets.values.AssetsQueryScope
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAccount
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.store.database.entities.DbSearch
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.wallet.core.primitives.AssetId
@@ -38,7 +41,7 @@ class AssetsQueryTest {
             InstrumentationRegistry.getInstrumentation().targetContext,
             GemDatabase::class.java,
         ).build()
-        query = AssetsQuery(database.assetsDao())
+        query = AssetsQuery(database.assetsDao(), database.searchDao())
         listOf("wallet-1", "wallet-2").forEach { id ->
             database.walletsDao().insert(DbWallet(id = id, name = id, domainName = null, type = WalletType.Multicoin, position = 0, pinned = false, index = 0, source = WalletSource.Import))
         }
@@ -107,5 +110,36 @@ class AssetsQueryTest {
         assertEquals(listOf(AssetId(Chain.Ethereum)), assets.map { it.asset.id })
         assertEquals(BigInteger("7000000000000000000"), assets.single().balance.balance.available)
         assertEquals("0xdef", assets.single().owner?.address)
+    }
+
+    @Test
+    fun aWalletSearchMatchesTheTextWithinTheWalletChainsVisibleFirst() = runBlocking(Dispatchers.IO) {
+        val assets = query(WalletId("wallet-1"), searchBy = " eth ", scope = AssetsQueryScope.Wallet, filters = emptySet(), limit = 10).first()
+
+        assertEquals(listOf(AssetId(Chain.Ethereum), AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")), assets.map { it.asset.id })
+    }
+
+    @Test
+    fun aWalletSearchAppliesTheFiltersAndTheLimit() = runBlocking(Dispatchers.IO) {
+        val usdt = AssetsQueryFilter.ChainsOrAssets(emptyList(), listOf("ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+
+        assertEquals(listOf(AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")), query(WalletId("wallet-1"), "", AssetsQueryScope.Wallet, setOf(usdt), 10).first().map { it.asset.id })
+        assertEquals(emptyList<AssetId>(), query(WalletId("wallet-1"), "", AssetsQueryScope.Wallet, setOf(AssetsQueryFilter.Swappable), 10).first().map { it.asset.id })
+        assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), "", AssetsQueryScope.Wallet, emptySet(), 1).first().map { it.asset.id })
+    }
+
+    @Test
+    fun aSearchWithPrioritiesReturnsThePrioritisedAssetsOnly() = runBlocking(Dispatchers.IO) {
+        database.searchDao().insert(listOf(DbSearch(query = "stable", assetId = "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", priority = 0)))
+
+        val assets = query(WalletId("wallet-1"), "stable", AssetsQueryScope.Wallet, emptySet(), 10).first()
+
+        assertEquals(listOf(AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")), assets.map { it.asset.id })
+    }
+
+    @Test
+    fun anAllAssetsSearchReachesChainsTheWalletHasNoAccountFor() = runBlocking(Dispatchers.IO) {
+        assertEquals(emptyList<AssetId>(), query(WalletId("wallet-1"), "bitcoin", AssetsQueryScope.Wallet, emptySet(), 10).first().map { it.asset.id })
+        assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), "bitcoin", AssetsQueryScope.AllAssets, emptySet(), 10).first().map { it.asset.id })
     }
 }

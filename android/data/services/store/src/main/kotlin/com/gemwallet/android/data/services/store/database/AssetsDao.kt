@@ -333,6 +333,29 @@ interface AssetsDao {
         selectedChains: List<Chain> = emptyList(),
     ): Flow<List<DbAssetInfo>>
 
+    fun filteredSearch(walletId: String, query: String, limit: Int, filters: Set<AssetsQueryFilter>, withPriority: Boolean): Flow<List<DbAssetInfo>> {
+        val scope = filters.chainsOrAssets()
+        val selectedChains = filters.chains()
+        val search = if (withPriority) this::searchWithPriority else this::search
+        return search(
+            walletId,
+            query,
+            limit,
+            emptyList(),
+            AssetsQueryFilter.Enabled in filters,
+            AssetsQueryFilter.Buyable in filters,
+            AssetsQueryFilter.Sellable in filters,
+            AssetsQueryFilter.Swappable in filters,
+            AssetsQueryFilter.HasBalance in filters,
+            AssetsQueryFilter.HasAvailableBalance in filters,
+            scope != null,
+            scope?.chains.orEmpty(),
+            scope?.assetIds.orEmpty(),
+            selectedChains.isNotEmpty(),
+            selectedChains,
+        )
+    }
+
     @Query(
         """
         SELECT asset_info.*

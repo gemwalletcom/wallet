@@ -22,7 +22,7 @@ class GemstoneSwapStoreTest {
 
     @Test
     fun `asset candidates ask the database for one page with the filters Core names`() = runBlocking {
-        every { assetsDao.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns flowOf(emptyList())
+        every { assetsDao.filteredSearch(any(), any(), any(), any(), any()) } returns flowOf(emptyList())
 
         subject.getAssetIds(
             mockWalletId().id,
@@ -31,22 +31,12 @@ class GemstoneSwapStoreTest {
         )
 
         verify {
-            assetsDao.search(
+            assetsDao.filteredSearch(
                 walletId = mockWalletId().id,
                 query = "",
                 limit = 25,
-                exclude = emptyList(),
-                enabled = true,
-                buyable = false,
-                sellable = false,
-                swappable = true,
-                hasBalance = false,
-                hasAvailableBalance = false,
-                byChainsOrAssetIds = true,
-                chains = listOf(Chain.Ethereum),
-                assetIds = listOf("ethereum"),
-                byChains = false,
-                selectedChains = emptyList(),
+                filters = setOf(AssetsQueryFilter.Enabled, AssetsQueryFilter.Swappable, AssetsQueryFilter.ChainsOrAssets(listOf(Chain.Ethereum), listOf("ethereum"))),
+                withPriority = false,
             )
         }
     }

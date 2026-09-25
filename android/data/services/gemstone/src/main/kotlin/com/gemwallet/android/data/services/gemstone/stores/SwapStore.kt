@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.assets.values.toQueryFilter
-import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.data.services.store.database.entities.toDTO
@@ -34,6 +33,6 @@ class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactio
     }
 
     override suspend fun getAssetIds(walletId: String, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
-        assetsDao.filteredSearch(walletId = walletId, query = "", limit = limit.toInt(), filters = filters.toSet(), withPriority = false).firstOrNull().orEmpty().map { it.id }
+        assetsDao.filteredSearch(walletId = walletId, query = "", limit = limit.toInt(), filters = filters.map { it.toQueryFilter() }.toSet(), withPriority = false).firstOrNull().orEmpty().map { it.id }
     }
 }

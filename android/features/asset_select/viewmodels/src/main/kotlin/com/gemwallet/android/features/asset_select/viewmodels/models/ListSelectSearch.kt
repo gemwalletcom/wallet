@@ -1,16 +1,18 @@
 package com.gemwallet.android.features.asset_select.viewmodels.models
 
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.application.assets.values.toQueryFilter
+import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.NO_QUERY_LIMIT
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ListSelectSearch(private val searchService: AssetsSearchService, private val searchKey: String) : SelectSearch {
+class ListSelectSearch(private val walletSearchQuery: WalletSearchQuery, private val searchKey: String) : SelectSearch {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.flatMapLatest { filters ->
-        searchService.searchAssetsByKey(searchKey, filters?.limit ?: NO_QUERY_LIMIT, filters?.queryFilters().orEmpty())
+        val walletId = filters?.session?.wallet?.id ?: return@flatMapLatest emptyFlow()
+        walletSearchQuery.assets(walletId, searchKey, filters.queryFilters().map { it.toQueryFilter() }.toSet(), filters.limit)
     }
 }

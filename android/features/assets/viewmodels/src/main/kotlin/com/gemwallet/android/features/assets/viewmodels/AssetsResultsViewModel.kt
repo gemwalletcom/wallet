@@ -7,9 +7,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
+import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.marketAggregates
 import com.gemwallet.android.domains.search.WalletSearchTag
@@ -50,7 +51,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AssetsResultsViewModel @Inject constructor(
     private val getSession: GetSession,
-    searchService: AssetsSearchService,
+    assetsQuery: AssetsQuery,
+    walletSearchQuery: WalletSearchQuery,
     recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
     perpetualsQuery: PerpetualsQuery,
@@ -61,7 +63,7 @@ class AssetsResultsViewModel @Inject constructor(
     getSession,
     recentActivityQuery,
     service,
-    selectSearchOf(savedStateHandle, searchService, service),
+    selectSearchOf(savedStateHandle, assetsQuery, walletSearchQuery, service),
     GemSelectAssetType.WalletSearchResults,
     ioDispatcher,
     context,
@@ -148,8 +150,8 @@ private fun searchKeyOf(savedStateHandle: SavedStateHandle, service: GemAssetSel
     return service.searchKey(query, scope.toGem())
 }
 
-private fun selectSearchOf(savedStateHandle: SavedStateHandle, searchService: AssetsSearchService, service: GemAssetSelectionServiceInterface): SelectSearch =
+private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery, service: GemAssetSelectionServiceInterface): SelectSearch =
     when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-        is WalletSearchTag.List -> ListSelectSearch(searchService, searchKeyOf(savedStateHandle, service))
-        WalletSearchTag.All -> BaseSelectSearch(searchService)
+        is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle, service))
+        WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
     }

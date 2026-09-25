@@ -4,10 +4,11 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
+import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
@@ -51,7 +52,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletSearchViewModel @Inject constructor(
     getSession: GetSession,
-    searchService: AssetsSearchService,
+    assetsQuery: AssetsQuery,
+    walletSearchQuery: WalletSearchQuery,
     recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
     perpetualsQuery: PerpetualsQuery,
@@ -62,7 +64,7 @@ class WalletSearchViewModel @Inject constructor(
     getSession,
     recentActivityQuery,
     service,
-    BaseSelectSearch(searchService),
+    BaseSelectSearch(assetsQuery),
     GemSelectAssetType.WalletSearch,
     ioDispatcher,
     context,
@@ -95,7 +97,7 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val lists: StateFlow<List<AssetListRowUIModel>> = currentQuery
-        .flatMapLatest { query -> searchService.searchLists(query) }
+        .flatMapLatest { query -> walletSearchQuery.lists(query) }
         .map { lists -> lists.map { it.uiModel() } }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
