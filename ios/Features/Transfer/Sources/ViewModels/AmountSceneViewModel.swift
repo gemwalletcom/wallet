@@ -40,6 +40,7 @@ public final class AmountSceneViewModel {
     public var transferState: StateViewType<GemTransferData> = .noData
     var amountInputModel: InputValidationViewModel
     public var isPresentingSheet: AmountSheetType?
+    private(set) var input: GemAmountInput
     private(set) var entry: GemAmountEntry
     private(set) var amountInputType: GemAmountInputType = .asset
 
@@ -57,7 +58,9 @@ public final class AmountSceneViewModel {
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
         provider = .make(from: input, service: service, stakeService: stakeService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty, currency: currency)
+        let amountInput = provider.input(from: assetQuery.value)
+        self.input = amountInput
+        entry = provider.entry(from: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
         amountInputModel = InputValidationViewModel()
 
         if let amount = provider.prefilledAmount {
@@ -219,6 +222,7 @@ extension AmountSceneViewModel {
     public func onValidatorSelected(_ validator: DelegationValidator) {
         guard case let .stake(stake) = provider else { return }
         stake.select(validator)
+        refreshEntry()
         if !canChangeValue {
             setMax()
         }
@@ -245,12 +249,9 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
+        input = provider.input(from: assetData)
+        entry = provider.entry(from: assetData, input: input, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
         amountInputModel.update(error: entry.error)
-    }
-
-    var input: GemAmountInput {
-        provider.input(from: assetData)
     }
 
     func cleanInput() {

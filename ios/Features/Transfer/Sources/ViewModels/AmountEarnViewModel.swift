@@ -14,12 +14,14 @@ import Primitives
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: Gemstone.EarnType
+    let gemAmountType: GemAmountType
     private let service: any GemAmountServiceProtocol
 
     init(asset: Asset, action: Gemstone.EarnType, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
         self.service = service
+        gemAmountType = service.earnAmountType(earnType: action)
     }
 
     var providerRow: GemValidatorRow? {
@@ -33,10 +35,6 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     var title: String {
         gemAmountType.title().title
-    }
-
-    var gemAmountType: GemAmountType {
-        service.earnAmountType(earnType: action)
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {

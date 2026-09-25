@@ -19,13 +19,12 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Derive once:** VM179.
-2. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
-3. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
-4. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-5. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-6. **Balances and storage:** D76, D77, VM98 (an Android migration).
-7. **Server:** BD23, BD51, BD52.
+1. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+5. **Balances and storage:** D76, D77, VM98 (an Android migration).
+6. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -45,7 +44,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM128 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM124, VM125, VM179 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM124, VM125 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM102, VM129, VM144, VM145, VM168, VM170, BD63 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50, VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
@@ -167,17 +166,9 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** 17 `Gemstone+Localized.swift` files (one per feature, plus `PrimitivesComponents` and `WalletConnectorService`) and 6 `Gemstone+Style.swift` files. They merge into `PrimitivesComponents/Extensions/Gemstone+Localized.swift` and `Gemstone+Style.swift`, which every feature already imports.
   - **Android:** 25 `localization/GemstoneText.kt` files (`ui`, `app` and 23 feature modules) and 4 `style/GemstoneStyle.kt` files. They merge into `ui/localization/GemstoneText.kt` and `ui/style/GemstoneStyle.kt`, where the shared strings already live.
   - **Expected:** one file of each per app; a mapper written in two modules (the same Core enum mapped twice) becomes one; `scripts/check-mapper-parity.py` compares the two app files directly.
-
-## 6. Crossings: derive once per render
-
-[A screen derives its record once and passes it down](ARCHITECTURE.md#a-screen-derives-its-record-once-and-passes-it-down). Android gets this from collecting once per emission; on iOS a computed property that calls Core crosses again for every getter the body reads. These are the screens that still cross per getter.
-
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
-- **VM179** **S** **iOS transfer screens derive once per render.** Android holds these as flows; no Core change.
-  - `ConfirmTransferSceneViewModel` crosses Core and the keystore port per render (lands with VM168).
-  - `AmountSceneViewModel.input` rebuilds `GemAmountInput` (two FFI calls) on every getter, re-run by eight properties and the body on each keystroke (`:73-137,252-254`), and `AmountEarnViewModel.providerRow` and `AmountPerpetualViewModel`'s autoclose row cross the same way; store `input` beside `entry` in `refreshEntry()`.
 
-## 7. Orchestration, services and stores
+## 6. Orchestration, services and stores
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
@@ -196,20 +187,20 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
 - **D76** **S** **Whether one failed balance request discards its network's other answers.** `chain_balances` in [`balance/mod.rs`](../core/gemstone/src/services/balance/mod.rs) joins the coin, staking, token and earn results with `?`, so a failed staking or earn request throws away the coin and token balances that succeeded on that network, and no test covers the case; the product intent in [product/wallet.md](product/wallet.md) says a slow or failing request must not hold back the others. **Decided:** publish the components that answered and return the first component failure (extend `published_balances` to per-component results, add the test).
 - **D77** **S** **When the wallet list updates during a balance refresh.** `update` waits for every network (`join_all`) and every component (`join!`) before its single write, so the fastest network's coin balance shows only when the slowest has answered or failed; [ARCHITECTURE](ARCHITECTURE.md#publish-a-multi-source-refresh-as-one-batch) chose one batch on purpose (fewer observer notifications, no mixed-age totals), and the product owner wants balances "as soon as possible". **Decided:** write each network as it finishes, each write atomic and lane-ordered, per the product rule in [product/wallet.md](product/wallet.md); update the ARCHITECTURE section in the same change.
 
-## 8. Rows and taps
+## 7. Rows and taps
 
 Taps on rows that already exist, not new row types.
 
 - **AUD50** **S** **Open address details from the swap quote provider when the quote calls a contract.** Swap details shows only the provider name ([`SwapDetailsView`](../ios/Features/Swap/Sources/Views/SwapDetailsView.swift), [`SwapCurrentProviderRow`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/swap/SwapDetailsComponents.kt)). The selected quote already distinguishes the two cases: `SwapQuoteDataType::Contract` with `data.to` as the router, and `Transfer` as a deposit address. Tap the existing provider row only for a contract quote, on the quote's from-asset chain. A transfer quote, including NEAR Intents, stays plain. Reuse `GemListRow::Provider` rather than a second name row; the provider and rate stay the rich rows `GemSwapQuoteSummary::detail_rows` already leaves to the apps. The swapper `Quote` ([`models.rs`](../core/crates/swapper/src/models.rs)) carries no `SwapQuoteData`; the contract/transfer split and `data.to` exist only after `get_quote_data` runs on the Swap tap. **Decided:** show the address on the confirm screen, where the data is already loaded; swap details keep the provider name only, as iOS does today.
 
-## 9. Persistence and parity
+## 8. Persistence and parity
 
 - **VM98** **M** **Transaction assets are stored two ways.**
   - **iOS:** stores every asset a transaction touches through `transactionAssetIds` into its transaction-assets table.
   - **Android:** stores only swap pairs through `transactionSwapPair` into `DbTransactionSwapMetadata`.
   - **Expected:** iOS's schema. Android gains the transaction-assets table in a Room migration that carries the existing swap pairs over.
 
-## 10. Behavior differences
+## 9. Behavior differences
 
 Differences between the apps, or between an app and the server, each with its decision.
 

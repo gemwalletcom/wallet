@@ -27,7 +27,10 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     private let service: any GemAmountServiceProtocol
 
     private let decimalSeparator = NumberInput.format(.current).decimalSeparator
-    private var draft: GemAutocloseDraft
+    private(set) var autocloseListItem: ListItemModel?
+    private var draft: GemAutocloseDraft {
+        didSet { autocloseListItem = autocloseRow(draft) }
+    }
 
     init(asset: Asset, action: GemPerpetualPositionAction, service: any GemAmountServiceProtocol) {
         self.asset = asset
@@ -40,6 +43,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             decimalSeparator: decimalSeparator,
         )
         draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
+        autocloseListItem = autocloseRow(draft)
     }
 
     var takeProfit: String? {
@@ -54,7 +58,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         leverageSelection.map { ListItemModel(title: $0.title, subtitle: $0.selected.displayText, subtitleStyle: leverageTextStyle) }
     }
 
-    var autocloseListItem: ListItemModel? {
+    private func autocloseRow(_ draft: GemAutocloseDraft) -> ListItemModel? {
         service.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator).listItemModel()
     }
 
