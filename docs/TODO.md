@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Server:** BD30, BD51, BD52.
+1. **Server:** BD30, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -121,7 +121,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Freshness
 
 - **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
-- **BD51** **S** **The country from an IP check is cached 30 days for rewards but 1 day for fiat.** `core/crates/cacher/src/keys.rs:122` vs `:137`. Likely. **Decided:** one day for both.
 - **BD52** **S** **The fiat quote cache lasts exactly the app's refresh interval and is keyed by IP, so Buy late or after a network change gives "Forbidden".** `core/crates/cacher/src/keys.rs:136` (5 min), key `fiat_cacher_client.rs:52`, miss → 403 (`:40`); app refresh `core/gemstone/src/services/fiat/mod.rs:24` (5 min, active screen only). **Decided:** key the quote cache by device instead of IP, and keep it for 15 minutes.
 
 ## Blocked upstream

@@ -119,7 +119,7 @@ impl CacheKey<'_> {
 
     pub fn ttl(&self) -> u64 {
         match self {
-            Self::ReferralIpCheck(_) => 30 * SECONDS_PER_DAY,
+            Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
             Self::DeviceStreamEvents(_, ttl) => *ttl,
             Self::FetchCoinAddresses(_, _) => 7 * SECONDS_PER_DAY,
@@ -175,5 +175,11 @@ mod tests {
         let key = CacheKey::ScanSafe("website", "example.com", 3600);
         assert_eq!(key.key(), "scan:safe:website:example.com");
         assert_eq!(key.ttl(), 3600);
+    }
+
+    #[test]
+    fn test_ip_checks_last_one_day() {
+        assert_eq!(CacheKey::ReferralIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
+        assert_eq!(CacheKey::FiatIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
     }
 }
