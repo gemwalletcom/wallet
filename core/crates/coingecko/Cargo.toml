@@ -15,5 +15,5 @@ gem_client = { path = "../gem_client", features = ["reqwest"] }
 reqwest = { workspace = true }
 
 [dev-dependencies]
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
