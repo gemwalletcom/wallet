@@ -35,12 +35,13 @@ class TransferDataCodecTest {
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
         val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
-        val original = mockGemTransferData(
-            asset = asset,
-            recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
-            value = BigInteger("19000000"),
-            useMaxAmount = true,
-        )
+        val original =
+            mockGemTransferData(
+                inputType = TransactionInputType.Transfer(asset.toGem()),
+                recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
+                value = BigInteger("19000000"),
+                useMaxAmount = true,
+            )
 
         val transfer = roundTrip(original)
 
@@ -70,6 +71,7 @@ class TransferDataCodecTest {
                 ),
             ),
             recipient = GemRecipient(address = "merchant", memo = "payment-memo"),
+            value = BigInteger.ONE,
         )
 
         val transfer = roundTrip(original)
@@ -106,6 +108,7 @@ class TransferDataCodecTest {
                 ),
             ),
             recipient = GemRecipient("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
+            value = BigInteger.ONE,
         )
 
         val generic = roundTrip(original).inputType as TransactionInputType.Generic
@@ -119,7 +122,7 @@ class TransferDataCodecTest {
     @Test
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
         val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
-        val original = mockGemTransferData(asset = asset)
+        val original = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
 
         val transfer = roundTrip(original)
 

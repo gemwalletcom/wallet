@@ -6,13 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockGemConfirmFee
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSession
@@ -47,10 +51,14 @@ import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.TransactionInputType
+import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,10 +85,12 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAndRefreshUseTheCurrentFeeSelection() = runTest(testDispatcher) {
-        val transfer = mockGemTransferData(
-            inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long))),
-            value = BigInteger.TEN,
-        )
+        val transfer =
+            mockGemTransferData(
+                inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long))),
+                recipient = GemRecipient(address = "recipient"),
+                value = BigInteger.TEN,
+            )
         val viewModel = viewModel(transfer).also { model = it }
         advanceUntilIdle()
 
@@ -109,14 +119,33 @@ class ConfirmViewModelRetryTest {
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+            )
         var calls = 0
         coEvery { confirmation.load(any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                mockGemConfirmLoad(asset = asset, fee = mockGemConfirmFee())
+                mockGemConfirmLoad(
+                    transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                    sender = mockAccount(chain = asset.id.chain).toGem(),
+                    feeAsset = asset.toGem(),
+                    metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                    simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+                    fee = mockGemConfirmFee(
+                        value = BigInteger.ONE,
+                        formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
+                        selectedPriority = FeePriority.Normal.toGem(),
+                        amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
+                    ),
+                )
             }
         }
         return ConfirmViewModel(

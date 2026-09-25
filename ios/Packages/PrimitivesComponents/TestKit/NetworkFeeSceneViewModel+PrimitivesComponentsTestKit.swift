@@ -1,14 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import func Gemstone.assetListRow
 import func Gemstone.feeAmount
 import enum Gemstone.FeeOption
 import struct Gemstone.GemAssetItemRow
+import struct Gemstone.GemAssetListRowInput
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
+import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
@@ -60,6 +63,21 @@ public extension NetworkFeeSceneViewModel {
 
 public extension FeeAssetItem {
     static func mock(asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)) -> FeeAssetItem {
-        FeeAssetItem(asset: asset, row: .mock(asset: asset), isSelected: false)
+        FeeAssetItem(
+            asset: asset,
+            row: assetListRow(
+                input: GemAssetListRowInput(
+                    asset: asset.toGem(),
+                    balance: .mock(assetId: asset.id.identifier),
+                    scope: .available,
+                    price: nil,
+                    change: nil,
+                    currency: Primitives.Currency.usd.toGem(),
+                    isEnabled: true,
+                ),
+                style: GemSelectAssetType.send.flow().rowStyle,
+            ),
+            isSelected: false,
+        )
     }
 }

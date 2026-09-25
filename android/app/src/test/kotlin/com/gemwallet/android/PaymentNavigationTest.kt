@@ -29,6 +29,8 @@ import uniffi.gemstone.GemPaymentTarget
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
+import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 class PaymentNavigationTest {
 
@@ -46,7 +48,7 @@ class PaymentNavigationTest {
 
     @Test
     fun `a prepared transfer confirms`() = runTest {
-        val transfer = mockGemTransferData()
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(mockAsset().toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
 
         val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmRoute
 

@@ -11,10 +11,13 @@ import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequ
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockGemConfirmFee
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -23,6 +26,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FeePriority
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,10 +55,13 @@ import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemInfoAction
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferAmountResult
+import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.confirmErrorInfo
+import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -102,7 +109,24 @@ class ConfirmViewModelNetworkFeeSheetTest {
     @Test
     fun refreshThatFindsTheSameProblemKeepsTheSheetAsTheUserLeftIt() = runTest(testDispatcher) {
         val problem = GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)
-        val viewModel = viewModel { mockGemConfirmLoad(asset, fee = mockGemConfirmFee(GemTransferAmountResult.Error(problem))) }.also { model = it }
+        val viewModel = viewModel {
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+                fee = mockGemConfirmFee(
+                    value = BigInteger.ONE,
+                    formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
+                    selectedPriority = FeePriority.Normal.toGem(),
+                    amount = GemTransferAmountResult.Error(problem),
+                ),
+            )
+        }.also {
+            model =
+                it
+        }
         advanceUntilIdle()
 
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
@@ -139,14 +163,21 @@ class ConfirmViewModelNetworkFeeSheetTest {
     }
 
     private fun viewModel(load: () -> GemConfirmLoad = { throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null) }): ConfirmViewModel {
-        val transfer = mockGemTransferData(asset = asset, value = BigInteger.TEN)
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem(), asset.id.toIdentifier(), asset.id.toIdentifier()) }
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+            )
         coEvery { confirmation.load(any()) } answers { load() }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

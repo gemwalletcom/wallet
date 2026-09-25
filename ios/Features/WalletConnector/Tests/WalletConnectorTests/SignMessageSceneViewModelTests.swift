@@ -90,7 +90,7 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func buttonEnabledWithNonCriticalWarnings() {
         let payload = GemWalletConnectMessageRequest.mock(
-            simulation: .mock(warnings: [.mock()]),
+            simulation: .mock(warnings: [.mock(severity: .warning)]),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -103,8 +103,8 @@ struct SignMessageSceneViewModelTests {
     func simulationWarningsHideBoundedApprovals() {
         let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
-                .mock(warning: .tokenApproval(.mock(value: 1000))),
-                .mock(),
+                .mock(severity: .warning, warning: .tokenApproval(.mock(value: 1000))),
+                .mock(severity: .warning),
             ]),
         )
 
@@ -130,8 +130,8 @@ struct SignMessageSceneViewModelTests {
     func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
         let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
-                .mock(warning: .externallyOwnedSpender),
+                .mock(severity: .warning, warning: .permitApproval(.mock(value: 1000))),
+                .mock(severity: .warning, warning: .externallyOwnedSpender),
             ]),
         )
 
@@ -146,7 +146,12 @@ struct SignMessageSceneViewModelTests {
     func permitBatchExternallyOwnedSpenderKeepsWarningAndPayload() {
         let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
-            simulation: .mockPermitBatch(warnings: [.mock(warning: .externallyOwnedSpender)]),
+            simulation: .mock(warnings: [.mock(severity: .warning, warning: .externallyOwnedSpender)], payload: [
+                .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
+                .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
+                .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
+                .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -165,7 +170,7 @@ struct SignMessageSceneViewModelTests {
     func simulationWarningsPassThroughValidationWarnings() {
         let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
+                .mock(severity: .warning, warning: .permitApproval(.mock(value: 1000))),
                 .mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract"),
             ]),
         )
@@ -213,7 +218,12 @@ struct SignMessageSceneViewModelTests {
         let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
-            simulation: .mockPermitBatch(header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),
+            simulation: .mock(payload: [
+                .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
+                .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
+                .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
+                .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
+            ], header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),
             assets: [asset],
         )
 
@@ -228,7 +238,12 @@ struct SignMessageSceneViewModelTests {
     func permitWithoutHeaderKeepsValueField() {
         let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
-            simulation: .mockPermitBatch(),
+            simulation: .mock(payload: [
+                .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
+                .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
+                .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
+                .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)

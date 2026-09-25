@@ -25,8 +25,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 class WalletConnectSignerTest {
     private val wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
@@ -53,6 +55,8 @@ class WalletConnectSignerTest {
                 metadata = mockApplicationMetadata().toGem(),
                 extra = mockTransferDataExtra(data = "tx".toByteArray(), transactionType = TransactionType.SmartContractCall),
             ),
+            recipient = GemRecipient(address = "recipient"),
+            value = BigInteger.ONE,
         )
         val request = mockGemWalletConnectTransactionRequest(transfer, GemWalletConnectTransactionAction.SEND, wallet = wallet, session = session)
         val result = async { pendingRequests.signTransaction(request) }

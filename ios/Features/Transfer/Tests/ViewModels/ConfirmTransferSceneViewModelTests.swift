@@ -6,12 +6,15 @@ import Foundation
 import func Gemstone.addressCopy
 import struct Gemstone.AssetPrice
 import func Gemstone.confirmErrorInfo
+import func Gemstone.feeAmount
 import enum Gemstone.FeePriority
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmFailure
+import struct Gemstone.GemConfirmFee
 import enum Gemstone.GemConfirmRowContent
+import struct Gemstone.GemFeeRateRow
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
@@ -44,17 +47,20 @@ struct ConfirmTransferSceneViewModelTests {
             .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
             .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)),
         ])
-        let bnb = GemTransferData.mockPayment(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), invoice: invoice)
+        let bnb = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let confirmation = GemConfirmationMock(
             state: .mock(fee: nil),
-            load: .success(.mock(transfer: bnb)),
+            load: .success(.mock(transfer: bnb, fee: .mock())),
             rows: { _ in [.paymentAsset(
                 symbol: "ETH",
                 selectable: true,
                 assetIds: [Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id.identifier, Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).id.identifier],
             )] },
         )
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), invoice: invoice), confirmation: confirmation)
+        let model = ConfirmTransferSceneViewModel.mock(
+            data: .mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8)))),
+            confirmation: confirmation,
+        )
         model.state.screen = .mock(phase: .ready)
         model.onSelectPaymentAsset()
         guard case let .paymentAsset(selection)? = model.isPresentingSheet else {
@@ -78,9 +84,12 @@ struct ConfirmTransferSceneViewModelTests {
             quotes: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)), .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))],
             verification: PaymentVerification(url: "https://walletconnect.com/collect"),
         )
-        let gated = GemTransferData.mockPayment(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), invoice: invoice)
+        let gated = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let confirmation = GemConfirmationMock(state: .mock(fee: nil), load: .success(.mock(transfer: gated, fee: nil)))
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), invoice: .mock()), confirmation: confirmation)
+        let model = ConfirmTransferSceneViewModel.mock(
+            data: .mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), invoice: .mock(), extra: .mock(data: Data("transaction".utf8)))),
+            confirmation: confirmation,
+        )
 
         model.selectPaymentAsset(.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         await model.load()
@@ -104,8 +113,8 @@ struct ConfirmTransferSceneViewModelTests {
             .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)),
             .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
         ])
-        let shown = GemTransferData.mockPayment(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), invoice: invoice)
-        let picked = GemTransferData.mockPayment(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), invoice: invoice)
+        let shown = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
+        let picked = GemTransferData.mock(inputType: .payment(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), invoice: invoice, extra: .mock(data: Data("transaction".utf8))))
         let confirmation = GemConfirmationMock(state: .mock(transfer: shown, fee: nil), load: .failure(GemConfirmError.Load(msg: "gateway")), selection: picked)
         let model = ConfirmTransferSceneViewModel.mock(data: shown, confirmation: confirmation)
 
@@ -129,7 +138,11 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func selectingTheSamePaymentAssetOnlyClosesTheSheet() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))])
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), invoice: invoice))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .payment(
+            asset: Primitives.Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).toGem(),
+            invoice: invoice,
+            extra: .mock(data: Data("transaction".utf8)),
+        )))
         await model.load()
         model.onSelectPaymentAsset()
 
@@ -154,7 +167,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func headerItemModel() {
         let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .transfer(.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))),
+            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem())),
         )
         let headerItem = model.itemModel(for: .header)
 
@@ -180,10 +193,10 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func title() {
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mock()))).title == Localized.Transfer.Send.title)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .swap(.mock(), .mock(), .mock()))).title == Localized.Wallet.swap)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .tokenApprove(.mock(), .mock()))).title == Localized.Transfer.Approve.title)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock()))).title == Localized.Transfer.reviewRequest)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: Primitives.Asset.mock().toGem()))).title == Localized.Transfer.Send.title)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .swap(fromAsset: Primitives.Asset.mock().toGem(), toAsset: Primitives.Asset.mock().toGem(), swapData: .mock()))).title == Localized.Wallet.swap)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .tokenApprove(asset: Primitives.Asset.mock().toGem(), approvalData: .mock()))).title == Localized.Transfer.Approve.title)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock()))).title == Localized.Transfer.reviewRequest)
     }
 
     @Test
@@ -204,7 +217,7 @@ struct ConfirmTransferSceneViewModelTests {
     func recipientItemModel() {
         let address = "0x1234567890123456789012345678901234567890"
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(
-            type: .transfer(.mock()),
+            inputType: .transfer(asset: Primitives.Asset.mock().toGem()),
             recipient: .mock(address: address),
         ))
         let recipientItem = model.itemModel(for: .row(1))
@@ -222,10 +235,10 @@ struct ConfirmTransferSceneViewModelTests {
         let address = "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw"
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
-                type: .transfer(.mock()),
+                inputType: .transfer(asset: Primitives.Asset.mock().toGem()),
                 recipient: .mock(address: address),
             ),
-            load: .success(.mock(addressName: .mock(chain: .bitcoin, address: address, name: "Bitcoin"))),
+            load: .success(.mock(addressName: Primitives.AddressName.mock(chain: .bitcoin, address: address, name: "Bitcoin").toGem())),
         )
         await model.load()
         let recipientItem = model.itemModel(for: .row(1))
@@ -243,10 +256,10 @@ struct ConfirmTransferSceneViewModelTests {
         let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
-                type: .transfer(.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
+                inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem()),
                 recipient: .mock(address: checksummedAddress),
             ),
-            load: .success(.mock(addressName: .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"))),
+            load: .success(.mock(addressName: Primitives.AddressName.mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap").toGem())),
         )
         await model.load()
         let recipientItem = model.itemModel(for: .row(1))
@@ -273,7 +286,22 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func networkFeeItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil)])))
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock(
+            rows: [GemFeeRateRow(
+                priority: .normal,
+                fee: nil,
+                amount: nil,
+                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                isSelected: true,
+            )],
+            showsOptions: false,
+            unitType: .gwei,
+            unitDecimals: 9,
+            supportsCustomFee: false,
+            selectedTotal: 20,
+            normalTotal: 20,
+            customRate: nil,
+        )))
 
         model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "test"))))
         let errorFeeItem = model.itemModel(for: .networkFee)
@@ -286,7 +314,12 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network fee item model for error state")
         }
 
-        model.state = .mock(load: .mock(fee: .mock()), screen: .mock(phase: .ready))
+        let fee = GemConfirmFee.mock(
+            value: 1,
+            formatted: feeAmount(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), value: 1, price: nil, currency: Primitives.Currency.usd.toGem()),
+            amount: .amount(amount: .mock(value: 1, networkFee: 1)),
+        )
+        model.state = .mock(load: .mock(fee: fee), screen: .mock(phase: .ready, hasFee: true))
         let loadedFeeItem = model.itemModel(for: .networkFee)
 
         if case let .networkFee(listItem, selectable) = loadedFeeItem {
@@ -299,7 +332,28 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func networkFeeStaysSelectableWhileReloading() {
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)])))
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock(
+            rows: [GemFeeRateRow(
+                priority: .normal,
+                fee: nil,
+                amount: nil,
+                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                isSelected: true,
+            ), GemFeeRateRow(
+                priority: .fast,
+                fee: nil,
+                amount: nil,
+                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                isSelected: false,
+            )],
+            showsOptions: true,
+            unitType: .gwei,
+            unitDecimals: 9,
+            supportsCustomFee: false,
+            selectedTotal: 20,
+            normalTotal: 20,
+            customRate: nil,
+        )))
 
         model.state = .mock(load: .mock())
         let reloadingFeeItem = model.itemModel(for: .networkFee)
@@ -315,7 +369,28 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func aFeeChangeAndARefreshEachLeaveOneConsistentViewState() async {
-        let confirmation = GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]))
+        let confirmation = GemConfirmationMock(feeRates: .mock(
+            rows: [GemFeeRateRow(
+                priority: .normal,
+                fee: nil,
+                amount: nil,
+                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                isSelected: true,
+            ), GemFeeRateRow(
+                priority: .fast,
+                fee: nil,
+                amount: nil,
+                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                isSelected: false,
+            )],
+            showsOptions: true,
+            unitType: .gwei,
+            unitDecimals: 9,
+            supportsCustomFee: false,
+            selectedTotal: 20,
+            normalTotal: 20,
+            customRate: nil,
+        ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
         let expected = { confirmation.viewState(screen: model.state.screen) }
 
@@ -330,7 +405,22 @@ struct ConfirmTransferSceneViewModelTests {
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let priorities: [Gemstone.FeePriority] = [.normal, .fast]
         let warning: GemListRow = .notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]), warnings: [warning]))
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(
+            feeRates: .mock(rows: [
+                GemFeeRateRow(priority: .normal, fee: nil, amount: nil, value: .feeRate(
+                    rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
+                    unit: .gwei,
+                ), isSelected: true),
+                GemFeeRateRow(
+                    priority: .fast,
+                    fee: nil,
+                    amount: nil,
+                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                    isSelected: false,
+                ),
+            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: 20, normalTotal: 20, customRate: nil),
+            warnings: [warning],
+        ))
 
         #expect(model.simulationWarnings == [warning], "the request's warnings show before the load")
 
@@ -348,8 +438,29 @@ struct ConfirmTransferSceneViewModelTests {
     func reloadKeepsTheLoadedFeeRowUntilTheConfirmationAnswers() async {
         let confirmationMock = GemConfirmationMock(
             state: .mock(fee: nil),
-            load: .success(.mock()),
-            feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]),
+            load: .success(.mock(fee: .mock())),
+            feeRates: .mock(
+                rows: [GemFeeRateRow(
+                    priority: .normal,
+                    fee: nil,
+                    amount: nil,
+                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                    isSelected: true,
+                ), GemFeeRateRow(
+                    priority: .fast,
+                    fee: nil,
+                    amount: nil,
+                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+                    isSelected: false,
+                )],
+                showsOptions: true,
+                unitType: .gwei,
+                unitDecimals: 9,
+                supportsCustomFee: false,
+                selectedTotal: 20,
+                normalTotal: 20,
+                customRate: nil,
+            ),
         )
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmationMock)
         await model.load()
@@ -373,8 +484,8 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func firstLoadShowsTheScreenBeforeThePreloadArrives() async {
         let confirmationMock = GemConfirmationMock(
-            state: .mock(addressName: .mock(name: "vitalik.eth"), fee: nil),
-            load: .success(.mock(addressName: .mock(name: "vitalik.eth"))),
+            state: .mock(addressName: Primitives.AddressName.mock(name: "vitalik.eth").toGem(), fee: nil),
+            load: .success(.mock(addressName: Primitives.AddressName.mock(name: "vitalik.eth").toGem(), fee: .mock())),
         )
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmationMock)
 
@@ -407,7 +518,7 @@ struct ConfirmTransferSceneViewModelTests {
     func memoItemModel() {
         let modelWithMemo = ConfirmTransferSceneViewModel.mock(
             data: .mock(
-                type: .transfer(.mock(id: .mock(chain: .solana))),
+                inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .solana)).toGem()),
                 recipient: .mock(memo: "Test memo"),
             ),
         )
@@ -421,7 +532,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
 
         let modelNoMemo = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .transfer(.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))),
+            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem())),
         )
         #expect(modelNoMemo.sections[1].values == [.row(0), .row(1), .row(2), .details])
     }
@@ -429,10 +540,10 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func swapDetailsItemModel() {
         let swapModel = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .swap(
-                .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
-                .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20),
-                .mock(),
+            data: .mock(inputType: .swap(
+                fromAsset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(),
+                toAsset: Primitives.Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
+                swapData: .mock(),
             )),
         )
         let swapItem = swapModel.itemModel(for: .details)
@@ -444,7 +555,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
 
         let transferModel = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .transfer(.mock())),
+            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock().toGem())),
         )
         let transferSwapItem = transferModel.itemModel(for: .details)
 
@@ -509,8 +620,8 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func walletConnectSectionsStructure() async {
         let payload = [
-            SimulationPayloadField.standard(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
-            SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
+            SimulationPayloadField.mock(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
+            SimulationPayloadField.mock(kind: .method, value: "Approve", fieldType: .text, display: .primary),
         ]
         let rows = [
             GemSimulationPayloadRow(
@@ -520,14 +631,20 @@ struct ConfirmTransferSceneViewModelTests {
             GemSimulationPayloadRow(title: .method, value: .text(text: "Approve")),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(type: .generic(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), metadata: .mock(), extra: .mock(to: "0x1111111111111111111111111111111111111111"))),
+            data: .mock(inputType: .generic(
+                asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(),
+                metadata: Primitives.ApplicationMetadata.mock().toGem(),
+                extra: .mock(to: "0x1111111111111111111111111111111111111111"),
+            )),
             simulation: .mock(
-                warnings: [.mock(warning: .tokenApproval(.mock(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111"))))],
+                warnings: [.mock(severity: .warning, warning: .tokenApproval(.mock(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111").identifier)))],
                 payload: payload,
             ),
             load: .success(.mock(
-                simulation: .mock(primaryFields: rows),
-                warnings: [.notice(title: .unlimitedApproval, message: .unlimitedApprovalWarning, kind: .warning)],
+                simulation: .mock(
+                    warnings: [.notice(title: .unlimitedApproval, message: .unlimitedApprovalWarning, kind: .warning)],
+                    simulation: .mock(primaryFields: rows),
+                ),
             )),
             rows: { _ in
                 [
@@ -562,7 +679,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(
             simulation: .mock(warnings: [.mock(severity: .critical, warning: .suspiciousSpender)]),
             load: .success(.mock(
-                simulation: .mock(hasCriticalWarning: true),
+                simulation: .mock(simulation: .mock(hasCriticalWarning: true)),
             )),
         )
         await model.load()
@@ -577,12 +694,12 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func titleFollowsTheTransferType() {
-        let send = TransactionInputType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))
-        let sign = TransactionInputType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))
+        let send = TransactionInputType.generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock(outputAction: .send))
+        let sign = TransactionInputType.generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock(outputAction: .sign))
 
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .deposit(.mock()))).title == "Deposit")
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: send)).title == Localized.Transfer.reviewRequest)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: sign)).title == Localized.Transfer.reviewRequest)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .deposit(asset: Primitives.Asset.mock().toGem()))).title == "Deposit")
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: send)).title == Localized.Transfer.reviewRequest)
+        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: sign)).title == Localized.Transfer.reviewRequest)
     }
 
     @Test
@@ -667,7 +784,13 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20))))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(
+            id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+            name: "Tether USD",
+            symbol: "USDT",
+            decimals: 6,
+            type: .trc20,
+        ).toGem())))
         model.onSelectListError(error: .InsufficientBalance(
             asset: Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6).toGem(),
             requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300),
@@ -697,7 +820,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronTokenInsufficientBalancePreservesAsset() {
         let asset = Asset.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20)
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: asset.toGem())))
         model.onSelectListError(error: .InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1)))
 
         guard case let .info(sheet) = model.isPresentingSheet, let action = sheet.action else {
@@ -718,7 +841,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func insufficientBalanceBuyActionUsesErrorAsset() {
         let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: asset.toGem())))
         model.onSelectListError(error: .InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1)))
 
         guard case let .info(sheet) = model.isPresentingSheet, let action = sheet.action else {
@@ -763,7 +886,13 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func tronInsufficientNetworkFeeUsesFeeAsset() {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20))))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(
+            id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+            name: "Tether USD",
+            symbol: "USDT",
+            decimals: 6,
+            type: .trc20,
+        ).toGem())))
         model.onSelectListError(error: .InsufficientNetworkFee(asset: Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6).toGem(), requirement: nil))
 
         guard case let .info(sheet) = model.isPresentingSheet, let action = sheet.action, case let .acquire(sheetAsset, _) = action else {

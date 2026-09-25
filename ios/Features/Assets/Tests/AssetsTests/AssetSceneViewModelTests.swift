@@ -46,16 +46,20 @@ struct AssetSceneViewModelTests {
         let asset = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
         let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .mock()))
 
-        #expect(model.assetHeader(model.details).title == GemFormattedNumber.mock(value: 0, unit: .symbol(symbol: asset.symbol)).text())
+        #expect(model.assetHeader(model.details).title == GemFormattedNumber.mock(value: 0, unit: .symbol(symbol: asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)
+            .text())
     }
 
     @Test
     func balanceRowsShowCoreValues() {
         let model = AssetSceneViewModel.mock(.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)))
-        let apr = GemFormattedNumber.mock(value: 3.24, unit: .percent, notation: .plain)
+        let apr = GemFormattedNumber.mock(value: 3.24, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest)
 
         #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .staked(value: 0), value: .apr(apr: apr))).subtitle == Localized.Stake.apr("3.24%"))
         #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .staked(value: 0), value: .apr(apr: nil))).subtitle == Localized.Stake.apr(""))
-        #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .pendingUnconfirmed(value: 1), value: .amount(amount: .mock()))).infoAction != nil)
+        #expect(model.balanceListItem(for: GemAssetBalanceRow(
+            row: .pendingUnconfirmed(value: 1),
+            value: .amount(amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)),
+        )).infoAction != nil)
     }
 }

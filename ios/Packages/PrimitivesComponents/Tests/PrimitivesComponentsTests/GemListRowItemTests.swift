@@ -70,8 +70,8 @@ struct GemListRowItemTests {
 
     @Test
     func aQuoteRowKeepsTheChangeBesideThePrice() {
-        let price = GemFormattedNumber.mock(value: 2.55)
-        let change = GemFormattedNumber.mock(value: -0.69, unit: .percent, tone: .negative)
+        let price = GemFormattedNumber.mock(value: 2.55, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)
+        let change = GemFormattedNumber.mock(value: -0.69, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .negative, rounding: .toNearest)
         guard case let .listItem(model) = GemListRow.quote(title: .price, value: price, change: change).item(onInfo: nil) else {
             Issue.record("Expected a quote row")
             return
@@ -143,12 +143,21 @@ struct GemListRowItemTests {
     func aPositionRowJoinsItsPnlAndMargin() {
         let pnl = GemListRow.label(
             title: .pnl,
-            text: .pnl(amount: .mock(value: 500), percent: .mock(value: 50, unit: .percent)),
+            text: .pnl(
+                amount: .mock(value: 500, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+                percent: .mock(value: 50, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            ),
             tone: .positive,
             info: nil,
             progress: false,
         )
-        let margin = GemListRow.label(title: .margin, text: .margin(amount: .mock(value: 1000, notation: .plain), marginType: .isolated), tone: .plain, info: nil, progress: false)
+        let margin = GemListRow.label(
+            title: .margin,
+            text: .margin(amount: .mock(value: 1000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), marginType: .isolated),
+            tone: .plain,
+            info: nil,
+            progress: false,
+        )
         guard case let .listItem(pnlModel) = pnl.item(onInfo: nil), case let .listItem(marginModel) = margin.item(onInfo: nil) else {
             Issue.record("Expected list items")
             return
@@ -159,7 +168,11 @@ struct GemListRowItemTests {
 
     @Test
     func marketCapCarriesItsRankTag() {
-        guard case let .listItem(model) = GemListRow.ranked(title: .marketCap, amount: .mock(value: 1_000_000), rank: 7).item(onInfo: nil) else {
+        guard case let .listItem(model) = GemListRow.ranked(
+            title: .marketCap,
+            amount: .mock(value: 1_000_000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            rank: 7,
+        ).item(onInfo: nil) else {
             Issue.record("Expected a list item")
             return
         }
@@ -169,7 +182,12 @@ struct GemListRowItemTests {
 
     @Test
     func anAllTimeRowShowsItsDateAndTonedChange() {
-        let row = GemListRow.allTime(title: .allTimeHigh, value: .mock(value: 100, notation: .plain), date: Date(), change: .mock(value: -12, unit: .percent, tone: .negative))
+        let row = GemListRow.allTime(
+            title: .allTimeHigh,
+            value: .mock(value: 100, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
+            date: Date(),
+            change: .mock(value: -12, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .negative, rounding: .toNearest),
+        )
         guard case let .listItem(model) = row.item(onInfo: nil) else {
             Issue.record("Expected a list item")
             return

@@ -51,7 +51,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func suggestedAmounts() -> [GemFiatSuggestedAmount] {
-        [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)) }
+        [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)) }
     }
 
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
@@ -280,39 +280,6 @@ public extension GemTransactionDetailsService {
     static func mock() -> GemTransactionDetailsService {
         let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
         return GemTransactionDetailsService(explorer: GemExplorerService(preferences: preferences), preferences: preferences)
-    }
-}
-
-public extension Gemstone.GemFeeAsset {
-    static func mock(
-        asset: Primitives.Asset,
-        balance: Gemstone.GemAssetBalance? = nil,
-        price: Gemstone.AssetPrice? = nil,
-    ) -> Gemstone.GemFeeAsset {
-        let balance = balance ?? .mock(assetId: asset.id.identifier)
-        return Gemstone.GemFeeAsset(
-            asset: asset.toGem(),
-            balance: balance,
-            price: price,
-            row: .mock(asset: asset, balance: balance),
-        )
-    }
-}
-
-public extension Gemstone.GemAssetItemRow {
-    static func mock(asset: Primitives.Asset = .mock(), balance: Gemstone.GemAssetBalance? = nil) -> Gemstone.GemAssetItemRow {
-        assetListRow(
-            input: GemAssetListRowInput(
-                asset: asset.toGem(),
-                balance: balance ?? .mock(assetId: asset.id.identifier),
-                scope: .available,
-                price: nil,
-                change: nil,
-                currency: Primitives.Currency.usd.toGem(),
-                isEnabled: true,
-            ),
-            style: GemSelectAssetType.send.flow().rowStyle,
-        )
     }
 }
 

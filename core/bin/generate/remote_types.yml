@@ -247,6 +247,30 @@ mocks:
   - FiatTransaction
   - FiatTransactionAssetData
   - FiatTransactionData
+  - GemAssetBalance
+  - GemAssetIcon
+  - GemAssetIconImage
+  - GemAssetItemRow
+  - GemAssetItemTrailing
+  - GemConfirmFee
+  - GemConfirmLoad
+  - GemConfirmMetadata
+  - GemConfirmScreen
+  - GemConfirmSimulation
+  - GemConfirmSimulationState
+  - GemFeeAmount
+  - GemFeeAsset
+  - GemFeeRateRows
+  - GemFormattedNumber
+  - GemLocalizedText
+  - GemNumberDisplay
+  - GemNumberUnit
+  - GemPrecision
+  - GemRecipient
+  - GemRowText
+  - GemTransferAmount
+  - GemTransferAmountResult
+  - GemTransferData
   - InAppNotification
   - NameRecord
   - NFTAsset
@@ -267,12 +291,18 @@ mocks:
   - PriceAlert
   - PriceAlertData
   - RedelegateData
+  - SimulationPayloadField
+  - SimulationResult
+  - SimulationWarning
+  - SimulationWarningApproval
+  - SimulationWarningType
   - SupportAgent
   - SupportMessage
   - SupportMessageImage
   - TotalFiatValue
   - Transaction
   - TransactionExtended
+  - TransactionInputType
   - TransactionListItem
   - TransactionPerpetualMetadata
   - TransactionSwapMetadata

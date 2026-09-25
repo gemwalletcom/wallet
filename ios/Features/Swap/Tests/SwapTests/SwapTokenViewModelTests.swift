@@ -26,7 +26,10 @@ struct SwapTokenViewModelTests {
     @Test
     func aSelectedRowShowsTheValueCoreFormatted() {
         let asset = Asset.mock(decimals: 8)
-        let model = SwapTokenViewModel(asset: asset, side: side(isBalanceActionEnabled: true, fiat: .mock(value: 100_000, notation: .plain)))
+        let model = SwapTokenViewModel(
+            asset: asset,
+            side: side(isBalanceActionEnabled: true, fiat: .mock(value: 100_000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest)),
+        )
 
         #expect(model.actionTitle == asset.symbol)
         #expect(model.amountPlaceholder == "0")

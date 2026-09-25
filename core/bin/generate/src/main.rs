@@ -1,5 +1,6 @@
 mod constants;
 mod localization;
+mod mocks;
 mod remote_mappers;
 #[cfg(test)]
 mod testkit;
@@ -107,11 +108,12 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
     write_generated(remote_mappers::REMOTE_TYPES_PATH, generator.remote_types());
 
     let files = match generator_type {
-        GeneratorType::Swift => [
+        GeneratorType::Swift => vec![
             (generator.swift(), format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift")),
             (generator.swift_mocks(), format!("{platform_directory_path}/Primitives/TestKit/GeneratedMocks.swift")),
+            (generator.swift_core_mocks(), format!("{platform_directory_path}/GemstonePrimitives/TestKit/GeneratedMocks.swift")),
         ],
-        GeneratorType::Kotlin => [
+        GeneratorType::Kotlin => vec![
             (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),
             (
                 generator.kotlin_mocks(),

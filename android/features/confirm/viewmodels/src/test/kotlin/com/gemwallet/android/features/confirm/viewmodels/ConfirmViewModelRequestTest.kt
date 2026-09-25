@@ -6,12 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -48,6 +52,8 @@ import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRequestTest {
@@ -81,7 +87,7 @@ class ConfirmViewModelRequestTest {
 
     @Test
     fun aLargePayloadIsDecodedIntoTheRequest() = runTest(testDispatcher) {
-        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "m".repeat(64 * 1024)))
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "m".repeat(64 * 1024)), value = BigInteger.ONE)
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack())))
         model = viewModel(handle)
         advanceUntilIdle()
@@ -91,8 +97,8 @@ class ConfirmViewModelRequestTest {
 
     @Test
     fun theLatestParamsReplaceTheEarlierOnes() = runTest(testDispatcher) {
-        val first = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "first"))
-        val second = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "second"))
+        val first = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "first"), value = BigInteger.ONE)
+        val second = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "second"), value = BigInteger.ONE)
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(first.pack())))
         model = viewModel(handle)
         advanceUntilIdle()
@@ -108,7 +114,7 @@ class ConfirmViewModelRequestTest {
     fun aRequestForAnotherWalletIsConfirmedForThatWallet() = runTest(testDispatcher) {
         val current = mockWallet(accounts = listOf(account))
         val connected = mockWallet(id = WalletId("wallet-2"), name = "Connected", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xconnected")))
-        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "connected"))
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "connected"), value = BigInteger.ONE)
         val viewModel = viewModel(SavedStateHandle()).also { model = it }
 
         viewModel.init(transfer, wallet = connected)
@@ -120,7 +126,7 @@ class ConfirmViewModelRequestTest {
 
     @Test
     fun initForTheSameTransferKeepsTheChosenFee() = runTest(testDispatcher) {
-        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "fee"))
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "fee"), value = BigInteger.ONE)
         val viewModel = viewModel(SavedStateHandle()).also { model = it }
         viewModel.init(transfer)
         advanceUntilIdle()
@@ -140,7 +146,14 @@ class ConfirmViewModelRequestTest {
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } returns null
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+            )
         coEvery { confirmation.load(any()) } throws IllegalStateException("preload failed")
         return confirmViewModel(handle)
     }

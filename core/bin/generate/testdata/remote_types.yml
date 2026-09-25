@@ -16,6 +16,8 @@ identifiers:
   - WalletId
 mocks:
   - Account
+  - GemAccountRow
+  - GemRowAction
   - NFTImages
   - PriceAlert
   - PriceAlertNotification:

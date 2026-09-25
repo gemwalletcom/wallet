@@ -11,7 +11,11 @@ import Testing
 struct ConfirmNetworkFeeViewModelTests {
     @Test
     func loaded() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
+        let feeModel = NetworkFeeSceneViewModel.mock(
+            feeRates: .mock(rows: [], showsOptions: false, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: nil, normalTotal: nil, customRate: nil),
+            feeAssetPrice: .mock(price: 2500),
+            feeAmount: 1_000_000_000_000_000,
+        )
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,
@@ -26,7 +30,10 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func loadedWithoutFiat() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAmount: 1_000_000_000_000_000)
+        let feeModel = NetworkFeeSceneViewModel.mock(
+            feeRates: .mock(rows: [], showsOptions: false, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: nil, normalTotal: nil, customRate: nil),
+            feeAmount: 1_000_000_000_000_000,
+        )
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,
@@ -94,7 +101,11 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func calculatorError() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
+        let feeModel = NetworkFeeSceneViewModel.mock(
+            feeRates: .mock(rows: [], showsOptions: false, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: nil, normalTotal: nil, customRate: nil),
+            feeAssetPrice: .mock(price: 2500),
+            feeAmount: 1_000_000_000_000_000,
+        )
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,

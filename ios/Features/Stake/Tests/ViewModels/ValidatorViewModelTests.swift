@@ -9,7 +9,7 @@ import Testing
 
 struct ValidatorViewModelTests {
     @Test func aprText() {
-        #expect(ValidatorViewModel(row: .mock(apr: .mock(value: 2.15, unit: .percent, notation: .plain))).aprText == "APR 2.15%")
+        #expect(ValidatorViewModel(row: .mock(apr: .mock(value: 2.15, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest))).aprText == "APR 2.15%")
         #expect(ValidatorViewModel(row: .mock()).aprText == "APR ")
     }
 }

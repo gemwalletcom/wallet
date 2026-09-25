@@ -10,9 +10,12 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -41,7 +44,10 @@ import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelFeeAssetTest {
@@ -86,16 +92,39 @@ class ConfirmViewModelFeeAssetTest {
     }
 
     private fun viewModel(): ConfirmViewModel {
-        val transfer = mockGemTransferData(asset = ethereum)
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(ethereum.toGem()))
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(ethereum)
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = ethereum.id.chain).toGem(),
+                feeAsset = ethereum.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = ethereum.id.chain.string),
+            )
         coEvery { confirmation.load(any()) } answers {
             val options = firstArg<GemConfirmLoadOptions>()
-            mockGemConfirmLoad(if (options.feeAssetId == usdt.id.toIdentifier()) usdt else ethereum)
+            (
+                if (options.feeAssetId ==
+                    usdt.id.toIdentifier()
+                ) {
+                    usdt
+                } else {
+                    ethereum
+                }
+                ).let { asset ->
+                mockGemConfirmLoad(
+                    transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                    sender = mockAccount(chain = asset.id.chain).toGem(),
+                    feeAsset = asset.toGem(),
+                    metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                    simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+                )
+            }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

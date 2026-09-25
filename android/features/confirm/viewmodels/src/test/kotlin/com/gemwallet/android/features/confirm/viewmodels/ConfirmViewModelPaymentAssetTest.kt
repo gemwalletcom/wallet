@@ -13,9 +13,12 @@ import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIMode
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPaymentInvoice
 import com.gemwallet.android.testkit.mockSession
@@ -53,9 +56,11 @@ import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelPaymentAssetTest {
@@ -144,8 +149,9 @@ class ConfirmViewModelPaymentAssetTest {
     }
 
     private fun payment(asset: Asset) = mockGemTransferData(
-        asset = asset,
         inputType = TransactionInputType.Payment(asset = asset.toGem(), invoice = mockPaymentInvoice(quotes = listOf(ethereum, usdt)), extra = mockTransferDataExtra()),
+        recipient = GemRecipient(address = "recipient"),
+        value = BigInteger.ONE,
     )
 
     private suspend fun ConfirmViewModel.headerAsset() = (header.first { it is ConfirmHeaderUIModel.Symbol } as ConfirmHeaderUIModel.Symbol).asset
@@ -157,14 +163,30 @@ class ConfirmViewModelPaymentAssetTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         var loaded: GemConfirmLoad? = null
         every { confirmation.header(any()) } answers { GemConfirmHeader.Transaction(GemTransactionHeader.Symbol((loaded?.transfer ?: transfer).asset.toGem())) }
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(ethereum).copy(transfer = transfer)
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = ethereum.id.chain).toGem(),
+                feeAsset = ethereum.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = ethereum.id.chain.string),
+            ).copy(transfer = transfer)
         coEvery { confirmation.load(any()) } coAnswers {
             val options = firstArg<GemConfirmLoadOptions>()
             if (options.assetId == usdt.id.toIdentifier()) {
                 gate?.await()
             }
             val asset = if (options.assetId == usdt.id.toIdentifier()) usdt else ethereum
-            mockGemConfirmLoad(asset).copy(transfer = payment(asset)).also { loaded = it }
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+            ).copy(transfer = payment(asset)).also {
+                loaded =
+                    it
+            }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

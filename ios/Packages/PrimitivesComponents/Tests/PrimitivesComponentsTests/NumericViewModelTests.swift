@@ -9,7 +9,7 @@ import Testing
 struct NumericViewModelTests {
     @Test
     func amountReadsInItsTone() {
-        let incoming = NumericViewModel.mock(header: .mock(amount: .mock(unit: .symbol(symbol: "BTC"), display: .number(precision: .fraction(min: 0, max: 2)), notation: .signed, tone: .positive)))
+        let incoming = NumericViewModel.mock(header: .mock(amount: .mock(value: 1, unit: .symbol(symbol: "BTC"), display: .number(precision: .fraction(min: 0, max: 2)), notation: .signed, tone: .positive, rounding: .toNearest)))
         let plain = NumericViewModel.mock()
 
         #expect(incoming.amount.text == "+1 BTC")

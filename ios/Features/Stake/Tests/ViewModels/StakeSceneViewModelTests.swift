@@ -22,7 +22,11 @@ struct StakeSceneViewModelTests {
     @Test
     func theInfoSectionShowsTheRowsCoreReturns() {
         let rows: [GemListRow] = [
-            .amount(title: .stakeApr, amount: .mock(value: 12.5, tone: .positive), info: .stakeApr(chain: Primitives.Chain.tron.rawValue)),
+            .amount(
+                title: .stakeApr,
+                amount: .mock(value: 12.5, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .positive, rounding: .toNearest),
+                info: .stakeApr(chain: Primitives.Chain.tron.rawValue),
+            ),
             .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime(chain: Primitives.Chain.tron.rawValue), estimate: false),
         ]
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(infoRows: rows))

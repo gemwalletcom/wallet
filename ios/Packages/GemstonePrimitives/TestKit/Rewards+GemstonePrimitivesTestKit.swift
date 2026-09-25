@@ -83,7 +83,7 @@ public extension GemRewardsState {
         errorNotice: GemListRow? = nil,
         statusNotice: GemListRow? = nil,
         sections: [GemListSection] = [],
-        inviteRewardPoints: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
+        inviteRewardPoints: GemFormattedNumber = .mock(value: 100, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest),
         referralCode: String? = "test123",
         referralLink: String? = "https://gemwallet.com/join?code=test123",
         usedReferralCode: String? = nil,
@@ -108,8 +108,8 @@ public extension GemRewardsRedemption {
         id: String = "option",
         assetId: String = "ethereum",
         canRedeem: Bool = true,
-        points: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
-        value: GemFormattedNumber = .mock(),
+        points: GemFormattedNumber = .mock(value: 100, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest),
+        value: GemFormattedNumber = .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
     ) -> GemRewardsRedemption {
         GemRewardsRedemption(id: id, assetId: assetId, title: .rewardsRedeemAsset(value: value), canRedeem: canRedeem, points: points, value: value)
     }

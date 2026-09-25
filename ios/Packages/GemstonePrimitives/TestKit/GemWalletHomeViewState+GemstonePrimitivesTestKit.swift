@@ -8,7 +8,7 @@ import struct Gemstone.GemWalletHomeViewState
 
 public extension GemWalletHomeViewState {
     static func mock(
-        total: GemFormattedNumber = .mock(),
+        total: GemFormattedNumber = .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
         pnl: GemLocalizedText? = nil,
         pnlTone: GemValueTone = .plain,
         headerActions: GemHeaderActions = .buttons(buttons: []),

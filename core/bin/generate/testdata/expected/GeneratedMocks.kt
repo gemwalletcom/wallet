@@ -3,6 +3,7 @@
 
 package com.gemwallet.android.testkit
 
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ConnectionState
@@ -69,3 +70,37 @@ fun mockPriceAlertNotification(
     note = note,
     path = path,
 )
+
+fun mockGemAccountRow(
+    account: uniffi.gemstone.Account = mockAccount().toGem(),
+    walletId: String = mockWalletId().id,
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    state: uniffi.gemstone.ConnectionState = uniffi.gemstone.ConnectionState.CONNECTED,
+    balance: java.math.BigInteger = java.math.BigInteger.ZERO,
+    title: String = "",
+    subtitle: String? = null,
+    rows: List<uniffi.gemstone.GemRow> = emptyList(),
+    icon: uniffi.gemstone.GemIcon = uniffi.gemstone.GemIcon.ASSET,
+    data: ByteArray = byteArrayOf(),
+    labels: Map<String, String> = emptyMap(),
+    action: uniffi.gemstone.GemRowAction = mockGemRowAction(),
+    type: String = "",
+    createdAt: Long = 0L,
+) = uniffi.gemstone.GemAccountRow(
+    account = account,
+    walletId = walletId,
+    chain = chain,
+    state = state,
+    balance = balance,
+    title = title,
+    subtitle = subtitle,
+    rows = rows,
+    icon = icon,
+    data = data,
+    labels = labels,
+    action = action,
+    type = type,
+    createdAt = createdAt,
+)
+
+fun mockGemRowAction(): uniffi.gemstone.GemRowAction = uniffi.gemstone.GemRowAction.Open(url = "", chain = com.wallet.core.primitives.Chain.Bitcoin.string)

@@ -19,7 +19,7 @@ struct ConfirmBalanceChangeViewModelTests {
             ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
                 asset: solana.toGem(),
                 icon: GemAssetConfigService.shared.assetIcon(assetId: solana.id.identifier),
-                amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), tone: tone, exact: "1.5"),
+                amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .signed, tone: tone, rounding: .toNearest, exact: "1.5"),
             ))
         }
         let negative = change(-1.5, .negative)

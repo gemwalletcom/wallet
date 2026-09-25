@@ -3,6 +3,8 @@
 
 package com.gemwallet.android.testkit
 
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
@@ -1039,3 +1041,305 @@ fun mockWalletConnectionSessionProposal(
     wallets = wallets,
     metadata = metadata,
 )
+
+fun mockGemAssetBalance(
+    assetId: String = mockAssetId().toIdentifier(),
+    available: java.math.BigInteger = java.math.BigInteger.ZERO,
+    frozen: java.math.BigInteger = java.math.BigInteger.ZERO,
+    locked: java.math.BigInteger = java.math.BigInteger.ZERO,
+    staked: java.math.BigInteger = java.math.BigInteger.ZERO,
+    pending: java.math.BigInteger = java.math.BigInteger.ZERO,
+    pendingUnconfirmed: java.math.BigInteger = java.math.BigInteger.ZERO,
+    rewards: java.math.BigInteger = java.math.BigInteger.ZERO,
+    reserved: java.math.BigInteger = java.math.BigInteger.ZERO,
+    withdrawable: java.math.BigInteger = java.math.BigInteger.ZERO,
+    earn: java.math.BigInteger = java.math.BigInteger.ZERO,
+    metadata: uniffi.gemstone.BalanceMetadata? = null,
+    isActive: Boolean = false,
+) = uniffi.gemstone.GemAssetBalance(
+    assetId = assetId,
+    available = available,
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    pendingUnconfirmed = pendingUnconfirmed,
+    rewards = rewards,
+    reserved = reserved,
+    withdrawable = withdrawable,
+    earn = earn,
+    metadata = metadata,
+    isActive = isActive,
+)
+
+fun mockGemAssetIcon(
+    image: uniffi.gemstone.GemAssetIconImage = mockGemAssetIconImage(),
+    badge: String? = null,
+    placeholder: String? = null,
+) = uniffi.gemstone.GemAssetIcon(
+    image = image,
+    badge = badge,
+    placeholder = placeholder,
+)
+
+fun mockGemAssetIconImage(): uniffi.gemstone.GemAssetIconImage = uniffi.gemstone.GemAssetIconImage.Local(chain = com.wallet.core.primitives.Chain.Bitcoin.string)
+
+fun mockGemAssetItemRow(
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
+    title: String = "",
+    titleExtra: String? = null,
+    subtitle: uniffi.gemstone.GemRowText? = null,
+    subtitleExtra: uniffi.gemstone.GemRowText? = null,
+    trailing: uniffi.gemstone.GemAssetItemTrailing = mockGemAssetItemTrailing(),
+    masksBalance: Boolean = false,
+) = uniffi.gemstone.GemAssetItemRow(
+    icon = icon,
+    title = title,
+    titleExtra = titleExtra,
+    subtitle = subtitle,
+    subtitleExtra = subtitleExtra,
+    trailing = trailing,
+    masksBalance = masksBalance,
+)
+
+fun mockGemAssetItemTrailing(): uniffi.gemstone.GemAssetItemTrailing = uniffi.gemstone.GemAssetItemTrailing.Value(value = mockGemRowText(), extra = null)
+
+fun mockGemConfirmFee(
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    formatted: uniffi.gemstone.GemFeeAmount = mockGemFeeAmount(),
+    additionalFees: List<uniffi.gemstone.GemFeeOptionItem> = emptyList(),
+    selectedPriority: uniffi.gemstone.FeePriority = uniffi.gemstone.FeePriority.NORMAL,
+    amount: uniffi.gemstone.GemTransferAmountResult = mockGemTransferAmountResult(),
+) = uniffi.gemstone.GemConfirmFee(
+    value = value,
+    formatted = formatted,
+    additionalFees = additionalFees,
+    selectedPriority = selectedPriority,
+    amount = amount,
+)
+
+fun mockGemConfirmLoad(
+    transfer: uniffi.gemstone.GemTransferData = mockGemTransferData(),
+    sender: uniffi.gemstone.Account = mockAccount().toGem(),
+    feeAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    metadata: uniffi.gemstone.GemConfirmMetadata = mockGemConfirmMetadata(),
+    feeAssets: List<uniffi.gemstone.GemFeeAsset> = emptyList(),
+    simulation: uniffi.gemstone.GemConfirmSimulationState = mockGemConfirmSimulationState(),
+    addressName: uniffi.gemstone.AddressName? = null,
+    fee: uniffi.gemstone.GemConfirmFee? = null,
+) = uniffi.gemstone.GemConfirmLoad(
+    transfer = transfer,
+    sender = sender,
+    feeAsset = feeAsset,
+    metadata = metadata,
+    feeAssets = feeAssets,
+    simulation = simulation,
+    addressName = addressName,
+    fee = fee,
+)
+
+fun mockGemConfirmMetadata(
+    assetBalance: uniffi.gemstone.GemAssetBalance = mockGemAssetBalance(),
+    feeAssetBalance: uniffi.gemstone.GemAssetBalance = mockGemAssetBalance(),
+    prices: List<uniffi.gemstone.AssetPrice> = emptyList(),
+) = uniffi.gemstone.GemConfirmMetadata(
+    assetBalance = assetBalance,
+    feeAssetBalance = feeAssetBalance,
+    prices = prices,
+)
+
+fun mockGemConfirmScreen(
+    phase: uniffi.gemstone.GemConfirmPhase = uniffi.gemstone.GemConfirmPhase.LOADING,
+    hasCriticalWarning: Boolean = false,
+    failure: uniffi.gemstone.GemConfirmFailure? = null,
+    hasFee: Boolean = false,
+    shownSheet: uniffi.gemstone.GemConfirmErrorSheet? = null,
+) = uniffi.gemstone.GemConfirmScreen(
+    phase = phase,
+    hasCriticalWarning = hasCriticalWarning,
+    failure = failure,
+    hasFee = hasFee,
+    shownSheet = shownSheet,
+)
+
+fun mockGemConfirmSimulation(
+    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    header: uniffi.gemstone.GemSimulationValue? = null,
+    balanceChanges: List<uniffi.gemstone.GemSimulationBalanceChange> = emptyList(),
+    hasCriticalWarning: Boolean = false,
+) = uniffi.gemstone.GemConfirmSimulation(
+    primaryFields = primaryFields,
+    secondaryFields = secondaryFields,
+    header = header,
+    balanceChanges = balanceChanges,
+    hasCriticalWarning = hasCriticalWarning,
+)
+
+fun mockGemConfirmSimulationState(
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    warnings: List<uniffi.gemstone.GemListRow> = emptyList(),
+    simulation: uniffi.gemstone.GemConfirmSimulation? = null,
+) = uniffi.gemstone.GemConfirmSimulationState(
+    chain = chain,
+    warnings = warnings,
+    simulation = simulation,
+)
+
+fun mockGemFeeAmount(
+    amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+) = uniffi.gemstone.GemFeeAmount(
+    amount = amount,
+    fiat = fiat,
+)
+
+fun mockGemFeeAsset(
+    asset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    balance: uniffi.gemstone.GemAssetBalance = mockGemAssetBalance(),
+    price: uniffi.gemstone.AssetPrice? = null,
+    row: uniffi.gemstone.GemAssetItemRow = mockGemAssetItemRow(),
+) = uniffi.gemstone.GemFeeAsset(
+    asset = asset,
+    balance = balance,
+    price = price,
+    row = row,
+)
+
+fun mockGemFeeRateRows(
+    rows: List<uniffi.gemstone.GemFeeRateRow> = emptyList(),
+    showsOptions: Boolean = false,
+    unitType: uniffi.gemstone.FeeUnitType = uniffi.gemstone.FeeUnitType.SAT_VB,
+    unitDecimals: UInt = 0u,
+    supportsCustomFee: Boolean = false,
+    selectedTotal: java.math.BigInteger? = null,
+    normalTotal: java.math.BigInteger? = null,
+    customRate: uniffi.gemstone.GemLocalizedText? = null,
+) = uniffi.gemstone.GemFeeRateRows(
+    rows = rows,
+    showsOptions = showsOptions,
+    unitType = unitType,
+    unitDecimals = unitDecimals,
+    supportsCustomFee = supportsCustomFee,
+    selectedTotal = selectedTotal,
+    normalTotal = normalTotal,
+    customRate = customRate,
+)
+
+fun mockGemFormattedNumber(
+    value: Double = 0.0,
+    unit: uniffi.gemstone.GemNumberUnit = mockGemNumberUnit(),
+    display: uniffi.gemstone.GemNumberDisplay = mockGemNumberDisplay(),
+    notation: uniffi.gemstone.GemNumberNotation = uniffi.gemstone.GemNumberNotation.PLAIN,
+    tone: uniffi.gemstone.GemValueTone = uniffi.gemstone.GemValueTone.PLAIN,
+    rounding: uniffi.gemstone.GemNumberRounding = uniffi.gemstone.GemNumberRounding.TO_NEAREST,
+    exact: String? = null,
+) = uniffi.gemstone.GemFormattedNumber(
+    value = value,
+    unit = unit,
+    display = display,
+    notation = notation,
+    tone = tone,
+    rounding = rounding,
+    exact = exact,
+)
+
+fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
+
+fun mockGemNumberDisplay(): uniffi.gemstone.GemNumberDisplay = uniffi.gemstone.GemNumberDisplay.Number(precision = mockGemPrecision())
+
+fun mockGemNumberUnit(): uniffi.gemstone.GemNumberUnit = uniffi.gemstone.GemNumberUnit.Currency(code = "")
+
+fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
+
+fun mockGemRecipient(
+    address: String = "",
+    name: String? = null,
+    memo: String? = null,
+    references: List<String> = emptyList(),
+) = uniffi.gemstone.GemRecipient(
+    address = address,
+    name = name,
+    memo = memo,
+    references = references,
+)
+
+fun mockGemRowText(
+    text: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    tone: uniffi.gemstone.GemValueTone = uniffi.gemstone.GemValueTone.PLAIN,
+) = uniffi.gemstone.GemRowText(
+    text = text,
+    tone = tone,
+)
+
+fun mockGemTransferAmount(
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    networkFee: java.math.BigInteger = java.math.BigInteger.ZERO,
+    isMaxAmount: Boolean = false,
+) = uniffi.gemstone.GemTransferAmount(
+    value = value,
+    networkFee = networkFee,
+    isMaxAmount = isMaxAmount,
+)
+
+fun mockGemTransferAmountResult(): uniffi.gemstone.GemTransferAmountResult = uniffi.gemstone.GemTransferAmountResult.Amount(amount = mockGemTransferAmount())
+
+fun mockGemTransferData(
+    inputType: uniffi.gemstone.TransactionInputType = mockTransactionInputType(),
+    recipient: uniffi.gemstone.GemRecipient = mockGemRecipient(),
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    useMaxAmount: Boolean = false,
+) = uniffi.gemstone.GemTransferData(
+    inputType = inputType,
+    recipient = recipient,
+    value = value,
+    useMaxAmount = useMaxAmount,
+)
+
+fun mockSimulationPayloadField(
+    kind: uniffi.gemstone.SimulationPayloadFieldKind = uniffi.gemstone.SimulationPayloadFieldKind.CONTRACT,
+    label: String? = null,
+    value: String = "",
+    fieldType: uniffi.gemstone.SimulationPayloadFieldType = uniffi.gemstone.SimulationPayloadFieldType.TEXT,
+    display: uniffi.gemstone.SimulationPayloadFieldDisplay = uniffi.gemstone.SimulationPayloadFieldDisplay.PRIMARY,
+) = uniffi.gemstone.SimulationPayloadField(
+    kind = kind,
+    label = label,
+    value = value,
+    fieldType = fieldType,
+    display = display,
+)
+
+fun mockSimulationResult(
+    warnings: List<uniffi.gemstone.SimulationWarning> = emptyList(),
+    balanceChanges: List<uniffi.gemstone.SimulationBalanceChange> = emptyList(),
+    payload: List<uniffi.gemstone.SimulationPayloadField> = emptyList(),
+    header: uniffi.gemstone.SimulationHeader? = null,
+) = uniffi.gemstone.SimulationResult(
+    warnings = warnings,
+    balanceChanges = balanceChanges,
+    payload = payload,
+    header = header,
+)
+
+fun mockSimulationWarning(
+    severity: uniffi.gemstone.SimulationSeverity = uniffi.gemstone.SimulationSeverity.LOW,
+    warning: uniffi.gemstone.SimulationWarningType = mockSimulationWarningType(),
+    message: String? = null,
+) = uniffi.gemstone.SimulationWarning(
+    severity = severity,
+    warning = warning,
+    message = message,
+)
+
+fun mockSimulationWarningApproval(
+    assetId: String = mockAssetId().toIdentifier(),
+    value: java.math.BigInteger? = null,
+) = uniffi.gemstone.SimulationWarningApproval(
+    assetId = assetId,
+    value = value,
+)
+
+fun mockSimulationWarningType(): uniffi.gemstone.SimulationWarningType = uniffi.gemstone.SimulationWarningType.TokenApproval(mockSimulationWarningApproval())
+
+fun mockTransactionInputType(): uniffi.gemstone.TransactionInputType = uniffi.gemstone.TransactionInputType.Transfer(asset = mockAsset().toGem())

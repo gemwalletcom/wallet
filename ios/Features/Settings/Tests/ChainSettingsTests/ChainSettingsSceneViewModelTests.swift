@@ -19,7 +19,7 @@ struct ChainSettingsSceneViewModelTests {
 
         #expect(model.nodesModels.count == 2)
         #expect(service.statusCalls.sorted() == ["a", "b"])
-        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)))
+        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)))
     }
 
     @Test

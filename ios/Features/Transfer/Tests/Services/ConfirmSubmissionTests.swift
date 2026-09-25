@@ -63,7 +63,7 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = GemSimulationPayloadRow(title: .contract, value: .text(text: "0x1"))
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(primaryFields: [primary]),
+            simulation: .mock(simulation: .mock(primaryFields: [primary])),
         )))
         await model.load()
 
@@ -78,11 +78,19 @@ struct ConfirmSubmissionTests {
     func simulationStateMapsBalanceChanges() async {
         let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())]),
+            simulation: .mock(simulation: .mock(balanceChanges: [GemSimulationBalanceChange(
+                asset: usdt.toGem(),
+                icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier),
+                amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            )])),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(
+            asset: usdt.toGem(),
+            icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier),
+            amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+        )])
     }
 }
 
