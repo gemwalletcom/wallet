@@ -26,11 +26,11 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312 and MOD313.
+8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold), MOD314 to MOD317. Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -665,7 +665,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **MOD307** **S** **The wallet tab is `wallet_tab`.**
   - **iOS:** `WalletTab` holds `WalletScene`, `NetworkAssetsScene`, `WalletSearchScene`, `AssetsResultsScene` and `PortfolioScene`.
   - **Android:** `features/assets` holds the same screens except the portfolio, whose `PortfolioChartScene` is in `features/asset`.
-  - **Expected:** Android `assets` becomes `wallet_tab` and takes `PortfolioChartScene`. Lands before MOD308, which reuses the name `assets`.
+  - **Expected:** Android `assets` becomes `wallet_tab` and takes `PortfolioChartScene`; the `update_app` module folds into it, its only consumer. Lands before MOD308, which reuses the name `assets`.
 - **MOD308** **M** **The asset screens are one `assets` module.**
   - **iOS:** `Assets` holds `AssetScene`, `AddAssetScene`, `SelectAssetScene`, `AddressDetailsScene` and `AssetsFilterScene`.
   - **Android:** split over `features/asset`, `features/add_asset` and `features/asset_select`; `swap`, `perpetual`, `settings/price_alerts` and the wallet tab depend on `asset_select`.
@@ -673,33 +673,33 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **MOD309** **M** **Send, receive and amount are one `transfer` module.** Lands with MOD310.
   - **iOS:** `Transfer` holds `RecipientScene`, `AmountScene`, `ReceiveScene`, `ConfirmTransferScene`, `PaymentVerificationScene` and `GetAssetScene`.
   - **Android:** split over `features/recipient` (package `recipient.viewmodel`), `features/transfer_amount`, `features/receive` and `features/confirm`; `transfer_amount` also holds `ValidatorsScene`.
-  - **Expected:** Android `recipient`, `transfer_amount` and `receive` become one `transfer` module; `ValidatorsScene` moves to `stake`; `confirm` follows MOD314.
+  - **Expected:** Android `recipient`, `transfer_amount` and `receive` become one `transfer` module; `ValidatorsScene` moves to `stake`; `confirm` stays a module of its own (MOD314).
 - **MOD310** **S** **Android `earn/stake` and `earn/delegation` become one `stake` module**, as iOS `Stake` (`EarnScene`, `StakeScene`, `DelegationScene`, `ValidatorSelectScene`). Their namespaces are `features.stake` and `features.earn.delegation`, which do not match the path; the `earn` level goes.
 - **MOD311** **M** **Onboarding is one module.**
   - **iOS:** `Onboarding` holds `OnboardingScene`, `AcceptTermsScene`, the create, import and verify-phrase flows, `SecurityReminderScene`, `ShowSecretDataScene` and `WalletImageScene`.
   - **Android:** `features/create_wallet`, `features/import_wallet`, and `OnboardScreen` and `AcceptTermsScreen` in `app/features/onboarding`.
-  - **Expected:** one Android `onboarding` module holding all of them; the secret data and wallet image screens follow MOD315.
+  - **Expected:** one Android `onboarding` module holding all of them except the secret data and wallet image screens, which belong to Wallets (MOD315).
 - **MOD312** **M** **Settings is one module, and the areas with their own page leave it.**
   - **iOS:** `Settings` holds settings, preferences, security, notifications, appearance, currency, networks (`ChainSettings`), about us and developer; `Contacts`, `PriceAlerts`, `InAppNotifications` and `Support` are packages of their own.
   - **Android:** nine modules under `features/settings` (`aboutus`, `contacts`, `currency`, `develop`, `in_app_notifications`, `networks`, `price_alerts`, `security`, `settings`), with `SupportChatScene` inside `settings/settings`.
   - **Expected:** Android `aboutus`, `currency`, `develop`, `networks`, `security` and `settings` become one `settings` module; `contacts`, `price_alerts` and `in_app_notifications` move to the top level; `SupportChatScene` moves to a `support` module.
 - **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
-- **MOD314** **S** **Where confirmation lives.**
-  - **iOS:** `ConfirmTransferScene` is in `Transfer`, which depends on `WalletConnector`, `Perpetuals`, `Stake` and `Swap`.
-  - **Android:** `features/confirm` is its own module, and `bridge` and `perpetual` depend on it.
-  - **Expected:** needs a decision: `confirm` stays a module on Android and iOS moves confirmation into a `Confirm` package the others depend on, or Android folds it into `transfer` and follows the iOS dependency direction.
-- **MOD315** **S** **Where the secret data and wallet image screens live.**
-  - **iOS:** `ShowSecretDataScene` and `WalletImageScene` are in `Onboarding`; create-wallet reuses the phrase screen.
-  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallet-details`.
-  - **Expected:** needs a decision: [wallets.md](product/wallets.md) puts both under Wallets, so iOS moves them to `Wallets` and `Onboarding` depends on it, or Android moves them to `onboarding`.
-- **MOD316** **S** **Where the asset chart and recents live.**
-  - **iOS:** the chart is `ChartScene` in `MarketInsight` (three files); recents are the `Recents` package, used by `Assets`, `Perpetuals` and `WalletTab`.
-  - **Android:** `AssetChartScene` is in `features/asset`; `RecentsBottomSheet` is in `features/asset_select`.
-  - **Expected:** needs a decision: iOS folds `MarketInsight` into `Assets` and Android keeps recents in `assets`, or Android adds `market_insight` and `recents` modules.
-- **MOD317** **S** **Where shared components live.**
-  - **iOS:** banners are `BannerView` in `PrimitivesComponents` and the update prompt is in `RootSceneViewModel`; the QR scanner and info sheet are the `QRScanner` and `InfoSheet` features.
-  - **Android:** banners and the update prompt are the `banner` and `update_app` features; the QR scanner and info sheet are in `ui/components`.
-  - **Expected:** needs a decision: a component used by several areas lives in the shared UI package on both apps (`PrimitivesComponents`, `ui`), or in its own feature module on both.
+- **MOD314** **M** **Confirmation is its own `Confirm` module on both apps.** Transfer, swap, stake, perpetuals and WalletConnect all end on it, and it is where signing happens.
+  - **iOS:** the 12 confirm files (`ConfirmTransferScene`, `ConfirmTransferSceneViewModel`, `Confirm*ViewModel`, `ConfirmTransferRequest`, `ConfirmTransferSection`, `ConfirmTransferState`, `ConfirmTransferSheetType`, `ConfirmSimulationState`) are in `Transfer`, which imports `WalletConnector` and `Swap` only for them; the app opens the screen (`ConfirmTransferNavigationView`).
+  - **Android:** `features/confirm` is its own module, but `bridge` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`).
+  - **Expected:** iOS moves the confirm files into a `Confirm` package and `Transfer` drops the `WalletConnector` and `Swap` imports; Android `bridge` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS.
+- **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
+  - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `ManageWallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
+  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallet-details`; create-wallet draws the phrase with its own `WordChip` view.
+  - **Expected:** iOS moves the export flow and `WalletAvatar` to `Wallets` and drops its `Onboarding` dependency. The grid of phrase words becomes one shared component (`PrimitivesComponents`, `ui`) that create-wallet and export use on both apps. Lands after MOD301.
+- **MOD316** **S** **Recents belong to Assets, and the chart is a `Market` module on both apps.**
+  - **iOS:** recents are the `Recents` package, used by `Assets`, `Perpetuals` and `WalletTab`; the chart is `ChartScene` in `MarketInsight`.
+  - **Android:** `RecentsBottomSheet` is in `features/asset_select`, used by the same three areas; `AssetChartScene` and its view model are under `chart` in `features/asset`.
+  - **Expected:** iOS folds `Recents` into `Assets`, and `Perpetuals` and `WalletTab` depend on `Assets`; Android keeps recents in `assets` (MOD308). iOS `MarketInsight` becomes `Market`; Android moves `asset/presents/chart` and `asset/viewmodels/chart` into a `market` module.
+- **MOD317** **S** **The QR scanner is a feature on both apps; banners belong to Assets and the info sheet is shared UI.**
+  - **iOS:** `QRScanner` and `InfoSheet` are feature packages; `BannerView` is in `PrimitivesComponents`, used by `AssetScene` and `WalletScene`.
+  - **Android:** the QR scanner and the info sheet are in `ui/components`; banners are the `banner` feature, used by `asset` and the wallet tab.
+  - **Expected:** Android moves `QRScanner.kt` into a `qr_scanner` feature; `BannerView` moves into iOS `Assets` and the Android `banner` module folds into `assets`, with `wallet_tab` depending on `assets`; iOS `InfoSheet` moves from `Features/` to `Packages/`.
 
 ## 12. Cleanup sweeps
 
