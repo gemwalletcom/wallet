@@ -13,8 +13,6 @@ import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.perpetualPositionRows
 
 class PerpetualPositionDataAggregateImpl(private val data: PerpetualPositionData, row: GemPerpetualPositionRow) : PerpetualPositionDataAggregate {
-    constructor(data: PerpetualPositionData) : this(data, perpetualPositionRows(listOf(data.toGem())).first())
-
     override val perpetualId: PerpetualId
         get() = data.perpetual.id
     override val asset: Asset = data.asset

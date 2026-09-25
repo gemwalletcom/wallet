@@ -35,19 +35,10 @@ class GetAllWalletsImpl(private val getSession: GetSession, private val walletSt
     private fun walletAggregates(): Flow<List<WalletDataAggregate>> = getSession().flatMapLatest { session ->
         val currentWalletId = session?.wallet?.id
         walletStore.observeWallets().map { items ->
-            walletService.sortedWallets(items.map { it.toGem() }).map { it.toPrimitives() }
-        }.mapLatest { items ->
-            val rows = walletRows(items.map { it.toGem() })
-            items.mapIndexed { index, wallet ->
-                WalletDataAggregateImpl(
-                    row = rows[index],
-                    isCurrent = wallet.id == currentWalletId,
-                )
-            }
+            walletService.sortedWallets(items.map { it.toGem() })
+        }.mapLatest { wallets ->
+            walletRows(wallets).zip(wallets) { row, wallet -> WalletDataAggregate(row = row, isCurrent = wallet.id == currentWalletId?.id) }
         }
     }
         .flowOn(Dispatchers.IO)
 }
-
-@Stable
-class WalletDataAggregateImpl(override val row: GemWalletRow, override val isCurrent: Boolean) : WalletDataAggregate

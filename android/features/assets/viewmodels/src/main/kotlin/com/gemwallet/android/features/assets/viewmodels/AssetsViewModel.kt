@@ -78,11 +78,11 @@ class AssetsViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val bannerRows: StateFlow<List<BannerRowUIModel>> = walletSummary.map { summary -> summary?.banners.orEmpty().map { it.uiModel(context) } }
+    val bannerRows: StateFlow<List<BannerRowUIModel>> = walletSummary.map { summary -> summary?.state?.visibleBanners.orEmpty().map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val collectionsAvailable = walletSummary
-        .map { it?.showCollections ?: false }
+        .map { it?.state?.showCollections ?: false }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

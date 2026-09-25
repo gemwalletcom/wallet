@@ -8,7 +8,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
-import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
+import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -54,7 +54,7 @@ class GetWalletSummaryImpl(
                 banners = banners.map { it.toDTO().toGem() },
             )
 
-            WalletSummaryAggregateImpl(
+            WalletSummary(
                 state = state,
                 walletRow = walletRow(wallet.toGem()),
                 isBalanceHidden = hideBalances,
@@ -62,8 +62,5 @@ class GetWalletSummaryImpl(
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    override fun getWalletSummary(): Flow<WalletSummaryAggregate?> = walletSummary
+    override fun getWalletSummary(): Flow<WalletSummary?> = walletSummary
 }
-
-@Stable
-internal class WalletSummaryAggregateImpl(override val state: GemWalletHomeViewState, override val walletRow: GemWalletRow, override val isBalanceHidden: Boolean) : WalletSummaryAggregate

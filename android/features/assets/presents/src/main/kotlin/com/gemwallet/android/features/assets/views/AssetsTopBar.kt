@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
+import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.walletImageModel
@@ -31,7 +31,7 @@ private const val ManageActionTag = "assetsManageAction"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AssetsTopBar(walletSummary: WalletSummaryAggregate?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
+internal fun AssetsTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletRow?.imageUrl)
         ?: walletSummary?.walletRow?.placeholder?.iconModel()
 

@@ -126,7 +126,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val detailsState: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
-        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())) }
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.toGem())) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -160,7 +160,7 @@ class PerpetualDetailsViewModel @Inject constructor(
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position?.position, context))
+                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position, context))
             }
 
             else -> StateViewType.Error(error.errorText().text(context))

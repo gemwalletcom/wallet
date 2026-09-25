@@ -188,7 +188,7 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                         }
                     }
                 }
-                if (walletSummary?.showPerpetuals == true) {
+                if (walletSummary?.state?.showsPerpetuals == true) {
                     item(key = PerpetualsSectionItemKey) {
                         PerpetualsPreviewSection(
                             onOpenPerpetuals = { onAction(AssetsAction.Perpetuals) },
