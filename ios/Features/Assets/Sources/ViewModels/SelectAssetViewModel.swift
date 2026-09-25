@@ -73,7 +73,7 @@ public final class SelectAssetViewModel {
         )
         filterModel = filter
 
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters, limit: GemConstants.assetResultsLimit), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,

@@ -313,10 +313,9 @@ open class BaseAssetSelectViewModel(
 
     private fun assetFilters(chains: List<Chain>, hasBalance: Boolean): Set<GemAssetFilter> = flow.appliedFilters(chains.map { it.string }, hasBalance).toSet()
 
-    open fun assetsSearchLimit(query: String): Int = ASSETS_LIMIT
+    open fun assetsSearchLimit(query: String): Int = GemConstants.assetResultsLimit
 
     private companion object {
         private const val TAG = "AssetSelect"
-        private const val ASSETS_LIMIT = 100
     }
 }

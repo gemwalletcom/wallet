@@ -3,8 +3,6 @@ import GRDB
 import Primitives
 
 public struct AssetsRequest: DatabaseQueryable {
-    public static let defaultQueryLimit = 100
-
     public var walletId: WalletId
     public var scope: AssetsRequestScope
     public var searchBy: String
@@ -16,7 +14,7 @@ public struct AssetsRequest: DatabaseQueryable {
         scope: AssetsRequestScope = .wallet,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
-        limit: Int? = AssetsRequest.defaultQueryLimit,
+        limit: Int? = nil,
     ) {
         self.walletId = walletId
         self.scope = scope
@@ -91,11 +89,7 @@ extension AssetsRequest {
                         TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.rank].desc,
                     )
             }
-            return request
-                .filter(AssetRecord.textSearchFilter(query: query))
-                .order(
-                    AssetRecord.Columns.rank.desc,
-                )
+            return request.filter(AssetRecord.textSearchFilter(query: query))
         case .hasBalance:
             return request
                 .filter(
@@ -188,9 +182,8 @@ extension AssetsRequest {
             .including(optional: AssetRecord.price)
             .filter(AssetRecord.Columns.rank >= 0)
             .order(AssetRecord.Columns.rank.desc)
-            .limit(Self.defaultQueryLimit)
 
-        request = Self.filtered(request: request, filters)
+        request = Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
 
         return try request
             .asRequest(of: PriceAlertAssetRecordInfo.self)

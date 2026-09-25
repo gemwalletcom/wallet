@@ -13,8 +13,9 @@ use super::model::{
     GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
     GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
-use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
+use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
+use crate::constants::ASSET_RESULTS_LIMIT;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle};
@@ -505,7 +506,7 @@ pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
         fetch: assets + 1,
         perpetuals: PERPETUALS_PREVIEW_LIMIT,
         nfts: NFTS_PREVIEW_LIMIT,
-        results: RESULTS_LIMIT,
+        results: ASSET_RESULTS_LIMIT as u32,
     }
 }
 

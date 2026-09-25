@@ -19,6 +19,7 @@ pub const PING_INTERVAL: Duration = Duration::from_secs(30);
 pub const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 pub const SERVICE_STATUS_TIMEOUT: Duration = Duration::from_secs(30);
 pub const TRANSACTIONS_LIST_LIMIT: usize = 1000;
+pub const ASSET_RESULTS_LIMIT: usize = 100;
 pub const RECENT_ASSETS_LIMIT: usize = 10;
 pub const SUPPORT_ATTACHMENT_MAX_DIMENSION: usize = 2048;
 pub const SUPPORT_ATTACHMENT_JPEG_QUALITY: usize = 90;
