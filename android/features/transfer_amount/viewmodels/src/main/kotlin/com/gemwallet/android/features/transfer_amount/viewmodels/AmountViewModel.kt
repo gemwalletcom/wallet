@@ -8,6 +8,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.session.cases.GetSession
@@ -39,7 +40,7 @@ import com.wallet.core.primitives.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -84,6 +85,7 @@ class AmountViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
@@ -94,7 +96,7 @@ class AmountViewModel @Inject constructor(
 
     private val assetInfo: StateFlow<AssetInfo?> = perpetualProvider?.assetInfo
         ?: getAssetInfo(params.assetId)
-            .flowOn(Dispatchers.IO)
+            .flowOn(ioDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val request: StateFlow<GemAmountRequest?> = stakeProvider?.request ?: perpetualProvider?.request ?: when (params) {
@@ -112,7 +114,7 @@ class AmountViewModel @Inject constructor(
 
         is AmountParams.Stake, is AmountParams.Perpetual -> flowOf(null)
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val amountType: StateFlow<GemAmountType?> = request

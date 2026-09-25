@@ -220,6 +220,7 @@ class AmountViewModelTest {
             getSession = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
             context = context,
+            ioDispatcher = testDispatcher,
         )
         try {
             runCurrent()
