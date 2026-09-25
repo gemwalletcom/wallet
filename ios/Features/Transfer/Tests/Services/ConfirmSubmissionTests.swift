@@ -28,7 +28,7 @@ struct ConfirmSubmissionTests {
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            execute: .success(.sent(hashes: ["hash-1", "hash-2"], warning: nil)),
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], message: nil)),
         ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
@@ -39,7 +39,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], warning: nil))).submit(request: request)
+        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], message: nil))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }

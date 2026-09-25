@@ -38,7 +38,6 @@ import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
-import enum Gemstone.PerpetualType
 import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Localization
@@ -140,6 +139,14 @@ public extension GemLocalizedText {
             switch change {
             case .increase: Localized.Perpetual.increaseDirection(direction.toPrimitives().title)
             case .reduce: Localized.Perpetual.reduceDirection(direction.toPrimitives().title)
+            }
+        case let .perpetualConfirmed(action):
+            switch action {
+            case let .open(direction): Localized.Perpetual.openDirection(direction.toPrimitives().title)
+            case .close: Localized.Perpetual.closePosition
+            case .modify: Localized.Perpetual.modifyPosition
+            case .increase: Localized.Perpetual.increasePosition
+            case .reduce: Localized.Perpetual.reducePosition
             }
         }
     }
@@ -415,18 +422,6 @@ public extension GemAssetMenuAction {
         case .addToWallet: Localized.Asset.addToWallet
         case .copyAddress: Localized.Wallet.copyAddress
         case .pin, .hide: nil
-        }
-    }
-}
-
-public extension PerpetualType {
-    var confirmedTitle: String {
-        switch self {
-        case let .open(data): Localized.Perpetual.openDirection(data.direction.toPrimitives().title)
-        case .close: Localized.Perpetual.closePosition
-        case .modify: Localized.Perpetual.modifyPosition
-        case .increase: Localized.Perpetual.increasePosition
-        case .reduce: Localized.Perpetual.reducePosition
         }
     }
 }

@@ -389,11 +389,11 @@ class ConfirmViewModel @Inject constructor(
         val session = confirmation.value ?: return@launch
 
         try {
-            val (transactionHash, warning) = when (val result = withContext(ioDispatcher) { session.submit() }) {
-                is GemSubmitResult.Signed -> result.data.first() to result.warning
-                is GemSubmitResult.Sent -> result.hashes.last() to result.warning
+            val (transactionHash, message) = when (val result = withContext(ioDispatcher) { session.submit() }) {
+                is GemSubmitResult.Signed -> result.data.first() to result.message
+                is GemSubmitResult.Sent -> result.hashes.last() to result.message
             }
-            finishAction(transactionHash, warning?.text(context))
+            finishAction(transactionHash, message?.text(context))
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {

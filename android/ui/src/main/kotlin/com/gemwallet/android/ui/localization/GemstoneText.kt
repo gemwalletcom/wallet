@@ -46,6 +46,7 @@ import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
@@ -226,6 +227,14 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.PositionChange -> when (change) {
         GemPositionChange.INCREASE -> context.getString(R.string.perpetual_increase_direction, context.getString(direction.toPrimitives().stringRes()))
         GemPositionChange.REDUCE -> context.getString(R.string.perpetual_reduce_direction, context.getString(direction.toPrimitives().stringRes()))
+    }
+
+    is GemLocalizedText.PerpetualConfirmed -> when (val action = action) {
+        is GemPerpetualConfirmedAction.Open -> context.getString(R.string.perpetual_open_direction, context.getString(action.direction.toPrimitives().stringRes()))
+        GemPerpetualConfirmedAction.Close -> context.getString(R.string.perpetual_close_position)
+        GemPerpetualConfirmedAction.Modify -> context.getString(R.string.perpetual_modify_position)
+        GemPerpetualConfirmedAction.Increase -> context.getString(R.string.perpetual_increase_position)
+        GemPerpetualConfirmedAction.Reduce -> context.getString(R.string.perpetual_reduce_position)
     }
 
     is GemLocalizedText.FeeRate -> when (unit) {

@@ -104,8 +104,14 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemSubmitResult {
-    Signed { data: Vec<String>, warning: Option<GemErrorText> },
-    Sent { hashes: Vec<String>, warning: Option<GemErrorText> },
+    Signed { data: Vec<String>, message: Option<GemSubmitMessage> },
+    Sent { hashes: Vec<String>, message: Option<GemSubmitMessage> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSubmitMessage {
+    Warning { text: GemErrorText },
+    Confirmed { text: GemLocalizedText },
 }
 
 #[derive(Debug, Clone)]

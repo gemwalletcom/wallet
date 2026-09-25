@@ -1,26 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemSubmitMessage
 import enum Gemstone.GemSubmitResult
-import enum Gemstone.TransactionInputType
 import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 
 public extension ToastMessage {
-    static func transfer(_ result: GemSubmitResult, for type: TransactionInputType) -> ToastMessage? {
-        switch result {
-        case let .sent(_, warning?), let .signed(_, warning?): .error(warning.text)
-        case .sent, .signed: transfer(for: type)
+    static func transfer(_ result: GemSubmitResult) -> ToastMessage? {
+        let message: GemSubmitMessage? = switch result {
+        case let .sent(_, message), let .signed(_, message): message
         }
-    }
-
-    static func transfer(for type: TransactionInputType) -> ToastMessage? {
-        guard case let .perpetual(_, perpetualType) = type else {
-            return nil
+        return switch message {
+        case let .warning(text): .error(text.text)
+        case let .confirmed(text): .success(text.text)
+        case nil: nil
         }
-        return .success(perpetualType.confirmedTitle)
     }
 
     static func copied(_ value: String) -> ToastMessage {

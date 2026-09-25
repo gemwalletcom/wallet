@@ -8,10 +8,12 @@ use crate::models::placeholder::text_or_placeholder;
 use crate::precision::GemCurrencyStyle;
 use crate::services::assets::rules::asset_text;
 use crate::services::contact::model::contact_avatar;
+use crate::services::error_text::GemErrorText;
+use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
 use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::currency::Currency;
-use primitives::{AddressName, BlockExplorerLink, PaymentVerification};
+use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
@@ -19,7 +21,7 @@ use primitives::{
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
     ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState,
-    GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
+    GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::config::fiat_config::get_fiat_config;
@@ -615,6 +617,25 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
         .collect()
 }
 
+pub fn submit_message(input_type: &TransactionInputType, warning: Option<GemErrorText>) -> Option<GemSubmitMessage> {
+    if let Some(text) = warning {
+        return Some(GemSubmitMessage::Warning { text });
+    }
+    let TransactionInputType::Perpetual { perpetual_type, .. } = input_type else {
+        return None;
+    };
+    let action = match perpetual_type {
+        PerpetualType::Open { data } => GemPerpetualConfirmedAction::Open { direction: data.direction.clone() },
+        PerpetualType::Close { .. } => GemPerpetualConfirmedAction::Close,
+        PerpetualType::Modify { .. } => GemPerpetualConfirmedAction::Modify,
+        PerpetualType::Increase { .. } => GemPerpetualConfirmedAction::Increase,
+        PerpetualType::Reduce { .. } => GemPerpetualConfirmedAction::Reduce,
+    };
+    Some(GemSubmitMessage::Confirmed {
+        text: GemLocalizedText::PerpetualConfirmed { action },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -632,6 +653,29 @@ mod tests {
     use primitives::{AddressName, AddressType, Delegation, DelegationValidator, VerificationStatus};
     use std::collections::HashMap;
 
+    #[test]
+    fn test_a_submit_names_its_warning_or_the_confirmed_position() {
+        let open = TransactionInputType::Perpetual {
+            asset: Asset::mock(),
+            perpetual_type: PerpetualType::Open {
+                data: primitives::PerpetualConfirmData::mock(primitives::PerpetualDirection::Long, 0, None, None),
+            },
+        };
+        let warning = GemErrorText::Message { text: "gateway".into() };
+
+        assert_eq!(
+            submit_message(&open, None),
+            Some(GemSubmitMessage::Confirmed {
+                text: GemLocalizedText::PerpetualConfirmed {
+                    action: GemPerpetualConfirmedAction::Open {
+                        direction: primitives::PerpetualDirection::Long
+                    }
+                }
+            })
+        );
+        assert_eq!(submit_message(&open, Some(warning.clone())), Some(GemSubmitMessage::Warning { text: warning }), "a warning wins");
+        assert_eq!(submit_message(&TransactionInputType::Transfer { asset: Asset::mock() }, None), None, "a plain send shows nothing");
+    }
     #[test]
     fn test_signer_input_uses_wallet_account_and_network_fee() {
         let input = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });

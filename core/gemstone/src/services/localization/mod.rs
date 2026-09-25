@@ -42,6 +42,16 @@ pub enum GemLocalizedText {
     RewardsRedeemAsset { value: GemFormattedNumber },
     DisableDeveloper,
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
+    PerpetualConfirmed { action: GemPerpetualConfirmedAction },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualConfirmedAction {
+    Open { direction: PerpetualDirection },
+    Close,
+    Modify,
+    Increase,
+    Reduce,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

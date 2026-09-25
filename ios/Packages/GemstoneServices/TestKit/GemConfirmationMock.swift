@@ -38,7 +38,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], message: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
         selection: GemTransferData? = nil,
