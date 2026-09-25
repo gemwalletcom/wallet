@@ -90,8 +90,8 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
-    pub fn exists(&self, keystore_id: String) -> bool {
-        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
+    pub fn exists(&self, keystore_id: String) -> Result<bool, GemstoneError> {
+        Ok(self.inner.get_meta(&keystore_id)?.is_some())
     }
 
     pub fn decode_password(&self, password: String) -> Vec<u8> {
