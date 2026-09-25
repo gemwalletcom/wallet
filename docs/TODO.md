@@ -535,7 +535,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM285** **S** **The fee asset of an asset screen is the chain coin in both apps.**
   - **iOS:** `ChainAssetQuery` loads `assetId.chain.assetId` as the fee asset.
-  - **Android:** `GetChainAssetInfoImpl` does the same for tokens.
+  - **Android:** `ChainAssetQuery` does the same for tokens.
   - **Expected:** Core answers the fee asset for an asset; both stores read it.
 - **VM286** **S** **iOS twins `GemSelectAssetType`.**
   - **iOS:** `SelectAssetType` and `SelectAssetSwapType` mirror the generated enum and map back through `flowType`.

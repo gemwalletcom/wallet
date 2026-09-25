@@ -8,7 +8,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -31,11 +32,13 @@ import com.wallet.core.primitives.PriceAlertNotificationType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -50,9 +53,11 @@ import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
-    private val getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     private val service: GemPriceAlertServiceInterface,
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
@@ -64,7 +69,7 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
-    val assetInfo = getAssetInfo(assetId)
+    val assetInfo = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
     val currency = service.getCurrency().toPrimitives()
     private val assetPrice = assetInfo.map { it?.price?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

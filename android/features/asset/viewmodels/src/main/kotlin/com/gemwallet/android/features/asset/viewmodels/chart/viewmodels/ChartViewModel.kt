@@ -6,9 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -46,7 +46,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChartViewModel internal constructor(
     getCurrentCurrency: GetCurrentCurrency,
-    getAssetTokenInfo: GetAssetTokenInfo,
+    priceQuery: PriceQuery,
     private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
     connectionStatusObserver: ConnectionStatusObserver,
@@ -69,9 +69,9 @@ class ChartViewModel internal constructor(
         }
     }
 
-    private val price = getAssetTokenInfo(assetId)
-        .map { info ->
-            info?.price?.price?.let { price ->
+    private val price = priceQuery(assetId)
+        .map { data ->
+            data?.price?.let { price ->
                 AssetPrice(
                     assetId = assetId.toIdentifier(),
                     price = price.price,
@@ -130,7 +130,7 @@ class ChartViewModel internal constructor(
     @Inject
     constructor(
         getCurrentCurrency: GetCurrentCurrency,
-        getAssetTokenInfo: GetAssetTokenInfo,
+        priceQuery: PriceQuery,
         chartService: GemChartServiceInterface,
         savedStateHandle: SavedStateHandle,
         connectionStatusObserver: ConnectionStatusObserver,
@@ -138,7 +138,7 @@ class ChartViewModel internal constructor(
         @ApplicationContext context: Context,
     ) : this(
         getCurrentCurrency = getCurrentCurrency,
-        getAssetTokenInfo = getAssetTokenInfo,
+        priceQuery = priceQuery,
         chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),
         connectionStatusObserver = connectionStatusObserver,

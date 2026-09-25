@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Price
 
 @Entity(tableName = "prices")
 data class DbPrice(
@@ -14,3 +15,7 @@ data class DbPrice(
     val currency: Currency,
     val updatedAt: Long? = null,
 )
+
+fun DbPrice.toPrice(): Price? = value?.takeIf { it > 0 }?.let {
+    Price(price = it, priceChangePercentage24h = dayChanged ?: 0.0, updatedAt = updatedAt ?: 0)
+}

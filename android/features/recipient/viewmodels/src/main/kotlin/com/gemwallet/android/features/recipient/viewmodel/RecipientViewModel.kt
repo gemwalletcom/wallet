@@ -5,9 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.contacts.values.ContactRecipient
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.ContactRecipientsQuery
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.domains.asset.chain
@@ -69,7 +70,8 @@ class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
     private val walletsQuery: WalletsQuery,
     private val contactRecipientsQuery: ContactRecipientsQuery,
-    private val getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     savedStateHandle: SavedStateHandle,
     private val service: GemRecipientServiceInterface,
     nameService: GemNameServiceInterface,
@@ -96,7 +98,7 @@ class RecipientViewModel @Inject constructor(
     private val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
     private val nft = savedStateHandle.optionalNft()
 
-    val state: StateFlow<RecipientState> = getAssetInfo(assetId)
+    val state: StateFlow<RecipientState> = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
         .filterNotNull()
         .map { assetInfo ->
             val type = nft?.let { GemRecipientType.Nft(it.toGem()) } ?: GemRecipientType.Asset(assetInfo.asset.toGem())

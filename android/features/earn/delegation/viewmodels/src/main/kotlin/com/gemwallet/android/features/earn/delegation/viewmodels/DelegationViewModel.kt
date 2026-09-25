@@ -4,8 +4,9 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -40,7 +41,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DelegationViewModel @Inject constructor(
-    private val getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     private val delegationQuery: DelegationQuery,
     validatorsQuery: ValidatorsQuery,
     private val stakeService: GemStakeServiceInterface,
@@ -63,7 +65,7 @@ class DelegationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfo = delegation.filterNotNull()
-        .flatMapLatest { getAssetInfo(it.base.assetId) }
+        .flatMapLatest { delegation -> getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, delegation.base.assetId) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val validators = delegation.filterNotNull()

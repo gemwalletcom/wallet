@@ -1,8 +1,9 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
@@ -43,8 +44,12 @@ class DelegationViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
 
-    private val getAssetInfo = mockk<GetAssetInfo> {
-        every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+    private val walletId = mockWalletId("wallet-own")
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> {
+        every { this@mockk() } returns flowOf(walletId)
+    }
+    private val assetQuery = mockk<AssetQuery> {
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val delegationQuery = mockk<DelegationQuery>()
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
@@ -73,7 +78,8 @@ class DelegationViewModelTest {
         }
 
         val viewModel = DelegationViewModel(
-            getAssetInfo = getAssetInfo,
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
             delegationQuery = delegationQuery,
             validatorsQuery = validatorsQuery,
             stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
@@ -102,7 +108,8 @@ class DelegationViewModelTest {
         }
 
         DelegationViewModel(
-            getAssetInfo = getAssetInfo,
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
             delegationQuery = delegationQuery,
             validatorsQuery = validatorsQuery,
             stakeService = stakeService,

@@ -6,7 +6,6 @@ import com.gemwallet.android.data.services.store.database.entities.toAssetBasic
 import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModels
 import com.gemwallet.android.data.services.store.database.entities.toAssetLinkRecord
-import com.gemwallet.android.data.services.store.database.entities.toAssetLinksModel
 import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.database.entities.toUpdateRecord
@@ -19,8 +18,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -103,12 +100,4 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
     fun observeAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> = assetsDao.getAssetsInfoByChain(walletId, chain).toAssetInfoModel()
 
     fun observeHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> = assetsDao.getHiddenAssetsInfoByChain(walletId, chain).toAssetInfoModel()
-
-    fun observeAssetInfo(walletId: String, assetId: AssetId): Flow<AssetInfo?> = assetsDao.getAssetInfo(walletId, assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
-
-    fun observeTokenInfo(walletId: String, assetId: AssetId): Flow<AssetInfo?> = assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
-
-    fun observeAssetLinks(assetId: AssetId): Flow<List<AssetLink>> = assetsDao.getAssetLinks(assetId.toIdentifier()).toAssetLinksModel()
-
-    fun observeAssetMarket(assetId: AssetId): Flow<AssetMarket?> = assetsDao.getAssetMarket(assetId.toIdentifier()).map { it?.toDTO() }
 }

@@ -112,7 +112,8 @@ class PriceAlertViewModelTest {
         priceAlertsQuery = mockk<PriceAlertsQuery> {
             every { this@mockk(any()) } returns flowOf(emptyList())
         },
-        getAssetTokenInfo = mockk(relaxed = true),
+        getCurrentWalletId = mockk(relaxed = true),
+        assetQuery = mockk(relaxed = true),
         service = service,
         priceAlertFormatter = PriceAlertFormatter(),
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),

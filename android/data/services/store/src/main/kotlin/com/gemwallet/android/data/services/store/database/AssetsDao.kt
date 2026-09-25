@@ -430,12 +430,6 @@ interface AssetsDao {
     @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
     suspend fun getBalance(walletId: String, assetId: String): DbBalance?
 
-    @Query("SELECT * FROM asset_links WHERE asset_id = :assetId")
-    fun getAssetLinks(assetId: String): Flow<List<DbAssetLink>>
-
-    @Query("SELECT * FROM asset_market WHERE asset_id = :assetId")
-    fun getAssetMarket(assetId: String): Flow<DbAssetMarket?>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRecentActivity(record: DbRecentActivity)
 

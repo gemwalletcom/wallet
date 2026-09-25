@@ -1,8 +1,9 @@
 package com.gemwallet.android.features.stake.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
@@ -15,6 +16,7 @@ import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeProviderType
@@ -66,8 +68,12 @@ class EarnViewModelTest {
             )
         }
     }
-    private val getAssetInfo = mockk<GetAssetInfo> {
-        every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+    private val walletId = mockWalletId()
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> {
+        every { this@mockk() } returns flowOf(walletId)
+    }
+    private val assetQuery = mockk<AssetQuery> {
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val session = MutableStateFlow(mockSession(wallet = mockWallet(type = WalletType.Multicoin)))
     private val getSession = mockk<GetSession> {
@@ -81,7 +87,8 @@ class EarnViewModelTest {
     fun tearDown() = kotlinx.coroutines.Dispatchers.resetMain()
 
     private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty)) = EarnViewModel(
-        getAssetInfo = getAssetInfo,
+        getCurrentWalletId = getCurrentWalletId,
+        assetQuery = assetQuery,
         delegationsQuery = mockk<DelegationsQuery> {
             every { this@mockk(any(), asset.id, StakeProviderType.Earn) } returns flowOf(positions)
         },

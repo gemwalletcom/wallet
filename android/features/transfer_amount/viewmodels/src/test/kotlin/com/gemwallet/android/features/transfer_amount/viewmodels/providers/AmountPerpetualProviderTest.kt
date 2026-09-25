@@ -1,12 +1,14 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPosition
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import io.mockk.every
@@ -80,8 +82,12 @@ class AmountPerpetualProviderTest {
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
         autoclose: (UByte) -> GemPerpetualAutoclose = { GemPerpetualAutoclose(takeProfit = null, stopLoss = null) },
     ): AmountPerpetualProvider {
-        val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
-            every { this@mockk.invoke(any()) } returns flowOf(null)
+        val walletId = mockWalletId()
+        val getCurrentWalletId = mockk<GetCurrentWalletId> {
+            every { this@mockk.invoke() } returns flowOf(walletId)
+        }
+        val assetQuery = mockk<AssetQuery> {
+            every { this@mockk.invoke(walletId.id, any()) } returns flowOf(null)
         }
         val service = mockk<GemAmountServiceInterface> {
             every { perpetualLeverageSelection(any()) } returns GemLeverageSelection(
@@ -102,7 +108,8 @@ class AmountPerpetualProviderTest {
             params = mockAmountParamsPerpetual(positionAction),
             context = mockk(relaxed = true),
             service = service,
-            getAssetInfo = getAssetInfo,
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
             perpetualQuery = perpetualQuery,
             scope = scope,
         )

@@ -10,11 +10,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.toGem
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.gemConfig
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -79,7 +80,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapViewModel @Inject constructor(
-    private val getAssetInfo: GetAssetInfo,
+    private val getCurrentWalletId: GetCurrentWalletId,
+    private val assetQuery: AssetQuery,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
@@ -118,11 +120,11 @@ class SwapViewModel @Inject constructor(
         .map { it?.toAssetId() }
 
     val payAsset = payAssetIdFlow
-        .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
+        .flatMapLatest { assetId -> assetId?.let { assetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val receiveAsset = receiveAssetIdFlow
-        .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
+        .flatMapLatest { assetId -> assetId?.let { assetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val quoteInput: StateFlow<GemSwapQuoteInput?> = session.map { it.input }
@@ -327,6 +329,8 @@ class SwapViewModel @Inject constructor(
             .getOrNull()
             ?.forEach { Log.e(TAG, "pair refresh failed at ${it.step}: ${it.message}") }
     }
+
+    private fun assetInfo(assetId: AssetId) = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
 
     private fun onQuoteFetchStarted(requestKey: GemSwapRequest) {
         session.update { it.onFetchStarted(requestKey) }

@@ -3,12 +3,9 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetLinks
-import com.gemwallet.android.application.assets.cases.GetAssetMarket
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
+import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
@@ -16,17 +13,14 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemSocialLink
+import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockPriceAlert
-import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PriceAlertData
+import com.wallet.core.primitives.PriceData
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -59,20 +53,15 @@ class AssetChartViewModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
-    private val linksFlow = MutableStateFlow<List<AssetLink>>(emptyList())
-    private val marketFlow = MutableStateFlow<AssetMarket?>(null)
+    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList()))
     private val currencyFlow = MutableStateFlow(Currency.USD)
 
-    private val getAssetTokenInfo = mockk<GetAssetTokenInfo>(relaxed = true)
-    private val getAssetLinks = mockk<GetAssetLinks>(relaxed = true)
-    private val getAssetMarket = mockk<GetAssetMarket>(relaxed = true)
+    private val priceQuery = mockk<PriceQuery>(relaxed = true)
     private val walletAssetsFlow = MutableStateFlow<List<AssetInfo>>(emptyList())
     private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
         every { this@mockk.invoke() } returns walletAssetsFlow
     }
     private val chartService = mockk<GemChartServiceInterface>(relaxed = true)
-    private val priceAlertsQuery = mockk<PriceAlertsQuery>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
@@ -80,10 +69,7 @@ class AssetChartViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { getAssetTokenInfo(asset.id) } returns assetInfoFlow
-        every { getAssetLinks(asset.id) } returns linksFlow
-        every { getAssetMarket(asset.id) } returns marketFlow
-        every { priceAlertsQuery(asset.id) } returns MutableStateFlow<List<PriceAlertData>>(emptyList())
+        every { priceQuery(asset.id) } returns priceDataFlow
         coEvery { chartService.sections(any(), any(), any(), any(), any()) } returns emptyList()
     }
 
@@ -128,8 +114,7 @@ class AssetChartViewModelTest {
             section(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1234.0), null))),
             section(listOf(GemListRow.Social(listOf(mockGemSocialLink()))), GemListSectionTitle.SOCIAL_LINKS),
         )
-        linksFlow.value = listOf(link)
-        marketFlow.value = market
+        priceDataFlow.value = priceDataFlow.value?.copy(market = market, links = listOf(link))
         currencyFlow.value = Currency.EUR
 
         val sections = viewModel.sections.first { it.size == 2 }
@@ -141,8 +126,7 @@ class AssetChartViewModelTest {
     @Test
     fun `the stored price and alerts reach core untouched`() = runTest(testDispatcher) {
         val alert = mockPriceAlert(assetId = asset.id)
-        assetInfoFlow.value = mockAssetInfo(asset = asset).copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 2.5)))
-        every { priceAlertsQuery(asset.id) } returns MutableStateFlow(listOf(mockk<PriceAlertData> { every { priceAlert } returns alert }))
+        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), links = emptyList())
 
         createViewModel()
         advanceUntilIdle()
@@ -151,12 +135,9 @@ class AssetChartViewModelTest {
     }
 
     private fun createViewModel(): AssetChartViewModel = AssetChartViewModel(
-        getAssetTokenInfo = getAssetTokenInfo,
-        getAssetLinks = getAssetLinks,
-        getAssetMarket = getAssetMarket,
+        priceQuery = priceQuery,
         getWalletAssets = getWalletAssets,
         chartService = chartService,
-        priceAlertsQuery = priceAlertsQuery,
         getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = testDispatcher,
         assetId = asset.id,

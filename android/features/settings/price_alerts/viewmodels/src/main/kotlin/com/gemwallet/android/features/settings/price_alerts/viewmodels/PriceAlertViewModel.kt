@@ -6,7 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.errorText
@@ -57,7 +58,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PriceAlertViewModel @Inject constructor(
     priceAlertsQuery: PriceAlertsQuery,
-    private val getAssetTokenInfo: GetAssetTokenInfo,
+    private val getCurrentWalletId: GetCurrentWalletId,
+    private val assetQuery: AssetQueryOptional,
     private val service: GemPriceAlertServiceInterface,
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
@@ -73,7 +75,7 @@ class PriceAlertViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetInfo = assetId.flatMapLatest { id ->
-        if (id != null) getAssetTokenInfo(id) else flowOf(null)
+        if (id != null) assetInfo(id) else flowOf(null)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -170,9 +172,11 @@ class PriceAlertViewModel @Inject constructor(
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(ioDispatcher) {
         setAutoAlert(assetId, true)
 
-        val assetInfo = getAssetTokenInfo(assetId).firstOrNull() ?: return@launch
+        val assetInfo = assetInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }
     }
+
+    private fun assetInfo(assetId: AssetId) = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
 
     private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
         runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }

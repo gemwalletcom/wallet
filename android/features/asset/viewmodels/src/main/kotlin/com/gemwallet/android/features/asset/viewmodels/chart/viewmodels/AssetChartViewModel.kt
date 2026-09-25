@@ -4,20 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetLinks
-import com.gemwallet.android.application.assets.cases.GetAssetMarket
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
+import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.AssetMarket
-import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.PriceData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemListSection
@@ -32,12 +28,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AssetChartViewModel internal constructor(
-    getAssetTokenInfo: GetAssetTokenInfo,
-    getAssetLinks: GetAssetLinks,
-    getAssetMarket: GetAssetMarket,
+    priceQuery: PriceQuery,
     getWalletAssets: GetWalletAssets,
     private val chartService: GemChartServiceInterface,
-    priceAlertsQuery: PriceAlertsQuery,
     getCurrentCurrency: GetCurrentCurrency,
     private val ioDispatcher: CoroutineDispatcher,
     val assetId: AssetId,
@@ -45,54 +38,42 @@ class AssetChartViewModel internal constructor(
 
     private val storedAssetInfo: AssetInfo? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
-    private val assetInfo = getAssetTokenInfo(assetId)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, storedAssetInfo)
+    private val priceData = priceQuery(assetId)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    private val links = getAssetLinks(assetId)
-    private val market = getAssetMarket(assetId)
-    private val priceAlerts = priceAlertsQuery(assetId).map { alerts -> alerts.map { it.priceAlert } }
-
-    val title = assetInfo
+    val title = priceData
         .map { it?.asset?.name.orEmpty() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, storedAssetInfo?.asset?.name.orEmpty())
 
-    val sections = combine(assetInfo, links, market, priceAlerts, getCurrentCurrency.getCurrency()) { info, assetLinks, assetMarket, alerts, _ ->
-        sections(info, assetLinks, assetMarket, alerts)
-    }
+    val sections = combine(priceData, getCurrentCurrency.getCurrency()) { data, _ -> sections(data) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private suspend fun sections(assetInfo: AssetInfo?, links: List<AssetLink>, market: AssetMarket?, priceAlerts: List<PriceAlert>): List<GemListSection> = assetInfo?.let {
+    private suspend fun sections(data: PriceData?): List<GemListSection> = data?.let {
         runCatchingCancellable {
             chartService.sections(
                 asset = it.asset.toGem(),
-                price = it.price?.price?.price,
-                market = market?.toGem(),
-                priceAlerts = priceAlerts.map { alert -> alert.toGem() },
-                links = links.map { link -> link.toGem() },
+                price = it.price?.price,
+                market = it.market?.toGem(),
+                priceAlerts = it.priceAlerts.map { alert -> alert.toGem() },
+                links = it.links.map { link -> link.toGem() },
             )
         }.getOrNull()
     }.orEmpty()
 
     @Inject
     constructor(
-        getAssetTokenInfo: GetAssetTokenInfo,
-        getAssetLinks: GetAssetLinks,
-        getAssetMarket: GetAssetMarket,
+        priceQuery: PriceQuery,
         getWalletAssets: GetWalletAssets,
         chartService: GemChartServiceInterface,
-        priceAlertsQuery: PriceAlertsQuery,
         getCurrentCurrency: GetCurrentCurrency,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        getAssetTokenInfo = getAssetTokenInfo,
-        getAssetLinks = getAssetLinks,
-        getAssetMarket = getAssetMarket,
+        priceQuery = priceQuery,
         getWalletAssets = getWalletAssets,
         chartService = chartService,
-        priceAlertsQuery = priceAlertsQuery,
         getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = ioDispatcher,
         assetId = savedStateHandle.requireAssetId(),

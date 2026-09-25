@@ -2,9 +2,10 @@ package com.gemwallet.android.features.stake.viewmodels
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toIdentifier
@@ -13,9 +14,10 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.StakeProviderType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -50,8 +52,12 @@ class StakeViewModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val delegation = mockDelegation(assetId = asset.id, balance = BigInteger("77"))
 
-    private val getAssetInfo = mockk<GetAssetInfo> {
-        every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+    private val walletId = mockWalletId()
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> {
+        every { this@mockk() } returns flowOf(walletId)
+    }
+    private val assetQuery = mockk<AssetQuery> {
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
     private val getWalletAssets = mockk<GetWalletAssets> {
         every { this@mockk() } returns MutableStateFlow(emptyList())
@@ -95,7 +101,8 @@ class StakeViewModelTest {
         coEvery { stakeService.refresh(asset.id.chain.string, any()) } returns GemLoadState.Error(offline)
 
         val viewModel = StakeViewModel(
-            getAssetInfo = getAssetInfo,
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
             getWalletAssets = getWalletAssets,
             delegationsQuery = delegationsQuery,
             validatorsQuery = validatorsQuery,

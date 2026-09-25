@@ -1777,7 +1777,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
 | `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
-| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` | `ChartViewModel` |
+| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel`, `AssetChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmViewModel` |
 | `GemContactService` | — | `ContactsViewModel` | `ContactsViewModel` |

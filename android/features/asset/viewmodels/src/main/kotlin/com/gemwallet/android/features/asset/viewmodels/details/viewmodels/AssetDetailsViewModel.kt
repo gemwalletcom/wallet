@@ -6,14 +6,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -72,7 +73,8 @@ import javax.inject.Inject
 class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
-    private val getChainAssetInfo: GetChainAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    chainAssetQuery: ChainAssetQuery,
     private val getWalletAssets: GetWalletAssets,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
@@ -109,7 +111,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    private val chainAssetInfo = getChainAssetInfo(assetId)
+    private val chainAssetInfo = getCurrentWalletId().flatMapLatest { walletId -> chainAssetQuery(walletId.id, assetId) }
         .onStart { restartAssetSync() }
         .filterNotNull()
         .flowOn(ioDispatcher)

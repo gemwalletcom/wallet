@@ -8,7 +8,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PriceAlertInfo
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.PriceAlertDirection
@@ -35,10 +34,6 @@ fun DbPriceAlertWithAsset.toDTO(): PriceAlertData? = asset.toDTO()?.let {
         priceAlert = alert.toDTO().priceAlert,
         rankScore = asset.rank,
     )
-}
-
-private fun DbPrice.toPrice(): Price? = value?.takeIf { it > 0 }?.let {
-    Price(price = it, priceChangePercentage24h = dayChanged ?: 0.0, updatedAt = updatedAt ?: 0)
 }
 
 fun DbPriceAlert.toDTO(): PriceAlertInfo = PriceAlertInfo(

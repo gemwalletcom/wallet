@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.gemwallet.android.data.services.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.store.database.entities.DbPriceInfo
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 
@@ -43,6 +44,10 @@ interface PricesDao {
 
     @Query("SELECT value FROM prices WHERE asset_id = :assetId LIMIT 1")
     fun getPrice(assetId: String): Flow<Double?>
+
+    @Transaction
+    @Query("SELECT * FROM asset WHERE id = :assetId")
+    fun getPriceInfo(assetId: String): Flow<DbPriceInfo?>
 
     @Query("DELETE FROM prices")
     suspend fun deleteAll()

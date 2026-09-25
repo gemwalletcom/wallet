@@ -6,8 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toAssetId
@@ -52,7 +53,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class EarnViewModel @Inject constructor(
-    getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     delegationsQuery: DelegationsQuery,
     validatorsQuery: ValidatorsQuery,
     private val stakeService: GemStakeServiceInterface,
@@ -65,7 +67,7 @@ class EarnViewModel @Inject constructor(
     private val assetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
         ?: error("Missing assetId")
 
-    val assetInfo = getAssetInfo(assetId)
+    val assetInfo = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

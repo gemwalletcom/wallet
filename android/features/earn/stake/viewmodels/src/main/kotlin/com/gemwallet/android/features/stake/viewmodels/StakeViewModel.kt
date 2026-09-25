@@ -6,9 +6,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.asset.chain
@@ -57,7 +58,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakeViewModel @Inject constructor(
-    private val getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     private val getWalletAssets: GetWalletAssets,
     private val delegationsQuery: DelegationsQuery,
     private val validatorsQuery: ValidatorsQuery,
@@ -75,7 +77,7 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 
     val assetInfo = assetId
-        .flatMapLatest { getAssetInfo(it) }
+        .flatMapLatest { assetId -> getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, getWalletAssets().value.firstOrNull { it.asset.id == initialAssetId })
 
     private val session = getSession()

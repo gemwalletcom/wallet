@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
@@ -39,6 +40,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -69,7 +71,10 @@ class AssetDetailsViewModelTest {
     private val banners = MutableSharedFlow<List<Banner>>(replay = 1)
     private val priceAlerts = MutableSharedFlow<List<PriceAlertData>>(replay = 1)
 
-    private val getChainAssetInfo = mockk<GetChainAssetInfo>(relaxed = true)
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> {
+        every { this@mockk() } returns flowOf(mockSession().wallet.id)
+    }
+    private val chainAssetQuery = mockk<ChainAssetQuery>(relaxed = true)
     private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
         every { this@mockk.invoke() } returns MutableStateFlow(emptyList())
     }
@@ -82,7 +87,7 @@ class AssetDetailsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { getChainAssetInfo(asset.id) } returns chainAssetInfoFlow
+        every { chainAssetQuery(mockSession().wallet.id.id, asset.id) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any()) } returns emptyList()
@@ -133,7 +138,8 @@ class AssetDetailsViewModelTest {
     private fun createViewModel(ioDispatcher: CoroutineDispatcher = testDispatcher): AssetDetailsViewModel = AssetDetailsViewModel(
         getSession = getSession,
         savedStateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
-        getChainAssetInfo = getChainAssetInfo,
+        getCurrentWalletId = getCurrentWalletId,
+        chainAssetQuery = chainAssetQuery,
         getWalletAssets = getWalletAssets,
         getTransactions = getTransactions,
         assetDetailsService = service,

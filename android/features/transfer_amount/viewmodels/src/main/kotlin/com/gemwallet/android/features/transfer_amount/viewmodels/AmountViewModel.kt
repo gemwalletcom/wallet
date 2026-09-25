@@ -9,8 +9,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorQuery
@@ -78,7 +79,8 @@ import javax.inject.Inject
 class AmountViewModel @Inject constructor(
     private val service: GemAmountServiceInterface,
     stakeService: GemStakeServiceInterface,
-    getAssetInfo: GetAssetInfo,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQuery,
     perpetualQuery: PerpetualQuery,
     delegationQuery: DelegationQuery,
     validatorQuery: ValidatorQuery,
@@ -93,10 +95,10 @@ class AmountViewModel @Inject constructor(
 
     private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
 
-    val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getAssetInfo, perpetualQuery, viewModelScope) }
+    val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getCurrentWalletId, assetQuery, perpetualQuery, viewModelScope) }
 
     private val assetInfo: StateFlow<AssetInfo?> = perpetualProvider?.assetInfo
-        ?: getAssetInfo(params.assetId)
+        ?: getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, params.assetId) }
             .flowOn(ioDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

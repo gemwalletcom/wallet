@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
@@ -18,6 +19,7 @@ import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemValidatorRow
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -75,7 +77,9 @@ class AmountViewModelTest {
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
         every { stakeAmountSelection(any(), any()) } returns GemStakeAmountSelection.Validator(mockGemValidatorRow(mockDelegationValidator(chain = Chain.Cosmos)), true)
     }
-    private val getAssetInfo = mockk<GetAssetInfo> { every { this@mockk.invoke(any()) } returns assetInfoFlow }
+    private val walletId = mockWalletId()
+    private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk.invoke() } returns flowOf(walletId) }
+    private val assetQuery = mockk<AssetQuery> { every { this@mockk.invoke(walletId.id, any()) } returns assetInfoFlow }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -219,7 +223,8 @@ class AmountViewModelTest {
         val viewModel = AmountViewModel(
             service = service,
             stakeService = stakeService,
-            getAssetInfo = getAssetInfo,
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
             perpetualQuery = mockk(relaxed = true),
             delegationQuery = mockk(relaxed = true),
             validatorQuery = mockk(relaxed = true),
