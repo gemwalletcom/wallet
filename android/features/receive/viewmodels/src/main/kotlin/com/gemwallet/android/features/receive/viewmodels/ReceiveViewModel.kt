@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
+import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemCopy
@@ -43,7 +46,7 @@ import uniffi.gemstone.addressCopy
 @HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
 class ReceiveViewModel @AssistedInject constructor(
     @Assisted private val sourceAssetId: AssetId,
-    private val getReceiveAssetInfo: GetReceiveAssetInfo,
+    private val assetQuery: AssetQueryOptional,
     private val getWalletAssets: GetWalletAssets,
     private val service: GemReceiveServiceInterface,
     getSession: GetSession,
@@ -55,7 +58,17 @@ class ReceiveViewModel @AssistedInject constructor(
     private val session = getSession()
 
     val asset = selectedAssetId
-        .flatMapLatest { getReceiveAssetInfo(it) }
+        .flatMapLatest { assetId ->
+            session.filterNotNull().flatMapLatest { session ->
+                assetQuery(session.wallet.id.id, assetId).map { info ->
+                    if (info?.owner == null) {
+                        info?.copy(owner = session.wallet.getAccount(info.asset.chain))
+                    } else {
+                        info
+                    }
+                }
+            }
+        }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, storedAsset(sourceAssetId))
 

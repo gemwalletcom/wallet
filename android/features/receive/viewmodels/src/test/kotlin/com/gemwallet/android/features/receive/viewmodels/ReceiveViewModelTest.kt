@@ -2,8 +2,8 @@ package com.gemwallet.android.features.receive.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAccount
@@ -59,14 +59,14 @@ class ReceiveViewModelTest {
     )
 
     private fun receiveModel(service: GemReceiveServiceInterface, assets: Map<com.wallet.core.primitives.AssetId, AssetInfo> = mapOf(bitcoin.id to mockAssetInfo(asset = bitcoin))): ReceiveViewModel {
-        val info: GetReceiveAssetInfo = mockk {
-            every { this@mockk.invoke(any()) } answers { flowOf(assets[firstArg()]) }
+        val assetQuery: AssetQueryOptional = mockk {
+            every { this@mockk.invoke(wallet.id.id, any()) } answers { flowOf(assets[secondArg()]) }
         }
         val walletAssets: GetWalletAssets = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(assets.values.toList())
         }
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
-        return ReceiveViewModel(bitcoin.id, info, walletAssets, service, session, dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        return ReceiveViewModel(bitcoin.id, assetQuery, walletAssets, service, session, dispatcher, mockk(relaxed = true)).also { models.add(it) }
     }
 
     @Test
@@ -97,6 +97,17 @@ class ReceiveViewModelTest {
         model.selectAsset(ethereum.id)
 
         assertEquals(ethereum.id, model.asset.first { it?.asset?.id == ethereum.id }?.asset?.id)
+    }
+
+    @Test
+    fun `an asset without a stored account receives on the session wallet account`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), standard = null)), showsSelector = false)
+        }
+        val model = receiveModel(service, assets = mapOf(bitcoin.id to mockAssetInfo(asset = bitcoin, owner = null)))
+
+        assertEquals("bc1q", model.asset.first { it?.owner != null }?.owner?.address)
+        assertEquals("bc1q", model.shareAddress())
     }
 
     @Test
