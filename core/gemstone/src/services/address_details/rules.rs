@@ -157,6 +157,10 @@ fn balance_rows(chain: Chain, coin: AssetBalance, stake: Option<AssetBalance>) -
 }
 
 fn balance_section(details: &GemAddressDetails, asset: &Asset) -> Vec<GemListRow> {
+    match details.address_type {
+        Some(AddressType::Address) => {}
+        Some(AddressType::Contract | AddressType::Asset | AddressType::Validator | AddressType::Contact | AddressType::InternalWallet) | None => return Vec::new(),
+    }
     match &details.state {
         GemLoadState::Loading => vec![GemListRow::Loading],
         GemLoadState::NoData | GemLoadState::Data | GemLoadState::Error { .. } => details
@@ -206,17 +210,20 @@ mod tests {
 
     #[test]
     fn test_sections_print_every_balance_at_the_asset_decimals() {
-        let details = details(
-            Chain::Ethereum,
-            "0x1".to_string(),
-            BlockExplorerLink::mock(),
-            GemLoad {
-                state: GemLoadState::Data,
-                value: vec![GemBalanceRow::Available {
-                    value: BigUint::from(1_500_000_000_000_000_000u64),
-                }],
-            },
-        );
+        let details = GemAddressDetails {
+            address_type: Some(AddressType::Address),
+            ..details(
+                Chain::Ethereum,
+                "0x1".to_string(),
+                BlockExplorerLink::mock(),
+                GemLoad {
+                    state: GemLoadState::Data,
+                    value: vec![GemBalanceRow::Available {
+                        value: BigUint::from(1_500_000_000_000_000_000u64),
+                    }],
+                },
+            )
+        };
 
         assert_eq!(
             sections(&details, None)[3].rows,
@@ -373,7 +380,7 @@ mod tests {
         );
         assert_eq!(titles(&validator), without_balances);
         assert_eq!(titles(&failed), without_balances);
-        assert_eq!(sections(&loading, None)[3].rows, vec![GemListRow::Loading]);
+        assert_eq!(titles(&loading), without_balances);
         assert_eq!(
             sections(&loading, None)[0].rows,
             vec![GemListRow::Icon {
@@ -381,6 +388,30 @@ mod tests {
                 image_url: None
             }]
         );
+    }
+
+    #[test]
+    fn test_only_a_plain_address_shows_balances() {
+        let available = vec![GemBalanceRow::Available { value: BigUint::from(1u32) }];
+        let loaded = |address_type: AddressType| GemAddressDetails {
+            address_type: Some(address_type),
+            state: GemLoadState::Data,
+            balances: available.clone(),
+            ..details(Chain::Ethereum, "0x1".to_string(), BlockExplorerLink::mock(), GemLoad::loading())
+        };
+        let has_balances = |details: &GemAddressDetails, address_name: Option<&AddressName>| sections(details, address_name).iter().any(|section| section.title == GemListSectionTitle::Balances);
+        let contact = AddressName::mock("0x1", "John Smith", AddressType::Contact, VerificationStatus::Verified);
+        let refreshing = GemAddressDetails {
+            state: GemLoadState::Loading,
+            ..loaded(AddressType::Address)
+        };
+
+        assert!(has_balances(&loaded(AddressType::Address), None));
+        assert!(has_balances(&loaded(AddressType::Address), Some(&contact)));
+        assert_eq!(sections(&refreshing, None)[3].rows, vec![GemListRow::Loading]);
+        for address_type in [AddressType::Contract, AddressType::Asset, AddressType::Validator, AddressType::Contact, AddressType::InternalWallet] {
+            assert!(!has_balances(&loaded(address_type), None));
+        }
     }
 
     #[test]
