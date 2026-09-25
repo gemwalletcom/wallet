@@ -78,7 +78,6 @@ fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>,
 fn header_asset(transfer: &GemTransferData) -> Asset {
     match &transfer.input_type {
         TransactionInputType::Withdrawal { .. } => GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset(),
-        TransactionInputType::Perpetual { perpetual_type, .. } => perpetual_type.base_asset().clone(),
         _ => transfer.input_type.get_asset().clone(),
     }
 }
@@ -115,7 +114,7 @@ fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransaction
 
 #[cfg(test)]
 mod tests {
-    use primitives::{ApprovalData, NFTAsset, PaymentInvoice, TransferDataExtra};
+    use primitives::{ApprovalData, Chain, NFTAsset, PaymentInvoice, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransferDataExtra};
 
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
@@ -174,6 +173,34 @@ mod tests {
             panic!("a withdrawal reads as an amount")
         };
         assert_eq!(amount.asset, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset());
+    }
+
+    #[test]
+    fn test_a_perpetual_shows_the_market_asset_rather_than_its_collateral() {
+        let market = Asset {
+            id: AssetId::from_token(Chain::HyperCore, "perpetual::BTC"),
+            symbol: "BTC".to_string(),
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+        let header = header(
+            &transfer(TransactionInputType::Perpetual {
+                asset: market.clone(),
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                },
+            }),
+            None,
+            None,
+            Currency::USD,
+            &ready(),
+        );
+
+        assert_eq!(
+            header,
+            GemConfirmHeader::Transaction {
+                header: GemTransactionHeader::Symbol { asset: market }
+            }
+        );
     }
 
     #[test]
