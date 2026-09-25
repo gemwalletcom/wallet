@@ -11,10 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.application.swap.cases.toGem
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.gemConfig
@@ -25,12 +21,12 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteRequestParams
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
-import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
 import com.gemwallet.android.ui.components.swap.uiModel
@@ -43,6 +39,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,14 +50,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemPercentageStyle
@@ -69,6 +73,7 @@ import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteInput
 import uniffi.gemstone.GemSwapQuoteServiceInterface
+import uniffi.gemstone.GemSwapQuotesResult
 import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
@@ -82,7 +87,6 @@ import javax.inject.Inject
 class SwapViewModel @Inject constructor(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val assetQuery: AssetQuery,
-    requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -141,14 +145,33 @@ class SwapViewModel @Inject constructor(
         .distinctUntilChangedBy { it?.key }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val quoteResults = requestSwapQuotes(
-        requestParams = quoteRequestParams,
-        refreshRequests = refreshRequests,
-        refreshEnabled = quoteRefreshEnabled,
-        onFetchStarted = ::onQuoteFetchStarted,
-        refreshIntervalMillis = GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds,
-        debounceMillis = GemConstants.swapQuoteDebounce.inWholeMilliseconds,
-    )
+    private val quoteResults = quoteRequestParams
+        .flatMapLatest { params ->
+            if (params == null) {
+                return@flatMapLatest flowOf<GemSwapQuotesResult?>(null)
+            }
+
+            quoteRefreshEnabled.flatMapLatest { isEnabled ->
+                if (!isEnabled) {
+                    return@flatMapLatest emptyFlow()
+                }
+
+                merge(flowOf(Unit), refreshRequests)
+                    .transformLatest {
+                        while (currentCoroutineContext().isActive) {
+                            delay(GemConstants.swapQuoteDebounce)
+                            onQuoteFetchStarted(params.key)
+                            val results = requestQuotes(params)
+                            emit(results)
+                            if (results.error != null) {
+                                break
+                            }
+                            delay(GemConstants.swapQuoteRefreshInterval)
+                        }
+                    }
+            }
+        }
+        .flowOn(ioDispatcher)
 
     private val currency = swapQuoteService.getCurrency()
 
@@ -336,9 +359,23 @@ class SwapViewModel @Inject constructor(
         session.update { it.onFetchStarted(requestKey) }
     }
 
-    private fun onQuoteResults(results: SwapQuotesResult?) {
+    private suspend fun requestQuotes(params: SwapQuoteRequestParams): GemSwapQuotesResult = try {
+        val quotes = swapQuoteService.getQuotes(
+            fromAsset = params.pay.asset.toGem(),
+            toAsset = params.receive.asset.toGem(),
+            value = params.input.request.value,
+            useMaxAmount = params.input.useMaxAmount,
+            slippageBps = params.input.request.slippageBps,
+        )
+        currentCoroutineContext().ensureActive()
+        GemSwapQuotesResult(request = params.key, quotes = quotes, error = null)
+    } catch (err: SwapperException) {
+        GemSwapQuotesResult(request = params.key, quotes = emptyList(), error = err)
+    }
+
+    private fun onQuoteResults(results: GemSwapQuotesResult?) {
         results ?: return
-        session.update { it.onQuoteResults(results.toGem()) }
+        session.update { it.onQuoteResults(results) }
     }
 
     private fun setPayValue(amount: BigInteger) {
