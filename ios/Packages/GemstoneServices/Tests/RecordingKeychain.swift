@@ -69,6 +69,14 @@ struct RecordingKeychain: Keychain {
         storage.set(value, key: key, accessibility: itemAccessibility)
     }
 
+    func add(_ value: String, key: String, ignoringAttributeSynchronizable _: Bool) throws -> Bool {
+        guard storage.value(for: key) == nil else {
+            return false
+        }
+        storage.set(Data(value.utf8), key: key, accessibility: itemAccessibility)
+        return true
+    }
+
     func remove(_ key: String, ignoringAttributeSynchronizable _: Bool) throws {
         storage.remove(key: key)
     }

@@ -8,6 +8,7 @@ import Primitives
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
+    public private(set) var passwordAuthentication: KeystoreAuthentication = .none
     public var getAuthenticationError: (any Error)?
     public var getPrivacyLockStatusError: (any Error)?
 
@@ -31,8 +32,17 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         self.lockPeriod = lockPeriod
     }
 
-    public func setPassword(_ password: String, authentication _: KeystoreAuthentication) throws {
+    public func setPassword(_ password: String, authentication: KeystoreAuthentication) throws {
         memoryPassword = password
+        passwordAuthentication = authentication
+    }
+
+    public func createPassword(_ password: String, authentication: KeystoreAuthentication) throws -> String {
+        if memoryPassword.isNotEmpty {
+            return memoryPassword
+        }
+        try setPassword(password, authentication: authentication)
+        return password
     }
 
     public func getPassword() throws -> String {

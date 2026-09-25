@@ -126,6 +126,24 @@ public final class KeychainDefault: Keychain {
         }
     }
 
+    public func add(_ value: String, key: String, ignoringAttributeSynchronizable _: Bool = true) throws -> Bool {
+        guard let data = value.data(using: .utf8, allowLossyConversion: false) else {
+            throw Status.conversionError
+        }
+        var (attributes, error) = options.attributes(key: key, value: data)
+        if let error {
+            throw error
+        }
+        options.attributes.forEach { attributes.updateValue($1, forKey: $0) }
+
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+        switch status {
+        case errSecSuccess: return true
+        case errSecDuplicateItem: return false
+        default: throw securityError(status: status)
+        }
+    }
+
     // MARK: - Public (remove) methods
 
     public func remove(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws {

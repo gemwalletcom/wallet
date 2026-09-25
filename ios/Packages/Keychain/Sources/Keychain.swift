@@ -13,6 +13,7 @@ public protocol Keychain: Sendable {
 
     func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool) throws
     func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool) throws
+    func add(_ value: String, key: String, ignoringAttributeSynchronizable: Bool) throws -> Bool
 
     func remove(_ key: String, ignoringAttributeSynchronizable: Bool) throws
 }
@@ -36,6 +37,10 @@ public extension Keychain {
 
     func set(_ value: Data, key: String) throws {
         try set(value, key: key, ignoringAttributeSynchronizable: true)
+    }
+
+    func add(_ value: String, key: String) throws -> Bool {
+        try add(value, key: key, ignoringAttributeSynchronizable: true)
     }
 
     func remove(_ key: String) throws {
