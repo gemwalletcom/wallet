@@ -69,9 +69,9 @@ struct ConfirmSubmissionTests {
 
         let state = model.state.simulation
 
-        #expect(state.payload.primaryFields.count == 1)
-        #expect(state.payload.primaryFields.first?.title == .contract)
-        #expect(state.payload.secondaryFields.isEmpty)
+        #expect(state.primaryFields.count == 1)
+        #expect(state.primaryFields.first?.title == .contract)
+        #expect(state.secondaryFields.isEmpty)
     }
 
     @Test

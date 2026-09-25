@@ -45,3 +45,26 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
         }
     }
 }
+
+public extension SimulationPayloadFieldViewModel {
+    static func models(
+        for rows: [GemSimulationPayloadRow],
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)? = nil,
+    ) -> [SimulationPayloadFieldViewModel] {
+        rows.map { row -> SimulationPayloadFieldViewModel in
+            guard case let .address(_, copy, explorer) = row.value else {
+                return SimulationPayloadFieldViewModel(row: row)
+            }
+            let address = copy.value
+            var onSelect: (@MainActor @Sendable () -> Void)?
+            if let onSelectAddress {
+                onSelect = { onSelectAddress(address) }
+            }
+            return SimulationPayloadFieldViewModel(
+                row: row,
+                kind: .address(ExplorerContextData(copyValue: copy.copyValue, explorerLink: explorer.toPrimitives())),
+                onSelect: onSelect,
+            )
+        }
+    }
+}

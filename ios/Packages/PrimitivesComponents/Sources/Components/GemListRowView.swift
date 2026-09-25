@@ -106,7 +106,7 @@ public struct GemListRowView: View {
             ListItemView(model: model)
                 .contextMenu(copy.map { [.copy(value: $0)] } ?? [])
         case let .social(links):
-            SocialLinksView(model: SocialLinksViewModel(links: links))
+            SocialLinksView(links: links)
         case let .icon(assetImage):
             AssetImageView(assetImage: assetImage, size: .image.semiLarge)
                 .frame(maxWidth: .infinity)

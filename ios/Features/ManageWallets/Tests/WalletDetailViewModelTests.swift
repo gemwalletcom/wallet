@@ -28,7 +28,7 @@ struct WalletDetailViewModelTests {
     func aMulticoinWalletHasNoSingleAddressRow() {
         let model = WalletDetailViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
 
-        #expect(model.address == nil)
+        #expect(model.addressModel == nil)
     }
 
     @Test
@@ -36,13 +36,9 @@ struct WalletDetailViewModelTests {
         let account = Account.mock(chain: .ethereum, address: "0xabc")
         let model = WalletDetailViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
 
-        let address = try #require(model.address)
-        guard case let .account(simple, link) = address else {
-            Issue.record("expected an account address, got \(address)")
-            return
-        }
-        #expect(simple.address == "0xabc")
-        #expect(link.url.absoluteString.contains("0xabc"))
+        let address = try #require(model.addressModel)
+        #expect(address.account.address == "0xabc")
+        #expect(address.addressExplorerUrl.absoluteString.contains("0xabc"))
     }
 
     @Test

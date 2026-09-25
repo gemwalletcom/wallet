@@ -527,19 +527,21 @@ pub struct GemWalletDetails {
 }
 ```
 
-Android's `WalletDetailsAggregateImpl(details)` and iOS's `WalletDetailViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
+Android's `GemWalletDetails.uiModel()` and iOS's `WalletDetailViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
 
 ```kotlin
-class WalletDetailsAggregateImpl(details: GemWalletDetails) : WalletDetailsAggregate {
-    override val row: GemWalletRow = details.row
-    override val address: ChainAddress? = details.address?.toPrimitives()
-}
+internal fun GemWalletDetails.uiModel() = WalletDetailsUIModel(
+    walletId = WalletId(row.id),
+    name = row.name,
+    address = address?.toPrimitives(),
+    addressExplorer = addressExplorer?.toPrimitives(),
+)
 ```
 
 ```swift
-var address: WalletDetailAddress? {
-    guard let account = details.address?.toPrimitives() else { return .none }
-    return .account(SimpleAccount(chain: account.chain, address: account.address), link: ...)
+var addressModel: AddressListItemViewModel? {
+    guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
+    return AddressListItemViewModel(title: Localized.Common.address, account: SimpleAccount(...), mode: .auto(addressStyle: .short), addressLink: link)
 }
 ```
 
@@ -1781,7 +1783,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemDeveloperService` | — | `DeveloperViewModel` | `DevelopViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemContactEditorService` | — | `ContactEditorViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
-| `GemNftService` | — | `CollectionsViewModel`, `CollectionViewModel`, `UnverifiedCollectionsViewModel` | `NftListViewModels` |
+| `GemNftService` | — | `CollectionsViewModel` | `NftListViewModels` |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsViewModel` | `DevicePushSettings` (the push cases `SettingsViewModel` calls) |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |

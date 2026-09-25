@@ -19,14 +19,13 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Pass-throughs:** VM175.
-2. **Derive once:** VM178, VM179.
-3. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
-4. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
-5. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-6. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-7. **Balances and storage:** D76, D77, VM98 (an Android migration).
-8. **Server:** BD23, BD51, BD52.
+1. **Derive once:** VM178, VM179.
+2. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+3. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+4. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+5. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+6. **Balances and storage:** D76, D77, VM98 (an Android migration).
+7. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -37,14 +36,14 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM175 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM175 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM175, VM178 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM178 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM167, VM178, BD64 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
-| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69, VM175; retain existing native QR/share adapters |
+| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM128 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM124, VM125, VM179 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM102, VM129, VM144, VM145, VM168, VM170, BD63 |
@@ -55,7 +54,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, VM175, BD62 |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, BD62 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172, VM178 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | BD59 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
@@ -63,7 +62,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM178; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM175, BD59; retain Android-only one-click auth |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | BD59; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
@@ -164,13 +163,6 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** five `ListAssetItemViewable` conformers each map one record to `ListAssetItemRightView`/`ListAssetItemSubtitleView` with their own text styles (`ListAssetItemViewModel`, `PriceAlertItemViewModel`, `PerpetualItemViewModel`, `PerpetualPositionItemViewModel`, `OpenPositionItemViewModel`); `ListAssetItemsViewModel.items()` rebuilds every row per render from the view body (`WalletAssetsList.swift:40`, `SelectAssetScene.swift:101`); `AssetDataViewModel` and `PriceViewModel` are mostly dead weight around it; `FeeAssetItem.swift:28-33` formats the fee-asset balance with `ValueFormatter(.short)` and `fiatEquivalent`. Delete the protocol, its two enums, the five conformers, `AssetDataViewModel` and `FeeAssetItem`'s formatting; `ListAssetItemView` takes the record.
   - **Android:** a mapper per record: `AssetInfoDataAggregate` (which re-derives `isZeroBalance` from the tone that `getBalanceInfo` then re-applies, `AssetItem.kt:165-191`), `PriceAlertItemUIModel` + `PriceAlertListItem`, `PerpetualDataAggregate` (`GetPerpetualsImpl.kt:42-57`), `PerpetualPositionDataAggregate` and its two `listItem`s (`PerpetualPositionListItem.kt:15-35`, one re-deriving the colour Core gives as `direction_tone`), `AmountPerpetualProvider.openPositionListItem`, and `FeeAssetUIModel` (`FeeAssetUIModel.kt:18-35`, BigDecimal math, `ValueFormatter(SHORT)` and its own zero rule). Delete them for one `listItemModel`.
   - The row settles `GemWalletHomeService.asset_row_style` too: the wallet lists hand that constant straight back in every `GemAssetListRowInput`, while the select flows pass their own style (Android's buy list passes the buy flow's), so Core names the style from the list it builds and the export goes.
-- **VM175** **S** **iOS pass-through models collapse into mappers.** Each wraps one Core record or enum and forwards it.
-  - `ScanReceiveModeViewModel` and `modeModels` (use `ScanReceiveMode.allCases`, as Android does); `VerificationStatusViewModel` (the extensions it forwards to already exist); `SocialLinksViewModel`, `AssetLinkViewModel`, `InsightLink` and `DeepLinkViewModel` into one `GemSocialLink` mapper as Android's `uiModel` (the native-app scheme table stays as a private helper); `SimulationPayloadModel` (a static builder over the rows, as Android renders them); `ReceiveNetworkItem` (`AssetId` is already `Identifiable`); `StakeSectionViewModel` (`GemStakeSection: Identifiable`, as `GemDelegationAction` is); `TransactionHeaderItemModel.showClearHeader`, computed twice (`ConfirmHeaderViewModel.swift:31-38`, `TransactionSceneViewModel.swift:100-104`), onto `TransactionHeaderType`; `QRScanResources` (four fixed strings) into `QRScannerSceneViewModel`; `WalletDetailAddress` (one case); the widget's `CoinPriceRowViewModel`; one-line forwarders (`PortfolioSceneViewModel.typeTitle`/`chartTypeTitle`, `SettingsViewModel.destination(for:)`, the two `bannerModel(for:)`).
-  - The header-actions mapping written three times (`WalletHeaderViewModel`, `AssetHeaderViewModel`, `PerpetualsHeaderViewModel`) becomes one `GemHeaderActions` extension, as Android's `GemHeaderActions.uiModel()`; `WalletHeaderViewModel` holds the view state instead of four copied fields.
-  - The three secret display models (`ShowSecretPhraseViewModel`, `ShowPrivateKeyViewModel`, `NewSecretPhraseViewModel`) and `SecretPhraseViewableModel` become one keyed by `GemWalletSecret`, as Android's `WalletSecretContentUIModel`.
-  - The three NFT list models and `CollectionsViewable` (`CollectionsViewModel`, `CollectionViewModel`, `UnverifiedCollectionsViewModel`) become one keyed by `GemNftList` that holds the screen record, as Android's `NftListViewModels`; today `var screen` crosses `listScreen` about eight times per render. BD62 records the one difference.
-  - `SignMessageSceneViewModel` reads `applicationConnectionRow(metadata:)` like the proposal and Android, and the three exports `application_short_name`, `application_host` and `application_icon_url` go; an empty host then shows no subtitle.
-  - `PortfolioSceneViewModel.swift:69` drops its `isPerpetualEnabled` check, which Core's `show_perpetuals` already makes; the warning-emoji image style written three times (`AddAssetSceneViewModel`, `AddNodeSceneViewModel`, `ListItemStyle+Extension.swift`) becomes one.
 - **VM180** **M** **One localization mapper and one style mapper per app.** The owner wants the Core-to-platform mappers in one file per app (2026-09-24); today [ARCHITECTURE § One mapper per module](ARCHITECTURE.md#one-mapper-per-module-names-every-core-key-it-renders) asks for two files per module, so the same Core enum can be mapped in several modules and `just check-mappers` compares module by module. Rewrite that section in the same change.
   - **iOS:** 17 `Gemstone+Localized.swift` files (one per feature, plus `PrimitivesComponents` and `WalletConnectorService`) and 6 `Gemstone+Style.swift` files. They merge into `PrimitivesComponents/Extensions/Gemstone+Localized.swift` and `Gemstone+Style.swift`, which every feature already imports.
   - **Android:** 25 `localization/GemstoneText.kt` files (`ui`, `app` and 23 feature modules) and 4 `style/GemstoneStyle.kt` files. They merge into `ui/localization/GemstoneText.kt` and `ui/style/GemstoneStyle.kt`, where the shared strings already live.
@@ -270,7 +262,7 @@ Differences between the apps, or between an app and the server, each with its de
   - **Android:** uses Core `asset_list_row` (short style, available scope, the device locale) and shows zero (`FiatViewModel.kt:102-111`).
   - **Expected:** both use Core's `asset_list_row` (the device locale; a zero balance shows).
 - **BD62** **S** **A refresh failure on an NFT list that holds only unverified collections.**
-  - **iOS:** counts the unverified row as content, so no error row shows (`CollectionsViewable.swift`, `hasRows: !content.isEmpty`).
+  - **iOS:** counts the unverified row as content, so no error row shows (`CollectionsViewModel.swift`, `hasRows: !content.isEmpty`).
   - **Android:** counts only items and shows the error row (`NftListViewModels.kt`).
   - **Expected:** a failed refresh shows a toast on both and the list stays; no error row while content is on screen. `list_screen` ([`nft/rules.rs`](../core/gemstone/src/services/nft/rules.rs)) answers whether the list has content.
 - **BD63** **S** **Simulation warnings before the confirm load finishes.**

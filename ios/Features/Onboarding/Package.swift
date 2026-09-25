@@ -78,6 +78,8 @@ let package = Package(
                 "Primitives",
                 "Store",
                 "Components",
+                "Localization",
+                "PrimitivesComponents",
             ],
             path: "Tests",
         ),

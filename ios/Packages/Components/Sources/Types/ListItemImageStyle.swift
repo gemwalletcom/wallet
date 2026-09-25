@@ -78,4 +78,13 @@ public extension ListItemImageStyle {
             cornerRadiusType: .none,
         )
     }
+
+    static func emoji(_ emoji: String) -> Self? {
+        ListItemImageStyle(
+            assetImage: AssetImage(type: .emoji(emoji)),
+            imageSize: .image.semiMedium,
+            alignment: .top,
+            cornerRadiusType: .none,
+        )
+    }
 }

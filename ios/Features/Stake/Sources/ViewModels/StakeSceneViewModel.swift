@@ -82,10 +82,6 @@ public final class StakeSceneViewModel {
         )
     }
 
-    func sectionModels(_ state: GemStakeViewState) -> [StakeSectionViewModel] {
-        state.sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
-    }
-
     func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
         !state.sections.contains(.delegations)
     }

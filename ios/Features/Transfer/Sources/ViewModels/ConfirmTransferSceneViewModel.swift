@@ -101,7 +101,8 @@ public final class ConfirmTransferSceneViewModel {
         state.simulation.warnings
     }
 
-    public var payloadModel: SimulationPayloadModel { state.simulation.payload }
+    public var primaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.primaryFields }
+    public var secondaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.secondaryFields }
 
     var transfer: GemTransferData { state.transfer }
 
@@ -150,7 +151,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
+            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
             ListSection(type: .fee, [state.verification == nil ? .networkFee : .verification]),
             ListSection(type: .error, [.error]),
@@ -177,7 +178,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .details:
             detailsViewModel
         case .payload:
-            ConfirmTransferItemModel.payload(fieldModels(for: payloadModel.primaryFields))
+            ConfirmTransferItemModel.payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
@@ -212,7 +213,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
-        payloadModel.fieldModels(
+        SimulationPayloadFieldViewModel.models(
             for: fields,
             onSelectAddress: { [weak self] address in
                 guard let self else { return }

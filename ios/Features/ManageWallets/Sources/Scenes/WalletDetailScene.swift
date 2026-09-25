@@ -53,19 +53,9 @@ public struct WalletDetailScene: View {
                         Text(secretKind.title)
                     }
                 }
-                Section {
-                    switch model.address {
-                    case let .account(account, link):
-                        AddressListItemView(
-                            model: AddressListItemViewModel(
-                                title: Localized.Common.address,
-                                account: account,
-                                mode: .auto(addressStyle: .short),
-                                addressLink: link,
-                            ),
-                        )
-                    case .none:
-                        EmptyView()
+                if let addressModel = model.addressModel {
+                    Section {
+                        AddressListItemView(model: addressModel)
                     }
                 }
                 Section {

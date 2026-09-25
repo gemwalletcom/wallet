@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemBannerRow
 import enum Gemstone.GemHeaderButtonKind
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
@@ -128,20 +127,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
-            header: WalletHeaderViewModel(
-                total: viewState.total,
-                pnl: viewState.pnl,
-                pnlTone: viewState.pnlTone,
-                actions: viewState.headerActions,
-            ),
+            header: WalletHeaderViewModel(state: viewState),
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
             visibleBanners: viewState.visibleBanners,
         )
-    }
-
-    func bannerModel(for row: GemBannerRow) -> BannerViewModel {
-        BannerViewModel(row: row)
     }
 }
 

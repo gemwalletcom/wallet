@@ -7,23 +7,8 @@ const APPLICATION_ICON_SIZE: &str = "256";
 const ICON_URL_MAX_LENGTH: usize = 4096;
 
 #[uniffi::export]
-pub fn application_short_name(metadata: ApplicationMetadata) -> String {
-    metadata.short_name()
-}
-
-#[uniffi::export]
 pub fn application_connection_row(metadata: ApplicationMetadata) -> GemConnectionRow {
     connection_row(&metadata)
-}
-
-#[uniffi::export]
-pub fn application_host(metadata: ApplicationMetadata) -> String {
-    url_host(&metadata.url)
-}
-
-#[uniffi::export]
-pub fn application_icon_url(metadata: ApplicationMetadata) -> Option<String> {
-    icon_url(&metadata)
 }
 
 const CONNECTION_INITIAL: &str = "WC";
@@ -110,38 +95,53 @@ mod tests {
     #[test]
     fn test_host_drops_the_scheme_path_and_www_prefix() {
         assert_eq!(
-            application_host(ApplicationMetadata {
-                url: "https://www.venice.ai/path?query=1#fragment".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "https://www.venice.ai/path?query=1#fragment".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            application_host(ApplicationMetadata {
-                url: "http://www.venice.ai".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "http://www.venice.ai".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            application_host(ApplicationMetadata {
-                url: "www.venice.ai/path".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "www.venice.ai/path".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            application_host(ApplicationMetadata {
-                url: "app.uniswap.org".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "app.uniswap.org".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "app.uniswap.org"
         );
         assert_eq!(
-            application_host(ApplicationMetadata {
-                url: " ".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: " ".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             ""
         );
     }
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn test_icon_url_requests_the_application_icon() {
         assert_eq!(
-            application_icon_url(ApplicationMetadata {
+            icon_url(&ApplicationMetadata {
                 url: "https://login.xyz/some/page?query=value#section".into(),
                 icon: "https://login.xyz/favicon.png".into(),
                 ..ApplicationMetadata::mock()
@@ -157,7 +157,7 @@ mod tests {
             Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz%2Ffavicon.png&size=256".into())
         );
         assert_eq!(
-            application_icon_url(ApplicationMetadata {
+            icon_url(&ApplicationMetadata {
                 url: "https://tronscan.org".into(),
                 icon: "https://cdn.example.com/logo.svg?v=2".into(),
                 ..ApplicationMetadata::mock()
@@ -182,7 +182,7 @@ mod tests {
             "https://assets.gemwallet.com/logo.png",
         ] {
             assert_eq!(
-                application_icon_url(ApplicationMetadata {
+                icon_url(&ApplicationMetadata {
                     url: "https://tronscan.org/some/page?query=value#section".into(),
                     icon: icon.into(),
                     ..ApplicationMetadata::mock()
@@ -197,7 +197,7 @@ mod tests {
     fn test_icon_url_omits_missing_or_unsafe_websites() {
         for url in ["", " ", "http://app.example.com", "data:text/html,hello", "https://user:password@app.example.com", "https://app.example.com:8443", "https://["] {
             assert_eq!(
-                application_icon_url(ApplicationMetadata {
+                icon_url(&ApplicationMetadata {
                     url: url.into(),
                     icon: "https://cdn.example.com/icon.png".into(),
                     ..ApplicationMetadata::mock()

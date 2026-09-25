@@ -50,7 +50,7 @@ public struct WalletScene: View {
             if let banner = state.visibleBanners.first {
                 Section {
                     BannerView(
-                        model: model.bannerModel(for: banner),
+                        model: BannerViewModel(row: banner),
                         action: model.onBanner,
                     )
                 }

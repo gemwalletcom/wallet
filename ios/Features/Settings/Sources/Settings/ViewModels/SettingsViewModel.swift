@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemListRow
 import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
@@ -40,10 +39,6 @@ public final class SettingsViewModel {
 
     var title: String {
         Localized.Settings.title
-    }
-
-    func destination(for row: GemListRow) -> SettingsRowDestination? {
-        SettingsRowDestination(row: row)
     }
 }
 

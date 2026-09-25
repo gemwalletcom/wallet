@@ -49,12 +49,9 @@ extension ConfirmTransferScene {
     @ViewBuilder
     private func content(for itemModel: ConfirmTransferItemModel) -> some View {
         switch itemModel {
-        case let .header(model):
-            TransactionHeaderListItemView(
-                headerType: model.headerType,
-                showClearHeader: model.showClearHeader,
-            )
-            .isVisible(self.model.isHeaderVisible)
+        case let .header(headerType):
+            TransactionHeaderListItemView(headerType: headerType)
+                .isVisible(model.isHeaderVisible)
         case let .row(row):
             GemListRowView(row: row)
         case let .recipient(model):
@@ -101,7 +98,7 @@ extension ConfirmTransferScene {
             Group {
                 SimulationPayloadFieldsContent(models: models)
 
-                if self.model.payloadModel.hasDetails {
+                if !self.model.secondaryPayloadFields.isEmpty {
                     NavigationCustomLink(
                         with: ListItemView(model: self.model.payloadDetailsListItem),
                         action: self.model.onSelectPayloadDetails,

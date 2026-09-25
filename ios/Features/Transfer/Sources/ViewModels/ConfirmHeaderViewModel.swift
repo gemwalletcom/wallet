@@ -19,21 +19,7 @@ struct ConfirmHeaderViewModel {
 
 extension ConfirmHeaderViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
-        .header(
-            TransactionHeaderItemModel(
-                headerType: headerType,
-                showClearHeader: headerType.showsClearHeader,
-            ),
-        )
-    }
-}
-
-extension TransactionHeaderType {
-    var showsClearHeader: Bool {
-        switch self {
-        case .amount, .nft, .asset, .assetValue: true
-        case .swap: false
-        }
+        .header(headerType)
     }
 }
 

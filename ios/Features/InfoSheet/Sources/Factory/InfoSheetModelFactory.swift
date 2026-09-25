@@ -112,12 +112,11 @@ public enum InfoSheetModelFactory {
                 button: .url(AppUrl.docs(.noQuotes)),
             )
         case let .assetStatus(status):
-            let model = VerificationStatusViewModel(status: status)
             return InfoSheetModel(
-                title: model.title,
-                description: model.description,
-                image: .assetImage(model.assetImage),
-                button: .url(model.docsUrl),
+                title: status.statusTitle,
+                description: status.statusDescription,
+                image: .assetImage(status.statusAssetImage),
+                button: .url(AppUrl.docs(.tokenVerification)),
             )
         case let .accountMinimalBalance(info):
             let amount = info.required?.text() ?? .empty

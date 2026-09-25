@@ -166,9 +166,9 @@ extension ReceiveViewModel {
         presentation = .networkSelector
     }
 
-    func onFinishNetworkSelection(_ items: [ReceiveNetworkItem]) {
+    func onFinishNetworkSelection(_ assetIds: [AssetId]) {
         presentation = nil
-        guard let assetId = items.first?.assetId, assetId != assetModel.asset.id else { return }
+        guard let assetId = assetIds.first, assetId != assetModel.asset.id else { return }
 
         selectNetworkTask?.cancel()
         selectNetworkTask = Task { await selectNetwork(assetId: assetId) }

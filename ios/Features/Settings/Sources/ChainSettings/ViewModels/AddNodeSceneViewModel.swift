@@ -66,12 +66,7 @@ final class AddNodeSceneViewModel {
             title: Localized.Asset.Verification.warningTitle,
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
-            imageStyle: ListItemImageStyle(
-                assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
-                imageSize: .image.semiMedium,
-                alignment: .top,
-                cornerRadiusType: .none,
-            ),
+            imageStyle: .emoji(Emoji.WalletAvatar.warning.rawValue),
         )
     }
 }

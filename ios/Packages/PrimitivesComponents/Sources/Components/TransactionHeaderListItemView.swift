@@ -7,30 +7,18 @@ import SwiftUI
 
 public struct TransactionHeaderListItemView: View {
     private let headerType: TransactionHeaderType
-    private let showClearHeader: Bool
     private let action: TransactionHeaderActionHandler?
 
     public init(
         headerType: TransactionHeaderType,
-        showClearHeader: Bool,
         action: TransactionHeaderActionHandler? = nil,
     ) {
         self.headerType = headerType
-        self.showClearHeader = showClearHeader
-        self.action = action
-    }
-
-    public init(
-        model: TransactionHeaderItemModel,
-        action: TransactionHeaderActionHandler? = nil,
-    ) {
-        headerType = model.headerType
-        showClearHeader = model.showClearHeader
         self.action = action
     }
 
     public var body: some View {
-        if showClearHeader {
+        if headerType.showsClearHeader {
             Section {
                 headerRow.cleanListRow()
             }
@@ -77,7 +65,6 @@ public struct TransactionHeaderListItemView: View {
                     fiatAmount: "200$",
                 ),
             ),
-            showClearHeader: true,
         )
     }
 }

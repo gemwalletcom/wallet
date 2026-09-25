@@ -4,6 +4,7 @@ import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemConfirmSimulationState
 import enum Gemstone.GemListRow
 import struct Gemstone.GemSimulationBalanceChange
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.SimulationResult
 import func Gemstone.simulationWarningRows
 import GemstonePrimitives
@@ -12,36 +13,37 @@ import PrimitivesComponents
 
 struct ConfirmSimulationState {
     let warnings: [GemListRow]
-    let payload: SimulationPayloadModel
+    let primaryFields: [GemSimulationPayloadRow]
+    let secondaryFields: [GemSimulationPayloadRow]
     let balanceChanges: [GemSimulationBalanceChange]
 
     init(
         warnings: [GemListRow],
-        payload: SimulationPayloadModel,
+        primaryFields: [GemSimulationPayloadRow],
+        secondaryFields: [GemSimulationPayloadRow],
         balanceChanges: [GemSimulationBalanceChange],
     ) {
         self.warnings = warnings
-        self.payload = payload
+        self.primaryFields = primaryFields
+        self.secondaryFields = secondaryFields
         self.balanceChanges = balanceChanges
     }
 
     init(result: SimulationResult?) {
         self.init(
             warnings: simulationWarningRows(warnings: result?.warnings ?? []),
-            payload: SimulationPayloadModel(primaryFields: [], secondaryFields: []),
+            primaryFields: [],
+            secondaryFields: [],
             balanceChanges: [],
         )
     }
 
     init(_ state: GemConfirmSimulationState) {
         let details = state.simulation
-        let payload = SimulationPayloadModel(
-            primaryFields: details?.primaryFields ?? [],
-            secondaryFields: details?.secondaryFields ?? [],
-        )
         self.init(
             warnings: state.warnings,
-            payload: payload,
+            primaryFields: details?.primaryFields ?? [],
+            secondaryFields: details?.secondaryFields ?? [],
             balanceChanges: details?.balanceChanges ?? [],
         )
     }

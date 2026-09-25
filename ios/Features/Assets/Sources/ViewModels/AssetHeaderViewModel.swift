@@ -16,7 +16,7 @@ struct AssetHeaderViewModel {
 
 extension AssetHeaderViewModel: ValueHeaderViewModel {
     var isWatchWallet: Bool {
-        details.state.headerActions == .watchOnly
+        details.state.headerActions.isWatchOnly
     }
 
     var assetImage: AssetImage? {
@@ -36,9 +36,6 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var buttons: [HeaderButton] {
-        switch details.state.headerActions {
-        case .watchOnly: []
-        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
-        }
+        details.state.headerActions.headerButtons
     }
 }

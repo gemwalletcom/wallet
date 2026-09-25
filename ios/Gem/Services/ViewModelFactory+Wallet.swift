@@ -68,7 +68,7 @@ public extension ViewModelFactory {
         WalletSceneViewModel(
             service: walletHomeService(),
             observablePreferences: observablePreferences,
-            collectionsModel: CollectionsViewModel(service: nftService, wallet: wallet),
+            collectionsModel: collectionsScene(wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,

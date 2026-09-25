@@ -1,20 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import struct Gemstone.GemSocialLink
 import Primitives
 
-struct DeepLinkViewModel {
-    let link: GemSocialLink
-
-    init(_ link: GemSocialLink) {
-        self.link = link
+extension GemSocialLink {
+    var listItem: ListItemModel {
+        ListItemModel(title: linkType.title, subtitle: host, imageStyle: .settings(assetImage: .image(linkType.image)))
     }
 
     var deepLink: URL? {
-        guard let path = link.url.asURL?.path().trimmingPrefix("/") else { return nil }
+        guard let path = url.asURL?.path().trimmingPrefix("/") else { return nil }
 
-        return switch link.linkType {
+        return switch linkType {
         case .telegram: URL(string: "tg://resolve?domain=\(path)")
         case .x: URL(string: "twitter://user?screen_name=\(path)")
         case .youTube: URL(string: "youtube://www.youtube.com/\(path)")

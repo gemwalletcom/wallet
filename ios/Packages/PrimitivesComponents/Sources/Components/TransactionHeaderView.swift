@@ -13,6 +13,15 @@ public enum TransactionHeaderType {
     case assetValue(any ValueHeaderViewModel)
 }
 
+public extension TransactionHeaderType {
+    var showsClearHeader: Bool {
+        switch self {
+        case .amount, .nft, .asset, .assetValue: true
+        case .swap: false
+        }
+    }
+}
+
 public struct TransactionHeaderView: View {
     public let type: TransactionHeaderType
     private let action: TransactionHeaderActionHandler?

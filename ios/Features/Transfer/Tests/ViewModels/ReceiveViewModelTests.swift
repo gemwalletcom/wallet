@@ -82,7 +82,7 @@ struct ReceiveViewModelTests {
         model.onSelectNetwork()
         #expect(model.presentation == .networkSelector)
 
-        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: bitcoin.id)])
+        model.onFinishNetworkSelection([bitcoin.id])
         await model.selectNetworkTask?.value
 
         #expect(model.presentation == nil)
@@ -96,7 +96,7 @@ struct ReceiveViewModelTests {
         service.assetResult = .success(ethereum.toGem())
         let model = ReceiveViewModel.mock(service: service)
 
-        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
+        model.onFinishNetworkSelection([ethereum.id])
         await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
@@ -112,8 +112,8 @@ struct ReceiveViewModelTests {
         service.assetsById = [ethereum.id.identifier: ethereum.toGem(), solana.id.identifier: solana.toGem()]
         let model = ReceiveViewModel.mock(service: service)
 
-        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: solana.id)])
+        model.onFinishNetworkSelection([ethereum.id])
+        model.onFinishNetworkSelection([solana.id])
         await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
@@ -128,7 +128,7 @@ struct ReceiveViewModelTests {
         service.assetResult = .failure(AnyError("asset is gone"))
         let model = ReceiveViewModel.mock(service: service)
 
-        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
+        model.onFinishNetworkSelection([ethereum.id])
         await model.selectNetworkTask?.value
 
         #expect(model.isPresentingAlertMessage?.message == "asset is gone")

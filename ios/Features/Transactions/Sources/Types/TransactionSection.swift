@@ -23,7 +23,7 @@ public extension ListSection where T == GemTransactionDetailRow {
 
 public enum TransactionItemModel {
     case fee(ListItemModel)
-    case header(TransactionHeaderItemModel)
+    case header(TransactionHeaderType)
     case swapProgress(TransactionSwapProgressItemModel)
     case participant(AddressListItemViewModel)
     case row(GemListRow)
