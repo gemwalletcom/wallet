@@ -350,6 +350,13 @@ impl GemConfirmDestination {
         }
     }
 
+    pub fn shows_address_beside_name(&self) -> bool {
+        match self {
+            Self::Recipient { .. } | Self::Contract { .. } => true,
+            Self::Validator { .. } | Self::Provider { .. } | Self::Resource { .. } => false,
+        }
+    }
+
     pub fn name(&self) -> Option<String> {
         match self {
             Self::Recipient { name, .. } | Self::Contract { name, .. } => name.clone(),

@@ -576,7 +576,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let avatar = contact_avatar(address_name.as_ref(), destination.name().as_deref());
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
-                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some());
+                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some() || !destination.shows_address_beside_name());
                 GemConfirmRowContent::Recipient {
                     text: name.clone().unwrap_or(short_address),
                     name,
@@ -1546,7 +1546,7 @@ mod tests {
             GemConfirmRowContent::Recipient { name, .. } => name,
             _ => None,
         });
-        assert_eq!(validator_name.as_deref(), Some("ValiDAO (0x000...bacb8)"), "a name without a picture carries the short address, never the full one");
+        assert_eq!(validator_name.as_deref(), Some("ValiDAO"), "a validator reads as its name alone");
     }
 
     #[test]
