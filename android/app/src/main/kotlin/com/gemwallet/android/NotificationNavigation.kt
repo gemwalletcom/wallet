@@ -53,4 +53,4 @@ internal fun Intent.putNotificationPayload(type: String?, rawData: String?): Int
     rawData?.let { putExtra(PushNotificationField.Data.key, it) }
 }
 
-internal fun Intent.hasNotificationPayload(): Boolean = hasExtra(PushNotificationField.Type.key) || hasExtra(PushNotificationField.Data.key)
+internal fun Intent.hasNotificationPayload(): Boolean = runCatching { hasExtra(PushNotificationField.Type.key) || hasExtra(PushNotificationField.Data.key) }.getOrDefault(false)
