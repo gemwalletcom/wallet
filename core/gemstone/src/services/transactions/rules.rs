@@ -179,10 +179,10 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             date: rows.created_at,
         })),
         Some(list(status_row(rows))),
-        rows.estimated_confirmation_seconds.map(|seconds| {
+        rows.estimated_confirmation_seconds.and_then(|seconds| estimated_duration_parts(i64::from(seconds))).map(|parts| {
             list(GemListRow::Duration {
                 title: GemListRowTitle::EstimatedConfirmation,
-                parts: estimated_duration_parts(i64::from(seconds)),
+                parts,
                 info: Some(GemInfoTopic::EstimatedConfirmation { chain: rows.asset.chain() }),
                 estimate: true,
             })
@@ -1257,7 +1257,7 @@ mod tests {
             estimate,
             Some(GemListRow::Duration {
                 title: GemListRowTitle::EstimatedConfirmation,
-                parts: estimated_duration_parts(90),
+                parts: estimated_duration_parts(90).unwrap(),
                 info: Some(GemInfoTopic::EstimatedConfirmation { chain: sending.asset.chain() }),
                 estimate: true,
             }),

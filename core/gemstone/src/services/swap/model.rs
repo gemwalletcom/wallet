@@ -64,9 +64,9 @@ impl GemSwapQuoteSummary {
         let receive_asset = &self.to_asset;
         let price_impact = self.price_impact.filter(|impact| impact.shows_in_summary);
         [
-            self.quote.eta_in_seconds.map(|seconds| GemListRow::Duration {
+            self.quote.eta_in_seconds.and_then(|seconds| estimated_duration_parts(seconds as i64)).map(|parts| GemListRow::Duration {
                 title: GemListRowTitle::EstimatedTime,
-                parts: estimated_duration_parts(seconds as i64),
+                parts,
                 info: None,
                 estimate: false,
             }),
@@ -204,6 +204,33 @@ pub enum GemSwapButtonAction {
 mod tests {
     use super::{GemAssetRate, GemSwapQuoteSummary, swap_quote_summary};
     use primitives::{Asset, Chain, SwapProvider, SwapQuote};
+
+    #[test]
+    fn test_the_estimated_time_row_shows_only_a_time_it_can_read() {
+        use crate::models::list::{GemListRow, GemListRowTitle};
+
+        let estimated_time = |eta_in_seconds| {
+            let quote = SwapQuote {
+                eta_in_seconds,
+                ..SwapQuote::mock_with_provider(SwapProvider::Okx)
+            };
+            swap_quote_summary(quote, Asset::from_chain(Chain::Solana), Asset::from_chain(Chain::Solana), None, None)
+                .detail_rows(false)
+                .into_iter()
+                .find_map(|row| match row {
+                    GemListRow::Duration {
+                        title: GemListRowTitle::EstimatedTime,
+                        parts,
+                        ..
+                    } => Some(parts),
+                    _ => None,
+                })
+        };
+
+        assert!(estimated_time(Some(90)).is_some_and(|parts| !parts.is_empty()));
+        assert_eq!(estimated_time(Some(0)), None, "a zero estimate is no estimate, not an empty row");
+        assert_eq!(estimated_time(None), None);
+    }
 
     #[test]
     fn test_the_slippage_row_reads_auto_until_the_user_picks_one() {

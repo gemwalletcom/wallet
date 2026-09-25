@@ -29,7 +29,6 @@ object SwapDetailsUIModelFactory {
             priceImpact = input.summary.priceImpactRow,
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            etaInSeconds = input.summary.quote.etaInSeconds,
             isProviderSelectable = input.isProviderSelectable,
         )
     }
