@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import android.util.Log
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -7,8 +8,11 @@ import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAler
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.wallet.core.primitives.Appearance
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
@@ -87,7 +91,26 @@ class MainViewModelAuthStateTest {
         assertEquals(stateBefore, viewModel.uiState.value)
     }
 
-    private fun mainViewModel(authRequired: Boolean): MainViewModel {
+    @Test
+    fun sharedPasswordMigrationFailure_isShownAtStartup() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
+        val walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true)
+        coEvery { walletService.migrateToSharedPassword() } throws IllegalStateException("Secure preferences could not be loaded")
+        val viewModel = mainViewModel(authRequired = false, walletService = walletService)
+
+        try {
+            viewModel.maintain()
+
+            assertEquals("Secure preferences could not be loaded", viewModel.uiState.value.startupError)
+            viewModel.resetError()
+            assertNull(viewModel.uiState.value.startupError)
+        } finally {
+            unmockkStatic(Log::class)
+        }
+    }
+
+    private fun mainViewModel(authRequired: Boolean, walletService: uniffi.gemstone.GemWalletService = mockk(relaxed = true)): MainViewModel {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.appearance() } returns flowOf(Appearance.System)
@@ -98,7 +121,7 @@ class MainViewModelAuthStateTest {
             pairWalletConnect = mockk<PairWalletConnect>(relaxed = true),
             appStartService = mockk<GemAppStartServiceInterface>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
-            walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true),
+            walletService = walletService,
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),

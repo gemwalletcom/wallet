@@ -98,7 +98,7 @@ internal fun MainContent(
             onShown = onErrorDismiss,
         )
         ErrorDialog(
-            error = state.walletConnectError ?: unsupportedWalletConnectError,
+            error = state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError,
             onDismiss = onErrorDismiss,
         )
     }

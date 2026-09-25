@@ -132,7 +132,10 @@ class MainViewModel @Inject constructor(
             migratePriceAlertsPreference()
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
-                .onFailure { Log.e("MainViewModel", "shared keystore password migration failed", it) }
+                .onFailure { error ->
+                    Log.e("MainViewModel", "shared keystore password migration failed", error)
+                    _uiState.update { it.copy(startupError = error.errorText().text(context)) }
+                }
             appStartService.setupWallets().forEach(::logAppStartFailure)
         }
     }
@@ -221,6 +224,7 @@ class MainViewModel @Inject constructor(
             it.copy(
                 navigationError = null,
                 walletConnectError = null,
+                startupError = null,
                 isWalletConnectUnsupportedVisible = false,
             )
         }
@@ -261,6 +265,7 @@ class MainViewModel @Inject constructor(
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
         val navigationError: String? = null,
+        val startupError: String? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
         val isScanErrorVisible: Boolean = false,
     )
