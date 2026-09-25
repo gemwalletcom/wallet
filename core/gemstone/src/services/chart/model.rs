@@ -53,6 +53,10 @@ impl GemChartData {
         rules::header(self, value, None)
     }
 
+    pub fn headers(&self) -> Vec<GemChartHeader> {
+        self.values.iter().map(|point| rules::header(self, point.value, None)).collect()
+    }
+
     pub fn bounds(&self) -> GemChartBounds {
         rules::chart_bounds(&self.values, self.currency.clone())
     }

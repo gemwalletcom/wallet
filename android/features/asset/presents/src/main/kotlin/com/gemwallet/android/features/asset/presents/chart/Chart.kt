@@ -30,25 +30,29 @@ fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
 internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
+        val context = LocalContext.current
+        val dateFormatter = remember(context) { context.rowDateFormatter() }
 
         val uiModel = state.chart.dataOrNull
 
         ChartStateView(
             state = state.chart,
             header = uiModel?.header(selectedIndex),
-            date = uiModel?.dateText(selectedIndex, state.period, LocalContext.current.rowDateFormatter()),
+            date = uiModel?.dateText(selectedIndex, state.period, dateFormatter),
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,
         ) { model ->
+            val minLabel = remember(model) { model.bounds.low.text() }
+            val maxLabel = remember(model) { model.bounds.high.text() }
             GemLineChart(
                 points = model.renderPoints,
                 bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
-                minLabel = model.bounds.low.text(),
-                maxLabel = model.bounds.high.text(),
+                minLabel = minLabel,
+                maxLabel = maxLabel,
             )
         }
     }

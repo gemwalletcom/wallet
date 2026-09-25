@@ -21,10 +21,9 @@ data class ChartUIModel(val chart: GemChartData) {
 
     val bounds: GemChartBounds by lazy { chart.bounds() }
 
-    fun header(selectedIndex: Int?): GemChartHeader? {
-        val selected = selectedIndex?.let { chart.values.getOrNull(it) }
-        return selected?.let { chart.headerAt(it.value) } ?: chart.header
-    }
+    private val headers: List<GemChartHeader> by lazy { chart.headers() }
+
+    fun header(selectedIndex: Int?): GemChartHeader? = selectedIndex?.let(headers::getOrNull) ?: chart.header
 
     fun dateText(selectedIndex: Int?, period: ChartPeriod, formatter: SectionDateFormatter): String? {
         val selected = selectedIndex?.let { chart.values.getOrNull(it) } ?: return null

@@ -370,6 +370,7 @@ mod tests {
             })
         );
         assert_eq!(data.header_at(12.0).value.value, 2.0);
+        assert_eq!(data.headers().iter().map(|header| header.value.value).collect::<Vec<_>>(), vec![0.0, 2.0, 5.0], "one header per point, in point order");
     }
 
     #[test]
