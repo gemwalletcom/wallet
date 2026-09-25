@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.style.badgeIconRes
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemCopy
@@ -46,7 +47,7 @@ internal sealed interface GemListRowUIModel {
         GemListRowUIModel
     data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
     data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
-    data class Icon(val asset: Asset) : GemListRowUIModel
+    data class Icon(val assetId: AssetId, val imageUrl: String?) : GemListRowUIModel
     data class Avatar(val image: ListItemImage) : GemListRowUIModel
     data class Address(val address: String, val copy: GemCopy, val menu: List<GemListRowMenuItem>) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
@@ -182,7 +183,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
 
     is GemListRow.Error -> GemListRowUIModel.Notice(title = GemListRowTitle.ERROR.text(context), message = error.errorText().text(context), kind = GemNoticeKind.ERROR)
 
-    is GemListRow.Icon -> GemListRowUIModel.Icon(asset = chain.requireChain().asset())
+    is GemListRow.Icon -> GemListRowUIModel.Icon(assetId = AssetId(assetId), imageUrl = imageUrl)
 
     is GemListRow.Avatar -> GemListRowUIModel.Avatar(image = avatar.listItemImage())
 

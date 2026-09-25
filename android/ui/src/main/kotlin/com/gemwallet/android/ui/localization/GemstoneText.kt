@@ -185,7 +185,7 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.ExternallyOwnedSpenderWarning -> context.getString(R.string.simulation_warning_externally_owned_spender_description)
 
-    GemLocalizedText.SuspiciousAddress -> context.getString(R.string.common_suspicious_address)
+    GemLocalizedText.SuspiciousAddressDescription -> context.getString(R.string.common_suspicious_address_description)
 
     is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
 
@@ -627,6 +627,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.REWARDS_UNVERIFIED -> context.getString(R.string.rewards_unverified_title)
     GemListRowTitle.REWARDS_PENDING -> context.getString(R.string.rewards_pending_title)
     GemListRowTitle.WARNING -> context.getString(R.string.common_warning)
+    GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)
     GemListRowTitle.UNLIMITED_APPROVAL -> context.getString(R.string.simulation_warning_unlimited_token_approval_title)
     GemListRowTitle.NFT_COLLECTION_APPROVAL -> context.getString(R.string.simulation_warning_nft_collection_approval_title)
     GemListRowTitle.SYMBOL -> context.getString(R.string.asset_symbol)
@@ -692,6 +693,7 @@ fun GemTriggerOrder.stringRes(): Int = when (this) {
 fun AddressType.stringRes(): Int = when (this) {
     AddressType.ADDRESS -> R.string.common_address
     AddressType.CONTRACT -> R.string.asset_contract
+    AddressType.ASSET -> R.string.common_token
     AddressType.VALIDATOR -> R.string.stake_validator
     AddressType.CONTACT -> R.string.contacts_contact
     AddressType.INTERNAL_WALLET -> R.string.common_wallet

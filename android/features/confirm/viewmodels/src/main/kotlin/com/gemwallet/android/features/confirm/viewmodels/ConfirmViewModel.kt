@@ -265,7 +265,10 @@ class ConfirmViewModel @Inject constructor(
     private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
     val acquireRequest = acquireRequestState.asStateFlow()
 
-    val loadError = combine(screen, confirmation) { screen, confirmation ->
+    val notice = viewState.map { it?.notice }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val loadError = combine(screen, confirmation, notice) { screen, confirmation, notice ->
+        if (notice != null) return@combine null
         val error = screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return@combine null
         ConfirmErrorUIModel(
             text = error.display().text(context),

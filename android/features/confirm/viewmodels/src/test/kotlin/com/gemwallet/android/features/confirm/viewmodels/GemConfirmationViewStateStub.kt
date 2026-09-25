@@ -10,6 +10,6 @@ import uniffi.gemstone.GemKeystoreAuthentication
 internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
     every { viewState(any()) } answers {
         val screen = firstArg<GemConfirmScreen>()
-        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(null), emptyList(), GemConfirmTitle.Send, null, GemKeystoreAuthentication.NONE)
+        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(null), emptyList(), GemConfirmTitle.Send, null, GemKeystoreAuthentication.NONE, null)
     }
 }

@@ -105,6 +105,7 @@ fun ConfirmScreen(
     val feeItems by viewModel.feeItems.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
+    val notice by viewModel.notice.collectAsStateWithLifecycle()
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeInfo by viewModel.feeInfo.collectAsStateWithLifecycle()
     val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
@@ -211,6 +212,9 @@ fun ConfirmScreen(
 
                     null -> Unit
                 }
+            }
+            notice?.let { row ->
+                item { GemListRowView(row = row, listPosition = ListPosition.Single) }
             }
             val sectionSize = transactionRows.size + detailElements.size
             itemsIndexed(transactionRows) { index, row ->

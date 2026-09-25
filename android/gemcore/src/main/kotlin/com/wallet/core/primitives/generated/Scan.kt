@@ -13,6 +13,8 @@ enum class AddressType(val string: String) {
 	Address("address"),
 	@SerialName("contract")
 	Contract("contract"),
+	@SerialName("asset")
+	Asset("asset"),
 	@SerialName("validator")
 	Validator("validator"),
 	@SerialName("contact")
