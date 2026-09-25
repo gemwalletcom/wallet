@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **Delete first:** VM187 (Android).
 2. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
 3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
-4. **Models:** VM195.
+4. **Generated types only:** D175 phase by phase; VM195, VM276, VM278 and VM288 land inside it.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 
@@ -63,7 +63,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266, VM268, VM293 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | VM187, VM195, VM288 |
+| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM187, VM195, VM288 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -140,6 +140,17 @@ The same product rule written in both apps, or in one app while the other reads 
 [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else), [a details screen gets a details record](ARCHITECTURE.md#a-details-screen-gets-a-details-record-not-a-row-plus-the-object-it-came-from), and a type that only crosses the FFI is used as the generated type. Delete-first items are at the end.
 
 The target for every item below: a model that only renames or regroups a Core record is deleted and the view takes the record; the two mapper files turn titles, tones and icon kinds into platform values; anything the model decides (a text, an icon choice, a visibility, a grouping) moves into the Core row, list or session that feeds it.
+
+### One generated type system
+
+- **D175** **L** **The apps use only the UniFFI-generated types.** Decided 2026-09-25. TypeShare keeps generating TypeScript for the web; its Swift and Kotlin models (`Primitives/Sources/Generated`, `gemcore/.../primitives/generated`, 161 types) and the generated mappers between the two systems (`RemoteTypeMappers.swift`, `RemoteTypeMappers.kt`) go.
+  - **Today:** 141 of the 161 TypeShare types already have a UniFFI twin (`core/bin/generate/remote_types.yml`). 936 iOS files and 638 Android files import the TypeShare models, and about 210 files per app convert with `toPrimitives()`/`toGem()`. `Chain` crosses as its string code, and `AssetId`, `WalletId`, `TransactionId`, `NFTAssetId`, `NFTCollectionId` and `PerpetualId` cross as their stored strings. iOS `Store` depends on `Primitives` but not on `Gemstone`.
+  - **Phase 1, coverage:** declare the 20 TypeShare types the bindings lack, or delete their app use: `AssetPriceInfo`, `AssetSubtype`, `BitcoinChain`, `ChartValue`, `ContactData`, `CosmosChain`, `Device`, `EVMChain`, `FiatAssets`, `PerpetualAccountSummary`, `PerpetualPortfolio`, `PerpetualPositionsSummary`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionPerpetualMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.
+  - **Phase 2, enums and identifiers:** `Chain` becomes a generated UniFFI enum and the identifiers generated records (`AssetId` carries chain and token id). `just generate-models` emits their stored-string conversions on both apps, so no app parses an identifier by hand.
+  - **Phase 3, storage and routes:** `just generate-models` emits `Codable` and `Hashable` conformances (iOS) and kotlinx serializers (Android) for the generated types that routes and stored JSON carry: iOS `Scenes`, Android route arguments, and three GRDB JSON columns. iOS `Store` gains the `Gemstone` dependency.
+  - **Phase 4, the apps, module by module:** replace TypeShare imports with the generated types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM195 (asset read model), VM276 (`SelectAssetType`), VM278 (iOS service wrappers) and VM288 (Android aggregates) land inside this phase.
+  - **Phase 5, removal:** stop generating Swift and Kotlin from TypeShare, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
+  - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with TypeShare `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
 
 ### Shared components
 
