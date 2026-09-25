@@ -24,6 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 4. **Models:** VM195.
 5. **Sessions:** VM185.
+6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -34,33 +35,33 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182 |
-| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM236, VM237, VM238, VM239, VM240 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182, VM250, VM251, VM252, VM254 |
+| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
-| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189 |
+| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189, VM232 |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196 |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196 |
-| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213 |
+| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
-| Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | Preserve exact atomic values |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM196 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
-| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189; retain native locale/theme application |
+| Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230; preserve exact atomic values |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM196, VM255, VM256 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193, VM248, VM249 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258 |
+| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245 |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189, VM243; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM189; retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189 |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189, VM247, VM259 |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260; retain Android-only one-click auth |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM187, VM195 |
 
@@ -137,6 +138,290 @@ The same product rule written in both apps, or in one app while the other reads 
 ## 5. Twins, adapters, redundant models and dead code
 
 [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else), [a details screen gets a details record](ARCHITECTURE.md#a-details-screen-gets-a-details-record-not-a-row-plus-the-object-it-came-from), and a type that only crosses the FFI is used as the generated type. Delete-first items are at the end.
+
+The target for every item below: a model that only renames or regroups a Core record is deleted and the view takes the record; the two mapper files turn titles, tones and icon kinds into platform values; anything the model decides (a text, an icon choice, a visibility, a grouping) moves into the Core row, list or session that feeds it.
+
+### Shared components
+
+- **VM197** **S** **`AssetIdViewModel` exists only to fetch and map an icon.**
+  - **iOS:** `AssetIdViewModel` (27 call sites) calls `GemAssetConfigService.assetIcon` on every render and holds `AssetImage(icon:)`; `networkAssetImage` maps a chain.
+  - **Android:** `AssetId.icon()`, `iconChain()`, `supportIconChain()` (`gemcore/.../domains/asset/IconUrlGeneration.kt`) and `ListItemImage.Asset(assetId)` do the same lookup per render.
+  - **Expected:** every Core row that shows an asset carries its `GemAssetIcon`; `AssetImage(icon:)` and the Android image mapping move into the style mapper files; `AssetIdViewModel` and the `AssetId` icon helpers go.
+- **VM198** **S** **`AssetViewModel` re-asks Core for asset text on every read.**
+  - **iOS:** `AssetViewModel` calls `assetText` per asset for title, network name and subtitle symbol.
+  - **Android:** `Asset.networkFullName` and `Asset.subtitleSymbol` (`AssetExt.kt`) call `assetText` on each access.
+  - **Expected:** the rows that show these texts carry them; both wrappers go.
+- **VM199** **S** **Chain rows are built by the apps.**
+  - **iOS:** `ChainViewModel` builds title, image and list item from a `Chain` (network name, `standard` suffix).
+  - **Android:** `ChainItem`, `NetworkScene`, `AddNodeScene` and the contact chain rows build the same row from `Chain.networkName()` and the chain icon.
+  - **Expected:** `GemChainService` returns chain rows (title, subtitle, icon) and the shared renderer draws them; `ChainViewModel` goes.
+- **VM200** **M** **Value headers are composed in the apps from several Core records.**
+  - **iOS:** `ValueHeader` extensions build headers from `GemWalletHomeViewState`, `GemSimulationValue` (formats the value with a full-style `ValueFormatter`) and `GemPerpetualBalanceHeader` (composes "Available balance: X"); `AmountDisplay`, `NumericViewModel` and `SymbolViewModel` wrap the same parts.
+  - **Android:** `AmountListHead` takes the same parts as parameters; `SimulationHeaderUIModel` formats the simulation value with `ValueFormatter(style = FULL)`; `AmountUiState` carries title, symbol and equivalent.
+  - **Expected:** one Core header record (title, subtitle, tone, icon, buttons) that every header screen returns; the wrappers and header extensions go.
+- **VM201** **M** **Transaction and confirm headers are picked by the apps.**
+  - **iOS:** `TransactionHeaderType` (amount, swap, nft, asset, assetValue) is built from `GemConfirmHeader` and transaction details, and decides `showsClearHeader`.
+  - **Android:** `ConfirmHeaderUIModel` (Simulation, Swap, Nft, Symbol, Amount, Placeholder, ReservedSpace) is built by `confirmHeader` from the same record.
+  - **Expected:** one Core header enum with finished values that both headers render; `TransactionHeaderType` and `ConfirmHeaderUIModel` go.
+- **VM202** **S** **Header buttons are mapped to callbacks and titles in the apps.**
+  - **iOS:** `HeaderButton` and `HeaderButtonViewType` carry `GemHeaderButtonKind` with title and image outside the mapper.
+  - **Android:** `HeadActionsUIModel` maps each kind to a callback, a string, an icon and a test tag (`assetBuy`).
+  - **Expected:** header buttons carry their tap as a Core record (as in VM189); titles and icons come from the mapper files; both wrappers go.
+- **VM203** **S** **Empty states are assembled from app callbacks.**
+  - **iOS:** `EmptyContentType` and `EmptyContentTypeViewModel` build `GemEmptyStateInput` from the keys of an app callback map, then join Core's actions back to the callbacks.
+  - **Android:** `EmptyStateUIModel` does the same and styles the first action as primary.
+  - **Expected:** Core returns the empty state with its actions and their styles for the screen; the apps bind taps; both builders go.
+- **VM204** **S** **Banner rows are wrapped and styled outside the mappers.**
+  - **iOS:** `BannerViewModel`, `BannerButtonViewModel` and `BannerAction` wrap `GemBannerRow`; icon size and corner radius are chosen per icon, button titles and styles per button.
+  - **Android:** `BannerRowUIModel` and `BannerItemUIModel` copy the same fields; `WelcomeBanner` picks button titles.
+  - **Expected:** views take `GemBannerRow`; sizes, radii, titles and button styles live in the mapper files; the wrappers go.
+- **VM205** **S** **Some shared-row texts are composed by the renderers.**
+  - **iOS:** `GemListRowItem` writes the titles of app, wallet, memo and explorer rows itself, composes "View on X", the " #rank " tag and "Enable Face ID" for the authentication toggle.
+  - **Android:** `GemListRowUIModel` composes the explorer title and the same labels.
+  - **Expected:** Core sends every row's title and text (`GemListRowTitle` plus values); the renderers only map.
+- **VM206** **S** **`CopyTypeViewModel` wraps a copy record.**
+  - **iOS:** `CopyTypeViewModel` holds `GemCopy`, builds the copied message and the pasteboard options.
+  - **Android:** `GemCopyExt.kt` and `ClipboardExt.kt` do the same around `GemCopy`.
+  - **Expected:** a clipboard port per app takes `GemCopy` (with VM184's lifetime) and the message comes from the mapper; the wrapper goes.
+- **VM207** **S** **`AddressListItemViewModel` decides how an address row reads.**
+  - **iOS:** `AddressListItemViewModel` decides `canToggleAddress` (a name that is not the address), picks name or short address for the subtitle, and builds "View on X".
+  - **Android:** the recipient and participant rows in `TransactionDetailsRowUIModel` and `ConfirmRowUIModel` build the same row.
+  - **Expected:** one Core address row (name, short and full address, whether it toggles, explorer link, contact actions) rendered by one shared component per app.
+- **VM208** **S** **The name-resolve indicator is mapped in two places per app.**
+  - **iOS:** `NameRecordViewModel` drives the lookup and maps the state to an image (`resolveImage`).
+  - **Android:** `NameRecordController` and `NameResolveIndicatorUIModel` do the same.
+  - **Expected:** the name state carries its indicator kind and the mapper supplies the icon; the indicator models go.
+
+### Activity
+
+- **VM209** **M** **`TransactionViewModel` decides what a transaction row shows.**
+  - **iOS:** `TransactionViewModel` chooses NFT image or asset icon, picks the overlay badge from direction, shows progress from status, and calls `transactionRows` for a single transaction.
+  - **Android:** `TransactionRowUIModel` decides the badge text (`status.showsBadge`), copies every field, and `TransactionItem` picks the image.
+  - **Expected:** `GemTransactionRow` carries the final image and badge and the list screen gets rows only; both wrappers go.
+- **VM210** **M** **Every dated list is grouped by day in the apps.**
+  - **iOS:** `DateSectionBuilder` (transactions, recents, notifications, fiat transactions) and `SupportChatDayBuilder` group by local day and sort.
+  - **Android:** `rememberDateSections`, `dateSectionLabels` and `SupportChatModels` (`groupBy` on local date) do the same, relying on pre-sorted input.
+  - **Expected:** Core returns sectioned lists given the device's day boundaries (`GemDayBoundaries`), labels included; the builders go.
+- **VM211** **S** **Transaction participants are assembled by the apps.**
+  - **iOS:** `TransactionParticipantViewModel` builds a `SimpleAccount` and an address row from `GemTransactionParticipant`, deciding contact and select actions.
+  - **Android:** `TransactionDetailsRowUIModel` builds the same row (`GemTransactionParticipant.address`).
+  - **Expected:** details sections carry finished participant rows (with VM207's address row); both models go.
+- **VM212** **S** **Swap progress steps are composed in the apps.**
+  - **iOS:** `TransactionSwapProgressItemModel` derives tag, marker, spinner and colours from `GemSwapProgressState`.
+  - **Android:** `SwapProgressUIModel` composes the transfer subtitle as "amount (network)", activates the connector when the transfer step completed and shows the estimate only with a spinner.
+  - **Expected:** the Core swap-progress record carries titles, subtitles and those flags; both models go.
+- **VM213** **S** **Transaction filter screens keep their options and state in the apps.**
+  - **iOS:** `TransactionsFilterViewModel`, `TransactionTypesFilterViewModel`, `TransactionTypesSelectorViewModel`, `TransactionsFilterTypeViewModel` and `ChainsFilterViewModel` hold the selections and titles.
+  - **Android:** `TransactionFilterUIModel` builds options from `GemConstants.transactionFilters`; `TransactionsViewModel` holds the selections.
+  - **Expected:** a Core filter session holds the selections and returns option rows and summaries (land with VM194).
+
+### Transfer and confirm
+
+- **VM214** **S** **Fee rate rows are rebuilt with app emojis.**
+  - **iOS:** `FeeRateViewModel` wraps priority, value and fee, and picks the emoji per priority.
+  - **Android:** `FeeRateUIModel` hardcodes the emojis, `FeeRateRowUIModel` builds the list item and `customFeeRowUIModel` adds the custom row with its own emoji.
+  - **Expected:** `GemFeeRateRows` returns every row including custom, with title, emoji, value, fiat and selection; the three models go.
+- **VM215** **M** **The network fee screen is modelled twice.**
+  - **iOS:** `NetworkFeeSceneViewModel` and `NetworkFeeCustomViewModel` hold fee, rates, assets and custom checks.
+  - **Android:** `FeeDetailsModel`, `FeeUIModel` (a twin of the fee amount record) and `NetworkFeeCustomViewModel` do the same.
+  - **Expected:** one Core fee screen record (rows, custom field state, fee assets); the models go.
+- **VM216** **S** **The confirm fee row decides its own text.**
+  - **iOS:** `ConfirmNetworkFeeViewModel` shows fiat else value, hides the symbol when unavailable and decides selectability.
+  - **Android:** `ConfirmViewModel` builds the fee list item and `FeeUIModel.Unavailable` the same way.
+  - **Expected:** `GemConfirmFeeRow` carries the final texts and whether it opens details.
+- **VM217** **S** **Confirm rows are assembled by the apps.**
+  - **iOS:** `ConfirmRowViewModel` builds the recipient row from eight fields and titles the payment row "Pay with".
+  - **Android:** `ConfirmRowUIModel` builds the same rows.
+  - **Expected:** `GemConfirmRowContent` rows are complete (with VM207's address row); both models go.
+- **VM218** **S** **The confirm details block is chosen by input type in the apps.**
+  - **iOS:** `ConfirmDetailsViewModel` switches on `TransactionInputType` and calls `swapQuoteDetails` or `perpetualConfirmDetails` itself.
+  - **Android:** `ConfirmViewModel.swapDetails` does the same for swaps.
+  - **Expected:** the confirm view state carries the details record; both paths go.
+- **VM219** **S** **The confirm button's icon is decided in the app.**
+  - **iOS:** `ConfirmButtonViewModel` shows the biometric or passcode icon only for an enabled confirm button.
+  - **Android:** the confirm button shows no authentication icon.
+  - **Expected:** `GemConfirmButton` carries the icon kind and both apps show it (the iOS behaviour); the mapper supplies the image.
+- **VM220** **S** **Simulated balance changes are wrapped.**
+  - **iOS:** `ConfirmBalanceChangeViewModel` builds the list item from `GemSimulationBalanceChange`.
+  - **Android:** `ConfirmViewModel.balanceChangeRows` maps each change with `listItem()`.
+  - **Expected:** the shared renderer draws the Core row; both wrappers go.
+- **VM221** **S** **The "get this asset" options are written in the apps.**
+  - **iOS:** `GetAssetAction` (buy, swap, receive) and its sheet list the options.
+  - **Android:** `AcquireOptionUIModel` builds Buy, Swap and Receive with their subtitles and icons.
+  - **Expected:** `GemAcquireAsset` returns the option rows; both lists go.
+- **VM222** **S** **The amount field's symbol and placement are decided in the apps.**
+  - **iOS:** `AmountInputConfig` puts the asset symbol trailing and the currency leading, and picks the keyboard from `usesWholeAmounts`.
+  - **Android:** `AmountSymbolUIModel` and `AmountUiState` make the same choices.
+  - **Expected:** the amount view state carries symbol, placement and keyboard kind (land with VM192).
+- **VM223** **S** **Amount extras are chosen by the apps.**
+  - **iOS:** `AmountStakeViewModel` and `AmountPerpetualViewModel` supply validator, resources, leverage and autoclose rows.
+  - **Android:** `AmountExtrasUIModel`, `AmountStakeProvider` and `AmountPerpetualProvider` do the same, and `AmountViewModel` picks `EarnProvider` for an earn type.
+  - **Expected:** the amount session returns the extras record (land with VM192).
+
+### Swap and fiat
+
+- **VM224** **S** **Provider rows are wrapped twice per app.**
+  - **iOS:** `SwapProviderItem` and `FiatQuoteViewModel` each build a provider list item with a selected badge.
+  - **Android:** `BuyFiatProviderUIModel` and the provider rows of the swap details model do the same.
+  - **Expected:** one Core provider row (name, amounts, icon kind, selected) rendered by one shared component; the wrappers go.
+- **VM225** **S** **Fiat transaction rows are rebuilt by the apps.**
+  - **iOS:** `FiatTransactionViewModel` builds title from quote type, badge, amounts and provider image.
+  - **Android:** `FiatTransactionRowUIModel` does the same.
+  - **Expected:** the shared renderer draws `GemFiatTransactionRow`; both models go.
+- **VM226** **S** **The fiat screen state is twinned.**
+  - **iOS:** `FiatProvidersViewModel` and `FiatCurrencyInputConfig` wrap view-state fields.
+  - **Android:** `FiatUiState` copies `GemFiatViewState` and derives `retries` from the button action.
+  - **Expected:** the view state is used directly; the twins go.
+- **VM227** **S** **Swap side and button models decide small rules.**
+  - **iOS:** `SwapTokenViewModel` picks "Select asset" or the symbol and an empty or zero placeholder; `SwapButtonViewModel` hides the button while the input is empty.
+  - **Android:** `SwapUiState` copies `GemSwapViewState` field by field and `SwapItem` makes the same choices.
+  - **Expected:** `GemSwapSideState` and `GemSwapViewState` carry those answers; the models go.
+- **VM228** **S** **Swap details and slippage state are wrapped.**
+  - **iOS:** `SwapDetailsViewModel` reads rate text, price-impact rows and the provider; `SwapSlippageViewModel` mirrors `GemSlippageViewState`.
+  - **Android:** `SwapViewModel.swapDetails` (`details.uiModel(providers, allowsProviderSelection)`) and `SlippageStateUIModel` do the same.
+  - **Expected:** the views read `GemSwapDetails` rows and the slippage view state directly; the wrappers go.
+
+### Stake and perpetuals
+
+- **VM229** **S** **Validator and delegation rows are built by the apps.**
+  - **iOS:** `ValidatorViewModel` picks the provider logo or a text placeholder; `DelegationViewModel` builds the delegation row and header.
+  - **Android:** `DelegationRowUIModel`, `DelegationProperties` and the validator rows do the same.
+  - **Expected:** Core validator and delegation rows are drawn by the shared renderer, provider logos from the style mapper; the models go.
+- **VM230** **S** **Stake sections are wrapped.**
+  - **iOS:** `StakeSceneViewModel` maps sections and actions.
+  - **Android:** `StakeSectionUIModel` and `StakeActionUIModel` wrap `GemStakeSection` and `GemStakeActionItem`.
+  - **Expected:** the views read the Core sections; the wrappers go.
+- **VM231** **S** **Perpetual details sections and buttons are wrapped.**
+  - **iOS:** `PerpetualButtonViewModel` maps tone to a style; `PerpetualSceneViewModel` builds sections.
+  - **Android:** `PerpetualDetailsUIModel`, `PerpetualButtonUIModel` and `PerpetualPositionRowUIModel` copy `GemPerpetualDetails` and tag autoclose rows by kind.
+  - **Expected:** views read the Core sections and button rows; styles from the mapper; the models go.
+- **VM232** **M** **Chart selection and scales are computed in the apps.**
+  - **iOS:** `ChartValuesViewModel` pads the x-scale by 2% and resolves the header at a selection.
+  - **Android:** `ChartUIModel` resolves the header at a selection and picks the date style.
+  - **Expected:** `GemChartSession` answers selection (header and date style) and bounds; both models go.
+- **VM233** **M** **The candle chart is modelled twice.**
+  - **iOS:** `CandlestickChartViewModel`, `PerpetualChartModel` and `ChartLineViewModel` (label "kind | price") build the chart.
+  - **Android:** `PerpetualChartUIModel` computes the header from the first and selected close; `CandlestickChartUIModel` builds lines and labels.
+  - **Expected:** `GemCandleSession` returns the chart record with line labels and the selection header; the models go.
+- **VM234** **S** **Candle tooltips are wrapped.**
+  - **iOS:** `CandleTooltipViewModel` maps each `GemCandleTooltipCell`.
+  - **Android:** `CandlestickTooltipUIModel` does the same.
+  - **Expected:** the tooltip view reads the cells directly with mapper styles; both go.
+- **VM235** **S** **Autoclose fields are held in the apps.**
+  - **iOS:** `AutocloseInput` keeps both texts and turns empty into nil (`AutocloseSelection`), `AutocloseViewModel` picks "Expected profit" or "Expected loss".
+  - **Android:** `AutocloseViewModel` keeps the same texts and titles.
+  - **Expected:** `GemAutocloseSession` holds the field texts and returns titles; the input structs go.
+
+### Wallets and onboarding
+
+- **VM236** **S** **`WalletBarViewViewModel` is a name and an image.**
+  - **iOS:** `WalletBarViewViewModel` copies the wallet name and avatar for the wallet bar.
+  - **Android:** the wallet bar takes name and icon separately from `WalletRowUIModel`.
+  - **Expected:** the bar takes `GemWalletRow`; the model goes.
+- **VM237** **S** **Wallet rows are rebuilt and imaged by the apps.**
+  - **iOS:** `WalletEntry` pairs a wallet with `walletRow(wallet:)`; `GemWalletRow` extensions choose image, placeholder and watch badge.
+  - **Android:** `WalletRowUIModel`, `WalletSectionUIModel`, `walletListItemImage` and `supportIcon` do the same.
+  - **Expected:** views take `GemWalletRow`/`GemWalletSection`; image choice moves to the mapper; the wrappers go.
+- **VM238** **S** **The wallets list splits sections in the app.**
+  - **iOS:** `WalletsSceneViewModel` sorts through `walletService.sorted`; `SelectWalletViewModel` maps `GemWalletSection` kinds to titles.
+  - **Android:** `WalletsUIState` splits pinned and unpinned and marks the current wallet.
+  - **Expected:** Core returns the wallet sections with the current flag; both splits go.
+- **VM239** **S** **Wallet details are twinned.**
+  - **iOS:** `WalletIDetailViewModel` and `WalletImageViewModel` read and reshape wallet details.
+  - **Android:** `WalletDetailsUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`.
+  - **Expected:** views read `GemWalletDetails`; the twins go.
+- **VM240** **S** **The secret screen decides its own title and warning.**
+  - **iOS:** `SecretDataViewModel` titles words "Secret phrase" or "New wallet" depending on a continue action, picks the callout, and builds rows and copy.
+  - **Android:** `WalletSecretContentUIModel` and `WalletSecretUIModel` build rows and copy.
+  - **Expected:** a Core secret-screen record (title, warning kind, rows, copy); both go.
+- **VM241** **S** **Terms acceptance is tracked in the apps.**
+  - **iOS:** `AcceptTermsViewModel` and `TermItemViewModel` list the terms and track which are confirmed.
+  - **Android:** `AcceptTermRowUIModel` lists `GemConstants.acceptTermsItems` and the screen tracks confirmation.
+  - **Expected:** a terms session returns rows and whether all are accepted; both models go.
+- **VM242** **S** **Import types are enumerated in the apps.**
+  - **iOS:** `ImportWalletTypeViewModel` and the `ImportWalletType` enum twin the import kinds.
+  - **Android:** `SelectImportTypeViewModel` and `ImportType` do the same.
+  - **Expected:** Core returns the import type rows; the enums go.
+
+### Settings
+
+- **VM243** **S** **Currency rows are wrapped.**
+  - **iOS:** `CurrencySceneViewModel` maps sections and rows.
+  - **Android:** `CurrencyRowUIModel` copies `GemCurrencyRow` into a list item.
+  - **Expected:** views read `GemCurrencySection`; the wrapper goes.
+- **VM244** **S** **Network settings sections are fixed in the apps.**
+  - **iOS:** `ChainSettingsSectionViewModel.Kind` (nodes, explorer) and `ChainNodeViewModel` build the sections.
+  - **Android:** `NetworksUIState`, `NetworkSectionUIModel`, `NodeRowUIModel` and `ExplorerRowUIModel` do the same with fixed titles.
+  - **Expected:** the chain settings view state returns sections with titles and rows; the models go.
+- **VM245** **S** **Add-node results are shaped in the apps.**
+  - **iOS:** `AddNodeSceneViewModel` shows the warning only once checks exist.
+  - **Android:** `AddNodeUIModel` derives error text and checks from the phase, shows the warning once checks exist and maps sync state to a flag.
+  - **Expected:** the add-node view state carries error, check rows and warning; both models go.
+- **VM246** **S** **Contact address rows are built in the apps.**
+  - **iOS:** `ContactEditorViewModel.listItemModel(for:)` builds network name, short address and image.
+  - **Android:** `ContactAddressRowUIModel` and `addAddressListItem` do the same.
+  - **Expected:** the contact session returns address rows; both builders go.
+- **VM247** **S** **Notification rows decide their tag and icon.**
+  - **iOS:** `InAppNotificationListItemViewModel` shows "New" when unread and maps the icon.
+  - **Android:** `NotificationRowUIModel` does the same.
+  - **Expected:** the shared renderer draws `GemNotificationRow`; both models go.
+- **VM248** **S** **Price alert items are twinned.**
+  - **iOS:** `PriceAlertItem` copies `GemPriceAlertItem` fields.
+  - **Android:** `PriceAlertItemUIModel` does the same.
+  - **Expected:** views read `GemPriceAlertItem`; both go.
+- **VM249** **S** **The price-alert input is configured in the apps.**
+  - **iOS:** `SetPriceAlertType` and `SetPriceAlertCurrencyInputConfig` pick placeholder "5", the "%" symbol, direction images and compose "Current price X".
+  - **Android:** `PriceAlertTargetScene` shows "%" for percent alerts and composes "Current price **X**".
+  - **Expected:** the alert session returns placeholder, symbol and the current-price text (land with VM191).
+
+### Assets, NFT, rewards, support
+
+- **VM250** **S** **Asset filters are held in the apps.**
+  - **iOS:** `AssetsFilterViewModel` holds the balance toggle and chains and decides `isAnyFilterSpecified`.
+  - **Android:** `BaseAssetSelectViewModel` holds the same filters.
+  - **Expected:** a filter session in Core (as for activity) returns the state; both go.
+- **VM251** **S** **Asset context menus are assembled in the apps.**
+  - **iOS:** `AssetContextMenu` builds `GemAssetMenuInput` from which callbacks exist and maps actions to items.
+  - **Android:** `assetContextMenuItems` does the same and picks the pin icon from state.
+  - **Expected:** Core returns the menu rows with icon kinds; both builders go.
+- **VM252** **S** **Asset-list rows are composed in the apps.**
+  - **iOS:** `WalletSearchSceneViewModel` builds list rows with the count as subtitle.
+  - **Android:** `AssetListRowUIModel` builds the same row and the list icon URL.
+  - **Expected:** search returns list rows; both builders go.
+- **VM253** **S** **Asset details sections are twinned.**
+  - **iOS:** `AssetDetailRowItem`, `AssetDetailSectionItem` and `AssetDetailRowAction` copy `GemAssetDetails` sections.
+  - **Android:** `AssetInfoUIModel`, `AssetInfoUIModelFactory`, `PriceAlertMenuUIModel` and `EmptyTransactionsUIModel` do the same.
+  - **Expected:** views read the Core sections (taps from VM189); the twins go.
+- **VM254** **S** **Recents are wrapped and grouped in the apps.**
+  - **iOS:** `RecentAssetsModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
+  - **Android:** `RecentsSheetUIModel` and `RecentAsset` do the same and sort by date in the view.
+  - **Expected:** Core returns the recents list sectioned (with VM210); the models go.
+- **VM255** **S** **The collections grid is built in the app.**
+  - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
+  - **Android:** `NftListViewModels` builds the same grid.
+  - **Expected:** views read the Core grid rows; the builders go.
+- **VM256** **S** **Collectible details are reshaped in the apps.**
+  - **iOS:** `CollectibleViewModel` decides which actions go to the menu or the buttons and labels them.
+  - **Android:** `NftDetailsUIModel` copies sections and formats attribute dates.
+  - **Expected:** a Core details record with placed actions; the models go.
+- **VM257** **S** **Redemption rows compose the confirmation text.**
+  - **iOS:** `RewardRedemptionOptionViewModel` composes the confirmation with `Localized.Rewards.confirmRedeem(value, points)`.
+  - **Android:** `RewardRedemptionUIModel` composes it with `R.string.rewards_confirm_redeem`.
+  - **Expected:** `GemRewardsRedemption` carries the confirmation text; both models go.
+- **VM258** **S** **The incoming referral code is twinned on Android.**
+  - **iOS:** `RewardsViewModel` switches on `GemIncomingCode` directly.
+  - **Android:** `IncomingCodeUIModel` splits it into two nullable strings.
+  - **Expected:** Android reads `GemIncomingCode` like iOS; the twin goes.
+- **VM259** **S** **Support bubbles decide their side and flags.**
+  - **iOS:** `SupportMessageBubbleViewModel` picks palette and alignment by sender and derives sending, failed and content flags.
+  - **Android:** `SupportMessageBubble` does the same (`isUser` from the sender).
+  - **Expected:** the Core bubble row carries side and outcome; palette from the style mapper; the models go.
+- **VM260** **S** **WalletConnect connection rows are built in the apps.**
+  - **iOS:** `ConnectionViewModel` and `ConnectionSceneViewModel` build the row and title.
+  - **Android:** `ConnectionRowUIModel` picks icon or initial placeholder.
+  - **Expected:** the shared renderer draws the Core connection row; both go.
+
+### Twins and dead code
 
 - **VM195** **L** **Each app hand-writes its own asset read model and converts it for Core.** Core has `Asset`, `Price`, `AssetMetaData` and `GemAssetBalance`, but the composite a store read returns is written twice, with different shapes.
   - **iOS:** `AssetData`, `ChainAssetData`, `Balance`, `AssetValuePrice` and `RecentAsset` (`Primitives`), converted by `GemAssetBalance(_:assetId:isActive:)` and `AssetData.rowInput` (`ListAssetItemsViewModel.swift`).
