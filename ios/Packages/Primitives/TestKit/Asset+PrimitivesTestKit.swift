@@ -90,16 +90,6 @@ public extension Asset {
         )
     }
 
-    static func mockSUI() -> Asset {
-        Asset(
-            id: AssetId(chain: .sui, tokenId: nil),
-            name: "Sui",
-            symbol: "SUI",
-            decimals: 9,
-            type: .native,
-        )
-    }
-
     static func mockSolana() -> Asset {
         .mock(
             id: AssetId(chain: .solana, tokenId: .none),

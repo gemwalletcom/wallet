@@ -8,7 +8,6 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualMetadata
-import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
@@ -72,10 +71,4 @@ fun mockPerpetualPositionData(perpetual: Perpetual = mockPerpetual(price = 100.0
     perpetual = perpetual,
     asset = asset,
     position = position,
-)
-
-fun mockPerpetualTriggerOrder(price: Double = 100.0) = PerpetualTriggerOrder(
-    price = price,
-    order_type = PerpetualOrderType.Limit,
-    order_id = "order-$price",
 )

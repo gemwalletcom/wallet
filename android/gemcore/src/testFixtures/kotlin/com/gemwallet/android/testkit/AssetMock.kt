@@ -28,13 +28,6 @@ fun mockAssetSolanaUSDC() = mockAsset(
     type = AssetType.SPL,
 )
 
-fun mockAssetXrp() = mockAsset(
-    chain = Chain.Xrp,
-    name = "XRP",
-    symbol = "XRP",
-    decimals = 6,
-)
-
 fun mockAssetSmartChain() = mockAsset(
     chain = Chain.SmartChain,
     name = "BNB",
@@ -79,15 +72,6 @@ fun mockAssetHyperCoreUSDC() = mockAsset(
     symbol = "USDC",
     decimals = 8,
     type = AssetType.TOKEN,
-)
-
-fun mockAssetTempoUSDCe() = mockAsset(
-    chain = Chain.Tempo,
-    tokenId = "0x20C000000000000000000000b9537d11c60E8b50",
-    name = "Bridged USDC",
-    symbol = "USDC.e",
-    decimals = 6,
-    type = AssetType.TIP20,
 )
 
 fun mockAssetHyperCoreUBTC() = mockAsset(

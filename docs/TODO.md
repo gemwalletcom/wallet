@@ -2,7 +2,7 @@
 
 The goal is that Gemstone decides once and both clients read that decision. Shared rules, records, sessions and orchestration live in Core; rendering, observation, scheduling, OS ports and locale formatting live in the apps. A view model, UI model, aggregate, factory or provider that still decides, re-derives, composes text or formats a number is debt; a model that holds one Core record and maps it to platform values is the target shape. Contracts and worked examples are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-Every open item carries a stable id and a size (**S**/**M**/**L**); ids are never reused. Namespaces: `VM` (consolidation into Gemstone), `AUD` (correctness found by review), `BD` (a behaviour difference), `D` (a decided product or security choice being built) and `X` (blocked upstream).
+Every open item carries a stable id and a size (**S**/**M**/**L**); ids are never reused. Namespaces: `VM` (consolidation into Gemstone), `AUD` (correctness found by review), `BD` (a behaviour difference), `D` (a decided product or security choice being built), `GEN` (code `just generate-models` writes instead of hand-written test mocks and mappers), `MOD` (feature modules named and grouped the same way on both apps), `CLN` (a cleanup sweep across every platform) and `X` (blocked upstream).
 
 - **Closing an item:** delete its line and commit at once. If it settles an important user-facing rule someone might simplify away, write that rule on its area page under [product/](product/) in the same commit, following [PRODUCT.md § Writing a page](PRODUCT.md#writing-a-page); most items have none. Nothing else is recorded here: git history carries the detail.
 - **Comparing the apps:** say what each does on its own line — **iOS:**, **Android:**, then **Expected:** (the agreed behaviour, or "needs a decision") — never in one sentence covering both. When the apps differ and no item decides otherwise, iOS is the reference behaviour.
@@ -19,14 +19,18 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Delete first:** VM187 (Android).
+1. **Generated mocks:** GEN296, then GEN297 type by type, then GEN298.
 2. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
 3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 4. **Models:** VM195.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+7. **Generated mappers:** BD299, then GEN300.
+8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312 and MOD313.
+9. **Unused code:** CLN318.
+10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold), MOD314 to MOD317. Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -36,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM236, VM237, VM238, VM239, VM240, VM273, VM294 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM237, VM238, VM239, VM240, VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204, VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182, VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
@@ -61,9 +65,11 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM189; retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189, VM247, VM259 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266, VM268, VM293 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM187, VM195, VM288 |
+| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM195, VM288, BD299, GEN300 |
+| Test mocks | `core/bin/generate` with `remote_types.yml`, iOS `TestKit` targets, Android `testFixtures` | GEN296, GEN297, GEN298 |
+| Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -127,10 +133,10 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
-- **VM196** **S** **Some Core enums are turned into text outside the two mapper files, in both apps.** The parity check reads only the mapper files, so these escape it.
-  - **iOS:** `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `BannerButtonViewModel` (`GemBannerButton`), `CollectibleViewModel` (`GemCollectibleAction` labels), `ChainsFilterTypeViewModel` and `TransactionsFilterTypeViewModel` (filter summaries).
-  - **Android:** `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `WelcomeBanner` (`GemBannerButton`), `TransactionsViewModel` (`GemChainsFilterSummary`, `GemTransactionsFilterSummary`).
-  - **Expected:** each mapping moves into `Gemstone+Localized.swift` and `GemstoneText.kt`.
+- **VM196** **M** **Core values are turned into text, icons and styles outside the two mapper files, in both apps.** The parity check reads only the mapper files, so these escape it.
+  - **iOS:** text in `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `BannerButtonViewModel` (`GemBannerButton`), `CollectibleViewModel` (`GemCollectibleAction` labels), `ChainsFilterTypeViewModel` and `TransactionsFilterTypeViewModel` (filter summaries); icons and styles in `SwapProviderType+Gemstone`, `FiatProviderName+`, `GemSocialLink+`, `GemLatencyStatus+`, `GemButtonState+`, `GemTransactionHeader+`, `GemHeaderActions+`, `GemAvatar+` and `GemLoadState+StateViewType` (`PrimitivesComponents/Sources/Extensions`).
+  - **Android:** text in `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `WelcomeBanner` (`GemBannerButton`), `TransactionsViewModel` (`GemChainsFilterSummary`, `GemTransactionsFilterSummary`); icons and labels in `VerificationStatusItem.kt` and `PinnedAssetsHeaderItem.kt`.
+  - **Expected:** each mapping moves into `Gemstone+Localized.swift`/`Gemstone+Style.swift` and `GemstoneText.kt`/`GemstoneStyle.kt`. `GemCopy+`, `GemWalletRow+` and `GemSecretPhraseRow+` go with VM206, VM237 and VM294; Android `ChainIcon.kt` stays where `android/scripts/convert-icons.sh` generates it.
 - **VM193** **S** **Values Core hands back are turned into input text by the apps.** Swap's "use minimum amount" (iOS `SwapSceneViewModel.setFromValue(minimum:)`, Android `SwapViewModel.setPayValue`) and the price-alert suggestions (iOS `PriceSuggestion.inputValue`, Android `PriceAlertTargetViewModel.suggestion`) each convert the value with `NumberInput`/`numberFormat().inputText` or `valueText`. The owning session returns the text (the swap session for its minimum, the alert session for its suggestions). Land with VM192, which does the same for amount prefill and max.
 - **VM186** **S** **Both apps put "≈" in front of an estimated duration.** iOS `EstimatedConfirmationFormatter` (`GemstonePrimitives/Sources/DurationFormatters.swift`) and Android `formatEstimate` (`gemcore/.../domains/duration/DurationFormatter.kt`, used by `GemListRowUIModel` for estimate rows) each compose `"≈ " + duration`. The fiat quote row already composes its estimate in Core around the platform-formatted value (`GemFiatQuoteRow::crypto_estimate_text`); give the duration estimate the same method and delete both prefixes.
 
@@ -148,7 +154,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 1, coverage:** declare the 20 TypeShare types the bindings lack, or delete their app use: `AssetPriceInfo`, `AssetSubtype`, `BitcoinChain`, `ChartValue`, `ContactData`, `CosmosChain`, `Device`, `EVMChain`, `FiatAssets`, `PerpetualAccountSummary`, `PerpetualPortfolio`, `PerpetualPositionsSummary`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionPerpetualMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.
   - **Phase 2, enums and identifiers:** `Chain` becomes a generated UniFFI enum and the identifiers generated records (`AssetId` carries chain and token id). `just generate-models` emits their stored-string conversions on both apps, so no app parses an identifier by hand.
   - **Phase 3, storage and routes:** `just generate-models` emits `Codable` and `Hashable` conformances (iOS) and kotlinx serializers (Android) for the generated types that routes and stored JSON carry: iOS `Scenes`, Android route arguments, and three GRDB JSON columns. iOS `Store` gains the `Gemstone` dependency.
-  - **Phase 4, the apps, module by module:** replace TypeShare imports with the generated types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM195 (asset read model), VM276 (`SelectAssetType`), VM278 (iOS service wrappers) and VM288 (Android aggregates) land inside this phase.
+  - **Phase 4, the apps, module by module:** replace TypeShare imports with the generated types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM195 (asset read model), VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
   - **Phase 5, removal:** stop generating Swift and Kotlin from TypeShare, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
   - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with TypeShare `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
 
@@ -186,10 +192,10 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `BannerViewModel`, `BannerButtonViewModel` and `BannerAction` wrap `GemBannerRow`; icon size and corner radius are chosen per icon, button titles and styles per button.
   - **Android:** `BannerRowUIModel` and `BannerItemUIModel` copy the same fields; `WelcomeBanner` picks button titles.
   - **Expected:** views take `GemBannerRow`; sizes, radii, titles and button styles live in the mapper files; the wrappers go.
-- **VM205** **S** **Some shared-row texts are composed by the renderers.**
-  - **iOS:** `GemListRowItem` writes the titles of app, wallet, memo and explorer rows itself, composes "View on X", the " #rank " tag and "Enable Face ID" for the authentication toggle.
-  - **Android:** `GemListRowUIModel` composes the explorer title and the same labels.
-  - **Expected:** Core sends every row's title and text (`GemListRowTitle` plus values); the renderers only map.
+- **VM205** **S** **Shared-row texts and menus are composed by the renderers.**
+  - **iOS:** `GemListRowItem` writes the titles of app, wallet, memo and explorer rows itself, composes "View on X", the " #rank " tag and "Enable Face ID" for the authentication toggle, and builds the explorer, wallet and memo menus; `GemListRowView` titles the provider row "Contract".
+  - **Android:** `GemListRowUIModel` composes the explorer title and the same labels, builds the website, copy-address, view-on and copy-memo menus, picks the copy title by copy kind, and exposes an address only when the title is `CONTRACT`.
+  - **Expected:** Core sends every row's title, text and menu entries (copy or open, by kind); the renderers only map.
 - **VM206** **S** **`CopyTypeViewModel` wraps a copy record.**
   - **iOS:** `CopyTypeViewModel` holds `GemCopy`, builds the copied message and the pasteboard options.
   - **Android:** `GemCopyExt.kt` and `ClipboardExt.kt` do the same around `GemCopy`.
@@ -325,22 +331,18 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Wallets and onboarding
 
-- **VM236** **S** **`WalletBarViewViewModel` is a name and an image.**
-  - **iOS:** `WalletBarViewViewModel` copies the wallet name and avatar for the wallet bar.
-  - **Android:** the wallet bar takes name and icon separately from `WalletRowUIModel`.
-  - **Expected:** the bar takes `GemWalletRow`; the model goes.
 - **VM237** **S** **Wallet rows are rebuilt and imaged by the apps.**
-  - **iOS:** `WalletEntry` pairs a wallet with `walletRow(wallet:)`; `GemWalletRow` extensions choose image, placeholder and watch badge.
-  - **Android:** `WalletRowUIModel`, `WalletSectionUIModel`, `walletListItemImage` and `supportIcon` do the same.
-  - **Expected:** views take `GemWalletRow`/`GemWalletSection`; image choice moves to the mapper; the wrappers go.
+  - **iOS:** `WalletEntry` pairs a wallet with `walletRow(wallet:)`; `GemWalletRow` extensions choose image, placeholder and watch badge; `WalletBarViewViewModel` copies the wallet name and avatar for the wallet bar.
+  - **Android:** `WalletRowUIModel`, `WalletSectionUIModel`, `walletListItemImage` and `supportIcon` do the same; the wallet bar takes name and icon separately from `WalletRowUIModel`.
+  - **Expected:** views, the wallet bar included, take `GemWalletRow`/`GemWalletSection`; image choice moves to the mapper; the wrappers and `WalletBarViewViewModel` go.
 - **VM238** **S** **The wallets list splits sections in the app.**
   - **iOS:** `WalletsSceneViewModel` sorts through `walletService.sorted`; `SelectWalletViewModel` maps `GemWalletSection` kinds to titles.
   - **Android:** `WalletsUIState` splits pinned and unpinned and marks the current wallet.
   - **Expected:** Core returns the wallet sections with the current flag; both splits go.
 - **VM239** **S** **Wallet details are twinned.**
-  - **iOS:** `WalletIDetailViewModel` and `WalletImageViewModel` read and reshape wallet details.
-  - **Android:** `WalletDetailsUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`.
-  - **Expected:** views read `GemWalletDetails`; the twins go.
+  - **iOS:** `WalletIDetailViewModel` and `WalletImageViewModel` read and reshape wallet details; `WalletIDetailViewModel` also composes "Show {secret}" and the address row.
+  - **Android:** `WalletDetailsUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`; `WalletViewModel` composes "Show {secret}".
+  - **Expected:** `GemWalletDetails` returns its rows, texts included, and the views read it; the twins and both row builders go.
 - **VM240** **S** **The secret screen decides its own title and warning.**
   - **iOS:** `SecretDataViewModel` titles words "Secret phrase" or "New wallet" depending on a continue action, picks the callout, and builds rows and copy.
   - **Android:** `WalletSecretContentUIModel` and `WalletSecretUIModel` build rows and copy.
@@ -462,10 +464,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
   - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
   - **Expected:** payload rows render through the shared row renderer (address rows from VM207); both go.
-- **VM268** **S** **Core-type mappings live outside the two mapper files.**
-  - **iOS:** `SwapProviderType+Gemstone`, `FiatProviderName+`, `GemSocialLink+`, `GemLatencyStatus+`, `GemButtonState+`, `GemTransactionHeader+`, `GemHeaderActions+`, `GemCopy+`, `GemWalletRow+`, `GemSecretPhraseRow+`, `GemAvatar+` and `GemLoadState+StateViewType` (`PrimitivesComponents/Sources/Extensions`).
-  - **Android:** `ChainIcon.kt`, `VerificationStatusItem.kt` and `PinnedAssetsHeaderItem.kt` map Core values to icons and labels.
-  - **Expected:** each mapping moves into the two mapper files so the parity check covers it.
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `AssetsScreen` ignores the same three; `BannerItem` handles all four.
@@ -485,10 +483,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `AmountSceneViewModel` composes "Balance: X" and "Reserved fees X".
   - **Android:** `PropertyAssetInfoItem` composes the balance and `AmountScene` the reserved fees.
   - **Expected:** the amount view state carries both texts (land with VM192).
-- **VM273** **S** **Wallet detail rows are composed in the apps.**
-  - **iOS:** `WalletIDetailViewModel` builds "Show {secret}" and the address row.
-  - **Android:** `WalletViewModel` builds "Show {secret}".
-  - **Expected:** `GemWalletDetails` returns its rows; both builders go.
 - **VM274** **S** **Rewards invite and share texts are composed in the apps.**
   - **iOS:** `RewardsViewModel` composes the invite description with bold points and the share text with the link.
   - **Android:** `ReferralHead` bolds the points and `ReferralScene` composes the share text.
@@ -556,7 +550,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** calls Core with `toGem()` at each call site.
   - **Expected:** callers use the generated types directly; the wrapper extensions go.
 - **VM289** **S** **Android domain aggregates wrap Core rows.**
-  - **iOS:** uses `GemPerpetualMarketItem` directly in views (its wallet-row twin `WalletEntry` is VM235).
+  - **iOS:** uses `GemPerpetualMarketItem` directly in views (its wallet-row twin `WalletEntry` is VM237).
   - **Android:** `PerpetualDataAggregate`, `PerpetualPositionDataAggregate(Impl)`, `WalletDataAggregate`, `WalletSummary`, `LeverageState` and `NftAssetDetailsData` (`gemcore/.../domains`) wrap them.
   - **Expected:** Android uses the records directly; the aggregates go.
 
@@ -574,10 +568,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `RewardsScene` lists the three intro features with their emojis and titles and places share or create-code, use-code and the pending referral.
   - **Android:** `ReferralHead` lists the same three features and `ReferralScene` picks the first share or create-code action, then use-code and the pending referral.
   - **Expected:** the rewards state returns the intro items and the placed actions.
-- **VM293** **S** **Shared-row menus are built by the renderers.**
-  - **iOS:** `GemListRowItem` builds explorer, wallet and memo contexts and `GemListRowView` titles the provider row "Contract".
-  - **Android:** `GemListRowUIModel` builds the website, copy-address, view-on and copy-memo menus, picks the copy title by copy kind, and exposes an address only when the title is `CONTRACT`.
-  - **Expected:** rows carry their menu entries (copy or open, by kind) and the renderers map them.
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
   - **Android:** `PhraseWord.phraseRows` does the same.
@@ -593,7 +583,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `AssetData`, `ChainAssetData`, `Balance`, `AssetValuePrice` and `RecentAsset` (`Primitives`), converted by `GemAssetBalance(_:assetId:isActive:)` and `AssetData.rowInput` (`ListAssetItemsViewModel.swift`).
   - **Android:** `AssetInfo`, `ChainAssetInfo`, `Balance`, `AssetBalance`, `AssetPriceValue` and `RecentAsset` (`gemcore/.../model`), converted by `AssetBalance.toGem` and `AssetInfo.rowInput` (`AssetInfoDataAggregate.kt`), which also drops non-finite prices where iOS does not.
   - **Expected:** one generated read model from Core primitives that both store adapters fill, taken directly by Core's row functions; both sets of twins, conversions and row-input builders go.
-- **VM187** **S** **Android keeps helpers nothing calls.** `String.words()` (`gemcore/.../ext/StringExt.kt`, only its own test), `AssetsDao.insertBalance` (the plural is used), `BannersDao.observeBanner`, `TransactionsDao.deleteByState` and the three `toSearchRecord` overloads in `DbSearch.kt`. Delete them and the test that only covers `words()`.
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
 
 ## 6. Orchestration, services and stores
@@ -614,6 +603,11 @@ Taps on rows that already exist, not new row types.
 
 ## 8. Persistence and parity
 
+- **BD299** **S** **Android loses an NFT's resource when it stores it.**
+  - **iOS:** `NFTAssetRecord` stores `resourceUrl` and `resourceMimeType` and reads them back into `NFTAsset.resource` (`ios/Packages/Store/Sources/Models/NFTAssetRecord.swift`).
+  - **Android:** `DbNFTAsset.toAssetModel` returns `resource = NFTResource("", "")` and the preview image with an empty mime type (`data/services/gemstone/.../nft/NftModels.kt`), so a stored NFT has no resource.
+  - **Expected:** Android stores and returns the resource URL and mime type as iOS does (Room migration for the two columns); lands before GEN300 so one mapping spec serves both apps.
+
 
 ## 9. Behavior differences
 
@@ -626,6 +620,105 @@ Differences between the apps, or between an app and the server, each with its de
 ### Freshness
 
 - **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
+
+## 10. Generated mocks and mappers
+
+Test mocks for generated types are written by hand three times, once per language, and have drifted: `Asset.mock()` is Bitcoin on iOS and Android but Ethereum in Rust; `Transaction` is incoming with value `"0"` on iOS and outgoing with `"1"` on Android; `Account.address` is empty on iOS and `"wallet-address"` on Android; dates are `.now`, `Date()` or the epoch. `core/bin/generate` already reads every type in `remote_types.yml` from the primitives source into records, enums and fields, writes the Swift and Kotlin mappers from that model and checks them against golden files; the mocks come from the same model.
+
+**The standard, for every item below.** A type gets a mock only when `remote_types.yml` lists it under `mocks:`; no type is mocked because it could be. Each listed type gets exactly one mock, the same on both apps: iOS `Type.mock(...)`, Android `mockType(...)` (each app keeps its existing call shape). All of a package's data mocks live in one file, never one file per type: the generated ones in `GeneratedMocks.swift`/`GeneratedMocks.kt`, and the few the generator cannot reach in one hand-written `Mocks.swift`/`Mocks.kt` beside it (distinct names, since Swift rejects two files of the same name in a target and Kotlin two `MocksKt` facades in a package). Behavioural doubles (service fakes, stores) are classes and keep their own files. Every field is a parameter with a default, in declaration order. Defaults follow one rule table, identical on both apps: `""` for a string, `0` for a number and big integer, `false`, `nil`/`null` for an optional, `[]` for a list, the first variant for an enum and for `Chain` (Bitcoin), the epoch for a date, the listed type's own mock for a nested record and the identifier's hand-written mock for an identifier. A field whose type has no mock and no rule fails generation and names the field, so the fix is to list its type or add a per-field override under `mocks:`; an override exists only where the rule would build an invalid value, never for readability, and applies to both apps. There are no named presets (`mockEthereum()`, `mockAssetSolanaUSDC()`, `mockWithChains()`): a test passes the values it asserts on, so every input it depends on is visible at the call site. Rust keeps its hand-written `mock()` and `Type { field, ..Type::mock() }` overrides (`core/skills/tests.md`); the generator does not write Rust mocks.
+
+- **GEN296** **M** **`just generate-models` writes the mocks listed in `remote_types.yml`.**
+  - **Generator:** add a `mocks:` list (type names, plus the rare per-field override) to `core/bin/generate/remote_types.yml`, have `Generator::parse` read the types listed there as well as `remote:` (a mock does not need a UniFFI twin, e.g. `TransactionSwapMetadata`, `WCPairingProposal`), and add a mock writer beside `Generator::swift()` and `Generator::kotlin()` in `remote_mappers.rs`, reusing `Language` templates and `default_value` (`remote_mappers.rs:688`), which already writes the zero values; add the date, nested-mock and identifier rules and the missing-rule failure. Extend `testdata/remote_types.yml` with a `mocks:` list and add `testdata/expected/GeneratedMocks.swift` and `GeneratedMocks.kt` golden files.
+  - **Output:** one file per app, written by `write_generated` and committed like the other generated files: `ios/Packages/Primitives/TestKit/GeneratedMocks.swift` (the `PrimitivesTestKit` target compiles everything under `TestKit`, so no manifest change) and `android/gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/GeneratedMocks.kt` in package `com.gemwallet.android.testkit` (the 31 modules on `testFixtures(project(":gemcore"))` need no change). Never the main source set.
+  - **First list:** the plain field-by-field mocks whose defaults no test asserts on. On iOS these include `AddressName`, `AssetScore`, `NameRecord`, `NFTAsset`, `NFTAssetData`, `NFTCollection`, `NFTData`, `NFTResource`, `PriceAlert`, `PriceAlertData`, `TotalFiatValue`, `TransactionListItem` and `WalletConnection`; each listed type's hand-written mock file (`Type+PrimitivesTestKit.swift`, `TypeMock.kt`) is deleted on both apps in the same change, since the generated and hand-written functions share a name.
+  - **Guidance:** rewrite the mock rules in the same change: `ios/skills/testing.md` § Mocks and `ios/skills/code-style.md` § TestKit Mocks ("expose only the parameters current tests vary") and `android/skills/testing.md` § Shared TestKit ("do not turn a mock helper into a second constructor", "a concrete shape used by more than one test becomes a named fixture") state the standard above (one mock file per package instead of one file per type), how to add a type to `mocks:`, and that a hand-written mock is for a type the generator cannot reach (see GEN297) and follows the same standard. Keep "a test file declares no fixture of its own".
+  - **Verify:** `cd core && cargo test -p generate`, `just generate-models`, `cd ios && just check-test Primitives` and the packages whose tests use a moved mock, `cd android && ./gradlew test`.
+- **GEN297** **M** **Both apps' existing mocks move onto the generated ones and agree.** Work type by type, one family per change (assets, transactions, wallets and accounts, perpetuals, NFT, fiat, support, WalletConnect).
+  - **Generated types:** add the type to `mocks:`, delete its hand-written mock on both apps, and rewrite the call sites whose shape changed. Android's `mockAsset(chain, tokenId, …)` becomes `mockAsset(id = mockAssetId(…), …)`. iOS mocks that hard-code or derive fields (`Account` derivation path, `Transaction` contract, block number and `feeAssetId` copied from `assetId`, `TransactionExtended` prices, `Wallet.isPinned`, `PerpetualPosition` direction from size, `WalletConnectionSession` id from session id, `Device` and `BlockExplorerLink` with no parameters) become the generated all-field mock.
+  - **Presets:** delete every named preset and write its values at the call site: iOS 27 presets used at 377 call sites (`mockEthereum` 74, `mockWithChains` 50, `mockEthereumUSDT` 41, `mockAssets` 41, `mockBNB` 28, `mockTron` 24) and Android's asset presets (`mockAssetSolana`, `mockAssetEthereumUSDT`, `mockAssetHyperCoreUSDC`, …), `mockWalletMulticoin` and `mockAmountParamsTransfer`/`mockAmountParamsPerpetual`.
+  - **Tests that relied on a default:** a test that asserts on a value it did not pass now passes it, e.g. `AssetViewModelTests.swift:11` ("BTC"), `TransactionSceneViewModelTests.swift:194` ("Bitcoin"), `RewardsViewModelTests.swift:48` ("test123"). Never add an override to keep such a test green.
+  - **What stays hand-written, aligned across the apps:** identifiers (`AssetId`, `WalletId`, `TransactionId`, `NFTAssetId`, `NFTCollectionId`, `PerpetualId`, hand-written on both apps) keep one mock each with the same parameters and the iOS defaults (`AssetId.mock()` is Bitcoin native, which matches the rule table); hand-written app types (iOS `AssetData`, `Balance`, `AssetValuePrice`; Android `AssetInfo`, `AssetBalance`, `Session`) follow the standard until VM195 replaces them; behavioural doubles (service mocks implementing `Gem*ServiceProtocol`/`Gem*Interface`, stores, `PasswordStoreMock`) are not data mocks. Where two hand-written mocks for the same concept differ, iOS is the reference.
+  - **One file:** the hand-written data mocks left in `Primitives/TestKit`, `GemstonePrimitives/TestKit` and `gemcore` `testFixtures` move into that package's single `Mocks.swift`/`Mocks.kt`, and the per-type files (`Type+PrimitivesTestKit.swift`, `Type+GemstonePrimitivesTestKit.swift`, `TypeMock.kt`) go.
+  - **Done when:** no hand-written mock remains for a type `remote_types.yml` can list, each package has at most one generated and one hand-written data mock file, both apps' mocks of a type take the same parameters with the same defaults, and no `mock<Name>()` preset remains.
+- **GEN298** **M** **Mocks for Gemstone's own records.** The generator reads only `crates/primitives`; the UniFFI-side mocks (iOS `GemstonePrimitives/TestKit`: 9 plain, 15 partial, 5 with presets; Android `gemcore` `testFixtures`: 49 functions for `uniffi.gemstone` types) are hand-written and disagree the same way. Extend the parser to the `#[derive(uniffi::Record)]` and `#[derive(uniffi::Enum)]` types in `core/gemstone/src` and write them with UniFFI naming (Kotlin unit-enum variants in upper case, data enums as sealed classes) into `ios/Packages/GemstonePrimitives/TestKit/GeneratedMocks.swift` and the Android `GeneratedMocks.kt` (Android keeps one generated file for both type systems, as `gemcore` `testFixtures` holds both), under the same standard and `mocks:` list. iOS mocks that take a `Primitives` value and convert it (`GemHeaderAmount.mock(asset: Asset)`, `PerpetualConfirmData.mock(baseAsset: Asset)`, `GemConfirmLoadMock.swift`) take the generated type instead, and their call sites change. Records that app tests build inline without a mock (`GemSimulationPayloadRow`, `GemFiatQuoteRequest`, `GemPerpetualButtonRow`, `GemBalanceRequirement` on iOS; `GemBalanceRecord`, `GemPerpetualChartLayout`, `GemStakeViewState` on Android) are listed when a second test needs them.
+- **GEN300** **L** **Both apps' persistence mappers are generated from one spec.** Each app hand-writes the record ↔ model mapping for the same tables: iOS about 66 mapping members (about 780 lines) in `ios/Packages/Store/Sources/Models/*Record.swift`, Android about 49 mappers (about 650 lines) in `android/data/services/store/.../database/entities/Db*.kt`, about 60–65% of them plain field copies. They drift (BD299), and Android builds the same record in several places: four `DbAsset` builders (`AssetFull.toRecord`, `Asset.toRecord`, `AssetBasic.toRecord`, `AssetBasic.toUpdateRecord`), `DbPerpetual.toUpdate` duplicating `toDB`, and two `DbPrice.toAssetPrice` that disagree on a missing price (`stores/StoreModels.kt` returns 0, `DbTransactionExtended.kt` drops it).
+  - **Expected:** a `records:` section in `remote_types.yml` names each record or entity, the model it maps and the few field rules a mapping needs (rename, flatten a nested record into prefixed columns, integer cast, parent key); the generator writes both directions per app (`Store/Sources/Generated/RecordMappers.swift`, `data/services/store/.../generated/EntityMappers.kt`), and the hand-written copies go. The record and entity declarations and schema stay hand-written. Start with the plain copies (`Account`, `AddressName`, `AssetLink`, `Contact`, `ContactAddress`, `SupportMessage`, `PriceAlert`, `Perpetual`, `PerpetualPosition`, `FiatRate`, `Banner`, `InAppNotification`), then the flattened ones (`Asset`, `NFTAsset`, `NFTCollection`, `FiatTransaction`, `WalletConnection`, `Balance`); mappings with real logic stay hand-written (`Transaction` id split, `AssetMarket` reassembly, `Price` positive check, `Node` status). Land after BD299.
+
+## 11. Module layout
+
+A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen and names several differently (`activities`, `bridge`, `buy`), and its `assets` is the wallet tab while iOS `Assets` is the asset screens.
+
+**The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
+
+- **MOD301** **S** **Wallet list and wallet details are one module.**
+  - **iOS:** `ManageWallets` holds `WalletsScene` and `WalletDetailScene`.
+  - **Android:** `features/wallets` holds the list; `features/wallet-details` (the only hyphenated module, package `features.wallet`) holds the detail, secret data and wallet image screens, and `wallets:presents` depends on it.
+  - **Expected:** one Android `wallets` module; iOS `ManageWallets` becomes `Wallets`.
+- **MOD302** **S** **Android `activities` becomes `transactions`**, as iOS `Transactions` and [transactions.md](product/transactions.md).
+- **MOD303** **S** **Android `bridge` becomes `wallet_connector`**, as iOS `WalletConnector`.
+- **MOD304** **M** **Rewards is its own module on both apps.**
+  - **iOS:** `RewardsScene`, its view models and `RewardsTests` live in the `Settings` package.
+  - **Android:** `features/referral`, packages `referral.views` and `referral.viewmodels`.
+  - **Expected:** iOS `Rewards` and Android `rewards`, as [rewards.md](product/rewards.md).
+- **MOD305** **S** **Android `perpetual` becomes `perpetuals`**, as iOS `Perpetuals` and [perpetuals.md](product/perpetuals.md).
+- **MOD306** **S** **Android `buy` becomes `fiat_connect`**, as iOS `FiatConnect`; it already holds sell and the fiat history.
+- **MOD307** **S** **The wallet tab is `wallet_tab`.**
+  - **iOS:** `WalletTab` holds `WalletScene`, `NetworkAssetsScene`, `WalletSearchScene`, `AssetsResultsScene` and `PortfolioScene`.
+  - **Android:** `features/assets` holds the same screens except the portfolio, whose `PortfolioChartScene` is in `features/asset`.
+  - **Expected:** Android `assets` becomes `wallet_tab` and takes `PortfolioChartScene`. Lands before MOD308, which reuses the name `assets`.
+- **MOD308** **M** **The asset screens are one `assets` module.**
+  - **iOS:** `Assets` holds `AssetScene`, `AddAssetScene`, `SelectAssetScene`, `AddressDetailsScene` and `AssetsFilterScene`.
+  - **Android:** split over `features/asset`, `features/add_asset` and `features/asset_select`; `swap`, `perpetual`, `settings/price_alerts` and the wallet tab depend on `asset_select`.
+  - **Expected:** one Android `assets` module; the dependents point at it.
+- **MOD309** **M** **Send, receive and amount are one `transfer` module.** Lands with MOD310.
+  - **iOS:** `Transfer` holds `RecipientScene`, `AmountScene`, `ReceiveScene`, `ConfirmTransferScene`, `PaymentVerificationScene` and `GetAssetScene`.
+  - **Android:** split over `features/recipient` (package `recipient.viewmodel`), `features/transfer_amount`, `features/receive` and `features/confirm`; `transfer_amount` also holds `ValidatorsScene`.
+  - **Expected:** Android `recipient`, `transfer_amount` and `receive` become one `transfer` module; `ValidatorsScene` moves to `stake`; `confirm` follows MOD314.
+- **MOD310** **S** **Android `earn/stake` and `earn/delegation` become one `stake` module**, as iOS `Stake` (`EarnScene`, `StakeScene`, `DelegationScene`, `ValidatorSelectScene`). Their namespaces are `features.stake` and `features.earn.delegation`, which do not match the path; the `earn` level goes.
+- **MOD311** **M** **Onboarding is one module.**
+  - **iOS:** `Onboarding` holds `OnboardingScene`, `AcceptTermsScene`, the create, import and verify-phrase flows, `SecurityReminderScene`, `ShowSecretDataScene` and `WalletImageScene`.
+  - **Android:** `features/create_wallet`, `features/import_wallet`, and `OnboardScreen` and `AcceptTermsScreen` in `app/features/onboarding`.
+  - **Expected:** one Android `onboarding` module holding all of them; the secret data and wallet image screens follow MOD315.
+- **MOD312** **M** **Settings is one module, and the areas with their own page leave it.**
+  - **iOS:** `Settings` holds settings, preferences, security, notifications, appearance, currency, networks (`ChainSettings`), about us and developer; `Contacts`, `PriceAlerts`, `InAppNotifications` and `Support` are packages of their own.
+  - **Android:** nine modules under `features/settings` (`aboutus`, `contacts`, `currency`, `develop`, `in_app_notifications`, `networks`, `price_alerts`, `security`, `settings`), with `SupportChatScene` inside `settings/settings`.
+  - **Expected:** Android `aboutus`, `currency`, `develop`, `networks`, `security` and `settings` become one `settings` module; `contacts`, `price_alerts` and `in_app_notifications` move to the top level; `SupportChatScene` moves to a `support` module.
+- **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
+- **MOD314** **S** **Where confirmation lives.**
+  - **iOS:** `ConfirmTransferScene` is in `Transfer`, which depends on `WalletConnector`, `Perpetuals`, `Stake` and `Swap`.
+  - **Android:** `features/confirm` is its own module, and `bridge` and `perpetual` depend on it.
+  - **Expected:** needs a decision: `confirm` stays a module on Android and iOS moves confirmation into a `Confirm` package the others depend on, or Android folds it into `transfer` and follows the iOS dependency direction.
+- **MOD315** **S** **Where the secret data and wallet image screens live.**
+  - **iOS:** `ShowSecretDataScene` and `WalletImageScene` are in `Onboarding`; create-wallet reuses the phrase screen.
+  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallet-details`.
+  - **Expected:** needs a decision: [wallets.md](product/wallets.md) puts both under Wallets, so iOS moves them to `Wallets` and `Onboarding` depends on it, or Android moves them to `onboarding`.
+- **MOD316** **S** **Where the asset chart and recents live.**
+  - **iOS:** the chart is `ChartScene` in `MarketInsight` (three files); recents are the `Recents` package, used by `Assets`, `Perpetuals` and `WalletTab`.
+  - **Android:** `AssetChartScene` is in `features/asset`; `RecentsBottomSheet` is in `features/asset_select`.
+  - **Expected:** needs a decision: iOS folds `MarketInsight` into `Assets` and Android keeps recents in `assets`, or Android adds `market_insight` and `recents` modules.
+- **MOD317** **S** **Where shared components live.**
+  - **iOS:** banners are `BannerView` in `PrimitivesComponents` and the update prompt is in `RootSceneViewModel`; the QR scanner and info sheet are the `QRScanner` and `InfoSheet` features.
+  - **Android:** banners and the update prompt are the `banner` and `update_app` features; the QR scanner and info sheet are in `ui/components`.
+  - **Expected:** needs a decision: a component used by several areas lives in the shared UI package on both apps (`PrimitivesComponents`, `ui`), or in its own feature module on both.
+
+## 12. Cleanup sweeps
+
+Two passes over the whole repository, Core, iOS and Android, run after the items above have moved their rules and deleted their models. Each goes one platform and one module family per change, builds and tests that module before moving on, and says in the commit what it removed. Neither pass removes something an open item already names (that item deletes it with its replacement), and neither touches a public contract: API routes and fields shipped apps or the website read (see X168), stored formats, database and keystore migrations, and deep link URLs stay until their own item retires them. Changes near key material, signing or transaction construction follow [security](../skills/security.md).
+
+- **CLN318** **L** **Unused and redundant code is removed on every platform.** Dead code is still compiled, generated, reviewed and copied by the next change that reads nearby code.
+  - **Unused:** a declaration nothing in production reaches. One reached only by its own test, a mock or a preview counts as unused, and its test goes with it (as `String.words()` went). Find candidates per platform, then confirm each by search and a build:
+    - **Core:** `just core unused` (cargo machete) for dependencies; `pub` items with no caller outside their crate, which rustc does not flag; `scripts/check-ffi-surface.py` for exports no app calls, shrinking its `ALLOWED` list to entries that name an open item; TypeShare types neither app nor the web reads; unused `CacheKey` variants, config fields and features.
+    - **iOS:** a Periphery scan of the workspace for unused declarations, protocols and conformances; package dependencies in `Package.swift` no source imports; `Style` image assets nothing references.
+    - **Android:** Android Lint `UnusedResources`; top-level functions, extensions, DAO queries and classes with no caller; Gradle dependencies no module source uses. Keep what the manifest, Hilt, WorkManager or reflection reaches.
+    - **Both apps:** Fluent keys in `localization/` that neither app reads (a key is unused only when both apps drop it), then `just localize`.
+  - **Redundant:** two helpers, formatters, extensions or fixtures in one platform that do the same thing keep one, and callers move to it. The twin of a Core record belongs to its `VM` item, not here.
+  - **Done when:** each tool reports nothing, or every remaining hit is listed in the commit with the reason it stays.
+- **CLN319** **L** **Every unit test is reviewed, and the ones that protect no contract go.** Last in the order: before it, the `VM` items move rules into Core and the `GEN` items replace mocks, which changes which app tests still mean anything. Unit tests only; integration tests and Maestro flows keep their own rules ([testing-maestro](../skills/testing-maestro.md)).
+  - **Delete a test that:** asserts a constant, static table or 1:1 enum mapping back at itself; tests generated code (TypeShare models, `RemoteTypeMappers`, generated mocks), which the generator's golden tests cover; re-tests in an app a rule Core owns and tests (the app keeps a test only for wiring and visible output); repeats another test's case in the same platform with no new boundary; covers a getter, `copy`, equality or framework behaviour (SwiftUI, Compose, GRDB, Room) rather than ours; mocks the very code it claims to check; or still passes when the rule it names is inverted.
+  - **Keep, and fix rather than delete:** a weak test that guards a real contract gets the assertion the contract needs. Signing, keystore, derivation, transaction construction, amounts and decimals, address validation, wire formats and migrations are never deleted without an equivalent test in the same change, whether in Core or the app.
+  - **Check:** for each test kept on a business rule, invert the rule, run the test, confirm it fails, and restore ([engineering principles](../skills/engineering-principles.md#tests)). A contract found with no test gets the smallest one at its owner.
+  - **Run:** `cd core && just test <CRATE>`, `cd ios && just test-package <Package>` (confirm the target is still in the test plan and the expected tests ran), `cd android && ./gradlew :<module>:testDebugUnitTest`. Record the test count per module before and after in the commit.
+  - **Done when:** every Core crate, iOS package and Android module has been reviewed once.
 
 ## Blocked upstream
 
