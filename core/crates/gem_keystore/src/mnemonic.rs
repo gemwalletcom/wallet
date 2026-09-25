@@ -9,11 +9,11 @@ pub struct Mnemonic;
 impl Mnemonic {
     pub const MIN_ENTROPY_LEN: usize = 16;
 
-    pub fn generate(word_count: usize) -> Result<Vec<String>, KeystoreError> {
+    pub fn generate(word_count: usize) -> Result<Zeroizing<Vec<String>>, KeystoreError> {
         let entropy_len = entropy_len_for_word_count(word_count)?;
         let entropy = Zeroizing::new(gem_crypto::random::bytes::<32>()?);
         let mnemonic = Bip39Mnemonic::from_entropy_in(Language::English, &entropy[..entropy_len]).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
-        Ok(mnemonic.words().map(|word| word.to_string()).collect())
+        Ok(Zeroizing::new(mnemonic.words().map(|word| word.to_string()).collect()))
     }
 
     pub fn clean(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {

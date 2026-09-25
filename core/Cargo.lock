@@ -1241,6 +1241,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4559bb9225f8401dcea601cf8dc9ed81ea0dadd9cf7755fdefdd93ef7961e19e"
 dependencies = [
  "bitcoin_hashes 0.14.101",
+ "zeroize",
 ]
 
 [[package]]
