@@ -28,7 +28,7 @@ public final class SetPriceAlertViewModel {
     var isPresentingAlertMessage: AlertMessage?
     private var isSaving = false
 
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
         assetQuery.value
     }
@@ -45,7 +45,7 @@ public final class SetPriceAlertViewModel {
         currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState()
-        assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
+        assetQuery = ObservableQuery(AssetQuery(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
     var viewState: GemPriceAlertViewState {

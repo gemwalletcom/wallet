@@ -13,7 +13,7 @@ import Store
 @MainActor
 public final class TransactionsFilterViewModel {
     private let wallet: Wallet
-    private let type: TransactionsRequestType
+    private let type: TransactionsQueryType
 
     public var chainsFilter: ChainsFilterViewModel {
         didSet { query.request.base.filters = requestFilters }
@@ -23,25 +23,25 @@ public final class TransactionsFilterViewModel {
         didSet { query.request.base.filters = requestFilters }
     }
 
-    public let query: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
+    public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
 
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
 
-    public init(wallet: Wallet, chains: [Chain], type: TransactionsRequestType) {
+    public init(wallet: Wallet, chains: [Chain], type: TransactionsQueryType) {
         self.wallet = wallet
         self.type = type
 
         chainsFilter = ChainsFilterViewModel(chains: chains)
         transactionTypesFilter = TransactionTypesFilterViewModel()
 
-        let request = TransactionsRequest(
+        let request = TransactionsQuery(
             walletId: wallet.id,
             type: type,
-            filters: TransactionsRequestFilter.activity(chains: [], filters: []),
+            filters: TransactionsQueryFilter.activity(chains: [], filters: []),
             limit: GemConstants.transactionsListLimit,
         )
-        query = ObservableQuery(MappedRequest(request, transform: TransactionViewModel.sections), initialValue: [])
+        query = ObservableQuery(MappedQuery(request, transform: TransactionViewModel.sections), initialValue: [])
     }
 
     public func onFinishChainsSelection(_ value: SelectionResult<Chain>) -> Bool {
@@ -86,8 +86,8 @@ public final class TransactionsFilterViewModel {
         )
     }
 
-    private var requestFilters: [TransactionsRequestFilter] {
-        TransactionsRequestFilter.activity(
+    private var requestFilters: [TransactionsQueryFilter] {
+        TransactionsQueryFilter.activity(
             chains: chainsFilter.selectedChains,
             filters: transactionTypesFilter.selectedTypes,
         )

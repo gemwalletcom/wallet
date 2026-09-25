@@ -36,7 +36,7 @@ public final class SelectAssetViewModel {
     var state: StateViewType<[AssetBasic]> = .noData
     var searchableQuery: String = .empty
 
-    public let assetsQuery: ObservableQuery<AssetsRequest>
+    public let assetsQuery: ObservableQuery<AssetsQuery>
     public let recentModel: RecentAssetsModel
     var assets: [AssetData] {
         assetsQuery.value
@@ -78,7 +78,7 @@ public final class SelectAssetViewModel {
         )
         filterModel = filter
 
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters, limit: GemConstants.assetResultsLimit), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters, limit: GemConstants.assetResultsLimit), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,

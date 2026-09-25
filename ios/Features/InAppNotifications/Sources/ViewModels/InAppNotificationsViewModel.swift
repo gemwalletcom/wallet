@@ -23,7 +23,7 @@ public final class InAppNotificationsViewModel {
 
     private var loadState: GemLoadState = .loading
 
-    public let query: ObservableQuery<InAppNotificationsRequest>
+    public let query: ObservableQuery<InAppNotificationsQuery>
     public var notifications: [Primitives.InAppNotification] {
         query.value
     }
@@ -36,7 +36,7 @@ public final class InAppNotificationsViewModel {
         self.wallet = wallet
         self.service = service
         self.onOpenAction = onOpenAction
-        query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id.id), initialValue: [])
+        query = ObservableQuery(InAppNotificationsQuery(walletId: wallet.id.id), initialValue: [])
     }
 
     public var title: String {

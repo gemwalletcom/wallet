@@ -17,7 +17,7 @@ public final class FiatTransactionsViewModel {
     private let service: any GemFiatQuoteServiceProtocol
     let walletId: WalletId
 
-    public let query: ObservableQuery<MappedRequest<FiatTransactionsRequest, [ListSection<FiatTransactionViewModel>]>>
+    public let query: ObservableQuery<MappedQuery<FiatTransactionsQuery, [ListSection<FiatTransactionViewModel>]>>
 
     private var loadState: GemLoadState = .loading
     var sections: [ListSection<FiatTransactionViewModel>] {
@@ -28,7 +28,7 @@ public final class FiatTransactionsViewModel {
         self.walletId = walletId
         self.service = service
         query = ObservableQuery(
-            MappedRequest(FiatTransactionsRequest(walletId: walletId)) {
+            MappedQuery(FiatTransactionsQuery(walletId: walletId)) {
                 DateSectionBuilder(items: FiatTransactionViewModel.models($0), dateKeyPath: \.createdAt).build()
             },
             initialValue: [],

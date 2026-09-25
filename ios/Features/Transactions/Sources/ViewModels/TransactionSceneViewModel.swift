@@ -27,7 +27,7 @@ public final class TransactionSceneViewModel {
     private let onAddContact: ((AddContactType) -> Void)?
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    public let query: ObservableQuery<MappedRequest<TransactionRequest, TransactionDetails>>
+    public let query: ObservableQuery<MappedQuery<TransactionQuery, TransactionDetails>>
     var transactionExtended: TransactionExtended {
         query.value.transaction
     }
@@ -52,7 +52,7 @@ public final class TransactionSceneViewModel {
             TransactionDetails(transaction: $0, rows: service.detailRows(transaction: $0.toGem(), walletType: walletType))
         }
         query = ObservableQuery(
-            MappedRequest(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), transform: details),
+            MappedQuery(TransactionQuery(walletId: wallet.id, recordId: transaction.recordId), transform: details),
             initialValue: details(transaction),
         )
     }

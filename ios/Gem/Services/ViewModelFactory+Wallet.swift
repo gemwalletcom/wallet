@@ -176,7 +176,7 @@ public extension ViewModelFactory {
     @MainActor
     func assetsResultsScene(
         wallet: Wallet,
-        request: WalletSearchRequest,
+        request: WalletSearchQuery,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
     ) -> AssetsResultsSceneViewModel {

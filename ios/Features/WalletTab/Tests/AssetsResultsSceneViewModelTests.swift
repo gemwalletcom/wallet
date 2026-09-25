@@ -24,7 +24,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aListScopeSearchesByItsTag() {
-        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.asset]))
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.asset]))
 
         #expect(model.searchQuery.request.searchKey == "tag:trending")
     }
@@ -69,7 +69,7 @@ struct AssetsResultsSceneViewModelTests {
     @Test
     func perpetualsAreOfferedOnlyInAListScopeAndOnlyWhenCoreAllowsThem() {
         let service = GemAssetSelectionServiceMock()
-        let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
+        let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         listModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
 
         #expect(listModel.state.showsPerpetuals)
@@ -84,7 +84,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aPinnedPerpetualStaysInTheListResult() {
-        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         model.searchQuery.value = .mock(perpetuals: [
             .mock(metadata: .mock(isPinned: true)),
             .mock(metadata: .mock(isPinned: false)),

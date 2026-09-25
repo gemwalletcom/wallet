@@ -8,7 +8,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetMarket
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
+import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -68,7 +68,7 @@ class AssetChartViewModelTest {
         every { this@mockk.invoke() } returns walletAssetsFlow
     }
     private val chartService = mockk<GemChartServiceInterface>(relaxed = true)
-    private val priceAlertsRequest = mockk<PriceAlertsRequest>(relaxed = true)
+    private val priceAlertsQuery = mockk<PriceAlertsQuery>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
@@ -79,7 +79,7 @@ class AssetChartViewModelTest {
         every { getAssetTokenInfo(asset.id) } returns assetInfoFlow
         every { getAssetLinks(asset.id) } returns linksFlow
         every { getAssetMarket(asset.id) } returns marketFlow
-        every { priceAlertsRequest(asset.id) } returns MutableStateFlow<List<PriceAlertData>>(emptyList())
+        every { priceAlertsQuery(asset.id) } returns MutableStateFlow<List<PriceAlertData>>(emptyList())
         coEvery { chartService.sections(any(), any(), any(), any(), any()) } returns emptyList()
     }
 
@@ -138,7 +138,7 @@ class AssetChartViewModelTest {
     fun `the stored price and alerts reach core untouched`() = runTest(testDispatcher) {
         val alert = mockPriceAlert(assetId = asset.id)
         assetInfoFlow.value = mockAssetInfo(asset).copy(price = mockAssetPriceInfo(price = 2.5))
-        every { priceAlertsRequest(asset.id) } returns MutableStateFlow(listOf(mockk<PriceAlertData> { every { priceAlert } returns alert }))
+        every { priceAlertsQuery(asset.id) } returns MutableStateFlow(listOf(mockk<PriceAlertData> { every { priceAlert } returns alert }))
 
         createViewModel()
         advanceUntilIdle()
@@ -152,7 +152,7 @@ class AssetChartViewModelTest {
         getAssetMarket = getAssetMarket,
         getWalletAssets = getWalletAssets,
         chartService = chartService,
-        priceAlertsRequest = priceAlertsRequest,
+        priceAlertsQuery = priceAlertsQuery,
         getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = testDispatcher,
         assetId = asset.id,

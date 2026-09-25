@@ -42,7 +42,7 @@ public final class AmountSceneViewModel {
     public let perpetual: AmountPerpetualViewModel?
     private let baseRequest: GemAmountRequest
 
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
         assetQuery.value
     }
@@ -85,7 +85,7 @@ public final class AmountSceneViewModel {
         }
         self.stake = stake
         self.perpetual = perpetual
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         let request = stake?.request ?? perpetual?.request ?? baseRequest
         let amountInput = Self.input(request: request, asset: input.asset, assetData: assetQuery.value)
         self.input = amountInput

@@ -30,7 +30,7 @@ public final class CollectibleViewModel {
     private let gallery: any ImageGallerySaving
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    public let query: ObservableQuery<NFTAssetRequest>
+    public let query: ObservableQuery<NFTAssetQuery>
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -53,7 +53,7 @@ public final class CollectibleViewModel {
         self.gallery = gallery
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         query = ObservableQuery(
-            NFTAssetRequest(walletId: wallet.id, assetId: assetData.asset.id),
+            NFTAssetQuery(walletId: wallet.id, assetId: assetData.asset.id),
             initialValue: NFTAssetDetails(assetData: assetData, isOwned: false),
         )
     }

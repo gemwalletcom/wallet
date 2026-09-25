@@ -21,7 +21,7 @@ public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
     private let notifications: any GemNotificationsServiceProtocol
     private let typing: ObservableSupportTyping
-    public let query: ObservableQuery<SupportMessagesRequest>
+    public let query: ObservableQuery<SupportMessagesQuery>
     var previewURL: URL?
     var isPresentingAlertMessage: AlertMessage?
 
@@ -31,7 +31,7 @@ public final class SupportChatSceneViewModel {
         self.service = service
         self.notifications = notifications
         self.typing = typing
-        query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
+        query = ObservableQuery(SupportMessagesQuery(), initialValue: [])
     }
 
     var title: String { Localized.Settings.support }

@@ -34,7 +34,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
 
     var searchableQuery: String = .empty
 
-    public let searchQuery: ObservableQuery<WalletSearchRequest>
+    public let searchQuery: ObservableQuery<WalletSearchQuery>
     public let recentModel: RecentAssetsModel
 
     var searchResult: WalletSearchResult {
@@ -64,7 +64,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         self.onAddToken = onAddToken
 
         searchQuery = ObservableQuery(
-            WalletSearchRequest(
+            WalletSearchQuery(
                 walletId: wallet.id,
                 limit: Int(service.walletSearchLimits(query: .empty).fetch),
                 types: [.asset, .perpetual, .list, .nft],

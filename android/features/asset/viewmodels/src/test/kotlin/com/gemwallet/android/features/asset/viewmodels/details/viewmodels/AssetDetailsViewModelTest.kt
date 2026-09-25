@@ -8,8 +8,8 @@ import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.data.services.store.requests.BannersRequest
-import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
+import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.model.ChainAssetInfo
@@ -71,8 +71,8 @@ class AssetDetailsViewModelTest {
     }
     private val getSession = mockk<GetSession>(relaxed = true)
     private val getTransactions = mockk<GetTransactions>(relaxed = true)
-    private val bannersRequest = mockk<BannersRequest>(relaxed = true)
-    private val priceAlertsRequest = mockk<PriceAlertsRequest>(relaxed = true)
+    private val bannersQuery = mockk<BannersQuery>(relaxed = true)
+    private val priceAlertsQuery = mockk<PriceAlertsQuery>(relaxed = true)
     private val service = mockk<GemAssetDetailsServiceInterface>(relaxed = true)
 
     @Before
@@ -82,8 +82,8 @@ class AssetDetailsViewModelTest {
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any()) } returns emptyList()
-        every { bannersRequest(mockSession().wallet.id.id, asset.id) } returns banners
-        every { priceAlertsRequest(asset.id) } returns priceAlerts
+        every { bannersQuery(mockSession().wallet.id.id, asset.id) } returns banners
+        every { priceAlertsQuery(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
             mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.banners.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
@@ -133,8 +133,8 @@ class AssetDetailsViewModelTest {
         getWalletAssets = getWalletAssets,
         getTransactions = getTransactions,
         assetDetailsService = service,
-        bannersRequest = bannersRequest,
-        priceAlertsRequest = priceAlertsRequest,
+        bannersQuery = bannersQuery,
+        priceAlertsQuery = priceAlertsQuery,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,

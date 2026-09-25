@@ -42,7 +42,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         }
     }
 
-    public let priceQuery: ObservableQuery<PriceRequest>
+    public let priceQuery: ObservableQuery<PriceQuery>
     var priceData: PriceData? {
         priceQuery.value
     }
@@ -93,7 +93,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.preferences = preferences
         self.assetModel = assetModel
         session = service.newSession()
-        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
+        priceQuery = ObservableQuery(PriceQuery(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert
         self.onSelectAddress = onSelectAddress
     }

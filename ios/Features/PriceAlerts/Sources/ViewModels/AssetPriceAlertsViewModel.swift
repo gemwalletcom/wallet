@@ -22,8 +22,8 @@ public final class AssetPriceAlertsViewModel: Sendable {
     let walletId: WalletId
     let asset: Asset
 
-    public let query: ObservableQuery<PriceAlertsRequest>
-    public let priceQuery: ObservableQuery<PriceRequest>
+    public let query: ObservableQuery<PriceAlertsQuery>
+    public let priceQuery: ObservableQuery<PriceQuery>
     var priceAlerts: [PriceAlertData] {
         query.value
     }
@@ -45,8 +45,8 @@ public final class AssetPriceAlertsViewModel: Sendable {
         self.service = service
         self.walletId = walletId
         self.asset = asset
-        query = ObservableQuery(PriceAlertsRequest(assetId: asset.id), initialValue: [])
-        priceQuery = ObservableQuery(PriceRequest(assetId: asset.id), initialValue: nil)
+        query = ObservableQuery(PriceAlertsQuery(assetId: asset.id), initialValue: [])
+        priceQuery = ObservableQuery(PriceQuery(assetId: asset.id), initialValue: nil)
     }
 
     var title: String {

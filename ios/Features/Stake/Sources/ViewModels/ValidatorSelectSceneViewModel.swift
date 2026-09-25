@@ -14,7 +14,7 @@ import Store
 @MainActor
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
 
     private let service: any GemStakeServiceProtocol
     private let chain: Chain
@@ -34,7 +34,7 @@ public final class ValidatorSelectSceneViewModel {
         self.input = input
         self.currentValidatorId = currentValidatorId
         self.selectValidator = selectValidator
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain, providerType: .stake), initialValue: [])
     }
 
     public var title: String {

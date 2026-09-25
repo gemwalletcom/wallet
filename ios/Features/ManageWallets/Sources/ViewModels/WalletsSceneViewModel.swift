@@ -26,8 +26,8 @@ public final class WalletsSceneViewModel {
         service.currentWalletId
     }
 
-    let pinnedWalletsQuery: ObservableQuery<MappedRequest<WalletsRequest, [WalletEntry]>>
-    let walletsQuery: ObservableQuery<MappedRequest<WalletsRequest, [WalletEntry]>>
+    let pinnedWalletsQuery: ObservableQuery<MappedQuery<WalletsQuery, [WalletEntry]>>
+    let walletsQuery: ObservableQuery<MappedQuery<WalletsQuery, [WalletEntry]>>
 
     var hasWallets: Bool { walletsQuery.value.isNotEmpty || pinnedWalletsQuery.value.isNotEmpty }
 
@@ -49,8 +49,8 @@ public final class WalletsSceneViewModel {
             let sorted = walletService.sorted(wallets: wallets)
             return zip(sorted, walletRows(wallets: sorted.map { $0.toGem() })).map(WalletEntry.init)
         }
-        pinnedWalletsQuery = ObservableQuery(MappedRequest(WalletsRequest(isPinned: true), transform: entries), initialValue: [])
-        walletsQuery = ObservableQuery(MappedRequest(WalletsRequest(isPinned: false), transform: entries), initialValue: [])
+        pinnedWalletsQuery = ObservableQuery(MappedQuery(WalletsQuery(isPinned: true), transform: entries), initialValue: [])
+        walletsQuery = ObservableQuery(MappedQuery(WalletsQuery(isPinned: false), transform: entries), initialValue: [])
     }
 
     var title: String {

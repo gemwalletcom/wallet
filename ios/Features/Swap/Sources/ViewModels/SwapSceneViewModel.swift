@@ -43,8 +43,8 @@ public final class SwapSceneViewModel {
     @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: GemSwapAssetData?, receive: GemSwapAssetData?, state: GemSwapViewState)?
     public var isPresentingInfoSheet: SwapSheetType?
 
-    public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
-    public let toAssetQuery: ObservableQuery<AssetRequestOptional>
+    public let fromAssetQuery: ObservableQuery<AssetQueryOptional>
+    public let toAssetQuery: ObservableQuery<AssetQueryOptional>
 
     var fromAsset: AssetData? {
         fromAssetQuery.value
@@ -92,8 +92,8 @@ public final class SwapSceneViewModel {
         self.service = service
         wallet = input.wallet
 
-        fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
-        toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
+        fromAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
+        toAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.onSwap = onSwap
         selectedSlippage = service.slippage
         session = service.newSession()

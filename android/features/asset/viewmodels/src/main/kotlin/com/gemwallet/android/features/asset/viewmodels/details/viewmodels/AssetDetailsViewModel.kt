@@ -13,8 +13,8 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
-import com.gemwallet.android.data.services.store.requests.BannersRequest
-import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
+import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -76,8 +76,8 @@ class AssetDetailsViewModel @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
-    private val bannersRequest: BannersRequest,
-    private val priceAlertsRequest: PriceAlertsRequest,
+    private val bannersQuery: BannersQuery,
+    private val priceAlertsQuery: PriceAlertsQuery,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
     private val userConfig: UserConfig,
     private val connectionStatusObserver: ConnectionStatusObserver,
@@ -130,10 +130,10 @@ class AssetDetailsViewModel @Inject constructor(
         .map { it.assetInfo.asset }
         .distinctUntilChanged()
         .flatMapLatest { asset ->
-            session.flatMapLatest { bannersRequest(it?.wallet?.id?.id, asset.id) }
+            session.flatMapLatest { bannersQuery(it?.wallet?.id?.id, asset.id) }
         }
 
-    private val priceAlerts = priceAlertsRequest(assetId).map { alerts -> alerts.map { it.priceAlert } }
+    private val priceAlerts = priceAlertsQuery(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
     val uiModel = combine(chainAssetInfo, session, banners, priceAlerts, ::uiModel)
         .flowOn(ioDispatcher)

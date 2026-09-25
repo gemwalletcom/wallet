@@ -29,9 +29,9 @@ public final class PerpetualSceneViewModel {
     public let wallet: Wallet
     public let asset: Asset
 
-    public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
+    public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    public let perpetualQuery: ObservableQuery<PerpetualQuery>
+    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -68,11 +68,11 @@ public final class PerpetualSceneViewModel {
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
-        perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
+        perpetualQuery = ObservableQuery(PerpetualQuery(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
-            MappedRequest(
-                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
+            MappedQuery(
+                TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
                 transform: TransactionViewModel.sections,
             ),
             initialValue: [],

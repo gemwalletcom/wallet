@@ -35,7 +35,7 @@ public final class ContactsViewModel {
 
     var isPresentingAlertMessage: AlertMessage?
 
-    public let query: ObservableQuery<ContactsRequest>
+    public let query: ObservableQuery<ContactsQuery>
     var contacts: [ContactData] {
         query.value
     }
@@ -50,7 +50,7 @@ public final class ContactsViewModel {
         self.service = service
         self.contactEditor = contactEditor
         self.mode = mode
-        query = ObservableQuery(ContactsRequest(), initialValue: [])
+        query = ObservableQuery(ContactsQuery(), initialValue: [])
     }
 
     var title: String {

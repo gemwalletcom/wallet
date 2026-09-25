@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.data.services.store.requests.ContactRequest
+import com.gemwallet.android.data.services.store.queries.ContactQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -49,7 +49,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ContactEditorViewModel @Inject constructor(
-    private val contactRequest: ContactRequest,
+    private val contactQuery: ContactQuery,
     @param:ApplicationContext private val context: Context,
     private val service: GemContactEditorServiceInterface,
     nameService: GemNameServiceInterface,
@@ -116,7 +116,7 @@ class ContactEditorViewModel @Inject constructor(
     init {
         when (val mode = mode) {
             is Mode.Edit -> viewModelScope.launch(ioDispatcher) {
-                val data = contactRequest(mode.contactId) ?: return@launch
+                val data = contactQuery(mode.contactId) ?: return@launch
                 updateSession { service.newSession(data.contact.toGem(), data.addresses.map { address -> address.toGem() }) }
             }
 

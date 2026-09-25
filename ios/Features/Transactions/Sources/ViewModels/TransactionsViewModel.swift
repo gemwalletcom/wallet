@@ -17,7 +17,7 @@ import Store
 @MainActor
 public final class TransactionsViewModel {
     private let service: any GemTransactionsServiceProtocol
-    private let type: TransactionsRequestType
+    private let type: TransactionsQueryType
 
     public let wallet: Wallet
 
@@ -35,7 +35,7 @@ public final class TransactionsViewModel {
     public init(
         service: any GemTransactionsServiceProtocol,
         wallet: Wallet,
-        type: TransactionsRequestType,
+        type: TransactionsQueryType,
     ) {
         self.service = service
         self.type = type

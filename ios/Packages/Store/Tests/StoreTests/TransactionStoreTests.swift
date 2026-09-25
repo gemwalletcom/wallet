@@ -126,7 +126,7 @@ struct TransactionStoreTests {
         let result = try store.getTransaction(walletId: walletId, transactionId: targetId)
         #expect(result.recordId == storedSource.recordId)
         #expect(throws: RecordError.self) {
-            try db.dbQueue.read { try TransactionRequest(walletId: otherWalletId, recordId: result.recordId).fetch($0) }
+            try db.dbQueue.read { try TransactionQuery(walletId: otherWalletId, recordId: result.recordId).fetch($0) }
         }
         #expect(result.transaction == storedTarget.transaction)
         #expect(Set(result.assets.map(\.id)) == Set([ethereum, solana]))

@@ -15,19 +15,19 @@ public final class RecentAssetsModel {
     private let walletId: WalletId
     private let service: any GemRecentActivityServiceProtocol
 
-    public let query: ObservableQuery<RecentActivityRequest>
+    public let query: ObservableQuery<RecentActivityQuery>
     public var isPresenting: Bool = false
 
     public init(
         walletId: WalletId,
         types: [RecentActivityType],
-        filters: [AssetsRequestFilter] = [],
+        filters: [AssetsQueryFilter] = [],
         service: any GemRecentActivityServiceProtocol,
     ) {
         self.walletId = walletId
         self.service = service
         query = ObservableQuery(
-            RecentActivityRequest(
+            RecentActivityQuery(
                 walletId: walletId,
                 limit: GemConstants.recentAssetsLimit,
                 types: types,

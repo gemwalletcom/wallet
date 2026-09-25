@@ -18,7 +18,7 @@ import SwiftUI
 public final class CollectionsViewModel: Sendable {
     public let service: any GemNftServiceProtocol
     public let wallet: Wallet
-    public let query: ObservableQuery<NFTRequest>
+    public let query: ObservableQuery<NFTQuery>
     private let list: GemNftList
 
     public var loadState: GemLoadState = .loading
@@ -34,7 +34,7 @@ public final class CollectionsViewModel: Sendable {
         self.service = service
         self.wallet = wallet
         self.list = list
-        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: collectionId.map { .collection(id: $0) } ?? .all), initialValue: [])
+        query = ObservableQuery(NFTQuery(walletId: wallet.id, filter: collectionId.map { .collection(id: $0) } ?? .all), initialValue: [])
     }
 
     public var screen: GemNftListScreen {

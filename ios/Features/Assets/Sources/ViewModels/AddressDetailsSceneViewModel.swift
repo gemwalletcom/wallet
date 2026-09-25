@@ -18,7 +18,7 @@ public final class AddressDetailsSceneViewModel {
     private let service: any GemAddressDetailsServiceProtocol
     private var details: GemAddressDetails
 
-    public let addressNameQuery: ObservableQuery<AddressNameRequest>
+    public let addressNameQuery: ObservableQuery<AddressNameQuery>
 
     var copyToast: CopyTypeViewModel?
 
@@ -27,7 +27,7 @@ public final class AddressDetailsSceneViewModel {
         service: any GemAddressDetailsServiceProtocol,
     ) {
         self.service = service
-        addressNameQuery = ObservableQuery(AddressNameRequest(chain: chainAddress.chain, address: chainAddress.address), initialValue: nil)
+        addressNameQuery = ObservableQuery(AddressNameQuery(chain: chainAddress.chain, address: chainAddress.address), initialValue: nil)
         details = service.details(chain: chainAddress.chain.rawValue, address: chainAddress.address)
     }
 

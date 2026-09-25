@@ -25,7 +25,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         chainsFilter.isAnySelected || hasBalance
     }
 
-    var filters: [AssetsRequestFilter] {
+    var filters: [AssetsQueryFilter] {
         flow.appliedFilters(chains: chainsFilter.selectedChains.map(\.rawValue), hasBalance: hasBalance).map { $0.map() }
     }
 

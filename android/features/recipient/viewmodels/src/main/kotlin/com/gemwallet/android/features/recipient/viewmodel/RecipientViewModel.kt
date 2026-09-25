@@ -9,7 +9,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.data.services.store.requests.ContactRecipientsRequest
+import com.gemwallet.android.data.services.store.queries.ContactRecipientsQuery
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.asset
@@ -68,7 +68,7 @@ import javax.inject.Inject
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getWallets: GetWallets,
-    private val contactRecipientsRequest: ContactRecipientsRequest,
+    private val contactRecipientsQuery: ContactRecipientsQuery,
     private val getAssetInfo: GetAssetInfo,
     savedStateHandle: SavedStateHandle,
     private val service: GemRecipientServiceInterface,
@@ -113,7 +113,7 @@ class RecipientViewModel @Inject constructor(
         .flatMapLatest { state ->
             when (state) {
                 RecipientState.Loading -> flowOf(emptyList())
-                is RecipientState.Ready -> contactRecipientsRequest(state.asset.chain)
+                is RecipientState.Ready -> contactRecipientsQuery(state.asset.chain)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

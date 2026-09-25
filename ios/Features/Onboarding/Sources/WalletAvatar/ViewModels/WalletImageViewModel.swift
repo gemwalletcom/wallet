@@ -23,8 +23,8 @@ public final class WalletImageViewModel: Sendable {
 
     private let service: any GemWalletServiceProtocol
 
-    public let walletQuery: ObservableQuery<WalletRequest>
-    public let nftQuery: ObservableQuery<NFTRequest>
+    public let walletQuery: ObservableQuery<WalletQuery>
+    public let nftQuery: ObservableQuery<NFTQuery>
     var isPresentingAlertMessage: AlertMessage?
 
     public var wallet: Wallet {
@@ -43,8 +43,8 @@ public final class WalletImageViewModel: Sendable {
         service: any GemWalletServiceProtocol,
     ) {
         self.service = service
-        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
-        nftQuery = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
+        walletQuery = ObservableQuery(WalletQuery(walletId: wallet.id), initialValue: wallet)
+        nftQuery = ObservableQuery(NFTQuery(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     var title: String {

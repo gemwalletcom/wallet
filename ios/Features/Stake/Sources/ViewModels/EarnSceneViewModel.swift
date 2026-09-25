@@ -24,9 +24,9 @@ public final class EarnSceneViewModel {
     public let wallet: Wallet
     public let asset: Asset
 
-    public let assetQuery: ObservableQuery<AssetRequest>
-    public let positionsQuery: ObservableQuery<DelegationsRequest>
-    public let providersQuery: ObservableQuery<ValidatorsRequest>
+    public let assetQuery: ObservableQuery<AssetQuery>
+    public let positionsQuery: ObservableQuery<DelegationsQuery>
+    public let providersQuery: ObservableQuery<ValidatorsQuery>
 
     public var assetData: AssetData {
         assetQuery.value
@@ -42,13 +42,13 @@ public final class EarnSceneViewModel {
         self.asset = asset
         self.service = service
         self.onNavigate = onNavigate
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
-            DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
+            DelegationsQuery(walletId: wallet.id, assetId: asset.id, providerType: .earn),
             initialValue: [],
         )
         providersQuery = ObservableQuery(
-            ValidatorsRequest(chain: asset.id.chain, providerType: .earn),
+            ValidatorsQuery(chain: asset.id.chain, providerType: .earn),
             initialValue: [],
         )
     }

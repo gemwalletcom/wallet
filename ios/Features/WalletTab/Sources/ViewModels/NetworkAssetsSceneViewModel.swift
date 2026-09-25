@@ -22,8 +22,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     public var isPresentingToastMessage: ToastMessage?
 
-    public let activeQuery: ObservableQuery<AssetsRequest>
-    public let hiddenQuery: ObservableQuery<AssetsRequest>
+    public let activeQuery: ObservableQuery<AssetsQuery>
+    public let hiddenQuery: ObservableQuery<AssetsQuery>
 
     public init(
         wallet: Wallet,
@@ -35,11 +35,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         self.service = service
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance], limit: nil),
+            AssetsQuery(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance], limit: nil),
             initialValue: [],
         )
         hiddenQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance], limit: nil),
+            AssetsQuery(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance], limit: nil),
             initialValue: [],
         )
     }

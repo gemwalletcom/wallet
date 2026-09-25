@@ -36,8 +36,8 @@ public final class FiatSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let locale: Locale
 
-    public let priceUsdQuery: ObservableQuery<PriceUsdRequest>
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let priceUsdQuery: ObservableQuery<PriceUsdQuery>
+    public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
         assetQuery.value
     }
@@ -61,8 +61,8 @@ public final class FiatSceneViewModel {
         currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: GemConstants.fiatQuoteCurrency.rawValue)
         self.assetAddress = assetAddress
         self.wallet = wallet
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
-        priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
+        priceUsdQuery = ObservableQuery(PriceUsdQuery(assetId: assetAddress.asset.id), initialValue: nil)
         session = service.newSession(type: type, amount: amount)
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
     }

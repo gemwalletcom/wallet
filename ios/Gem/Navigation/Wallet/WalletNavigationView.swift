@@ -168,7 +168,7 @@ struct WalletNavigationView: View {
             AssetsResultsScene(
                 model: viewModelFactory.assetsResultsScene(
                     wallet: model.wallet,
-                    request: WalletSearchRequest(
+                    request: WalletSearchQuery(
                         walletId: model.wallet.id,
                         searchBy: destination.searchQuery,
                         scope: destination.scope,

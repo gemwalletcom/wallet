@@ -38,12 +38,12 @@ public final class RecipientSceneViewModel {
         set { session = session.onMemoChanged(memo: newValue) }
     }
 
-    public let contactsQuery: ObservableQuery<ContactsRequest>
+    public let contactsQuery: ObservableQuery<ContactsQuery>
     var contacts: [ContactData] {
         contactsQuery.value
     }
 
-    public let walletsQuery = ObservableQuery(WalletsRequest(isPinned: .none), initialValue: [Wallet]())
+    public let walletsQuery = ObservableQuery(WalletsQuery(isPinned: .none), initialValue: [Wallet]())
 
     public init(
         wallet: Wallet,
@@ -62,7 +62,7 @@ public final class RecipientSceneViewModel {
 
         addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
-        contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
+        contactsQuery = ObservableQuery(ContactsQuery(chain: asset.chain), initialValue: [])
 
         if let recipient {
             update(from: recipient)

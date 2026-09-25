@@ -21,7 +21,7 @@ public final class ConnectionsViewModel {
     let walletConnectorPresenter: WalletConnectorPresenter?
     private let service: any GemWalletConnectServiceProtocol
 
-    public let query: ObservableQuery<ConnectionsRequest>
+    public let query: ObservableQuery<ConnectionsQuery>
     var connections: [WalletConnection] {
         query.value
     }
@@ -38,7 +38,7 @@ public final class ConnectionsViewModel {
         self.connector = connector
         self.service = service
         self.walletConnectorPresenter = walletConnectorPresenter
-        query = ObservableQuery(ConnectionsRequest(), initialValue: [])
+        query = ObservableQuery(ConnectionsQuery(), initialValue: [])
     }
 
     var title: String {

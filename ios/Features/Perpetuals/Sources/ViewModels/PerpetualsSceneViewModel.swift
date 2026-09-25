@@ -30,9 +30,9 @@ public final class PerpetualsSceneViewModel {
 
     let wallet: Wallet
 
-    let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    let perpetualsQuery: ObservableQuery<MappedRequest<PerpetualsRequest, GemPerpetualMarketSections>>
-    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
+    let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    let perpetualsQuery: ObservableQuery<MappedQuery<PerpetualsQuery, GemPerpetualMarketSections>>
+    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
     let recentModel: RecentAssetsModel
 
     var positions: [PerpetualPositionData] {
@@ -79,10 +79,10 @@ public final class PerpetualsSceneViewModel {
         self.onSelectAmount = onSelectAmount
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(.marketSections(search: .empty), initialValue: GemPerpetualMarketSections(pinned: [], markets: []))
         walletBalanceQuery = ObservableQuery(
-            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            PerpetualWalletBalanceQuery(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
         recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
@@ -167,7 +167,7 @@ extension PerpetualsSceneViewModel {
     func onSearchQueryChange(_ _: String, _: String) {
         let query = session.searchQuery()
         perpetualsQuery.request = .marketSections(search: query)
-        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: query)
+        positionsQuery.request = PerpetualPositionsQuery(walletId: wallet.id, searchQuery: query)
     }
 
     func onSearchPresentedChange(_ _: Bool, _ isPresented: Bool) {

@@ -20,7 +20,7 @@ import SwiftUI
 public final class DelegationSceneViewModel {
     public let delegation: Delegation
     public let onNavigate: StakeRouteAction
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
 
     private let wallet: Wallet
     private let asset: Asset
@@ -41,7 +41,7 @@ public final class DelegationSceneViewModel {
         self.service = service
         self.onNavigate = onNavigate
         self.onSelectAddress = onSelectAddress
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: delegation.validator.chain, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: delegation.validator.chain, providerType: .stake), initialValue: [])
     }
 
     @MainActor

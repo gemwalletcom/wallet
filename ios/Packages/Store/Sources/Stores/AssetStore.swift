@@ -38,15 +38,15 @@ public struct AssetStore: Sendable {
         }
     }
 
-    public func getAssetsData(walletId: WalletId, filters: [AssetsRequestFilter], limit: Int? = nil) throws -> [AssetData] {
+    public func getAssetsData(walletId: WalletId, filters: [AssetsQueryFilter], limit: Int? = nil) throws -> [AssetData] {
         try db.read { db in
-            try AssetsRequest(walletId: walletId, filters: filters, limit: limit).fetch(db)
+            try AssetsQuery(walletId: walletId, filters: filters, limit: limit).fetch(db)
         }
     }
 
     public func getAssetData(walletId: WalletId, assetId: AssetId) throws -> AssetData {
         try db.read { db in
-            try AssetRequest(walletId: walletId, assetId: assetId).fetch(db)
+            try AssetQuery(walletId: walletId, assetId: assetId).fetch(db)
         }
     }
 

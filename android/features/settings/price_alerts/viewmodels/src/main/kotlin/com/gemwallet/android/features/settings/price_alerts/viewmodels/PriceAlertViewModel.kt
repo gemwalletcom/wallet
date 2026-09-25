@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
-import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
+import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -56,7 +56,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PriceAlertViewModel @Inject constructor(
-    priceAlertsRequest: PriceAlertsRequest,
+    priceAlertsQuery: PriceAlertsQuery,
     private val getAssetTokenInfo: GetAssetTokenInfo,
     private val service: GemPriceAlertServiceInterface,
     private val priceAlertFormatter: PriceAlertFormatter,
@@ -81,7 +81,7 @@ class PriceAlertViewModel @Inject constructor(
         .mapLatest { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val alerts = assetId.flatMapLatest { priceAlertsRequest(it) }
+    private val alerts = assetId.flatMapLatest { priceAlertsQuery(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, alerts) { info, alerts ->

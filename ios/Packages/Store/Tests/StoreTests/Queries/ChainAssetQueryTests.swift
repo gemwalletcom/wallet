@@ -1,0 +1,53 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Primitives
+import PrimitivesTestKit
+import Store
+import StoreTestKit
+import Testing
+
+struct ChainAssetQueryTests {
+    @Test
+    func fetchNativeAsset() throws {
+        let db = DB.mockAssets()
+        let assetId = AssetId(chain: .ethereum)
+
+        try db.dbQueue.read { db in
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: assetId).fetch(db)
+
+            #expect(result.assetData.asset.id == assetId)
+            #expect(result.feeAssetData.asset.id == assetId)
+        }
+    }
+
+    @Test
+    func fetchToken() throws {
+        let db = DB.mockAssets()
+        let token = Asset.mockEthereumUSDT()
+
+        try db.dbQueue.read { db in
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id).fetch(db)
+
+            #expect(result.assetData.asset.id == token.id)
+            #expect(result.feeAssetData.asset.id == token.chain.assetId)
+        }
+    }
+
+    @Test
+    func fetchTokenWithoutBalance() throws {
+        let db = DB.mockAssets()
+        let token = Asset.mockEthereumUSDT()
+        let balanceStore = BalanceStore(db: db)
+
+        try balanceStore.deleteBalance(assetId: token.id)
+
+        try db.dbQueue.read { db in
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id).fetch(db)
+
+            #expect(result.assetData.asset.id == token.id)
+            #expect(result.assetData.balance == .zero)
+            #expect(result.assetData.metadata.isBalanceEnabled == false)
+            #expect(result.feeAssetData.asset.id == token.chain.assetId)
+        }
+    }
+}

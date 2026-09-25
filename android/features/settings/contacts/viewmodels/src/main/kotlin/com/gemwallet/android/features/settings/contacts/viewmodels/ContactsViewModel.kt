@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.data.services.store.requests.ContactsRequest
+import com.gemwallet.android.data.services.store.queries.ContactsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -32,13 +32,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
-    contactsRequest: ContactsRequest,
+    contactsQuery: ContactsQuery,
     private val service: GemContactServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val contacts: StateFlow<List<ContactListItem>> = contactsRequest()
+    val contacts: StateFlow<List<ContactListItem>> = contactsQuery()
         .map { contacts -> contacts.zip(contactRows(contacts.map { it.contact.toGem() }), ::listItem) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

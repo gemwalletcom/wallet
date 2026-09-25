@@ -25,7 +25,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     let title: String
     let onSelectAssetAction: AssetAction
 
-    public let searchQuery: ObservableQuery<WalletSearchRequest>
+    public let searchQuery: ObservableQuery<WalletSearchQuery>
     var searchResult: WalletSearchResult {
         searchQuery.value
     }
@@ -36,7 +36,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     public init(
         wallet: Wallet,
         service: any GemAssetSelectionServiceProtocol,
-        request: WalletSearchRequest,
+        request: WalletSearchQuery,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
     ) {

@@ -27,7 +27,7 @@ public final class WalletDetailViewModel {
     var isPresentingDeleteConfirmation: Bool?
     var isPresentingExportWallet: GemWalletSecret?
 
-    public let walletQuery: ObservableQuery<MappedRequest<WalletRequest, WalletDetailsValue>>
+    public let walletQuery: ObservableQuery<MappedQuery<WalletQuery, WalletDetailsValue>>
     public var wallet: Wallet {
         walletQuery.value.wallet
     }
@@ -48,7 +48,7 @@ public final class WalletDetailViewModel {
         let details: @Sendable (Wallet) -> WalletDetailsValue = { [service] in
             WalletDetailsValue(wallet: $0, details: service.walletDetails(wallet: $0.toGem()))
         }
-        walletQuery = ObservableQuery(MappedRequest(WalletRequest(walletId: wallet.id), transform: details), initialValue: details(wallet))
+        walletQuery = ObservableQuery(MappedQuery(WalletQuery(walletId: wallet.id), transform: details), initialValue: details(wallet))
     }
 
     var details: GemWalletDetails {

@@ -18,7 +18,7 @@ import SwiftUI
 public final class PriceAlertsSceneViewModel: Sendable {
     private let service: any GemPriceAlertServiceProtocol
 
-    public let query: ObservableQuery<PriceAlertsRequest>
+    public let query: ObservableQuery<PriceAlertsQuery>
     var priceAlerts: [PriceAlertData] {
         query.value
     }
@@ -33,7 +33,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     ) {
         self.service = service
         isPriceAlertsEnabled = service.isEnabled()
-        query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
+        query = ObservableQuery(PriceAlertsQuery(), initialValue: [])
     }
 
     var title: String {

@@ -33,11 +33,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     // db queries
-    public let walletQuery: ObservableQuery<MappedRequest<WalletRequest, WalletEntry>>
-    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
-    public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
-    public let assetsQuery: ObservableQuery<AssetsRequest>
-    public let bannersQuery: ObservableQuery<BannersRequest>
+    public let walletQuery: ObservableQuery<MappedQuery<WalletQuery, WalletEntry>>
+    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesQuery>
+    public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
+    public let assetsQuery: ObservableQuery<AssetsQuery>
+    public let bannersQuery: ObservableQuery<BannersQuery>
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingScanner = false
@@ -61,18 +61,18 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         self.observablePreferences = observablePreferences
         self.collectionsModel = collectionsModel
 
-        walletQuery = ObservableQuery(MappedRequest(WalletRequest(walletId: wallet.id), transform: WalletEntry.init(wallet:)), initialValue: WalletEntry(wallet: wallet))
+        walletQuery = ObservableQuery(MappedQuery(WalletQuery(walletId: wallet.id), transform: WalletEntry.init(wallet:)), initialValue: WalletEntry(wallet: wallet))
         fiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(walletId: wallet.id),
+            AssetFiatValuesQuery(walletId: wallet.id),
             initialValue: [],
         )
         perpetualBalanceQuery = ObservableQuery(
-            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            PerpetualWalletBalanceQuery(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
         bannersQuery = ObservableQuery(
-            BannersRequest(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
+            BannersQuery(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
             initialValue: [],
         )
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
