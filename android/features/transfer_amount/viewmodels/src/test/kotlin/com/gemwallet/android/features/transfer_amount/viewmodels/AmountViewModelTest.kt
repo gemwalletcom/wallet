@@ -13,7 +13,9 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemValidatorRow
 import com.gemwallet.android.ui.R
@@ -210,7 +212,8 @@ class AmountViewModelTest {
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
-    private fun assetInfo(available: BigInteger) = mockAssetInfo(asset = asset, balance = mockAssetBalance(asset, available = available), price = mockAssetPriceInfo(price = 10.0))
+    private fun assetInfo(available: BigInteger) =
+        mockAssetInfo(asset = asset, balance = mockAssetBalance(asset = asset, balance = mockBalance(available = available)), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 10.0)))
 
     private fun viewModelTest(params: AmountParams = mockAmountParamsTransfer(assetId = asset.id), block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val viewModel = AmountViewModel(

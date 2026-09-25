@@ -9,6 +9,7 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -31,8 +32,8 @@ import uniffi.gemstone.GemLocalizedText
 
 class GetActiveAssetsInfoImplTest {
     private val assets = listOf(
-        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)),
-        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum)), price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR)),
+        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 50000.0, priceChangePercentage24h = 2.5))),
+        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum)), price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0))),
         mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Solana))),
     )
 
@@ -74,7 +75,13 @@ class GetActiveAssetsInfoImplTest {
         val first = subject.assetsInfo().first { it.isNotEmpty() }
 
         walletAssets.value = assets.mapIndexed { index, item ->
-            if (index == 0) item.copy(price = mockAssetPriceInfo(price = 51000.0, priceChangePercentage24h = 2.5)) else item.copy(balance = item.balance.copy(balance = item.balance.balance.copy()))
+            if (index ==
+                0
+            ) {
+                item.copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 51000.0, priceChangePercentage24h = 2.5)))
+            } else {
+                item.copy(balance = item.balance.copy(balance = item.balance.balance.copy()))
+            }
         }
         val second = subject.assetsInfo().first { it.first().priceText == "\$51,000.00" }
 

@@ -54,7 +54,7 @@ struct WalletDetailViewModelTests {
     @Test
     func renamingStoresTheNewName() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"), name: "Old")
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
         model.nameInput = "New"
@@ -77,7 +77,7 @@ struct WalletDetailViewModelTests {
     @Test
     func deletingTheOnlyWalletSucceeds() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock(requiresAuthentication: false)
         let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
@@ -90,7 +90,7 @@ struct WalletDetailViewModelTests {
     @Test
     func deletingAuthenticatesWhenAuthenticationIsEnabled() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
         let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
@@ -103,7 +103,7 @@ struct WalletDetailViewModelTests {
     @Test
     func cancellingAuthenticationKeepsTheWallet() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
         biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
@@ -117,7 +117,7 @@ struct WalletDetailViewModelTests {
     @Test
     func aFailedAuthenticationKeepsTheWallet() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
         biometry.authenticateError = BiometryAuthenticationError.authenticationFailed

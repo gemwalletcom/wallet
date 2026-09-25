@@ -35,7 +35,7 @@ struct WalletSearchSceneViewModelTests {
     @Test
     func hasMoreAssetsCountsOnlyTheAssetsThePreviewShows() {
         let model = WalletSearchSceneViewModel.mock()
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock() })
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock(metadata: .mock(isPinned: true)) })
 
         #expect(model.derived.previewAssets.isEmpty)
         #expect(model.derived.view.hasMoreAssets == false)

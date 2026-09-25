@@ -9,7 +9,7 @@ import Testing
 struct WalletStoreTests {
     @Test
     func anAccountNeedsItsChainAsset() throws {
-        let store = WalletStore(db: .mockWithChains([.ethereum]))
+        let store = WalletStore(db: .mock(chains: [.ethereum]))
         let wallet = Wallet.mock(accounts: [.mock(chain: .ethereum), .mock(chain: .solana)])
 
         #expect(throws: Error.self) {

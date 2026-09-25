@@ -17,8 +17,8 @@ struct AppLifecycleServiceTests {
     private let wallet = Wallet.mock(accounts: [.mock(chain: .hyperliquid)])
 
     @Test(.timeLimit(.minutes(1)))
-    func aFailedDeviceSyncDoesNotEndTheAccountObservation() async throws {
-        let db = try DB.mockWithWallets([.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
+    func aFailedDeviceSyncDoesNotEndTheAccountObservation() async {
+        let db = DB.mock(wallets: [.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
         let synchronized = AsyncStream<Void>.makeStream()
         let device = GemDeviceServiceMock(syncError: AnyError("offline"), onSynchronize: { synchronized.continuation.yield(()) })
         let service = AppLifecycleService.mock(deviceService: device, subscriptionsObserver: SubscriptionsObserver(dbQueue: db.dbQueue))

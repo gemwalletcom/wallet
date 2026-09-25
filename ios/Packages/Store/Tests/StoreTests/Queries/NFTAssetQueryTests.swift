@@ -9,7 +9,7 @@ import Testing
 struct NFTAssetQueryTests {
     @Test
     func ownershipFollowsTheWalletAssociation() throws {
-        let db = DB.mockWithChains([.bitcoin, .ethereum])
+        let db = DB.mock(chains: [.bitcoin, .ethereum])
         let store = NftStore(db: db)
         let wallet = Wallet.mock()
         let walletId = wallet.id

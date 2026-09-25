@@ -8,7 +8,7 @@ import Testing
 struct AssetStoreTests {
     @Test
     func availabilityUpdatesOnlyChangedRows() throws {
-        let db = DB.mockWithChains([.ethereum, .bitcoin, .solana])
+        let db = DB.mock(chains: [.ethereum, .bitcoin, .solana])
         let store = AssetStore(db: db)
         let ethereum = Chain.ethereum.assetId.identifier
         let bitcoin = Chain.bitcoin.assetId.identifier
@@ -35,7 +35,7 @@ struct AssetStoreTests {
 
     @Test
     func swappableFlagIsSetOnlyWhereMissing() throws {
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let store = AssetStore(db: db)
         let assetIds = [Chain.ethereum.assetId.identifier, Chain.bitcoin.assetId.identifier]
 
@@ -48,7 +48,7 @@ struct AssetStoreTests {
 
     @Test
     func anAssetDroppedFromTheSwapListStopsBeingSwappable() throws {
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let store = AssetStore(db: db)
         let ethereum = Chain.ethereum.assetId.identifier
         let bitcoin = Chain.bitcoin.assetId.identifier

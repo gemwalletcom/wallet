@@ -15,7 +15,7 @@ struct BalanceStoreTests {
     private let otherWallet = WalletId.multicoin(address: "0x2")
 
     private func store() throws -> BalanceStore {
-        let db = DB.mockWithChains([.ethereum, .solana])
+        let db = DB.mock(chains: [.ethereum, .solana])
         let walletStore = WalletStore(db: db)
         try walletStore.addWallet(.mock(id: wallet, accounts: [.mock(chain: .ethereum), .mock(chain: .solana)]))
         try walletStore.addWallet(.mock(id: otherWallet, accounts: [.mock(chain: .ethereum), .mock(chain: .solana)]))
@@ -85,7 +85,7 @@ struct BalanceStoreTests {
 
     @Test
     func aBatchThatFailsPartWayLeavesNothingBehind() throws {
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         try WalletStore(db: db).addWallet(.mock(id: wallet, accounts: [.mock(chain: .ethereum)]))
         let store = BalanceStore(db: db)
 

@@ -11,7 +11,7 @@ import Testing
 struct TransactionStoreTests {
     @Test func transactionsByStateAreKeyedByWallet() throws {
         let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
-        let db = DB.mockAssets(assets: [asset])
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: asset.asset.chain)])], assets: [asset])
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
         try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .robinhood, address: "0xsender")]))
@@ -40,7 +40,7 @@ struct TransactionStoreTests {
             .mock(asset: .mock(id: sol)),
         ]
 
-        let db = DB.mockAssets(assets: assets)
+        let db = DB.mock(wallets: [.mock(accounts: assets.map { .mock(chain: $0.asset.chain) })], assets: assets)
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.multicoin(address: "test")
         try walletStore.addWallet(.mock(id: walletId, accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
@@ -85,7 +85,7 @@ struct TransactionStoreTests {
         let ethereum = Chain.ethereum.assetId
         let bitcoin = Chain.bitcoin.assetId
         let solana = Chain.solana.assetId
-        let db = DB.mockAssets(assets: [ethereum, bitcoin, solana].map { .mock(asset: .mock(id: $0)) })
+        let db = DB.mock(wallets: [.mock(accounts: [ethereum, bitcoin, solana].map { .mock(chain: $0.chain) })], assets: [ethereum, bitcoin, solana].map { .mock(asset: .mock(id: $0)) })
         let store = TransactionStore(db: db)
         let walletId = WalletId.mock()
         let otherWalletId = WalletId.multicoin(address: "other")

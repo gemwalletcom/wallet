@@ -221,6 +221,13 @@ identifiers:
 mocks:
   - AddressName
   - Asset
+  - AssetBasic
+  - AssetFull
+  - AssetLink
+  - AssetMarket
+  - AssetMetaData
+  - AssetPrice
+  - AssetProperties
   - AssetScore
   - NameRecord
   - NFTAsset
@@ -229,6 +236,7 @@ mocks:
   - NFTData
   - NFTImages
   - NFTResource
+  - Price
   - PriceAlert
   - TotalFiatValue
 

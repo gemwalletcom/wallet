@@ -16,7 +16,7 @@ struct GemstoneAssetStoreTests {
 
     @Test
     func addBalancesCarriesTheEnabledFlagCoreDecided() async throws {
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let adapter = GemstoneAssetStore.mock(db: db)
         let balanceStore = BalanceStore.mock(db: db)
 
@@ -29,7 +29,7 @@ struct GemstoneAssetStoreTests {
 
     @Test
     func addMissingBalancesNeverEnablesAndNeverOverwrites() async throws {
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let adapter = GemstoneAssetStore.mock(db: db)
         let balanceStore = BalanceStore.mock(db: db)
         try await adapter.addBalances(walletId: wallet.id.id, assetIds: [ethereum.identifier], enabled: true)
@@ -42,7 +42,7 @@ struct GemstoneAssetStoreTests {
 
     @Test
     func walletAssetsKeepOnlyWhatTheFiltersAllow() async throws {
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let adapter = GemstoneAssetStore.mock(db: db)
         let balanceStore = BalanceStore.mock(db: db)
         try balanceStore.addBalance(assetIds: [ethereum, cosmos], isEnabled: true, for: wallet.id)

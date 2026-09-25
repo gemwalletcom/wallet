@@ -160,8 +160,8 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset), type: .sell)
 
         model.onAssetDataChange(
-            .mock(asset: asset),
-            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000))),
+            .mock(asset: asset, metadata: .mock(isSellEnabled: true)),
+            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000)), metadata: .mock(isSellEnabled: true)),
         )
         model.session = model.session.onQuoteResults(results: .mock(quotes: [affordable, unaffordable], amount: 100, type: .sell))
 
@@ -365,7 +365,7 @@ final class FiatSceneViewModelTests {
         model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(cryptoAmount: 1, type: .sell), .mock(cryptoAmount: 2, type: .sell, providerId: .transak)], amount: 100, type: .sell))
         let trigger = model.loadTrigger
 
-        model.onAssetDataChange(.mock(), .mock(balance: .mock(available: BigInt(500_000_000))))
+        model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
         model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak))])

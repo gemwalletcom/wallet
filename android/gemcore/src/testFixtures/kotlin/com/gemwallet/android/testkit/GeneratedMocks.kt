@@ -6,11 +6,19 @@ package com.gemwallet.android.testkit
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetBasic
+import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
+import com.wallet.core.primitives.AssetMarket
+import com.wallet.core.primitives.AssetMetaData
+import com.wallet.core.primitives.AssetPrice
+import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
@@ -24,6 +32,8 @@ import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
+import com.wallet.core.primitives.PerpetualBasic
+import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.SerializedDate
@@ -58,6 +68,132 @@ fun mockAsset(
     symbol = symbol,
     decimals = decimals,
     type = type,
+)
+
+fun mockAssetBasic(
+    asset: Asset = mockAsset(),
+    properties: AssetProperties = mockAssetProperties(),
+    score: AssetScore = mockAssetScore(),
+    price: Price? = null,
+) = AssetBasic(
+    asset = asset,
+    properties = properties,
+    score = score,
+    price = price,
+)
+
+fun mockAssetFull(
+    asset: Asset = mockAsset(),
+    properties: AssetProperties = mockAssetProperties(),
+    score: AssetScore = mockAssetScore(),
+    tags: List<String> = emptyList(),
+    links: List<AssetLink> = emptyList(),
+    associations: List<AssetAssociation> = emptyList(),
+    perpetuals: List<PerpetualBasic> = emptyList(),
+    price: Price? = null,
+    market: AssetMarket? = null,
+) = AssetFull(
+    asset = asset,
+    properties = properties,
+    score = score,
+    tags = tags,
+    links = links,
+    associations = associations,
+    perpetuals = perpetuals,
+    price = price,
+    market = market,
+)
+
+fun mockAssetLink(
+    name: String = "",
+    url: String = "",
+) = AssetLink(
+    name = name,
+    url = url,
+)
+
+fun mockAssetMarket(
+    marketCap: Double? = null,
+    marketCapFdv: Double? = null,
+    marketCapRank: Int? = null,
+    totalVolume: Double? = null,
+    circulatingSupply: Double? = null,
+    totalSupply: Double? = null,
+    maxSupply: Double? = null,
+    allTimeHighValue: ChartValuePercentage? = null,
+    allTimeLowValue: ChartValuePercentage? = null,
+) = AssetMarket(
+    marketCap = marketCap,
+    marketCapFdv = marketCapFdv,
+    marketCapRank = marketCapRank,
+    totalVolume = totalVolume,
+    circulatingSupply = circulatingSupply,
+    totalSupply = totalSupply,
+    maxSupply = maxSupply,
+    allTimeHighValue = allTimeHighValue,
+    allTimeLowValue = allTimeLowValue,
+)
+
+fun mockAssetMetaData(
+    isEnabled: Boolean = false,
+    isBalanceEnabled: Boolean = false,
+    isBuyEnabled: Boolean = false,
+    isSellEnabled: Boolean = false,
+    isSwapEnabled: Boolean = false,
+    isStakeEnabled: Boolean = false,
+    isEarnEnabled: Boolean = false,
+    isPinned: Boolean = false,
+    isActive: Boolean = false,
+    stakingApr: Double? = null,
+    earnApr: Double? = null,
+    rankScore: Int = 0,
+) = AssetMetaData(
+    isEnabled = isEnabled,
+    isBalanceEnabled = isBalanceEnabled,
+    isBuyEnabled = isBuyEnabled,
+    isSellEnabled = isSellEnabled,
+    isSwapEnabled = isSwapEnabled,
+    isStakeEnabled = isStakeEnabled,
+    isEarnEnabled = isEarnEnabled,
+    isPinned = isPinned,
+    isActive = isActive,
+    stakingApr = stakingApr,
+    earnApr = earnApr,
+    rankScore = rankScore,
+)
+
+fun mockAssetPrice(
+    assetId: AssetId = mockAssetId(),
+    price: Double = 0.0,
+    priceChangePercentage24h: Double = 0.0,
+    updatedAt: SerializedDate = 0L,
+) = AssetPrice(
+    assetId = assetId,
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+    updatedAt = updatedAt,
+)
+
+fun mockAssetProperties(
+    isEnabled: Boolean = false,
+    isBuyable: Boolean = false,
+    isSellable: Boolean = false,
+    isSwapable: Boolean = false,
+    isStakeable: Boolean = false,
+    stakingApr: Double? = null,
+    isEarnable: Boolean = false,
+    earnApr: Double? = null,
+    hasImage: Boolean = false,
+) = AssetProperties(
+    isEnabled = isEnabled,
+    isBuyable = isBuyable,
+    isSellable = isSellable,
+    isSwapable = isSwapable,
+    isStakeable = isStakeable,
+    stakingApr = stakingApr,
+    isEarnable = isEarnable,
+    earnApr = earnApr,
+    hasImage = hasImage,
 )
 
 fun mockAssetScore(
@@ -152,6 +288,16 @@ fun mockNameRecord(
     chain = chain,
     address = address,
     provider = provider,
+)
+
+fun mockPrice(
+    price: Double = 0.0,
+    priceChangePercentage24h: Double = 0.0,
+    updatedAt: SerializedDate = 0L,
+) = Price(
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+    updatedAt = updatedAt,
 )
 
 fun mockPriceAlert(

@@ -17,7 +17,7 @@ import Testing
 struct WalletsSceneViewModelTests {
     @Test
     func onDeleteConfirmed() async throws {
-        let db = try DB.mockWithWallets(["0x1", "0x2", "0x3"].map { .mock(id: .multicoin(address: $0)) })
+        let db = DB.mock(wallets: ["0x1", "0x2", "0x3"].map { .mock(id: .multicoin(address: $0)) })
         let walletStore = WalletStore.mock(db: db)
 
         let sessionStore = GemstoneWalletSessionStore.mock()
@@ -46,7 +46,7 @@ struct WalletsSceneViewModelTests {
     @Test
     func deletingAuthenticatesWhenAuthenticationIsEnabled() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let biometry = BiometryAuthenticationMock()
         let model = WalletsSceneViewModel.mock(walletService: GemWalletService.mock(db: db), biometry: biometry)
 
@@ -59,7 +59,7 @@ struct WalletsSceneViewModelTests {
     @Test
     func cancellingAuthenticationKeepsTheWallet() async throws {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let biometry = BiometryAuthenticationMock()
         biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
         let model = WalletsSceneViewModel.mock(walletService: GemWalletService.mock(db: db), biometry: biometry)

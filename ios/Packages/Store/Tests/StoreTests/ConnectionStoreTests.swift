@@ -11,7 +11,7 @@ struct ConnectionStoreTests {
     func getConnectionReturnsBoundWallet() throws {
         let walletA = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
         let walletB = Wallet.mock(id: .multicoin(address: "0xb"), accounts: [.mock(chain: .ethereum)])
-        let connectionsStore = try ConnectionStore.mock(db: .mockWithWallets([walletA, walletB]))
+        let connectionsStore = ConnectionStore.mock(db: .mock(wallets: [walletA, walletB]))
 
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: walletA))
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-b"), wallet: walletB))

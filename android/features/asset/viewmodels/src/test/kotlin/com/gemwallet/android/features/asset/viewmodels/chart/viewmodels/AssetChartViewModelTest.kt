@@ -16,6 +16,7 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemSocialLink
@@ -58,7 +59,7 @@ class AssetChartViewModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset))
+    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
     private val linksFlow = MutableStateFlow<List<AssetLink>>(emptyList())
     private val marketFlow = MutableStateFlow<AssetMarket?>(null)
     private val currencyFlow = MutableStateFlow(Currency.USD)
@@ -95,7 +96,7 @@ class AssetChartViewModelTest {
 
     @Test
     fun `a stored asset gives the scene its title before any flow emits and its sections once core builds them`() = runTest(testDispatcher) {
-        walletAssetsFlow.value = listOf(mockAssetInfo(asset))
+        walletAssetsFlow.value = listOf(mockAssetInfo(asset = asset))
         coEvery { chartService.sections(asset.toGem(), any(), null, any(), any()) } returns listOf(
             section(listOf(GemListRow.Text(GemListRowTitle.TYPE, "SPL"))),
         )
@@ -140,7 +141,7 @@ class AssetChartViewModelTest {
     @Test
     fun `the stored price and alerts reach core untouched`() = runTest(testDispatcher) {
         val alert = mockPriceAlert(assetId = asset.id)
-        assetInfoFlow.value = mockAssetInfo(asset).copy(price = mockAssetPriceInfo(price = 2.5))
+        assetInfoFlow.value = mockAssetInfo(asset = asset).copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 2.5)))
         every { priceAlertsQuery(asset.id) } returns MutableStateFlow(listOf(mockk<PriceAlertData> { every { priceAlert } returns alert }))
 
         createViewModel()

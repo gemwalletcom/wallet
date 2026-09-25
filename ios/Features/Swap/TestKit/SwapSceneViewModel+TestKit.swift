@@ -19,7 +19,7 @@ public extension SwapSceneViewModel {
                 pairSelector: pairSelector,
             ),
         )
-        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .mock())
+        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .mock(available: 1_000_000_000_000_000_000))
         model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))
         model.amountInputModel.text = "1"
         model.onChangeFromValue("", "1")

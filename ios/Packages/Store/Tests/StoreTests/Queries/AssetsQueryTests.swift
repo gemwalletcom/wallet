@@ -7,10 +7,34 @@ import StoreTestKit
 import Testing
 
 struct AssetsQueryTests {
+    private let wallet = Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .smartChain), .mock(chain: .tron), .mock(chain: .ethereum)])
+    private let walletAssets: [AssetBasic] = [
+        .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
+        .mock(
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+        .mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
+        .mock(
+            asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+        .mock(
+            asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+    ]
+    private let walletBalances: [UpdateBalance] = [
+        .mock(assetId: .mock(chain: .smartChain), available: 1),
+        .mock(assetId: .mock(chain: .tron), available: 2),
+        .mock(assetId: .mock(chain: .ethereum), available: 3),
+        .mock(assetId: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), available: 4),
+    ]
+
     @Test func excludesNegativeRank() throws {
         let visible = AssetBasic.mock(asset: .mock(id: AssetId(chain: .ethereum)), score: .mock(rank: 0))
         let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
-        let db = DB.mockAssets(assets: [visible, hidden])
+        let db = DB.mock(wallets: [.mock(accounts: [visible, hidden].map { .mock(chain: $0.asset.chain) })], assets: [visible, hidden])
 
         try db.dbQueue.read { db in
             let assets = try AssetsQuery.mock().fetch(db)
@@ -42,7 +66,7 @@ struct AssetsQueryTests {
 
     @Test func assetDataIncludesAssociations() throws {
         let asset = AssetBasic.mock()
-        let db = DB.mockAssets(assets: [asset])
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: asset.asset.chain)])], assets: [asset])
         let store = AssetStore(db: db)
         let associations = [AssetAssociation(assetId: AssetId(chain: .ethereum), type: .official)]
 
@@ -56,7 +80,7 @@ struct AssetsQueryTests {
     }
 
     @Test func pinned() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let balanceStore = BalanceStore(db: db)
 
         let assetId = AssetId(chain: .bitcoin, tokenId: nil)
@@ -72,7 +96,7 @@ struct AssetsQueryTests {
     }
 
     @Test func enabled() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let balanceStore = BalanceStore(db: db)
 
         let disabledId = AssetId(chain: .bitcoin)
@@ -88,7 +112,7 @@ struct AssetsQueryTests {
     }
 
     @Test func assetProperties() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let assetStore = AssetStore(db: db)
 
         let assetId = AssetId(chain: .bitcoin)
@@ -104,7 +128,7 @@ struct AssetsQueryTests {
     }
 
     @Test func testHasBalance() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
         try db.dbQueue.read { db in
             let assets = try AssetsQuery.mock(filters: [.hasBalance]).fetch(db)
@@ -115,7 +139,7 @@ struct AssetsQueryTests {
     }
 
     @Test func testChains() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
         try db.dbQueue.read { db in
             let ethereumAssets = try AssetsQuery.mock(filters: [.chains([Chain.ethereum.rawValue, Chain.solana.rawValue])]).fetch(db)
@@ -127,7 +151,7 @@ struct AssetsQueryTests {
     }
 
     @Test func testChainsOrAssets() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
         try db.dbQueue.read { db in
             let assets = try AssetsQuery.mock(
@@ -143,12 +167,12 @@ struct AssetsQueryTests {
     }
 
     @Test func testSearch() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let searchStore = SearchStore(db: db)
 
         let query = "usdt ethereum"
         try searchStore.add(type: .asset, query: query, ids: [Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id.identifier])
-        try searchStore.add(type: .asset, query: "T", ids: [AssetBasic].mock().reversed().map(\.asset.id.identifier))
+        try searchStore.add(type: .asset, query: "T", ids: walletAssets.reversed().map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
             let btc = try AssetsQuery.mock(filters: [.search("btc", hasPriorityAssets: false)]).fetch(db)
@@ -165,12 +189,12 @@ struct AssetsQueryTests {
             #expect(tron.first?.asset.symbol == "USDT")
             #expect(searchAssets.count == 1)
             #expect(searchAssets.first?.asset.symbol == "USDT")
-            #expect([AssetBasic].mock().reversed().map(\.asset.id) == prioritySearchAssets.map(\.asset.id))
+            #expect(walletAssets.reversed().map(\.asset.id) == prioritySearchAssets.map(\.asset.id))
         }
     }
 
     @Test func typedSearchKeepsPinnedFirst() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id
         try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [usdt], configuration: .pinned(true))
 
@@ -183,13 +207,13 @@ struct AssetsQueryTests {
     }
 
     @Test func searchPrioritySortsHeldBalanceFirst() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let searchStore = SearchStore(db: db)
         let priceStore = PriceStore(db: db)
 
         try priceStore.saveRates([.mock()])
 
-        let assets = [AssetBasic].mock()
+        let assets = walletAssets
         try priceStore.updatePrices(assets.map {
             .mock(assetId: $0.asset.id, price: 1, priceChangePercentage24h: 0)
         })
@@ -205,7 +229,7 @@ struct AssetsQueryTests {
     }
 
     @Test func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
-        let db = DB.mockAssets(assets: [
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ton), .mock(chain: .base)])], assets: [
             .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),
             .mock(asset: .mock(id: AssetId(chain: .ton, tokenId: "abc"), name: "Tether", symbol: "USDT", decimals: 6, type: .jetton)),
             .mock(asset: .mock(id: AssetId(chain: .base), name: "Base ETH", symbol: "ETH", decimals: 18, type: .native)),
@@ -222,7 +246,7 @@ struct AssetsQueryTests {
     }
 
     @Test func order() throws {
-        let db = DB.mockAssets()
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let priceStore = PriceStore(db: db)
         let balanceStore = BalanceStore(db: db)
 

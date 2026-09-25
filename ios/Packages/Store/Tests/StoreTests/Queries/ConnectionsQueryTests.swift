@@ -10,7 +10,7 @@ struct ConnectionsQueryTests {
     @Test
     func returnsConnectionsWithWalletAccounts() throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let connectionsStore = ConnectionStore(db: db)
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: wallet))
 

@@ -11,7 +11,7 @@ struct NFTQueryTests {
     func collectionsFollowTheWalletAssociation() throws {
         let owner = Wallet.mock(id: .mock(address: "0x1"), accounts: [.mock()])
         let other = Wallet.mock(id: .mock(address: "0x2"), accounts: [.mock()])
-        let db = try DB.mockWithWallets([owner, other])
+        let db = DB.mock(wallets: [owner, other])
         let store = NftStore.mock(db: db)
         let data = NFTData.mock(assets: [.mock()])
 

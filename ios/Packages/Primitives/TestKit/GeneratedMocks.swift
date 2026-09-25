@@ -42,6 +42,160 @@ public extension Asset {
     }
 }
 
+public extension AssetBasic {
+    static func mock(
+        asset: Asset = .mock(),
+        properties: AssetProperties = .mock(),
+        score: AssetScore = .mock(),
+        price: Price? = nil,
+    ) -> AssetBasic {
+        AssetBasic(
+            asset: asset,
+            properties: properties,
+            score: score,
+            price: price,
+        )
+    }
+}
+
+public extension AssetFull {
+    static func mock(
+        asset: Asset = .mock(),
+        properties: AssetProperties = .mock(),
+        score: AssetScore = .mock(),
+        tags: [String] = [],
+        links: [AssetLink] = [],
+        associations: [AssetAssociation] = [],
+        perpetuals: [PerpetualBasic] = [],
+        price: Price? = nil,
+        market: AssetMarket? = nil,
+    ) -> AssetFull {
+        AssetFull(
+            asset: asset,
+            properties: properties,
+            score: score,
+            tags: tags,
+            links: links,
+            associations: associations,
+            perpetuals: perpetuals,
+            price: price,
+            market: market,
+        )
+    }
+}
+
+public extension AssetLink {
+    static func mock(
+        name: String = "",
+        url: String = "",
+    ) -> AssetLink {
+        AssetLink(
+            name: name,
+            url: url,
+        )
+    }
+}
+
+public extension AssetMarket {
+    static func mock(
+        marketCap: Double? = nil,
+        marketCapFdv: Double? = nil,
+        marketCapRank: Int32? = nil,
+        totalVolume: Double? = nil,
+        circulatingSupply: Double? = nil,
+        totalSupply: Double? = nil,
+        maxSupply: Double? = nil,
+        allTimeHighValue: ChartValuePercentage? = nil,
+        allTimeLowValue: ChartValuePercentage? = nil,
+    ) -> AssetMarket {
+        AssetMarket(
+            marketCap: marketCap,
+            marketCapFdv: marketCapFdv,
+            marketCapRank: marketCapRank,
+            totalVolume: totalVolume,
+            circulatingSupply: circulatingSupply,
+            totalSupply: totalSupply,
+            maxSupply: maxSupply,
+            allTimeHighValue: allTimeHighValue,
+            allTimeLowValue: allTimeLowValue,
+        )
+    }
+}
+
+public extension AssetMetaData {
+    static func mock(
+        isEnabled: Bool = false,
+        isBalanceEnabled: Bool = false,
+        isBuyEnabled: Bool = false,
+        isSellEnabled: Bool = false,
+        isSwapEnabled: Bool = false,
+        isStakeEnabled: Bool = false,
+        isEarnEnabled: Bool = false,
+        isPinned: Bool = false,
+        isActive: Bool = false,
+        stakingApr: Double? = nil,
+        earnApr: Double? = nil,
+        rankScore: Int32 = 0,
+    ) -> AssetMetaData {
+        AssetMetaData(
+            isEnabled: isEnabled,
+            isBalanceEnabled: isBalanceEnabled,
+            isBuyEnabled: isBuyEnabled,
+            isSellEnabled: isSellEnabled,
+            isSwapEnabled: isSwapEnabled,
+            isStakeEnabled: isStakeEnabled,
+            isEarnEnabled: isEarnEnabled,
+            isPinned: isPinned,
+            isActive: isActive,
+            stakingApr: stakingApr,
+            earnApr: earnApr,
+            rankScore: rankScore,
+        )
+    }
+}
+
+public extension AssetPrice {
+    static func mock(
+        assetId: AssetId = .mock(),
+        price: Double = 0,
+        priceChangePercentage24h: Double = 0,
+        updatedAt: Date = Date(timeIntervalSince1970: 0),
+    ) -> AssetPrice {
+        AssetPrice(
+            assetId: assetId,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
+        )
+    }
+}
+
+public extension AssetProperties {
+    static func mock(
+        isEnabled: Bool = false,
+        isBuyable: Bool = false,
+        isSellable: Bool = false,
+        isSwapable: Bool = false,
+        isStakeable: Bool = false,
+        stakingApr: Double? = nil,
+        isEarnable: Bool = false,
+        earnApr: Double? = nil,
+        hasImage: Bool = false,
+    ) -> AssetProperties {
+        AssetProperties(
+            isEnabled: isEnabled,
+            isBuyable: isBuyable,
+            isSellable: isSellable,
+            isSwapable: isSwapable,
+            isStakeable: isStakeable,
+            stakingApr: stakingApr,
+            isEarnable: isEarnable,
+            earnApr: earnApr,
+            hasImage: hasImage,
+        )
+    }
+}
+
 public extension AssetScore {
     static func mock(
         rank: Int32 = 0,
@@ -164,6 +318,20 @@ public extension NameRecord {
             chain: chain,
             address: address,
             provider: provider,
+        )
+    }
+}
+
+public extension Price {
+    static func mock(
+        price: Double = 0,
+        priceChangePercentage24h: Double = 0,
+        updatedAt: Date = Date(timeIntervalSince1970: 0),
+    ) -> Price {
+        Price(
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
         )
     }
 }

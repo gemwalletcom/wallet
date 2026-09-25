@@ -140,7 +140,7 @@ class AssetInfoUIModelFactoryTest {
         fiatValue: GemFormattedNumber? = null,
         balanceValue: GemFormattedNumber = mockFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
     ) = AssetInfoUIModelFactory(context).create(
-        mockChainAssetInfo(assetInfo),
+        mockChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
         mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true), sections, fiatValue, balanceValue),
     )
 }

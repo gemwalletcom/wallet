@@ -9,7 +9,7 @@ import Testing
 struct StakeStoreTests {
     @Test
     func deactivateValidatorsKeepsRow() throws {
-        let store = StakeStore(db: .mockWithChains([.cosmos]))
+        let store = StakeStore(db: .mock(chains: [.cosmos]))
         let elected = DelegationValidator.mock(.cosmos, id: "elected")
         let dropped = DelegationValidator.mock(.cosmos, id: "dropped")
         try store.updateValidators([elected, dropped])
@@ -26,7 +26,7 @@ struct StakeStoreTests {
 
     @Test
     func deactivateValidatorsKeepsOtherChain() throws {
-        let store = StakeStore(db: .mockWithChains([.cosmos, .celestia]))
+        let store = StakeStore(db: .mock(chains: [.cosmos, .celestia]))
         let sharedId = "valoper1shared"
         try store.updateValidators([
             DelegationValidator.mock(.cosmos, id: sharedId),

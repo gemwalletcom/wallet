@@ -17,7 +17,7 @@ struct WalletSceneViewModelTests {
     @Test(.timeLimit(.minutes(1)))
     func renameNotifiesWalletBar() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "First")
-        let db = try DB.mockWithWallets([wallet])
+        let db = DB.mock(wallets: [wallet])
         let store = WalletStore.mock(db: db)
 
         let model = WalletSceneViewModel.mock(wallet: wallet, db: db)

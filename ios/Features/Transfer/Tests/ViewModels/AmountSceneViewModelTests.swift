@@ -14,7 +14,7 @@ import TransferTestKit
 struct AmountSceneViewModelTests {
     @Test
     func maxButton() {
-        let model = AmountSceneViewModel.mock()
+        let model = AmountSceneViewModel.mock(assetData: .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), balance: .mock(available: 200_000_000)))
         #expect(model.amountInputModel.error == nil)
 
         model.onSelectMaxButton()
@@ -116,7 +116,7 @@ struct AmountSceneViewModelTests {
 
     @Test
     func actionButtonState() {
-        let model = AmountSceneViewModel.mock()
+        let model = AmountSceneViewModel.mock(assetData: .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), balance: .mock(available: 200_000_000)))
 
         #expect(model.actionButtonState == .disabled)
 

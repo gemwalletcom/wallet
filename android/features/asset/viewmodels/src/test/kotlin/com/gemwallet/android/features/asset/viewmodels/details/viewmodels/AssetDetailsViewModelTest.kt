@@ -25,9 +25,9 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.PriceAlertData
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -63,7 +63,7 @@ class AssetDetailsViewModelTest {
     private val viewModels = mutableListOf<ViewModel>()
 
     private val chainAssetInfoFlow = MutableStateFlow<ChainAssetInfo?>(
-        mockChainAssetInfo(mockAssetInfo(asset)),
+        mockChainAssetInfo(assetInfo = mockAssetInfo(asset = asset), feeAssetInfo = mockAssetInfo(asset = asset)),
     )
     private val sessionFlow = MutableStateFlow<Session?>(mockSession())
     private val banners = MutableSharedFlow<List<Banner>>(replay = 1)

@@ -9,7 +9,7 @@ import Testing
 struct AddressNameQueryTests {
     @Test
     func anOwnWalletNameShowsTheWalletImage() throws {
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let addressStore = AddressStore.mock(db: db)
         let walletAddress = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7"
         let contactAddress = "0x1111111111111111111111111111111111111111"

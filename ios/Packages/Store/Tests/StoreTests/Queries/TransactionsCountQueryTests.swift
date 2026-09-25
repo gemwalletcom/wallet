@@ -9,7 +9,7 @@ import Testing
 struct TransactionsCountQueryTests {
     @Test
     func countMatchesActivityList() throws {
-        let db = DB.mockAssets(assets: [
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .smartChain)])], assets: [
             .mock(asset: .mock(), score: .mock(rank: 20)),
             .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), score: .mock(rank: 0)),
         ])

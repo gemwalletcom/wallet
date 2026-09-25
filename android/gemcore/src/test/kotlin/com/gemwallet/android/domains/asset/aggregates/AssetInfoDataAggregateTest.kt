@@ -7,7 +7,9 @@ import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
+import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockGemAssetRowStyle
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -65,8 +67,8 @@ class AssetInfoDataAggregateTest {
     fun theBalanceTrailsWithItsValueInThePriceCurrency() {
         val aggregate = mockAssetInfo(
             asset = btcAsset,
-            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
-            price = mockAssetPriceInfo(price = 3000.0, priceChangePercentage24h = -5.0, currency = Currency.EUR),
+            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
+            price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0, priceChangePercentage24h = -5.0)),
         ).toAssetInfoDataAggregate(mockGemAssetRowStyle())
         val trailing = aggregate.row.trailing as GemAssetItemTrailing.Value
 
@@ -80,7 +82,7 @@ class AssetInfoDataAggregateTest {
     fun theAvailableScopeShowsWhatIsSpendable() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000"), staked = BigInteger("200000000")),
+            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"), staked = BigInteger("200000000"))),
         )
 
         assertEquals("3 BTC", assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle()).row.trailingValue.string)
@@ -91,8 +93,8 @@ class AssetInfoDataAggregateTest {
     fun aPriceThatIsNotANumberIsNoPrice() {
         val row = mockAssetInfo(
             asset = btcAsset,
-            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
-            price = mockAssetPriceInfo(price = Double.NaN, priceChangePercentage24h = -5.2),
+            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
+            price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = Double.NaN, priceChangePercentage24h = -5.2)),
         ).toAssetInfoDataAggregate(mockGemAssetRowStyle()).row
 
         assertNull(row.subtitle)
@@ -104,13 +106,13 @@ class AssetInfoDataAggregateTest {
         val items = listOf(
             mockAssetInfo(
                 asset = btcAsset,
-                balance = mockAssetBalance(btcAsset, available = BigInteger("150000000")),
-                price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 1.0),
+                balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("150000000"))),
+                price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 50000.0, priceChangePercentage24h = 1.0)),
             ),
             mockAssetInfo(
                 asset = ethAsset,
-                balance = mockAssetBalance(ethAsset, available = BigInteger("2000000000000000000")),
-                price = mockAssetPriceInfo(price = 3000.0, priceChangePercentage24h = -1.0, currency = Currency.EUR),
+                balance = mockAssetBalance(asset = ethAsset, balance = mockBalance(available = BigInteger("2000000000000000000"))),
+                price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0, priceChangePercentage24h = -1.0)),
             ),
             mockAssetInfo(asset = btcAsset, price = null),
         )
