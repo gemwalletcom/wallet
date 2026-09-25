@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 4. **Models:** VM195.
 5. **Sessions:** VM185.
-6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5.
+6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) in the same way.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -34,36 +34,36 @@ This map routes work to current owners. It groups existing ids rather than creat
 
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
-| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185 |
+| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM236, VM237, VM238, VM239, VM240 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182, VM250, VM251, VM252, VM254 |
-| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM236, VM237, VM238, VM239, VM240, VM273 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204, VM264, VM269 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182, VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
+| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189, VM232 |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
-| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221 |
+| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185, VM284 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
-| Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
+| Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230; preserve exact atomic values |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230, VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM196, VM255, VM256 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193, VM248, VM249 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193, VM248, VM249, VM271, VM277 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245 |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189, VM243; retain native locale/theme application |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245, VM265, VM270 |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189, VM243, VM283; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM189; retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189, VM247, VM259 |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206 |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281; retain Android-only one-click auth |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266, VM268 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | VM187, VM195 |
+| Stores and persistence | `Gem*Store` traits and both adapters | VM187, VM195, VM288 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -420,6 +420,134 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `ConnectionViewModel` and `ConnectionSceneViewModel` build the row and title.
   - **Android:** `ConnectionRowUIModel` picks icon or initial placeholder.
   - **Expected:** the shared renderer draws the Core connection row; both go.
+
+### Shared components, second round
+
+- **VM261** **S** **Asset screen options menus are composed in the apps.**
+  - **iOS:** `AssetSceneViewModel.menuItems` builds "View address on X", "View token on X" and Share from the details' links.
+  - **Android:** `AssetDetailsMenu.kt` builds the same three entries.
+  - **Expected:** `GemAssetDetails` returns the menu rows (kind and link); the mapper supplies titles and icons; both builders go.
+- **VM262** **M** **Screens count their own lists so Core can pick the phase.**
+  - **iOS:** `SelectAssetViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
+  - **Android:** `BaseAssetSelectViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualMarketViewModel`, `RecentsSheetUIModel` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualDetailsViewModel`.
+  - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
+- **VM263** **S** **Asset list section titles are chosen in the apps.**
+  - **iOS:** `SelectAssetViewModel` titles the popular section and `SelectAssetScene` shows popular, pinned and other sections by emptiness.
+  - **Android:** `PinnedAssetsHeaderItem` picks "Popular" or "Pinned" and the icon by `AssetsGroupType`.
+  - **Expected:** asset sections from Core carry their titles and kinds; the header choices go.
+- **VM264** **S** **Search result sections are split in the apps.**
+  - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
+  - **Android:** `WalletSearchViewModel` and `AssetsViewModel` split the same way; `WalletSummary` re-assembles the home state.
+  - **Expected:** the search and home view states carry finished sections; the splitting types go.
+- **VM265** **S** **Chain pickers each search chains themselves.**
+  - **iOS:** `ChainListSettingsViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
+  - **Android:** `ContactChainSelectViewModel`, `NetworksViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
+  - **Expected:** one Core chain list (rows plus search) that every picker uses, with VM199's chain rows.
+- **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
+  - **iOS:** `InfoSheetModel` and `InfoSheetButton` copy `GemInfoSheet` and show the button for learn-more or when a handler exists.
+  - **Android:** `InfoSheetEntity` and `InfoBottomSheet` apply the same rule.
+  - **Expected:** the sheet views take `GemInfoSheet`; only the handler binding stays in the apps.
+- **VM267** **S** **Simulation payload fields are mapped twice.**
+  - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
+  - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
+  - **Expected:** payload rows render through the shared row renderer (address rows from VM207); both go.
+- **VM268** **S** **Core-type mappings live outside the two mapper files.**
+  - **iOS:** `SwapProviderType+Gemstone`, `FiatProviderName+`, `GemSocialLink+`, `GemLatencyStatus+`, `GemButtonState+`, `GemTransactionHeader+`, `GemHeaderActions+`, `GemCopy+`, `GemWalletRow+`, `GemSecretPhraseRow+`, `GemAvatar+` and `GemLoadState+StateViewType` (`PrimitivesComponents/Sources/Extensions`).
+  - **Android:** `ChainIcon.kt`, `VerificationStatusItem.kt` and `PinnedAssetsHeaderItem.kt` map Core values to icons and labels.
+  - **Expected:** each mapping moves into the two mapper files so the parity check covers it.
+- **VM269** **S** **Banner destinations are routed per screen.**
+  - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
+  - **Android:** `AssetsScreen` ignores the same three; `BannerItem` handles all four.
+  - **Expected:** Core emits only destinations the screen can open and each app keeps one banner routing function.
+
+### Texts composed in the apps
+
+- **VM270** **S** **Delete confirmations are composed in the apps.**
+  - **iOS:** `ChainSettingsSceneViewModel`, `WalletDetailScene` and `WalletsScene` compose "Delete X?".
+  - **Android:** `NetworkScene` and `ConfirmWalletDeleteDialog` compose the same.
+  - **Expected:** Core returns the prompt as a `GemLocalizedText` with the name; the mapper renders it.
+- **VM271** **S** **Toast texts are composed in the apps.**
+  - **iOS:** `ToastMessage+PrimitivesComponents` composes pinned/unpinned asset, price alerts enabled/disabled for an asset, and copied value.
+  - **Android:** `AssetToasts` composes pinned/unpinned; `PriceAlertsNavScreen` composes "Price alerts enabled for X".
+  - **Expected:** the Core call that changes the state returns its toast as `GemLocalizedText`; both builders go.
+- **VM272** **S** **Amount screen texts are composed in the apps.**
+  - **iOS:** `AmountSceneViewModel` composes "Balance: X" and "Reserved fees X".
+  - **Android:** `PropertyAssetInfoItem` composes the balance and `AmountScene` the reserved fees.
+  - **Expected:** the amount view state carries both texts (land with VM192).
+- **VM273** **S** **Wallet detail rows are composed in the apps.**
+  - **iOS:** `WalletIDetailViewModel` builds "Show {secret}" and the address row.
+  - **Android:** `WalletViewModel` builds "Show {secret}".
+  - **Expected:** `GemWalletDetails` returns its rows; both builders go.
+- **VM274** **S** **Rewards invite and share texts are composed in the apps.**
+  - **iOS:** `RewardsViewModel` composes the invite description with bold points and the share text with the link.
+  - **Android:** `ReferralHead` bolds the points and `ReferralScene` composes the share text.
+  - **Expected:** the rewards state carries both texts.
+- **VM275** **S** **The app update prompt is composed in the apps.**
+  - **iOS:** `RootSceneViewModel` builds the alert title, the version description and skip/update actions.
+  - **Android:** `WalletApp` and `InAppUpdateBanner` compose the description and "version · …"; `AppViewModel` decides dismissal from `canSkip`.
+  - **Expected:** `GemAppUpdateService` returns the prompt record (texts and which actions exist).
+- **VM276** **S** **The "Today, 10:30" row date is composed in both formatters.**
+  - **iOS:** `TransactionDateFormatter.row` joins the day label and the time with ", ".
+  - **Android:** `SectionDateFormatter.row` does the same.
+  - **Expected:** Core returns the day label with a localized template for label plus time; only the time formatting stays native.
+- **VM277** **S** **The price-alerts toggle label is composed in the apps.**
+  - **iOS:** `PriceAlertsSceneViewModel` composes "Enable price alerts".
+  - **Android:** `PriceAlertScene` composes the same.
+  - **Expected:** the price-alerts screen returns a toggle row from Core.
+
+### Screen composition
+
+- **VM278** **S** **Validator picker sections are titled in the apps.**
+  - **iOS:** `ValidatorSelectSceneViewModel` titles "Recommended" and "Active".
+  - **Android:** `ValidatorsScene` does the same.
+  - **Expected:** `GemStakeValidatorOptions` returns titled sections.
+- **VM279** **S** **The earn screen's rows are built in the apps.**
+  - **iOS:** `EarnSceneViewModel` builds the "No data" and "Deposit" rows, decides the empty state and shows "Positions" only when positions exist.
+  - **Android:** `EarnViewModel.depositListItem` and `EarnScreen` build the same.
+  - **Expected:** the earn view returns its sections and rows.
+- **VM280** **M** **Transaction details are composed per row kind in the apps.**
+  - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
+  - **Android:** `TransactionDetailsViewModel`, `TransactionDetailsRowUIModel` and `TransactionDetailsScene` do the same.
+  - **Expected:** the details sections carry finished rows (with VM209, VM211, VM212); both item layers go.
+- **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
+  - **iOS:** `ConnectionProposalViewModel` builds wallet, connection, status and the two permission rows.
+  - **Android:** `ProposalSceneViewModel` builds the same four.
+  - **Expected:** a Core proposal record returns the rows.
+- **VM282** **S** **The perpetual market hides its header while searching in the views.**
+  - **iOS:** `PerpetualsScene` gates the balance header on `!model.isSearching`.
+  - **Android:** `PerpetualMarketScene` gates the header and sections on `isSearching`.
+  - **Expected:** `GemPerpetualMarketSession` sections include or omit the header.
+- **VM283** **S** **Settings screens hand Core the values its preference store holds.**
+  - **iOS:** `PreferencesViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecurityViewModel` builds `GemSecurityInput`.
+  - **Android:** `PreferencesViewModel` and `SecurityViewModel` build the same inputs.
+  - **Expected:** the settings services read preferences through their store port and return sections; the inputs go.
+- **VM284** **S** **Recipients are built from contacts in each app.**
+  - **iOS:** `RecipientSceneViewModel.contactRecipients` flattens contacts into `GemRecipient`s.
+  - **Android:** `RecipientViewModel` does the same.
+  - **Expected:** `recipientSections` reads contacts through the contact store; both flattenings go.
+
+### Models and adapters
+
+- **VM285** **S** **The fee asset of an asset screen is the chain coin in both apps.**
+  - **iOS:** `ChainAssetRequest` loads `assetId.chain.assetId` as the fee asset.
+  - **Android:** `GetChainAssetInfoImpl` does the same for tokens.
+  - **Expected:** Core answers the fee asset for an asset; both stores read it.
+- **VM286** **S** **iOS twins `GemSelectAssetType`.**
+  - **iOS:** `SelectAssetType` and `SelectAssetSwapType` mirror the generated enum and map back through `flowType`.
+  - **Android:** uses `GemSelectAssetType` directly.
+  - **Expected:** iOS uses the generated enum; the twin and `flowType` go.
+- **VM287** **S** **Amount routes twin `GemAmountRequest`.**
+  - **iOS:** `AmountType` and `AmountInput` are rebuilt into a request in `AmountSceneViewModel`.
+  - **Android:** `AmountParams` (and `toAmountParams`) is rebuilt into a request in `AmountViewModel`.
+  - **Expected:** routes carry `GemAmountRequest` (land with VM192).
+- **VM288** **M** **iOS re-wraps Core service methods to take Primitives types.**
+  - **iOS:** `GemstonePrimitives/Sources/Services/*.swift` (wallet, wallet session, WalletConnect, contacts, wallet home, perpetual details, swap quote, and others) and `GemConfirmMetadata+GemstonePrimitives` wrap Core calls with conversions.
+  - **Android:** calls Core with `toGem()` at each call site.
+  - **Expected:** callers use the generated types directly; the wrapper extensions go.
+- **VM289** **S** **Android domain aggregates wrap Core rows.**
+  - **iOS:** uses `GemPerpetualMarketItem` directly in views (its wallet-row twin `WalletEntry` is VM235).
+  - **Android:** `PerpetualDataAggregate`, `PerpetualPositionDataAggregate(Impl)`, `WalletDataAggregate`, `WalletSummary`, `LeverageState` and `NftAssetDetailsData` (`gemcore/.../domains`) wrap them.
+  - **Expected:** Android uses the records directly; the aggregates go.
 
 ### Twins and dead code
 
