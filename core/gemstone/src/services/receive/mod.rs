@@ -9,7 +9,7 @@ use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
-pub use model::{GemReceiveNetworks, GemReceiveWarning};
+pub use model::{GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -29,8 +29,8 @@ impl GemReceiveService {
         rules::warnings(chain)
     }
 
-    pub fn networks(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
-        rules::networks(asset_id, associations, &wallet)
+    pub fn networks(&self, asset: Asset, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
+        rules::networks(&asset, associations, &wallet)
     }
 
     pub async fn enable_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {

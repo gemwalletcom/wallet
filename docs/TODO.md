@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Numbers and copy:** VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+1. **Numbers and copy:** the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 3. **Balances and storage:** D76, D77, VM98 (an Android migration).
 4. **Server:** BD23, BD51, BD52.
@@ -40,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
-| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
+| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
@@ -96,7 +96,6 @@ The same product rule written in both apps, or in one app while the other reads 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
 - **VM67** **M** **Price-alert confirmation text comes from Core.** Both apps build "added for …" by choosing a title from type and direction and lowercasing a localized string, which is locale-unsafe (iOS `SetPriceAlertViewModel`, Android `PriceAlertTargetNavScreen`). **Copy:** we write one full sentence per kind and direction ("Alert added for price over {value}" and three siblings), translated into every language through the translation-review flow, replacing `price_alerts_added_for` plus the lowercased title; Core then returns it as a `GemLocalizedText` case.
-- **VM69** **S** **Token standard labels are not raw values on either app.** iOS `ChainViewModel` shows `assetType?.rawValue` as user-facing text; Android receive shows `asset.type.string` (`ReceiveScreen.kt:147`, `ReceiveNetworkSelector.kt:38`). The label is a `GemLocalizedText` case both mappers render. **Decided:** keep `ERC20`, `BEP20`, `TRC20`, `SPL` and `JETTON` as labels; `NATIVE`, `TOKEN`, `SPL2022`, `PERPETUAL` and `SPOT` show no subtitle.
 
 ## 5. Twins, adapters, redundant models and dead code
 

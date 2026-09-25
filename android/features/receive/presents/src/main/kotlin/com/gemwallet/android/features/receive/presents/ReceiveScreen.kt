@@ -39,7 +39,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
@@ -57,6 +56,7 @@ import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.WindowDimension
@@ -67,6 +67,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemLocalizedText
 
 private val qrCardElevation = 3.dp
 
@@ -94,6 +95,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
             warning = remember(info.asset.id) { viewModel.warningText(info.asset) },
             shareText = viewModel.shareAddress(),
             copyText = viewModel.copyAddress(),
+            standard = networks.networks.firstOrNull { it.assetId == info.asset.id.toIdentifier() }?.standard,
             onSelectNetwork = if (networks.showsSelector) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -103,7 +105,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
         )
         ReceiveNetworkSelector(
             isVisible = isShowingNetworkSelector,
-            assetIds = networks.assetIds.map { it.toAssetId()!! },
+            networks = networks.networks,
             onSelect = viewModel::selectAsset,
             onDismiss = { isShowingNetworkSelector = false },
         )
@@ -113,7 +115,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 }
 
 @Composable
-private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: String, shareText: String?, copyText: GemCopy?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
+private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -144,7 +146,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: Stri
                     ChainItem(
                         title = assetInfo.asset.id.chain.networkName(),
                         icon = assetInfo.asset.id.chain,
-                        subtitle = assetInfo.asset.type.string,
+                        subtitle = standard?.string(context),
                         listPosition = ListPosition.Single,
                         paddingHorizontal = space0,
                         trailing = { DataBadgeChevron() },

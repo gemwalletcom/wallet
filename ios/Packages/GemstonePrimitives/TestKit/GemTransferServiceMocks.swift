@@ -334,8 +334,8 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
         }
     }
 
-    public func networks(assetId: Gemstone.AssetId, associations _: [Gemstone.AssetId], wallet _: Gemstone.Wallet) -> GemReceiveNetworks {
-        networksValue ?? GemReceiveNetworks(assetIds: [assetId], showsSelector: false)
+    public func networks(asset: Gemstone.Asset, associations _: [Gemstone.AssetId], wallet _: Gemstone.Wallet) -> GemReceiveNetworks {
+        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, standard: nil)], showsSelector: false)
     }
 
     public func warnings(chain _: Gemstone.Chain) -> [GemReceiveWarning] {

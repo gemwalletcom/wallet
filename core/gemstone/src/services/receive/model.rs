@@ -1,5 +1,7 @@
 use primitives::AssetId;
 
+use crate::services::localization::GemLocalizedText;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum GemReceiveWarning {
     AssetNetwork,
@@ -9,6 +11,12 @@ pub enum GemReceiveWarning {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemReceiveNetworks {
-    pub asset_ids: Vec<AssetId>,
+    pub networks: Vec<GemReceiveNetwork>,
     pub shows_selector: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemReceiveNetwork {
+    pub asset_id: AssetId,
+    pub standard: Option<GemLocalizedText>,
 }

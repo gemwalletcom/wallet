@@ -7,11 +7,11 @@ import SwiftUI
 
 public struct ChainViewModel: Sendable {
     private let chain: Chain
-    private let assetType: AssetType?
+    private let standard: String?
 
-    public init(chain: Chain, assetType: AssetType? = nil) {
+    public init(chain: Chain, standard: String? = nil) {
         self.chain = chain
-        self.assetType = assetType
+        self.standard = standard
     }
 
     public var title: String {
@@ -35,13 +35,13 @@ extension ChainViewModel: Identifiable {
 
 extension ChainViewModel: SimpleListItemViewable {
     public var titleStyle: TextStyle {
-        assetType == nil
+        standard == nil
             ? .body
             : .body.weight(.medium)
     }
 
     public var titleExtra: String? {
-        assetType?.rawValue
+        standard
     }
 
     public var titleStyleExtra: TextStyle {

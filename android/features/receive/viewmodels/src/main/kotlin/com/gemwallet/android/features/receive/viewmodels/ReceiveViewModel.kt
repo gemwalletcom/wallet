@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemReceiveNetwork
 import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemReceiveWarning
@@ -65,12 +66,12 @@ class ReceiveViewModel @AssistedInject constructor(
         session.filterNotNull(),
     ) { assetInfo, session ->
         service.networks(
-            assetInfo.asset.id.toIdentifier(),
+            assetInfo.asset.toGem(),
             assetInfo.associations.map { it.assetId.toIdentifier() },
             session.wallet.toGem(),
         )
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(assetIds = listOf(sourceAssetId.toIdentifier()), showsSelector = false))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(networks = listOf(GemReceiveNetwork(sourceAssetId.toIdentifier(), standard = null)), showsSelector = false))
 
     fun warnings(chain: Chain): List<GemReceiveWarning> = service.warnings(chain.string)
 

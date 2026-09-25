@@ -58,12 +58,7 @@ public struct ReceiveScene: View {
             if model.showNetworkSelector {
                 Button(action: model.onSelectNetwork) {
                     HStack {
-                        ChainView(
-                            model: ChainViewModel(
-                                chain: model.assetModel.asset.chain,
-                                assetType: model.assetModel.asset.type,
-                            ),
-                        )
+                        ChainView(model: model.chainModel(for: model.assetModel.asset.id))
                         Spacer()
                         Images.System.chevronRight
                     }
@@ -98,14 +93,7 @@ public struct ReceiveScene: View {
                 SelectableListNavigationStack(
                     model: model.networkSelectorModel,
                     onFinishSelection: model.onFinishNetworkSelection,
-                    listContent: {
-                        ChainView(
-                            model: ChainViewModel(
-                                chain: $0.chain,
-                                assetType: $0.assetType,
-                            ),
-                        )
-                    },
+                    listContent: { ChainView(model: model.chainModel(for: $0)) },
                 )
                 .presentationDetents([.large])
             case .copy:

@@ -21,11 +21,19 @@ struct ReceiveViewModelTests {
     @Test
     func theNetworksComeFromCore() {
         let service = GemReceiveServiceMock()
-        service.networksValue = GemReceiveNetworks(assetIds: [bitcoin.id.identifier, ethereum.id.identifier], showsSelector: true)
+        service.networksValue = GemReceiveNetworks(
+            networks: [
+                GemReceiveNetwork(assetId: bitcoin.id.identifier, standard: nil),
+                GemReceiveNetwork(assetId: ethereum.id.identifier, standard: .text(text: "ERC20")),
+            ],
+            showsSelector: true,
+        )
         let model = ReceiveViewModel.mock(service: service)
 
-        #expect(model.networks.assetIds == [bitcoin.id.identifier, ethereum.id.identifier])
+        #expect(model.networkSelectorModel.items == [bitcoin.id, ethereum.id])
         #expect(model.showNetworkSelector)
+        #expect(model.chainModel(for: ethereum.id).titleExtra == "ERC20")
+        #expect(model.chainModel(for: bitcoin.id).titleExtra == nil, "a coin names no token standard")
     }
 
     @Test
