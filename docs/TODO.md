@@ -20,8 +20,10 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **Delete first:** VM187 (Android).
-2. **Small shared rules:** VM182, VM184, VM183, VM186.
-3. **Sessions:** VM185, then VM188.
+2. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
+3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
+4. **Models:** VM195.
+5. **Sessions:** VM185.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -34,33 +36,33 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | — |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182 |
-| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
+| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
-| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
+| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189 |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | Preserve exact atomic values |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | — |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM196 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
-| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM188; retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189; retain native locale/theme application |
+| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM189; retain platform-only privacy lock |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | VM187 |
+| Stores and persistence | `Gem*Store` traits and both adapters | VM187, VM195 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -81,11 +83,28 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
 
 A screen whose state changes is a session, and a screen that reads gets one record ([a screen whose state changes is a session](ARCHITECTURE.md#a-screen-whose-state-changes-is-a-session), [one phase enum](ARCHITECTURE.md#a-screens-state-is-one-phase-enum-never-a-bag-of-flags), [sections, actions and destinations are records](ARCHITECTURE.md#sections-actions-and-destinations-are-records-too)). Each item below is a screen that still makes several Core calls per render or emission, or rebuilds a phase from flags Core hands back separately.
 
+- **VM190** **M** **The confirm screen's sections are assembled by each app.** Core hands back the pieces (`GemConfirmViewState`: notice, row contents, fee row, verification, simulation); the order and visibility are written twice.
+  - **iOS:** `ConfirmTransferSceneViewModel.sections` orders header, notice, details, warnings, payload, balance changes, fee or verification, and error; it hides the load error while a notice shows. `ConfirmSimulationState` copies Core's simulation into default arrays.
+  - **Android:** `ConfirmScreen` composes the same blocks in the same order; `ConfirmViewModel` hides the load error while a notice shows (`if (notice != null) return@combine null`) and picks verification over fee. `Simulation.kt` is the same twin as the iOS one.
+  - **Expected:** the view state carries the ordered sections with their content; both apps render them, and both simulation twins go.
+- **VM191** **S** **The price-alert editor keeps its state in the app and rebuilds the session from it.** `GemPriceAlertSession` exists, but neither app holds one.
+  - **iOS:** `SetPriceAlertViewModel` keeps type, direction and input in `SetPriceAlertViewModelState` plus `isSaving`, and builds `newAlertSession(...).onType().onDirection().onInput().onPrice().onSaving()` on every read.
+  - **Android:** `PriceAlertTargetViewModel` keeps the same four values in flows and rebuilds the same chain in a `combine`.
+  - **Expected:** the view model holds one session and feeds each change to it, as swap does; the state struct and the flows go.
+- **VM192** **M** **The amount entry is driven by each app around Core's entry calls.** Core computes the entry (`GemAmountType.entry`, `GemAmountInput.max_entry`, `prefill`); the input handling around it is written twice.
+  - **iOS:** `AmountSceneViewModel` keeps the text and input type, clears the text when the input type is toggled, applies `prefill` and `maxEntry` by setting the input type and converting the value with `NumberInput.format().inputText`, and rebuilds the entry on every change. It also builds the `GemAmountRequest` from its route input (`switch input.type`).
+  - **Android:** `AmountViewModel` does the same (`switchInputType`, `prefillAmount`, `onMaxAmount`, `maxAmountText`) and builds the request from its route parameters (`when (params)`).
+  - **Expected:** an amount session owns the text and input type and answers toggle, prefill and max with the new text and entry; the apps only bind the field.
+
 
 ## 3. Decisions the apps still make
 
 The same product rule written in both apps, or in one app while the other reads Core ([the app maps; it does not decide](ARCHITECTURE.md#5-the-app-maps-it-does-not-decide), [a view never names a Core type](ARCHITECTURE.md#a-view-never-names-a-core-type)). Where the two apps answer differently today the item says how.
 
+- **VM194** **S** **Both apps turn Core's activity filters into their own request filter the same way.** Core returns `GemActivityFilters` (`activity_filters`); each app keeps the selected chains and types and converts them.
+  - **iOS:** `TransactionsRequestFilter+Activity.swift` builds `activity`, `activityDefaults` and `pendingActivity` into the Store's `TransactionsRequestFilter` enum.
+  - **Android:** the `TransactionsRequestFilter` companion (`gemcore/.../transactions/cases/TransactionsRequestFilter.kt`) builds the same three into its own enum.
+  - **Expected:** the native activity queries read `GemActivityFilters` (plus the asset and state filters they add) directly; both enums and both conversions go.
 - **VM182** **S** **Whether an asset opens the asset or the perpetual screen is decided in the apps.** Core already answers it for pushes and deep links: `GemNavigationTarget::Asset` and `::Transaction` carry `is_perpetual` (`core/gemstone/src/services/navigation/mod.rs`).
   - **iOS:** `NavigationRouter.open(target:)` drops that flag (`case let .asset(asset, walletId, _)`) and re-derives it from `asset.type` in `getPath(for:)` (twice). `NavigationStateManager.openAsset` branches on `asset.type == .perpetual` for every in-app open.
   - **Android:** `NavigationTargetRoutes.kt` reads `isPerpetual`, but `WalletSearchScreen.kt` branches on `AssetType.PERPETUAL` when a recent is opened.
@@ -107,6 +126,11 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
+- **VM196** **S** **Some Core enums are turned into text outside the two mapper files, in both apps.** The parity check reads only the mapper files, so these escape it.
+  - **iOS:** `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `BannerButtonViewModel` (`GemBannerButton`), `CollectibleViewModel` (`GemCollectibleAction` labels), `ChainsFilterTypeViewModel` and `TransactionsFilterTypeViewModel` (filter summaries).
+  - **Android:** `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `WelcomeBanner` (`GemBannerButton`), `TransactionsViewModel` (`GemChainsFilterSummary`, `GemTransactionsFilterSummary`).
+  - **Expected:** each mapping moves into `Gemstone+Localized.swift` and `GemstoneText.kt`.
+- **VM193** **S** **Values Core hands back are turned into input text by the apps.** Swap's "use minimum amount" (iOS `SwapSceneViewModel.setFromValue(minimum:)`, Android `SwapViewModel.setPayValue`) and the price-alert suggestions (iOS `PriceSuggestion.inputValue`, Android `PriceAlertTargetViewModel.suggestion`) each convert the value with `NumberInput`/`numberFormat().inputText` or `valueText`. The owning session returns the text (the swap session for its minimum, the alert session for its suggestions). Land with VM192, which does the same for amount prefill and max.
 - **VM186** **S** **Both apps put "≈" in front of an estimated duration.** iOS `EstimatedConfirmationFormatter` (`GemstonePrimitives/Sources/DurationFormatters.swift`) and Android `formatEstimate` (`gemcore/.../domains/duration/DurationFormatter.kt`, used by `GemListRowUIModel` for estimate rows) each compose `"≈ " + duration`. The fiat quote row already composes its estimate in Core around the platform-formatted value (`GemFiatQuoteRow::crypto_estimate_text`); give the duration estimate the same method and delete both prefixes.
 
 
@@ -114,6 +138,10 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else), [a details screen gets a details record](ARCHITECTURE.md#a-details-screen-gets-a-details-record-not-a-row-plus-the-object-it-came-from), and a type that only crosses the FFI is used as the generated type. Delete-first items are at the end.
 
+- **VM195** **L** **Each app hand-writes its own asset read model and converts it for Core.** Core has `Asset`, `Price`, `AssetMetaData` and `GemAssetBalance`, but the composite a store read returns is written twice, with different shapes.
+  - **iOS:** `AssetData`, `ChainAssetData`, `Balance`, `AssetValuePrice` and `RecentAsset` (`Primitives`), converted by `GemAssetBalance(_:assetId:isActive:)` and `AssetData.rowInput` (`ListAssetItemsViewModel.swift`).
+  - **Android:** `AssetInfo`, `ChainAssetInfo`, `Balance`, `AssetBalance`, `AssetPriceValue` and `RecentAsset` (`gemcore/.../model`), converted by `AssetBalance.toGem` and `AssetInfo.rowInput` (`AssetInfoDataAggregate.kt`), which also drops non-finite prices where iOS does not.
+  - **Expected:** one generated read model from Core primitives that both store adapters fill, taken directly by Core's row functions; both sets of twins, conversions and row-input builders go.
 - **VM187** **S** **Android keeps helpers nothing calls.** `String.words()` (`gemcore/.../ext/StringExt.kt`, only its own test), `AssetsDao.insertBalance` (the plural is used), `BannersDao.observeBanner`, `TransactionsDao.deleteByState` and the three `toSearchRecord` overloads in `DbSearch.kt`. Delete them and the test that only covers `words()`.
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
 
@@ -121,15 +149,16 @@ The same product rule written in both apps, or in one app while the other reads 
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
-- **VM188** **M** **The app lock state machine is written twice.** Core shares only the elapsed-time check (`GemSecurityService.should_relock`).
-  - **iOS:** `LockSceneViewModel` keeps its own phases (locked, unlocking, cancelled, unlocked), stamps the background time only while unlocked, invalidates an unlock attempt the app left mid-prompt, re-prompts on return, and shows the Unlock button after a cancel.
-  - **Android:** `MainViewModel` keeps `AuthState` for the initial and per-request prompts, `LockTimer` stamps every pause, and `onActivityResumed` relocks when due; retry and cancel go through `retryInitialAuth` and `onInitialAuth`.
-  - **Expected:** a Core lock session takes lifecycle and prompt-result events and returns the phase and whether to prompt now; the OS prompt, the clock source, the iOS privacy cover and the Android per-request auth queue stay native.
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 
 ## 7. Rows and taps
 
 Taps on rows that already exist, not new row types.
+
+- **VM189** **M** **Both apps map row titles to taps.** Core sends rows keyed by `GemListRowTitle`; each app keeps a table from title to destination for the same screens.
+  - **iOS:** asset details (`AssetSceneViewModel.rowAction`, `balanceAction`), settings (`SettingsRowDestination`), preferences (`PreferencesRowDestination`), security (`SecurityViewModel`), notifications (`NotificationsScene`), chart (`ChartScene`).
+  - **Android:** asset details (`AssetDetailRowAction.kt`), settings (`SettingsRowUIModel.settingsAction`), preferences (`PreferencesRowAction.kt`), security (`SecurityRowAction.kt`), notifications (`NotificationsScene`), chart (`AssetChartScene`).
+  - **Expected:** each tappable row carries its tap as a Core record (destination, toggle or picker), and each app maps that record to its routes once; the title tables go.
 
 
 ## 8. Persistence and parity
