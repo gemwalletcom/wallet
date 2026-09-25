@@ -29,6 +29,25 @@ public extension TransactionId {
     }
 }
 
+public extension NFTAssetId {
+    static func mock(
+        chain: Chain = .bitcoin,
+        contractAddress: String = "0xcontract",
+        tokenId: String = "1",
+    ) -> NFTAssetId {
+        NFTAssetId(chain: chain, contractAddress: contractAddress, tokenId: tokenId)
+    }
+}
+
+public extension NFTCollectionId {
+    static func mock(
+        chain: Chain = .bitcoin,
+        contractAddress: String = "0xcontract",
+    ) -> NFTCollectionId {
+        NFTCollectionId(chain: chain, contractAddress: contractAddress)
+    }
+}
+
 public extension PerpetualId {
     static func mock(
         provider: PerpetualProvider = .hypercore,

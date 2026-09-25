@@ -15,6 +15,8 @@ import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
@@ -27,6 +29,17 @@ fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId
 )
 
 fun mockWalletId(address: String = "0x0000000000000000000000000000000000000000") = WalletId("multicoin_$address")
+
+fun mockNftAssetId(chain: Chain = Chain.Bitcoin, contractAddress: String = "0xcontract", tokenId: String = "1") = NFTAssetId(
+    chain = chain,
+    contractAddress = contractAddress,
+    tokenId = tokenId,
+)
+
+fun mockNftCollectionId(chain: Chain = Chain.Bitcoin, contractAddress: String = "0xcontract") = NFTCollectionId(
+    chain = chain,
+    contractAddress = contractAddress,
+)
 
 fun mockPerpetualId(provider: PerpetualProvider = PerpetualProvider.Hypercore, symbol: String = "BTC") = PerpetualId(
     provider = provider,
