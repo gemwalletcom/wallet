@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.features.settings.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.testkit.mockWallet
@@ -48,7 +48,7 @@ import uniffi.gemstone.GemSettingsServiceInterface
 class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val userConfig = mockk<UserConfig>(relaxed = true)
+    private val preferences = mockk<ObservablePreferences>(relaxed = true)
     private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
     private val walletsQuery = mockk<WalletsQuery>(relaxed = true) {
         every { this@mockk() } returns wallets
@@ -128,7 +128,7 @@ class SettingsViewModelTest {
     }
 
     private fun createViewModel() = SettingsViewModel(
-        userConfig = userConfig,
+        preferences = preferences,
         walletsQuery = walletsQuery,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,

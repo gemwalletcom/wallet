@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.BuildInfo
@@ -27,14 +27,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AboutUsViewModel @Inject constructor(
-    private val userConfig: UserConfig,
+    private val preferences: ObservablePreferences,
     private val buildInfo: BuildInfo,
     private val appUpdateService: GemAppUpdateServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val release = MutableStateFlow<Release?>(null)
-    private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
+    private val developerEnabled = MutableStateFlow(preferences.developEnabled())
 
     val viewState: StateFlow<GemAboutViewState> = combine(release, developerEnabled, ::viewState)
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState(null, developerEnabled.value))
@@ -48,8 +48,8 @@ class AboutUsViewModel @Inject constructor(
     }
 
     fun toggleDeveloperMode() {
-        userConfig.developEnabled(!userConfig.developEnabled())
-        developerEnabled.update { userConfig.developEnabled() }
+        preferences.developEnabled(!preferences.developEnabled())
+        developerEnabled.update { preferences.developEnabled() }
     }
 
     private fun viewState(release: Release?, developerEnabled: Boolean): GemAboutViewState = aboutViewState(

@@ -1,8 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
-import com.gemwallet.android.data.services.store.ConfigStore
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.store.ConfigStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,4 +26,10 @@ object ConfigModule {
         preferencesService = preferencesService,
         secureStore = secureStore,
     )
+
+    @Provides
+    fun provideObservablePreferences(userConfig: UserConfig): ObservablePreferences = userConfig
+
+    @Provides
+    fun provideSecurityPreferences(userConfig: UserConfig): SecurityPreferences = userConfig
 }

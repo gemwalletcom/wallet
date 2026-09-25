@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.NotificationsAvailable
@@ -32,7 +32,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val userConfig: UserConfig,
+    private val preferences: ObservablePreferences,
     private val walletsQuery: WalletsQuery,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
@@ -44,7 +44,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val wallets = walletsQuery()
-    private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
+    private val developerEnabled = MutableStateFlow(preferences.developEnabled())
 
     val sections = combine(wallets, developerEnabled) { wallets, _ ->
         settingsService.sections(
@@ -63,7 +63,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, notificationsSections(pushEnabled.value))
 
     fun refreshDeveloperMode() {
-        developerEnabled.value = userConfig.developEnabled()
+        developerEnabled.value = preferences.developEnabled()
     }
 
     private val errorState = MutableStateFlow<String?>(null)

@@ -2,8 +2,8 @@ package com.gemwallet.android.features.settings.settings.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.settings.settings.viewmodels.models.PerpetualSetting
 import com.wallet.core.primitives.Appearance
@@ -46,7 +46,7 @@ class PreferencesViewModelTest {
     private val perpetualEnabled = MutableStateFlow(false)
     private val currency = MutableStateFlow(Currency.USD)
     private val inputs = mutableListOf<GemPreferencesInput>()
-    private val userConfig = mockk<UserConfig>(relaxed = true) {
+    private val preferences = mockk<ObservablePreferences>(relaxed = true) {
         every { isPerpetualEnabled() } returns perpetualEnabled
         every { appearance() } returns MutableStateFlow(Appearance.System)
     }
@@ -79,7 +79,7 @@ class PreferencesViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         viewModel = PreferencesViewModel(
-            userConfig,
+            preferences,
             settingsService,
             getCurrentCurrency,
             ioDispatcher = testDispatcher,

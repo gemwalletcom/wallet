@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
@@ -81,7 +81,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val bannersQuery: BannersQuery,
     private val priceAlertsQuery: PriceAlertsQuery,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
-    private val userConfig: UserConfig,
+    private val preferences: ObservablePreferences,
     private val observeRefreshInterval: ObserveRefreshInterval,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
@@ -221,7 +221,7 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     fun enablePerpetuals() {
-        userConfig.setPerpetualEnabled(true)
+        preferences.setPerpetualEnabled(true)
     }
 
     fun clearError() = errorState.update { null }

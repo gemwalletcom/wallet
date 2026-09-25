@@ -50,7 +50,6 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    implementation(project(":data:services:gemstone"))
     implementation(project(":data:services:store"))
 
     implementation(libs.lifecycle.viewmodel)

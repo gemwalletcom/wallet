@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.settings.security.viewmodels
 
 import android.content.Context
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.ui.R
 import io.mockk.coVerify
 import io.mockk.every
@@ -40,10 +41,13 @@ class SecurityViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun userConfig(authRequired: Boolean = false, lockMinutes: Int = 0, hideBalances: Boolean = false) = mockk<UserConfig>(relaxed = true) {
-        every { isHideBalances() } returns flowOf(hideBalances)
+    private fun securityPreferences(authRequired: Boolean = false, lockMinutes: Int = 0) = mockk<SecurityPreferences>(relaxed = true) {
         every { getLockInterval() } returns flowOf(lockMinutes)
         every { this@mockk.authRequired() } returns authRequired
+    }
+
+    private fun preferences(hideBalances: Boolean = false) = mockk<ObservablePreferences>(relaxed = true) {
+        every { isHideBalances() } returns flowOf(hideBalances)
     }
 
     private fun settings() = mockk<GemSettingsServiceInterface>(relaxed = true) {
@@ -66,14 +70,14 @@ class SecurityViewModelTest {
     @Test
     fun `the rows come from core with the authentication flag`() {
         val settings = settings()
-        SecurityViewModel(userConfig(authRequired = true), settings, dispatcher, context())
+        SecurityViewModel(securityPreferences(authRequired = true), preferences(), settings, dispatcher, context())
 
         verify { settings.securitySections(match { it.authenticationEnabled }) }
     }
 
     @Test
     fun `the stored preferences are what the scene starts from`() = runTest(dispatcher) {
-        val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), settings(), dispatcher, context())
+        val model = SecurityViewModel(securityPreferences(authRequired = true, lockMinutes = 5), preferences(hideBalances = true), settings(), dispatcher, context())
         advanceUntilIdle()
 
         val rows = model.sections.value.flatMap { it.rows }
@@ -85,8 +89,9 @@ class SecurityViewModelTest {
 
     @Test
     fun `changing the lock interval and the balance privacy writes through`() = runTest(dispatcher) {
-        val config = userConfig()
-        val model = SecurityViewModel(config, settings(), dispatcher, context())
+        val security = securityPreferences()
+        val preferences = preferences()
+        val model = SecurityViewModel(security, preferences, settings(), dispatcher, context())
 
         model.setAuthRequired(true)
         model.setLockInterval(15)
@@ -95,9 +100,9 @@ class SecurityViewModelTest {
         Thread.sleep(50)
         advanceUntilIdle()
 
-        verify { config.setAuthRequired(true) }
-        coVerify { config.setLockInterval(15) }
-        coVerify { config.hideBalances() }
+        verify { security.setAuthRequired(true) }
+        coVerify { security.setLockInterval(15) }
+        coVerify { preferences.hideBalances() }
     }
 
     private fun context(): Context = mockk { every { getString(any()) } answers { firstArg<Int>().toString() } }

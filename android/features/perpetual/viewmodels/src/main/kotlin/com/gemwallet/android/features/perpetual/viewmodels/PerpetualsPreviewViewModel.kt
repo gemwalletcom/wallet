@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.domains.balance.hiddenWhen
@@ -35,7 +35,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PerpetualsPreviewViewModel @Inject constructor(
-    userConfig: UserConfig,
+    preferences: ObservablePreferences,
     getSession: GetSession,
     perpetualPositionsQuery: PerpetualPositionsQuery,
     perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
@@ -56,7 +56,7 @@ class PerpetualsPreviewViewModel @Inject constructor(
         .map { it.positionAggregates() }
         .flowOn(ioDispatcher)
 
-    val tradeListItem = combine(balance, userConfig.isHideBalances()) { balance, hideBalance ->
+    val tradeListItem = combine(balance, preferences.isHideBalances()) { balance, hideBalance ->
         ListItemModel(
             title = context.getString(R.string.perpetuals_trade),
             subtitle = perpetualBalanceTotal(balance?.toGem()).text().hiddenWhen(hideBalance),
@@ -64,7 +64,7 @@ class PerpetualsPreviewViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
 
-    val positions = combine(positionAggregates, userConfig.isHideBalances()) { positions, hideBalance ->
+    val positions = combine(positionAggregates, preferences.isHideBalances()) { positions, hideBalance ->
         positions.map { PerpetualPositionRowUIModel(it.asset, it.row, hideBalance) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

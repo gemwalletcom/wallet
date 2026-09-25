@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.ext.errorText
@@ -47,7 +47,7 @@ class AssetsViewModel @Inject constructor(
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
     private val getSession: GetSession,
-    private val userConfig: UserConfig,
+    private val preferences: ObservablePreferences,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel(),
@@ -127,7 +127,7 @@ class AssetsViewModel @Inject constructor(
     }
 
     fun hideBalances() {
-        userConfig.hideBalances()
+        preferences.hideBalances()
     }
 
     fun closeBanner(key: GemBannerKey) = viewModelScope.launch(ioDispatcher) {

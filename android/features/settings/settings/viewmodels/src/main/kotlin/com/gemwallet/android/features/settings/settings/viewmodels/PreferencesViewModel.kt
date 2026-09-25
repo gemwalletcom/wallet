@@ -7,8 +7,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.settings.settings.viewmodels.models.PerpetualSetting
@@ -31,21 +31,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PreferencesViewModel @Inject constructor(
-    private val userConfig: UserConfig,
+    private val preferences: ObservablePreferences,
     private val settingsService: GemSettingsServiceInterface,
     getCurrentCurrency: GetCurrentCurrency,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val isPerpetualEnabled = userConfig.isPerpetualEnabled()
+    private val isPerpetualEnabled = preferences.isPerpetualEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val currency = getCurrentCurrency.getCurrency()
 
     private val language = MutableStateFlow(languageText { context.resources.configuration })
 
-    val appearance = userConfig.appearance()
+    val appearance = preferences.appearance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
 
     val perpetualDefaults = MutableStateFlow(settingsService.perpetualDefaults())
@@ -69,11 +69,11 @@ class PreferencesViewModel @Inject constructor(
     }
 
     fun setAppearance(appearance: Appearance) = viewModelScope.launch(ioDispatcher) {
-        userConfig.setAppearance(appearance)
+        preferences.setAppearance(appearance)
     }
 
     fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
-        userConfig.setPerpetualEnabled(enabled)
+        preferences.setPerpetualEnabled(enabled)
     }
 
     fun setPerpetualOption(setting: PerpetualSetting, value: Int) = viewModelScope.launch(ioDispatcher) {

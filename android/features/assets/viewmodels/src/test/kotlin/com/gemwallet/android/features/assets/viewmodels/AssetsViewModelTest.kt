@@ -166,7 +166,7 @@ class AssetsViewModelTest {
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
         getSession = getSession,
-        userConfig = mockk(relaxed = true),
+        preferences = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
     )

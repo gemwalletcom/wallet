@@ -146,7 +146,7 @@ class AssetDetailsViewModelTest {
         bannersQuery = bannersQuery,
         priceAlertsQuery = priceAlertsQuery,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
-        userConfig = mockk(relaxed = true),
+        preferences = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,
         observeRefreshInterval = mockk(relaxed = true),
         context = mockk(relaxed = true),
