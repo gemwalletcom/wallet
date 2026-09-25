@@ -3,9 +3,10 @@ use std::iter::once;
 use primitives::{AddressDetails, AddressName, AddressType, Asset, AssetBalance, AssetId, Chain, VerificationStatus, block_explorer::BlockExplorerLink};
 
 use super::model::GemAddressDetails;
+use crate::config::image::GemImage;
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::address_copy;
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::assets::rules::asset_text;
 use crate::services::balance::rules::{balance_amount, balance_updates, chain_balances};
@@ -60,14 +61,10 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
     let name = display_name(address_name.map(|address_name| address_name.name.clone()).or_else(|| details.name.clone()), &details.address);
     let address_type = address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone());
     let warning = match details.status {
-        VerificationStatus::Suspicious => Some(section(vec![GemListRow::Notice {
-            title: GemListRowTitle::Warning,
-            message: Some(GemLocalizedText::SuspiciousAddress),
-            kind: GemNoticeKind::Error,
-        }])),
+        VerificationStatus::Suspicious => Some(section(vec![suspicious_address_notice(GemNoticeKind::Warning)])),
         VerificationStatus::Verified | VerificationStatus::Unverified => None,
     };
-    let header = header(chain, address_name);
+    let header = header(details, address_name);
     let info = name
         .into_iter()
         .map(|name| GemListRow::Text { title: GemListRowTitle::Name, value: name })
@@ -89,10 +86,9 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
         footer: GemListSectionFooter::None,
         rows: balances,
     });
-    warning
-        .into_iter()
+    once(section(vec![header]))
+        .chain(warning)
         .chain([
-            section(vec![header]),
             section(vec![GemListRow::Address {
                 address: details.address.clone(),
                 copy: details.copy.clone(),
@@ -107,17 +103,33 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
         .collect()
 }
 
-fn header(chain: Chain, address_name: Option<&AddressName>) -> GemListRow {
-    let Some(address_name) = address_name else {
-        return GemListRow::Icon { chain };
+fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> GemListRow {
+    let chain = details.chain;
+    let chain_icon = GemListRow::Icon {
+        asset_id: AssetId::from_chain(chain),
+        image_url: None,
     };
-    match address_name.address_type {
-        AddressType::InternalWallet => GemListRow::WalletAvatar {
-            image_url: address_name.image_url.clone().filter(|url| !url.is_empty()),
+    match address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone()) {
+        Some(AddressType::InternalWallet) => GemListRow::WalletAvatar {
+            image_url: address_name.and_then(|address_name| address_name.image_url.clone()).filter(|url| !url.is_empty()),
             placeholder: GemWalletPlaceholder::Multicoin,
         },
-        AddressType::Contact => contact_avatar(Some(address_name), None).map_or(GemListRow::Icon { chain }, |avatar| GemListRow::Avatar { avatar }),
-        AddressType::Address | AddressType::Contract | AddressType::Validator => GemListRow::Icon { chain },
+        Some(AddressType::Contact) => contact_avatar(address_name, None).map_or(chain_icon, |avatar| GemListRow::Avatar { avatar }),
+        Some(AddressType::Asset) => GemListRow::Icon {
+            asset_id: AssetId::from_token(chain, &details.address),
+            image_url: None,
+        },
+        Some(AddressType::Validator) => GemListRow::Icon {
+            asset_id: AssetId::from_chain(chain),
+            image_url: Some(
+                GemImage::Validator {
+                    chain,
+                    validator_id: details.address.clone(),
+                }
+                .url(),
+            ),
+        },
+        Some(AddressType::Address | AddressType::Contract) | None => chain_icon,
     }
 }
 
@@ -315,16 +327,10 @@ mod tests {
         );
         assert_eq!(identity(&sections(&loading, Some(&wallet))), (vec![wallet_avatar(None)], named("Savings", AddressType::InternalWallet)));
         let flagged = sections(&flagged_contract, Some(&contact));
-        assert_eq!(
-            flagged[0].rows[0],
-            GemListRow::Notice {
-                title: GemListRowTitle::Warning,
-                message: Some(GemLocalizedText::SuspiciousAddress),
-                kind: GemNoticeKind::Error,
-            }
-        );
-        assert_eq!(identity(&flagged[1..]), (vec![avatar], named("John Smith", AddressType::Contact)));
-        assert_eq!(identity(&sections(&flagged_contract, None)[1..]).1, named("Tether USD", AddressType::Contract));
+        let without_warning = |sections: &[GemListSection]| [&sections[..1], &sections[2..]].concat();
+        assert_eq!(flagged[1].rows, vec![suspicious_address_notice(GemNoticeKind::Warning)]);
+        assert_eq!(identity(&without_warning(&flagged)), (vec![avatar], named("John Smith", AddressType::Contact)));
+        assert_eq!(identity(&without_warning(&sections(&flagged_contract, None))).1, named("Tether USD", AddressType::Contract));
     }
 
     #[test]
@@ -368,7 +374,47 @@ mod tests {
         assert_eq!(titles(&validator), without_balances);
         assert_eq!(titles(&failed), without_balances);
         assert_eq!(sections(&loading, None)[3].rows, vec![GemListRow::Loading]);
-        assert_eq!(sections(&loading, None)[0].rows, vec![GemListRow::Icon { chain: Chain::Cosmos }]);
+        assert_eq!(
+            sections(&loading, None)[0].rows,
+            vec![GemListRow::Icon {
+                asset_id: AssetId::from_chain(Chain::Cosmos),
+                image_url: None
+            }]
+        );
+    }
+
+    #[test]
+    fn test_a_token_or_validator_header_shows_its_logo() {
+        let loaded = |chain: Chain, address: &str, address_type: AddressType| GemAddressDetails {
+            address_type: Some(address_type),
+            state: GemLoadState::Data,
+            ..details(chain, address.to_string(), BlockExplorerLink::mock(), GemLoad::loading())
+        };
+        let token = loaded(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7", AddressType::Asset);
+        let validator = loaded(Chain::Cosmos, "cosmosvaloper1", AddressType::Validator);
+        let contract = loaded(Chain::Ethereum, "0x1", AddressType::Contract);
+
+        assert_eq!(
+            sections(&token, None)[0].rows,
+            vec![GemListRow::Icon {
+                asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                image_url: None,
+            }]
+        );
+        assert_eq!(
+            sections(&validator, None)[0].rows,
+            vec![GemListRow::Icon {
+                asset_id: AssetId::from_chain(Chain::Cosmos),
+                image_url: Some("https://assets.gemwallet.com/blockchains/cosmos/validators/cosmosvaloper1/logo.png".to_string()),
+            }]
+        );
+        assert_eq!(
+            sections(&contract, None)[0].rows,
+            vec![GemListRow::Icon {
+                asset_id: AssetId::from_chain(Chain::Ethereum),
+                image_url: None,
+            }]
+        );
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, BlockExplorerLink, Chain, TransactionState};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, TransactionState};
 
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
@@ -100,6 +100,7 @@ pub enum GemListRowTitle {
     RewardsUnverified,
     RewardsPending,
     Warning,
+    SuspiciousAddress,
     UnlimitedApproval,
     NftCollectionApproval,
     Symbol,
@@ -137,6 +138,21 @@ pub enum GemListRowTitle {
     Contract,
     TokenId,
     Collection,
+}
+
+pub(crate) fn suspicious_address_title(kind: GemNoticeKind) -> GemListRowTitle {
+    match kind {
+        GemNoticeKind::Error => GemListRowTitle::SuspiciousAddress,
+        GemNoticeKind::Warning | GemNoticeKind::Info => GemListRowTitle::Warning,
+    }
+}
+
+pub(crate) fn suspicious_address_notice(kind: GemNoticeKind) -> GemListRow {
+    GemListRow::Notice {
+        title: suspicious_address_title(kind),
+        message: Some(GemLocalizedText::SuspiciousAddressDescription),
+        kind,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -322,7 +338,8 @@ pub enum GemListRow {
         links: Vec<GemSocialLink>,
     },
     Icon {
-        chain: Chain,
+        asset_id: AssetId,
+        image_url: Option<String>,
     },
     Avatar {
         avatar: GemAvatar,

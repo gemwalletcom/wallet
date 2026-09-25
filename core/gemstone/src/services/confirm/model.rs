@@ -365,6 +365,7 @@ pub struct GemConfirmViewState {
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
     pub authentication: GemKeystoreAuthentication,
+    pub notice: Option<GemListRow>,
 }
 
 #[cfg(test)]

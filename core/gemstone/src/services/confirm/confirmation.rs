@@ -8,8 +8,8 @@ use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows, GemSubmitResult,
-    GemTransferAmountResult, SendInput,
+    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows,
+    GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -132,6 +132,7 @@ impl GemConfirmation {
             title: transfer.title(),
             verification: transfer.verification(),
             authentication: self.authentication(),
+            notice: screen.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.notice()),
         }
     }
 

@@ -23,7 +23,7 @@ pub enum GemLocalizedText {
     ErrorOccurred,
     UnlimitedApprovalWarning,
     ExternallyOwnedSpenderWarning,
-    SuspiciousAddress,
+    SuspiciousAddressDescription,
     AddressType { address_type: AddressType },
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },

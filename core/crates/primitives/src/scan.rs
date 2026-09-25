@@ -104,6 +104,7 @@ pub struct ScanAddressTarget {
 pub enum AddressType {
     Address,
     Contract,
+    Asset,
     Validator,
     Contact,
     InternalWallet,
