@@ -615,6 +615,43 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
+- **BD342** **S** **Cancelling an optional update differs.**
+  - **iOS:** cancelling the update prompt is Skip, which saves the skipped version (`RootSceneViewModel`); nothing is checked again.
+  - **Android:** the store dialog can be dismissed without skipping (`onCancelUpdate`), and a skip checks again and replaces the saved offer (`AppUpdateCoordinator`).
+  - **Expected:** Android matches iOS.
+- **BD343** **S** **Push is offered and toggled differently.**
+  - **iOS:** push is offered after importing a wallet that already exists (Continue calls `RootSceneViewModel.requestPushPermissions`), and the Settings switch moves at once, then corrects to Core's answer.
+  - **Android:** push is offered only for a newly imported wallet, and the Settings switch waits for Core before it moves.
+  - **Expected:** Android matches iOS.
+- **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
+- **BD345** **S** **Perpetual searches match different fields.**
+  - **iOS:** markets match name and symbol; positions match the perpetual name and identifier and the asset name and symbol.
+  - **Android:** markets rank by the stored search priorities when present (`PerpetualsQuery`); positions match the row title, the perpetual id's symbol and the asset symbol and name.
+  - **Expected:** Android matches iOS.
+- **BD346** **S** **Activity filters select different transactions.**
+  - **iOS:** the asset filter joins `transactions_assets` only; the chain filter uses the transaction's chain; each caller passes its own limit.
+  - **Android:** the asset filter also matches the transaction's main asset; the chain filter uses the asset's chain; every list uses the 1000-row limit (`TransactionsQuery`).
+  - **Expected:** Android matches iOS.
+- **BD347** **S** **Transaction details and the pending badge follow different wallets.**
+  - **iOS:** the details screen is keyed to the wallet it was opened for and starts from the transaction it was given; the badge counts a fixed wallet and starts at 0.
+  - **Android:** both follow the session wallet, so switching wallets blanks an open details screen, and the badge shows nothing at 0.
+  - **Expected:** Android matches iOS.
+- **BD348** **S** **Wallet deletion errors and pinned order differ.**
+  - **iOS:** a failed delete alerts only for a `GemServiceError` and logs anything else; pinned and unpinned wallets come from two queries.
+  - **Android:** every failed delete shows the error; all wallets are sorted once by Core, then split into pinned and unpinned. Whether the order within each section always matches has not been checked.
+  - **Expected:** Android matches iOS; check the section order first.
+- **BD349** **S** **The wallet list shows assets without an account differently.**
+  - **iOS:** lists only assets whose chain has an account in the wallet.
+  - **Android:** lists any visible balance row (`AssetsQuery`).
+  - **Expected:** Android matches iOS.
+- **BD350** **S** **Swap quotes are fetched and shown on a different schedule.**
+  - **iOS:** changing the pay or receive asset fetches at once and only typed amounts wait for the debounce; You Receive clears whenever a fetch starts, including the 30 s refresh.
+  - **Android:** every change waits the 250 ms debounce, and a refresh keeps the previous amount on screen (`SwapViewModel`).
+  - **Expected:** needs a decision: keeping the amount during a refresh avoids a flicker.
+- **BD351** **S** **Recents and all-assets search ignore filters on Android.**
+  - **iOS:** `RecentActivityQuery` applies every filter and shows 20 by default; the all-assets search applies its filters.
+  - **Android:** `RecentActivityQuery` ignores the sellable filter and shows 10 by default; the all-assets search ignores filters (`AssetsQuery`).
+  - **Expected:** Android matches iOS.
 - **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.
 - **BD341** **S** **Android finds no stored Earn provider for a token.** Both apps store an Earn provider under its chain's native asset (`DelegationValidator.toRecord`, iOS `StakeValidatorRecord`). iOS `EarnSceneViewModel` reads `ValidatorsQuery(chain:providerType:)` by that native asset; Android `EarnViewModel` reads `ValidatorsQuery` by the screen's asset, and `AmountViewModel` reads `ValidatorQuery` for an Earn deposit the same way, so a Yo USDC or USDT screen gets no providers and Core returns no `deposit_provider`. **Expected:** Android reads Earn providers by the chain's native asset, as iOS does.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
