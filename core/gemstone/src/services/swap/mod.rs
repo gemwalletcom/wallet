@@ -67,6 +67,7 @@ impl GemSwapService {
     }
 
     pub async fn get_transfer(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
+        rules::validate_quote_wallet(&wallet, &quote)?;
         let data = self.get_quote_data(&wallet, &quote).await?;
         rules::swap_transfer(&wallet, &quote, data)
     }
@@ -128,11 +129,79 @@ impl GemSwapService {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Chain, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
+    use gem_evm::uniswap::deployment::get_uniswap_permit2_by_chain;
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS, TEST_SOLANA_SENDER};
+    use primitives::{Account, Chain, SignerError, WalletId, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
+    use swapper::{Permit2ApprovalData, SwapperQuoteAsset};
+    use tempfile::TempDir;
 
     use super::testkit::MemorySwapStore;
     use super::*;
+    use crate::GemstoneError;
+    use crate::keystore::GemImportType;
+    use crate::services::wallet::testkit::TEST_PASSWORD;
     use futures::executor::block_on;
+
+    #[test]
+    fn test_transfer_rejects_a_quote_from_another_wallet() {
+        block_on(async {
+            let service = GemSwapService::mock(Arc::new(MemorySwapStore::default()));
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, TEST_EVM_RECIPIENT)]);
+            let quote = Quote::mock(Chain::Ethereum, None);
+            assert_eq!(
+                service.get_transfer(wallet, quote).await.unwrap_err(),
+                SwapperError::TransactionError("quote sender does not match the selected wallet".to_string())
+            );
+        });
+    }
+
+    #[test]
+    fn test_transfer_rejects_a_quote_that_pays_out_to_another_wallet() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, TEST_EVM_SENDER), Account::mock(Chain::Solana, TEST_SOLANA_SENDER)]);
+        let mut quote = Quote::mock(Chain::Ethereum, None);
+        quote.request.to_asset = SwapperQuoteAsset::from(Chain::Solana.as_asset_id());
+        quote.request.wallet_address = TEST_EVM_SENDER.to_lowercase();
+        quote.request.destination_address = TEST_SOLANA_SENDER.to_string();
+        assert_eq!(rules::validate_quote_wallet(&wallet, &quote), Ok(()));
+
+        quote.request.destination_address = TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string();
+        assert_eq!(
+            rules::validate_quote_wallet(&wallet, &quote),
+            Err(SwapperError::TransactionError("quote destination does not match the selected wallet".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_permit2_rejects_unrelated_quote_sender() {
+        let dir = TempDir::new().unwrap();
+        let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+        let stored = keystore.create_store(GemImportType::mock_private_key(), decode_password(TEST_PASSWORD)).unwrap();
+        let wallet = Wallet {
+            id: WalletId::from_id(&stored.wallet_id).unwrap(),
+            wallet_type: stored.wallet_type,
+            ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, &stored.accounts[0].address)])
+        };
+        let service = GemSwapService {
+            keystore,
+            ..GemSwapService::mock(Arc::new(MemorySwapStore::default()))
+        };
+        let mut quote = Quote::mock(Chain::Ethereum, None);
+        quote.request.wallet_address = stored.accounts[0].address.to_lowercase();
+        let approval = Permit2ApprovalData {
+            token: TEST_EVM_RECIPIENT.to_string(),
+            spender: TEST_EVM_RECIPIENT.to_string(),
+            value: 1u32.into(),
+            permit2_contract: get_uniswap_permit2_by_chain(&Chain::Ethereum).unwrap().to_string(),
+            permit2_nonce: 0,
+        };
+        assert_eq!(service.permit2_data(&wallet, &quote, &approval).unwrap().signature.len(), 65);
+
+        quote.request.wallet_address = TEST_EVM_RECIPIENT.to_string();
+        assert_eq!(
+            service.permit2_data(&wallet, &quote, &approval).unwrap_err(),
+            SwapperError::TransactionError(GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account")).to_string())
+        );
+    }
 
     #[test]
     fn test_a_wallet_that_has_never_paid_with_anything_gets_no_suggestion() {

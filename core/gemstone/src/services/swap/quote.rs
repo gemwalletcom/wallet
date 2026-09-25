@@ -120,7 +120,8 @@ impl GemSwapQuoteService {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use primitives::Chain;
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+    use primitives::{Account, Chain, Wallet};
     use std::sync::atomic::Ordering;
 
     use super::super::testkit::SwapQuoteTestkit;
@@ -128,6 +129,22 @@ mod tests {
 
     fn pair() -> Vec<AssetId> {
         vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)]
+    }
+
+    #[test]
+    fn test_a_quote_taken_for_one_wallet_is_not_prepared_after_switching_to_another() {
+        block_on(async {
+            let wallet_b = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, TEST_EVM_RECIPIENT)]);
+            let testkit = SwapQuoteTestkit::with_wallet(200, wallet_b);
+            let mut quote_for_a = Quote::mock(Chain::Ethereum, None);
+            quote_for_a.request.wallet_address = TEST_EVM_SENDER.to_string();
+            quote_for_a.request.destination_address = TEST_EVM_SENDER.to_string();
+
+            assert_eq!(
+                testkit.service.get_transfer(quote_for_a).await.unwrap_err(),
+                SwapperError::TransactionError("quote sender does not match the selected wallet".to_string())
+            );
+        })
     }
 
     #[test]
