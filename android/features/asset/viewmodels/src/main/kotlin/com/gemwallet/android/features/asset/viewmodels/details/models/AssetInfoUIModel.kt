@@ -6,7 +6,6 @@ import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetDetails
-import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertToggle
 
@@ -24,23 +23,7 @@ class AssetInfoUIModel(
     data class SectionUIModel(@StringRes val title: Int?, val rows: List<RowUIModel>)
 
     sealed interface RowUIModel {
-        data class Balance(val type: BalanceViewType, val model: ListItemModel, val url: String? = null) : RowUIModel
+        data class Balance(val model: ListItemModel, val action: AssetDetailsAction?) : RowUIModel
         data class Row(val row: GemListRow, val action: AssetDetailsAction?) : RowUIModel
     }
-
-    enum class BalanceViewType {
-        Available,
-        Stake,
-        Earn,
-        PendingUnconfirmed,
-        Reserved,
-    }
-}
-
-internal fun GemBalanceRow.viewType(): AssetInfoUIModel.BalanceViewType = when (this) {
-    is GemBalanceRow.Available -> AssetInfoUIModel.BalanceViewType.Available
-    is GemBalanceRow.Staked -> AssetInfoUIModel.BalanceViewType.Stake
-    is GemBalanceRow.Earn -> AssetInfoUIModel.BalanceViewType.Earn
-    is GemBalanceRow.PendingUnconfirmed -> AssetInfoUIModel.BalanceViewType.PendingUnconfirmed
-    is GemBalanceRow.Reserved -> AssetInfoUIModel.BalanceViewType.Reserved
 }

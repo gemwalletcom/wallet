@@ -1,10 +1,9 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
+import uniffi.gemstone.GemAppUpdateOffer
 
-fun mockAppUpdateOffer(canSkip: Boolean = true, channel: AppUpdateChannel = AppUpdateChannel.Store) = AppUpdateOffer(
+fun mockAppUpdateOffer(canSkip: Boolean = true, apkUrl: String? = null) = GemAppUpdateOffer(
     version = "2.0.0",
     canSkip = canSkip,
-    channel = channel,
+    apkUrl = apkUrl,
 )

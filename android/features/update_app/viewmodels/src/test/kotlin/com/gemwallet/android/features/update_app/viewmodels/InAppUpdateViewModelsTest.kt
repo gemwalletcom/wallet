@@ -2,8 +2,6 @@ package com.gemwallet.android.features.update_app.viewmodels
 
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.testkit.mockAppUpdateOffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,12 +19,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAppUpdateOffer
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class InAppUpdateViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val offer = MutableStateFlow<AppUpdateOffer?>(null)
+    private val offer = MutableStateFlow<GemAppUpdateOffer?>(null)
     private lateinit var skipAppUpdate: FakeSkipAppUpdate
     private lateinit var updateService: FakeInAppUpdateService
 
@@ -44,7 +43,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `in app apk offer is available`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(canSkip = false, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(canSkip = false, apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -67,7 +66,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip stores the optional update version`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -80,7 +79,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -113,7 +112,7 @@ class InAppUpdateViewModelTest {
 
     private fun createViewModel() = InAppUpdateViewModel(
         observeAppUpdateOffer = object : ObserveAppUpdateOffer {
-            override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
+            override fun observeAppUpdateOffer(): Flow<GemAppUpdateOffer?> = offer
         },
         skipAppUpdate = skipAppUpdate,
         updateService = updateService,
@@ -122,7 +121,7 @@ class InAppUpdateViewModelTest {
     private class FakeSkipAppUpdate : SkipAppUpdate {
         val skippedVersions = mutableListOf<String>()
 
-        override suspend fun skipAppUpdate(update: AppUpdateOffer) {
+        override suspend fun skipAppUpdate(update: GemAppUpdateOffer) {
             skippedVersions.add(update.version)
         }
     }
@@ -135,7 +134,7 @@ class InAppUpdateViewModelTest {
 
         override suspend fun clearDownloadedUpdate() = Unit
 
-        override suspend fun download(version: String, onProgress: (Float?) -> Unit) {
+        override suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit) {
             downloadCalls += 1
             kotlinx.coroutines.awaitCancellation()
         }
@@ -147,3 +146,5 @@ class InAppUpdateViewModelTest {
         }
     }
 }
+
+private const val APK_URL = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"

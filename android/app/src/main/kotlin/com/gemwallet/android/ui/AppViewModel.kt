@@ -16,8 +16,6 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.navigation.WalletRootRoute
@@ -36,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Inject
 
@@ -127,7 +126,7 @@ class AppViewModel @Inject constructor(
 
     private suspend fun offerStoreUpdate() {
         val offer = syncAppUpdate.syncAppUpdate() ?: return
-        if (offer.channel != AppUpdateChannel.Store) {
+        if (offer.apkUrl != null) {
             return
         }
         state.update { it.copy(update = offer) }
@@ -176,7 +175,7 @@ class AppViewModel @Inject constructor(
     }
 }
 
-data class AppState(val session: Session? = null, val intent: AppIntent = AppIntent.None, val update: AppUpdateOffer? = null)
+data class AppState(val session: Session? = null, val intent: AppIntent = AppIntent.None, val update: GemAppUpdateOffer? = null)
 
 enum class AppIntent {
     None,

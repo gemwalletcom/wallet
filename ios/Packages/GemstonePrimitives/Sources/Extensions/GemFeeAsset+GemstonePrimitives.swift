@@ -42,8 +42,4 @@ public extension GemConfirmMetadata {
     func price(for assetId: String) -> Primitives.Price? {
         price(assetId: assetId).map { $0.toPrimitives().mapToPrice() }
     }
-
-    var assetPrices: [Primitives.AssetId: Primitives.Price] {
-        Dictionary(uniqueKeysWithValues: prices.map { (Primitives.AssetId(core: $0.assetId), $0.toPrimitives().mapToPrice()) })
-    }
 }

@@ -1,3 +1,4 @@
+use crate::config::public::apk_download_url;
 use primitives::{PlatformStore, Release, is_version_higher};
 
 pub fn newest_release(releases: &[Release], store: PlatformStore, current_version: &str) -> Option<Release> {
@@ -11,6 +12,7 @@ pub fn available_update(releases: &[Release], store: PlatformStore, current_vers
 pub fn update_offer(release: Release) -> super::GemAppUpdateOffer {
     super::GemAppUpdateOffer {
         can_skip: !release.upgrade_required,
+        apk_url: (release.store == PlatformStore::ApkUniversal).then(|| apk_download_url(&release.version)),
         version: release.version,
     }
 }
@@ -34,5 +36,15 @@ mod tests {
         assert!(available_update(&releases, PlatformStore::AppStore, "1.0.0", Some("3.0.0")).is_some());
         assert!(newest_release(&releases, PlatformStore::GooglePlay, "1.0.0").is_some());
         assert!(newest_release(&releases, PlatformStore::GooglePlay, "3.0.0").is_none());
+    }
+
+    #[test]
+    fn test_update_offer_apk_url() {
+        assert_eq!(
+            update_offer(Release::new(PlatformStore::ApkUniversal, "2.29".into(), false)).apk_url,
+            Some("https://apk.gemwallet.com/gem_wallet_universal_2.29.apk".into())
+        );
+        assert_eq!(update_offer(Release::new(PlatformStore::GooglePlay, "2.29".into(), true)).apk_url, None);
+        assert_eq!(update_offer(Release::new(PlatformStore::Huawei, "2.29".into(), false)).apk_url, None);
     }
 }

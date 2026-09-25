@@ -4,54 +4,20 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class SelectImportTypeViewModel @Inject constructor(private val chainService: GemChainServiceInterface) : ViewModel() {
-    private val state = MutableStateFlow(SelectChainViewModelState())
-    val uiState = state.map { it.toUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SelectImportTypeUIState())
     val chainFilter = TextFieldState()
-
-    init {
-        viewModelScope.launch {
-            snapshotFlow { chainFilter.text }.collectLatest { query ->
-                state.update { old ->
-                    old.copy(
-                        chains = chainService.getChains(query.toString()).map { it.requireChain() },
-                    )
-                }
-            }
-        }
-        viewModelScope.launch {
-            state.update { it.copy(chains = chainService.getChains("").map { it.requireChain() }) }
-        }
-    }
+    val chains: StateFlow<List<Chain>> = snapshotFlow { chainFilter.text.toString() }
+        .map { query -> chainService.getChains(query).map { it.requireChain() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }
-
-data class SelectChainViewModelState(val chains: List<Chain> = emptyList()) {
-    fun toUIState() = SelectImportTypeUIState(
-        chains = chains.map {
-            ChainUIState(
-                chain = it,
-                title = it.networkName(),
-            )
-        },
-    )
-}
-
-data class SelectImportTypeUIState(val chains: List<ChainUIState> = emptyList())
-
-data class ChainUIState(val chain: Chain, val title: String)

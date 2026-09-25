@@ -68,19 +68,19 @@ internal fun NetworkScene(state: NetworksUIState, snackbar: SnackbarHostState? =
                 state.sections.forEach { section ->
                     item { SubheaderItem(section.title) }
                     when (section) {
-                        is NetworkSectionUIModel.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.url }) { index, node ->
+                        is NetworkSectionUIModel.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.row.node.url }) { index, node ->
                             NodeItem(
                                 model = node,
                                 listPosition = ListPosition.getPosition(index, section.rows.size),
-                                isDeleteRevealed = revealedNodeId == node.url,
-                                onDeleteReveal = { revealedNodeId = node.url },
+                                isDeleteRevealed = revealedNodeId == node.row.node.url,
+                                onDeleteReveal = { revealedNodeId = node.row.node.url },
                                 onDeleteCollapse = {
-                                    if (revealedNodeId == node.url) {
+                                    if (revealedNodeId == node.row.node.url) {
                                         revealedNodeId = null
                                     }
                                 },
                                 onSelect = { onAction(NetworkAction.SelectNode(it)) },
-                                onDelete = if (node.canDelete) {
+                                onDelete = if (node.row.canDelete) {
                                     {
                                         revealedNodeId = null
                                         nodeDelete = node
@@ -117,9 +117,9 @@ internal fun NetworkScene(state: NetworksUIState, snackbar: SnackbarHostState? =
 
     nodeDelete?.let { pendingNode ->
         ConfirmNodeDeleteDialog(
-            nodeName = pendingNode.host,
+            nodeName = pendingNode.row.node.host,
             onConfirm = {
-                onAction(NetworkAction.DeleteNode(pendingNode.url))
+                onAction(NetworkAction.DeleteNode(pendingNode.row.node.url))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },
@@ -132,8 +132,8 @@ private fun BlockExplorerItem(explorer: ExplorerRowUIModel, listPosition: ListPo
     ListItem(
         model = explorer.model,
         listPosition = listPosition,
-        modifier = Modifier.clickable { onSelect(explorer.name) },
-        accessory = if (explorer.isSelected) {
+        modifier = Modifier.clickable { onSelect(explorer.row.name) },
+        accessory = if (explorer.row.isSelected) {
             { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
         } else {
             null

@@ -107,7 +107,7 @@ internal fun AssetDetailsScene(
                 uiState.sections.forEach { section ->
                     section.title?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->
-                        AssetDetailRowItem(uiState = uiState, row = row, listPosition = position, onAction = onAction)
+                        AssetDetailRowItem(row = row, listPosition = position, onAction = onAction)
                     }
                 }
                 item {

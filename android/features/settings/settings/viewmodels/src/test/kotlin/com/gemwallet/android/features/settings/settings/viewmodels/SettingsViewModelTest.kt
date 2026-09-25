@@ -137,6 +137,7 @@ class SettingsViewModelTest {
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
+        isWalletConnectEnabled = mockk { every { isWalletConnectEnabled() } returns true },
         ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } answers { "string:${firstArg<Int>()}" } },
     )

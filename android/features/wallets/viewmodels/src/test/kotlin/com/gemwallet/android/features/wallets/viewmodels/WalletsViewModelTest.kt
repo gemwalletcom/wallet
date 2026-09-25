@@ -52,10 +52,9 @@ class WalletsViewModelTest {
         advanceUntilIdle()
 
         val state = model.uiState.value
-        assertEquals(listOf("pinned", "second-pinned"), state.pinned.map { it.walletId.id })
-        assertEquals(listOf("unpinned"), state.unpinned.map { it.walletId.id })
+        assertEquals(listOf("pinned", "second-pinned"), state.pinned.map { it.row.id })
+        assertEquals(listOf("unpinned"), state.unpinned.map { it.row.id })
         assertEquals(listOf("Pinned", "Second"), state.pinned.map { it.row.name })
-        assertTrue(state.pinned.all { it.isPinned })
         assertEquals("Plain", state.name(WalletId("unpinned")))
         assertEquals("", state.name(WalletId("gone")))
     }

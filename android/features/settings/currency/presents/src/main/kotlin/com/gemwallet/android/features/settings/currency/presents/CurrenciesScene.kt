@@ -43,15 +43,15 @@ fun CurrenciesScene(onCancel: () -> Unit, viewModel: CurrenciesViewModel = hiltV
             EmptyStateView(title = stringResource(R.string.common_no_results_found), modifier = Modifier.fillMaxSize())
         }
         LazyColumn(state = listState) {
-            listSections(sections, key = { it.currency.string }) { position, row ->
+            listSections(sections, key = { it.row.currency.name }) { position, row ->
                 ListItem(
                     model = row.model,
                     listPosition = position,
                     modifier = Modifier.clickable {
-                        viewModel.setCurrency(row.currency, onCancel)
+                        viewModel.setCurrency(row, onCancel)
                     },
                     minHeight = ListItemDefaults.plainMinHeight,
-                    accessory = if (row.isSelected) {
+                    accessory = if (row.row.isSelected) {
                         { SelectionCheckmark() }
                     } else {
                         null

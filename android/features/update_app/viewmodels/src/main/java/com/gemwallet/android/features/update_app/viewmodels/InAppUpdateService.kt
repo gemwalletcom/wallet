@@ -5,7 +5,7 @@ interface InAppUpdateService {
 
     suspend fun clearDownloadedUpdate()
 
-    suspend fun download(version: String, onProgress: (Float?) -> Unit)
+    suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit)
 
     fun installDownloadedUpdate(version: String)
 

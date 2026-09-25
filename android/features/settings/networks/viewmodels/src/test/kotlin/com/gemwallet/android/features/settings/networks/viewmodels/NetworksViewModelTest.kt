@@ -103,6 +103,6 @@ class NetworksViewModelTest {
 
     private fun sessionUrls(viewModel: NetworksViewModel): List<String> {
         val rows = viewModel.uiState.value
-        return rows.sections.filterIsInstance<NetworkSectionUIModel.Nodes>().flatMap { it.rows }.map { it.url }
+        return rows.sections.filterIsInstance<NetworkSectionUIModel.Nodes>().flatMap { it.rows }.map { it.row.node.url }
     }
 }

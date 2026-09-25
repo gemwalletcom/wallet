@@ -35,20 +35,19 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
     }
 
     private fun row(row: GemAssetDetailRow, assetId: AssetId, network: AssetDetailsAction.Navigation?): AssetInfoUIModel.RowUIModel = when (row) {
-        is GemAssetDetailRow.Balance -> balance(row.row)
+        is GemAssetDetailRow.Balance -> balance(row.row, assetId)
         is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row, row.row.detailsAction(assetId) ?: row.row.networkAction(network))
     }
 
-    private fun balance(item: GemAssetBalanceRow): AssetInfoUIModel.RowUIModel.Balance {
+    private fun balance(item: GemAssetBalanceRow, assetId: AssetId): AssetInfoUIModel.RowUIModel.Balance {
         val row = item.row
         return AssetInfoUIModel.RowUIModel.Balance(
-            type = row.viewType(),
-            url = (row as? GemBalanceRow.Reserved)?.url,
             model = ListItemModel(
                 title = row.title().text(context),
                 subtitle = item.value.text(context),
                 info = InfoSheetEntity.PendingUnconfirmedBalanceInfo.takeIf { row is GemBalanceRow.PendingUnconfirmed },
             ),
+            action = row.detailsAction(assetId),
         )
     }
 }

@@ -9,7 +9,6 @@ import android.content.pm.Signature
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
-import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -51,14 +50,14 @@ class InAppUpdateServiceImpl @Inject constructor(@param:ApplicationContext priva
         }
     }
 
-    override suspend fun download(version: String, onProgress: (Float?) -> Unit): Unit = withContext(Dispatchers.IO) {
+    override suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit): Unit = withContext(Dispatchers.IO) {
         val destinationFile = getApkFile()
         val coroutineContext = currentCoroutineContext()
         deleteDownloadedApk()
 
         try {
             val request = Request.Builder()
-                .url(universalApkDownloadUrl(version))
+                .url(url)
                 .build()
             val call = client.newCall(request)
             currentCall = call

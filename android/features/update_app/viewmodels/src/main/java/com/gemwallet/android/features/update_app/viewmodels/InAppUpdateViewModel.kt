@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.model.AppUpdateChannel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -22,7 +21,7 @@ import javax.inject.Inject
 class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveAppUpdateOffer, private val skipAppUpdate: SkipAppUpdate, private val updateService: InAppUpdateService) : ViewModel() {
 
     val updateAvailable = observeAppUpdateOffer.observeAppUpdateOffer()
-        .map { offer -> offer?.takeIf { it.channel == AppUpdateChannel.InAppApk } }
+        .map { offer -> offer?.takeIf { it.apkUrl != null } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
@@ -43,11 +42,12 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
         }
 
         val update = updateAvailable.value ?: return
+        val apkUrl = update.apkUrl ?: return
 
         downloadJob = viewModelScope.launch {
             _downloadState.value = DownloadState.Preparing
             try {
-                updateService.download(update.version) { progress ->
+                updateService.download(apkUrl, update.version) { progress ->
                     _downloadState.value = DownloadState.Progress(progress)
                 }
                 tryInstall()

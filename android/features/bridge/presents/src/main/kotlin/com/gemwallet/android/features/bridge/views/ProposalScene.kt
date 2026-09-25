@@ -22,7 +22,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProp
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -43,6 +42,7 @@ import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemConnectionRow
 
 @Composable
 fun ProposalScene(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
@@ -52,7 +52,7 @@ fun ProposalScene(proposal: WalletConnectSessionProposal, verifyContext: WalletC
     val state by viewModel.state.collectAsStateWithLifecycle()
     val walletListItem by viewModel.walletListItem.collectAsStateWithLifecycle()
     val statusListItem by viewModel.statusListItem.collectAsStateWithLifecycle()
-    val peer by viewModel.peerHead.collectAsStateWithLifecycle()
+    val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
     val availableWalletRows by viewModel.availableWalletRows.collectAsStateWithLifecycle()
@@ -91,7 +91,7 @@ fun ProposalScene(proposal: WalletConnectSessionProposal, verifyContext: WalletC
 
 @Composable
 private fun Proposal(
-    peer: ConnectionHeadUIModel,
+    peer: GemConnectionRow,
     state: ProposalSceneState,
     walletListItem: ListItemModel,
     connectionListItem: ListItemModel,

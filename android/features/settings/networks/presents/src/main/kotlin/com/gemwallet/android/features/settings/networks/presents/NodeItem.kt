@@ -19,6 +19,11 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemLatencyStatus
+import uniffi.gemstone.GemNodeRow
+import uniffi.gemstone.GemNodeRowTitle
+import uniffi.gemstone.GemNodeSelection
+import uniffi.gemstone.GemNodeSubtitle
 
 @Composable
 internal fun NodeItem(model: NodeRowUIModel, listPosition: ListPosition, isDeleteRevealed: Boolean, onDeleteReveal: () -> Unit, onDeleteCollapse: () -> Unit, onSelect: (String) -> Unit, onDelete: (() -> Unit)?) {
@@ -26,8 +31,8 @@ internal fun NodeItem(model: NodeRowUIModel, listPosition: ListPosition, isDelet
         ListItem(
             model = model.model,
             listPosition = position,
-            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
-            accessory = if (model.isSelected) {
+            modifier = Modifier.clickable(onClick = { onSelect(model.row.node.url) }),
+            accessory = if (model.row.node.isSelected) {
                 { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
             } else {
                 null
@@ -63,10 +68,13 @@ fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
             model = NodeRowUIModel(
-                url = "https://some.url.eth",
-                host = "some.url.eth",
-                isSelected = true,
-                canDelete = true,
+                row = GemNodeRow(
+                    node = GemNodeSelection(url = "https://some.url.eth", host = "some.url.eth", isSelected = true, gemNodeFlag = null),
+                    title = GemNodeRowTitle.Host("some.url.eth"),
+                    subtitle = GemNodeSubtitle.LatestBlock(null),
+                    latencyStatus = GemLatencyStatus.Loading,
+                    canDelete = true,
+                ),
                 model = ListItemModel(title = "some.url.eth", titleTag = "440 ms", titleTagStyle = ListItemTextStyle.Positive, titleExtra = "Latest block: 123902302938", titleExtraStyle = ListItemTextStyle.Body),
             ),
             listPosition = ListPosition.Middle,

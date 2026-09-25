@@ -79,7 +79,14 @@ impl Constants {
         let members: String = self
             .items
             .iter()
-            .map(|constant| format!("    public static let {}: {} = {}\n", constant.name, self.type_name(&constant.ty, Language::Swift), self.literal(&constant.ty, &constant.value, Language::Swift)))
+            .map(|constant| {
+                format!(
+                    "    public static let {}: {} = {}\n",
+                    constant.name,
+                    self.type_name(&constant.ty, Language::Swift),
+                    self.literal(&constant.ty, &constant.value, Language::Swift)
+                )
+            })
             .collect();
         format!("{HEADER}\nimport Foundation\nimport Gemstone\nimport Primitives\n\npublic enum GemConstants {{\n{members}}}\n")
     }
@@ -88,7 +95,14 @@ impl Constants {
         let members: String = self
             .items
             .iter()
-            .map(|constant| format!("    val {}: {} = {}\n", constant.name, self.type_name(&constant.ty, Language::Kotlin), self.literal(&constant.ty, &constant.value, Language::Kotlin)))
+            .map(|constant| {
+                format!(
+                    "    val {}: {} = {}\n",
+                    constant.name,
+                    self.type_name(&constant.ty, Language::Kotlin),
+                    self.literal(&constant.ty, &constant.value, Language::Kotlin)
+                )
+            })
             .collect();
         let imports: String = [
             ("kotlin.time.Duration", ": Duration"),
@@ -132,7 +146,10 @@ impl Constants {
     }
 
     fn enumeration(&self, name: &str) -> &Enumeration {
-        let enumeration = self.enums.get(name).unwrap_or_else(|| panic!("constants.rs uses {name}, which is not an enum declared in gemstone or primitives; a constant holds plain values"));
+        let enumeration = self
+            .enums
+            .get(name)
+            .unwrap_or_else(|| panic!("constants.rs uses {name}, which is not an enum declared in gemstone or primitives; a constant holds plain values"));
         assert!(enumeration.flat, "constants.rs uses {name}, whose variants carry data; a constant holds plain values");
         enumeration
     }

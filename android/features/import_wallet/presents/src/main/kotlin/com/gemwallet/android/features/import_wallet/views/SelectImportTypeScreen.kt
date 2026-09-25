@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.features.import_wallet.viewmodels.ChainUIState
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.import_wallet.viewmodels.SelectImportTypeViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
@@ -30,10 +30,10 @@ import uniffi.gemstone.DocsUrl
 @Composable
 fun SelectImportTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) {
     val viewModel: SelectImportTypeViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val chains by viewModel.chains.collectAsStateWithLifecycle()
 
     SelectImportTypeScene(
-        chains = uiState.chains,
+        chains = chains,
         chainFilter = viewModel.chainFilter,
         onSelect = onSelect,
         onClose = onClose,
@@ -41,7 +41,7 @@ fun SelectImportTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) 
 }
 
 @Composable
-private fun SelectImportTypeScene(chains: List<ChainUIState>, chainFilter: TextFieldState, onSelect: (ImportType) -> Unit, onClose: () -> Unit) {
+private fun SelectImportTypeScene(chains: List<Chain>, chainFilter: TextFieldState, onSelect: (ImportType) -> Unit, onClose: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.wallet_import_title),
         actions = {
@@ -63,13 +63,13 @@ private fun SelectImportTypeScene(chains: List<ChainUIState>, chainFilter: TextF
                     onSelect(ImportType.phrase())
                 }
             }
-            itemsIndexed(chains) { index, item ->
+            itemsIndexed(chains) { index, chain ->
                 ChainItem(
-                    title = item.title,
-                    icon = item.chain,
+                    title = chain.networkName(),
+                    icon = chain,
                     listPosition = ListPosition.getPosition(index, chains.size),
                 ) {
-                    onSelect(ImportType.phrase(item.chain))
+                    onSelect(ImportType.phrase(chain))
                 }
             }
         }
@@ -82,14 +82,7 @@ fun PreviewChainSelectScreen() {
     MaterialTheme {
         Column {
             SelectImportTypeScene(
-                chains = listOf(
-                    ChainUIState(title = "foo Chain #1", chain = Chain.Bitcoin),
-                    ChainUIState(title = "foo Chain #2", chain = Chain.Bitcoin),
-                    ChainUIState(title = "foo Chain #3", chain = Chain.Bitcoin),
-                    ChainUIState(title = "foo Chain #4", chain = Chain.Bitcoin),
-                    ChainUIState(title = "foo Chain #5", chain = Chain.Bitcoin),
-                    ChainUIState(title = "foo Chain #6", chain = Chain.Bitcoin),
-                ),
+                chains = listOf(Chain.Bitcoin, Chain.Ethereum, Chain.Solana),
                 chainFilter = rememberTextFieldState(),
                 onClose = {},
                 onSelect = {},

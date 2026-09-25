@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -33,10 +32,9 @@ import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.theme.space0
 
 @Composable
-fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, walletConnectEnabled: Boolean = true, scrollState: ScrollState = rememberScrollState()) {
+fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, scrollState: ScrollState = rememberScrollState()) {
     val viewModel: SettingsViewModel = hiltViewModel()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
-    LaunchedEffect(walletConnectEnabled) { viewModel.setWalletConnectAvailable(walletConnectEnabled) }
 
     LifecycleResumeEffect(Unit) {
         viewModel.refreshDeveloperMode()

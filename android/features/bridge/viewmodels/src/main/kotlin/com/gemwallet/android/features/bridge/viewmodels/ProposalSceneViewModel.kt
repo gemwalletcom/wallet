@@ -12,8 +12,6 @@ import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConne
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
-import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -63,9 +61,6 @@ class ProposalSceneViewModel @Inject constructor(
     private val _sessionProposal = MutableStateFlow<GemSessionProposal?>(null)
 
     val proposal = _sessionProposal.map { prepared -> prepared?.let { applicationConnectionRow(it.proposal.metadata) } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val peerHead: StateFlow<ConnectionHeadUIModel?> = proposal.map { it?.headUIModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }

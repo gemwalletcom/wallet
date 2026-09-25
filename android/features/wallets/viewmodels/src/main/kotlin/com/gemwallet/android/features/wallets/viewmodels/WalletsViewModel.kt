@@ -43,8 +43,8 @@ class WalletsViewModel @Inject constructor(
     private val wallets = getAllWallets.getAllWallets()
 
     val uiState: StateFlow<WalletsUIState> = wallets.map { wallets ->
-        val (pinned, unpinned) = wallets.map { it.uiModel(context) }.partition { it.isPinned }
-        WalletsUIState(pinned = pinned, unpinned = unpinned)
+        val (pinned, unpinned) = wallets.partition { it.row.isPinned }
+        WalletsUIState(pinned = pinned.map { it.uiModel(context) }, unpinned = unpinned.map { it.uiModel(context) })
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, WalletsUIState())
 
@@ -75,9 +75,4 @@ class WalletsViewModel @Inject constructor(
     }
 }
 
-private fun WalletDataAggregate.uiModel(context: Context) = WalletItemUIModel(
-    walletId = WalletId(row.id),
-    row = row.uiModel(context),
-    isCurrent = isCurrent,
-    isPinned = row.isPinned,
-)
+private fun WalletDataAggregate.uiModel(context: Context) = WalletItemUIModel(row = row.uiModel(context), isCurrent = isCurrent)
