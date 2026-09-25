@@ -217,6 +217,7 @@ Rules:
 - If the target v4 file already exists, Rust authenticates it with the supplied new password, re-verifies the binding, and finishes the v3 cleanup (crash-safe idempotent retry).
 - A corrupt staged v4 file (parse/authenticated-header corruption, not a wrong password) is deleted and rebuilt from the v3 file on the next migration run.
 - Wrong password never overwrites an existing v4 file.
+- Importing the phrase of a wallet that already has a record but no v4 file rebuilds the file and answers `Existing`; an unreadable file is a read error, never treated as absent, so it is neither rebuilt nor rolled back (gemstone tests `test_importing_the_phrase_again_rebuilds_a_missing_secret`, `test_an_unreadable_secret_is_never_rebuilt_or_removed`).
 - `GemWalletService.delete_wallet` removes every on-disk copy (the v4 file and any v3 file that never migrated) before deleting wallet metadata, so no secret is orphaned. Deleting one wallet must not delete the shared app-wide password.
 - Downgrading to a pre-v4 build after migration is not supported: the v3 file is gone once the wallet has migrated.
 - Legacy v3 files written by WalletCore can carry an empty scrypt salt. The v3 reader accepts salt lengths from zero up to the maximum and relies on the MAC for authentication. Do not reintroduce a minimum salt length; it strands real wallets with a blank phrase or a missing-password error (fixture `core/crates/gem_keystore/testdata/v3_empty_salt_mnemonic.json`, gemstone test `migrate_v3_empty_salt_mnemonic_round_trip`).
