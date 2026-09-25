@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = यह कोटेशन अब उपलब्�
 rewards_error_referral_country_ineligible = आपके देश के लिए फिलहाल रेफरल उपलब्ध नहीं हैं: {$value}.
 notification_rewards_disabled_title = रेफरल कोड निष्क्रिय कर दिया गया है
 notification_rewards_disabled_description = हमारे रेफरल प्रोग्राम की शर्तों के बार-बार उल्लंघन के कारण इस रेफरल कोड को निष्क्रिय कर दिया गया है।
-rewards_error_referral_eligibility_expired = रेफरल कोड को इसके भीतर लागू किया जाना चाहिए {$value} अपना यूजरनेम बनाने में लगने वाले दिन।
+rewards_error_referral_eligibility_expired = रेफरल कोड का उपयोग केवल उसी डिवाइस और वॉलेट पर किया जा सकता है जिसे { $value ->
+     [one] पिछले 1 दिन
+    *[other] पिछले {$value} दिनों
+    } में सेट किया गया हो।
 notification_reward_pending_title = 💎 नया रेफरल
 notification_reward_pending_description = किसी ने आपका रेफरल कोड इस्तेमाल किया है। सत्यापन की प्रक्रिया जारी है।
 rewards_error_username_too_short = उपयोगकर्ता नाम बहुत छोटा है। न्यूनतम लंबाई: {$value}।

@@ -44,7 +44,11 @@ fiat_error_quote_unavailable = Це котирування більше недо
 rewards_error_referral_country_ineligible = Наразі реферали для вашої країни недоступні: {$value}.
 notification_rewards_disabled_title = Реферальний код деактивовано
 notification_rewards_disabled_description = Цей реферальний код було вимкнено через неодноразові порушення умов нашої реферальної програми.
-rewards_error_referral_eligibility_expired = Реферальні коди необхідно застосувати протягом {$value} днів створення вашого імені користувача.
+rewards_error_referral_eligibility_expired = Реферальні коди можна використовувати лише на пристрої та з гаманцем, налаштованими { $value ->
+     [one] за останній {$value} день
+     [few] за останні {$value} дні
+    *[other] за останні {$value} днів
+    }.
 notification_reward_pending_title = 💎 Нове реферале
 notification_reward_pending_description = Хтось використав ваш реферальний код. Очікує підтвердження.
 rewards_error_username_too_short = Ім'я користувача надто коротке. Мінімальна довжина: {$value}.

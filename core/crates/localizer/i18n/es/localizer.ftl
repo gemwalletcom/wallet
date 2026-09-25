@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Esta cotización ya no está disponible. Inténta
 rewards_error_referral_country_ineligible = Las referencias no están disponibles actualmente para tu país: {$value}.
 notification_rewards_disabled_title = Código de referencia desactivado
 notification_rewards_disabled_description = Este código de referencia ha sido deshabilitado debido a repetidas violaciones de los términos de nuestro programa de referencia.
-rewards_error_referral_eligibility_expired = Los códigos de referencia deben aplicarse dentro de {$value} Días de crear tu nombre de usuario.
+rewards_error_referral_eligibility_expired = Los códigos de referencia solo pueden usarse en un dispositivo y una billetera configurados { $value ->
+     [one] en el último día
+    *[other] en los últimos {$value} días
+    }.
 notification_reward_pending_title = 💎 Nueva referencia
 notification_reward_pending_description = Alguien usó tu código de referencia. Pendiente de verificación.
 rewards_error_username_too_short = El nombre de usuario es demasiado corto. Longitud mínima: {$value}.

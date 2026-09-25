@@ -50,3 +50,4 @@ flowchart TD
 ## Rules
 
 - The Secret Phrase never leaves the device and is never written to a log.
+- The Secret Phrase and private key screens hide their content during screen recording and whenever the app is not active; on iOS a screenshot is detected and warned about, Android blocks it.

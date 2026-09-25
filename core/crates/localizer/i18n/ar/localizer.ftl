@@ -44,7 +44,13 @@ fiat_error_quote_unavailable = عرض السعر هذا لم يعد متاحًا
 rewards_error_referral_country_ineligible = خدمة الإحالات غير متاحة حاليًا لبلدك: {$value}.
 notification_rewards_disabled_title = تم تعطيل رمز الإحالة
 notification_rewards_disabled_description = تم تعطيل رمز الإحالة هذا بسبب الانتهاكات المتكررة لشروط برنامج الإحالة الخاص بنا.
-rewards_error_referral_eligibility_expired = يجب تطبيق رموز الإحالة في غضون {$value} أيام من إنشاء اسم المستخدم الخاص بك.
+rewards_error_referral_eligibility_expired = لا يمكن استخدام رموز الإحالة إلا على جهاز ومحفظة تم إعدادهما خلال { $value ->
+     [one] اليوم الماضي
+     [two] اليومين الماضيين
+     [few] آخر {$value} أيام
+     [many] آخر {$value} يومًا
+    *[other] آخر {$value} يوم
+    }.
 notification_reward_pending_title = 💎 إحالة جديدة
 notification_reward_pending_description = تم استخدام رمز الإحالة الخاص بك. جارٍ التحقق.
 rewards_error_username_too_short = اسم المستخدم قصير جدًا. الحد الأدنى للطول: {$value}.

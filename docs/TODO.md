@@ -19,10 +19,10 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Numbers and copy:** the copy for BD15, BD19, BD30 and VM67 through the translation-review flow.
+1. **Numbers and copy:** the copy for BD15, BD19 and VM67 through the translation-review flow.
 2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 3. **Balances and storage:** D76, D77, VM98 (an Android migration).
-4. **Server:** BD23, BD51, BD52.
+4. **Server:** BD23, BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -157,7 +157,7 @@ Differences between the apps, or between an app and the server, each with its de
 
 - **BD23** **S** **ENS/UD names with a first part over 20 characters, and provider outages, both look like "name not found".** `core/crates/name_resolver/src/client.rs:26-29` with `max_name_length: 20` (`core/Settings.yaml:156`); `core/apps/api/src/devices/mod.rs:197-200` discards errors (`.ok().flatten()`); Core accepts any label (`core/gemstone/src/services/name/rules.rs:28-31,57-62`). **Decided:** the API answers a provider outage with the standard `ApiError`, so Core reads it as an error rather than a missing name, and a missing name keeps its 200 answer with no record; `max_name_length` stays 20.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
-- **BD30** **S** **The referral time-window message names the wrong rule, and "Use code" is offered when it can't succeed.** `localizer.ftl:47` ("within N days of creating your username") vs `core/crates/rewards/src/referral.rs:57-67` (device and wallet age; attribution referrers skip it, `rewards_client.rs:176,257`); Core always offers `UseReferralCode` (`rewards/rules.rs:39`). **Copy:** we reword the message for the device and wallet age rule in all 21 languages; hiding "Use code" needs the age facts in the rewards summary.
+- **BD30** **S** **"Use code" is offered when it can't succeed.** Core always offers `UseReferralCode` (`core/gemstone/src/services/rewards/rules.rs`, `actions`), but the server only accepts a code on a device and wallet set up within the eligibility window (`core/crates/rewards/src/referral.rs`, `validate_use`; attribution referrers skip it in `rewards_client.rs`). Hiding it needs the device and wallet age facts in the rewards summary.
 
 ### Freshness
 

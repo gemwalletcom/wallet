@@ -46,7 +46,10 @@ fiat_error_quote_unavailable = This quote is no longer available. Please try aga
 rewards_error_referral_country_ineligible = Referrals are currently unavailable for your country: {$value}.
 notification_rewards_disabled_title = Referral code deactivated
 notification_rewards_disabled_description = This referral code has been disabled due to repeated violations of our referral program terms.
-rewards_error_referral_eligibility_expired = Referral codes must be applied within {$value} days of creating your username.
+rewards_error_referral_eligibility_expired = Referral codes can only be used on a device and wallet set up in the last { $value ->
+     [one] day
+    *[other] {$value} days
+    }.
 notification_reward_pending_title = 💎 New Referral
 notification_reward_pending_description = Someone used your referral code. Pending verification.
 rewards_error_username_too_short = Username is too short. Minimum length: {$value}.
