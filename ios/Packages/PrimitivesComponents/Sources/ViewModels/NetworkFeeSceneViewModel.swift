@@ -113,13 +113,13 @@ public struct NetworkFeeSceneViewModel {
     public func customFeeModel() -> NetworkFeeCustomViewModel? {
         feeRates.map { rows in
             NetworkFeeCustomViewModel(
-                chain: feeAsset.chain,
                 feeAsset: feeAsset,
                 rows: rows,
                 baseFee: feeAmount,
                 initialRate: selection.customGasPrice(),
+                price: feeAssetPrice?.price,
+                currency: currency,
                 onSelect: { onSelect?(.custom(gasPrice: $0)) },
-                display: display(for:),
             )
         }
     }

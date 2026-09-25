@@ -7,6 +7,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.viewmodels.localization.title
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -20,6 +21,7 @@ import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemFeeAmount
 import uniffi.gemstone.GemListRow
 
 sealed interface ConfirmRowUIModel {
@@ -72,7 +74,7 @@ private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRow
 
 fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol: Boolean = false): ListItemModel {
     val title = context.getString(R.string.transfer_network_fee)
-    val info = InfoSheetEntity.NetworkFeeInfo(feeAsset?.id?.chain?.networkName().orEmpty(), feeAsset?.symbol.orEmpty())
+    val info = networkFeeInfo(feeAsset)
     return when (this) {
         FeeUIModel.Calculating -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
 
@@ -86,6 +88,14 @@ fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol:
         )
     }
 }
+
+fun GemFeeAmount?.networkFeeListItem(context: Context, feeAsset: Asset): ListItemModel = ListItemModel(
+    title = context.getString(R.string.transfer_network_fee),
+    subtitle = this?.let { fee -> fee.fiat?.text() ?: fee.amount.text() },
+    info = networkFeeInfo(feeAsset),
+)
+
+private fun networkFeeInfo(feeAsset: Asset?) = InfoSheetEntity.NetworkFeeInfo(feeAsset?.id?.chain?.networkName().orEmpty(), feeAsset?.symbol.orEmpty())
 
 internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
     title = context.getString(R.string.info_payment_verification_title),

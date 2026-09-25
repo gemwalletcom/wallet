@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **One view state:** VM170, VM171, VM144, VM125, VM134, VM89.
+1. **One view state:** VM171, VM144, VM125, VM134, VM89.
 2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 4. **Balances and storage:** D76, D77, VM98 (an Android migration).
@@ -44,7 +44,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM125 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM170 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
@@ -90,9 +90,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
   - **iOS:** `SwapTokenViewModel` calls `availableBalanceText` twice per side per render and parses the typed text into `fiatEquivalent` (`:31-44,67-75`); the receive fiat comes from the rounded receive text (`SwapSceneViewModel.swift:401-403`); `swapDetailsViewModel` is a computed `@Observable` rebuilt per render (`:124-147`, so the rate toggle can reset while the sheet is open), fed by `slippagePercent` (only nil-checked) and `swapProviderRow(isSelected: false)`; `selectedSlippageBps` repeats `GemSlippageSelection.bps`; the stale-pair check is repeated at `:458`; `SwapSlippageViewModel` composes `errorText`/`warningText` from `check`, `minimum` and `maximum` and re-types suggestions as `SlippageSuggestion`. Delete the balance and fiat members, `SlippageSuggestion`, `AssetPriceValue`, `isQuoteLoading` (test-only) and the unread `SwapDetailsViewModel` members (`valueFormatter`, `fromAssetPrice`, `providerData`, `priceViewModel`, `minReceiveValue`, `etaSeconds`).
   - **Android:** `SwapViewModel` holds `payBalance`, `receiveBalance`, `payEquivalentFormatted` and `toEquivalentFormatted` flows and re-checks the stale pair (`:137-193`); `SwapDetailsUIModelFactory`/`SwapDetailsUIModelInput` only call a constructor, with unread `slippageBps`, `selectedSlippage` and `etaInSeconds`; `SlippageStateUIModel` composes the footer; `SwapSlippage.numberFormat()` copies `numberFormat()`; `SwapSelection` echoes the unselected side back (`SwapSelectViewModel.kt:50-56`, `RootRoute.kt:19`). Delete the four flows, the factory, the copy and the echo.
   - **Expected:** the receive fiat moves to the exact value on iOS (a few cents); Core's `GemSwapQuoteService::slippage_percent` and `GemSwapQuoteSummary::slippage_percent` go.
-- **VM170** **S** **A custom network fee is one Core record.** `GemCustomFee::estimate` ([`fee.rs`](../core/gemstone/src/fee.rs)) returns a record (rate, placeholder, fee value, check, validity and the `GemFeeAmount` of VM144).
-  - **iOS:** `NetworkFeeCustomViewModel.estimate` builds a `GemCustomFee` object per getter, about five objects and twelve crossings per keystroke render (`:56-100`).
-  - **Android:** `CustomFee.kt:11-27` wraps the same object into a record once per input. Delete `CustomFee.from`.
 
 ## 3. Decisions the apps still make
 
