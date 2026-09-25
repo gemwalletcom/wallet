@@ -8,7 +8,7 @@ import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.testkit.mockAppUpdateOffer
+import com.gemwallet.android.testkit.mockGemAppUpdateOffer
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import io.mockk.coEvery
@@ -99,7 +99,7 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = mockAppUpdateOffer(apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
 
         model.startDestinationState.first { it != null }
 
@@ -111,7 +111,7 @@ class AppViewModelTest {
         val skip: SkipAppUpdate = mockk {
             coEvery { skipAppUpdate(any()) } throws GemServiceException.InvalidInput("update 2.0.0 is required")
         }
-        val model = viewModel(update = mockAppUpdateOffer(canSkip = false), skip = skip)
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0"), skip = skip)
         val offered = model.uiState.first { it.update != null }
         assertNotNull(offered.update)
 
@@ -124,7 +124,7 @@ class AppViewModelTest {
     @Test
     fun `an optional update is remembered as skipped`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = mockAppUpdateOffer(), skip = skip)
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true), skip = skip)
         model.uiState.first { it.update != null }
 
         model.onSkip().join()

@@ -109,4 +109,4 @@ fun mockGemAccountRow(
     createdAt = createdAt,
 )
 
-fun mockGemRowAction(): uniffi.gemstone.GemRowAction = uniffi.gemstone.GemRowAction.Open(url = "", chain = com.wallet.core.primitives.Chain.Bitcoin.string)
+fun mockGemRowAction(): uniffi.gemstone.GemRowAction = uniffi.gemstone.GemRowAction.Open(url = "https://gemwallet.com", chain = com.wallet.core.primitives.Chain.Bitcoin.string)

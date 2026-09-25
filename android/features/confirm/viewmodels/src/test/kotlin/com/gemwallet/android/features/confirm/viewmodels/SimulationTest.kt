@@ -4,15 +4,16 @@ import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemConfirmSimulation
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPrecision
@@ -48,12 +49,12 @@ class SimulationTest {
         assertEquals(Chain.Ethereum, simulation.chain)
     }
 
-    private fun fullAmount(value: Double, symbol: String, tone: GemValueTone, exact: String) = mockFormattedNumber(
+    private fun fullAmount(value: Double, symbol: String, tone: GemValueTone, exact: String) = mockGemFormattedNumber(
         value = value,
         unit = GemNumberUnit.Symbol(symbol),
-        tone = tone,
-        precision = GemPrecision.Fraction(min = 0u, max = 32u),
+        display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
         notation = GemNumberNotation.SIGNED,
+        tone = tone,
         exact = exact,
     )
 }

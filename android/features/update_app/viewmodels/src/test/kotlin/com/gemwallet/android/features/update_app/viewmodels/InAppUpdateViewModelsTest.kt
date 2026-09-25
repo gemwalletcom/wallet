@@ -2,7 +2,7 @@ package com.gemwallet.android.features.update_app.viewmodels
 
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
-import com.gemwallet.android.testkit.mockAppUpdateOffer
+import com.gemwallet.android.testkit.mockGemAppUpdateOffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +43,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `in app apk offer is available`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(canSkip = false, apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -56,7 +56,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `store offer is not shown as an in app update`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer()
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -66,7 +66,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip stores the optional update version`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -79,7 +79,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()

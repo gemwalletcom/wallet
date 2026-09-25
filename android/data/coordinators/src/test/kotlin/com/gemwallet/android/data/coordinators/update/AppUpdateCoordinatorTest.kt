@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.update
 
-import com.gemwallet.android.testkit.mockAppUpdateOffer
 import com.gemwallet.android.testkit.mockBuildInfo
+import com.gemwallet.android.testkit.mockGemAppUpdateOffer
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -17,7 +17,7 @@ class AppUpdateCoordinatorTest {
 
     @Test
     fun `sync offers the release core returned`() = runTest {
-        val update = mockAppUpdateOffer(apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk")
+        val update = mockGemAppUpdateOffer(canSkip = true, apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk")
         val appUpdateService = mockk<GemAppUpdateService> {
             coEvery { check(any(), any()) } returns update
         }
@@ -30,13 +30,13 @@ class AppUpdateCoordinatorTest {
     @Test
     fun `skip clears the observed offer once core stops offering it`() = runTest {
         val appUpdateService = mockk<GemAppUpdateService>()
-        val offers = mutableListOf<GemAppUpdateOffer?>(mockAppUpdateOffer(), null)
+        val offers = mutableListOf<GemAppUpdateOffer?>(mockGemAppUpdateOffer(canSkip = true), null)
         coEvery { appUpdateService.check(any(), any()) } answers { offers.removeAt(0) }
         every { appUpdateService.skip(any()) } returns Unit
         val coordinator = AppUpdateCoordinator(appUpdateService, mockBuildInfo())
 
         coordinator.syncAppUpdate()
-        coordinator.skipAppUpdate(mockAppUpdateOffer(canSkip = true))
+        coordinator.skipAppUpdate(mockGemAppUpdateOffer(canSkip = true))
 
         assertNull(coordinator.observeAppUpdateOffer().first())
     }

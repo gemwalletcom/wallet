@@ -20,9 +20,3 @@ public final class GemTransactionSignerMock: GemTransactionSigner {
         signedTransactions
     }
 }
-
-public extension GemSignedTransaction {
-    init(data: String, type: Primitives.TransactionType) {
-        self.init(data: data, transactionType: type.toGem())
-    }
-}

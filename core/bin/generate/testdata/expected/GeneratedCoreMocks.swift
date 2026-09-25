@@ -52,6 +52,6 @@ public extension Gemstone.GemAccountRow {
 
 public extension Gemstone.GemRowAction {
     static func mock() -> Gemstone.GemRowAction {
-        .open(url: "", chain: Primitives.Chain.bitcoin.rawValue)
+        .open(url: "https://gemwallet.com", chain: Primitives.Chain.bitcoin.rawValue)
     }
 }

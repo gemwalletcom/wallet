@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.components
 
 import android.content.Context
 import com.gemwallet.android.model.text
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
@@ -39,8 +39,8 @@ class InfoSheetEntityTest {
 
     @Test
     fun aRequiredAmountReadsWithTheFiatItIsWorthWhenPriced() {
-        val amount = mockFormattedNumber(0.002, GemNumberUnit.Symbol("ETH"))
-        val fiat = mockFormattedNumber(4.0, GemNumberUnit.Currency("USD"))
+        val amount = mockGemFormattedNumber(value = 0.002, unit = GemNumberUnit.Symbol("ETH"))
+        val fiat = mockGemFormattedNumber(value = 4.0, unit = GemNumberUnit.Currency("USD"))
 
         assertEquals("${amount.text()} (~${fiat.text()})", GemInfoAmount(amount, fiat).text())
         assertEquals(amount.text(), GemInfoAmount(amount, null).text())

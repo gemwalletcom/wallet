@@ -8,9 +8,9 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockChainAssetInfo
-import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Chain
 import io.mockk.every
@@ -51,8 +51,8 @@ class AssetInfoUIModelFactoryTest {
 
     @Test
     fun `balance rows show the values core formatted`() {
-        val staked = mockFormattedNumber(value = 2.0, unit = GemNumberUnit.Symbol(symbol = "ATOM"))
-        val apr = mockFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
+        val staked = mockGemFormattedNumber(value = 2.0, unit = GemNumberUnit.Symbol(symbol = "ATOM"))
+        val apr = mockGemFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
         val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos))
         val section = model(
             mockAssetInfo(asset = asset, owner = null),
@@ -82,8 +82,8 @@ class AssetInfoUIModelFactoryTest {
 
     @Test
     fun `the price row shows what core quoted and nothing when nobody quoted`() {
-        val price = mockFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
-        val change = mockFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
+        val price = mockGemFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
+        val change = mockGemFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
         val asset = mockAsset()
         val assetInfo = mockAssetInfo(asset = asset, owner = null)
         val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, price, change)))))
@@ -138,7 +138,7 @@ class AssetInfoUIModelFactoryTest {
         assetInfo: AssetInfo,
         sections: List<GemAssetDetailSection> = emptyList(),
         fiatValue: GemFormattedNumber? = null,
-        balanceValue: GemFormattedNumber = mockFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
+        balanceValue: GemFormattedNumber = mockGemFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
     ) = AssetInfoUIModelFactory(context).create(
         mockChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
         mockGemAssetDetails(state = mockGemAssetDetailsState(showsBanners = true), balanceValue = balanceValue, sections = sections, fiatValue = fiatValue),

@@ -3,7 +3,7 @@ package com.gemwallet.android.domains.confirm
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
@@ -25,7 +25,7 @@ class FeeRateUIModelTest {
                 priority = FeePriority.Fast.toGem(),
                 fee = BigInteger("500000000000000000"),
                 amount = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger("500000000000000000"), 1.0, Currency.USD.toGem()),
-                value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain), FeeUnitType.GWEI),
+                value = GemLocalizedText.FeeRate(mockGemFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain), FeeUnitType.GWEI),
                 isSelected = false,
             ),
         )
@@ -41,7 +41,7 @@ class FeeRateUIModelTest {
                 priority = FeePriority.Normal.toGem(),
                 fee = null,
                 amount = null,
-                value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 1.0, unit = GemNumberUnit.Plain), FeeUnitType.NATIVE),
+                value = GemLocalizedText.FeeRate(mockGemFormattedNumber(value = 1.0, unit = GemNumberUnit.Plain), FeeUnitType.NATIVE),
                 isSelected = false,
             ),
         )

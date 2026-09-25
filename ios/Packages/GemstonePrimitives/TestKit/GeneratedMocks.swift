@@ -94,6 +94,20 @@ public extension Gemstone.FiatQuote {
     }
 }
 
+public extension Gemstone.GemAppUpdateOffer {
+    static func mock(
+        version: String = "",
+        canSkip: Bool = false,
+        apkUrl: String? = nil,
+    ) -> Gemstone.GemAppUpdateOffer {
+        Gemstone.GemAppUpdateOffer(
+            version: version,
+            canSkip: canSkip,
+            apkUrl: apkUrl,
+        )
+    }
+}
+
 public extension Gemstone.GemAssetBalance {
     static func mock(
         assetId: String = Primitives.AssetId.mock().identifier,
@@ -698,7 +712,7 @@ public extension Gemstone.GemNumberDisplay {
 
 public extension Gemstone.GemNumberUnit {
     static func mock() -> Gemstone.GemNumberUnit {
-        .currency(code: "")
+        .currency(code: "USD")
     }
 }
 

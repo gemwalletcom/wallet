@@ -252,6 +252,7 @@ mocks:
   - FiatTransaction
   - FiatTransactionAssetData
   - FiatTransactionData
+  - GemAppUpdateOffer
   - GemAssetBalance
   - GemAssetDetails
   - GemAssetDetailsState
@@ -291,7 +292,8 @@ mocks:
   - GemNodeSelection
   - GemNodeStatusState
   - GemNumberDisplay
-  - GemNumberUnit
+  - GemNumberUnit:
+      code: USD
   - GemPaymentRecipient
   - GemPerpetualDetails
   - GemPerpetualTransferData

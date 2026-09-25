@@ -19,16 +19,15 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Generated mocks:** GEN298.
-2. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
-3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
-4. **Models:** VM195.
-5. **Sessions:** VM185.
-6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
-7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** MOD304, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
-9. **Unused code:** CLN318.
-10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+1. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
+2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
+3. **Models:** VM195.
+4. **Sessions:** VM185.
+5. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+6. **Generated mappers:** BD299, then GEN300.
+7. **Module layout:** MOD304, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
+8. **Unused code:** CLN318.
+9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -68,7 +67,6 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175, VM195, VM288, BD299, GEN300 |
-| Test mocks | `core/bin/generate` with `remote_types.yml`, iOS `TestKit` targets, Android `testFixtures` | GEN298 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
@@ -660,13 +658,8 @@ Differences between the apps, or between an app and the server, each with its de
 
 - **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
 
-## 10. Generated mocks and mappers
+## 10. Generated mappers
 
-Test mocks for generated types are written by hand three times, once per language, and have drifted: `Asset.mock()` is Bitcoin on iOS and Android but Ethereum in Rust; `Transaction` is incoming with value `"0"` on iOS and outgoing with `"1"` on Android; `Account.address` is empty on iOS and `"wallet-address"` on Android; dates are `.now`, `Date()` or the epoch. `core/bin/generate` already reads every type in `remote_types.yml` from the primitives source into records, enums and fields, writes the Swift and Kotlin mappers from that model and checks them against golden files; the mocks come from the same model.
-
-**The standard, for every item below.** A type gets a mock only when `remote_types.yml` lists it under `mocks:`; no type is mocked because it could be. Each listed type gets exactly one mock, the same on both apps: iOS `Type.mock(...)`, Android `mockType(...)` (each app keeps its existing call shape). All of a package's data mocks live in one file, never one file per type: the generated ones in `GeneratedMocks.swift`/`GeneratedMocks.kt`, and the few the generator cannot reach in one hand-written `Mocks.swift`/`Mocks.kt` beside it (distinct names, since Swift rejects two files of the same name in a target and Kotlin two `MocksKt` facades in a package). Behavioural doubles (service fakes, stores) are classes and keep their own files. Every field is a parameter with a default, in declaration order. Defaults follow one rule table, identical on both apps: `""` for a string, `0` for a number and big integer, `false`, `nil`/`null` for an optional, `[]` for a list, the first variant for an enum and for `Chain` (Bitcoin), the epoch for a date, the listed type's own mock for a nested record and the identifier's hand-written mock for an identifier. A field whose type has no mock and no rule fails generation and names the field, so the fix is to list its type or add a per-field override under `mocks:`; an override exists only where the rule would build an invalid value, never for readability, and applies to both apps. There are no named presets (`mockEthereum()`, `mockAssetSolanaUSDC()`, `mockWithChains()`): a test passes the values it asserts on, so every input it depends on is visible at the call site. Rust keeps its hand-written `mock()` and `Type { field, ..Type::mock() }` overrides (`core/skills/tests.md`); the generator does not write Rust mocks.
-
-- **GEN298** **M** **Mocks for Gemstone's own records.** The generator reads only `crates/primitives`; the UniFFI-side mocks (iOS `GemstonePrimitives/TestKit`: 9 plain, 15 partial, 5 with presets; Android `gemcore` `testFixtures`: 49 functions for `uniffi.gemstone` types) are hand-written and disagree the same way. Extend the parser to the `#[derive(uniffi::Record)]` and `#[derive(uniffi::Enum)]` types in `core/gemstone/src` and write them with UniFFI naming (Kotlin unit-enum variants in upper case, data enums as sealed classes) into `ios/Packages/GemstonePrimitives/TestKit/GeneratedMocks.swift` and the Android `GeneratedMocks.kt` (Android keeps one generated file for both type systems, as `gemcore` `testFixtures` holds both), under the same standard and `mocks:` list. iOS mocks that take a `Primitives` value and convert it (`GemHeaderAmount.mock(asset: Asset)`, `PerpetualConfirmData.mock(baseAsset: Asset)`, `GemConfirmLoadMock.swift`) take the generated type instead, and their call sites change. The hand-written data mocks left in `GemstonePrimitives/TestKit` and `gemcore` `testFixtures` merge into that package's one `Mocks.swift`/`Mocks.kt` in the same change, and their named presets go (`PortfolioData.mockWallet`/`mockPerpetual`, `mockPermitBatch`, `TransferData.mockPayment`, `SwapperQuoteAsset.mockUSDT`, `GemSwapSession.mockReady`/`mockLoading`/`mockFailed`). Records that app tests build inline without a mock (`GemSimulationPayloadRow`, `GemFiatQuoteRequest`, `GemPerpetualButtonRow`, `GemBalanceRequirement` on iOS; `GemBalanceRecord`, `GemPerpetualChartLayout`, `GemStakeViewState` on Android) are listed when a second test needs them.
 - **GEN300** **L** **Both apps' persistence mappers are generated from one spec.** Each app hand-writes the record ↔ model mapping for the same tables: iOS about 66 mapping members (about 780 lines) in `ios/Packages/Store/Sources/Models/*Record.swift`, Android about 49 mappers (about 650 lines) in `android/data/services/store/.../database/entities/Db*.kt`, about 60–65% of them plain field copies. They drift (BD299), and Android builds the same record in several places: four `DbAsset` builders (`AssetFull.toRecord`, `Asset.toRecord`, `AssetBasic.toRecord`, `AssetBasic.toUpdateRecord`), `DbPerpetual.toUpdate` duplicating `toDB`, and two `DbPrice.toAssetPrice` that disagree on a missing price (`stores/StoreModels.kt` returns 0, `DbTransactionExtended.kt` drops it).
   - **Expected:** a `records:` section in `remote_types.yml` names each record or entity, the model it maps and the few field rules a mapping needs (rename, flatten a nested record into prefixed columns, integer cast, parent key); the generator writes both directions per app (`Store/Sources/Generated/RecordMappers.swift`, `data/services/store/.../generated/EntityMappers.kt`), and the hand-written copies go. The record and entity declarations and schema stay hand-written. Start with the plain copies (`Account`, `AddressName`, `AssetLink`, `Contact`, `ContactAddress`, `SupportMessage`, `PriceAlert`, `Perpetual`, `PerpetualPosition`, `FiatRate`, `Banner`, `InAppNotification`), then the flattened ones (`Asset`, `NFTAsset`, `NFTCollection`, `FiatTransaction`, `WalletConnection`, `Balance`); mappings with real logic stay hand-written (`Transaction` id split, `AssetMarket` reassembly, `Price` positive check, `Node` status). Land after BD299.
 

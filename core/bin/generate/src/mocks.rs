@@ -275,7 +275,7 @@ impl Generator {
                         let parameters = fields
                             .iter()
                             .filter(|field| !field.skipped)
-                            .map(|field| (core_label(field), self.core_type(syntax, &field.type_name), self.core_default(syntax, name, field, &mut imports)))
+                            .map(|field| (core_label(field), self.core_type(syntax, &field.type_name), self.core_value(syntax, name, field, &mut imports)))
                             .collect::<Vec<_>>();
                         body.push_str(&record_mock(syntax, &core_type, &uniffi_type_name(name), &parameters));
                     }
@@ -422,6 +422,30 @@ impl Generator {
         }
     }
 
+    fn core_value(&self, syntax: &MockSyntax, record: &str, field: &Field, imports: &mut Vec<String>) -> String {
+        match self.config.mock_override(record, &field.rust) {
+            Some(value) => self.core_literal(syntax, record, field, value),
+            None => self.core_default(syntax, record, field, imports),
+        }
+    }
+
+    /// An override from `mocks:` for a gemstone field, spelled as in `app_literal`.
+    fn core_literal(&self, syntax: &MockSyntax, record: &str, field: &Field, value: &str) -> String {
+        let name = match unwrap(&field.type_name) {
+            (inner, Wrapper::Option) => self.core_name(inner),
+            (_, Wrapper::Vec) => panic!("{record}.{} is a list; a mock override takes a string, number, flag or enum variant", field.rust),
+            (name, Wrapper::None) => self.core_name(name),
+        };
+        match self.core_variants(name) {
+            Some(variants) if variants.iter().all(|variant| variant.fields.is_empty()) => syntax.unit_value[0]
+                .replace("{type}", &format!("{}{}", syntax.core_qualifier, uniffi_type_name(name)))
+                .replace("{case}", &(syntax.unit_case[0])(value)),
+            None if name == "String" => format!("{value:?}"),
+            None if self.config.is_scalar(name) => value.to_string(),
+            _ => panic!("{record}.{}: {name} cannot be overridden; a mock override takes a string, number, flag or enum variant", field.rust),
+        }
+    }
+
     fn core_default(&self, syntax: &MockSyntax, record: &str, field: &Field, imports: &mut Vec<String>) -> String {
         if map_types(&field.type_name).is_some() {
             return syntax.empty_map.to_string();
@@ -489,7 +513,7 @@ impl Generator {
             .fields
             .iter()
             .map(|field| {
-                let value = self.core_default(syntax, name, field, imports);
+                let value = self.core_value(syntax, name, field, imports);
                 match field.rust.is_empty() {
                     true => value,
                     false => syntax.named_argument.replace("{label}", &core_label(field)).replace("{value}", &value),

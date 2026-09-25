@@ -17,7 +17,8 @@ identifiers:
 mocks:
   - Account
   - GemAccountRow
-  - GemRowAction
+  - GemRowAction:
+      url: https://gemwallet.com
   - NFTImages
   - PriceAlert
   - PriceAlertNotification:

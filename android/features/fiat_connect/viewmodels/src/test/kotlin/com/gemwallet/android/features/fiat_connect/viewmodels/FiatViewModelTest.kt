@@ -23,9 +23,9 @@ import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockFiatProvider
 import com.gemwallet.android.testkit.mockFiatQuote
-import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemFiatOperation
 import com.gemwallet.android.testkit.mockGemFiatSession
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
@@ -93,7 +93,7 @@ class FiatViewModelTest {
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
-        every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)), GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)))
+        every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockGemFormattedNumber(value = 100.0)), GemFiatSuggestedAmount(250u, mockGemFormattedNumber(value = 250.0)))
         every { newSession(any(), any()) } answers {
             val quoteType = firstArg<uniffi.gemstone.FiatQuoteType>()
             val amount = secondArg<UInt?>()

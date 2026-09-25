@@ -13,7 +13,7 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemSocialLink
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockPriceAlert
@@ -111,7 +111,7 @@ class AssetChartViewModelTest {
         val market = mockAssetMarket(marketCap = 1234.0)
         val link = mockAssetLink()
         coEvery { chartService.sections(asset.toGem(), any(), market.toGem(), any(), listOf(link.toGem())) } returns listOf(
-            section(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1234.0), null))),
+            section(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1234.0), null))),
             section(listOf(GemListRow.Social(listOf(mockGemSocialLink()))), GemListSectionTitle.SOCIAL_LINKS),
         )
         priceDataFlow.value = priceDataFlow.value?.copy(market = market, links = listOf(link))
@@ -119,7 +119,7 @@ class AssetChartViewModelTest {
 
         val sections = viewModel.sections.first { it.size == 2 }
 
-        assertEquals(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1234.0), null)), sections.first().rows)
+        assertEquals(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1234.0), null)), sections.first().rows)
         assertEquals(GemListSectionTitle.SOCIAL_LINKS, sections.last().title)
     }
 

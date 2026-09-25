@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.fiat_connect.presents
 
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemFiatSuggestedAmount
@@ -8,8 +8,8 @@ import uniffi.gemstone.GemFiatSuggestedAmount
 class FiatSceneTest {
 
     private val suggestions = listOf(
-        GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)),
-        GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)),
+        GemFiatSuggestedAmount(100u, mockGemFormattedNumber(value = 100.0)),
+        GemFiatSuggestedAmount(250u, mockGemFormattedNumber(value = 250.0)),
     )
 
     @Test

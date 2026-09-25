@@ -4,7 +4,7 @@ import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
@@ -134,7 +134,7 @@ class GemListRowUIModelTest {
     fun `a ranked row carries its rank tag`() {
         every { context.getString(R.string.asset_market_cap) } returns "Market Cap"
 
-        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1.0), 7).uiModel(context) as GemListRowUIModel.Item).model
+        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1.0), 7).uiModel(context) as GemListRowUIModel.Item).model
 
         assertEquals("Market Cap", model.title)
         assertEquals("#7", model.titleTag)
@@ -162,12 +162,12 @@ class GemListRowUIModelTest {
 
     @Test
     fun `an all time row shows its change in the change's tone`() {
-        val change = mockFormattedNumber(-12.0, GemNumberUnit.Percent).copy(tone = GemValueTone.NEGATIVE)
-        val row = GemListRow.AllTime(title = GemListRowTitle.ALL_TIME_HIGH, value = mockFormattedNumber(100.0), date = 0L, change = change)
+        val change = mockGemFormattedNumber(value = -12.0, unit = GemNumberUnit.Percent).copy(tone = GemValueTone.NEGATIVE)
+        val row = GemListRow.AllTime(title = GemListRowTitle.ALL_TIME_HIGH, value = mockGemFormattedNumber(value = 100.0), date = 0L, change = change)
 
         val model = (row.uiModel(context) as GemListRowUIModel.Item).model
 
-        assertEquals(mockFormattedNumber(100.0).text(), model.subtitle)
+        assertEquals(mockGemFormattedNumber(value = 100.0).text(), model.subtitle)
         assertEquals(change.text(), model.subtitleExtra)
         assertEquals(GemValueTone.NEGATIVE.textStyle(), model.subtitleExtraStyle)
     }

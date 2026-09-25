@@ -1082,6 +1082,16 @@ fun mockFiatQuote(
     paymentMethods = paymentMethods,
 )
 
+fun mockGemAppUpdateOffer(
+    version: String = "",
+    canSkip: Boolean = false,
+    apkUrl: String? = null,
+) = uniffi.gemstone.GemAppUpdateOffer(
+    version = version,
+    canSkip = canSkip,
+    apkUrl = apkUrl,
+)
+
 fun mockGemAssetBalance(
     assetId: String = mockAssetId().toIdentifier(),
     available: java.math.BigInteger = java.math.BigInteger.ZERO,
@@ -1528,7 +1538,7 @@ fun mockGemNodeStatusState(): uniffi.gemstone.GemNodeStatusState = uniffi.gemsto
 
 fun mockGemNumberDisplay(): uniffi.gemstone.GemNumberDisplay = uniffi.gemstone.GemNumberDisplay.Number(precision = mockGemPrecision())
 
-fun mockGemNumberUnit(): uniffi.gemstone.GemNumberUnit = uniffi.gemstone.GemNumberUnit.Currency(code = "")
+fun mockGemNumberUnit(): uniffi.gemstone.GemNumberUnit = uniffi.gemstone.GemNumberUnit.Currency(code = "USD")
 
 fun mockGemPaymentRecipient(
     recipient: uniffi.gemstone.GemRecipient = mockGemRecipient(),
