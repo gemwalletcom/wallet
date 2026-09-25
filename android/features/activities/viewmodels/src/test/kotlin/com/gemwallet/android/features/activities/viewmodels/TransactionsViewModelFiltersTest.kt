@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -47,8 +48,8 @@ class TransactionsViewModelFiltersTest {
         Dispatchers.resetMain()
     }
 
-    private val first = mockWallet(id = "multicoin_0xabc")
-    private val second = mockWallet(id = "multicoin_0xdef")
+    private val first = mockWallet(id = WalletId("multicoin_0xabc"))
+    private val second = mockWallet(id = WalletId("multicoin_0xdef"))
 
     private fun viewModel(session: MutableStateFlow<Session?>): TransactionsViewModel {
         val service: GemTransactionsServiceInterface = mockk(relaxed = true) {

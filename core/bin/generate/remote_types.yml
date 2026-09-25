@@ -219,6 +219,7 @@ identifiers:
 # defaults the generator's rules give each field. An entry that maps a type to fields overrides
 # those fields where the rule would build an invalid value.
 mocks:
+  - Account
   - AddressName
   - Asset
   - AssetBasic
@@ -244,6 +245,7 @@ mocks:
   - TransactionListItem
   - TransactionPerpetualMetadata
   - TransactionSwapMetadata
+  - Wallet
 
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone

@@ -19,6 +19,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -36,8 +37,8 @@ class TransactionQueryTest {
         GemDatabase::class.java,
     ).build()
     private val query = TransactionQuery(database.transactionsDao())
-    private val wallet = mockWallet(id = "wallet-1")
-    private val otherWallet = mockWallet(id = "wallet-2")
+    private val wallet = mockWallet(id = WalletId("wallet-1"))
+    private val otherWallet = mockWallet(id = WalletId("wallet-2"))
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
     private val send = mockTransaction(

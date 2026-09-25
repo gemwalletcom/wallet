@@ -3,6 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -11,8 +12,9 @@ import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
 import com.gemwallet.android.testkit.mockGemWalletConnectTransactionRequest
 import com.gemwallet.android.testkit.mockSignMessage
 import com.gemwallet.android.testkit.mockTransferDataExtra
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSession
-import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.async
@@ -27,7 +29,7 @@ import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.TransactionInputType
 
 class WalletConnectSignerTest {
-    private val wallet = mockWalletMulticoin()
+    private val wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
     private val session = mockWalletConnectionSession(id = "topic", metadata = mockApplicationMetadata(name = "dapp"))
     private val pendingRequests = WalletConnectPendingRequests()
 

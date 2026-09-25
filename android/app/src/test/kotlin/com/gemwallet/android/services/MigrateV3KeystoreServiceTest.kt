@@ -53,7 +53,7 @@ class MigrateV3KeystoreServiceTest {
     @Test
     fun migrateWallet_invokesOperatorWithDecodedPasswordAndZeroizesIt() = runBlocking {
         val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
-        val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
+        val current = mockWallet(id = walletId, type = WalletType.PrivateKey, source = WalletSource.Import)
         every { walletsQuery() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId)
         var capturedLegacyPassword = byteArrayOf()
@@ -81,7 +81,7 @@ class MigrateV3KeystoreServiceTest {
             baseDir.deleteRecursively()
             baseDir.mkdirs()
             val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
-            val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
+            val current = mockWallet(id = walletId, type = WalletType.PrivateKey, source = WalletSource.Import)
             every { walletsQuery() } answers { flowOf(listOf(current)) }
             prepareV3File(walletId, password)
 

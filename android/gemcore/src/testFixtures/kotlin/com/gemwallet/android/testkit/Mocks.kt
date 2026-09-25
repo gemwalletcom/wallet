@@ -24,6 +24,8 @@ fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId
     tokenId = tokenId,
 )
 
+fun mockWalletId(address: String = "0x0000000000000000000000000000000000000000") = WalletId("multicoin_$address")
+
 fun mockTransactionId(chain: Chain = Chain.Bitcoin, hash: String = "tx-id") = TransactionId(
     chain = chain,
     hash = hash,

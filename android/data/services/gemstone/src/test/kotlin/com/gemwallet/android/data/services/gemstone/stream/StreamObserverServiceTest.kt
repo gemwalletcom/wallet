@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -93,7 +94,7 @@ class StreamObserverServiceTest {
         observer().start()
         runCurrent()
 
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)
@@ -156,7 +157,7 @@ class StreamObserverServiceTest {
 
         subject.stop()
         runCurrent()
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)

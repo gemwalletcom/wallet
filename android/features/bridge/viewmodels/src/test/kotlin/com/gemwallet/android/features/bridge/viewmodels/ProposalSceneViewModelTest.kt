@@ -4,13 +4,16 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
-import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
+import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -52,9 +55,9 @@ class ProposalSceneViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val main = mockWalletMulticoin()
+    private val main = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
 
-    private val secondary = mockWalletMulticoin(address = "0xdef", name = "Second Wallet")
+    private val secondary = mockWallet(id = mockWalletId(address = "0xdef"), name = "Second Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")))
 
     private val proposal = mockWalletConnectSessionProposal()
 

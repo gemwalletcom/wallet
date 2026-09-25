@@ -7,12 +7,15 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockGemRewardsResult
 import com.gemwallet.android.testkit.mockRewards
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -40,8 +43,8 @@ import uniffi.gemstone.GemServiceException
 class ReferralViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val wallet = mockWalletMulticoin(address = "0xabc")
-    private val secondWallet = mockWalletMulticoin(address = "0xdef", name = "Second Wallet")
+    private val wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
+    private val secondWallet = mockWallet(id = mockWalletId(address = "0xdef"), name = "Second Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")))
     private val walletsFlow = MutableStateFlow(listOf(wallet))
     private val sessionFlow = MutableStateFlow<Session?>(mockSession(wallet))
 

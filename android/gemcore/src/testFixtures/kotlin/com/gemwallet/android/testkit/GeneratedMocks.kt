@@ -3,6 +3,7 @@
 
 package com.gemwallet.android.testkit
 
+import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
@@ -52,6 +53,22 @@ import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
 import com.wallet.core.primitives.VerificationStatus
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletSource
+import com.wallet.core.primitives.WalletType
+
+fun mockAccount(
+    chain: Chain = Chain.Bitcoin,
+    address: String = "",
+    derivationPath: String = "",
+    extendedPublicKey: String? = null,
+) = Account(
+    chain = chain,
+    address = address,
+    derivationPath = derivationPath,
+    extendedPublicKey = extendedPublicKey,
+)
 
 fun mockAddressName(
     chain: Chain = Chain.Bitcoin,
@@ -445,4 +462,26 @@ fun mockTransactionSwapMetadata(
     toAsset = toAsset,
     toValue = toValue,
     provider = provider,
+)
+
+fun mockWallet(
+    id: WalletId = mockWalletId(),
+    externalId: String? = null,
+    name: String = "",
+    index: Int = 0,
+    type: WalletType = WalletType.Multicoin,
+    accounts: List<Account> = emptyList(),
+    isPinned: Boolean = false,
+    imageUrl: String? = null,
+    source: WalletSource = WalletSource.Create,
+) = Wallet(
+    id = id,
+    externalId = externalId,
+    name = name,
+    index = index,
+    type = type,
+    accounts = accounts,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+    source = source,
 )

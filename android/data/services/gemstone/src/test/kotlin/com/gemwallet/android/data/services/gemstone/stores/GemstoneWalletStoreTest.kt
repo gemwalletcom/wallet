@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.coJustRun
@@ -54,7 +55,7 @@ class GemstoneWalletStoreTest {
         coJustRun { assetsDao.insert(any<List<DbAsset>>()) }
         coJustRun { accountsDao.insert(any<List<DbAccount>>()) }
 
-        subject.addWallet(mockWallet(id = "wallet-1", type = WalletType.View, accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))))
+        subject.addWallet(mockWallet(id = WalletId("wallet-1"), type = WalletType.View, accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))))
 
         coVerifyOrder {
             walletsDao.insert(any())

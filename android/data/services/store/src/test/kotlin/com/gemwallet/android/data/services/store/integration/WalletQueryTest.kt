@@ -30,11 +30,11 @@ class WalletQueryTest {
     ).build()
     private val query = WalletQuery(database.walletsDao(), database.accountsDao())
     private val wallet = mockWallet(
-        id = "multicoin_0x1",
+        id = WalletId("multicoin_0x1"),
         name = "Main",
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1main"), mockAccount(chain = Chain.Ethereum, address = "0xmain")),
     )
-    private val otherWallet = mockWallet(id = "multicoin_0x2", name = "Other", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xother")))
+    private val otherWallet = mockWallet(id = WalletId("multicoin_0x2"), name = "Other", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xother")))
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {

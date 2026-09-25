@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -29,13 +30,13 @@ class WalletsQueryTest {
     ).build()
     private val query = WalletsQuery(database.walletsDao())
     private val multicoin = mockWallet(
-        id = "multicoin_0x1",
+        id = WalletId("multicoin_0x1"),
         name = "Main",
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1main"), mockAccount(chain = Chain.Ethereum, address = "0xmain")),
     )
-    private val pinned = mockWallet(id = "single_ethereum_0x2", name = "Pinned", type = WalletType.Single, accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xpinned")))
+    private val pinned = mockWallet(id = WalletId("single_ethereum_0x2"), name = "Pinned", type = WalletType.Single, accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xpinned")))
         .copy(isPinned = true)
-    private val watch = mockWallet(id = "view_ethereum_0x3", name = "Watch", type = WalletType.View)
+    private val watch = mockWallet(id = WalletId("view_ethereum_0x3"), name = "Watch", type = WalletType.View)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {

@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -54,7 +55,7 @@ class ReceiveViewModelTest {
     private val bitcoin = mockAsset()
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val wallet = mockWallet(
-        id = "multicoin_0xabc",
+        id = WalletId("multicoin_0xabc"),
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1q"), mockAccount(chain = Chain.Ethereum, address = "0xabc")),
     )
 

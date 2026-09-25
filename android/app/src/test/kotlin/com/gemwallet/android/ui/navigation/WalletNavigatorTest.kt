@@ -21,7 +21,6 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockNftAsset
-import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
@@ -54,6 +53,7 @@ import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -231,7 +231,7 @@ class WalletNavigatorTest {
 
     @Test
     fun openPendingNavigation_resetsSecretPhraseFlow() {
-        val walletId = mockWalletId("wallet-1")
+        val walletId = WalletId("wallet-1")
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
@@ -247,7 +247,7 @@ class WalletNavigatorTest {
 
     @Test
     fun finishWalletSecurityReminder_replacesReminderWithPhraseRoute() {
-        val walletId = mockWalletId("wallet-1")
+        val walletId = WalletId("wallet-1")
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
@@ -300,7 +300,7 @@ class WalletNavigatorTest {
     @Test
     fun dropNonRestorableRoutes_removesSensitiveAndInFlightRoutes() {
         val assetId = mockAssetId(Chain.Solana)
-        val walletId = mockWalletId("wallet-1")
+        val walletId = WalletId("wallet-1")
 
         val restored = listOf<NavKey>(
             WalletRootRoute,

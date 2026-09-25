@@ -3,10 +3,10 @@ package com.gemwallet.android.data.services.gemstone.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.services.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -19,6 +19,7 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -38,7 +39,7 @@ class TransactionStateStoreTest {
             val runner = RoomStoreTransactionRunner(database)
             val store = GemstoneTransactionStateStore(database.transactionsDao(), runner)
             val wallet = mockWallet()
-            val otherWallet = mockWallet(id = "wallet-2")
+            val otherWallet = mockWallet(id = WalletId("wallet-2"))
             database.walletsDao().insert(wallet.toRecord())
             database.walletsDao().insert(otherWallet.toRecord())
             val metadata = TransactionSwapMetadata(mockAssetId(), "100", mockAssetId(chain = Chain.Ethereum), "200")

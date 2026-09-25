@@ -8,10 +8,13 @@ import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectS
 import com.gemwallet.android.data.services.store.queries.ConnectionQuery
 import com.gemwallet.android.data.services.store.queries.ConnectionsQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockGemConnectionRow
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSession
-import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
 import io.mockk.coEvery
 import io.mockk.coJustRun
@@ -60,7 +63,7 @@ class ConnectionsViewModelTest {
 
     private val connection = WalletConnection(
         session = mockWalletConnectionSession(id = "connection-1", sessionId = "session-1"),
-        wallet = mockWalletMulticoin(),
+        wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))),
     )
 
     @Test

@@ -63,7 +63,7 @@ class NotificationNavigationTest {
     @Test
     fun `a transaction Core opened routes to its details`() = runBlocking {
         val assetId = mockAssetId(Chain.Ethereum)
-        val walletId = mockWalletId("multicoin_0x1")
+        val walletId = mockWalletId(address = "0x1")
         val asset = mockAsset(id = assetId)
         val transaction = mockTransaction(assetId = assetId)
 

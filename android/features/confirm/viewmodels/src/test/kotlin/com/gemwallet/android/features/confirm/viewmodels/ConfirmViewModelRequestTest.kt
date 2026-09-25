@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -106,7 +107,7 @@ class ConfirmViewModelRequestTest {
     @Test
     fun aRequestForAnotherWalletIsConfirmedForThatWallet() = runTest(testDispatcher) {
         val current = mockWallet(accounts = listOf(account))
-        val connected = mockWallet(id = "wallet-2", name = "Connected", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xconnected")))
+        val connected = mockWallet(id = WalletId("wallet-2"), name = "Connected", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xconnected")))
         val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "connected"))
         val viewModel = viewModel(SavedStateHandle()).also { model = it }
 

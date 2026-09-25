@@ -4,6 +4,22 @@
 import Foundation
 import Primitives
 
+public extension Account {
+    static func mock(
+        chain: Chain = .bitcoin,
+        address: String = "",
+        derivationPath: String = "",
+        extendedPublicKey: String? = nil,
+    ) -> Account {
+        Account(
+            chain: chain,
+            address: address,
+            derivationPath: derivationPath,
+            extendedPublicKey: extendedPublicKey,
+        )
+    }
+}
+
 public extension AddressName {
     static func mock(
         chain: Chain = .bitcoin,
@@ -494,6 +510,32 @@ public extension TransactionSwapMetadata {
             toAsset: toAsset,
             toValue: toValue,
             provider: provider,
+        )
+    }
+}
+
+public extension Wallet {
+    static func mock(
+        id: WalletId = .mock(),
+        externalId: String? = nil,
+        name: String = "",
+        index: Int32 = 0,
+        type: WalletType = .multicoin,
+        accounts: [Account] = [],
+        isPinned: Bool = false,
+        imageUrl: String? = nil,
+        source: WalletSource = .create,
+    ) -> Wallet {
+        Wallet(
+            id: id,
+            externalId: externalId,
+            name: name,
+            index: index,
+            type: type,
+            accounts: accounts,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+            source: source,
         )
     }
 }

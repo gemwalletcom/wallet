@@ -16,6 +16,7 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -33,8 +34,8 @@ class TransactionsCountQueryTest {
     ).build()
     private val query = TransactionsCountQuery(database.transactionsDao())
     private val pending = TransactionsQueryFilter.pendingActivity()
-    private val wallet = mockWallet(id = "wallet-1")
-    private val otherWallet = mockWallet(id = "wallet-2")
+    private val wallet = mockWallet(id = WalletId("wallet-1"))
+    private val otherWallet = mockWallet(id = WalletId("wallet-2"))
     private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val spam = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xspam"), name = "Spam", symbol = "SPAM", decimals = 18, type = AssetType.ERC20)
@@ -79,8 +80,8 @@ class TransactionsCountQueryTest {
 
     @Test
     fun aWalletWithoutPendingTransactionsCountsZero() = runBlocking(Dispatchers.IO) {
-        database.walletsDao().insert(mockWallet(id = "wallet-3").toRecord())
+        database.walletsDao().insert(mockWallet(id = WalletId("wallet-3")).toRecord())
 
-        assertEquals(0, query(mockWallet(id = "wallet-3").id, pending).first())
+        assertEquals(0, query(mockWallet(id = WalletId("wallet-3")).id, pending).first())
     }
 }

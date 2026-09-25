@@ -6,12 +6,15 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayload
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockGemWalletConnectAuthAccount
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
-import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -55,9 +58,9 @@ class WCAuthViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val main = mockWalletMulticoin()
+    private val main = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
 
-    private val secondary = mockWalletMulticoin(address = "0xdef", name = "Second Wallet")
+    private val secondary = mockWallet(id = mockWalletId(address = "0xdef"), name = "Second Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")))
 
     private val payloadParams = WalletConnectAuthPayloadParams(
         chains = listOf("eip155:1"),

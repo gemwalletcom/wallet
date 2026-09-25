@@ -8,6 +8,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -39,7 +40,7 @@ class GemstoneConnectionStoreTest {
     @Test
     fun getConnectionBySessionId_returnsNullForMissingWallet() = runTest {
         coEvery { connectionsDao.getBySessionId("topic-1") } returns mockDbConnection(id = "topic-1", walletId = "missing-wallet")
-        every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
+        every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = WalletId("wallet-1"))))
 
         assertNull(store.getConnectionBySessionId("topic-1"))
         assertNull(store.getConnection("topic-1"))
@@ -49,7 +50,7 @@ class GemstoneConnectionStoreTest {
     fun updateSession_keepsWalletAndCreationDate() = runTest {
         val record = mockDbConnection(id = "connection-1", walletId = "wallet-1")
         coEvery { connectionsDao.getBySessionId("connection-1") } returns record
-        val session = record.toDTO(mockWallet(id = "wallet-1")).session.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)
+        val session = record.toDTO(mockWallet(id = WalletId("wallet-1"))).session.copy(chains = listOf(Chain.Ethereum, Chain.Solana), expireAt = 3_000)
 
         store.updateSession(session.toGem())
 
@@ -60,7 +61,7 @@ class GemstoneConnectionStoreTest {
     fun updateSession_ignoresUnknownSessions() = runTest {
         coEvery { connectionsDao.getBySessionId("missing") } returns null
 
-        store.updateSession(mockDbConnection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = "wallet-1")).session.toGem())
+        store.updateSession(mockDbConnection(id = "missing", walletId = "wallet-1").toDTO(mockWallet(id = WalletId("wallet-1"))).session.toGem())
 
         coVerify(exactly = 0) { connectionsDao.insert(any<DbConnection>()) }
     }

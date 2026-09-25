@@ -12,6 +12,7 @@ import com.gemwallet.android.testkit.mockNftCollection
 import com.gemwallet.android.testkit.mockNftCollectionId
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -37,7 +38,7 @@ class GetNftAssetDetailsImplTest {
         collection = mockNftCollection(id = mockNftCollectionId(contractAddress = "0xother")),
         asset = mockNftAsset(id = assetId, collectionId = mockNftCollectionId(contractAddress = "0xother")),
     )
-    private val wallet = mockWallet(id = "wallet-1")
+    private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val getSession = mockk<GetSession> { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
     private val nftService = mockk<GemNftServiceInterface>()
     private val collectibleService = mockk<GemCollectibleServiceInterface>(relaxed = true)

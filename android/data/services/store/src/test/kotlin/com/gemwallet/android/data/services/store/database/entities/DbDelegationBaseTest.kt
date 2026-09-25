@@ -49,7 +49,7 @@ class DbDelegationBaseTest {
             record.id,
         )
         assertEquals("monad_16", record.validatorId)
-        assertEquals("wallet-1", record.walletId)
+        assertEquals(walletId.id, record.walletId)
         assertEquals(record.id, delegation.copy(balance = BigInteger("200")).toRecord(walletId).id)
     }
 }

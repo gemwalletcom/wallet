@@ -7,7 +7,11 @@ import com.wallet.core.primitives.WalletConnectionSession
 import uniffi.gemstone.GemWalletConnectMessageRequest
 import uniffi.gemstone.SignMessage
 
-fun mockGemWalletConnectMessageRequest(wallet: Wallet = mockWalletMulticoin(), session: WalletConnectionSession = mockWalletConnectionSession(), message: SignMessage = mockSignMessage()) = GemWalletConnectMessageRequest(
+fun mockGemWalletConnectMessageRequest(
+    wallet: Wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))),
+    session: WalletConnectionSession = mockWalletConnectionSession(),
+    message: SignMessage = mockSignMessage(),
+) = GemWalletConnectMessageRequest(
     sessionId = session.sessionId,
     chain = Chain.Ethereum.string,
     wallet = wallet.toGem(),

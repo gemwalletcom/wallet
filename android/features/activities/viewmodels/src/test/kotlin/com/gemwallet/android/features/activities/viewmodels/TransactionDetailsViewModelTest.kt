@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.every
 import io.mockk.mockk
@@ -82,8 +83,8 @@ class TransactionDetailsViewModelTest {
 
     @Test
     fun theDetailsClearWhenTheOtherWalletHasNoSuchRecord() {
-        val first = mockWallet(id = "first")
-        val second = mockWallet(id = "second")
+        val first = mockWallet(id = WalletId("first"))
+        val second = mockWallet(id = WalletId("second"))
         session.value = mockSession(wallet = first)
         val rows = mockGemTransactionDetailRows(transaction = transactionExtended)
         every { transactionQuery(first.id, transactionId) } returns flowOf(transactionExtended)

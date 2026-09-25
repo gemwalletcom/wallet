@@ -51,7 +51,7 @@ class MigrateV3KeystoreFilesTest {
     @Test
     fun migrateMnemonicWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
         val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
-        val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
+        val current = mockWallet(id = walletId, type = WalletType.Multicoin, source = WalletSource.Import)
         every { walletsQuery() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_mnemonic.json")
 
@@ -69,7 +69,7 @@ class MigrateV3KeystoreFilesTest {
     @Test
     fun migratePrivateKeyWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
         val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
-        val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
+        val current = mockWallet(id = walletId, type = WalletType.PrivateKey, source = WalletSource.Import)
         every { walletsQuery() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_private_key.json")
 
@@ -87,7 +87,7 @@ class MigrateV3KeystoreFilesTest {
     @Test
     fun migrateV3WithEmptyScryptSalt_createsV4AndRecoversKey() = runBlocking {
         val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
-        val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
+        val current = mockWallet(id = walletId, type = WalletType.Multicoin, source = WalletSource.Import)
         every { walletsQuery() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_empty_salt_mnemonic.json")
 

@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -91,7 +92,7 @@ class NftListViewModelsTest {
     fun `collections follow the session wallet and ignore updates to the same wallet`() = runTest(dispatcher) {
         val service = mockk<GemNftServiceInterface> { every { listScreen(any(), any()) } returns onlyUnverified }
         val query = mockk<NFTQuery> { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
-        val sessions = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = "wallet-a")))
+        val sessions = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("wallet-a"))))
         NftListViewModels(
             nftService = service,
             nftQuery = query,
@@ -102,9 +103,9 @@ class NftListViewModelsTest {
         )
         advanceUntilIdle()
 
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-b"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-b")))
         advanceUntilIdle()
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-b", name = "Renamed"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-b"), name = "Renamed"))
         advanceUntilIdle()
 
         verify(exactly = 1) { query("wallet-a", null) }

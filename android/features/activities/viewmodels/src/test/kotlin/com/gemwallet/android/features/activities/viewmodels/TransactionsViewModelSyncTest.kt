@@ -5,6 +5,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -87,7 +88,7 @@ class TransactionsViewModelSyncTest {
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
-        session.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        session.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         viewModel.syncIfNeeded()?.join()
 
         coVerify(exactly = 2) { service.refresh(null, any()) }
@@ -104,7 +105,7 @@ class TransactionsViewModelSyncTest {
         val viewModel = createViewModel()
 
         val previous = viewModel.syncIfNeeded()
-        session.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        session.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         viewModel.syncIfNeeded()?.join()
         first.complete(GemLoadState.Error(GemServiceException.Gateway("offline")))
         previous?.join()

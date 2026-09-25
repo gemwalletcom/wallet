@@ -18,6 +18,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -66,7 +67,7 @@ class BaseAssetSelectViewModelTest {
     }
 
     private val wallet = mockWallet(
-        id = "multicoin_0xabc",
+        id = WalletId("multicoin_0xabc"),
         accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"), mockAccount(chain = Chain.Bitcoin, address = "bc1q")),
     )
 

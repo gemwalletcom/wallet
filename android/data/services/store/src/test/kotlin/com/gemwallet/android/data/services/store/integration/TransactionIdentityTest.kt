@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
@@ -96,7 +97,7 @@ class TransactionIdentityTest {
 
     @Test
     fun mergePreservesObservedIdentityAndConfirmedDataWithinWallet() = runBlocking(Dispatchers.IO) {
-        val secondWallet = mockWallet(id = "wallet-2")
+        val secondWallet = mockWallet(id = WalletId("wallet-2"))
         database.walletsDao().insert(secondWallet.toRecord())
         val target = pending.copy(id = finalId, hash = "final-hash", state = TransactionState.Confirmed, fee = "300", metadata = "confirmed", value = "900")
         transactions.insert(listOf(pending, target, pending.copy(walletId = secondWallet.id), target.copy(walletId = secondWallet.id)))
