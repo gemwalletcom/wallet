@@ -184,8 +184,53 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     public init() {
         dataForType = { type in
             switch type {
-            case .wallet: .mockWallet()
-            case .perpetuals: .mockPerpetual()
+            case .wallet: .mock(
+                    charts: [.mock(
+                        chartType: .value,
+                        values: [Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105).toGem(),
+                                 Primitives.ChartDateValue.mock(
+                                     date: Date(timeIntervalSince1970: 34560),
+                                     value: 102,
+                                 ).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110).toGem()],
+                    )],
+                    statistics: [
+                        .allTimeHigh(value: Primitives.ChartValuePercentage.mock(date: Date(timeIntervalSince1970: 0), value: 1500, percentage: 5).toGem()),
+                        .allTimeLow(value: Primitives.ChartValuePercentage.mock(date: Date(timeIntervalSince1970: 0), value: 800, percentage: -10).toGem()),
+                    ],
+                    availablePeriods: [.day, .week, .month, .year, .all],
+                )
+            case .perpetuals: .mock(
+                    charts: [
+                        .mock(
+                            chartType: .pnl,
+                            values: [
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 0).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 5).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 34560), value: 2).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 8).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 10).toGem(),
+                            ],
+                        ),
+                        .mock(
+                            chartType: .value,
+                            values: [
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 34560), value: 102).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110).toGem(),
+                            ],
+                        ),
+                    ],
+                    statistics: [
+                        .unrealizedPnl(value: 500),
+                        .accountLeverage(value: 2.5),
+                        .marginUsage(value: .mock(accountValue: 10000, usage: 0.15, usedValue: 1500, usagePercent: 15)),
+                        .allTimePnl(value: 1200),
+                        .volume(value: 50000),
+                    ],
+                    availablePeriods: [.day, .week, .month, .year, .all],
+                )
             }
         }
     }

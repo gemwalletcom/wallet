@@ -5,15 +5,19 @@ import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualId
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockWalletId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -75,13 +79,37 @@ class AmountPerpetualProviderTest {
     @Test
     fun `showsAutoclose is true for Open and false for Reduce`() {
         assertTrue(makeProvider().showsAutoclose)
-        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), mockPerpetualPosition().toGem()))
+        val reduce =
+            makeProvider(
+                positionAction = GemPerpetualPositionAction.Reduce(
+                    mockGemPerpetualTransferData(
+                        provider = PerpetualProvider.Hypercore.toGem(),
+                        direction = PerpetualDirection.Long.toGem(),
+                        asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN).toGem(),
+                        baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8, type = AssetType.TOKEN).toGem(),
+                        price = 100.0,
+                        leverage = 1u,
+                        marginType = PerpetualMarginType.Cross.toGem(),
+                    ),
+                    mockPerpetualPosition().toGem(),
+                ),
+            )
         assertFalse(reduce.showsAutoclose)
     }
 
     private fun makeProvider(
         direction: PerpetualDirection = PerpetualDirection.Long,
-        positionAction: GemPerpetualPositionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData(direction = direction)),
+        positionAction: GemPerpetualPositionAction = GemPerpetualPositionAction.Open(
+            mockGemPerpetualTransferData(
+                provider = PerpetualProvider.Hypercore.toGem(),
+                direction = direction.toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN).toGem(),
+                baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8, type = AssetType.TOKEN).toGem(),
+                price = 100.0,
+                leverage = 1u,
+                marginType = PerpetualMarginType.Cross.toGem(),
+            ),
+        ),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
         autoclose: (UByte) -> GemPerpetualAutoclose = { GemPerpetualAutoclose(takeProfit = null, stopLoss = null) },
     ): AmountPerpetualProvider {

@@ -18,8 +18,8 @@ import TransferTestKit
 struct AmountPerpetualViewModelTests {
     @Test
     func title() {
-        let openLong = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long)))
-        let openShort = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short)))
+        let openLong = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))
+        let openShort = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short, price: 100, leverage: 3)))
 
         #expect(amountTitle(openLong) == "Long")
         #expect(amountTitle(openShort) == "Short")
@@ -28,7 +28,7 @@ struct AmountPerpetualViewModelTests {
     @Test
     func increaseReduceTitle() {
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long)))
-        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
+        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
         #expect(amountTitle(increase).contains("Long"))
         #expect(amountTitle(reduce).contains("Long"))
@@ -36,8 +36,8 @@ struct AmountPerpetualViewModelTests {
 
     @Test
     func leverageSelection() {
-        let open = AmountPerpetualViewModel.mock(action: .open(data: .mock(leverage: 10)))
-        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock()))
+        let open = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)))
+        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3)))
 
         #expect(open.leverageSelection != nil)
         #expect(open.leverageSelection?.isEnabled == true)
@@ -47,8 +47,8 @@ struct AmountPerpetualViewModelTests {
     @Test
     func isAutocloseEnabled() {
         let open = AmountPerpetualViewModel.mock()
-        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock()))
-        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
+        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3)))
+        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
         #expect(open.isAutocloseEnabled == true)
         #expect(increase.isAutocloseEnabled == false)
@@ -60,7 +60,7 @@ struct AmountPerpetualViewModelTests {
         let assetData = AssetData.mock(balance: .mock(available: 5000))
 
         let open = AmountPerpetualViewModel.mock()
-        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
+        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
         #expect(amountInput(open, assetData).availableValue == 5000)
         #expect(amountInput(reduce, assetData).availableValue == 1000)
@@ -84,7 +84,7 @@ struct AmountPerpetualViewModelTests {
     func aLeverageChangeRefreshesUntouchedDefaultsAndKeepsEditedPrices() throws {
         let service = GemAmountServiceMock(builder: GemAmountService.mock())
         service.perpetualAutocloseValue = { leverage in GemPerpetualAutoclose(takeProfit: "\(100 + Int(leverage))", stopLoss: "\(50 - Int(leverage))") }
-        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(leverage: 10)), service: service)
+        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), service: service)
         let selection = try #require(model.leverageSelection)
         let other = try #require(selection.options.first { $0 != selection.selected })
 
@@ -99,7 +99,7 @@ struct AmountPerpetualViewModelTests {
 
     @Test
     func makeAutocloseData() {
-        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long)))
+        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))
         model.updateAutoclose(takeProfit: "100", stopLoss: "50")
 
         let data = model.makeAutocloseData(size: 1000)
@@ -113,8 +113,8 @@ struct AmountPerpetualViewModelTests {
     @Test
     func makeTransferData() async throws {
         let open = try await transferData(AmountPerpetualViewModel.mock(), value: 100)
-        let increase = try await transferData(AmountPerpetualViewModel.mock(action: .increase(data: .mock())), value: 200)
-        let reduce = try await transferData(AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem())), value: 300)
+        let increase = try await transferData(AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3))), value: 200)
+        let reduce = try await transferData(AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem())), value: 300)
 
         #expect(perpetualType(open).map {
             if case .open = $0 {

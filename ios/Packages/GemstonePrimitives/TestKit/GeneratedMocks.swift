@@ -432,6 +432,48 @@ public extension Gemstone.GemPaymentRecipient {
     }
 }
 
+public extension Gemstone.GemPerpetualDetails {
+    static func mock(
+        title: String = "",
+        sections: [Gemstone.GemPerpetualSection] = [],
+        modifyButtons: [Gemstone.GemPerpetualButtonRow] = [],
+        position: Gemstone.PerpetualPosition? = nil,
+        positionRow: Gemstone.GemPerpetualPositionRow? = nil,
+    ) -> Gemstone.GemPerpetualDetails {
+        Gemstone.GemPerpetualDetails(
+            title: title,
+            sections: sections,
+            modifyButtons: modifyButtons,
+            position: position,
+            positionRow: positionRow,
+        )
+    }
+}
+
+public extension Gemstone.GemPerpetualTransferData {
+    static func mock(
+        provider: Gemstone.PerpetualProvider = .hypercore,
+        direction: Gemstone.PerpetualDirection = .short,
+        asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        baseAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        assetIndex: Int32 = 0,
+        price: Double = 0,
+        leverage: UInt8 = 0,
+        marginType: Gemstone.PerpetualMarginType = .cross,
+    ) -> Gemstone.GemPerpetualTransferData {
+        Gemstone.GemPerpetualTransferData(
+            provider: provider,
+            direction: direction,
+            asset: asset,
+            baseAsset: baseAsset,
+            assetIndex: assetIndex,
+            price: price,
+            leverage: leverage,
+            marginType: marginType,
+        )
+    }
+}
+
 public extension Gemstone.GemPrecision {
     static func mock() -> Gemstone.GemPrecision {
         .fraction(min: 0, max: 0)
@@ -450,6 +492,52 @@ public extension Gemstone.GemRecipient {
             name: name,
             memo: memo,
             references: references,
+        )
+    }
+}
+
+public extension Gemstone.GemRewardsRedemption {
+    static func mock(
+        id: String = "",
+        assetId: String = Primitives.AssetId.mock().identifier,
+        title: Gemstone.GemLocalizedText = .mock(),
+        canRedeem: Bool = false,
+        points: Gemstone.GemFormattedNumber = .mock(),
+        value: Gemstone.GemFormattedNumber = .mock(),
+    ) -> Gemstone.GemRewardsRedemption {
+        Gemstone.GemRewardsRedemption(
+            id: id,
+            assetId: assetId,
+            title: title,
+            canRedeem: canRedeem,
+            points: points,
+            value: value,
+        )
+    }
+}
+
+public extension Gemstone.GemRewardsState {
+    static func mock(
+        actions: [Gemstone.GemRewardsAction] = [],
+        errorNotice: Gemstone.GemListRow? = nil,
+        statusNotice: Gemstone.GemListRow? = nil,
+        sections: [Gemstone.GemListSection] = [],
+        inviteRewardPoints: Gemstone.GemFormattedNumber = .mock(),
+        referralCode: String? = nil,
+        referralLink: String? = nil,
+        usedReferralCode: String? = nil,
+        redemptions: [Gemstone.GemRewardsRedemption] = [],
+    ) -> Gemstone.GemRewardsState {
+        Gemstone.GemRewardsState(
+            actions: actions,
+            errorNotice: errorNotice,
+            statusNotice: statusNotice,
+            sections: sections,
+            inviteRewardPoints: inviteRewardPoints,
+            referralCode: referralCode,
+            referralLink: referralLink,
+            usedReferralCode: usedReferralCode,
+            redemptions: redemptions,
         )
     }
 }
@@ -580,6 +668,220 @@ public extension Gemstone.PaymentRequest {
             label: label,
             references: references,
             assetId: assetId,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualConfirmData {
+    static func mock(
+        direction: Gemstone.PerpetualDirection = .short,
+        marginType: Gemstone.PerpetualMarginType = .cross,
+        baseAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        assetIndex: Int32 = 0,
+        price: String = "",
+        fiatValue: Double = 0,
+        size: String = "",
+        slippage: Double = 0,
+        leverage: UInt8 = 0,
+        pnl: Double? = nil,
+        entryPrice: Double? = nil,
+        marketPrice: Double = 0,
+        marginAmount: Double = 0,
+        takeProfit: String? = nil,
+        stopLoss: String? = nil,
+    ) -> Gemstone.PerpetualConfirmData {
+        Gemstone.PerpetualConfirmData(
+            direction: direction,
+            marginType: marginType,
+            baseAsset: baseAsset,
+            assetIndex: assetIndex,
+            price: price,
+            fiatValue: fiatValue,
+            size: size,
+            slippage: slippage,
+            leverage: leverage,
+            pnl: pnl,
+            entryPrice: entryPrice,
+            marketPrice: marketPrice,
+            marginAmount: marginAmount,
+            takeProfit: takeProfit,
+            stopLoss: stopLoss,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualModifyConfirmData {
+    static func mock(
+        baseAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        assetIndex: Int32 = 0,
+        modifyTypes: [Gemstone.PerpetualModifyPositionType] = [],
+        takeProfitOrderId: UInt64? = nil,
+        stopLossOrderId: UInt64? = nil,
+    ) -> Gemstone.PerpetualModifyConfirmData {
+        Gemstone.PerpetualModifyConfirmData(
+            baseAsset: baseAsset,
+            assetIndex: assetIndex,
+            modifyTypes: modifyTypes,
+            takeProfitOrderId: takeProfitOrderId,
+            stopLossOrderId: stopLossOrderId,
+        )
+    }
+}
+
+public extension Gemstone.PerpetualReduceData {
+    static func mock(
+        data: Gemstone.PerpetualConfirmData = .mock(),
+        positionDirection: Gemstone.PerpetualDirection = .short,
+    ) -> Gemstone.PerpetualReduceData {
+        Gemstone.PerpetualReduceData(
+            data: data,
+            positionDirection: positionDirection,
+        )
+    }
+}
+
+public extension Gemstone.PortfolioChartData {
+    static func mock(
+        chartType: Gemstone.PortfolioChartType = .value,
+        values: [Gemstone.ChartDateValue] = [],
+    ) -> Gemstone.PortfolioChartData {
+        Gemstone.PortfolioChartData(
+            chartType: chartType,
+            values: values,
+        )
+    }
+}
+
+public extension Gemstone.PortfolioData {
+    static func mock(
+        charts: [Gemstone.PortfolioChartData] = [],
+        statistics: [Gemstone.PortfolioStatistic] = [],
+        availablePeriods: [Gemstone.ChartPeriod] = [],
+    ) -> Gemstone.PortfolioData {
+        Gemstone.PortfolioData(
+            charts: charts,
+            statistics: statistics,
+            availablePeriods: availablePeriods,
+        )
+    }
+}
+
+public extension Gemstone.PortfolioMarginUsage {
+    static func mock(
+        accountValue: Double = 0,
+        usage: Double = 0,
+        usedValue: Double = 0,
+        usagePercent: Double = 0,
+    ) -> Gemstone.PortfolioMarginUsage {
+        Gemstone.PortfolioMarginUsage(
+            accountValue: accountValue,
+            usage: usage,
+            usedValue: usedValue,
+            usagePercent: usagePercent,
+        )
+    }
+}
+
+public extension Gemstone.RedemptionResult {
+    static func mock(
+        redemption: Gemstone.RewardRedemption = .mock(),
+    ) -> Gemstone.RedemptionResult {
+        Gemstone.RedemptionResult(
+            redemption: redemption,
+        )
+    }
+}
+
+public extension Gemstone.ReferralAllowance {
+    static func mock(
+        daily: Gemstone.ReferralQuota = .mock(),
+        weekly: Gemstone.ReferralQuota = .mock(),
+    ) -> Gemstone.ReferralAllowance {
+        Gemstone.ReferralAllowance(
+            daily: daily,
+            weekly: weekly,
+        )
+    }
+}
+
+public extension Gemstone.ReferralQuota {
+    static func mock(
+        limit: Int32 = 0,
+        available: Int32 = 0,
+    ) -> Gemstone.ReferralQuota {
+        Gemstone.ReferralQuota(
+            limit: limit,
+            available: available,
+        )
+    }
+}
+
+public extension Gemstone.RewardRedemption {
+    static func mock(
+        id: Int32 = 0,
+        option: Gemstone.RewardRedemptionOption = .mock(),
+        status: Gemstone.RedemptionStatus = .pending,
+        transactionId: String? = nil,
+        createdAt: Date = Date(timeIntervalSince1970: 0),
+    ) -> Gemstone.RewardRedemption {
+        Gemstone.RewardRedemption(
+            id: id,
+            option: option,
+            status: status,
+            transactionId: transactionId,
+            createdAt: createdAt,
+        )
+    }
+}
+
+public extension Gemstone.RewardRedemptionOption {
+    static func mock(
+        id: String = "",
+        redemptionType: Gemstone.RewardRedemptionType = .asset,
+        points: Int32 = 0,
+        asset: Gemstone.Asset? = nil,
+        value: BigUInt = 0,
+        remaining: Int32? = nil,
+    ) -> Gemstone.RewardRedemptionOption {
+        Gemstone.RewardRedemptionOption(
+            id: id,
+            redemptionType: redemptionType,
+            points: points,
+            asset: asset,
+            value: value,
+            remaining: remaining,
+        )
+    }
+}
+
+public extension Gemstone.Rewards {
+    static func mock(
+        code: String? = nil,
+        inviteRewardPoints: Int32 = 0,
+        referralCount: Int32 = 0,
+        points: Int32 = 0,
+        usedReferralCode: String? = nil,
+        status: Gemstone.RewardStatus = .unverified,
+        createdAt: Int64 = 0,
+        verifyAfter: Date? = nil,
+        redemptionOptions: [Gemstone.RewardRedemptionOption] = [],
+        disableReason: String? = nil,
+        referralAllowance: Gemstone.ReferralAllowance = .mock(),
+        useReferralCodeUntil: Date? = nil,
+    ) -> Gemstone.Rewards {
+        Gemstone.Rewards(
+            code: code,
+            inviteRewardPoints: inviteRewardPoints,
+            referralCount: referralCount,
+            points: points,
+            usedReferralCode: usedReferralCode,
+            status: status,
+            createdAt: createdAt,
+            verifyAfter: verifyAfter,
+            redemptionOptions: redemptionOptions,
+            disableReason: disableReason,
+            referralAllowance: referralAllowance,
+            useReferralCodeUntil: useReferralCodeUntil,
         )
     }
 }

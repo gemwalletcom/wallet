@@ -236,6 +236,7 @@ mocks:
   - BlockExplorerLink
   - ChartCandleStick
   - ChartDateValue
+  - ChartValuePercentage
   - Contact
   - ContactAddress
   - ContactData
@@ -273,8 +274,12 @@ mocks:
   - GemNumberDisplay
   - GemNumberUnit
   - GemPaymentRecipient
+  - GemPerpetualDetails
+  - GemPerpetualTransferData
   - GemPrecision
   - GemRecipient
+  - GemRewardsRedemption
+  - GemRewardsState
   - GemRowText
   - GemTransferAmount
   - GemTransferAmountResult
@@ -295,16 +300,28 @@ mocks:
   - PaymentRequest
   - Perpetual
   - PerpetualAccountSummary
+  - PerpetualConfirmData
   - PerpetualData
   - PerpetualMetadata
+  - PerpetualModifyConfirmData
   - PerpetualPortfolio
   - PerpetualPortfolioTimeframeData
   - PerpetualPosition
   - PerpetualPositionData
+  - PerpetualReduceData
+  - PortfolioChartData
+  - PortfolioData
+  - PortfolioMarginUsage
   - Price
   - PriceAlert
   - PriceAlertData
   - RedelegateData
+  - RedemptionResult
+  - ReferralAllowance
+  - ReferralQuota
+  - RewardRedemption
+  - RewardRedemptionOption
+  - Rewards
   - SignMessage
   - SimulationPayloadField
   - SimulationResult

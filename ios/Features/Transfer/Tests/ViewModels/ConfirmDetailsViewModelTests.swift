@@ -34,7 +34,11 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func perpetual() {
-        let model = ConfirmDetailsViewModel(type: .perpetual(asset: Primitives.Asset.mock().toGem(), perpetualType: .open(data: .mock())), metadata: nil, confirmation: GemConfirmationMock())
+        let model = ConfirmDetailsViewModel(
+            type: .perpetual(asset: Primitives.Asset.mock().toGem(), perpetualType: .open(data: .mock(direction: .long, price: "100", fiatValue: 100, size: "1", slippage: 2, leverage: 3, marketPrice: 100, marginAmount: 33.33))),
+            metadata: nil,
+            confirmation: GemConfirmationMock(),
+        )
 
         guard case .perpetualDetails = model.itemModel else {
             Issue.record("Expected .perpetualDetails")

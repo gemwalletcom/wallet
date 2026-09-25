@@ -9,6 +9,8 @@ import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIM
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockGemRewardsResult
+import com.gemwallet.android.testkit.mockReferralAllowance
+import com.gemwallet.android.testkit.mockReferralQuota
 import com.gemwallet.android.testkit.mockRewards
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -38,6 +40,7 @@ import org.junit.Test
 import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.RewardStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReferralViewModelTest {
@@ -62,7 +65,14 @@ class ReferralViewModelTest {
         every { wallets(any()) } answers { firstArg() }
         every { selectedWallet(any(), any()) } answers { firstArg() }
         coEvery { refresh(any()) } answers { mockGemRewardsResult(walletId = firstArg()) }
-        coEvery { useReferralCode(any(), any()) } returns mockRewards(usedReferralCode = "friend", verifyAfter = 4_102_444_800)
+        coEvery { useReferralCode(any(), any()) } returns
+            mockRewards(
+                inviteRewardPoints = 100,
+                usedReferralCode = "friend",
+                status = RewardStatus.VERIFIED,
+                verifyAfter = 4_102_444_800,
+                referralAllowance = mockReferralAllowance(daily = mockReferralQuota(limit = 5, available = 5), weekly = mockReferralQuota(limit = 20, available = 20)),
+            )
     }
 
     @Before
@@ -111,7 +121,15 @@ class ReferralViewModelTest {
     @Test
     fun `a load for a wallet that is no longer shown is dropped`() = runTest(testDispatcher) {
         coEvery { service.refresh(any()) } answers {
-            mockGemRewardsResult(walletId = wallet.id.id, rewards = mockRewards(code = "first"))
+            mockGemRewardsResult(
+                walletId = wallet.id.id,
+                rewards = mockRewards(
+                    code = "first",
+                    inviteRewardPoints = 100,
+                    status = RewardStatus.VERIFIED,
+                    referralAllowance = mockReferralAllowance(daily = mockReferralQuota(limit = 5, available = 5), weekly = mockReferralQuota(limit = 20, available = 20)),
+                ),
+            )
         }
         walletsFlow.value = listOf(wallet, secondWallet)
         val viewModel = createViewModel()
@@ -162,7 +180,17 @@ class ReferralViewModelTest {
     @Test
     fun `the info section shows the code, the referral count, the points and the inviter`() = runTest(testDispatcher) {
         coEvery { service.refresh(any()) } answers {
-            mockGemRewardsResult(walletId = firstArg(), rewards = mockRewards(code = "GEM123", usedReferralCode = "FRIEND", points = 250))
+            mockGemRewardsResult(
+                walletId = firstArg(),
+                rewards = mockRewards(
+                    code = "GEM123",
+                    inviteRewardPoints = 100,
+                    points = 250,
+                    usedReferralCode = "FRIEND",
+                    status = RewardStatus.VERIFIED,
+                    referralAllowance = mockReferralAllowance(daily = mockReferralQuota(limit = 5, available = 5), weekly = mockReferralQuota(limit = 20, available = 20)),
+                ),
+            )
         }
         val viewModel = createViewModel()
 

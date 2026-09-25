@@ -301,6 +301,20 @@ public extension ChartDateValue {
     }
 }
 
+public extension ChartValuePercentage {
+    static func mock(
+        date: Date = Date(timeIntervalSince1970: 0),
+        value: Float = 0,
+        percentage: Float = 0,
+    ) -> ChartValuePercentage {
+        ChartValuePercentage(
+            date: date,
+            value: value,
+            percentage: percentage,
+        )
+    }
+}
+
 public extension Contact {
     static func mock(
         id: String = "",

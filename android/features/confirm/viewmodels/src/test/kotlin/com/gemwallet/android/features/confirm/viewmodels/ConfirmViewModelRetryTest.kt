@@ -28,6 +28,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualMarginType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -87,7 +88,22 @@ class ConfirmViewModelRetryTest {
     fun retryAndRefreshUseTheCurrentFeeSelection() = runTest(testDispatcher) {
         val transfer =
             mockGemTransferData(
-                inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long))),
+                inputType = TransactionInputType.Perpetual(
+                    asset.toGem(),
+                    PerpetualType.Open(
+                        mockPerpetualConfirmData(
+                            direction = PerpetualDirection.Long.toGem(), marginType = PerpetualMarginType.Cross.toGem(),
+                            baseAsset = mockAsset(
+                                id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
+                                name = "USDC",
+                                symbol = "USDC",
+                                decimals = 8,
+                                type = AssetType.TOKEN,
+                            ).toGem(),
+                            price = "100.0", fiatValue = 100.0, size = "1.0", slippage = 2.0, leverage = 1u, marketPrice = 100.0, marginAmount = 100.0,
+                        ),
+                    ),
+                ),
                 recipient = GemRecipient(address = "recipient"),
                 value = BigInteger.TEN,
             )

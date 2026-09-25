@@ -348,6 +348,16 @@ fun mockChartDateValue(
     value = value,
 )
 
+fun mockChartValuePercentage(
+    date: SerializedDate = 0L,
+    value: Float = 0f,
+    percentage: Float = 0f,
+) = ChartValuePercentage(
+    date = date,
+    value = value,
+    percentage = percentage,
+)
+
 fun mockContact(
     id: String = "",
     name: String = "",
@@ -1362,6 +1372,40 @@ fun mockGemPaymentRecipient(
     amount = amount,
 )
 
+fun mockGemPerpetualDetails(
+    title: String = "",
+    sections: List<uniffi.gemstone.GemPerpetualSection> = emptyList(),
+    modifyButtons: List<uniffi.gemstone.GemPerpetualButtonRow> = emptyList(),
+    position: uniffi.gemstone.PerpetualPosition? = null,
+    positionRow: uniffi.gemstone.GemPerpetualPositionRow? = null,
+) = uniffi.gemstone.GemPerpetualDetails(
+    title = title,
+    sections = sections,
+    modifyButtons = modifyButtons,
+    position = position,
+    positionRow = positionRow,
+)
+
+fun mockGemPerpetualTransferData(
+    provider: uniffi.gemstone.PerpetualProvider = uniffi.gemstone.PerpetualProvider.HYPERCORE,
+    direction: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
+    asset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    baseAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    assetIndex: Int = 0,
+    price: Double = 0.0,
+    leverage: UByte = 0u,
+    marginType: uniffi.gemstone.PerpetualMarginType = uniffi.gemstone.PerpetualMarginType.CROSS,
+) = uniffi.gemstone.GemPerpetualTransferData(
+    provider = provider,
+    direction = direction,
+    asset = asset,
+    baseAsset = baseAsset,
+    assetIndex = assetIndex,
+    price = price,
+    leverage = leverage,
+    marginType = marginType,
+)
+
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
 
 fun mockGemRecipient(
@@ -1374,6 +1418,44 @@ fun mockGemRecipient(
     name = name,
     memo = memo,
     references = references,
+)
+
+fun mockGemRewardsRedemption(
+    id: String = "",
+    assetId: String = mockAssetId().toIdentifier(),
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    canRedeem: Boolean = false,
+    points: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    value: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+) = uniffi.gemstone.GemRewardsRedemption(
+    id = id,
+    assetId = assetId,
+    title = title,
+    canRedeem = canRedeem,
+    points = points,
+    value = value,
+)
+
+fun mockGemRewardsState(
+    actions: List<uniffi.gemstone.GemRewardsAction> = emptyList(),
+    errorNotice: uniffi.gemstone.GemListRow? = null,
+    statusNotice: uniffi.gemstone.GemListRow? = null,
+    sections: List<uniffi.gemstone.GemListSection> = emptyList(),
+    inviteRewardPoints: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    referralCode: String? = null,
+    referralLink: String? = null,
+    usedReferralCode: String? = null,
+    redemptions: List<uniffi.gemstone.GemRewardsRedemption> = emptyList(),
+) = uniffi.gemstone.GemRewardsState(
+    actions = actions,
+    errorNotice = errorNotice,
+    statusNotice = statusNotice,
+    sections = sections,
+    inviteRewardPoints = inviteRewardPoints,
+    referralCode = referralCode,
+    referralLink = referralLink,
+    usedReferralCode = usedReferralCode,
+    redemptions = redemptions,
 )
 
 fun mockGemRowText(
@@ -1464,6 +1546,172 @@ fun mockPaymentRequest(
     label = label,
     references = references,
     assetId = assetId,
+)
+
+fun mockPerpetualConfirmData(
+    direction: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
+    marginType: uniffi.gemstone.PerpetualMarginType = uniffi.gemstone.PerpetualMarginType.CROSS,
+    baseAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    assetIndex: Int = 0,
+    price: String = "",
+    fiatValue: Double = 0.0,
+    size: String = "",
+    slippage: Double = 0.0,
+    leverage: UByte = 0u,
+    pnl: Double? = null,
+    entryPrice: Double? = null,
+    marketPrice: Double = 0.0,
+    marginAmount: Double = 0.0,
+    takeProfit: String? = null,
+    stopLoss: String? = null,
+) = uniffi.gemstone.PerpetualConfirmData(
+    direction = direction,
+    marginType = marginType,
+    baseAsset = baseAsset,
+    assetIndex = assetIndex,
+    price = price,
+    fiatValue = fiatValue,
+    size = size,
+    slippage = slippage,
+    leverage = leverage,
+    pnl = pnl,
+    entryPrice = entryPrice,
+    marketPrice = marketPrice,
+    marginAmount = marginAmount,
+    takeProfit = takeProfit,
+    stopLoss = stopLoss,
+)
+
+fun mockPerpetualModifyConfirmData(
+    baseAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    assetIndex: Int = 0,
+    modifyTypes: List<uniffi.gemstone.PerpetualModifyPositionType> = emptyList(),
+    takeProfitOrderId: ULong? = null,
+    stopLossOrderId: ULong? = null,
+) = uniffi.gemstone.PerpetualModifyConfirmData(
+    baseAsset = baseAsset,
+    assetIndex = assetIndex,
+    modifyTypes = modifyTypes,
+    takeProfitOrderId = takeProfitOrderId,
+    stopLossOrderId = stopLossOrderId,
+)
+
+fun mockPerpetualReduceData(
+    data: uniffi.gemstone.PerpetualConfirmData = mockPerpetualConfirmData(),
+    positionDirection: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
+) = uniffi.gemstone.PerpetualReduceData(
+    data = data,
+    positionDirection = positionDirection,
+)
+
+fun mockPortfolioChartData(
+    chartType: uniffi.gemstone.PortfolioChartType = uniffi.gemstone.PortfolioChartType.VALUE,
+    values: List<uniffi.gemstone.ChartDateValue> = emptyList(),
+) = uniffi.gemstone.PortfolioChartData(
+    chartType = chartType,
+    values = values,
+)
+
+fun mockPortfolioData(
+    charts: List<uniffi.gemstone.PortfolioChartData> = emptyList(),
+    statistics: List<uniffi.gemstone.PortfolioStatistic> = emptyList(),
+    availablePeriods: List<uniffi.gemstone.ChartPeriod> = emptyList(),
+) = uniffi.gemstone.PortfolioData(
+    charts = charts,
+    statistics = statistics,
+    availablePeriods = availablePeriods,
+)
+
+fun mockPortfolioMarginUsage(
+    accountValue: Double = 0.0,
+    usage: Double = 0.0,
+    usedValue: Double = 0.0,
+    usagePercent: Double = 0.0,
+) = uniffi.gemstone.PortfolioMarginUsage(
+    accountValue = accountValue,
+    usage = usage,
+    usedValue = usedValue,
+    usagePercent = usagePercent,
+)
+
+fun mockRedemptionResult(
+    redemption: uniffi.gemstone.RewardRedemption = mockRewardRedemption(),
+) = uniffi.gemstone.RedemptionResult(
+    redemption = redemption,
+)
+
+fun mockReferralAllowance(
+    daily: uniffi.gemstone.ReferralQuota = mockReferralQuota(),
+    weekly: uniffi.gemstone.ReferralQuota = mockReferralQuota(),
+) = uniffi.gemstone.ReferralAllowance(
+    daily = daily,
+    weekly = weekly,
+)
+
+fun mockReferralQuota(
+    limit: Int = 0,
+    available: Int = 0,
+) = uniffi.gemstone.ReferralQuota(
+    limit = limit,
+    available = available,
+)
+
+fun mockRewardRedemption(
+    id: Int = 0,
+    option: uniffi.gemstone.RewardRedemptionOption = mockRewardRedemptionOption(),
+    status: uniffi.gemstone.RedemptionStatus = uniffi.gemstone.RedemptionStatus.PENDING,
+    transactionId: String? = null,
+    createdAt: Long = 0L,
+) = uniffi.gemstone.RewardRedemption(
+    id = id,
+    option = option,
+    status = status,
+    transactionId = transactionId,
+    createdAt = createdAt,
+)
+
+fun mockRewardRedemptionOption(
+    id: String = "",
+    redemptionType: uniffi.gemstone.RewardRedemptionType = uniffi.gemstone.RewardRedemptionType.ASSET,
+    points: Int = 0,
+    asset: uniffi.gemstone.Asset? = null,
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    remaining: Int? = null,
+) = uniffi.gemstone.RewardRedemptionOption(
+    id = id,
+    redemptionType = redemptionType,
+    points = points,
+    asset = asset,
+    value = value,
+    remaining = remaining,
+)
+
+fun mockRewards(
+    code: String? = null,
+    inviteRewardPoints: Int = 0,
+    referralCount: Int = 0,
+    points: Int = 0,
+    usedReferralCode: String? = null,
+    status: uniffi.gemstone.RewardStatus = uniffi.gemstone.RewardStatus.UNVERIFIED,
+    createdAt: Long = 0L,
+    verifyAfter: Long? = null,
+    redemptionOptions: List<uniffi.gemstone.RewardRedemptionOption> = emptyList(),
+    disableReason: String? = null,
+    referralAllowance: uniffi.gemstone.ReferralAllowance = mockReferralAllowance(),
+    useReferralCodeUntil: Long? = null,
+) = uniffi.gemstone.Rewards(
+    code = code,
+    inviteRewardPoints = inviteRewardPoints,
+    referralCount = referralCount,
+    points = points,
+    usedReferralCode = usedReferralCode,
+    status = status,
+    createdAt = createdAt,
+    verifyAfter = verifyAfter,
+    redemptionOptions = redemptionOptions,
+    disableReason = disableReason,
+    referralAllowance = referralAllowance,
+    useReferralCodeUntil = useReferralCodeUntil,
 )
 
 fun mockSignMessage(

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockPortfolioChartData
 import com.gemwallet.android.testkit.mockPortfolioData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.R
@@ -34,13 +35,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.ChartDateValue
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPortfolioResult
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PortfolioChartViewModelTest {
@@ -87,7 +91,28 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `renders chart when portfolio has values`() = runTest(testDispatcher) {
-        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(listOf(10f, 12f, 14f)))
+        stubPortfolio(
+            PortfolioType.Wallet,
+            ChartPeriod.All,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(10f, 12f, 14f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
 
         val viewModel = createViewModel()
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
@@ -97,7 +122,28 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `initial request uses all period by default`() = runTest(testDispatcher) {
-        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(listOf(1f, 2f)))
+        stubPortfolio(
+            PortfolioType.Wallet,
+            ChartPeriod.All,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
 
         val viewModel = createViewModel()
         viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 2 }
@@ -110,8 +156,40 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `selecting period updates state and refetches`() = runTest(testDispatcher) {
-        stubPortfolio(data = mockPortfolioData(listOf(1f, 2f)))
-        stubPortfolio(PortfolioType.Wallet, ChartPeriod.Month, mockPortfolioData(listOf(1f, 2f, 3f)))
+        stubPortfolio(
+            data = mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f).mapIndexed { index, value ->
+                            ChartDateValue(date = TimeUnit.SECONDS.toMillis((index + 1).toLong()), value = value.toDouble())
+                        },
+                    ),
+                ),
+            ),
+        )
+        stubPortfolio(
+            PortfolioType.Wallet,
+            ChartPeriod.Month,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f, 3f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -125,8 +203,50 @@ class PortfolioChartViewModelTest {
     @Test
     fun `resets period when the selected period is unavailable`() = runTest(testDispatcher) {
         val periods = listOf(ChartPeriod.Day, ChartPeriod.Week, ChartPeriod.Month)
-        stubPortfolio(period = ChartPeriod.All, data = mockPortfolioData(listOf(1f, 2f), availablePeriods = periods))
-        stubPortfolio(period = ChartPeriod.Day, data = mockPortfolioData(listOf(1f, 2f, 3f), availablePeriods = periods))
+        stubPortfolio(
+            period = ChartPeriod.All,
+            data = mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+                availablePeriods = periods.map { it.toGem() },
+            ),
+        )
+        stubPortfolio(
+            period = ChartPeriod.Day,
+            data = mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f, 3f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+                availablePeriods = periods.map { it.toGem() },
+            ),
+        )
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -138,7 +258,28 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `starts on perpetuals when opened with perpetuals type`() = runTest(testDispatcher) {
-        stubPortfolio(PortfolioType.Perpetuals, ChartPeriod.All, mockPortfolioData(listOf(1f, 2f)))
+        stubPortfolio(
+            PortfolioType.Perpetuals,
+            ChartPeriod.All,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
         val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -169,7 +310,28 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `flat chart without variation is empty`() = runTest(testDispatcher) {
-        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(listOf(5f, 5f, 5f)))
+        stubPortfolio(
+            PortfolioType.Wallet,
+            ChartPeriod.All,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(5f, 5f, 5f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -181,7 +343,29 @@ class PortfolioChartViewModelTest {
     @Test
     fun `exposes all time statistics from portfolio`() = runTest(testDispatcher) {
         val allTimeHigh = ChartValuePercentage(date = 1L, value = 99f, percentage = 5f).toGem()
-        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(listOf(1f, 2f), statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh))))
+        stubPortfolio(
+            PortfolioType.Wallet,
+            ChartPeriod.All,
+            mockPortfolioData(
+                charts = listOf(
+                    mockPortfolioChartData(
+                        chartType = PortfolioChartType.VALUE,
+                        values = listOf(1f, 2f).mapIndexed { index, value ->
+                            ChartDateValue(
+                                date = TimeUnit.SECONDS.toMillis(
+                                    (
+                                        index +
+                                            1
+                                        ).toLong(),
+                                ),
+                                value = value.toDouble(),
+                            )
+                        },
+                    ),
+                ),
+                statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)),
+            ),
+        )
 
         val viewModel = createViewModel()
         val statistics = viewModel.statistics.first { it.isNotEmpty() }

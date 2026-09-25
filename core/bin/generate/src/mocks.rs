@@ -103,6 +103,8 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
         ("chrono::DateTime<chrono::Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
         ("primitives::UInt64", "UInt64", "0"),
+        ("NaiveDateTime", "Int64", "0"),
+        ("NaiveDateTimeUtc", "Int64", "0"),
     ],
     core_bytes: ("Data", "Data()"),
     core_identifiers: &[
@@ -183,6 +185,8 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
         ("DateTime<Utc>", "Long", "0L"),
         ("chrono::DateTime<chrono::Utc>", "Long", "0L"),
         ("primitives::UInt64", "ULong", "0u"),
+        ("NaiveDateTime", "Long", "0L"),
+        ("NaiveDateTimeUtc", "Long", "0L"),
     ],
     core_bytes: ("ByteArray", "byteArrayOf()"),
     core_identifiers: &[("AssetId", "mockAssetId().toIdentifier()"), ("TransactionId", "mockTransactionId().toIdentifier()"), ("WalletId", "mockWalletId().id")],
