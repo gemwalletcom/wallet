@@ -78,10 +78,27 @@ class AssetsViewModelTest {
     fun `pinned and unpinned assets replay current wallet assets`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
+        assertEquals("the first frame is already grouped", listOf(activeAssetsFlow.value[0]), viewModel.pinnedAssets.value)
+        assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.unpinnedAssets.value)
+
         advanceUntilIdle()
 
         assertEquals(listOf(activeAssetsFlow.value[0]), viewModel.pinnedAssets.value)
         assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.unpinnedAssets.value)
+    }
+
+    @Test
+    fun `a pin change moves the asset between the sections in one update`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val solana = mockAssetInfoDataAggregate(asset = mockAssetSolana())
+        val ethereum = mockAssetInfoDataAggregate(asset = mockAssetEthereum(), pinned = true)
+
+        activeAssetsFlow.value = listOf(solana, ethereum)
+        advanceUntilIdle()
+
+        assertEquals(listOf(ethereum), viewModel.pinnedAssets.value)
+        assertEquals(listOf(solana), viewModel.unpinnedAssets.value)
     }
 
     @Test
