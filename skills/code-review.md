@@ -20,7 +20,7 @@ The source-of-truth details stay in the topic-specific skills. This file should 
 - Verify the change implements the requested behavior, not just code that compiles.
 - Verify the change removes the cause, not the symptom. A retry, fallback, wider timeout, or special case at the point where a bad value is observed is a finding unless the producer is fixed too, or the author has named it as temporary symptom relief with the root cause as follow-up (`skills/engineering-principles.md` § Fix Causes, Not Symptoms).
 - Trace the runtime path that establishes the behavior. A registered chain/asset/provider, generated type, or successful build is insufficient when response decoding, transaction construction, signer support, app consumption, or runtime loading is unverified.
-- Check edge cases, failure paths, empty states, invalid inputs, retries, cancellation, and unsupported chains or assets.
+- Check edge cases, failure paths, empty states, invalid inputs, retries, cancellation, and unsupported chains or assets. Read every number written into or parsed from a field under a comma-decimal locale ([rule](../docs/ARCHITECTURE.md#number-parsing-human-input-vs-machine-strings)).
 - Apply `skills/cross-platform-awareness.md` for shared app behavior, generated files, localization, and `core/` regeneration requirements.
 - Confirm tests assert the business rule. A test that would still pass after flipping the rule is not meaningful coverage.
 - Look for stale call sites, unused additions, unreachable branches, missing migrations, missing localization keys, and behavior hidden behind feature flags.

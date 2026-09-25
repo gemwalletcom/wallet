@@ -38,6 +38,7 @@ flowchart LR
 ## Rules
 
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
+- A payment code's amount fills the amount field in the device's number format and keeps its exact value, because a "0.001" read with a comma decimal separator would become 1.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
 - When Confirm loads with a problem the user can act on (not enough balance or network fee, a required memo, a risky transaction), its explanation opens by itself; other load errors stay in the error row.
 - When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
