@@ -282,6 +282,34 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "rewards_error_username_wallet_has_username")
     }
 
+    pub fn rewards_error_redemption_not_eligible(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_not_eligible")
+    }
+
+    pub fn rewards_error_redemption_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_limit_reached")
+    }
+
+    pub fn rewards_error_redemption_account_too_new(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_account_too_new")
+    }
+
+    pub fn rewards_error_redemption_cooldown(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_cooldown")
+    }
+
+    pub fn rewards_error_redemption_not_enough_points(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_not_enough_points")
+    }
+
+    pub fn rewards_error_redemption_option_not_available(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_option_not_available")
+    }
+
+    pub fn rewards_error_redemption_no_username(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_redemption_no_username")
+    }
+
     pub fn notification_rewards_enabled_title(&self) -> String {
         fl!(self.loader.as_ref(), "notification_rewards_enabled_title")
     }

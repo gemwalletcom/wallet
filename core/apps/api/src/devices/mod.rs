@@ -168,7 +168,7 @@ pub async fn redeem_device_rewards_v2(device: AuthenticatedDeviceWallet, request
         return Err(ApiError::BadRequest("Wallet signature mismatch".to_string()));
     }
 
-    Ok(client.redeem_by_wallet_id(device.wallet_id, &request.data.id, device.record.id).await?.into())
+    Ok(client.redeem_by_wallet_id(device.wallet_id, &request.data.id, device.record.id, device.record.device.locale.as_ref()).await?.into())
 }
 
 #[put("/devices", format = "json", data = "<device_input>")]

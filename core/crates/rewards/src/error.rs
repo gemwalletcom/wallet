@@ -9,6 +9,7 @@ use primitives::Localize;
 pub enum RewardsError {
     Username(String),
     Referral(String),
+    Redemption(String),
 }
 
 impl fmt::Display for RewardsError {
@@ -16,6 +17,7 @@ impl fmt::Display for RewardsError {
         match self {
             RewardsError::Username(msg) => write!(f, "{}", msg),
             RewardsError::Referral(msg) => write!(f, "{}", msg),
+            RewardsError::Redemption(msg) => write!(f, "{}", msg),
         }
     }
 }
@@ -165,7 +167,7 @@ impl From<Box<dyn Error + Send + Sync>> for ReferralError {
 
 #[derive(Debug)]
 pub enum RewardsRedemptionError {
-    NotEligible(String),
+    NotEligible,
     LimitReached,
     AccountTooNew,
     CooldownNotElapsed,
@@ -177,7 +179,7 @@ pub enum RewardsRedemptionError {
 impl fmt::Display for RewardsRedemptionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RewardsRedemptionError::NotEligible(msg) => write!(f, "{}", msg),
+            RewardsRedemptionError::NotEligible => write!(f, "Not eligible for rewards"),
             RewardsRedemptionError::LimitReached => write!(f, "Redemption limit reached"),
             RewardsRedemptionError::AccountTooNew => write!(f, "Account too new for redemption"),
             RewardsRedemptionError::CooldownNotElapsed => write!(f, "Must wait after recent referral activity"),
@@ -189,6 +191,21 @@ impl fmt::Display for RewardsRedemptionError {
 }
 
 impl Error for RewardsRedemptionError {}
+
+impl Localize for RewardsRedemptionError {
+    fn localize(&self, locale: &str) -> String {
+        let localizer = LanguageLocalizer::new_with_language(locale);
+        match self {
+            Self::NotEligible => localizer.rewards_error_redemption_not_eligible(),
+            Self::LimitReached => localizer.rewards_error_redemption_limit_reached(),
+            Self::AccountTooNew => localizer.rewards_error_redemption_account_too_new(),
+            Self::CooldownNotElapsed => localizer.rewards_error_redemption_cooldown(),
+            Self::NotEnoughPoints => localizer.rewards_error_redemption_not_enough_points(),
+            Self::OptionNotAvailable => localizer.rewards_error_redemption_option_not_available(),
+            Self::NoUsername => localizer.rewards_error_redemption_no_username(),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum UsernameError {
@@ -250,6 +267,13 @@ mod tests {
         assert_eq!(UsernameError::internal(raw).localize("en"), generic);
         assert_eq!(ReferralError::Internal(raw.to_string()).localize("en"), generic);
         assert_eq!(UsernameError::internal(raw).to_string(), raw);
+    }
+
+    #[test]
+    fn test_redemption_errors_read_in_the_requested_language() {
+        assert_eq!(RewardsRedemptionError::OptionNotAvailable.localize("de"), "Diese Prämie ist nicht mehr verfügbar.");
+        assert_eq!(RewardsRedemptionError::NoUsername.localize("en"), "Create a username to redeem rewards.");
+        assert_eq!(RewardsRedemptionError::LimitReached.to_string(), "Redemption limit reached", "logs keep the English reason");
     }
 
     #[test]
