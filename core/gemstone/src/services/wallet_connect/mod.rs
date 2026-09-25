@@ -89,8 +89,8 @@ impl GemWalletConnectService {
         }
     }
 
-    pub async fn sign_message(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
-        self.sign_message.sign(wallet_id, message).await
+    pub async fn sign_message(&self, wallet_id: WalletId, account: Account, message: SignMessage) -> Result<String, GemServiceError> {
+        self.sign_message.sign(wallet_id, account, message).await
     }
 
     pub fn should_process_proposal(&self, proposer_public_key: String) -> bool {
@@ -371,6 +371,7 @@ impl GemWalletConnectService {
 mod tests {
     use super::testkit::TestWalletConnectSigner;
     use super::*;
+    use crate::message::sign_type::SignDigestType;
     use crate::wallet_connect::WalletConnectResponseType;
     use futures::executor::block_on;
     use num_bigint::BigUint;
@@ -386,6 +387,25 @@ mod tests {
 
             assert!(view.sections.is_empty());
             assert_eq!(view.docs_url, DocsUrl::WalletConnect.url_for(Platform::IOS));
+        });
+    }
+    #[test]
+    fn test_sign_message_rejects_an_account_on_another_chain() {
+        block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
+            let service = GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await;
+            let account = wallet.account(Chain::Solana).unwrap().clone();
+            let message = SignMessage {
+                chain: Chain::Ethereum,
+                sign_type: SignDigestType::Eip191,
+                data: b"test".to_vec(),
+            };
+            assert_eq!(
+                service.sign_message(wallet.id, account, message).await.unwrap_err(),
+                GemServiceError::InvalidInput {
+                    msg: "approved account chain does not match the message chain".to_string()
+                }
+            );
         });
     }
 

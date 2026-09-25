@@ -266,7 +266,7 @@ class WCRequestViewModelTest {
         val requests = WalletConnectPendingRequests()
         val service = service()
         val signMessageService = signMessageService()
-        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Api("offline")
+        coEvery { service.signMessage(any(), any(), any()) } throws GemServiceException.Api("offline")
         val model = viewModel(service = service, signMessageService = signMessageService, requests = requests)
 
         model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
@@ -280,7 +280,7 @@ class WCRequestViewModelTest {
         assertEquals(1, errors.size)
         assertNotNull(requests.current.value)
 
-        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Cancelled()
+        coEvery { service.signMessage(any(), any(), any()) } throws GemServiceException.Cancelled()
         model.onSign(onError = errors::add)
         job.join()
 
@@ -292,7 +292,7 @@ class WCRequestViewModelTest {
     fun `signing sends the core signature back to the pending request`() = runTest(dispatcher) {
         val requests = WalletConnectPendingRequests()
         val service = service()
-        coEvery { service.signMessage(any(), any()) } returns "0xdeadbeef"
+        coEvery { service.signMessage(any(), any(), any()) } returns "0xdeadbeef"
         val model = viewModel(service = service, requests = requests)
 
         model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
@@ -303,6 +303,7 @@ class WCRequestViewModelTest {
         model.onSign(onError = {})
 
         assertEquals("0xdeadbeef", signature.await())
+        coVerify { service.signMessage(any(), mockGemWalletConnectMessageRequest().account, any()) }
         job.join()
         val scene = model.sceneState.first { it is RequestSceneState.Responding }
         assertEquals("Main Wallet", (scene as RequestSceneState.Content).request.wallet.name)

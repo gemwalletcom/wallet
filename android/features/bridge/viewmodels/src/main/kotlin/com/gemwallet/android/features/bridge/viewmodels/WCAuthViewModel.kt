@@ -136,7 +136,7 @@ class WCAuthViewModel @Inject constructor(
                 }
                 val signature = signAuthMessage(
                     wallet = approval.wallet,
-                    chain = approval.account.chain,
+                    account = approval.account,
                     message = approval.message,
                 )
                 if (!isActiveRequest(request)) {
@@ -278,10 +278,11 @@ class WCAuthViewModel @Inject constructor(
         )
     } ?: AuthPayloadPreview()
 
-    private suspend fun signAuthMessage(wallet: Wallet, chain: Chain, message: String): String = walletConnectService.signMessage(
+    private suspend fun signAuthMessage(wallet: Wallet, account: Account, message: String): String = walletConnectService.signMessage(
         wallet.id.id,
+        account.toGem(),
         SignMessage(
-            chain = chain.string,
+            chain = account.chain.string,
             signType = SignDigestType.SIWE,
             data = message.toByteArray(),
         ),

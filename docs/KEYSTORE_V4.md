@@ -131,9 +131,11 @@ Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy
 
 Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI boundary. The app passes the keystore id, chain, prepared input, and password bytes, and receives only signatures.
 
-- `GemKeystore.sign(keystore_id, chain, input, password) -> [signature]`: loads the key internally, routes by transaction input type (transfer, token transfer, swap, stake, token approval, perpetual, account action, data, etc.), signs, and returns signatures. Multi-signature chains return more than one.
-- `GemKeystore.sign_auth(keystore_id, chain, hash, password) -> signature`: signs a device / WalletConnect auth hash.
-- `MessageSigner.sign_with_keystore(keystore, keystore_id, password) -> signature`: typed/personal message signing, selected by `signType` (EIP-191, EIP-712, SIWE, Sui/Ton/Tron personal, base58).
+- `GemKeystore.sign(keystore_id, chain, input, password) -> [signature]`: verifies that the loaded key derives `input.sender_address`, routes by transaction input type (transfer, token transfer, swap, stake, token approval, perpetual, account action, data, etc.), signs, and returns signatures. Multi-signature chains return more than one.
+- `GemKeystore.sign_auth(keystore_id, chain, address, hash, password) -> signature`: verifies the loaded key against the approved address before signing an auth hash.
+- `MessageSigner.sign_with_keystore(keystore, keystore_id, address, password) -> signature`: verifies the loaded key against the approved address before typed/personal message signing, selected by `signType` (EIP-191, EIP-712, SIWE, Sui/Ton/Tron personal, base58). Message services require the approved account and reject a different message chain.
+
+Every signing entry loads the key for the chain's default derivation and refuses to sign unless it derives the approved address. Solana mnemonic keystores also try the legacy `m/44'/501'/0'` path, which older single-chain Solana wallets were created on; the key that derives the approved address is the one that signs (gemstone test `test_signing_key_accepts_the_legacy_solana_derivation_only_for_its_address`).
 
 Boundaries:
 

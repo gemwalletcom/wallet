@@ -1,14 +1,19 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gem_derivation::{derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account, import_account_from_private_key};
+use gem_derivation::{
+    derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_legacy_solana_private_key_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account,
+    import_account_from_private_key,
+};
 use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
-use primitives::{Account, Chain, WalletId, WalletType};
+use primitives::{Account, Chain, SignerError, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
 
 use super::types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport};
 use crate::GemstoneError;
+use crate::address::account_matches_address;
+use crate::auth::sign_auth_message_hash;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
 use crate::signer::ChainTransactionSigner;
 
@@ -99,7 +104,8 @@ impl GemKeystore {
     }
 
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
-        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
+        let private_key = self.signing_key(&keystore_id, chain, &input.input.sender_address, password)?;
+        ChainTransactionSigner::new(chain).sign_input(input, private_key)
     }
 }
 
@@ -148,8 +154,8 @@ impl GemKeystore {
         let password = Zeroizing::new(password);
         self.inner.verify(&keystore_id, &password).is_ok()
     }
-    pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
-        crate::auth::sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, password)?)
+    pub fn sign_auth(&self, keystore_id: String, chain: Chain, address: &str, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
+        sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, address, password)?)
     }
 }
 
@@ -172,9 +178,21 @@ impl GemKeystore {
         Ok(())
     }
 
-    pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
+    pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, address: &str, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
         let password = Zeroizing::new(password);
-        self.load_private_key(keystore_id, chain, &password)
+        let private_key = self.load_private_key(keystore_id, chain, &password)?;
+        if key_derives_address(&private_key, chain, address)? {
+            return Ok(private_key);
+        }
+        if chain == Chain::Solana
+            && let Ok(phrase) = self.inner.decrypt_mnemonic(keystore_id, &password)
+        {
+            let legacy_key = derive_legacy_solana_private_key_from_mnemonic(&phrase)?;
+            if key_derives_address(&legacy_key, chain, address)? {
+                return Ok(legacy_key);
+            }
+        }
+        Err(SignerError::invalid_input("signing key does not match the approved account").into())
     }
 
     fn load_private_key(&self, keystore_id: &str, chain: Chain, password: &[u8]) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
@@ -227,6 +245,10 @@ impl GemKeystore {
     }
 }
 
+fn key_derives_address(private_key: &[u8], chain: Chain, address: &str) -> Result<bool, GemstoneError> {
+    Ok(account_matches_address(&derive_account_from_private_key(private_key, chain)?, address))
+}
+
 fn derive_mnemonic_wallet(words: Vec<String>, requested_chains: Vec<Chain>, wallet_type: WalletType, wallet_id_chain: Chain) -> Result<(WalletId, Vec<Account>, Zeroizing<String>), GemstoneError> {
     if requested_chains.is_empty() {
         return Err(gem_derivation::AccountDerivationError::invalid_input("mnemonic derivation requires at least one chain").into());
@@ -258,6 +280,7 @@ mod migration_tests {
     use primitives::{Chain, hex};
 
     use super::{GemImportType, GemKeystore, keystore_id_for_wallet};
+    use gem_derivation::derive_account_from_private_key;
 
     const V3_MNEMONIC: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_mnemonic.json");
     const V3_PRIVATE_KEY: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_private_key.json");
@@ -268,6 +291,7 @@ mod migration_tests {
     const EXPECTED_PRIVATE_KEY: &str = "ae8794f84919b14ff9d1f0f7cf490a4c04e608de16864f53fe8b40af127b9da3";
     const EXPECTED_ETHEREUM_ADDRESS: &str = "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3";
     const EXPECTED_SOLANA_ADDRESS: &str = "5T1JAioMm5vd9S5RE2JHBu3GVfG5FpUoV1BT5CNhZR2W";
+    const LEGACY_SOLANA_ADDRESS: &str = "8R6jmSfcFnzGjN5dkGaLZgr5dEvxnRQUc1FdDMN5b882";
     const MNEMONIC_WALLET_ID: &str = "multicoin_0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3";
     const PRIVATE_KEY_WALLET_ID: &str = "privateKey_ethereum_0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3";
 
@@ -378,7 +402,7 @@ mod migration_tests {
     fn migrate_v3_allows_legacy_single_solana_derivation_mismatch() {
         let (base, v3_path) = prepare("single_solana_mismatch", V3_MNEMONIC);
         let keystore = GemKeystore::new(base.to_string_lossy().into_owned()).unwrap();
-        let wallet_id = "single_solana_2e6GNStEYy7M31duwabbAx3R4Tzz62LxryGrqcMhoaaV".to_string();
+        let wallet_id = format!("single_solana_{LEGACY_SOLANA_ADDRESS}");
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
         let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id).unwrap();
@@ -386,8 +410,10 @@ mod migration_tests {
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "legacy Solana v3 file must be removed after import");
         assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
-        let accounts = keystore.add_accounts(keystore_id, NEW_PASSWORD.to_vec(), vec![Chain::Solana]).unwrap();
+        let accounts = keystore.add_accounts(keystore_id.clone(), NEW_PASSWORD.to_vec(), vec![Chain::Solana]).unwrap();
         assert_eq!(accounts[0].address, EXPECTED_SOLANA_ADDRESS);
+        let legacy_key = keystore.signing_key(&keystore_id, Chain::Solana, LEGACY_SOLANA_ADDRESS, NEW_PASSWORD.to_vec()).unwrap();
+        assert_eq!(derive_account_from_private_key(&legacy_key, Chain::Solana).unwrap().address, LEGACY_SOLANA_ADDRESS);
 
         let _ = std::fs::remove_dir_all(&base);
     }
