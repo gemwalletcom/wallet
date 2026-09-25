@@ -66,15 +66,21 @@ impl Error for ReferralConfirmationError {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UsernameValidationError {
-    Invalid(String),
+    TooShort(usize),
+    TooLong(usize),
+    InvalidCharacters,
     AlreadyTaken,
+    WalletHasUsername,
 }
 
 impl fmt::Display for UsernameValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid(msg) => write!(f, "{}", msg),
+            Self::TooShort(min_length) => write!(f, "Username must be at least {} characters", min_length),
+            Self::TooLong(max_length) => write!(f, "Username must be at most {} characters", max_length),
+            Self::InvalidCharacters => write!(f, "Username must contain only letters and digits"),
             Self::AlreadyTaken => write!(f, "Username already taken"),
+            Self::WalletHasUsername => write!(f, "Wallet already has a username"),
         }
     }
 }
@@ -207,8 +213,12 @@ impl Localize for UsernameError {
     fn localize(&self, locale: &str) -> String {
         let localizer = LanguageLocalizer::new_with_language(locale);
         match self {
-            Self::LimitReached(_) => localizer.rewards_error_username_daily_limit_reached(),
-            Self::Validation(e) => e.to_string(),
+            Self::LimitReached(_) => localizer.rewards_error_username_limit_reached(),
+            Self::Validation(UsernameValidationError::TooShort(min_length)) => localizer.rewards_error_username_too_short(*min_length),
+            Self::Validation(UsernameValidationError::TooLong(max_length)) => localizer.rewards_error_username_too_long(*max_length),
+            Self::Validation(UsernameValidationError::InvalidCharacters) => localizer.rewards_error_username_invalid_characters(),
+            Self::Validation(UsernameValidationError::AlreadyTaken) => localizer.rewards_error_username_taken(),
+            Self::Validation(UsernameValidationError::WalletHasUsername) => localizer.rewards_error_username_wallet_has_username(),
             Self::Internal(_) => localizer.errors_generic(),
         }
     }
@@ -240,6 +250,22 @@ mod tests {
         assert_eq!(UsernameError::internal(raw).localize("en"), generic);
         assert_eq!(ReferralError::Internal(raw.to_string()).localize("en"), generic);
         assert_eq!(UsernameError::internal(raw).to_string(), raw);
+    }
+
+    #[test]
+    fn test_username_errors_read_in_the_requested_language() {
+        assert_eq!(UsernameError::from(UsernameValidationError::AlreadyTaken).localize("de"), "Dieser Benutzername ist bereits vergeben.");
+        assert_eq!(UsernameError::from(UsernameValidationError::InvalidCharacters).localize("en"), "Username can only use the letters A–Z and the numbers 0–9.");
+        assert_eq!(
+            UsernameError::from(UsernameValidationError::TooShort(4)).localize("fr"),
+            LanguageLocalizer::new_with_language("fr").rewards_error_username_too_short(4)
+        );
+        assert!(UsernameError::from(UsernameValidationError::TooLong(16)).localize("es").contains("16"));
+        assert_eq!(
+            UsernameError::LimitReached(RateLimitKey::UsernameCreationPerDeviceLimit).localize("en"),
+            "Too many username attempts. Please try again later.",
+            "the limit spans days and counts failed attempts, so it names no day"
+        );
     }
 
     #[test]

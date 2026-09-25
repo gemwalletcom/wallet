@@ -25,13 +25,13 @@ impl RewardIdentity {
 pub fn validate_username(username: &str, rules: &UsernameRules) -> Result<(), UsernameValidationError> {
     let length = username.len();
     if length < rules.min_length {
-        return Err(UsernameValidationError::Invalid(format!("Username must be at least {} characters", rules.min_length)));
+        return Err(UsernameValidationError::TooShort(rules.min_length));
     }
     if length > rules.max_length {
-        return Err(UsernameValidationError::Invalid(format!("Username must be at most {} characters", rules.max_length)));
+        return Err(UsernameValidationError::TooLong(rules.max_length));
     }
     if !username.chars().all(|character| character.is_ascii_alphanumeric()) {
-        return Err(UsernameValidationError::Invalid("Username must contain only letters and digits".into()));
+        return Err(UsernameValidationError::InvalidCharacters);
     }
     Ok(())
 }
@@ -42,7 +42,7 @@ pub fn validate_username_available(is_taken: bool) -> Result<(), UsernameValidat
 
 pub fn validate_wallet_without_username(identity: &RewardIdentity, rules: &UsernameRules) -> Result<(), UsernameValidationError> {
     if identity.is_custom(rules) {
-        return Err(UsernameValidationError::Invalid("Wallet already has a username".into()));
+        return Err(UsernameValidationError::WalletHasUsername);
     }
     Ok(())
 }
@@ -57,17 +57,17 @@ mod tests {
         assert_eq!(validate_username("abcd", &rules), Ok(()));
         assert_eq!(validate_username("user123", &rules), Ok(()));
         assert_eq!(validate_username("1234567890123456", &rules), Ok(()));
-        assert_eq!(validate_username("abc", &rules), Err(UsernameValidationError::Invalid("Username must be at least 4 characters".into())));
-        assert_eq!(validate_username("12345678901234567", &rules), Err(UsernameValidationError::Invalid("Username must be at most 16 characters".into())));
+        assert_eq!(validate_username("abc", &rules), Err(UsernameValidationError::TooShort(4)));
+        assert_eq!(validate_username("12345678901234567", &rules), Err(UsernameValidationError::TooLong(16)));
         for username in ["user_name", "user-name", "user.name", "user name"] {
-            assert_eq!(validate_username(username, &rules), Err(UsernameValidationError::Invalid("Username must contain only letters and digits".into())));
+            assert_eq!(validate_username(username, &rules), Err(UsernameValidationError::InvalidCharacters));
         }
 
         let rules = UsernameRules { min_length: 2, max_length: 20 };
         assert_eq!(validate_username("ab", &rules), Ok(()));
         assert_eq!(validate_username("12345678901234567", &rules), Ok(()));
-        assert_eq!(validate_username("a", &rules), Err(UsernameValidationError::Invalid("Username must be at least 2 characters".into())));
-        assert_eq!(validate_username("123456789012345678901", &rules), Err(UsernameValidationError::Invalid("Username must be at most 20 characters".into())));
+        assert_eq!(validate_username("a", &rules), Err(UsernameValidationError::TooShort(2)));
+        assert_eq!(validate_username("123456789012345678901", &rules), Err(UsernameValidationError::TooLong(20)));
     }
 
     #[test]
@@ -80,7 +80,7 @@ mod tests {
     fn test_validate_wallet_without_username() {
         let rules = UsernameRules::mock();
         assert_eq!(validate_wallet_without_username(&RewardIdentity::mock_default(), &rules), Ok(()));
-        assert_eq!(validate_wallet_without_username(&RewardIdentity::mock(), &rules), Err(UsernameValidationError::Invalid("Wallet already has a username".into())));
+        assert_eq!(validate_wallet_without_username(&RewardIdentity::mock(), &rules), Err(UsernameValidationError::WalletHasUsername));
     }
 
     #[test]

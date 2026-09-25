@@ -258,8 +258,28 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "rewards_error_referral_country_ineligible", value = country)
     }
 
-    pub fn rewards_error_username_daily_limit_reached(&self) -> String {
-        fl!(self.loader.as_ref(), "rewards_error_username_daily_limit_reached")
+    pub fn rewards_error_username_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_limit_reached")
+    }
+
+    pub fn rewards_error_username_too_short(&self, min_length: usize) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_too_short", value = min_length)
+    }
+
+    pub fn rewards_error_username_too_long(&self, max_length: usize) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_too_long", value = max_length)
+    }
+
+    pub fn rewards_error_username_invalid_characters(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_invalid_characters")
+    }
+
+    pub fn rewards_error_username_taken(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_taken")
+    }
+
+    pub fn rewards_error_username_wallet_has_username(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_wallet_has_username")
     }
 
     pub fn notification_rewards_enabled_title(&self) -> String {
