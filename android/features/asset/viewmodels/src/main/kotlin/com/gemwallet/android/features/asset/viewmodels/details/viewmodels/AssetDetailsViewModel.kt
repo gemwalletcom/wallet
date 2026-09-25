@@ -9,12 +9,12 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.banner.cases.GetAssetBanners
-import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -77,7 +77,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
     private val getAssetBanners: GetAssetBanners,
-    private val getPriceAlerts: GetPriceAlerts,
+    private val priceAlertsRequest: PriceAlertsRequest,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
     private val userConfig: UserConfig,
     private val connectionStatusObserver: ConnectionStatusObserver,
@@ -133,7 +133,7 @@ class AssetDetailsViewModel @Inject constructor(
             getAssetBanners(asset)
         }
 
-    private val priceAlerts = getPriceAlerts.assetPriceAlerts(assetId)
+    private val priceAlerts = priceAlertsRequest(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
     val uiModel = combine(chainAssetInfo, session, banners, priceAlerts, ::uiModel)
         .flowOn(ioDispatcher)

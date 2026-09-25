@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":ui"))
     api(project(":ui-models"))
     implementation(project(":data:services:gemstone"))
+    implementation(project(":data:services:store"))
     api(project(":features:asset_select:viewmodels"))
 
     implementation(libs.hilt.android)

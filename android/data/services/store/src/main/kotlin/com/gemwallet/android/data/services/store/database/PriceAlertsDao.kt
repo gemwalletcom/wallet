@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.gemwallet.android.data.services.store.database.entities.DbPriceAlert
+import com.gemwallet.android.data.services.store.database.entities.DbPriceAlertWithAsset
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,6 +23,14 @@ interface PriceAlertsDao {
 
     @Query("SELECT * FROM price_alerts WHERE assetId = :assetId")
     fun getAlerts(assetId: String): Flow<List<DbPriceAlert>>
+
+    @Transaction
+    @Query("SELECT price_alerts.* FROM price_alerts JOIN asset ON asset.id = price_alerts.assetId ORDER BY asset.rank DESC")
+    fun getAlertsWithAsset(): Flow<List<DbPriceAlertWithAsset>>
+
+    @Transaction
+    @Query("SELECT price_alerts.* FROM price_alerts JOIN asset ON asset.id = price_alerts.assetId WHERE price_alerts.assetId = :assetId ORDER BY asset.rank DESC")
+    fun getAlertsWithAsset(assetId: String): Flow<List<DbPriceAlertWithAsset>>
 
     @Query("SELECT * FROM price_alerts")
     suspend fun getAllPriceAlerts(): List<DbPriceAlert>

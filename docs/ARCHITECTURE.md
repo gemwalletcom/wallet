@@ -11,7 +11,7 @@ Read the contract and the named implementation, then the actual owner and caller
 | Pure feature rule | [§ 1](#1-rules-are-pure-and-have-a-test-that-flips), [§ 6](#6-where-derived-domain-answers-live) | [`price_alert/rules.rs`](../core/gemstone/src/services/price_alert/rules.rs), including its tests |
 | Service orchestration and store port | [§ 2](#2-the-service-orchestrates-it-owns-its-store-and-depends-on-services), [§ 4](#4-the-store-trait-is-the-apps-only-persistence-obligation) | [`price_alert/mod.rs`](../core/gemstone/src/services/price_alert/mod.rs), [`store.rs`](../core/gemstone/src/services/price_alert/store.rs) |
 | Screen state, list rows, or what a view may name | [§ 3](#3-return-one-record-that-answers-the-whole-question), [§ 5](#5-the-app-maps-it-does-not-decide) | [`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs), [`assets/model.rs`](../core/gemstone/src/services/assets/model.rs) |
-| App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
+| App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-observed-reads-are-requests), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | List rows and sections | [§ 5](#a-list-row-renders-from-one-shared-row-model) | [`ListItemModel.swift`](../ios/Packages/Components/Sources/Types/ListItemModel.swift), [`ListItemModel.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListItemModel.kt), [`ListSections.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListSections.kt) |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
 | REST or JSON-RPC client | [§ 12](#12-a-clients-requests-are-one-enum-the-client-only-sends) | [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs) for direct sends, [`TronGridClient`](../core/crates/gem_tron/src/rpc/trongrid/client.rs) for shared credentials, [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for RPC |
@@ -636,7 +636,7 @@ This is as far as a view model should move into Core, and the limits are the poi
 - **What the session cannot know is an argument to `view_state`, not stored state.** The asset price and whether a URL is opening are the app's facts, so they are parameters. That keeps the session a function of its own events and keeps its tests free of setup.
 - **One `view_state` call returning one record.** Ten getters are ten crossings per render; one record is one, [derived once and passed down](#a-screen-derives-its-record-once-and-passes-it-down).
 - **A `Record`, not an `Object`.** Value semantics let a state flow skip an unchanged state and let a Rust test assert a whole screen state as one literal.
-- **One session per screen**, the same rule as [one Core service per screen](#7-at-most-one-core-service-on-ios-narrow-cases-on-android). A view model holding two sessions is describing two screens.
+- **One session per screen**, the same rule as [one Core service per screen](#7-at-most-one-core-service-observed-reads-are-requests). A view model holding two sessions is describing two screens.
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
@@ -1054,25 +1054,18 @@ Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto
 
 ### Android
 
-Commands and point reads call the generated service interface directly. For an observed read, keep a narrow case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/` and injected by Hilt. Its `Flow` feeds each relevant emission to the Core projection:
+Commands and point reads call the generated service interface directly. An observed read is a request in `data/services/store/requests/`, the counterpart of an iOS `Store/Requests` type: one Room query that returns primitives, injected into the view model, which feeds each emission to the Core projection. [`PriceAlertsRequest`](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/requests/PriceAlertsRequest.kt) is the example, paired with iOS [`PriceAlertsRequest`](../ios/Packages/Store/Sources/Requests/PriceAlertsRequest.swift):
 
 ```kotlin
-override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = combine(
-    getSession().filterNotNull(),
-    getTransaction(id),
-) { session, data -> Pair(session, data) }
-    .mapNotNull { (session, data) ->
-        data?.let {
-            TransactionDetailsAggregateImpl(
-                transactionDetailsService.detailRows(it.toGem(), session.wallet.type.toGem()),
-                session.currency,
-            )
-        }
-    }
-    .flowOn(Dispatchers.IO)
+class PriceAlertsRequest @Inject constructor(private val priceAlertsDao: PriceAlertsDao) {
+
+    operator fun invoke(assetId: AssetId? = null): Flow<List<PriceAlertData>> =
+        (assetId?.let { priceAlertsDao.getAlertsWithAsset(it.toIdentifier()) } ?: priceAlertsDao.getAlertsWithAsset())
+            .map { rows -> rows.mapNotNull { it.toDTO() } }
+}
 ```
 
-One Core call answers the whole screen, so the case has nothing to assemble.
+A request selects and joins rows; it neither decides nor calls Core. The older shape — an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/` and bound by Hilt — is migration debt ([MOD320](TODO.md#11-module-layout)); a new observed read is a request.
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
@@ -1286,11 +1279,11 @@ Rust signatures use domain types (`WalletId`, `AssetId`, `Chain`, `Currency`). T
 
 The identifier string matches native database storage. Mapping the binding directly to an app wrapper would also break Android's dependency direction: its primitives live in `:gemcore`, which depends on the standalone `:gemstone` artifact. Swift's ability to name `Primitives.WalletId` through UniFFI does not make that bridge symmetric. Revisit only if the module boundary changes.
 
-## 7. At most one Core service on iOS; narrow cases on Android
+## 7. At most one Core service; observed reads are requests
 
-An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the observed reads the screen watches as narrow application cases (a Room `Flow` behind `GetPriceAlerts`, `GetTransactions`, `GetWalletAssets`) and `GetSession`. A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the requests the screen observes (`PriceAlertsRequest`; the remaining cases such as `GetTransactions`, `GetWalletAssets` and `GetSession` move to requests under MOD320). A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
 
-**Native observation is intentional.** iOS holds `ObservableQuery<Request>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a narrow case returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
+**Native observation is intentional.** iOS holds `ObservableQuery<Request>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a request returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
 
 **A value model may need no service.** `NetworkFeeSceneViewModel` renders `GemConfirmFeeSelection`, `GemFeeRateRows` and `GemFeeOptionItem` with callbacks. Injecting a service into a model that only reads those answers adds no behavior. Judge ownership by decisions, not member counts.
 
@@ -1370,9 +1363,9 @@ fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
 }
 ```
 
-[`GetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/GetPriceAlertsImpl.kt) separately observes through `GemstonePriceAlertStore`; it does not wrap commands. Core classifies each alert through `alert_kind` and `PriceAlertFormatter`; this observer selects and groups the stored rows.
+[`PriceAlertsRequest`](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/requests/PriceAlertsRequest.kt) separately observes the stored alerts with their asset and price; it does not wrap commands. Core classifies each alert through `alert_kind` and `PriceAlertFormatter`; the request only selects and joins the stored rows.
 
-For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses a case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation.
+For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`; once MOD320 lands, that is the only thing a case is for. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation.
 
 ### Composition services are reached through the screen service
 
@@ -1812,7 +1805,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 
 ### Composition and lifecycle services
 
-These primarily serve Core composition or native lifecycle integration. Reuse them through the owning screen service where they supply a domain answer. Dependency-free rule objects, launch hosts and explicit platform/component ports retain [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android)'s exceptions; judge the responsibility and actual calls rather than the number of fields.
+These primarily serve Core composition or native lifecycle integration. Reuse them through the owning screen service where they supply a domain answer. Dependency-free rule objects, launch hosts and explicit platform/component ports retain [§ 7](#7-at-most-one-core-service-observed-reads-are-requests)'s exceptions; judge the responsibility and actual calls rather than the number of fields.
 
 | Core service | Held by |
 | --- | --- |

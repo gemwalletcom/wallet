@@ -26,7 +26,7 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
+8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317; MOD320 area by area, with MOD321 in its next change.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -694,6 +694,12 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **iOS:** `QRScanner` and `InfoSheet` are feature packages; `BannerView` is in `PrimitivesComponents`, used by `AssetScene` and `WalletScene`.
   - **Android:** the QR scanner and the info sheet are in `ui/components`; banners are the `banner` feature, used by `asset` and the wallet tab.
   - **Expected:** Android moves `QRScanner.kt` into a `qr_scanner` feature; `BannerView` moves into iOS `Assets` and the Android `banner` module folds into `assets`, with `wallet_tab` depending on `assets`; iOS `InfoSheet` moves from `Features/` to `Packages/`.
+
+- **MOD320** **L** **Android observed reads are requests, as on iOS** ([ARCHITECTURE § 5](ARCHITECTURE.md#android)). One area per change; each change deletes the case, its `Impl` and its Hilt binding, adds the request with an in-memory Room test beside [`PriceAlertsRequestTest`](../android/data/services/store/src/test/kotlin/com/gemwallet/android/data/services/store/integration/PriceAlertsRequestTest.kt), and matches the iOS request's query; where the Android read differs, iOS is the reference and the change says so.
+  - **iOS:** each observed read is one `Store/Requests` type observed through `ObservableQuery`.
+  - **Android:** about 75 interfaces in `gemcore/application/<area>/cases/` with 58 implementations in `data/coordinators/`. Classify each while migrating: an observed read (`GetWallets`, `GetTransactions`, `GetWalletAssets`, `GetSession`, `GetContacts`, …) becomes a request; a command that only forwards a Core call (`SetCurrentCurrency`, `DeleteWallet`, `PairWalletConnect`, …) is deleted and the view model calls the service; a platform port (`PasswordStore`, `ShowSystemNotification`, `NotificationPermissionRequests`, `WalletConnectClient`) stays an interface. The feature modules that reach `:data:services:gemstone` directly move in their area's change: `GemstoneAssetStore` in `NetworkAssetsViewModel` (a store held by a view model), `RecentAssetsService` (its writes go through `GemRecentActivityService`), `AssetsSearchService`, `UserConfig` and `ConnectionStatusObserver`.
+  - **Expected:** a feature view model holds one Core service, the requests it observes and platform ports; `data/coordinators` holds only port implementations and Core composition.
+- **MOD321** **S** **`check-boundaries.py` keeps Android features off the data internals.** No `features/**` Gradle file depends on `:data:services:gemstone` or `:data:coordinators`. The rule starts from the modules that still do, each named, and fails when a module joins the list or a listed module no longer needs its entry. Lands with the next MOD320 change.
 
 ## 12. Cleanup sweeps
 

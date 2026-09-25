@@ -8,8 +8,8 @@ import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
@@ -37,7 +37,7 @@ class AssetChartViewModel internal constructor(
     getAssetMarket: GetAssetMarket,
     getWalletAssets: GetWalletAssets,
     private val chartService: GemChartServiceInterface,
-    getPriceAlerts: GetPriceAlerts,
+    priceAlertsRequest: PriceAlertsRequest,
     getCurrentCurrency: GetCurrentCurrency,
     private val ioDispatcher: CoroutineDispatcher,
     val assetId: AssetId,
@@ -50,7 +50,7 @@ class AssetChartViewModel internal constructor(
 
     private val links = getAssetLinks(assetId)
     private val market = getAssetMarket(assetId)
-    private val priceAlerts = getPriceAlerts(assetId).map { alerts -> alerts.map { it.priceAlert } }
+    private val priceAlerts = priceAlertsRequest(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
     val title = assetInfo
         .map { it?.asset?.name.orEmpty() }
@@ -82,7 +82,7 @@ class AssetChartViewModel internal constructor(
         getAssetMarket: GetAssetMarket,
         getWalletAssets: GetWalletAssets,
         chartService: GemChartServiceInterface,
-        getPriceAlerts: GetPriceAlerts,
+        priceAlertsRequest: PriceAlertsRequest,
         getCurrentCurrency: GetCurrentCurrency,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         savedStateHandle: SavedStateHandle,
@@ -92,7 +92,7 @@ class AssetChartViewModel internal constructor(
         getAssetMarket = getAssetMarket,
         getWalletAssets = getWalletAssets,
         chartService = chartService,
-        getPriceAlerts = getPriceAlerts,
+        priceAlertsRequest = priceAlertsRequest,
         getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = ioDispatcher,
         assetId = savedStateHandle.requireAssetId(),

@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -109,7 +109,7 @@ class PriceAlertViewModelTest {
     }
 
     private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertViewModel(
-        getPriceAlerts = mockk<GetPriceAlerts> {
+        priceAlertsRequest = mockk<PriceAlertsRequest> {
             every { this@mockk(any()) } returns flowOf(emptyList())
         },
         getAssetTokenInfo = mockk(relaxed = true),

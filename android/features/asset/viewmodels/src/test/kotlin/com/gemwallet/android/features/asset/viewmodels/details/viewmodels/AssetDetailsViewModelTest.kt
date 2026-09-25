@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.banner.cases.GetAssetBanners
-import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.model.ChainAssetInfo
@@ -23,7 +23,7 @@ import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.PriceAlertData
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -63,7 +63,7 @@ class AssetDetailsViewModelTest {
     )
     private val sessionFlow = MutableStateFlow<Session?>(mockSession())
     private val banners = MutableSharedFlow<List<Banner>>(replay = 1)
-    private val priceAlerts = MutableSharedFlow<List<PriceAlert>>(replay = 1)
+    private val priceAlerts = MutableSharedFlow<List<PriceAlertData>>(replay = 1)
 
     private val getChainAssetInfo = mockk<GetChainAssetInfo>(relaxed = true)
     private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
@@ -72,7 +72,7 @@ class AssetDetailsViewModelTest {
     private val getSession = mockk<GetSession>(relaxed = true)
     private val getTransactions = mockk<GetTransactions>(relaxed = true)
     private val getAssetBanners = mockk<GetAssetBanners>(relaxed = true)
-    private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
+    private val priceAlertsRequest = mockk<PriceAlertsRequest>(relaxed = true)
     private val service = mockk<GemAssetDetailsServiceInterface>(relaxed = true)
 
     @Before
@@ -83,7 +83,7 @@ class AssetDetailsViewModelTest {
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any()) } returns emptyList()
         every { getAssetBanners(any()) } returns banners
-        every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
+        every { priceAlertsRequest(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
             mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.banners.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
@@ -109,7 +109,7 @@ class AssetDetailsViewModelTest {
 
         assertNull(viewModel.uiModel.value)
 
-        priceAlerts.emit(listOf(mockPriceAlert(assetId = asset.id)))
+        priceAlerts.emit(listOf(PriceAlertData(asset = asset, priceAlert = mockPriceAlert(assetId = asset.id), rankScore = 0)))
         val uiModel = viewModel.uiModel.first { it != null }!!
 
         assertEquals(GemPriceAlertToggle.ENABLED, uiModel.details.state.priceAlert)
@@ -134,7 +134,7 @@ class AssetDetailsViewModelTest {
         getTransactions = getTransactions,
         assetDetailsService = service,
         getAssetBanners = getAssetBanners,
-        getPriceAlerts = getPriceAlerts,
+        priceAlertsRequest = priceAlertsRequest,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,
