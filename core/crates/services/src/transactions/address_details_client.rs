@@ -34,8 +34,8 @@ impl AddressDetailsClient {
             .await?;
         let details = map_address_details(request, assets.into_iter().next(), scan_addresses.into_iter().next(), &verdicts);
         let balances = match details.address_type {
-            AddressType::Validator => None,
-            AddressType::Address | AddressType::Contract | AddressType::Asset | AddressType::Contact | AddressType::InternalWallet => self.get_balances(&details).await,
+            AddressType::Address => self.get_balances(&details).await,
+            AddressType::Contract | AddressType::Asset | AddressType::Validator | AddressType::Contact | AddressType::InternalWallet => None,
         };
         Ok(AddressDetails { balances, ..details })
     }
