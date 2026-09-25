@@ -514,6 +514,7 @@ dependencies = [
  "gem_auth",
  "gem_client",
  "gem_tracing",
+ "localizer",
  "metrics",
  "name_resolver",
  "nft",

@@ -226,6 +226,14 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "errors_generic")
     }
 
+    pub fn fiat_error_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "fiat_error_limit_reached")
+    }
+
+    pub fn fiat_error_quote_unavailable(&self) -> String {
+        fl!(self.loader.as_ref(), "fiat_error_quote_unavailable")
+    }
+
     pub fn rewards_error_referral_code_not_exist(&self) -> String {
         fl!(self.loader.as_ref(), "rewards_error_referral_code_not_exist")
     }

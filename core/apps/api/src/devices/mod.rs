@@ -5,7 +5,7 @@ pub mod error;
 pub mod guard;
 pub mod signature;
 use crate::params::{AddressParam, AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent};
-use crate::responders::{ApiError, ApiResponse};
+use crate::responders::{ApiError, ApiResponse, localized_fiat_error};
 use auth_config::AuthConfig;
 use body::DeviceJson;
 use gem_auth::create_device_token;
@@ -302,7 +302,7 @@ pub async fn get_fiat_quotes_v2(
         ip_address: ip_address.clone(),
     };
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip_address);
-    let quotes = client.get_device_quotes(quote_request, &context).await?;
+    let quotes = client.get_device_quotes(quote_request, &context).await.map_err(|error| localized_fiat_error(error, device.record.device.locale.as_ref()))?;
     Ok(quotes.into())
 }
 
@@ -311,7 +311,7 @@ pub async fn get_fiat_quote_url_v2(device: AuthenticatedDeviceWallet, quote_id: 
     let locale = device.record.device.locale.as_ref();
     let ip_address = ip.to_string();
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip_address);
-    let url = client.get_quote_url(quote_id, &context, locale).await?;
+    let url = client.get_quote_url(quote_id, &context, locale).await.map_err(|error| localized_fiat_error(error, locale))?;
     Ok(url.into())
 }
 

@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Numbers and copy:** the copy for BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+1. **Numbers and copy:** the copy for BD15, BD19, BD30 and VM67 through the translation-review flow.
 2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 3. **Balances and storage:** D76, D77, VM98 (an Android migration).
 4. **Server:** BD23, BD51, BD52.
@@ -144,7 +144,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Raw or untranslated errors reaching users
 
-- **BD9** **M** **Buy/sell errors are English-only or opaque: "Rate limit reached", English `FiatQuoteError`s, a bare "Forbidden".** `responders.rs` (`FiatQuoteError` → `BadRequest`, `RequestError::LimitReached` → `OkError`), `core/crates/services/src/fiat/client.rs:194,257` (per-provider errors in `FiatQuotes.errors`), `core/crates/services/src/fiat/fiat_cacher_client.rs:40`; shown by iOS `FiatSceneViewModel.swift:113,316-321` and Android `FiatNavScreen.kt:97-99`. See BD52 for why "Forbidden" is common. **Copy:** we write the fiat quote errors in English and translate them into all 21 languages through the translation-review flow.
 - **BD15** **S** **An unavailable or failed biometry reads differently on the app-authentication toggle.**
   - **iOS:** shows "BiometryAuthenticationError error N" (`SecurityViewModel.swift:119-127,135,147`; `BiometryAuthenticationError.swift:7` is not a `LocalizedError`).
   - **Android:** opens the biometric settings (`SecurityScene.kt:55` → `SystemAuthenticator.kt:99-111`).
