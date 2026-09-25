@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemAmountInput
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemStakeServiceProtocol
@@ -43,8 +44,8 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.gemAmountType
     }
 
-    var prefilledAmount: String? {
-        provider.prefilledAmount
+    func input(from assetData: AssetData) -> GemAmountInput {
+        provider.input(from: assetData)
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {

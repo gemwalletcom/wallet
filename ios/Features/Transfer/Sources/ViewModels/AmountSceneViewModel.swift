@@ -62,11 +62,6 @@ public final class AmountSceneViewModel {
         self.input = amountInput
         entry = provider.entry(from: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
         amountInputModel = InputValidationViewModel()
-
-        if let amount = provider.prefilledAmount {
-            amountInputModel.text = amount
-            refreshEntry()
-        }
     }
 
     public var asset: Asset {
@@ -143,14 +138,12 @@ public final class AmountSceneViewModel {
 }
 
 extension AmountSceneViewModel {
-    var shouldFocusOnAppear: Bool {
-        canChangeValue
-    }
-
-    func onAppear() {
-        if !canChangeValue {
-            setMax()
-        }
+    func prefillAmount() {
+        guard let prefill = input.prefill,
+              let text = NumberInput.format().inputText(value: prefill.value.description, decimals: UInt32(asset.decimals)) else { return }
+        amountInputType = prefill.inputType
+        amountInputModel.text = text
+        refreshEntry()
     }
 
     public func onChangeAssetBalance(_: AssetData, _: AssetData) {
@@ -223,9 +216,6 @@ extension AmountSceneViewModel {
         guard case let .stake(stake) = provider else { return }
         stake.select(validator)
         refreshEntry()
-        if !canChangeValue {
-            setMax()
-        }
     }
 
     func infoAction(for error: Error) -> (() -> Void)? {

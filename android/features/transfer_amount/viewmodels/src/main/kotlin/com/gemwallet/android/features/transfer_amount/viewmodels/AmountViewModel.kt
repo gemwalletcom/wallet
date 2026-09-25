@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -65,7 +66,7 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
-    var amount by mutableStateOf(provider.prefilledAmount.orEmpty())
+    var amount by mutableStateOf("")
         private set
 
     val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
@@ -130,6 +131,7 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
             amountSymbol = screen[2] as AmountSymbolUIModel,
             canSwitchInputType = (rest[0] as GemAmountType?)?.canSwitchInputType() == true,
             readOnly = input?.canChangeValue == false,
+            focusesInput = input?.focusesInput == true,
             showsAssetBalance = input?.showsAssetBalance != false,
             usesWholeAmounts = input?.usesWholeAmounts == true,
             availableBalance = values[0] as String,
@@ -169,10 +171,15 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
             .onEach { amountError.value = it?.error }
             .launchIn(viewModelScope)
 
-        combine(provider.input.filterNotNull(), provider.assetInfo.filterNotNull()) { input, current -> if (input.canChangeValue) null else maxAmountText(current.asset, input.maxEntry().value) }
-            .filterNotNull()
-            .onEach { updateAmount(it) }
-            .launchIn(viewModelScope)
+        viewModelScope.launch { prefillAmount(provider.input.filterNotNull().first()) }
+    }
+
+    private fun prefillAmount(input: GemAmountInput) {
+        val prefill = input.prefill ?: return
+        val current = provider.assetInfo.value ?: return
+        val text = maxAmountText(current.asset, prefill.value) ?: return
+        amountInputType.value = prefill.inputType
+        updateAmount(text)
     }
 
     fun updateAmount(input: String) {

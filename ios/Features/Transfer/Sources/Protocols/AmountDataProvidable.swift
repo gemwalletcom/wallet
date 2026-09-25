@@ -15,15 +15,11 @@ protocol AmountDataProvidable {
     var asset: Asset { get }
     var title: String { get }
     var gemAmountType: GemAmountType { get }
-    var prefilledAmount: String? { get }
+    func input(from assetData: AssetData) -> GemAmountInput
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData
 }
 
 extension AmountDataProvidable {
-    var prefilledAmount: String? {
-        nil
-    }
-
     func input(from assetData: AssetData) -> GemAmountInput {
         gemAmountType.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
     }

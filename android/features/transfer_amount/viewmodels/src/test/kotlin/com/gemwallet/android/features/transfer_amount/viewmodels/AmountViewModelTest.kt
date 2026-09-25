@@ -44,6 +44,7 @@ import org.junit.Test
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemAmountMaxEntry
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
@@ -111,6 +112,18 @@ class AmountViewModelTest {
         viewModel.setAmount("5")
         assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
         assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `a prefilled input fills the amount once`() {
+        inputFlow.value = mockGemAmountInput(HundredAtom, prefill = GemAmountMaxEntry(GemAmountInputType.ASSET, BigInteger("1500000")))
+        viewModelTest { viewModel ->
+            assertEquals("1.5", viewModel.amount)
+
+            inputFlow.value = mockGemAmountInput(OneAtom, prefill = GemAmountMaxEntry(GemAmountInputType.ASSET, OneAtom))
+            runCurrent()
+            assertEquals("1.5", viewModel.amount)
+        }
     }
 
     @Test

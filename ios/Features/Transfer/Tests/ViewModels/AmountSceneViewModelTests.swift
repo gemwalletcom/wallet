@@ -129,7 +129,7 @@ struct AmountSceneViewModelTests {
     }
 
     @Test
-    func onAppearSetsMaxForFixedValue() {
+    func aFixedValueFillsItself() {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
         let assetData = AssetData.mock(asset: .mockBNB())
         let model = AmountSceneViewModel.mock(
@@ -139,8 +139,9 @@ struct AmountSceneViewModelTests {
 
         #expect(model.isInputDisabled == true)
 
-        model.onAppear()
+        model.prefillAmount()
         #expect(model.amountInputModel.text.isEmpty == false)
+        #expect(model.input.focusesInput == false)
     }
 
     @Test

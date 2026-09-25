@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemTransferData
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,7 +36,7 @@ class AmountTransferProvider(private val params: AmountParams, private val servi
 
     override val amountType: StateFlow<GemAmountType?> = MutableStateFlow(transfer.amountType())
 
-    override val prefilledAmount: String? get() = transfer.prefilledAmount()
+    override fun amountInput(type: GemAmountType, current: AssetInfo, balance: GemAssetBalance): GemAmountInput = transfer.input(current.asset.toGem(), balance)
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)

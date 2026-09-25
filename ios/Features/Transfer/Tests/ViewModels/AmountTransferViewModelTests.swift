@@ -39,10 +39,11 @@ struct AmountTransferViewModelTests {
     }
 
     @Test
-    func prefilledAmount() {
+    func aPaymentAmountPrefillsTheInput() {
         let recipient = GemPaymentRecipient.mock(recipient: .mock(address: "0x123"), amount: "1.5")
-        #expect(AmountTransferViewModel.mock(transfer: .send(payment: recipient)).prefilledAmount == "1.5")
-        #expect(AmountTransferViewModel.mock(transfer: .deposit).prefilledAmount == nil)
+        let assetData = AssetData.mock(asset: .mock(decimals: 6))
+        #expect(AmountTransferViewModel.mock(asset: assetData.asset, transfer: .send(payment: recipient)).input(from: assetData).prefill?.value == 1_500_000)
+        #expect(AmountTransferViewModel.mock(transfer: .deposit).input(from: assetData).prefill == nil)
     }
 
     @Test

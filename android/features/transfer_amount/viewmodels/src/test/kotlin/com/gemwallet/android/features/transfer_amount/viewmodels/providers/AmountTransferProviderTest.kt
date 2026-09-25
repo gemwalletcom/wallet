@@ -64,11 +64,11 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `Core decides the prefilled amount`() {
-        assertEquals("1.5", makeProvider(params.copy(payment = params.payment.copy(amount = "1.5"))).prefilledAmount)
-        assertEquals(null, makeProvider().prefilledAmount)
-        assertEquals(null, makeProvider(AmountParams.Deposit(asset.id)).prefilledAmount)
-        assertEquals(null, makeProvider(AmountParams.Withdraw(asset.id)).prefilledAmount)
+    fun `a payment amount prefills the input`() = runBlocking {
+        val prefill = makeProvider(params.copy(payment = params.payment.copy(amount = "1.5"))).input.filterNotNull().first().prefill
+        assertEquals(BigInteger("1.5".toBigDecimal().movePointRight(asset.decimals).toPlainString()), prefill?.value)
+        assertEquals(null, makeProvider().input.filterNotNull().first().prefill)
+        assertEquals(null, makeProvider(AmountParams.Deposit(asset.id)).input.filterNotNull().first().prefill)
     }
 
     @Test

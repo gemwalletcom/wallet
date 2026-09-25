@@ -61,6 +61,7 @@ internal fun AmountScene(
     currency: Currency,
     canSwitchInputType: Boolean,
     readOnly: Boolean,
+    focusesInput: Boolean,
     usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
     error: String,
@@ -145,8 +146,10 @@ internal fun AmountScene(
         InfoBottomSheet(errorInfo) { showsErrorInfo = false }
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocusIfAttached()
+    LaunchedEffect(focusesInput) {
+        if (focusesInput) {
+            focusRequester.requestFocusIfAttached()
+        }
     }
 }
 
