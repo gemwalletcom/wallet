@@ -6,15 +6,27 @@ import SwiftUI
 
 public extension View {
     func contextMenu(_ items: [ContextMenuItemType]) -> some View {
-        contextMenu {
-            ForEach(Array(items.enumerated()), id: \.offset) {
-                build($0.element)
-            }
-        }
+        contextMenuOnOpen { items }
     }
 
     func contextMenu(_ item: ContextMenuItemType) -> some View {
         contextMenu([item])
+    }
+
+    func contextMenuOnOpen(_ items: @escaping () -> [ContextMenuItemType]) -> some View {
+        contextMenu {
+            ContextMenuItems(items: items)
+        }
+    }
+}
+
+private struct ContextMenuItems: View {
+    let items: () -> [ContextMenuItemType]
+
+    var body: some View {
+        ForEach(Array(items().enumerated()), id: \.offset) {
+            build($0.element)
+        }
     }
 
     @ViewBuilder
