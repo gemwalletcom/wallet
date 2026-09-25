@@ -14,11 +14,12 @@ use crate::services::simulation::{GemSimulationPayloadRow, address_requests, nam
 use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
-use crate::services::transfer::model::GemConfirmDestination;
+use crate::services::transfer::model::{GemConfirmDestination, GemConfirmTitle};
+use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::AssetPrice;
 use primitives::BlockExplorerLink;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{AssetPrice, PaymentVerification};
 
 pub type GemAccount = Account;
 
@@ -358,6 +359,9 @@ pub struct GemConfirmViewState {
     pub fee_rates: Option<GemFeeRateRows>,
     pub row_contents: Vec<GemConfirmRowContent>,
     pub simulation_warnings: Vec<GemListRow>,
+    pub title: GemConfirmTitle,
+    pub verification: Option<PaymentVerification>,
+    pub authentication: GemKeystoreAuthentication,
 }
 
 #[cfg(test)]

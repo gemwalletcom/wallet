@@ -70,7 +70,7 @@ public final class ConfirmTransferSceneViewModel {
         )
         self.loadOptions = loadOptions
         self.state = state
-        viewState = confirmation.viewState(screen: state.screen, addressName: state.addressName?.toGem())
+        viewState = confirmation.viewState(screen: state.screen)
     }
 
     var payloadDetailsListItem: ListItemModel {
@@ -78,7 +78,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var title: String {
-        transfer.title().title
+        viewState.title.title
     }
 
     var progressMessage: String {
@@ -101,7 +101,7 @@ public final class ConfirmTransferSceneViewModel {
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             button: viewState.button,
-            authentication: confirmation.authentication(),
+            authentication: viewState.authentication,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }
@@ -145,7 +145,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
             primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [state.verification == nil ? .networkFee : .verification]),
+            ListSection(type: .fee, [viewState.verification == nil ? .networkFee : .verification]),
             ListSection(type: .error, [.error]),
         ].compactMap(\.self)
     }
@@ -232,7 +232,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectVerification() {
-        guard let verification = state.verification, let url = URL(string: verification.url) else { return }
+        guard let verification = viewState.verification, let url = URL(string: verification.url) else { return }
         isPresentingSheet = .paymentVerification(url)
     }
 
@@ -291,7 +291,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func onStateChange(state: ConfirmTransferState) {
-        viewState = confirmation.viewState(screen: state.screen, addressName: state.addressName?.toGem())
+        viewState = confirmation.viewState(screen: state.screen)
         guard state.screen.presentsSheet(), let error = state.loadError else { return }
         onSelectListError(error: error)
     }

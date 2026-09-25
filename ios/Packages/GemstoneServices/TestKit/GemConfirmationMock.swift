@@ -70,13 +70,16 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         headerValue
     }
 
-    public func viewState(screen: GemConfirmScreen, addressName: Gemstone.AddressName?) -> GemConfirmViewState {
+    public func viewState(screen: GemConfirmScreen) -> GemConfirmViewState {
         GemConfirmViewState(
             button: screen.button(),
             feeRow: screen.feeRow(),
             feeRates: feeRateRows(),
-            rowContents: rowContents(addressName: addressName),
+            rowContents: rowContents(addressName: loaded?.addressName),
             simulationWarnings: loaded?.simulation.warnings ?? warnings,
+            title: transfer().title(),
+            verification: transfer().verification(),
+            authentication: authenticationValue,
         )
     }
 
@@ -89,7 +92,9 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func state() async throws -> GemConfirmLoad {
-        loaded ?? initialState
+        let state = loaded ?? initialState
+        loaded = state
+        return state
     }
 
     public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
@@ -108,10 +113,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
 
     public func getCurrency() -> Currency {
         Primitives.Currency.usd.toGem()
-    }
-
-    public func authentication() -> GemKeystoreAuthentication {
-        authenticationValue
     }
 
     public func rowContents(addressName: Gemstone.AddressName?) -> [GemConfirmRowContent] {

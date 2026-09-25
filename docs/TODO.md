@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+1. **One view state:** VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 4. **Balances and storage:** D76, D77, VM98 (an Android migration).
@@ -44,7 +44,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM125 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM168, VM170 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM170 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169 |
@@ -94,9 +94,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
   - **iOS:** one `walletSearchView(input:)` per render (`WalletSearchSceneViewModel.swift:118`), but test-only getters (`collectionsContent`, `sections`, `searchState`, `show*`, `preview*`, `hasMore*`, `:93-210`) each re-run `derived`, and `updateRequest` computes `derived` just for `limits.fetch`; `WalletSearchSections.swift:22-28` and `AssetsResultsSceneViewModel` (test-only `showPinned`/`showAssets`/`showPerpetuals`/`searchState`) split pinned perpetuals by hand.
   - **Android:** `WalletSearchViewModel.kt` calls `showPerpetuals` separately, `walletSearchLimits` six times per emission and overrides `walletSearchState`'s phase (`:70-172`), and splits pinned perpetuals by hand (`:81-87`).
   - **Expected:** both call `wallet_search_view` once per emission and read the split from `perpetual_market_sections`; the tests read `derived`. Check the empty and loading timing of a remote search when it lands.
-- **VM168** **S** **The confirm view state carries the title, the verification, the authentication and the address name.** `GemConfirmViewState` ([`confirm/model.rs`](../core/gemstone/src/services/confirm/model.rs)) gains `title`, `verification` and `authentication`, and `view_state` reads the stored address name itself (check the failed-reload case). The header already comes from `header(screen)`.
-  - **iOS:** `ConfirmTransferSceneViewModel` calls `transfer.title()`, `confirmation.authentication()` (a keystore port read), `showsFeeAssets()`, `transfer.verification()` and `confirmation.header()` on each render (`:81-167`), and converts `load.addressName` to primitives and back into `viewState(screen:addressName:)` (`ConfirmTransferState.swift:26`, `:74,297`).
-  - **Android:** the same calls once per emission (`ConfirmViewModel.kt:192-345`), with the same address-name round trip (`:192`).
 - **VM169** **S** **Fiat reads the amount error and the provider from its view state.** `GemFiatViewState` ([`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs)) gains one `amount_error` both mappers render.
   - **iOS:** `FiatSceneViewModel.swift:89-96` picks `phase.check`, `amountCheck` or invalid input; `FiatProviderViewModel` copies five view-state fields, and `selectedQuote`, `allowSelectProvider`, `actionButtonTitle` and `actionButtonState` forward them (`:98-145`). Delete the model and the forwarders; the scene reads `viewState`.
   - **Android:** `buy/.../GemstoneText.kt:41-53` picks the same error; `FiatSuggestion` re-types `GemFiatSuggestedAmount` (`u32 → Double → Int`, plus an unrendered `RandomAmount`) and re-calls `suggestedAmounts()` on each buy/sell toggle; `GetBuyAssetInfoImpl` builds an `AssetData` that `FiatViewModel.kt:105` turns straight back into `AssetInfo` (`account` and `walletId` unread). Delete `FiatSuggestion` and the `AssetData` round trip.

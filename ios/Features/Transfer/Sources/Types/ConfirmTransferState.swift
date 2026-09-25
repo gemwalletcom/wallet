@@ -9,7 +9,6 @@ import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemFeeAsset
 import struct Gemstone.GemTransferData
-import struct Gemstone.PaymentVerification
 import Primitives
 import PrimitivesComponents
 
@@ -23,7 +22,6 @@ struct ConfirmTransferState {
     var metadata: GemConfirmMetadata? { load?.metadata }
     var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
     var fee: GemConfirmFee? { load?.fee }
-    var addressName: AddressName? { load?.addressName.map { $0.toPrimitives() } }
 }
 
 extension ConfirmTransferState {
@@ -45,10 +43,6 @@ extension ConfirmTransferState {
             simulation: ConfirmSimulationState(load.simulation),
             screen: screen,
         )
-    }
-
-    var verification: PaymentVerification? {
-        transfer.verification()
     }
 
     var loadError: GemConfirmError? {

@@ -68,6 +68,10 @@ impl GemConfirmation {
         Ok(screen?.with_fee(fee, requested))
     }
 
+    fn authentication(&self) -> GemKeystoreAuthentication {
+        self.service.authentication()
+    }
+
     fn simulation_warnings(&self) -> Vec<GemListRow> {
         match self.stored().as_ref() {
             Some(state) => state.load.simulation.warnings.clone(),
@@ -105,7 +109,9 @@ impl GemConfirmation {
         header::header(&transfer, self.simulation.as_ref(), stored.as_ref().map(|state| &state.load), self.service.get_currency(), &screen)
     }
 
-    pub fn view_state(&self, screen: GemConfirmScreen, address_name: Option<AddressName>) -> GemConfirmViewState {
+    pub fn view_state(&self, screen: GemConfirmScreen) -> GemConfirmViewState {
+        let address_name = self.stored().as_ref().and_then(|state| state.load.address_name.clone());
+        let transfer = self.transfer();
         GemConfirmViewState {
             button: screen.button(),
             fee_row: screen.fee_row(),
@@ -123,6 +129,9 @@ impl GemConfirmation {
                 })
                 .collect(),
             simulation_warnings: self.simulation_warnings(),
+            title: transfer.title(),
+            verification: transfer.verification(),
+            authentication: self.authentication(),
         }
     }
 
@@ -134,10 +143,6 @@ impl GemConfirmation {
 
     pub fn get_currency(&self) -> Currency {
         self.service.get_currency()
-    }
-
-    pub fn authentication(&self) -> GemKeystoreAuthentication {
-        self.service.authentication()
     }
 
     pub fn row_contents(&self, address_name: Option<AddressName>) -> Vec<GemConfirmRowContent> {
@@ -291,12 +296,46 @@ mod tests {
         let confirmation = testkit.service.confirmation(wallet, transfer, None);
         let screen = confirmation.screen();
 
-        let state = confirmation.view_state(screen.clone(), None);
+        let state = confirmation.view_state(screen.clone());
 
         assert_eq!(state.button, screen.button());
         assert_eq!(state.fee_row, screen.fee_row());
         assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
         assert_eq!(state.row_contents, confirmation.row_contents(None));
+        assert_eq!(state.title, confirmation.transfer().title());
+        assert_eq!(state.verification, None);
+        assert_eq!(state.authentication, confirmation.authentication());
+    }
+
+    #[test]
+    fn test_view_state_names_the_recipient_from_the_last_stored_load() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            let transfer = GemTransferData {
+                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+                value: 0.into(),
+                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+            };
+            let confirmation = testkit.service.confirmation(wallet, transfer, None);
+            let name = AddressName::mock("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV", "Friend", AddressType::Address, VerificationStatus::Verified);
+            let named = GemConfirmLoad {
+                address_name: Some(name.clone()),
+                ..confirmation.state().await.unwrap()
+            };
+            let load = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
+            assert!(confirmation.store_latest(load, Ok(ConfirmState { load: named, confirm_data: None })).is_ok());
+
+            assert_eq!(confirmation.view_state(confirmation.screen()).row_contents, confirmation.row_contents(Some(name.clone())));
+
+            let failed = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
+            assert!(confirmation.store_latest(failed, Err(GemConfirmError::Offline)).is_err());
+            assert_eq!(
+                confirmation.view_state(confirmation.screen()).row_contents,
+                confirmation.row_contents(Some(name)),
+                "a failed reload keeps the name the screen already shows"
+            );
+        });
     }
 
     #[test]
@@ -314,7 +353,7 @@ mod tests {
         };
         let confirmation = testkit.service.confirmation(wallet, transfer, Some(simulation));
 
-        let state = confirmation.view_state(confirmation.screen(), None);
+        let state = confirmation.view_state(confirmation.screen());
 
         assert_eq!(state.simulation_warnings, warning_rows(&warnings));
         assert!(!state.simulation_warnings.is_empty());

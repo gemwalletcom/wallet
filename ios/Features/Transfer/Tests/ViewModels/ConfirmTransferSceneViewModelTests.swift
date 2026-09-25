@@ -295,7 +295,7 @@ struct ConfirmTransferSceneViewModelTests {
     func aFeeChangeAndARefreshEachLeaveOneConsistentViewState() async {
         let confirmation = GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
-        let expected = { confirmation.viewState(screen: model.state.screen, addressName: model.state.addressName?.toGem()) }
+        let expected = { confirmation.viewState(screen: model.state.screen) }
 
         model.changeFeeSelection(.priority(priority: .fast))
         #expect(model.viewState == expected())
@@ -359,13 +359,13 @@ struct ConfirmTransferSceneViewModelTests {
         await confirmation { preloading in
             confirmationMock.onLoad = {
                 #expect(model.state.screen.phase == .loading)
-                #expect(model.state.addressName?.name == "vitalik.eth")
+                #expect(model.state.load?.addressName?.name == "vitalik.eth")
                 preloading()
             }
             await model.load()
         }
         #expect(model.state.fee != nil)
-        #expect(model.state.addressName?.name == "vitalik.eth")
+        #expect(model.state.load?.addressName?.name == "vitalik.eth")
     }
 
     @Test

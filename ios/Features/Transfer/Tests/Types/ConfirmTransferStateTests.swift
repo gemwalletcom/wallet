@@ -9,16 +9,15 @@ import TransferTestKit
 
 struct ConfirmTransferStateTests {
     @Test
-    func loadWithoutAFeeStillCarriesThePricesAndTheRecipient() {
+    func loadWithoutAFeeStillCarriesThePrices() {
         let state = ConfirmTransferState(
-            .mock(feeAssets: [.mock(asset: .mockTempoUSDC())], addressName: .mock(name: "Uniswap"), fee: nil),
+            .mock(feeAssets: [.mock(asset: .mockTempoUSDC())], fee: nil),
             screen: .mock(),
         )
 
         #expect(state.fee == nil)
         #expect(state.metadata != nil)
         #expect(state.feeAssets.count == 1)
-        #expect(state.addressName?.name == "Uniswap")
     }
 
     @Test

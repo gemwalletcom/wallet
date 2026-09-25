@@ -189,8 +189,8 @@ class ConfirmViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val viewState = combine(confirmation.filterNotNull(), screen, load) { confirmation, screen, load ->
-        confirmation.viewState(screen, load?.addressName)
+    val viewState = combine(confirmation.filterNotNull(), screen, load) { confirmation, screen, _ ->
+        confirmation.viewState(screen)
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -198,13 +198,13 @@ class ConfirmViewModel @Inject constructor(
     private val transfer = combine(request, load) { request, load -> load?.transfer ?: request }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val title = transfer.map { it?.title() }
+    val title = viewState.map { it?.title }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val isExternalRequest = transfer.map { it?.inputType?.applicationMetadata != null || it?.inputType is TransactionInputType.Payment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val verification = transfer.map { it?.verification() }
+    val verification = viewState.map { it?.verification }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val simulation = content
