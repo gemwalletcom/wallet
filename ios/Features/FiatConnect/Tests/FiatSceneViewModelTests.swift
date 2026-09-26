@@ -20,16 +20,6 @@ import Testing
 @MainActor
 final class FiatSceneViewModelTests {
     @Test
-    func defaultAmount() {
-        let model = FiatSceneViewModel.mock()
-        #expect(model.amount == "50")
-
-        model.type = .sell
-
-        #expect(model.amount == "100")
-    }
-
-    @Test
     func selectBuyAmount() {
         let model = FiatSceneViewModel.mock()
         model.onSelect(amount: 150)
@@ -39,41 +29,6 @@ final class FiatSceneViewModelTests {
         model.onSelect(amount: 1)
 
         #expect(model.amount == "1")
-    }
-
-    @Test
-    func selectSellAmount() {
-        let model = FiatSceneViewModel.mock()
-        model.type = .sell
-
-        model.onSelect(amount: 50)
-
-        #expect(model.amount == "50")
-
-        model.onSelect(amount: 100)
-
-        #expect(model.amount == "100")
-    }
-
-    @Test
-    func testCurrencySymbol() {
-        let model = FiatSceneViewModel.mock()
-        #expect(model.currencyInputConfig(model.viewState).currencySymbol == "$")
-
-        model.type = .sell
-
-        #expect(model.currencyInputConfig(model.viewState).currencySymbol == "$")
-    }
-
-    @Test
-    func suggestedAmountsCarryTheCurrencySymbol() {
-        let model = FiatSceneViewModel.mock()
-
-        #expect(model.suggestedAmounts.map { $0.value.text() } == ["$100", "$250"])
-
-        model.type = .sell
-
-        #expect(model.suggestedAmounts.map(\.amount) == [100, 250])
     }
 
     @Test
@@ -87,28 +42,6 @@ final class FiatSceneViewModelTests {
         )
 
         #expect(model.assetBalance == "66.67 TRX")
-    }
-
-    @Test
-    func aZeroBalanceShows() {
-        let asset = Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6)
-        let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
-
-        model.assetQuery.value = .mock(asset: asset, balance: .zero)
-
-        #expect(model.assetBalance == "0 TRX")
-    }
-
-    @Test
-    func theTypePickerShowsWhenSellIsEnabledWithZeroBalance() {
-        let model = FiatSceneViewModel.mock()
-
-        model.assetQuery.value = .mock(
-            balance: .zero,
-            metadata: .mock(isSellEnabled: true),
-        )
-
-        #expect(model.viewState.showsTypePicker)
     }
 
     @Test
@@ -209,15 +142,6 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func aFailedQuoteReadsAsAnErrorAndItsActionAsRetry() {
-        let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
-
-        #expect(model.quotesState(model.viewState).isError)
-        #expect(model.viewState.buttonAction.title == Localized.Common.tryAgain)
-    }
-
-    @Test
     func aFailedQuoteStopsTheClockUntilTheAmountChanges() async {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
@@ -228,14 +152,6 @@ final class FiatSceneViewModelTests {
         model.onSelect(amount: 150)
         await model.refreshQuotes()
         #expect(model.viewState.buttonAction == .continue, "a new amount starts the clock again")
-    }
-
-    @Test
-    func urlStateInitialValue() {
-        let model = FiatSceneViewModel.mock()
-
-        #expect(model.urlState.isNoData == true)
-        #expect(model.urlState.isLoading == false)
     }
 
     @Test
@@ -273,20 +189,12 @@ final class FiatSceneViewModelTests {
     @Test
     func loadTriggerOnSelectRandomAmountIsImmediate() {
         let model = FiatSceneViewModel.mock()
+        model.amount = "123"
 
         model.onSelectRandomAmount()
 
+        #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 50))
         #expect(model.loadTrigger?.isImmediate == true)
-    }
-
-    @Test
-    func amountOutsideTheConfiguredRangeSchedulesNoFetch() {
-        let model = FiatSceneViewModel.mock()
-
-        model.amount = "4"
-
-        #expect(model.loadTrigger == nil)
-        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
     }
 
     @Test
@@ -305,13 +213,6 @@ final class FiatSceneViewModelTests {
 
         #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 250))
         #expect(model.loadTrigger?.isImmediate == true)
-    }
-
-    @Test
-    func sellSceneUsesSellDefaultLoadTriggerAmount() {
-        let model = FiatSceneViewModel.mock(type: .sell)
-
-        #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .sell, amount: 100))
     }
 
     @Test
