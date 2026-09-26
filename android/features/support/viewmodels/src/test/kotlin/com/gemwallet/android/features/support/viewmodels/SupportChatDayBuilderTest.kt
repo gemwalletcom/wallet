@@ -5,6 +5,7 @@ import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessageSender
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemSupportBubbleSide
 
 class SupportChatDayBuilderTest {
 
@@ -25,12 +26,12 @@ class SupportChatDayBuilderTest {
         val days = buildSupportChatDays(listOf(mockSupportMessage(id = "b", content = "b", sender = user, createdAt = day2), mockSupportMessage(id = "a", content = "a", sender = user, createdAt = day1)))
 
         assertEquals(2, days.size)
-        assertEquals(listOf("a"), days[0].groups.flatMap { it.messages }.map { it.id })
-        assertEquals(listOf("b"), days[1].groups.flatMap { it.messages }.map { it.id })
+        assertEquals(listOf("a"), days[0].groups.flatMap { it.rows }.map { it.message.id })
+        assertEquals(listOf("b"), days[1].groups.flatMap { it.rows }.map { it.message.id })
     }
 
     @Test
-    fun groupsCarryTheSenderAndTheMessages() {
+    fun groupsCarryTheSideAndTheMessages() {
         val days = buildSupportChatDays(
             listOf(
                 mockSupportMessage(id = "a", content = "a", sender = user, createdAt = day1),
@@ -39,7 +40,7 @@ class SupportChatDayBuilderTest {
             ),
         )
 
-        assertEquals(listOf(user, ann), days[0].groups.map { it.sender })
-        assertEquals(listOf(listOf("a"), listOf("b", "c")), days[0].groups.map { group -> group.messages.map { it.id } })
+        assertEquals(listOf(GemSupportBubbleSide.OUTGOING, GemSupportBubbleSide.INCOMING), days[0].groups.map { it.side })
+        assertEquals(listOf(listOf("a"), listOf("b", "c")), days[0].groups.map { group -> group.rows.map { it.message.id } })
     }
 }

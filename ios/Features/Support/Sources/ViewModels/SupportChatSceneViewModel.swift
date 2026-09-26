@@ -52,11 +52,7 @@ public final class SupportChatSceneViewModel {
     )
 
     var days: [SupportChatDay] {
-        SupportChatDayBuilder(
-            messages: query.value,
-            retryAction: { [weak self] in self?.onRetry($0) },
-            imageAction: { [weak self] in self?.onOpenPreview($0) },
-        ).build()
+        SupportChatDayBuilder(messages: query.value).build()
     }
 
     func load() async {
@@ -112,6 +108,18 @@ public final class SupportChatSceneViewModel {
     }
 }
 
+// MARK: - Actions
+
+extension SupportChatSceneViewModel {
+    func onRetry(_ message: SupportMessage) {
+        Task { await retry(message) }
+    }
+
+    func onOpenPreview(_ image: SupportMessageImage) {
+        Task { await openPreview(image) }
+    }
+}
+
 // MARK: - Private
 
 private extension SupportChatSceneViewModel {
@@ -121,14 +129,6 @@ private extension SupportChatSceneViewModel {
 
     func onSendImages(_ items: [PhotosPickerItem]) {
         Task { await sendImages(items) }
-    }
-
-    func onRetry(_ message: SupportMessage) {
-        Task { await retry(message) }
-    }
-
-    func onOpenPreview(_ image: SupportMessageImage) {
-        Task { await openPreview(image) }
     }
 
     func alertOnFailure(_ operation: () async throws -> Void) async {

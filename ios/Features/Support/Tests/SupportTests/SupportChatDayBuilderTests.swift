@@ -18,9 +18,9 @@ struct SupportChatDayBuilderTests {
         ]).build()
 
         #expect(days.count == 3)
-        #expect(days[0].groups[0].messages.map(\.id) == ["b"])
-        #expect(days[1].groups[0].messages.map(\.id) == ["a"])
-        #expect(days[2].groups[0].messages.map(\.id) == ["c"])
+        #expect(days[0].groups[0].rows.map(\.message.id) == ["b"])
+        #expect(days[1].groups[0].rows.map(\.message.id) == ["a"])
+        #expect(days[2].groups[0].rows.map(\.message.id) == ["c"])
     }
 
     @Test
@@ -33,11 +33,11 @@ struct SupportChatDayBuilderTests {
 
         #expect(days.count == 1)
         #expect(days[0].groups.count == 1)
-        #expect(days[0].groups[0].messages.map(\.id) == ["a", "b"])
+        #expect(days[0].groups[0].rows.map(\.message.id) == ["a", "b"])
     }
 
     @Test
-    func groupsCarryTheSenderAndTheBubbles() throws {
+    func groupsCarryTheSideAndTheBubbles() throws {
         let date = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 12)))
         let groups = SupportChatDayBuilder.mock(messages: [
             .mock(id: "a", sender: .user, createdAt: date),
@@ -45,8 +45,8 @@ struct SupportChatDayBuilderTests {
             .mock(id: "c", sender: .agent(.mock(name: "Gemma")), createdAt: date),
         ]).build()[0].groups
 
-        #expect(groups.map(\.sender) == [.user, .agent(.mock(name: "Gemma"))])
-        #expect(groups.map { $0.messages.map(\.id) } == [["a"], ["b", "c"]])
+        #expect(groups.map(\.side) == [.outgoing, .incoming])
+        #expect(groups.map { $0.rows.map(\.message.id) } == [["a"], ["b", "c"]])
     }
 
     @Test

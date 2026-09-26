@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.features.support.viewmodels.SupportChatDay
-import com.gemwallet.android.features.support.viewmodels.SupportChatGroup
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.format.SectionDateFormatter
@@ -28,6 +27,7 @@ import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.SupportMessage
+import uniffi.gemstone.GemSupportChatGroup
 import java.time.LocalDate
 
 private sealed interface ChatRow {
@@ -37,8 +37,8 @@ private sealed interface ChatRow {
         override val key: String = "separator:${day.date}"
     }
 
-    data class Group(val group: SupportChatGroup) : ChatRow {
-        override val key: String = "group:${group.messages.first().id}"
+    data class Group(val group: GemSupportChatGroup) : ChatRow {
+        override val key: String = "group:${group.rows.first().message.id}"
     }
 }
 
@@ -60,7 +60,7 @@ internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: St
     }
     val listState = rememberLazyListState()
     val newestMessageId = remember(days) {
-        days.lastOrNull()?.groups?.lastOrNull()?.messages?.lastOrNull()?.id
+        days.lastOrNull()?.groups?.lastOrNull()?.rows?.lastOrNull()?.message?.id
     }
     LaunchedEffect(newestMessageId) {
         if (rows.isNotEmpty()) {

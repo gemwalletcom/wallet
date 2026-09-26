@@ -41,7 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
-import com.gemwallet.android.features.support.viewmodels.SupportChatMessage
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
@@ -49,6 +49,7 @@ import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.style.colors
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -60,8 +61,9 @@ import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
-import com.wallet.core.primitives.SupportMessageSender
+import uniffi.gemstone.GemSupportBubbleSide
 import uniffi.gemstone.GemSupportMessageOutcome
+import uniffi.gemstone.GemSupportMessageRow
 import uniffi.gemstone.SupportMessageLink
 import java.text.DateFormat
 import java.util.Date
@@ -76,13 +78,14 @@ private val statusIconSize = 14.dp
 internal val imageLoaderSize = 40.dp
 
 @Composable
-internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
-    val message = item.message
-    val isUser = message.sender is SupportMessageSender.User
-    val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
-    val textColor = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
-    val metaColor = if (isUser) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondary
-    val linkColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+internal fun SupportMessageBubble(row: GemSupportMessageRow, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
+    val message = remember(row) { row.message.toPrimitives() }
+    val isUser = row.side == GemSupportBubbleSide.OUTGOING
+    val colors = row.side.colors()
+    val bubbleColor = colors.bubble
+    val textColor = colors.text
+    val metaColor = colors.meta
+    val linkColor = colors.link
     val time = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(message.createdAt))
 
     Column(
@@ -94,7 +97,7 @@ internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (Strin
             MessageImage(
                 image = image,
                 time = time,
-                sending = item.outcome == GemSupportMessageOutcome.Sending,
+                sending = row.outcome == GemSupportMessageOutcome.Sending,
                 onClick = onImageClick,
             )
         }
@@ -103,8 +106,8 @@ internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (Strin
             val clipboard = LocalContext.current.clipboardManager()
             val uriHandler = LocalUriHandler.current
             var menuExpanded by remember { mutableStateOf(false) }
-            val hasText = item.text.isNotBlank()
-            val hasLinks = item.links.isNotEmpty()
+            val hasText = row.content.text.isNotBlank()
+            val hasLinks = row.content.links.isNotEmpty()
             DropDownContextItem(
                 isExpanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
@@ -131,18 +134,19 @@ internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (Strin
                         Column {
                             if (hasText) {
                                 MessageText(
-                                    text = item.text,
+                                    text = row.content.text,
                                     textColor = textColor,
                                     linkColor = linkColor,
                                     metaColor = metaColor,
-                                    item = item,
+                                    row = row,
+                                    message = message,
                                     time = time,
                                     onRetry = onRetry,
                                 )
                             }
                             if (hasLinks) {
                                 SupportMessageLinks(
-                                    links = item.links,
+                                    links = row.content.links,
                                     linkColor = linkColor,
                                     metaColor = metaColor,
                                     showTopDivider = hasText,
@@ -157,7 +161,8 @@ internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (Strin
                                         contentAlignment = Alignment.CenterEnd,
                                     ) {
                                         MessageMeta(
-                                            item = item,
+                                            outcome = row.outcome,
+                                            message = message,
                                             time = time,
                                             color = metaColor,
                                             onRetry = onRetry,
@@ -174,7 +179,7 @@ internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (Strin
 }
 
 @Composable
-private fun MessageText(text: String, textColor: Color, linkColor: Color, metaColor: Color, item: SupportChatMessage, time: String, onRetry: (SupportMessage) -> Unit) {
+private fun MessageText(text: String, textColor: Color, linkColor: Color, metaColor: Color, row: GemSupportMessageRow, message: SupportMessage, time: String, onRetry: (SupportMessage) -> Unit) {
     val markdown = parseMarkdownToAnnotatedString(text, linkColor = linkColor)
     val textWithTime = buildAnnotatedString {
         append(markdown)
@@ -191,7 +196,8 @@ private fun MessageText(text: String, textColor: Color, linkColor: Color, metaCo
             style = MaterialTheme.typography.bodyLarge,
         )
         MessageMeta(
-            item = item,
+            outcome = row.outcome,
+            message = message,
             time = time,
             color = metaColor,
             onRetry = onRetry,
@@ -267,15 +273,15 @@ private fun SupportMessageLinkRow(link: SupportMessageLink, linkColor: Color, me
 }
 
 @Composable
-private fun MessageMeta(item: SupportChatMessage, time: String, color: Color, onRetry: (SupportMessage) -> Unit, modifier: Modifier = Modifier) {
+private fun MessageMeta(outcome: GemSupportMessageOutcome, message: SupportMessage, time: String, color: Color, onRetry: (SupportMessage) -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = time,
             style = MaterialTheme.typography.labelSmall,
             color = color,
-            modifier = Modifier.alpha(if (item.outcome == GemSupportMessageOutcome.Sent) 1f else 0f),
+            modifier = Modifier.alpha(if (outcome == GemSupportMessageOutcome.Sent) 1f else 0f),
         )
-        when (val outcome = item.outcome) {
+        when (outcome) {
             GemSupportMessageOutcome.Sending -> CircularProgressIndicator(
                 modifier = Modifier.size(space10),
                 strokeWidth = progressStrokeWidth,
@@ -290,7 +296,7 @@ private fun MessageMeta(item: SupportChatMessage, time: String, color: Color, on
                     modifier = Modifier
                         .size(statusIconSize)
                         .clip(CircleShape)
-                        .clickable { onRetry(item.message) },
+                        .clickable { onRetry(message) },
                 )
             } else {
                 Icon(

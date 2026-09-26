@@ -52,6 +52,7 @@ import uniffi.gemstone.GemNotificationIcon
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSupportBubbleSide
 import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemTransactionStateTone
@@ -62,6 +63,25 @@ import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
+
+data class SupportBubbleColors(val bubble: Color, val text: Color, val meta: Color, val link: Color)
+
+@Composable
+fun GemSupportBubbleSide.colors(): SupportBubbleColors = when (this) {
+    GemSupportBubbleSide.OUTGOING -> SupportBubbleColors(
+        bubble = MaterialTheme.colorScheme.primary,
+        text = Color.White,
+        meta = Color.White.copy(alpha = 0.7f),
+        link = MaterialTheme.colorScheme.onPrimary,
+    )
+
+    GemSupportBubbleSide.INCOMING -> SupportBubbleColors(
+        bubble = MaterialTheme.colorScheme.surfaceContainerHighest,
+        text = MaterialTheme.colorScheme.onSurface,
+        meta = MaterialTheme.colorScheme.secondary,
+        link = MaterialTheme.colorScheme.primary,
+    )
+}
 
 @DrawableRes
 fun GemAssetMenuIcon.iconRes(): Int = when (this) {

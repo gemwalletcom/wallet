@@ -1,36 +1,19 @@
 package com.gemwallet.android.features.support.viewmodels
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.format.localDate
 import com.wallet.core.primitives.SupportMessage
-import com.wallet.core.primitives.SupportMessageSender
-import uniffi.gemstone.GemSupportMessageOutcome
-import uniffi.gemstone.GemSupportMessageRow
-import uniffi.gemstone.SupportMessageLink
+import uniffi.gemstone.GemSupportChatGroup
 import uniffi.gemstone.supportChatGroups
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-data class SupportChatDay(val id: String, val date: LocalDate, val groups: List<SupportChatGroup>)
-
-data class SupportChatGroup(val sender: SupportMessageSender, val messages: List<SupportChatMessage>)
-
-class SupportChatMessage(row: GemSupportMessageRow) {
-    val message: SupportMessage = row.message.toPrimitives()
-    val text: String = row.content.text
-    val links: List<SupportMessageLink> = row.content.links
-    val outcome: GemSupportMessageOutcome = row.outcome
-    val id: String get() = message.id
-}
+data class SupportChatDay(val id: String, val date: LocalDate, val groups: List<GemSupportChatGroup>)
 
 fun buildSupportChatDays(messages: List<SupportMessage>, zone: ZoneId = ZoneId.systemDefault()): List<SupportChatDay> =
     LocalDate.now(zone).gemDay().boundaries().sections(messages.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate().gemDay() }, false).map { section ->
         val date = section.day.localDate()
-        val groups = supportChatGroups(section.positions.map { messages[it.toInt()].toGem() }).map { group ->
-            SupportChatGroup(sender = group.sender.toPrimitives(), messages = group.rows.map(::SupportChatMessage))
-        }
-        SupportChatDay(id = date.toString(), date = date, groups = groups)
+        SupportChatDay(id = date.toString(), date = date, groups = supportChatGroups(section.positions.map { messages[it.toInt()].toGem() }))
     }

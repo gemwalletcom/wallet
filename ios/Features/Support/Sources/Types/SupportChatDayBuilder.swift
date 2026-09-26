@@ -9,8 +9,6 @@ import PrimitivesComponents
 
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]
-    let retryAction: (SupportMessage) -> Void
-    let imageAction: (SupportMessageImage) -> Void
 
     func build() -> [SupportChatDay] {
         let boundaries = GemDayBoundaries.current
@@ -19,20 +17,7 @@ struct SupportChatDayBuilder {
             return SupportChatDay(
                 date: date,
                 title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
-                groups: groups(from: section.positions.map { messages[Int($0)] }),
-            )
-        }
-    }
-}
-
-// MARK: - Private
-
-private extension SupportChatDayBuilder {
-    func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
-        supportChatGroups(messages: messages.map { $0.toGem() }).map { group in
-            SupportChatGroup(
-                sender: group.sender.toPrimitives(),
-                messages: group.rows.map { SupportMessageBubbleViewModel(row: $0, retryAction: retryAction, imageAction: imageAction) },
+                groups: supportChatGroups(messages: section.positions.map { messages[Int($0)].toGem() }),
             )
         }
     }

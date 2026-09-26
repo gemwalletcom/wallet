@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemSupportChatGroup
 import Localization
 import QuickLook
 import Store
@@ -21,7 +22,7 @@ public struct SupportChatScene: View {
                 VStack(spacing: .small) {
                     ForEach(model.days) { day in
                         SupportDateSeparator(title: day.title)
-                        ForEach(day.groups) { group in
+                        ForEach(day.groups, id: \.rows.first?.message.id) { group in
                             groupView(group)
                         }
                     }
@@ -79,12 +80,12 @@ public struct SupportChatScene: View {
     }
 
     @ViewBuilder
-    private func groupView(_ group: SupportChatGroup) -> some View {
-        switch group.sender {
-        case .agent:
-            SupportAgentMessageGroup(messages: group.messages)
-        case .user:
-            SupportUserMessageGroup(messages: group.messages)
+    private func groupView(_ group: GemSupportChatGroup) -> some View {
+        switch group.side {
+        case .incoming:
+            SupportAgentMessageGroup(rows: group.rows, onRetry: model.onRetry, onImage: model.onOpenPreview)
+        case .outgoing:
+            SupportUserMessageGroup(rows: group.rows, onRetry: model.onRetry, onImage: model.onOpenPreview)
         }
     }
 }

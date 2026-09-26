@@ -35,6 +35,7 @@ import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemRecipientSectionKind
 import enum Gemstone.GemSecretWarning
 import struct Gemstone.GemSocialLink
+import enum Gemstone.GemSupportBubbleSide
 import enum Gemstone.GemSwapProgressMarker
 import struct Gemstone.GemSwapProgressState
 import enum Gemstone.GemSwapProgressStep
@@ -248,6 +249,29 @@ public extension GemBannerIcon {
 
     var imageStyle: ListItemImageStyle? {
         ListItemImageStyle(assetImage: image, imageSize: imageSize, cornerRadiusType: .custom(cornerRadius))
+    }
+}
+
+public struct SupportBubblePalette: Sendable {
+    public let text: Color
+    public let background: Color
+    public let secondary: Color
+    public let link: Color
+}
+
+public extension GemSupportBubbleSide {
+    var palette: SupportBubblePalette {
+        switch self {
+        case .outgoing: SupportBubblePalette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid, link: Colors.whiteSolid)
+        case .incoming: SupportBubblePalette(text: Colors.black, background: Colors.white, secondary: Colors.secondaryText, link: Colors.blue)
+        }
+    }
+
+    var alignment: Alignment {
+        switch self {
+        case .outgoing: .trailing
+        case .incoming: .leading
+        }
     }
 }
 
