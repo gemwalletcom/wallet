@@ -57,19 +57,3 @@ extension NFTCollectionRecord: CreateTable {
         }
     }
 }
-
-extension NFTCollection {
-    func record() -> NFTCollectionRecord {
-        NFTCollectionRecord(
-            id: id,
-            name: name,
-            description: description,
-            chain: chain,
-            contractAddress: contractAddress,
-            status: status,
-            links: links,
-            previewImageUrl: images.preview.url,
-            previewImageMimeType: images.preview.mimeType,
-        )
-    }
-}

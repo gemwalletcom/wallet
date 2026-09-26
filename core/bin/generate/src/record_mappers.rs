@@ -24,12 +24,15 @@ struct Config {
     record_aliases: BTreeMap<String, BTreeMap<String, String>>,
 }
 
-/// A `records:` entry, keyed by the model: the record each app stores it in, and the record
-/// fields the caller passes because the model does not carry them (a parent key).
+/// A `records:` entry, keyed by the model: the record each app stores it in, the record fields
+/// the caller passes because the model does not carry them (a parent key), and whether the record
+/// is only written from the model because its rows are read back through a join.
 #[derive(Deserialize)]
 struct Spec {
     #[serde(default)]
     keys: Vec<String>,
+    #[serde(default)]
+    write_only: bool,
     ios: AppSpec,
     android: AppSpec,
 }
@@ -44,6 +47,10 @@ enum AppSpec {
         /// Record field → the model path it stores, for a renamed or flattened field.
         #[serde(default)]
         fields: BTreeMap<String, String>,
+        /// Model path → the prefix its fields carry as record fields: `metadata: app` stores
+        /// `metadata.name` as `appName`, and an empty prefix stores it as `name`.
+        #[serde(default)]
+        flatten: BTreeMap<String, String>,
         /// Model path → the value the model takes where the record stores none, or stores it optional.
         #[serde(default)]
         defaults: BTreeMap<String, String>,
@@ -68,6 +75,13 @@ impl AppSpec {
         match self {
             Self::Named(_) => None,
             Self::Detailed { defaults, .. } => defaults.get(path).map(String::as_str),
+        }
+    }
+
+    fn flattened(&self) -> Vec<(&str, &str)> {
+        match self {
+            Self::Named(_) => Vec::new(),
+            Self::Detailed { flatten, .. } => flatten.iter().map(|(path, prefix)| (path.as_str(), prefix.as_str())).collect(),
         }
     }
 }
@@ -273,21 +287,26 @@ impl Mapping<'_> {
             .collect::<Vec<_>>()
             .join(", ");
         let to_record = self.record_arguments();
-        let to_model = self.construct(self.model, "", false);
-        match self.language {
+        let (record, name) = (self.record, self.model);
+        let writer = match self.language {
             Language::Swift => format!(
-                "\nextension {model_name} {{\n    func toRecord({keys}) -> {record} {{\n        {record}(\n{to_record}        )\n    }}\n}}\n\nextension {record} {{\n    func to{name}() -> {model_name} {{\n        {to_model}\n    }}\n}}\n",
-                record = self.record,
-                name = self.model,
-                to_record = to_record.iter().map(|argument| format!("            {argument},\n")).collect::<String>(),
+                "\nextension {model_name} {{\n    func toRecord({keys}) -> {record} {{\n        {record}(\n{}        )\n    }}\n}}\n",
+                to_record.iter().map(|argument| format!("            {argument},\n")).collect::<String>(),
             ),
             Language::Kotlin => format!(
-                "\nfun {model_name}.toRecord({keys}): {record} = {record}(\n{to_record})\n\nfun {record}.to{name}(): {model_name} = {to_model}\n",
-                record = self.record,
-                name = self.model,
-                to_record = to_record.iter().map(|argument| format!("    {argument},\n")).collect::<String>(),
+                "\nfun {model_name}.toRecord({keys}): {record} = {record}(\n{})\n",
+                to_record.iter().map(|argument| format!("    {argument},\n")).collect::<String>()
             ),
+        };
+        if self.spec.write_only {
+            return writer;
         }
+        let to_model = self.construct(self.model, "", false);
+        let reader = match self.language {
+            Language::Swift => format!("\nextension {record} {{\n    func to{name}() -> {model_name} {{\n        {to_model}\n    }}\n}}\n"),
+            Language::Kotlin => format!("\nfun {record}.to{name}(): {model_name} = {to_model}\n"),
+        };
+        format!("{writer}{reader}")
     }
 
     /// The model path a record field stores: a renamed or flattened one from the spec, else the
@@ -296,10 +315,36 @@ impl Mapping<'_> {
         if self.spec.keys.contains(&field.name) {
             return None;
         }
-        match self.app.field(&field.name) {
-            Some(path) => Some(path.to_string()),
-            None => self.generator.model(self.model).fields.iter().any(|model_field| model_field.name == field.name).then(|| field.name.clone()),
+        if let Some(path) = self.app.field(&field.name) {
+            return Some(path.to_string());
         }
+        if self.has_field(self.model, &field.name) {
+            return Some(field.name.clone());
+        }
+        self.app.flattened().into_iter().find_map(|(path, prefix)| {
+            let rest = field.name.strip_prefix(prefix)?;
+            let name = match prefix.is_empty() {
+                true => rest.to_string(),
+                false => rest.get(..1)?.to_ascii_lowercase() + &rest[1..],
+            };
+            let holder = self.held_at(path);
+            self.has_field(&holder, &name).then(|| format!("{path}.{name}"))
+        })
+    }
+
+    fn has_field(&self, model: &str, name: &str) -> bool {
+        self.generator.model(model).fields.iter().any(|field| field.name == name)
+    }
+
+    /// The model a model path holds.
+    fn held_at(&self, path: &str) -> String {
+        path.split('.').fold(self.model.to_string(), |holder, segment| {
+            let field = self.generator.model(&holder).fields.iter().find(|field| field.name == segment);
+            field
+                .and_then(|field| field.holds.clone())
+                .filter(|held| self.generator.models.contains_key(held))
+                .unwrap_or_else(|| panic!("{}: {path} does not hold a model to flatten", self.model))
+        })
     }
 
     fn record_arguments(&self) -> Vec<String> {

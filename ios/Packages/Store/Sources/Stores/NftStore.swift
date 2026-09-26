@@ -16,7 +16,7 @@ public struct NftStore: Sendable {
             try NFTAssetRecord
                 .filter(NFTAssetRecord.Columns.id == assetId.identifier)
                 .fetchOne(db)?
-                .mapToAsset()
+                .toNFTAsset()
         }
     }
 
@@ -34,14 +34,14 @@ public struct NftStore: Sendable {
             try NFTCollectionRecord
                 .filter(NFTCollectionRecord.Columns.id == collectionId.identifier)
                 .fetchOne(db)?
-                .mapToCollection()
+                .toNFTCollection()
         }
     }
 
     public func add(asset: NFTAsset, collection: NFTCollection) throws {
         try db.write { db in
-            try collection.record().upsert(db)
-            try asset.record().upsert(db)
+            try collection.toRecord().upsert(db)
+            try asset.toRecord().upsert(db)
         }
     }
 
@@ -56,10 +56,10 @@ public struct NftStore: Sendable {
             for nftData in data {
                 let collection = nftData.collection
 
-                try collection.record().upsert(db)
+                try collection.toRecord().upsert(db)
 
                 for asset in nftData.assets {
-                    try asset.record().upsert(db)
+                    try asset.toRecord().upsert(db)
 
                     let assetAssociation = NFTAssetAssociationRecord(walletId: walletId.id, collectionId: collection.id, assetId: asset.id)
                     try assetAssociation.upsert(db)

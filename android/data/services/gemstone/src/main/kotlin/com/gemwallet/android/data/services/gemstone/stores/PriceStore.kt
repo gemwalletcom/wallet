@@ -3,6 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.PricesDao
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.store.database.entities.toAssetPrice
 import com.gemwallet.android.data.services.store.database.entities.toFiatRate
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
@@ -16,7 +17,7 @@ import uniffi.gemstone.GemPriceUpdate
 
 class GemstonePriceStore(private val pricesDao: PricesDao, private val assetsDao: AssetsDao) : GemPriceStore {
 
-    override suspend fun getPrices(assetIds: List<String>): List<AssetPrice> = pricesDao.getByAssets(assetIds).map { it.toAssetPrice() }
+    override suspend fun getPrices(assetIds: List<String>): List<AssetPrice> = pricesDao.getByAssets(assetIds).mapNotNull { it.toAssetPrice()?.toGem() }
 
     override suspend fun getRate(currency: uniffi.gemstone.Currency): uniffi.gemstone.FiatRate? = pricesDao.getRates(currency.toPrimitives()).firstOrNull()?.toFiatRate()?.toGem()
 

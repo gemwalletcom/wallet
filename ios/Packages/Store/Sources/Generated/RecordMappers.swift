@@ -140,6 +140,24 @@ extension FiatRateRecord {
     }
 }
 
+extension Primitives.FiatTransactionData {
+    func toRecord(walletId: String) -> FiatTransactionRecord {
+        FiatTransactionRecord(
+            id: transaction.id,
+            walletId: walletId,
+            assetId: transaction.assetId,
+            transactionType: transaction.transactionType,
+            providerId: transaction.provider,
+            status: transaction.status,
+            fiatAmount: transaction.fiatAmount,
+            fiatCurrency: transaction.fiatCurrency,
+            value: transaction.value,
+            createdAt: transaction.createdAt,
+            detailsUrl: detailsUrl,
+        )
+    }
+}
+
 extension Primitives.InAppNotification {
     func toRecord() -> NotificationRecord {
         NotificationRecord(
@@ -159,6 +177,75 @@ extension NotificationRecord {
             readAt: readAt,
             createdAt: createdAt,
             item: item,
+        )
+    }
+}
+
+extension Primitives.NFTAsset {
+    func toRecord() -> NFTAssetRecord {
+        NFTAssetRecord(
+            id: id,
+            collectionId: collectionId,
+            contractAddress: contractAddress,
+            tokenId: tokenId,
+            tokenType: tokenType,
+            name: name,
+            description: description,
+            chain: chain,
+            attributes: attributes,
+            resourceUrl: resource.url,
+            resourceMimeType: resource.mimeType,
+            previewImageUrl: images.preview.url,
+            previewImageMimeType: images.preview.mimeType,
+        )
+    }
+}
+
+extension NFTAssetRecord {
+    func toNFTAsset() -> Primitives.NFTAsset {
+        Primitives.NFTAsset(
+            id: id,
+            collectionId: collectionId,
+            contractAddress: contractAddress,
+            tokenId: tokenId,
+            tokenType: tokenType,
+            name: name,
+            description: description,
+            chain: chain,
+            resource: Primitives.NFTResource(url: resourceUrl, mimeType: resourceMimeType),
+            images: Primitives.NFTImages(preview: Primitives.NFTResource(url: previewImageUrl, mimeType: previewImageMimeType)),
+            attributes: attributes ?? [],
+        )
+    }
+}
+
+extension Primitives.NFTCollection {
+    func toRecord() -> NFTCollectionRecord {
+        NFTCollectionRecord(
+            id: id,
+            name: name,
+            description: description,
+            chain: chain,
+            contractAddress: contractAddress,
+            status: status,
+            links: links,
+            previewImageUrl: images.preview.url,
+            previewImageMimeType: images.preview.mimeType,
+        )
+    }
+}
+
+extension NFTCollectionRecord {
+    func toNFTCollection() -> Primitives.NFTCollection {
+        Primitives.NFTCollection(
+            id: id,
+            name: name,
+            description: description,
+            chain: chain,
+            contractAddress: contractAddress,
+            images: Primitives.NFTImages(preview: Primitives.NFTResource(url: previewImageUrl, mimeType: previewImageMimeType)),
+            status: status,
+            links: links ?? [],
         )
     }
 }
@@ -295,6 +382,38 @@ extension SupportMessageRecord {
             status: status,
             createdAt: createdAt,
             images: images,
+        )
+    }
+}
+
+extension Primitives.WalletConnectionSession {
+    func toRecord(walletId: String) -> WalletConnectionRecord {
+        WalletConnectionRecord(
+            id: id,
+            sessionId: sessionId,
+            walletId: walletId,
+            state: state,
+            chains: chains,
+            createdAt: createdAt,
+            expireAt: expireAt,
+            appName: metadata.name,
+            appDescription: metadata.description,
+            appLink: metadata.url,
+            appIcon: metadata.icon,
+        )
+    }
+}
+
+extension WalletConnectionRecord {
+    func toWalletConnectionSession() -> Primitives.WalletConnectionSession {
+        Primitives.WalletConnectionSession(
+            id: id,
+            sessionId: sessionId,
+            state: state,
+            chains: chains ?? [],
+            createdAt: createdAt,
+            expireAt: expireAt,
+            metadata: Primitives.ApplicationMetadata(name: appName, description: appDescription, url: appLink, icon: appIcon, source: .walletConnect),
         )
     }
 }

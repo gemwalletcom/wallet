@@ -16,17 +16,6 @@ extension Primitives.Account {
     }
 }
 
-extension AccountRecord {
-    func toAccount() -> Primitives.Account {
-        Primitives.Account(
-            chain: chain,
-            address: address,
-            derivationPath: derivationPath,
-            extendedPublicKey: extendedPublicKey,
-        )
-    }
-}
-
 extension Primitives.Position {
     func toRecord(walletId: String) -> PositionRecord {
         PositionRecord(

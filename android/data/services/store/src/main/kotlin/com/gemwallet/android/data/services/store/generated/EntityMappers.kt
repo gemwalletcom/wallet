@@ -91,6 +91,20 @@ fun DbFiatRate.toFiatRate(): com.wallet.core.primitives.FiatRate = com.wallet.co
     rate = rate,
 )
 
+fun com.wallet.core.primitives.FiatTransactionData.toRecord(walletId: String): DbFiatTransaction = DbFiatTransaction(
+    id = transaction.id,
+    walletId = walletId,
+    assetId = transaction.assetId,
+    transactionType = transaction.transactionType,
+    provider = transaction.provider,
+    status = transaction.status,
+    fiatAmount = transaction.fiatAmount,
+    fiatCurrency = transaction.fiatCurrency,
+    value = transaction.value,
+    createdAt = transaction.createdAt,
+    detailsUrl = detailsUrl,
+)
+
 fun com.wallet.core.primitives.InAppNotification.toRecord(): DbInAppNotification = DbInAppNotification(
     id = item.id,
     walletId = walletId,
@@ -104,6 +118,57 @@ fun DbInAppNotification.toInAppNotification(): com.wallet.core.primitives.InAppN
     readAt = readAt,
     createdAt = createdAt,
     item = item,
+)
+
+fun com.wallet.core.primitives.NFTAsset.toRecord(): DbNFTAsset = DbNFTAsset(
+    id = id,
+    collectionId = collectionId,
+    tokenId = tokenId,
+    tokenType = tokenType,
+    name = name,
+    description = description,
+    chain = chain,
+    contractAddress = contractAddress,
+    imageUrl = images.preview.url,
+    attributes = attributes,
+    resourceUrl = resource.url,
+    resourceMimeType = resource.mimeType,
+)
+
+fun DbNFTAsset.toNFTAsset(): com.wallet.core.primitives.NFTAsset = com.wallet.core.primitives.NFTAsset(
+    id = id,
+    collectionId = collectionId,
+    contractAddress = contractAddress,
+    tokenId = tokenId,
+    tokenType = tokenType,
+    name = name,
+    description = description,
+    chain = chain,
+    resource = com.wallet.core.primitives.NFTResource(url = resourceUrl, mimeType = resourceMimeType),
+    images = com.wallet.core.primitives.NFTImages(preview = com.wallet.core.primitives.NFTResource(url = imageUrl, mimeType = "")),
+    attributes = attributes ?: emptyList(),
+)
+
+fun com.wallet.core.primitives.NFTCollection.toRecord(): DbNFTCollection = DbNFTCollection(
+    id = id,
+    name = name,
+    description = description,
+    chain = chain,
+    contractAddress = contractAddress,
+    imageUrl = images.preview.url,
+    status = status,
+    links = links,
+)
+
+fun DbNFTCollection.toNFTCollection(): com.wallet.core.primitives.NFTCollection = com.wallet.core.primitives.NFTCollection(
+    id = id,
+    name = name,
+    description = description,
+    chain = chain,
+    contractAddress = contractAddress,
+    images = com.wallet.core.primitives.NFTImages(preview = com.wallet.core.primitives.NFTResource(url = imageUrl, mimeType = "")),
+    status = status ?: com.wallet.core.primitives.VerificationStatus.Unverified,
+    links = links ?: emptyList(),
 )
 
 fun com.wallet.core.primitives.Perpetual.toRecord(): DbPerpetual = DbPerpetual(
@@ -212,4 +277,28 @@ fun DbSupportMessage.toSupportMessage(): com.wallet.core.primitives.SupportMessa
     status = status,
     createdAt = createdAt,
     images = images,
+)
+
+fun com.wallet.core.primitives.WalletConnectionSession.toRecord(walletId: String): DbConnection = DbConnection(
+    id = id,
+    walletId = walletId,
+    sessionId = sessionId,
+    state = state,
+    chains = chains,
+    createdAt = createdAt,
+    expireAt = expireAt,
+    appName = metadata.name,
+    appDescription = metadata.description,
+    appUrl = metadata.url,
+    appIcon = metadata.icon,
+)
+
+fun DbConnection.toWalletConnectionSession(): com.wallet.core.primitives.WalletConnectionSession = com.wallet.core.primitives.WalletConnectionSession(
+    id = id,
+    sessionId = sessionId,
+    state = state,
+    chains = chains,
+    createdAt = createdAt,
+    expireAt = expireAt,
+    metadata = com.wallet.core.primitives.ApplicationMetadata(name = appName, description = appDescription, url = appUrl, icon = appIcon, source = com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect),
 )

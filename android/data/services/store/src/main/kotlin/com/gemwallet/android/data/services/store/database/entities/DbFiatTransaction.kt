@@ -5,11 +5,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Relation
-import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
-import com.wallet.core.primitives.FiatTransactionData
 import com.wallet.core.primitives.FiatTransactionStatus
 
 @Entity(
@@ -24,7 +23,7 @@ import com.wallet.core.primitives.FiatTransactionStatus
 data class DbFiatTransaction(
     val id: String,
     val walletId: String,
-    val assetId: String,
+    val assetId: AssetId,
     val transactionType: FiatQuoteType,
     val provider: FiatProviderName,
     val status: FiatTransactionStatus,
@@ -40,22 +39,6 @@ data class DbFiatTransactionWithAsset(
     @Relation(parentColumn = "assetId", entityColumn = "id")
     val asset: DbAsset,
 )
-
-fun FiatTransactionData.toRecord(walletId: String) = DbFiatTransaction(
-    id = transaction.id,
-    walletId = walletId,
-    assetId = transaction.assetId.toIdentifier(),
-    transactionType = transaction.transactionType,
-    provider = transaction.provider,
-    status = transaction.status,
-    fiatAmount = transaction.fiatAmount,
-    fiatCurrency = transaction.fiatCurrency,
-    value = transaction.value,
-    createdAt = transaction.createdAt,
-    detailsUrl = detailsUrl,
-)
-
-fun List<FiatTransactionData>.toRecord(walletId: String) = map { it.toRecord(walletId) }
 
 fun DbFiatTransactionWithAsset.toDTO(): FiatTransactionAssetData? {
     val asset = asset.toDTO() ?: return null

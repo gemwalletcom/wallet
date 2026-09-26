@@ -4,10 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
-import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
-import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.TransactionExtended
@@ -56,8 +54,6 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
         confirmationEtaSeconds = transaction.confirmationEtaSeconds?.toUInt(),
     )
 }
-
-private fun DbPrice.toAssetPrice(): AssetPrice? = value?.let { AssetPrice(assetId.toAssetId() ?: return null, it, dayChanged ?: 0.0, 0L) }
 
 internal fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
     chain = chain,

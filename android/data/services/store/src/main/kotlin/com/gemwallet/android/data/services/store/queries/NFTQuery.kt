@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.store.queries
 
 import com.gemwallet.android.data.services.store.database.NftDao
-import com.gemwallet.android.data.services.store.database.entities.toAssetModels
-import com.gemwallet.android.data.services.store.database.entities.toCollectionModels
+import com.gemwallet.android.data.services.store.database.entities.toNFTAsset
+import com.gemwallet.android.data.services.store.database.entities.toNFTCollection
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.NFTData
 import kotlinx.coroutines.flow.Flow
@@ -15,8 +15,8 @@ class NFTQuery @Inject constructor(private val nftDao: NftDao) {
         nftDao.getCollections(walletId),
         nftDao.getAssets(walletId),
     ) { collectionEntities, assetEntities ->
-        val assets = assetEntities.toAssetModels().groupBy { it.collectionId }
-        collectionEntities.toCollectionModels()
+        val assets = assetEntities.map { it.toNFTAsset() }.groupBy { it.collectionId }
+        collectionEntities.map { it.toNFTCollection() }
             .map { collection -> NFTData(collection, assets[collection.id] ?: emptyList()) }
             .filter { collectionId == null || it.collection.id.toIdentifier() == collectionId }
     }

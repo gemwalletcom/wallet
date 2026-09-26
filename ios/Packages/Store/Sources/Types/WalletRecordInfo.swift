@@ -33,7 +33,7 @@ struct WalletConnectionInfo: FetchableRecord, Codable {
 extension WalletConnectionInfo {
     func mapToWalletConnection() -> WalletConnection {
         WalletConnection(
-            session: connection.session,
+            session: connection.toWalletConnectionSession(),
             wallet: wallet.mapToWallet(),
         )
     }

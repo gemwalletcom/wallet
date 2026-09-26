@@ -12,28 +12,8 @@ struct NFTCollectionRecordInfo: Codable, FetchableRecord {
 extension NFTCollectionRecordInfo {
     func mapToNFTData() -> NFTData {
         NFTData(
-            collection: collection.mapToCollection(),
-            assets: assets.map { $0.mapToAsset() },
-        )
-    }
-}
-
-extension NFTCollectionRecord {
-    func mapToCollection() -> NFTCollection {
-        NFTCollection(
-            id: id,
-            name: name,
-            description: description,
-            chain: chain,
-            contractAddress: contractAddress,
-            images: NFTImages(
-                preview: NFTResource(
-                    url: previewImageUrl,
-                    mimeType: previewImageMimeType,
-                ),
-            ),
-            status: status,
-            links: links ?? [],
+            collection: collection.toNFTCollection(),
+            assets: assets.map { $0.toNFTAsset() },
         )
     }
 }

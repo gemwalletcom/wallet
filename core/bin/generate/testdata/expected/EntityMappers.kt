@@ -11,13 +11,6 @@ fun com.wallet.core.primitives.Account.toRecord(walletId: String): DbAccount = D
     extendedPublicKey = extendedPublicKey,
 )
 
-fun DbAccount.toAccount(): com.wallet.core.primitives.Account = com.wallet.core.primitives.Account(
-    chain = chain,
-    address = address,
-    derivationPath = derivationPath,
-    extendedPublicKey = extendedPublicKey,
-)
-
 fun com.wallet.core.primitives.Position.toRecord(walletId: String): DbPosition = DbPosition(
     id = id,
     walletId = walletId,

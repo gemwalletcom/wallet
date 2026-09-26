@@ -50,10 +50,10 @@ class FiatTransactionsQueryTest {
         )
         database.fiatTransactionsDao().insert(
             listOf(
-                transaction(id = "older", walletId = "wallet-1", assetId = "bitcoin", createdAt = 10),
-                transaction(id = "newest", walletId = "wallet-1", assetId = "ethereum", createdAt = 30),
-                transaction(id = "other-wallet", walletId = "wallet-2", assetId = "ethereum", createdAt = 40),
-                transaction(id = "middle", walletId = "wallet-1", assetId = "ethereum", createdAt = 20),
+                transaction(id = "older", walletId = "wallet-1", assetId = AssetId(Chain.Bitcoin), createdAt = 10),
+                transaction(id = "newest", walletId = "wallet-1", assetId = AssetId(Chain.Ethereum), createdAt = 30),
+                transaction(id = "other-wallet", walletId = "wallet-2", assetId = AssetId(Chain.Ethereum), createdAt = 40),
+                transaction(id = "middle", walletId = "wallet-1", assetId = AssetId(Chain.Ethereum), createdAt = 20),
             ),
         )
     }
@@ -88,7 +88,7 @@ class FiatTransactionsQueryTest {
         assertEquals(emptyList<FiatTransactionAssetData>(), query("wallet-3").first())
     }
 
-    private fun transaction(id: String, walletId: String, assetId: String, createdAt: Long) = DbFiatTransaction(
+    private fun transaction(id: String, walletId: String, assetId: AssetId, createdAt: Long) = DbFiatTransaction(
         id = id,
         walletId = walletId,
         assetId = assetId,

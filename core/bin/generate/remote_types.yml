@@ -502,8 +502,9 @@ type_mappings:
 # The model each store record holds, for the record ↔ model mappers `just generate-models` writes
 # into both stores. A record field copies the model field of its name; `keys` are the record
 # fields the caller passes, `fields` binds a renamed or flattened record field to a model path,
-# and `defaults` gives a model path the record stores optional or not at all. A record field
-# outside all three needs a default in its declaration.
+# `flatten` stores a nested model's fields under a name prefix, and `defaults` gives a model path
+# the record stores optional or not at all. A record field outside these needs a default in its
+# declaration. `write_only` skips the reader for a record the app reads back through a join.
 record_aliases:
   kotlin:
     SerializedDate: Long
@@ -532,6 +533,19 @@ records:
       record: DbFiatRate
       fields:
         currency: symbol
+  FiatTransactionData:
+    keys: [walletId]
+    write_only: true
+    ios:
+      record: FiatTransactionRecord
+      fields:
+        providerId: transaction.provider
+      flatten:
+        transaction: ""
+    android:
+      record: DbFiatTransaction
+      flatten:
+        transaction: ""
   InAppNotification:
     ios:
       record: NotificationRecord
@@ -541,6 +555,32 @@ records:
       record: DbInAppNotification
       fields:
         id: item.id
+  NFTAsset:
+    ios:
+      record: NFTAssetRecord
+      flatten:
+        resource: resource
+        images.preview: previewImage
+    android:
+      record: DbNFTAsset
+      fields:
+        imageUrl: images.preview.url
+      flatten:
+        resource: resource
+      defaults:
+        images.preview.mimeType: '""'
+  NFTCollection:
+    ios:
+      record: NFTCollectionRecord
+      flatten:
+        images.preview: previewImage
+    android:
+      record: DbNFTCollection
+      fields:
+        imageUrl: images.preview.url
+      defaults:
+        images.preview.mimeType: '""'
+        status: com.wallet.core.primitives.VerificationStatus.Unverified
   Perpetual:
     ios: PerpetualRecord
     android: DbPerpetual
@@ -565,3 +605,19 @@ records:
   SupportMessage:
     ios: SupportMessageRecord
     android: DbSupportMessage
+  WalletConnectionSession:
+    keys: [walletId]
+    ios:
+      record: WalletConnectionRecord
+      fields:
+        appLink: metadata.url
+      flatten:
+        metadata: app
+      defaults:
+        metadata.source: .walletConnect
+    android:
+      record: DbConnection
+      flatten:
+        metadata: app
+      defaults:
+        metadata.source: com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect

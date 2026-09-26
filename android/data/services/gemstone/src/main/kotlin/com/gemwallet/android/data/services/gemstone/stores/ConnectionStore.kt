@@ -3,7 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.services.store.database.ConnectionsDao
 import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
-import com.gemwallet.android.data.services.store.database.entities.toSession
+import com.gemwallet.android.data.services.store.database.entities.toWalletConnectionSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.WalletConnection
@@ -19,9 +19,9 @@ class GemstoneConnectionStore(private val walletStore: GemstoneWalletStore, priv
 
     override suspend fun getConnection(sessionId: String): uniffi.gemstone.WalletConnection? = getConnectionBySessionId(sessionId)?.toGem()
 
-    override suspend fun getSessions(): List<uniffi.gemstone.WalletConnectionSession> = connectionsDao.getConnections().map { it.toSession().toGem() }
+    override suspend fun getSessions(): List<uniffi.gemstone.WalletConnectionSession> = connectionsDao.getConnections().map { it.toWalletConnectionSession().toGem() }
 
-    override suspend fun addConnection(connection: uniffi.gemstone.WalletConnection) = connectionsDao.insert(connection.toPrimitives().toRecord())
+    override suspend fun addConnection(connection: uniffi.gemstone.WalletConnection) = connectionsDao.insert(connection.toPrimitives().let { it.session.toRecord(it.wallet.id.id) })
 
     override suspend fun updateSession(session: uniffi.gemstone.WalletConnectionSession) {
         val updated = session.toPrimitives()

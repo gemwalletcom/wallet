@@ -19,7 +19,7 @@ public struct FiatTransactionStore: Sendable {
                 .deleteAll(db)
 
             for transaction in transactions {
-                try transaction.record(walletId: walletId.id).upsert(db)
+                try transaction.toRecord(walletId: walletId.id).upsert(db)
             }
         }
     }

@@ -9,6 +9,6 @@ import uniffi.gemstone.GemFiatStore
 class GemstoneFiatStore(private val fiatTransactionsDao: FiatTransactionsDao) : GemFiatStore {
 
     override suspend fun setTransactions(walletId: String, transactions: List<FiatTransactionData>) {
-        fiatTransactionsDao.setFiatTransactions(walletId, transactions.map { it.toPrimitives() }.toRecord(walletId))
+        fiatTransactionsDao.setFiatTransactions(walletId, transactions.map { it.toPrimitives().toRecord(walletId) })
     }
 }

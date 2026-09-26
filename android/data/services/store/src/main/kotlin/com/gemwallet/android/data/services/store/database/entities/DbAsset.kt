@@ -142,25 +142,7 @@ fun DbAssetProjection.toDTO(): Asset? {
     )
 }
 
-fun AssetFull.toRecord() = DbAsset(
-    id = asset.id.toIdentifier(),
-    chain = asset.chain,
-    name = asset.name,
-    symbol = asset.symbol,
-    decimals = asset.decimals,
-    type = asset.type,
-    isEnabled = properties.isEnabled,
-    isBuyEnabled = properties.isBuyable,
-    isSellEnabled = properties.isSellable,
-    isStakeEnabled = properties.isStakeable,
-    isSwapEnabled = properties.isSwapable,
-    stakingApr = properties.stakingApr,
-    isEarnEnabled = properties.isEarnable,
-    earnApr = properties.earnApr,
-    rank = score.rank,
-    hasImage = properties.hasImage,
-    associations = associations,
-)
+fun AssetFull.toRecord() = AssetBasic(asset = asset, properties = properties, score = score).toRecord(associations)
 
 fun Asset.toRecord() = DbAsset(
     id = id.toIdentifier(),
@@ -171,22 +153,24 @@ fun Asset.toRecord() = DbAsset(
     type = type,
 )
 
-fun AssetBasic.toRecord() = DbAsset(
+fun AssetBasic.toRecord(associations: List<AssetAssociation> = emptyList()) = DbAsset(
     id = asset.id.toIdentifier(),
     chain = asset.chain,
     name = asset.name,
     symbol = asset.symbol,
     decimals = asset.decimals,
     type = asset.type,
+    isEnabled = properties.isEnabled,
     isBuyEnabled = properties.isBuyable,
     isSellEnabled = properties.isSellable,
-    isStakeEnabled = properties.isStakeable,
     isSwapEnabled = properties.isSwapable,
+    isStakeEnabled = properties.isStakeable,
     stakingApr = properties.stakingApr,
     isEarnEnabled = properties.isEarnable,
     earnApr = properties.earnApr,
     rank = score.rank,
     hasImage = properties.hasImage,
+    associations = associations,
 )
 
 fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(

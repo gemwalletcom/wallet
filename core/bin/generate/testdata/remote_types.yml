@@ -63,21 +63,22 @@ record_aliases:
 records:
   Account:
     keys: [walletId]
+    write_only: true
     ios: AccountRecord
     android: DbAccount
   Position:
     keys: [walletId]
     ios:
       record: PositionRecord
-      fields:
-        previewImageUrl: images.previewImageUrl
+      flatten:
+        images: ""
       defaults:
         state: .connected
     android:
       record: DbPosition
       fields:
-        takeProfitPrice: takeProfit.price
-        takeProfitOrderId: takeProfit.orderId
         previewImageUrl: images.previewImageUrl
+      flatten:
+        takeProfit: takeProfit
       defaults:
         entryPrice: "0.0"
