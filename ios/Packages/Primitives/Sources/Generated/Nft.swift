@@ -118,18 +118,6 @@ public struct NFTData: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct ReportNft: Codable, Sendable {
-	public let collectionId: String
-	public let assetId: String?
-	public let reason: String?
-
-	public init(collectionId: String, assetId: String?, reason: String?) {
-		self.collectionId = collectionId
-		self.assetId = assetId
-		self.reason = reason
-	}
-}
-
 public enum ReportReason: String, Codable, CaseIterable, Sendable {
 	case spam
 	case malicious

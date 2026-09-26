@@ -32,8 +32,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -164,7 +162,7 @@ class ConfirmViewModelPaymentAssetTest {
                     mockPaymentQuote(id = it.id.toIdentifier(), assetId = it.id.toIdentifier(), value = java.math.BigInteger.ONE)
                 },
             ),
-            extra = mockTransferDataExtra(to = "recipient", outputType = TransferDataOutputType.EncodedTransaction.toGem(), outputAction = TransferDataOutputAction.Send.toGem(), transactionType = TransactionType.Transfer.toGem()),
+            extra = mockTransferDataExtra(to = "recipient", outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION, outputAction = uniffi.gemstone.TransferDataOutputAction.SEND, transactionType = TransactionType.Transfer.toGem()),
         ),
         recipient = GemRecipient(address = "recipient"),
         value = BigInteger.ONE,

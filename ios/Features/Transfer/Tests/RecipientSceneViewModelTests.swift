@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.NameRecord
 import Components
 import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemRecipientErrorDisplay
@@ -70,7 +71,7 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: "0x1234567890123456789012345678901234567890").toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: Chain.ethereum.rawValue, address: "0x1234567890123456789012345678901234567890"))
         #expect(model.actionButtonState == .normal)
     }
 
@@ -91,7 +92,7 @@ struct RecipientSceneViewModelTests {
 
         recipientAddress = nil
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: .ethereum, address: address).toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: Chain.ethereum.rawValue, address: address))
         model.onContinue()
 
         #expect(recipientAddress == checksummed)

@@ -388,7 +388,6 @@ mocks:
   - TransactionExtended
   - TransactionInputType
   - TransactionListItem
-  - TransactionPerpetualMetadata
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet

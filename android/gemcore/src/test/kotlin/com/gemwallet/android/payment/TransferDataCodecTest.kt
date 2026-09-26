@@ -16,8 +16,6 @@ import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -67,8 +65,8 @@ class TransferDataCodecTest {
                     to = "merchant",
                     gasLimit = BigInteger("21000"),
                     data = "encoded-transaction".toTransactionData(),
-                    outputType = TransferDataOutputType.EncodedTransaction.toGem(),
-                    outputAction = TransferDataOutputAction.Send.toGem(),
+                    outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION,
+                    outputAction = uniffi.gemstone.TransferDataOutputAction.SEND,
                     transactionType = TransactionType.Transfer.toGem(),
                     approval = approval,
                 ),
@@ -85,8 +83,8 @@ class TransferDataCodecTest {
         assertEquals(asset.id, assetId)
         assertEquals("merchant", transfer.recipient.address)
         assertEquals("payment-memo", transfer.recipient.memo)
-        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.toPrimitives())
-        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.toPrimitives())
+        assertEquals(uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION, generic.extra.outputType)
+        assertEquals(uniffi.gemstone.TransferDataOutputAction.SEND, generic.extra.outputAction)
         assertEquals("Merchant", metadata.name)
         assertEquals(ApplicationMetadataSource.WalletConnect, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
@@ -105,8 +103,8 @@ class TransferDataCodecTest {
                 extra = mockTransferDataExtra(
                     to = "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                     data = data.toTransactionData(),
-                    outputType = TransferDataOutputType.Signature.toGem(),
-                    outputAction = TransferDataOutputAction.Sign.toGem(),
+                    outputType = uniffi.gemstone.TransferDataOutputType.SIGNATURE,
+                    outputAction = uniffi.gemstone.TransferDataOutputAction.SIGN,
                     transactionType = TransactionType.SmartContractCall.toGem(),
                 ),
             ),
@@ -117,8 +115,8 @@ class TransferDataCodecTest {
         val generic = roundTrip(original).inputType as TransactionInputType.Generic
 
         assertArrayEquals(data.toTransactionData(), generic.extra.data)
-        assertEquals(TransferDataOutputType.Signature, generic.extra.outputType.toPrimitives())
-        assertEquals(TransferDataOutputAction.Sign, generic.extra.outputAction.toPrimitives())
+        assertEquals(uniffi.gemstone.TransferDataOutputType.SIGNATURE, generic.extra.outputType)
+        assertEquals(uniffi.gemstone.TransferDataOutputAction.SIGN, generic.extra.outputAction)
         assertEquals(null, generic.extra.approval)
     }
 

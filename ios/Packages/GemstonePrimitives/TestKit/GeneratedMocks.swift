@@ -1284,6 +1284,22 @@ public extension Gemstone.GemWalletRow {
     }
 }
 
+public extension Gemstone.NameRecord {
+    static func mock(
+        name: String = "",
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        address: String = "",
+        provider: Gemstone.NameProvider = .ud,
+    ) -> Gemstone.NameRecord {
+        Gemstone.NameRecord(
+            name: name,
+            chain: chain,
+            address: address,
+            provider: provider,
+        )
+    }
+}
+
 public extension Gemstone.PaymentInvoice {
     static func mock(
         link: Gemstone.PaymentLink = .mock(),
@@ -1486,6 +1502,18 @@ public extension Gemstone.PortfolioMarginUsage {
             usage: usage,
             usedValue: usedValue,
             usagePercent: usagePercent,
+        )
+    }
+}
+
+public extension Gemstone.RedelegateData {
+    static func mock(
+        delegation: Gemstone.Delegation = Primitives.Delegation.mock().toGem(),
+        toValidator: Gemstone.DelegationValidator = Primitives.DelegationValidator.mock().toGem(),
+    ) -> Gemstone.RedelegateData {
+        Gemstone.RedelegateData(
+            delegation: delegation,
+            toValidator: toValidator,
         )
     }
 }

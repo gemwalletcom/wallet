@@ -68,14 +68,14 @@ final class TransactionViewModelTests {
         let openPositionModel = TransactionViewModel.mock(
             type: .perpetualOpenPosition,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(price: 50000.50)),
+            metadata: perpetualMetadata(price: 50000.50),
         )
         #expect(openPositionModel.titleExtraTextValue?.text == "Price: $50,000.50")
 
         let closePositionModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(price: 49999.99)),
+            metadata: perpetualMetadata(price: 49999.99),
         )
         #expect(closePositionModel.titleExtraTextValue?.text == "Price: $49,999.99")
     }
@@ -86,7 +86,7 @@ final class TransactionViewModelTests {
             type: .perpetualClosePosition,
             state: .pending,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(price: 0)),
+            metadata: perpetualMetadata(price: 0),
         )
 
         #expect(model.titleExtraTextValue == nil)
@@ -98,7 +98,7 @@ final class TransactionViewModelTests {
             type: .perpetualOpenPosition,
             value: "1000000",
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock()),
+            metadata: perpetualMetadata(),
         )
         #expect(model.subtitleTextValue?.text == "$1.00")
     }
@@ -108,14 +108,14 @@ final class TransactionViewModelTests {
         let profitModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 125.50)),
+            metadata: perpetualMetadata(pnl: 125.50),
         )
         #expect(profitModel.subtitleTextValue?.text == "+$125.50")
 
         let lossModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: -75.25)),
+            metadata: perpetualMetadata(pnl: -75.25),
         )
         #expect(lossModel.subtitleTextValue?.text == "-$75.25")
     }
@@ -125,7 +125,7 @@ final class TransactionViewModelTests {
         let model = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual),
-            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 0)),
+            metadata: perpetualMetadata(pnl: 0),
         )
         #expect(model.subtitleTextValue == nil)
     }
@@ -198,5 +198,9 @@ final class TransactionViewModelTests {
             Issue.record("Expected progress indicator for in-transit title tag")
         }
         #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit, tone: .pending).title)
+    }
+
+    private func perpetualMetadata(pnl: Double = 0, price: Double = 0) -> AnyCodableValue {
+        .object(["pnl": .double(pnl), "price": .double(price), "direction": .string(PerpetualDirection.short.rawValue)])
     }
 }

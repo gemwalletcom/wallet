@@ -273,7 +273,6 @@ pub enum ReportReason {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable")]
 pub struct ReportNft {
     pub collection_id: String,
     pub asset_id: Option<String>,

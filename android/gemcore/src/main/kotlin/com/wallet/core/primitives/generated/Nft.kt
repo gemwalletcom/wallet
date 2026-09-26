@@ -86,13 +86,6 @@ data class NFTData (
 )
 
 @Serializable
-data class ReportNft (
-	val collectionId: String,
-	val assetId: String? = null,
-	val reason: String? = null
-)
-
-@Serializable
 enum class ReportReason(val string: String) {
 	@SerialName("spam")
 	Spam("spam"),

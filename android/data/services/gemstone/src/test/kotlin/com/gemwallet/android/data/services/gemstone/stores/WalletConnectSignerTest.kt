@@ -17,8 +17,6 @@ import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -59,8 +57,8 @@ class WalletConnectSignerTest {
                 extra = mockTransferDataExtra(
                     to = "recipient",
                     data = "tx".toByteArray(),
-                    outputType = TransferDataOutputType.EncodedTransaction.toGem(),
-                    outputAction = TransferDataOutputAction.Send.toGem(),
+                    outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION,
+                    outputAction = uniffi.gemstone.TransferDataOutputAction.SEND,
                     transactionType = TransactionType.SmartContractCall.toGem(),
                 ),
             ),

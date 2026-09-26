@@ -94,7 +94,7 @@ class ImportViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("vitalik.eth" to chain), addressInput.requests)
-        assertEquals(GemNameRecordState.Complete(mockNameRecord(name = "vitalik.eth", chain = chain).toGem()), viewModel.nameResolveState.value)
+        assertEquals(GemNameRecordState.Complete(mockNameRecord(name = "vitalik.eth", chain = chain.toGem())), viewModel.nameResolveState.value)
     }
 
     @Test

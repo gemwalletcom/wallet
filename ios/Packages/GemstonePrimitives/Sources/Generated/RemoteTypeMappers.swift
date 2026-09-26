@@ -662,48 +662,6 @@ public extension Primitives.LatencyType {
     }
 }
 
-public extension Gemstone.LinkType {
-    func toPrimitives() -> Primitives.LinkType {
-        switch self {
-        case .x: .x
-        case .discord: .discord
-        case .reddit: .reddit
-        case .telegram: .telegram
-        case .gitHub: .gitHub
-        case .youTube: .youTube
-        case .facebook: .facebook
-        case .website: .website
-        case .coingecko: .coingecko
-        case .openSea: .openSea
-        case .instagram: .instagram
-        case .magicEden: .magicEden
-        case .coinMarketCap: .coinMarketCap
-        case .tikTok: .tikTok
-        }
-    }
-}
-
-public extension Primitives.LinkType {
-    func toGem() -> Gemstone.LinkType {
-        switch self {
-        case .x: .x
-        case .discord: .discord
-        case .reddit: .reddit
-        case .telegram: .telegram
-        case .gitHub: .gitHub
-        case .youTube: .youTube
-        case .facebook: .facebook
-        case .website: .website
-        case .coingecko: .coingecko
-        case .openSea: .openSea
-        case .instagram: .instagram
-        case .magicEden: .magicEden
-        case .coinMarketCap: .coinMarketCap
-        case .tikTok: .tikTok
-        }
-    }
-}
-
 public extension Gemstone.NftAttributeType {
     func toPrimitives() -> Primitives.NFTAttributeType {
         switch self {
@@ -740,50 +698,6 @@ public extension Primitives.NFTType {
         case .erc1155: .erc1155
         case .spl: .spl
         case .jetton: .jetton
-        }
-    }
-}
-
-public extension Gemstone.NameProvider {
-    func toPrimitives() -> Primitives.NameProvider {
-        switch self {
-        case .ud: .ud
-        case .ens: .ens
-        case .sns: .sns
-        case .ton: .ton
-        case .spaceid: .spaceid
-        case .did: .did
-        case .suins: .suins
-        case .aptos: .aptos
-        case .injective: .injective
-        case .icns: .icns
-        case .lens: .lens
-        case .basenames: .basenames
-        case .hyperliquid: .hyperliquid
-        case .allDomains: .allDomains
-        case .near: .near
-        }
-    }
-}
-
-public extension Primitives.NameProvider {
-    func toGem() -> Gemstone.NameProvider {
-        switch self {
-        case .ud: .ud
-        case .ens: .ens
-        case .sns: .sns
-        case .ton: .ton
-        case .spaceid: .spaceid
-        case .did: .did
-        case .suins: .suins
-        case .aptos: .aptos
-        case .injective: .injective
-        case .icns: .icns
-        case .lens: .lens
-        case .basenames: .basenames
-        case .hyperliquid: .hyperliquid
-        case .allDomains: .allDomains
-        case .near: .near
         }
     }
 }
@@ -1108,34 +1022,6 @@ public extension Primitives.StakeProviderType {
     }
 }
 
-public extension Gemstone.StakeType {
-    func toPrimitives() -> Primitives.StakeType {
-        switch self {
-        case .stake(let value): .stake(value.toPrimitives())
-        case .unstake(let value): .unstake(value.toPrimitives())
-        case .redelegate(let value): .redelegate(value.toPrimitives())
-        case .rewards(let value): .rewards(value.map { $0.toPrimitives() })
-        case .withdraw(let value): .withdraw(value.toPrimitives())
-        case .freeze(let value): .freeze(value.toPrimitives())
-        case .unfreeze(let value): .unfreeze(value.toPrimitives())
-        }
-    }
-}
-
-public extension Primitives.StakeType {
-    func toGem() -> Gemstone.StakeType {
-        switch self {
-        case .stake(let value): .stake(value.toGem())
-        case .unstake(let value): .unstake(value.toGem())
-        case .redelegate(let value): .redelegate(value.toGem())
-        case .rewards(let value): .rewards(value.map { $0.toGem() })
-        case .withdraw(let value): .withdraw(value.toGem())
-        case .freeze(let value): .freeze(value.toGem())
-        case .unfreeze(let value): .unfreeze(value.toGem())
-        }
-    }
-}
-
 public extension Gemstone.SupportMessageSender {
     func toPrimitives() -> Primitives.SupportMessageSender {
         switch self {
@@ -1360,42 +1246,6 @@ public extension Primitives.TransactionType {
         case .perpetualModifyPosition: .perpetualModifyPosition
         case .earnDeposit: .earnDeposit
         case .earnWithdraw: .earnWithdraw
-        }
-    }
-}
-
-public extension Gemstone.TransferDataOutputAction {
-    func toPrimitives() -> Primitives.TransferDataOutputAction {
-        switch self {
-        case .sign: .sign
-        case .send: .send
-        }
-    }
-}
-
-public extension Primitives.TransferDataOutputAction {
-    func toGem() -> Gemstone.TransferDataOutputAction {
-        switch self {
-        case .sign: .sign
-        case .send: .send
-        }
-    }
-}
-
-public extension Gemstone.TransferDataOutputType {
-    func toPrimitives() -> Primitives.TransferDataOutputType {
-        switch self {
-        case .encodedTransaction: .encodedTransaction
-        case .signature: .signature
-        }
-    }
-}
-
-public extension Primitives.TransferDataOutputType {
-    func toGem() -> Gemstone.TransferDataOutputType {
-        switch self {
-        case .encodedTransaction: .encodedTransaction
-        case .signature: .signature
         }
     }
 }
@@ -2524,28 +2374,6 @@ public extension Primitives.NFTResource {
     }
 }
 
-public extension Gemstone.NameRecord {
-    func toPrimitives() -> Primitives.NameRecord {
-        Primitives.NameRecord(
-            name: name,
-            chain: Primitives.Chain(core: chain),
-            address: address,
-            provider: provider.toPrimitives(),
-        )
-    }
-}
-
-public extension Primitives.NameRecord {
-    func toGem() -> Gemstone.NameRecord {
-        Gemstone.NameRecord(
-            name: name,
-            chain: chain.rawValue,
-            address: address,
-            provider: provider.toGem(),
-        )
-    }
-}
-
 public extension Gemstone.Node {
     func toPrimitives() -> Primitives.Node {
         Primitives.Node(
@@ -2660,32 +2488,6 @@ public extension Primitives.PerpetualData {
             perpetual: perpetual.toGem(),
             asset: asset.toGem(),
             metadata: metadata.toGem(),
-        )
-    }
-}
-
-public extension Gemstone.PerpetualMarketData {
-    func toPrimitives() -> Primitives.PerpetualMarketData {
-        Primitives.PerpetualMarketData(
-            coin: coin,
-            price: price,
-            pricePercentChange24h: pricePercentChange24h,
-            openInterest: openInterest,
-            volume24h: volume24h,
-            funding: funding,
-        )
-    }
-}
-
-public extension Primitives.PerpetualMarketData {
-    func toGem() -> Gemstone.PerpetualMarketData {
-        Gemstone.PerpetualMarketData(
-            coin: coin,
-            price: price,
-            pricePercentChange24h: pricePercentChange24h,
-            openInterest: openInterest,
-            volume24h: volume24h,
-            funding: funding,
         )
     }
 }
@@ -2878,24 +2680,6 @@ public extension Primitives.PriceAlertData {
     }
 }
 
-public extension Gemstone.RedelegateData {
-    func toPrimitives() -> Primitives.RedelegateData {
-        Primitives.RedelegateData(
-            delegation: delegation.toPrimitives(),
-            toValidator: toValidator.toPrimitives(),
-        )
-    }
-}
-
-public extension Primitives.RedelegateData {
-    func toGem() -> Gemstone.RedelegateData {
-        Gemstone.RedelegateData(
-            delegation: delegation.toGem(),
-            toValidator: toValidator.toGem(),
-        )
-    }
-}
-
 public extension Gemstone.Release {
     func toPrimitives() -> Primitives.Release {
         Primitives.Release(
@@ -2912,26 +2696,6 @@ public extension Primitives.Release {
             version: version,
             store: store.toGem(),
             upgradeRequired: upgradeRequired,
-        )
-    }
-}
-
-public extension Gemstone.ReportNft {
-    func toPrimitives() -> Primitives.ReportNft {
-        Primitives.ReportNft(
-            collectionId: collectionId,
-            assetId: assetId,
-            reason: reason,
-        )
-    }
-}
-
-public extension Primitives.ReportNft {
-    func toGem() -> Gemstone.ReportNft {
-        Gemstone.ReportNft(
-            collectionId: collectionId,
-            assetId: assetId,
-            reason: reason,
         )
     }
 }

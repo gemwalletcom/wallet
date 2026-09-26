@@ -689,22 +689,6 @@ public extension NFTResource {
     }
 }
 
-public extension NameRecord {
-    static func mock(
-        name: String = "",
-        chain: Chain = .bitcoin,
-        address: String = "",
-        provider: NameProvider = .ud,
-    ) -> NameRecord {
-        NameRecord(
-            name: name,
-            chain: chain,
-            address: address,
-            provider: provider,
-        )
-    }
-}
-
 public extension Perpetual {
     static func mock(
         id: PerpetualId = .mock(),
@@ -863,18 +847,6 @@ public extension PriceAlertData {
     }
 }
 
-public extension RedelegateData {
-    static func mock(
-        delegation: Delegation = .mock(),
-        toValidator: DelegationValidator = .mock(),
-    ) -> RedelegateData {
-        RedelegateData(
-            delegation: delegation,
-            toValidator: toValidator,
-        )
-    }
-}
-
 public extension SupportAgent {
     static func mock(
         name: String = "",
@@ -1015,24 +987,6 @@ public extension TransactionListItem {
             assets: assets,
             fromAddress: fromAddress,
             toAddress: toAddress,
-        )
-    }
-}
-
-public extension TransactionPerpetualMetadata {
-    static func mock(
-        pnl: Double = 0,
-        price: Double = 0,
-        direction: PerpetualDirection = .short,
-        isLiquidation: Bool? = nil,
-        provider: PerpetualProvider? = nil,
-    ) -> TransactionPerpetualMetadata {
-        TransactionPerpetualMetadata(
-            pnl: pnl,
-            price: price,
-            direction: direction,
-            isLiquidation: isLiquidation,
-            provider: provider,
         )
     }
 }

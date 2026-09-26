@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Contacts
+import struct Gemstone.NameRecord
 import ContactsTestKit
 import class Gemstone.GemChainService
 import GemstonePrimitives
@@ -56,7 +57,7 @@ struct ContactAddressEditorViewModelTests {
         model.addressInputModel.nameRecordViewModel.state = .error
         #expect(model.buttonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: Chain.bitcoin.rawValue, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
         #expect(model.buttonState == .normal)
 
         model.onSelectChain(.bitcoin)

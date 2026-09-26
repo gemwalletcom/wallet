@@ -104,11 +104,11 @@ public extension GemNameService {
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
     private let rules = GemNameService.mock()
     private let addressNames: [Primitives.AddressName]
-    private let nameRecord: Primitives.NameRecord?
+    private let nameRecord: Gemstone.NameRecord?
     private let error: Error?
     public private(set) var requestedNames: [String] = []
 
-    public init(addressNames: [Primitives.AddressName] = [], nameRecord: Primitives.NameRecord? = nil, error: Error? = nil) {
+    public init(addressNames: [Primitives.AddressName] = [], nameRecord: Gemstone.NameRecord? = nil, error: Error? = nil) {
         self.addressNames = addressNames
         self.nameRecord = nameRecord
         self.error = error
@@ -119,7 +119,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         if let error {
             throw error
         }
-        return nameRecord.map { .complete(record: $0.toGem()) } ?? .error
+        return nameRecord.map { .complete(record: $0) } ?? .error
     }
 
     public func nameInputStep(state: GemNameRecordState, name: String, chain: Gemstone.Chain?) -> GemNameInputStep {

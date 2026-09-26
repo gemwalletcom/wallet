@@ -64,8 +64,6 @@ import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
-import com.wallet.core.primitives.NameProvider
-import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualBasic
 import com.wallet.core.primitives.PerpetualData
@@ -83,7 +81,6 @@ import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.PriceAlertDirection
-import com.wallet.core.primitives.RedelegateData
 import com.wallet.core.primitives.SerializedBigInteger
 import com.wallet.core.primitives.SerializedDate
 import com.wallet.core.primitives.StakeProviderType
@@ -97,7 +94,6 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionListItem
-import com.wallet.core.primitives.TransactionPerpetualMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -650,18 +646,6 @@ fun mockNftResource(
     mimeType = mimeType,
 )
 
-fun mockNameRecord(
-    name: String = "",
-    chain: Chain = Chain.Bitcoin,
-    address: String = "",
-    provider: NameProvider = NameProvider.Ud,
-) = NameRecord(
-    name = name,
-    chain = chain,
-    address = address,
-    provider = provider,
-)
-
 fun mockPerpetual(
     id: PerpetualId = mockPerpetualId(),
     name: String = "",
@@ -788,14 +772,6 @@ fun mockPriceAlertData(
     rankScore = rankScore,
 )
 
-fun mockRedelegateData(
-    delegation: Delegation = mockDelegation(),
-    toValidator: DelegationValidator = mockDelegationValidator(),
-) = RedelegateData(
-    delegation = delegation,
-    toValidator = toValidator,
-)
-
 fun mockSupportAgent(
     name: String = "",
 ) = SupportAgent(
@@ -914,20 +890,6 @@ fun mockTransactionListItem(
     assets = assets,
     fromAddress = fromAddress,
     toAddress = toAddress,
-)
-
-fun mockTransactionPerpetualMetadata(
-    pnl: Double = 0.0,
-    price: Double = 0.0,
-    direction: PerpetualDirection = PerpetualDirection.Short,
-    isLiquidation: Boolean? = null,
-    provider: PerpetualProvider? = null,
-) = TransactionPerpetualMetadata(
-    pnl = pnl,
-    price = price,
-    direction = direction,
-    isLiquidation = isLiquidation,
-    provider = provider,
 )
 
 fun mockTransactionSwapMetadata(
@@ -1980,6 +1942,18 @@ fun mockGemWalletRow(
     imageUrl = imageUrl,
 )
 
+fun mockNameRecord(
+    name: String = "",
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    address: String = "",
+    provider: uniffi.gemstone.NameProvider = uniffi.gemstone.NameProvider.UD,
+) = uniffi.gemstone.NameRecord(
+    name = name,
+    chain = chain,
+    address = address,
+    provider = provider,
+)
+
 fun mockPaymentInvoice(
     link: uniffi.gemstone.PaymentLink = mockPaymentLink(),
     merchant: uniffi.gemstone.PaymentMerchant = mockPaymentMerchant(),
@@ -2132,6 +2106,14 @@ fun mockPortfolioMarginUsage(
     usage = usage,
     usedValue = usedValue,
     usagePercent = usagePercent,
+)
+
+fun mockRedelegateData(
+    delegation: uniffi.gemstone.Delegation = mockDelegation().toGem(),
+    toValidator: uniffi.gemstone.DelegationValidator = mockDelegationValidator().toGem(),
+) = uniffi.gemstone.RedelegateData(
+    delegation = delegation,
+    toValidator = toValidator,
 )
 
 fun mockRedemptionResult(

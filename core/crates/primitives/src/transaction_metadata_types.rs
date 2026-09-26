@@ -13,7 +13,6 @@ pub struct TransactionPaymentMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionPerpetualMetadata {
     pub pnl: f64,
