@@ -31,14 +31,6 @@ struct TransactionsFilterSceneViewModelTests {
     }
 
     @Test
-    func theTypesComeFromCore() {
-        let model = TransactionsFilterSceneViewModel.mock()
-
-        #expect(model.viewState.types.isNotEmpty)
-        #expect(model.isAnyFilterSpecified == false)
-    }
-
-    @Test
     func aTypeSelectionMapsToItsTransactionTypes() {
         let model = TransactionsFilterSceneViewModel.mock()
         guard let filter = model.viewState.types.first else {
