@@ -53,10 +53,10 @@ import uniffi.gemstone.GemPerpetualServiceInterface
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PerpetualMarketViewModelTest {
+class PerpetualsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private var model: PerpetualMarketViewModel? = null
+    private var model: PerpetualsViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -120,7 +120,7 @@ class PerpetualMarketViewModelTest {
         balance: PerpetualBalance? = null,
         walletType: WalletType = WalletType.Multicoin,
         perpetuals: Flow<List<PerpetualData>> = flowOf(emptyList()),
-    ): PerpetualMarketViewModel {
+    ): PerpetualsViewModel {
         val perpetualsQuery = mockk<PerpetualsQuery> {
             every { this@mockk(any(), any(), any()) } returns perpetuals
         }
@@ -137,7 +137,7 @@ class PerpetualMarketViewModelTest {
         val getSession = mockk<GetSession>()
         every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(type = walletType)))
 
-        return PerpetualMarketViewModel(
+        return PerpetualsViewModel(
             perpetualsQuery = perpetualsQuery,
             perpetualPositionsQuery = perpetualPositionsQuery,
             perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,

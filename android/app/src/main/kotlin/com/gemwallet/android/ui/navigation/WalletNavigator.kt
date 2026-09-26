@@ -62,8 +62,8 @@ import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
-import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
@@ -262,12 +262,12 @@ class WalletNavigator(
     fun openPriceAlerts() = push(PriceAlertsRoute)
     fun openPriceAlerts(assetId: AssetId) = push(AssetPriceAlertsRoute(assetId))
     fun openAddPriceAlertTarget(assetId: AssetId) = push(AddPriceAlertTargetRoute(assetId))
-    fun openPerpetuals() = push(PerpetualRoute)
-    fun openPerpetualDetails(assetId: AssetId) = push(PerpetualPositionRoute(assetId))
+    fun openPerpetuals() = push(PerpetualsRoute)
+    fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
 
     fun openRecent(asset: Asset) {
         val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
-        if (target.isPerpetual) openPerpetualDetails(asset.id) else openAsset(asset.id)
+        if (target.isPerpetual) openPerpetual(asset.id) else openAsset(asset.id)
     }
     fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
 

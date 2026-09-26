@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
-import com.gemwallet.android.ui.navigation.routes.perpetualScreen
+import com.gemwallet.android.ui.navigation.routes.perpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipient
@@ -100,7 +100,7 @@ fun WalletNavGraph(
                         WalletSearchAction.OpenPerpetuals -> navigator.openPerpetuals()
                         WalletSearchAction.OpenCollections -> navigator.openNftList()
                         is WalletSearchAction.OpenAsset -> navigator.openAsset(action.asset.id)
-                        is WalletSearchAction.OpenPerpetual -> navigator.openPerpetualDetails(action.asset.id)
+                        is WalletSearchAction.OpenPerpetual -> navigator.openPerpetual(action.asset.id)
                         is WalletSearchAction.OpenRecent -> navigator.openRecent(action.asset)
                         is WalletSearchAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
                         is WalletSearchAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
@@ -235,7 +235,7 @@ fun WalletNavGraph(
                         TransactionAction.Close -> onCancel()
                         is TransactionAction.OpenAsset -> navigator.openAsset(it.assetId)
                         is TransactionAction.OpenNft -> navigator.openNftAsset(it.assetId)
-                        is TransactionAction.OpenPerpetual -> navigator.openPerpetualDetails(it.assetId)
+                        is TransactionAction.OpenPerpetual -> navigator.openPerpetual(it.assetId)
                         is TransactionAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
                         is TransactionAction.OpenAddress -> navigator.openAddress(it.chainAddress)
                     }
@@ -299,8 +299,8 @@ fun WalletNavGraph(
                 onSelectType = navigator::openImportWallet,
             )
 
-            perpetualScreen(
-                onOpenPerpetualDetails = navigator::openPerpetualDetails,
+            perpetualsScreen(
+                onOpenPerpetual = navigator::openPerpetual,
                 onOpenPortfolio = { navigator.openPortfolio(PortfolioType.Perpetuals) },
                 amountAction = AmountTransactionAction(navigator::openAmount),
                 confirmAction = ConfirmTransactionAction(navigator::openConfirmTransfer),

@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualButtonUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualButtonUIModel
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.style.buttonColor
 import com.gemwallet.android.ui.theme.WalletTheme

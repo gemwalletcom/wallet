@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetuals.presents.market
+package com.gemwallet.android.features.perpetuals.presents.perpetuals
 
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
@@ -11,7 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
-import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualMarketViewModel
+import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualsViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -19,12 +19,12 @@ import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
 
 @Composable
-fun PerpetualMarketScreen(
+fun PerpetualsScreen(
     onCancel: () -> Unit,
-    onOpenPerpetualDetails: AssetIdAction,
+    onOpenPerpetual: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
-    viewModel: PerpetualMarketViewModel = hiltViewModel(),
+    viewModel: PerpetualsViewModel = hiltViewModel(),
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -53,7 +53,7 @@ fun PerpetualMarketScreen(
         onDispose { viewModel.unsubscribeMarketPrices() }
     }
 
-    PerpetualMarketScene(
+    PerpetualsScene(
         isRefreshing = isRefreshing,
         balanceHeader = balanceHeader,
         unpinnedPerpetuals = unpinnedPerpetuals,
@@ -65,34 +65,34 @@ fun PerpetualMarketScreen(
         isSearching = isSearching,
         onAction = { action ->
             when (action) {
-                PerpetualMarketAction.Refresh -> viewModel.onRefresh()
+                PerpetualsAction.Refresh -> viewModel.onRefresh()
 
-                is PerpetualMarketAction.SetSearching -> viewModel.setSearching(action.isSearching)
+                is PerpetualsAction.SetSearching -> viewModel.setSearching(action.isSearching)
 
-                PerpetualMarketAction.Close -> onCancel()
+                PerpetualsAction.Close -> onCancel()
 
-                PerpetualMarketAction.Withdraw -> balanceHeader?.let { amountAction(AmountParams.Withdraw(it.withdrawAsset.toPrimitives().id)) }
+                PerpetualsAction.Withdraw -> balanceHeader?.let { amountAction(AmountParams.Withdraw(it.withdrawAsset.toPrimitives().id)) }
 
-                PerpetualMarketAction.Deposit -> balanceHeader?.let { amountAction(AmountParams.Deposit(it.depositAsset.toPrimitives().id)) }
+                PerpetualsAction.Deposit -> balanceHeader?.let { amountAction(AmountParams.Deposit(it.depositAsset.toPrimitives().id)) }
 
-                PerpetualMarketAction.OpenPortfolio -> onOpenPortfolio()
+                PerpetualsAction.OpenPortfolio -> onOpenPortfolio()
 
-                is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
+                is PerpetualsAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
 
-                is PerpetualMarketAction.OpenPerpetual -> {
-                    onOpenPerpetualDetails(action.asset.id)
+                is PerpetualsAction.OpenPerpetual -> {
+                    onOpenPerpetual(action.asset.id)
                     viewModel.onOpenPerpetual(action.asset)
                 }
 
-                is PerpetualMarketAction.OpenRecent -> onOpenPerpetualDetails(action.asset.id)
+                is PerpetualsAction.OpenRecent -> onOpenPerpetual(action.asset.id)
 
-                PerpetualMarketAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentActivityType.Perpetual))
+                PerpetualsAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentActivityType.Perpetual))
             }
         },
     )
 
     RecentsScreen(
         viewModel = recentsViewModel,
-        onSelect = { onOpenPerpetualDetails(it.id) },
+        onSelect = { onOpenPerpetual(it.id) },
     )
 }

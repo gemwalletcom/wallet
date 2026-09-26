@@ -9,8 +9,8 @@ import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
-import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionRoute
@@ -57,7 +57,7 @@ class NotificationNavigationTest {
 
         val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = true)).prepareNavigation(GemPushNotification.Rewards).routes
 
-        assertEquals(listOf(PerpetualRoute, PerpetualPositionRoute(asset.id)), routes)
+        assertEquals(listOf(PerpetualsRoute, PerpetualRoute(asset.id)), routes)
     }
 
     @Test

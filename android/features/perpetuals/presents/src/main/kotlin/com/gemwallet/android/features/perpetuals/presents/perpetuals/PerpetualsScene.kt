@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetuals.presents.market
+package com.gemwallet.android.features.perpetuals.presents.perpetuals
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
+import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.perpetuals.presents.components.previewPerpetual
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.text
@@ -71,7 +71,7 @@ import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
 
 @Composable
-internal fun PerpetualMarketScene(
+internal fun PerpetualsScene(
     isRefreshing: Boolean,
     balanceHeader: GemPerpetualBalanceHeader?,
     positions: List<PerpetualPositionRowUIModel>,
@@ -81,7 +81,7 @@ internal fun PerpetualMarketScene(
     query: TextFieldState,
     sections: List<GemPerpetualMarketSection>,
     isSearching: Boolean,
-    onAction: (PerpetualMarketAction) -> Unit,
+    onAction: (PerpetualsAction) -> Unit,
 ) {
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
 
@@ -99,14 +99,14 @@ internal fun PerpetualMarketScene(
         onClose = {
             if (isSearching) {
                 query.clearText()
-                onAction(PerpetualMarketAction.SetSearching(false))
+                onAction(PerpetualsAction.SetSearching(false))
             } else {
-                onAction(PerpetualMarketAction.Close)
+                onAction(PerpetualsAction.Close)
             }
         },
         actions = {
             if (!isSearching) {
-                IconButton(onClick = { onAction(PerpetualMarketAction.SetSearching(true)) }) {
+                IconButton(onClick = { onAction(PerpetualsAction.SetSearching(true)) }) {
                     Icon(imageVector = AppIcons.Search, contentDescription = "search")
                 }
             }
@@ -114,7 +114,7 @@ internal fun PerpetualMarketScene(
     ) {
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { onAction(PerpetualMarketAction.Refresh) },
+            onRefresh = { onAction(PerpetualsAction.Refresh) },
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -127,7 +127,7 @@ internal fun PerpetualMarketScene(
                                 R.string.wallet_available_balance,
                                 balanceHeader.available.text(),
                             ),
-                            onClick = { onAction(PerpetualMarketAction.OpenPortfolio) },
+                            onClick = { onAction(PerpetualsAction.OpenPortfolio) },
                         ) {
                             AssetHeadActions(
                                 balanceHeader.actions.uiModel(
@@ -135,8 +135,8 @@ internal fun PerpetualMarketScene(
                                     onReceive = null,
                                     onBuy = null,
                                     onSwap = null,
-                                    onDeposit = { onAction(PerpetualMarketAction.Deposit) },
-                                    onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
+                                    onDeposit = { onAction(PerpetualsAction.Deposit) },
+                                    onWithdraw = { onAction(PerpetualsAction.Withdraw) },
                                 ),
                             )
                         }
@@ -146,8 +146,8 @@ internal fun PerpetualMarketScene(
                     when (section) {
                         GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
                             items = recent,
-                            onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
-                            onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
+                            onSeeAll = { onAction(PerpetualsAction.OpenRecentsSheet) },
+                            onSelect = { asset -> onAction(PerpetualsAction.OpenRecent(asset)) },
                         )
 
                         GemPerpetualMarketSection.POSITIONS -> {
@@ -156,7 +156,7 @@ internal fun PerpetualMarketScene(
                                 AssetListItem(
                                     row = item.row,
                                     listPosition = position,
-                                    modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                    modifier = Modifier.clickable { onAction(PerpetualsAction.OpenPerpetual(item.asset)) },
                                 )
                             }
                         }
@@ -167,12 +167,12 @@ internal fun PerpetualMarketScene(
                                 PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
                             }
                             itemsPositioned(pinnedPerpetuals) { position, item ->
-                                PerpetualItem(
+                                PerpetualListItem(
                                     item = item,
                                     listPosition = position,
                                     longPressState = longPressedAsset,
-                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                    onTogglePin = { onAction(PerpetualsAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.asset)) },
                                 )
                             }
                         }
@@ -180,12 +180,12 @@ internal fun PerpetualMarketScene(
                         GemPerpetualMarketSection.MARKETS -> {
                             section.stringRes()?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(unpinnedPerpetuals) { position, item ->
-                                PerpetualItem(
+                                PerpetualListItem(
                                     item = item,
                                     listPosition = position,
                                     longPressState = longPressedAsset,
-                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                    onTogglePin = { onAction(PerpetualsAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.asset)) },
                                 )
                             }
                         }
@@ -240,9 +240,9 @@ private fun LazyListScope.recentPerpetuals(items: List<Asset>, onSeeAll: () -> U
 
 @Composable
 @Preview
-fun PreviewPerpetualMarketScene() {
+fun PreviewPerpetualsScene() {
     WalletTheme {
-        PerpetualMarketScene(
+        PerpetualsScene(
             isRefreshing = false,
             query = androidx.compose.foundation.text.input.TextFieldState(),
             sections = emptyList(),

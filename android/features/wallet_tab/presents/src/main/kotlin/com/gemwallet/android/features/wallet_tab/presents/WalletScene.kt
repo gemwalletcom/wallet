@@ -171,7 +171,7 @@ internal fun WalletScene(
                     item(key = PerpetualsSectionItemKey) {
                         PerpetualsPreviewSection(
                             onOpenPerpetuals = { onAction(WalletAction.Perpetuals) },
-                            onOpenPerpetualDetails = { onAction(WalletAction.OpenPerpetualDetails(it)) },
+                            onOpenPerpetual = { onAction(WalletAction.OpenPerpetual(it)) },
                         )
                     }
                 }

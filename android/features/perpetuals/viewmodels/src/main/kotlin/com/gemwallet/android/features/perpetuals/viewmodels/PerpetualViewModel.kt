@@ -18,11 +18,11 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualDetailsUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.model.uiModel
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
+import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
@@ -73,7 +73,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PerpetualDetailsViewModel @Inject constructor(
+class PerpetualViewModel @Inject constructor(
     private val perpetualQuery: PerpetualQuery,
     private val perpetualPositionsQuery: PerpetualPositionsQuery,
     private val getTransactions: GetTransactions,
@@ -130,7 +130,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     val positionRow: StateFlow<GemAssetItemRow?> = detailsState.map { it?.positionRow?.row }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), null)
 
-    val details: StateFlow<PerpetualDetailsUIModel?> = detailsState.map { it?.uiModel(context) }
+    val details: StateFlow<PerpetualUIModel?> = detailsState.map { it?.uiModel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
@@ -163,7 +163,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
-    fun tooltip(candle: ChartCandleStick): CandlestickTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
+    fun tooltip(candle: ChartCandleStick): CandleTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
 
     private val screenVisible = MutableStateFlow(false)
 

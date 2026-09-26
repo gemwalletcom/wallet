@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
+import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.chart.CandlestickTooltip
-import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemCandlestickChart
 import com.gemwallet.android.ui.format.rowDateFormatter
@@ -29,7 +29,7 @@ import com.wallet.core.primitives.ChartPeriod
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, period: ChartPeriod, tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
+internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, period: ChartPeriod, tooltip: (ChartCandleStick) -> CandleTooltipUIModel, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
     val model = state.dataOrNull
     val data = model?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
@@ -67,7 +67,7 @@ internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, 
 }
 
 @Composable
-private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: CandlestickTooltipUIModel?, alignToStart: Boolean) {
+private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: CandleTooltipUIModel?, alignToStart: Boolean) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),

@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualButtonUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualButtonUIModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.mainActionHeight

@@ -57,7 +57,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PerpetualMarketViewModel @Inject constructor(
+class PerpetualsViewModel @Inject constructor(
     private val perpetualsQuery: PerpetualsQuery,
     private val perpetualPositionsQuery: PerpetualPositionsQuery,
     private val perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,

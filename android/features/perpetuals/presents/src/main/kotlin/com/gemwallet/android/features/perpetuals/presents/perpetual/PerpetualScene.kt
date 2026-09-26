@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetuals.presents.position
+package com.gemwallet.android.features.perpetuals.presents.perpetual
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,13 +16,13 @@ import com.gemwallet.android.features.perpetuals.presents.components.PerpetualAc
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualButtonUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualDetailsSectionUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualDetailsUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.model.PerpetualPositionRowUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualButtonUIModel
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionDetailUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualSectionUIModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
+import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -53,38 +53,38 @@ import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemValueTone
 
 @Composable
-internal fun PerpetualPositionScene(
-    details: PerpetualDetailsUIModel?,
+internal fun PerpetualScene(
+    details: PerpetualUIModel?,
     positionRow: GemAssetItemRow?,
     transactions: List<GemTransactionRow>,
     chart: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
-    tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,
+    tooltip: (ChartCandleStick) -> CandleTooltipUIModel,
     isRefreshing: Boolean,
     snackbar: SnackbarHostState? = null,
-    onAction: (PerpetualDetailsAction) -> Unit,
+    onAction: (PerpetualAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
     val onButton: (GemPerpetualButton) -> Unit = { action ->
         when (action) {
-            GemPerpetualButton.LONG -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Long))
-            GemPerpetualButton.SHORT -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Short))
+            GemPerpetualButton.LONG -> onAction(PerpetualAction.OpenPosition(PerpetualDirection.Long))
+            GemPerpetualButton.SHORT -> onAction(PerpetualAction.OpenPosition(PerpetualDirection.Short))
             GemPerpetualButton.MODIFY -> showModifyDialog = true
-            GemPerpetualButton.CLOSE -> onAction(PerpetualDetailsAction.ClosePosition)
-            GemPerpetualButton.INCREASE -> onAction(PerpetualDetailsAction.IncreasePosition)
-            GemPerpetualButton.REDUCE -> onAction(PerpetualDetailsAction.ReducePosition)
+            GemPerpetualButton.CLOSE -> onAction(PerpetualAction.ClosePosition)
+            GemPerpetualButton.INCREASE -> onAction(PerpetualAction.IncreasePosition)
+            GemPerpetualButton.REDUCE -> onAction(PerpetualAction.ReducePosition)
         }
     }
 
     Scene(
         title = details?.title ?: stringResource(R.string.perpetuals_title),
-        onClose = { onAction(PerpetualDetailsAction.Close) },
+        onClose = { onAction(PerpetualAction.Close) },
         snackbar = snackbar,
     ) {
         val transactionSections = rememberDateSections(transactions) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { onAction(PerpetualDetailsAction.Refresh) },
+            onRefresh = { onAction(PerpetualAction.Refresh) },
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -94,21 +94,21 @@ internal fun PerpetualPositionScene(
                         state = chart,
                         period = period,
                         tooltip = tooltip,
-                        onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
+                        onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },
                     )
                 }
                 details?.sections.orEmpty().forEach { section ->
                     when (section) {
-                        is PerpetualDetailsSectionUIModel.Position -> {
+                        is PerpetualSectionUIModel.Position -> {
                             item { SubheaderItem(section.title) }
                             positionProperties(
                                 position = positionRow,
                                 rows = section.rows,
-                                onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) },
+                                onAutocloseClick = { onAction(PerpetualAction.Autoclose) },
                             )
                         }
 
-                        is PerpetualDetailsSectionUIModel.Info -> {
+                        is PerpetualSectionUIModel.Info -> {
                             if (section.buttons.isNotEmpty()) {
                                 item { PerpetualActions(section.buttons) { onButton(it) } }
                             }
@@ -118,7 +118,7 @@ internal fun PerpetualPositionScene(
                     }
                 }
                 if (transactions.isNotEmpty()) {
-                    transactionsList(transactionSections) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
+                    transactionsList(transactionSections) { onAction(PerpetualAction.OpenTransaction(it)) }
                 }
             }
         }
@@ -135,7 +135,7 @@ internal fun PerpetualPositionScene(
 
 @Preview
 @Composable
-private fun PerpetualPositionScenePreview() {
+private fun PerpetualScenePreview() {
     val samplePosition = PerpetualPosition(
         id = "position",
         perpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC"),
@@ -170,15 +170,15 @@ private fun PerpetualPositionScenePreview() {
     }
 
     WalletTheme {
-        PerpetualPositionScene(
-            details = PerpetualDetailsUIModel(
+        PerpetualScene(
+            details = PerpetualUIModel(
                 title = "Bitcoin Perpetual",
                 sections = listOf(
-                    PerpetualDetailsSectionUIModel.Position(
+                    PerpetualSectionUIModel.Position(
                         title = "Position",
                         rows = listOf(
-                            PerpetualPositionRowUIModel.Item(GemListRow.Text(GemListRowTitle.PNL, "+$460.25 (+9.64%)")),
-                            PerpetualPositionRowUIModel.Autoclose(
+                            PerpetualPositionDetailUIModel.Item(GemListRow.Text(GemListRowTitle.PNL, "+$460.25 (+9.64%)")),
+                            PerpetualPositionDetailUIModel.Autoclose(
                                 GemListRow.Lines(
                                     title = GemListRowTitle.AUTO_CLOSE,
                                     lines = listOf(GemLocalizedText.Text("TP $95,000.00"), GemLocalizedText.Text("SL $90,050.00")),
@@ -187,7 +187,7 @@ private fun PerpetualPositionScenePreview() {
                             ),
                         ),
                     ),
-                    PerpetualDetailsSectionUIModel.Info(
+                    PerpetualSectionUIModel.Info(
                         title = "Info",
                         buttons = listOf(
                             PerpetualButtonUIModel("Modify", GemPerpetualButton.MODIFY, GemValueTone.NEUTRAL),
@@ -205,7 +205,7 @@ private fun PerpetualPositionScenePreview() {
             positionRow = null,
             transactions = emptyList(),
             chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition, LocalContext.current)),
-            tooltip = { CandlestickTooltipUIModel(emptyList(), emptyList()) },
+            tooltip = { CandleTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,
             onAction = {},

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetuals.presents.position
+package com.gemwallet.android.features.perpetuals.presents.perpetual
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,7 +11,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseConfirmContent
 import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseNavGraph
-import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualDetailsViewModel
+import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -22,13 +22,13 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.TransactionId
 
 @Composable
-fun PerpetualPositionScreen(
+fun PerpetualScreen(
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
     confirmContent: AutocloseConfirmContent,
-    viewModel: PerpetualDetailsViewModel = hiltViewModel(),
+    viewModel: PerpetualViewModel = hiltViewModel(),
 ) {
     LifecycleResumeEffect(Unit) {
         viewModel.refreshPerpetual()
@@ -50,7 +50,7 @@ fun PerpetualPositionScreen(
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var showAutoclose by remember { mutableStateOf(false) }
 
-    PerpetualPositionScene(
+    PerpetualScene(
         details = details,
         positionRow = positionRow,
         transactions = transactions,
@@ -61,15 +61,15 @@ fun PerpetualPositionScreen(
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
-                PerpetualDetailsAction.Close -> onClose()
-                PerpetualDetailsAction.Refresh -> viewModel.refresh()
-                PerpetualDetailsAction.IncreasePosition -> viewModel.increasePosition(amountAction)
-                PerpetualDetailsAction.ReducePosition -> viewModel.reducePosition(amountAction)
-                PerpetualDetailsAction.ClosePosition -> viewModel.closePosition(confirmAction)
-                PerpetualDetailsAction.Autoclose -> showAutoclose = true
-                is PerpetualDetailsAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
-                is PerpetualDetailsAction.SelectChartPeriod -> viewModel.period(action.period)
-                is PerpetualDetailsAction.OpenTransaction -> onTransaction(action.transactionId)
+                PerpetualAction.Close -> onClose()
+                PerpetualAction.Refresh -> viewModel.refresh()
+                PerpetualAction.IncreasePosition -> viewModel.increasePosition(amountAction)
+                PerpetualAction.ReducePosition -> viewModel.reducePosition(amountAction)
+                PerpetualAction.ClosePosition -> viewModel.closePosition(confirmAction)
+                PerpetualAction.Autoclose -> showAutoclose = true
+                is PerpetualAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
+                is PerpetualAction.SelectChartPeriod -> viewModel.period(action.period)
+                is PerpetualAction.OpenTransaction -> onTransaction(action.transactionId)
             }
         },
     )

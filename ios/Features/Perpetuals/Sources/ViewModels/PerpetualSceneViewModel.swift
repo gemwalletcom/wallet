@@ -45,7 +45,7 @@ public final class PerpetualSceneViewModel {
         transactionsQuery.value
     }
 
-    public let chart: PerpetualChartModel
+    public let chart: PerpetualChartViewModel
 
     public var isPresentingInfoSheet: GemInfoSheet?
     public var isPresentingModifyAlert: Bool?
@@ -64,7 +64,7 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.service = service
         self.observerService = observerService
-        chart = PerpetualChartModel(service: service, observerService: observerService)
+        chart = PerpetualChartViewModel(service: service, observerService: observerService)
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 

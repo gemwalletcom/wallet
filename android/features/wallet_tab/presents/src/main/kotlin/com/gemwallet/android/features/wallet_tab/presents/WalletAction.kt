@@ -14,7 +14,7 @@ sealed interface WalletAction {
     data object Swap : WalletAction
     data object Portfolio : WalletAction
     data object Perpetuals : WalletAction
-    data class OpenPerpetualDetails(val assetId: AssetId) : WalletAction
+    data class OpenPerpetual(val assetId: AssetId) : WalletAction
     data class OpenAsset(val assetId: AssetId) : WalletAction
     data object OpenCollections : WalletAction
     data class OpenNftCollection(val collectionId: String) : WalletAction

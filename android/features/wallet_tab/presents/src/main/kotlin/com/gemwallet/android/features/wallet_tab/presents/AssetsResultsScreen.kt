@@ -12,7 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.presents.select.assetRows
 import com.gemwallet.android.features.assets.presents.select.searchState
-import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
+import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.wallet_tab.viewmodels.AssetsResultsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
@@ -82,7 +82,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                 if (previewPerpetuals.isNotEmpty()) {
                     item { SubheaderItem(R.string.perpetuals_title) }
                     itemsPositioned(previewPerpetuals) { position, item ->
-                        PerpetualItem(
+                        PerpetualListItem(
                             item = item,
                             listPosition = position,
                             longPressState = longPressedPerpetual,

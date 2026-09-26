@@ -35,13 +35,20 @@ import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.formattedPercentage
 
 @Composable
-fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single, longPressState: MutableState<PerpetualId?>, onTogglePin: (PerpetualId) -> Unit, onClick: (AssetId) -> Unit) {
+fun PerpetualListItem(
+    item: PerpetualDataAggregate,
+    modifier: Modifier = Modifier,
+    listPosition: ListPosition = ListPosition.Single,
+    longPressState: MutableState<PerpetualId?>,
+    onTogglePin: (PerpetualId) -> Unit,
+    onClick: (AssetId) -> Unit,
+) {
     DropDownContextItem(
         modifier = modifier,
         isExpanded = longPressState.value == item.id,
         onDismiss = { longPressState.value = null },
         content = {
-            PerpetualItem(
+            PerpetualListItem(
                 modifier = it,
                 item = item,
                 listPosition = listPosition,
@@ -68,7 +75,7 @@ fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, l
 }
 
 @Composable
-fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
+fun PerpetualListItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
     AssetListItem(
         row = item.row,
         modifier = modifier,
@@ -78,9 +85,9 @@ fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, l
 
 @Preview
 @Composable
-private fun PerpetualItemPreview() {
+private fun PerpetualListItemPreview() {
     WalletTheme {
-        PerpetualItem(item = previewPerpetual(Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE), "BTC", 95420.50, 2.5, "$15.0B"))
+        PerpetualListItem(item = previewPerpetual(Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE), "BTC", 95420.50, 2.5, "$15.0B"))
     }
 }
 

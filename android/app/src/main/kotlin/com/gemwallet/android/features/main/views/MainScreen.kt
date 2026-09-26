@@ -216,7 +216,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                         WalletAction.Swap -> navigator.openSwap()
                                         WalletAction.Portfolio -> navigator.openPortfolio()
                                         WalletAction.Perpetuals -> navigator.openPerpetuals()
-                                        is WalletAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
+                                        is WalletAction.OpenPerpetual -> navigator.openPerpetual(action.assetId)
                                         is WalletAction.OpenAsset -> navigator.openAsset(action.assetId)
                                         WalletAction.OpenCollections -> navigator.openNftList()
                                         is WalletAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)

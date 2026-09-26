@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM360 to NAM372 in any order, one feature per change.
+6. **Names:** NAM361 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -278,19 +278,19 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the views read the Core sections; the wrappers go.
 - **VM231** **S** **Perpetual details sections and buttons are wrapped.**
   - **iOS:** `PerpetualButtonViewModel` maps tone to a style; `PerpetualSceneViewModel` builds sections.
-  - **Android:** `PerpetualDetailsUIModel`, `PerpetualButtonUIModel` and `PerpetualPositionRowUIModel` copy `GemPerpetualDetails` and tag autoclose rows by kind.
+  - **Android:** `PerpetualUIModel`, `PerpetualButtonUIModel` and `PerpetualPositionDetailUIModel` copy `GemPerpetualDetails` and tag autoclose rows by kind.
   - **Expected:** views read the Core sections and button rows; styles from the mapper; the models go.
 - **VM232** **M** **Chart selection and scales are computed in the apps.**
   - **iOS:** `ChartValuesViewModel` pads the x-scale by 2% and resolves the header at a selection.
   - **Android:** `ChartUIModel` resolves the header at a selection and picks the date style.
   - **Expected:** `GemChartSession` answers selection (header and date style) and bounds; both models go.
 - **VM233** **M** **The candle chart is modelled twice.**
-  - **iOS:** `CandlestickChartViewModel`, `PerpetualChartModel` and `ChartLineViewModel` (label "kind | price") build the chart.
+  - **iOS:** `CandlestickChartViewModel`, `PerpetualChartViewModel` and `ChartLineViewModel` (label "kind | price") build the chart.
   - **Android:** `PerpetualChartUIModel` computes the header from the first and selected close; `CandlestickChartUIModel` builds lines and labels.
   - **Expected:** `GemCandleSession` returns the chart record with line labels and the selection header; the models go.
 - **VM234** **S** **Candle tooltips are wrapped.**
   - **iOS:** `CandleTooltipViewModel` maps each `GemCandleTooltipCell`.
-  - **Android:** `CandlestickTooltipUIModel` does the same.
+  - **Android:** `CandleTooltipUIModel` does the same.
   - **Expected:** the tooltip view reads the cells directly with mapper styles; both go.
 - **VM235** **S** **Autoclose fields are held in the apps.**
   - **iOS:** `AutocloseInput` keeps both texts and turns empty into nil (`AutocloseSelection`), `AutocloseViewModel` picks "Expected profit" or "Expected loss".
@@ -410,7 +410,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemAssetDetails` returns the menu rows (kind and link); the mapper supplies titles and icons; both builders go.
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
   - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualMarketViewModel`, `RecentsUIState` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualDetailsViewModel`.
+  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualsViewModel`, `RecentsUIState` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
   - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
 - **VM263** **S** **Asset list section titles are chosen in the apps.**
   - **iOS:** `SelectAssetSceneViewModel` titles the popular section and `SelectAssetScene` shows popular, pinned and other sections by emptiness.
@@ -488,7 +488,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** a Core proposal record returns the rows.
 - **VM282** **S** **The perpetual market hides its header while searching in the views.**
   - **iOS:** `PerpetualsScene` gates the balance header on `!model.isSearching`.
-  - **Android:** `PerpetualMarketScene` gates the header and sections on `isSearching`.
+  - **Android:** `PerpetualsScene` gates the header and sections on `isSearching`.
   - **Expected:** `GemPerpetualMarketSession` sections include or omit the header.
 - **VM283** **S** **Settings screens hand Core the values its preference store holds.**
   - **iOS:** `PreferencesViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecurityViewModel` builds `GemSecurityInput`.
@@ -526,7 +526,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualMarketScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM360** **M** **Perpetuals: the list is `Perpetuals` and the detail `Perpetual`.**
-  - **iOS:** `PerpetualsNavigationView`, `PerpetualNavigationView` follow the destination-host rule; `PerpetualChartModel` → `PerpetualChartViewModel`; `PerpetualsHeaderTests` → `PerpetualBalanceHeaderTests`.
-  - **Android:** `PerpetualMarketScreen`/`Scene`/`ViewModel`/`Action`/`ViewModelTest` → `Perpetuals…`; `PerpetualPositionScreen`/`Scene` and `PerpetualDetailsViewModel`/`Action`/`UIModel`/`SectionUIModel`/`ViewModelTest` → `Perpetual…`; routes `PerpetualRoute` (list) → `PerpetualsRoute`, `PerpetualPositionRoute` → `PerpetualRoute`; `PerpetualItem` → `PerpetualListItem`; `CandlestickTooltipUIModel` → `CandleTooltipUIModel`; package `viewmodels.model` merges into `viewmodels.models`; the sealed `PerpetualPositionRowUIModel` → `PerpetualPositionDetailUIModel` (the name is taken twice); `presents.market`/`presents.position` → `presents.perpetuals`/`presents.perpetual`.
 - **NAM361** **S** **NFT: the list is `Collections` and the detail `Collectible`.**
   - **iOS:** `CollectionsViewModel`/`CollectibleViewModel`/`ReportNftViewModel` (+ tests) → `…SceneViewModel`; `CollectionsSceneNavigationView` → `CollectionsNavigationStack` or the destination-host rule; one casing, `Nft`, in type names.
   - **Android:** `NftListScreen`/`NftListScene` (file `NftListScene.kt`) → `CollectionsScreen`/`CollectionsScene` in their own files; `NftListViewModels`/`NftListAction`/`NftListViewModelsTest` → `CollectionsViewModel`/`CollectionsAction`/`CollectionsViewModelTest`; `NftListRoute`/`NftCollectionRoute`/`NftUnverifiedCollectionsRoute` → `CollectionsRoute`/`CollectionRoute`/`UnverifiedCollectionsRoute`; `NFTDetailsScene` (binds a view model) → `CollectibleScreen` + stateless `CollectibleScene`; `NftDetailsViewModel`/`NftDetailsUIModel`/`NftDetailsViewModelTest` → `Collectible…`; `NftAssetRoute` → `CollectibleRoute`; `NFTItem` → `NftItem`.

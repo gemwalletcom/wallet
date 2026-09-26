@@ -15,7 +15,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class PerpetualChartModel {
+public final class PerpetualChartViewModel {
     private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
 
@@ -48,7 +48,7 @@ public final class PerpetualChartModel {
 
 // MARK: - Actions
 
-public extension PerpetualChartModel {
+public extension PerpetualChartViewModel {
     func onAppear(perpetual: Perpetual) async {
         await subscribeCandles(candleSubscription(perpetual: perpetual, period: currentPeriod))
         observeTask?.cancel()
@@ -77,7 +77,7 @@ public extension PerpetualChartModel {
 
 // MARK: - Private
 
-private extension PerpetualChartModel {
+private extension PerpetualChartViewModel {
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
         service.candleSubscription(perpetual: perpetual, period: period)
     }

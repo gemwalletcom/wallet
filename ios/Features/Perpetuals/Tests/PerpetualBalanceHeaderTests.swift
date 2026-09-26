@@ -8,7 +8,7 @@ import Primitives
 import PrimitivesComponents
 import Testing
 
-struct PerpetualsHeaderTests {
+struct PerpetualBalanceHeaderTests {
     private func model(available: Double, reserved: Double, withdrawable: Double? = nil, walletType: WalletType = .multicoin) -> ValueHeader {
         perpetualBalanceHeader(
             balance: PerpetualBalance(available: available, reserved: reserved, withdrawable: withdrawable ?? available),

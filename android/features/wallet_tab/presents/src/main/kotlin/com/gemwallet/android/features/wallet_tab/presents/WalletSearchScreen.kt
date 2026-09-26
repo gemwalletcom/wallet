@@ -15,7 +15,7 @@ import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.presents.select.SelectAssetAction
 import com.gemwallet.android.features.assets.presents.select.SelectAssetScene
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
-import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
+import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.wallet_tab.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel
 import com.gemwallet.android.ui.R
@@ -89,7 +89,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
 
     val pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = pinnedPerpetuals.map { item ->
         @Composable { position: ListPosition ->
-            PerpetualItem(
+            PerpetualListItem(
                 item = item,
                 listPosition = position,
                 longPressState = longPressedPerpetual,
@@ -105,7 +105,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                 SubheaderItem(R.string.perpetuals_title, if (hasMorePerpetuals) ({ handleAction(WalletSearchAction.OpenPerpetuals) }) else null)
             }
             itemsPositioned(previewPerpetuals) { position, item ->
-                PerpetualItem(
+                PerpetualListItem(
                     item = item,
                     listPosition = position,
                     longPressState = longPressedPerpetual,

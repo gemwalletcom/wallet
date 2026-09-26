@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetualDetails: (AssetId) -> Unit, viewModel: PerpetualsPreviewViewModel = hiltViewModel()) {
+fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetual: (AssetId) -> Unit, viewModel: PerpetualsPreviewViewModel = hiltViewModel()) {
     val positions by viewModel.positions.collectAsStateWithLifecycle()
     val tradeListItem by viewModel.tradeListItem.collectAsStateWithLifecycle()
 
@@ -36,7 +36,7 @@ fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetualDetail
                 AssetListItem(
                     row = position.row,
                     listPosition = ListPosition.getPosition(index, positions.size),
-                    modifier = Modifier.clickable { onOpenPerpetualDetails(position.asset.id) },
+                    modifier = Modifier.clickable { onOpenPerpetual(position.asset.id) },
                     hideBalance = position.hideBalance,
                 )
             }

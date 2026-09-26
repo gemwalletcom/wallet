@@ -50,10 +50,10 @@ import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PerpetualDetailsViewModelTest {
+class PerpetualViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val models = mutableListOf<PerpetualDetailsViewModel>()
+    private val models = mutableListOf<PerpetualViewModel>()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -80,7 +80,7 @@ class PerpetualDetailsViewModelTest {
         observer: PerpetualObserver = mockk(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
         },
-    ): PerpetualDetailsViewModel {
+    ): PerpetualViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }
@@ -91,7 +91,7 @@ class PerpetualDetailsViewModelTest {
             every { getTransactions(any()) } returns emptyFlow()
             every { stored(any()) } returns emptyList()
         }
-        return PerpetualDetailsViewModel(
+        return PerpetualViewModel(
             perpetual,
             positions,
             transactions,

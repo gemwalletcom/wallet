@@ -41,7 +41,7 @@ private object CandlestickTooltipMetrics {
 private data class TooltipCellData(val label: String, val value: String, val valueColor: Color)
 
 @Composable
-fun CandlestickTooltip(model: CandlestickTooltipUIModel, modifier: Modifier = Modifier) {
+fun CandlestickTooltip(model: CandleTooltipUIModel, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(CandlestickTooltipMetrics.ChipCornerRadius)
     val labelStyle = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -149,7 +149,7 @@ private fun TooltipGrid(
 }
 
 @Composable
-private fun CandlestickTooltipCellUIModel.toCellData(): TooltipCellData = TooltipCellData(
+private fun CandleTooltipCellUIModel.toCellData(): TooltipCellData = TooltipCellData(
     label = label,
     value = value,
     valueColor = style.color(),

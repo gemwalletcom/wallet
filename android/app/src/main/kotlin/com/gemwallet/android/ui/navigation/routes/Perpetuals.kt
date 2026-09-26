@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.perpetuals.presents.market.PerpetualMarketScreen
-import com.gemwallet.android.features.perpetuals.presents.position.PerpetualPositionScreen
+import com.gemwallet.android.features.perpetuals.presents.perpetual.PerpetualScreen
+import com.gemwallet.android.features.perpetuals.presents.perpetuals.PerpetualsScreen
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -16,33 +16,33 @@ import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object PerpetualRoute : NavKey
+data object PerpetualsRoute : NavKey
 
 @Serializable
-data class PerpetualPositionRoute(val assetId: AssetId) : NavKey
+data class PerpetualRoute(val assetId: AssetId) : NavKey
 
-fun EntryProviderScope<NavKey>.perpetualScreen(
+fun EntryProviderScope<NavKey>.perpetualsScreen(
     onCancel: () -> Unit,
-    onOpenPerpetualDetails: AssetIdAction,
+    onOpenPerpetual: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
     onGetAsset: (GetAssetAction, AssetId) -> Unit,
 ) {
-    entry<PerpetualRoute> {
-        PerpetualMarketScreen(
-            onOpenPerpetualDetails = onOpenPerpetualDetails,
+    entry<PerpetualsRoute> {
+        PerpetualsScreen(
+            onOpenPerpetual = onOpenPerpetual,
             onOpenPortfolio = onOpenPortfolio,
             amountAction = amountAction,
             onCancel = onCancel,
         )
     }
 
-    entry<PerpetualPositionRoute>(
+    entry<PerpetualRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        PerpetualPositionScreen(
+        PerpetualScreen(
             amountAction = amountAction,
             confirmAction = confirmAction,
             onClose = onCancel,
