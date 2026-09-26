@@ -48,7 +48,6 @@
   <string name="common_description">描述</string>
   <string name="common_emoji">表情符号</string>
   <string name="common_avatar">头像</string>
-  <string name="common_save">保存</string>
   <string name="common_percentage">百分比</string>
   <string name="common_details">详情</string>
   <string name="common_info">信息</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">投资组合</string>
   <string name="wallet_import_already_imported_message">此钱包已导入。</string>
   <string name="wallets_title">钱包</string>
-  <string name="wallets_watch">观察</string>
-  <string name="receive_title">接收%1$s</string>
   <string name="receive_warning">请仅向此地址发送 %2$s 网络上的 %1$s。</string>
   <string name="buy_title">购买%1$s</string>
   <string name="buy_providers_title">服务商</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">身份验证</string>
   <string name="settings_notifications_title">通知</string>
   <string name="settings_language">语言</string>
-  <string name="settings_help_center">帮助中心</string>
   <string name="settings_support">支持</string>
   <string name="settings_price_alerts_title">价格提醒</string>
   <string name="settings_hide_balance">隐藏余额</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">购买%1$s</string>
   <string name="asset_get_asset">获取 %1$s</string>
   <string name="asset_add_to_wallet">添加到钱包</string>
-  <string name="asset_hide_from_wallet">从钱包隐藏</string>
   <string name="asset_added_to_wallet">已添加到钱包</string>
   <string name="asset_hidden_from_wallet">已从钱包隐藏</string>
   <string name="asset_resources">资源</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">极速</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">聪/vB</string>
-  <string name="fee_rate_satB">%1$s 聪/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自定义</string>
   <string name="banner_account_activation_title">账户激活费用</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">举报</string>
   <string name="permissions_access_denied">拒绝访问</string>
   <string name="permissions_image_photo_access_denied_description">此应用无权访问照片库。请在设备设置中启用访问权限。</string>
-  <string name="markets_title">市场</string>
-  <string name="markets_state_empty_title">市场信息将显示在此处</string>
   <string name="markets_daily_volume">24小时交易量</string>
   <string name="search_state_empty_description">检查拼写或尝试新的搜索。</string>
   <string name="networks_state_empty_search_title">未找到任何网络</string>

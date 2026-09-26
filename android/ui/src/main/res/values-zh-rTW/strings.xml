@@ -48,7 +48,6 @@
   <string name="common_description">描述</string>
   <string name="common_emoji">表情符號</string>
   <string name="common_avatar">頭像</string>
-  <string name="common_save">儲存</string>
   <string name="common_percentage">百分比</string>
   <string name="common_details">詳細</string>
   <string name="common_info">資訊</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">投資組合</string>
   <string name="wallet_import_already_imported_message">此錢包已匯入。</string>
   <string name="wallets_title">錢包</string>
-  <string name="wallets_watch">觀察</string>
-  <string name="receive_title">接收%1$s</string>
   <string name="receive_warning">請僅向此地址傳送 %2$s 網路上的 %1$s。</string>
   <string name="buy_title">購買%1$s</string>
   <string name="buy_providers_title">服務商</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">身分驗證</string>
   <string name="settings_notifications_title">通知</string>
   <string name="settings_language">語言</string>
-  <string name="settings_help_center">幫助中心</string>
   <string name="settings_support">支援</string>
   <string name="settings_price_alerts_title">價格提醒</string>
   <string name="settings_hide_balance">隱藏餘額</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">購買%1$s</string>
   <string name="asset_get_asset">取得 %1$s</string>
   <string name="asset_add_to_wallet">加入錢包</string>
-  <string name="asset_hide_from_wallet">從錢包中隱藏</string>
   <string name="asset_added_to_wallet">已加入錢包</string>
   <string name="asset_hidden_from_wallet">已從錢包隱藏</string>
   <string name="asset_resources">資源</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">快速</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">聰/vB</string>
-  <string name="fee_rate_satB">%1$s 聰/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自訂</string>
   <string name="banner_account_activation_title">帳戶啟動費用</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">檢舉</string>
   <string name="permissions_access_denied">存取遭拒</string>
   <string name="permissions_image_photo_access_denied_description">此應用程式無權存取照片圖庫。請在裝置設定中啟用存取權限。</string>
-  <string name="markets_title">市場</string>
-  <string name="markets_state_empty_title">市場資訊將顯示在此處</string>
   <string name="markets_daily_volume">24小時交易量</string>
   <string name="search_state_empty_description">請檢查拼字或嘗試新的搜尋。</string>
   <string name="networks_state_empty_search_title">未找到任何網路</string>

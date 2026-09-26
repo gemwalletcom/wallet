@@ -48,7 +48,6 @@ common_learn_more = يتعلم أكثر
 common_description = وصف
 common_emoji = الرموز التعبيرية
 common_avatar = الصورة الرمزية
-common_save = يحفظ
 common_percentage = نسبة مئوية
 common_details = تفاصيل
 common_info = معلومات
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = تم استيراد هذه المحفظ
 # Wallets
 
 wallets_title = المحافظ
-wallets_watch = يشاهد
 
 # Receive
 
-receive_title = استقبل %@
 receive_warning = هذا عنوانك — أرسل فقط %@ على %@ شبكة.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = تمكين رمز المرور
 settings_security_authentication = المصادقة
 settings_notifications_title = إشعارات
 settings_language = لغة
-settings_help_center = مركز المساعدة
 settings_support = يدعم
 settings_price_alerts_title = تنبيهات الأسعار
 settings_hide_balance = إخفاء الرصيد
@@ -329,7 +325,6 @@ asset_verification_warning_message = يمكن لأي شخص إنشاء واحد�
 asset_buy_asset = شراء %@
 asset_get_asset = احصل على %@
 asset_add_to_wallet = أضف إلى المحفظة
-asset_hide_from_wallet = إخفاء من المحفظة
 asset_added_to_wallet = تمت الإضافة إلى المحفظة
 asset_hidden_from_wallet = تم الإخفاء من المحفظة
 asset_resources = موارد
@@ -479,7 +474,6 @@ fee_rates_normal = طبيعي
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = مخصص
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = لا يتوفر لهذا ا�
 
 # Markets
 
-markets_title = الأسواق
-markets_state_empty_title = ستظهر بيانات أسواقك هنا
 markets_daily_volume = حجم 24 ساعة
 
 # Search

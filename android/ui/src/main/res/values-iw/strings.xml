@@ -48,7 +48,6 @@
   <string name="common_description">תֵאוּר</string>
   <string name="common_emoji">אימוג\'י</string>
   <string name="common_avatar">גִלגוּל</string>
-  <string name="common_save">שמור</string>
   <string name="common_percentage">אֲחוּזִים</string>
   <string name="common_details">פרטים</string>
   <string name="common_info">מידע</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">תִיק</string>
   <string name="wallet_import_already_imported_message">ארנק זה כבר יובא.</string>
   <string name="wallets_title">ארנקים</string>
-  <string name="wallets_watch">מעקב</string>
-  <string name="receive_title">קבל %1$s</string>
   <string name="receive_warning">זוהי הכתובת שלך - שליחה בלבד %1$s על ה- %2$s רֶשֶׁת.</string>
   <string name="buy_title">קנה %1$s</string>
   <string name="buy_providers_title">ספקים</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">אימות</string>
   <string name="settings_notifications_title">התראות</string>
   <string name="settings_language">שפה</string>
-  <string name="settings_help_center">מרכז העזרה</string>
   <string name="settings_support">תְמִיכָה</string>
   <string name="settings_price_alerts_title">התראות על מחירים</string>
   <string name="settings_hide_balance">הסתר יתרה</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">קנה %1$s</string>
   <string name="asset_get_asset">קבל %1$s</string>
   <string name="asset_add_to_wallet">הוסף לארנק</string>
-  <string name="asset_hide_from_wallet">הסתר מהארנק</string>
   <string name="asset_added_to_wallet">נוסף לארנק</string>
   <string name="asset_hidden_from_wallet">הוסתר מהארנק</string>
   <string name="asset_resources">משאבים</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">מהר</string>
   <string name="fee_rates_normal">רגיל</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">מותאם אישית</string>
   <string name="banner_account_activation_title">עמלת הפעלת חשבון</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">דווח</string>
   <string name="permissions_access_denied">הגִישָׁה נִדחֲתָה</string>
   <string name="permissions_image_photo_access_denied_description">לאפליקציה הזו אין הרשאה לגשת לספריית התמונות שלך. אפשר גישה בהגדרות המכשיר שלך.</string>
-  <string name="markets_title">שווקים</string>
-  <string name="markets_state_empty_title">נתוני השווקים שלך יופיעו כאן</string>
   <string name="markets_daily_volume">נפח של 24 שעות</string>
   <string name="search_state_empty_description">בדוק את האיות או נסה חיפוש חדש.</string>
   <string name="networks_state_empty_search_title">לא נמצאו רשתות</string>

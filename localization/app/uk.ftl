@@ -48,7 +48,6 @@ common_learn_more = Дізнайтеся більше
 common_description = Опис
 common_emoji = Емодзі
 common_avatar = Аватар
-common_save = Зберегти
 common_percentage = Відсоток
 common_details = Деталі
 common_info = Інформація
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Цей гаманець вже імпо
 # Wallets
 
 wallets_title = Гаманці
-wallets_watch = Дивитися
 
 # Receive
 
-receive_title = Отримати %@
 receive_warning = Це ваша адреса - надсилайте тільки %@ в мережі %@.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Увімкнути пароль
 settings_security_authentication = Аутентифікація
 settings_notifications_title = Сповіщення
 settings_language = Мова
-settings_help_center = Довідковий центр
 settings_support = Підтримка
 settings_price_alerts_title = Оповіщення про ціни
 settings_hide_balance = Приховати баланс
@@ -329,7 +325,6 @@ asset_verification_warning_message = Будь-хто може створити �
 asset_buy_asset = Купити %@
 asset_get_asset = Отримати %@
 asset_add_to_wallet = Додати до гаманця
-asset_hide_from_wallet = Приховати від гаманця
 asset_added_to_wallet = Додано до гаманця
 asset_hidden_from_wallet = Приховано з гаманця
 asset_resources = Ресурси
@@ -479,7 +474,6 @@ fee_rates_normal = Нормальний
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Свій
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Ця програма не �
 
 # Markets
 
-markets_title = Ринки
-markets_state_empty_title = Дані вашого ринку з'являться тут
 markets_daily_volume = 24-годинний обсяг
 
 # Search

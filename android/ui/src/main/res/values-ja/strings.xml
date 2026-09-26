@@ -48,7 +48,6 @@
   <string name="common_description">説明</string>
   <string name="common_emoji">絵文字</string>
   <string name="common_avatar">アバター</string>
-  <string name="common_save">保存</string>
   <string name="common_percentage">割合</string>
   <string name="common_details">詳細</string>
   <string name="common_info">情報</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">ポートフォリオ</string>
   <string name="wallet_import_already_imported_message">このウォレットは既にインポート済みです。</string>
   <string name="wallets_title">ウォレット</string>
-  <string name="wallets_watch">閲覧専用</string>
-  <string name="receive_title">%1$sを受け取る</string>
   <string name="receive_warning">このアドレスには、%1$s のみを %2$s ネットワークで送金してください。</string>
   <string name="buy_title">%1$sを購入</string>
   <string name="buy_providers_title">プロバイダー</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">認証</string>
   <string name="settings_notifications_title">通知</string>
   <string name="settings_language">言語</string>
-  <string name="settings_help_center">ヘルプセンター</string>
   <string name="settings_support">サポート</string>
   <string name="settings_price_alerts_title">価格アラート</string>
   <string name="settings_hide_balance">残高を非表示</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">%1$sを購入</string>
   <string name="asset_get_asset">%1$sを入手</string>
   <string name="asset_add_to_wallet">ウォレットに追加</string>
-  <string name="asset_hide_from_wallet">ウォレットで非表示にする</string>
   <string name="asset_added_to_wallet">ウォレットに追加しました</string>
   <string name="asset_hidden_from_wallet">ウォレットから非表示にしました</string>
   <string name="asset_resources">リソース</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">速い</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">サトシ/vB</string>
-  <string name="fee_rate_satB">%1$s サトシ/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">カスタム</string>
   <string name="banner_account_activation_title">アカウントの有効化手数料</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">通報</string>
   <string name="permissions_access_denied">アクセスが拒否されました</string>
   <string name="permissions_image_photo_access_denied_description">このアプリには写真ライブラリにアクセスする権限がありません。デバイスの設定でアクセスを有効にしてください。</string>
-  <string name="markets_title">マーケット</string>
-  <string name="markets_state_empty_title">マーケットデータがここに表示されます</string>
   <string name="markets_daily_volume">24時間取引量</string>
   <string name="search_state_empty_description">スペルを確認するか、新しい検索を試してください。</string>
   <string name="networks_state_empty_search_title">ネットワークが見つかりません</string>

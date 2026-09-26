@@ -48,7 +48,6 @@
   <string name="common_description">คำอธิบาย</string>
   <string name="common_emoji">อิโมจิ</string>
   <string name="common_avatar">อวตาร</string>
-  <string name="common_save">บันทึก</string>
   <string name="common_percentage">เปอร์เซ็นต์</string>
   <string name="common_details">รายละเอียด</string>
   <string name="common_info">ข้อมูล</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">พอร์ตโฟลิโอ</string>
   <string name="wallet_import_already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
   <string name="wallets_title">กระเป๋าสตางค์</string>
-  <string name="wallets_watch">ติดตาม</string>
-  <string name="receive_title">รับ %1$s</string>
   <string name="receive_warning">นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %1$s บนเครือข่าย %2$s เท่านั้น</string>
   <string name="buy_title">ซื้อ %1$s</string>
   <string name="buy_providers_title">ผู้ให้บริการ</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">การรับรองความถูกต้อง</string>
   <string name="settings_notifications_title">การแจ้งเตือน</string>
   <string name="settings_language">ภาษา</string>
-  <string name="settings_help_center">ศูนย์ช่วยเหลือ</string>
   <string name="settings_support">สนับสนุน</string>
   <string name="settings_price_alerts_title">การแจ้งเตือนราคา</string>
   <string name="settings_hide_balance">ซ่อนยอดคงเหลือ</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">ซื้อ %1$s</string>
   <string name="asset_get_asset">รับ %1$s</string>
   <string name="asset_add_to_wallet">เพิ่มลงในกระเป๋าสตางค์</string>
-  <string name="asset_hide_from_wallet">ซ่อนจากกระเป๋าสตางค์</string>
   <string name="asset_added_to_wallet">เพิ่มลงในกระเป๋าสตางค์แล้ว</string>
   <string name="asset_hidden_from_wallet">ซ่อนจากกระเป๋าสตางค์แล้ว</string>
   <string name="asset_resources">ทรัพยากร</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">รวดเร็ว</string>
   <string name="fee_rates_normal">ปกติ</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">กำหนดเอง</string>
   <string name="banner_account_activation_title">ค่าธรรมเนียมการเปิดใช้งานบัญชี</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">รายงานปัญหา</string>
   <string name="permissions_access_denied">การเข้าถึงถูกปฏิเสธ</string>
   <string name="permissions_image_photo_access_denied_description">แอพนี้ไม่มีสิทธิ์ในการเข้าถึงคลังภาพของคุณ โปรดเปิดใช้งานสิทธิ์ในการตั้งค่าอุปกรณ์ของคุณ</string>
-  <string name="markets_title">ตลาด</string>
-  <string name="markets_state_empty_title">ข้อมูลตลาดของคุณจะปรากฏที่นี่</string>
   <string name="markets_daily_volume">ปริมาณ 24 ชั่วโมง</string>
   <string name="search_state_empty_description">ตรวจสอบการสะกดคำหรือลองค้นหาใหม่</string>
   <string name="networks_state_empty_search_title">ไม่พบเครือข่าย</string>

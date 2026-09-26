@@ -48,7 +48,6 @@
   <string name="common_description">Sự miêu tả</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Hình đại diện</string>
-  <string name="common_save">Lưu</string>
   <string name="common_percentage">Phần trăm</string>
   <string name="common_details">Chi tiết</string>
   <string name="common_info">Thông tin</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Danh mục đầu tư</string>
   <string name="wallet_import_already_imported_message">Ví này đã được nhập khẩu.</string>
   <string name="wallets_title">Ví</string>
-  <string name="wallets_watch">Xem</string>
-  <string name="receive_title">Nhận %1$s</string>
   <string name="receive_warning">Đây là địa chỉ của bạn — chỉ gửi %1$s trên mạng %2$s.</string>
   <string name="buy_title">Mua %1$s</string>
   <string name="buy_providers_title">Nhà cung cấp</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Xác thực</string>
   <string name="settings_notifications_title">Thông báo</string>
   <string name="settings_language">Ngôn ngữ</string>
-  <string name="settings_help_center">Trung tâm trợ giúp</string>
   <string name="settings_support">Ủng hộ</string>
   <string name="settings_price_alerts_title">Cảnh báo giá</string>
   <string name="settings_hide_balance">Ẩn số dư</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Mua %1$s</string>
   <string name="asset_get_asset">Nhận %1$s</string>
   <string name="asset_add_to_wallet">Thêm vào ví</string>
-  <string name="asset_hide_from_wallet">Ẩn khỏi ví</string>
   <string name="asset_added_to_wallet">Đã thêm vào ví</string>
   <string name="asset_hidden_from_wallet">Đã ẩn khỏi ví</string>
   <string name="asset_resources">Tài nguyên</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Nhanh</string>
   <string name="fee_rates_normal">Bình thường</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tùy chỉnh</string>
   <string name="banner_account_activation_title">Phí kích hoạt tài khoản</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Báo cáo</string>
   <string name="permissions_access_denied">Truy cập bị từ chối</string>
   <string name="permissions_image_photo_access_denied_description">Ứng dụng này không có quyền truy cập vào thư viện ảnh của bạn. Vui lòng bật quyền truy cập trong cài đặt thiết bị của bạn.</string>
-  <string name="markets_title">Thị trường</string>
-  <string name="markets_state_empty_title">Dữ liệu thị trường của bạn sẽ xuất hiện ở đây</string>
   <string name="markets_daily_volume">Khối lượng 24 giờ</string>
   <string name="search_state_empty_description">Kiểm tra lỗi chính tả hoặc thử tìm kiếm mới.</string>
   <string name="networks_state_empty_search_title">Không tìm thấy mạng lưới nào</string>

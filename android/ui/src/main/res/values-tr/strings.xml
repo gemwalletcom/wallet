@@ -48,7 +48,6 @@
   <string name="common_description">Tanım</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Kaydet</string>
   <string name="common_percentage">Yüzde</string>
   <string name="common_details">Detaylar</string>
   <string name="common_info">Bilgi</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portföy</string>
   <string name="wallet_import_already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
   <string name="wallets_title">Cüzdanlar</string>
-  <string name="wallets_watch">İzle</string>
-  <string name="receive_title">%1$s alın</string>
   <string name="receive_warning">Bu sizin adresiniz — yalnızca %1$s varlığını %2$s ağında gönderin.</string>
   <string name="buy_title">%1$s satın al</string>
   <string name="buy_providers_title">Sağlayıcılar</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Kimlik doğrulama</string>
   <string name="settings_notifications_title">Bildirimler</string>
   <string name="settings_language">Dil</string>
-  <string name="settings_help_center">Yardım Merkezi</string>
   <string name="settings_support">Destek</string>
   <string name="settings_price_alerts_title">Fiyat Uyarıları</string>
   <string name="settings_hide_balance">Bakiyeyi Gizle</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">%1$s satın al</string>
   <string name="asset_get_asset">%1$s al</string>
   <string name="asset_add_to_wallet">Cüzdana ekle</string>
-  <string name="asset_hide_from_wallet">Cüzdandan gizle</string>
   <string name="asset_added_to_wallet">Cüzdana eklendi</string>
   <string name="asset_hidden_from_wallet">Cüzdandan gizlendi</string>
   <string name="asset_resources">Kaynaklar</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Hızlı</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Özel</string>
   <string name="banner_account_activation_title">Hesap Aktivasyon Ücreti</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Bildir</string>
   <string name="permissions_access_denied">Erişim engellendi</string>
   <string name="permissions_image_photo_access_denied_description">Bu uygulama fotoğraf kütüphanenize erişim iznine sahip değil. Lütfen cihaz ayarlarınızda erişimi etkinleştirin.</string>
-  <string name="markets_title">Piyasalar</string>
-  <string name="markets_state_empty_title">Piyasa verileriniz burada görünecek</string>
   <string name="markets_daily_volume">24 saatlik Hacim</string>
   <string name="search_state_empty_description">Yazımını kontrol edin veya yeni bir arama deneyin.</string>
   <string name="networks_state_empty_search_title">Hiçbir ağ bulunamadı</string>

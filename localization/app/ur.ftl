@@ -48,7 +48,6 @@ common_learn_more = مزید جانیں
 common_description = تفصیل
 common_emoji = ایموجی
 common_avatar = اوتار
-common_save = محفوظ کریں۔
 common_percentage = فیصد
 common_details = تفصیلات
 common_info = معلومات
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = یہ والیٹ پہلے ہی درآم�
 # Wallets
 
 wallets_title = والیٹس
-wallets_watch = دیکھیں
 
 # Receive
 
-receive_title = وصول کریں %@
 receive_warning = یہ آپ کا پتہ ہے - صرف بھیجیں۔ %@ پر %@ نیٹ ورک
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = پاس کوڈ کو فعال کریں۔
 settings_security_authentication = تصدیق
 settings_notifications_title = اطلاعات
 settings_language = زبان
-settings_help_center = امدادی مرکز
 settings_support = حمایت
 settings_price_alerts_title = قیمت کے انتباہات
 settings_hide_balance = بیلنس چھپائیں۔
@@ -329,7 +325,6 @@ asset_verification_warning_message = کوئی بھی ایک بنا سکتا ہے
 asset_buy_asset = خریدیں %@
 asset_get_asset = %@ حاصل کریں
 asset_add_to_wallet = بٹوے میں شامل کریں۔
-asset_hide_from_wallet = بٹوے سے چھپائیں۔
 asset_added_to_wallet = بٹوے میں شامل کر دیا گیا
 asset_hidden_from_wallet = بٹوے سے چھپا دیا گیا
 asset_resources = وسائل
@@ -479,7 +474,6 @@ fee_rates_normal = نارمل
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = حسب ضرورت
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = اس ایپ کو آپ کی �
 
 # Markets
 
-markets_title = منڈیاں
-markets_state_empty_title = آپ کے بازاروں کا ڈیٹا یہاں ظاہر ہوگا۔
 markets_daily_volume = 24h والیوم
 
 # Search

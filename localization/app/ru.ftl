@@ -48,7 +48,6 @@ common_learn_more = Узнать больше
 common_description = Описание
 common_emoji = Эмодзи
 common_avatar = Аватар
-common_save = Сохранить
 common_percentage = Процент
 common_details = Детали
 common_info = Информация
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Этот кошелек уже импо
 # Wallets
 
 wallets_title = Кошельки
-wallets_watch = Смотреть
 
 # Receive
 
-receive_title = Получить %@
 receive_warning = Это ваш адрес — отправляйте только %@ на %@ сеть.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Включить пароль
 settings_security_authentication = Аутентификация
 settings_notifications_title = Уведомления
 settings_language = Язык
-settings_help_center = Центр помощи
 settings_support = Поддержка
 settings_price_alerts_title = Уведомления о ценах
 settings_hide_balance = Скрыть баланс
@@ -329,7 +325,6 @@ asset_verification_warning_message = Любой может создать его
 asset_buy_asset = Купить %@
 asset_get_asset = Получить %@
 asset_add_to_wallet = Добавить в кошелек
-asset_hide_from_wallet = Скрыть из кошелька
 asset_added_to_wallet = Добавлено в кошелек
 asset_hidden_from_wallet = Скрыто из кошелька
 asset_resources = Ресурсы
@@ -479,7 +474,6 @@ fee_rates_normal = Нормальный
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Свой
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = У этого приложе
 
 # Markets
 
-markets_title = Рынки
-markets_state_empty_title = Ваши рыночные данные появятся здесь
 markets_daily_volume = 24-часовой объем
 
 # Search

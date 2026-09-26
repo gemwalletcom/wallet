@@ -48,7 +48,6 @@
   <string name="common_description">विवरण</string>
   <string name="common_emoji">इमोजी</string>
   <string name="common_avatar">अवतार</string>
-  <string name="common_save">बचाना</string>
   <string name="common_percentage">प्रतिशत</string>
   <string name="common_details">विवरण</string>
   <string name="common_info">जानकारी</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">पोर्टफोलियो</string>
   <string name="wallet_import_already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है।</string>
   <string name="wallets_title">बटुए</string>
-  <string name="wallets_watch">देखो</string>
-  <string name="receive_title">%1$s प्राप्त करें</string>
   <string name="receive_warning">यह आपका पता है — केवल %1$s ही %2$s नेटवर्क पर भेजें।</string>
   <string name="buy_title">%1$s खरीदें</string>
   <string name="buy_providers_title">प्रदाता</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">प्रमाणीकरण</string>
   <string name="settings_notifications_title">सूचनाएं</string>
   <string name="settings_language">भाषा</string>
-  <string name="settings_help_center">सहायता केंद्र</string>
   <string name="settings_support">सहायता</string>
   <string name="settings_price_alerts_title">मूल्य अलर्ट</string>
   <string name="settings_hide_balance">बैलेंस छिपाएँ</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">%1$s खरीदें</string>
   <string name="asset_get_asset">%1$s प्राप्त करें</string>
   <string name="asset_add_to_wallet">वॉलेट में जोड़ें</string>
-  <string name="asset_hide_from_wallet">बटुए से छिपाएँ</string>
   <string name="asset_added_to_wallet">वॉलेट में जोड़ा गया</string>
   <string name="asset_hidden_from_wallet">वॉलेट से छिपाया गया</string>
   <string name="asset_resources">संसाधन</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">तेज</string>
   <string name="fee_rates_normal">सामान्य</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">कस्टम</string>
   <string name="banner_account_activation_title">खाता सक्रियण शुल्क</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">रिपोर्ट करें</string>
   <string name="permissions_access_denied">पहुंच अस्वीकृत</string>
   <string name="permissions_image_photo_access_denied_description">इस ऐप को आपकी फोटो लाइब्रेरी तक पहुंचने की अनुमति नहीं है। कृपया अपनी डिवाइस सेटिंग में पहुंच सक्षम करें।</string>
-  <string name="markets_title">बाज़ार</string>
-  <string name="markets_state_empty_title">आपका बाज़ार डेटा यहाँ दिखाई देगा</string>
   <string name="markets_daily_volume">24 घंटे की मात्रा</string>
   <string name="search_state_empty_description">वर्तनी की जाँच करें या नई खोज का प्रयास करें।</string>
   <string name="networks_state_empty_search_title">कोई नेटवर्क नहीं मिला</string>

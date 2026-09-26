@@ -48,7 +48,6 @@ common_learn_more = Meer informatie
 common_description = Beschrijving
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Opslaan
 common_percentage = Percentage
 common_details = Details
 common_info = Informatie
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Deze portemonnee is al geïmporteerd.
 # Wallets
 
 wallets_title = Portemonnees
-wallets_watch = Volgen
 
 # Receive
 
-receive_title = Ontvang %@
 receive_warning = Dit is uw adres — alleen verzenden %@ op de %@ netwerk.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Schakel toegangscode in
 settings_security_authentication = Authenticatie
 settings_notifications_title = Meldingen
 settings_language = Taal
-settings_help_center = Helpcentrum
 settings_support = Ondersteuning
 settings_price_alerts_title = Prijswaarschuwingen
 settings_hide_balance = Saldo verbergen
@@ -329,7 +325,6 @@ asset_verification_warning_message = Iedereen kan er een maken, inclusief valse 
 asset_buy_asset = Koop %@
 asset_get_asset = %@ krijgen
 asset_add_to_wallet = Toevoegen aan portemonnee
-asset_hide_from_wallet = Verbergen voor portemonnee
 asset_added_to_wallet = Toegevoegd aan portemonnee
 asset_hidden_from_wallet = Verborgen voor portemonnee
 asset_resources = Bronnen
@@ -479,7 +474,6 @@ fee_rates_normal = Normaal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Aangepast
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Deze app heeft geen toestemm
 
 # Markets
 
-markets_title = Markten
-markets_state_empty_title = Uw marktgegevens verschijnen hier
 markets_daily_volume = 24-uurs volume
 
 # Search

@@ -48,7 +48,6 @@ common_learn_more = เรียนรู้เพิ่มเติม
 common_description = คำอธิบาย
 common_emoji = อิโมจิ
 common_avatar = อวตาร
-common_save = บันทึก
 common_percentage = เปอร์เซ็นต์
 common_details = รายละเอียด
 common_info = ข้อมูล
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = กระเป๋าสตางค์
 # Wallets
 
 wallets_title = กระเป๋าสตางค์
-wallets_watch = ติดตาม
 
 # Receive
 
-receive_title = รับ %@
 receive_warning = นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %@ บนเครือข่าย %@ เท่านั้น
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = เปิดใช้งานรหัสผ่า�
 settings_security_authentication = การรับรองความถูกต้อง
 settings_notifications_title = การแจ้งเตือน
 settings_language = ภาษา
-settings_help_center = ศูนย์ช่วยเหลือ
 settings_support = สนับสนุน
 settings_price_alerts_title = การแจ้งเตือนราคา
 settings_hide_balance = ซ่อนยอดคงเหลือ
@@ -329,7 +325,6 @@ asset_verification_warning_message = ใครๆ ก็สามารถสร
 asset_buy_asset = ซื้อ %@
 asset_get_asset = รับ %@
 asset_add_to_wallet = เพิ่มลงในกระเป๋าสตางค์
-asset_hide_from_wallet = ซ่อนจากกระเป๋าสตางค์
 asset_added_to_wallet = เพิ่มลงในกระเป๋าสตางค์แล้ว
 asset_hidden_from_wallet = ซ่อนจากกระเป๋าสตางค์แล้ว
 asset_resources = ทรัพยากร
@@ -479,7 +474,6 @@ fee_rates_normal = ปกติ
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = กำหนดเอง
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = แอพนี้ไม่�
 
 # Markets
 
-markets_title = ตลาด
-markets_state_empty_title = ข้อมูลตลาดของคุณจะปรากฏที่นี่
 markets_daily_volume = ปริมาณ 24 ชั่วโมง
 
 # Search

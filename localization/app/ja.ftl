@@ -48,7 +48,6 @@ common_learn_more = もっと詳しく知る
 common_description = 説明
 common_emoji = 絵文字
 common_avatar = アバター
-common_save = 保存
 common_percentage = 割合
 common_details = 詳細
 common_info = 情報
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = このウォレットは既にインポ
 # Wallets
 
 wallets_title = ウォレット
-wallets_watch = 閲覧専用
 
 # Receive
 
-receive_title = %@を受け取る
 receive_warning = このアドレスには、%@ のみを %@ ネットワークで送金してください。
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = パスコードを有効にする
 settings_security_authentication = 認証
 settings_notifications_title = 通知
 settings_language = 言語
-settings_help_center = ヘルプセンター
 settings_support = サポート
 settings_price_alerts_title = 価格アラート
 settings_hide_balance = 残高を非表示
@@ -329,7 +325,6 @@ asset_verification_warning_message = トークンは誰でも作成でき、偽�
 asset_buy_asset = %@を購入
 asset_get_asset = %@を入手
 asset_add_to_wallet = ウォレットに追加
-asset_hide_from_wallet = ウォレットで非表示にする
 asset_added_to_wallet = ウォレットに追加しました
 asset_hidden_from_wallet = ウォレットから非表示にしました
 asset_resources = リソース
@@ -479,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = サトシ/vB
-fee_rate_satB = %@ サトシ/B
 fee_rate_gwei = gwei
 fee_rate_custom = カスタム
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = このアプリには写真�
 
 # Markets
 
-markets_title = マーケット
-markets_state_empty_title = マーケットデータがここに表示されます
 markets_daily_volume = 24時間取引量
 
 # Search

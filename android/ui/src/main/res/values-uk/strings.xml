@@ -48,7 +48,6 @@
   <string name="common_description">Опис</string>
   <string name="common_emoji">Емодзі</string>
   <string name="common_avatar">Аватар</string>
-  <string name="common_save">Зберегти</string>
   <string name="common_percentage">Відсоток</string>
   <string name="common_details">Деталі</string>
   <string name="common_info">Інформація</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Портфоліо</string>
   <string name="wallet_import_already_imported_message">Цей гаманець вже імпортовано.</string>
   <string name="wallets_title">Гаманці</string>
-  <string name="wallets_watch">Дивитися</string>
-  <string name="receive_title">Отримати %1$s</string>
   <string name="receive_warning">Це ваша адреса - надсилайте тільки %1$s в мережі %2$s.</string>
   <string name="buy_title">Купити %1$s</string>
   <string name="buy_providers_title">Провайдери</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Аутентифікація</string>
   <string name="settings_notifications_title">Сповіщення</string>
   <string name="settings_language">Мова</string>
-  <string name="settings_help_center">Довідковий центр</string>
   <string name="settings_support">Підтримка</string>
   <string name="settings_price_alerts_title">Оповіщення про ціни</string>
   <string name="settings_hide_balance">Приховати баланс</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Купити %1$s</string>
   <string name="asset_get_asset">Отримати %1$s</string>
   <string name="asset_add_to_wallet">Додати до гаманця</string>
-  <string name="asset_hide_from_wallet">Приховати від гаманця</string>
   <string name="asset_added_to_wallet">Додано до гаманця</string>
   <string name="asset_hidden_from_wallet">Приховано з гаманця</string>
   <string name="asset_resources">Ресурси</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Швидко</string>
   <string name="fee_rates_normal">Нормальний</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свій</string>
   <string name="banner_account_activation_title">Плата за активацію рахунку</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Поскаржитися</string>
   <string name="permissions_access_denied">Доступ заборонено</string>
   <string name="permissions_image_photo_access_denied_description">Ця програма не має дозволу на доступ до вашої бібліотеки фотографій. Увімкніть доступ у налаштуваннях пристрою.</string>
-  <string name="markets_title">Ринки</string>
-  <string name="markets_state_empty_title">Дані вашого ринку з\'являться тут</string>
   <string name="markets_daily_volume">24-годинний обсяг</string>
   <string name="search_state_empty_description">Перевірте орфографію або спробуйте новий пошук.</string>
   <string name="networks_state_empty_search_title">Мереж не знайдено</string>

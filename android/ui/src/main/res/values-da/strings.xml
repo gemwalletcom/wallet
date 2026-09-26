@@ -48,7 +48,6 @@
   <string name="common_description">Beskrivelse</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Gem</string>
   <string name="common_percentage">Procent</string>
   <string name="common_details">Detaljer</string>
   <string name="common_info">Info</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portefølje</string>
   <string name="wallet_import_already_imported_message">Denne tegnebog er allerede blevet importeret.</string>
   <string name="wallets_title">Tegnebøger</string>
-  <string name="wallets_watch">Se</string>
-  <string name="receive_title">Modtag %1$s</string>
   <string name="receive_warning">Dette er din adresse — kun forsendelse %1$s på %2$s netværk.</string>
   <string name="buy_title">Køb %1$s</string>
   <string name="buy_providers_title">Udbydere</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Autentificering</string>
   <string name="settings_notifications_title">Meddelelser</string>
   <string name="settings_language">Sprog</string>
-  <string name="settings_help_center">Hjælpecenter</string>
   <string name="settings_support">Støtte</string>
   <string name="settings_price_alerts_title">Prisadvarsler</string>
   <string name="settings_hide_balance">Skjul saldo</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Køb %1$s</string>
   <string name="asset_get_asset">Få %1$s</string>
   <string name="asset_add_to_wallet">Tilføj til tegnebog</string>
-  <string name="asset_hide_from_wallet">Skjul fra tegnebogen</string>
   <string name="asset_added_to_wallet">Tilføjet til tegnebogen</string>
   <string name="asset_hidden_from_wallet">Skjult fra tegnebogen</string>
   <string name="asset_resources">Ressourcer</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Hurtigt</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tilpasset</string>
   <string name="banner_account_activation_title">Kontoaktiveringsgebyr</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Rapport</string>
   <string name="permissions_access_denied">Adgang nægtet</string>
   <string name="permissions_image_photo_access_denied_description">Denne app har ikke tilladelse til at få adgang til dit fotobibliotek. Aktiver venligst adgang i dine enhedsindstillinger.</string>
-  <string name="markets_title">Markeder</string>
-  <string name="markets_state_empty_title">Dine markedsdata vil blive vist her</string>
   <string name="markets_daily_volume">24-timers volumen</string>
   <string name="search_state_empty_description">Tjek stavningen eller prøv en ny søgning.</string>
   <string name="networks_state_empty_search_title">Ingen netværk fundet</string>

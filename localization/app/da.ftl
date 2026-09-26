@@ -48,7 +48,6 @@ common_learn_more = Lær mere
 common_description = Beskrivelse
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Gem
 common_percentage = Procent
 common_details = Detaljer
 common_info = Info
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Denne tegnebog er allerede blevet impor
 # Wallets
 
 wallets_title = Tegnebøger
-wallets_watch = Se
 
 # Receive
 
-receive_title = Modtag %@
 receive_warning = Dette er din adresse — kun forsendelse %@ på %@ netværk.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Aktiver adgangskode
 settings_security_authentication = Autentificering
 settings_notifications_title = Meddelelser
 settings_language = Sprog
-settings_help_center = Hjælpecenter
 settings_support = Støtte
 settings_price_alerts_title = Prisadvarsler
 settings_hide_balance = Skjul saldo
@@ -329,7 +325,6 @@ asset_verification_warning_message = Alle kan oprette en - inklusive falske elle
 asset_buy_asset = Køb %@
 asset_get_asset = Få %@
 asset_add_to_wallet = Tilføj til tegnebog
-asset_hide_from_wallet = Skjul fra tegnebogen
 asset_added_to_wallet = Tilføjet til tegnebogen
 asset_hidden_from_wallet = Skjult fra tegnebogen
 asset_resources = Ressourcer
@@ -479,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Tilpasset
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Denne app har ikke tilladels
 
 # Markets
 
-markets_title = Markeder
-markets_state_empty_title = Dine markedsdata vil blive vist her
 markets_daily_volume = 24-timers volumen
 
 # Search

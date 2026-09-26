@@ -48,7 +48,6 @@ common_learn_more = למידע נוסף
 common_description = תֵאוּר
 common_emoji = אימוג'י
 common_avatar = גִלגוּל
-common_save = שמור
 common_percentage = אֲחוּזִים
 common_details = פרטים
 common_info = מידע
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = ארנק זה כבר יובא.
 # Wallets
 
 wallets_title = ארנקים
-wallets_watch = מעקב
 
 # Receive
 
-receive_title = קבל %@
 receive_warning = זוהי הכתובת שלך - שליחה בלבד %@ על ה- %@ רֶשֶׁת.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = אפשר קוד גישה
 settings_security_authentication = אימות
 settings_notifications_title = התראות
 settings_language = שפה
-settings_help_center = מרכז העזרה
 settings_support = תְמִיכָה
 settings_price_alerts_title = התראות על מחירים
 settings_hide_balance = הסתר יתרה
@@ -329,7 +325,6 @@ asset_verification_warning_message = כל אחד יכול ליצור אחד - כ
 asset_buy_asset = קנה %@
 asset_get_asset = קבל %@
 asset_add_to_wallet = הוסף לארנק
-asset_hide_from_wallet = הסתר מהארנק
 asset_added_to_wallet = נוסף לארנק
 asset_hidden_from_wallet = הוסתר מהארנק
 asset_resources = משאבים
@@ -479,7 +474,6 @@ fee_rates_normal = רגיל
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = מותאם אישית
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = לאפליקציה הזו א
 
 # Markets
 
-markets_title = שווקים
-markets_state_empty_title = נתוני השווקים שלך יופיעו כאן
 markets_daily_volume = נפח של 24 שעות
 
 # Search

@@ -48,7 +48,6 @@
   <string name="common_description">Descrizione</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Salva</string>
   <string name="common_percentage">Percentuale</string>
   <string name="common_details">Dettagli</string>
   <string name="common_info">Informazioni</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portafoglio</string>
   <string name="wallet_import_already_imported_message">Questo portafoglio è già stato importato.</string>
   <string name="wallets_title">Portafogli</string>
-  <string name="wallets_watch">Guarda</string>
-  <string name="receive_title">Ricevi %1$s</string>
   <string name="receive_warning">Questo è il tuo indirizzo: invia solo %1$s sulla rete %2$s.</string>
   <string name="buy_title">Acquista %1$s</string>
   <string name="buy_providers_title">Fornitori</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Autenticazione</string>
   <string name="settings_notifications_title">Notifiche</string>
   <string name="settings_language">Lingua</string>
-  <string name="settings_help_center">Centro assistenza</string>
   <string name="settings_support">Supporto</string>
   <string name="settings_price_alerts_title">Avvisi sui prezzi</string>
   <string name="settings_hide_balance">Nascondi saldo</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Acquista %1$s</string>
   <string name="asset_get_asset">Ottieni %1$s</string>
   <string name="asset_add_to_wallet">Aggiungi al portafoglio</string>
-  <string name="asset_hide_from_wallet">Nascondi dal portafoglio</string>
   <string name="asset_added_to_wallet">Aggiunto al portafoglio</string>
   <string name="asset_hidden_from_wallet">Nascosto dal portafoglio</string>
   <string name="asset_resources">Risorse</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Veloce</string>
   <string name="fee_rates_normal">Normale</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizzato</string>
   <string name="banner_account_activation_title">Commissione di attivazione del conto</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Segnala</string>
   <string name="permissions_access_denied">Accesso negato</string>
   <string name="permissions_image_photo_access_denied_description">Questa app non ha l\'autorizzazione per accedere alla tua libreria di foto. Abilita l\'accesso nelle impostazioni del tuo dispositivo.</string>
-  <string name="markets_title">Mercati</string>
-  <string name="markets_state_empty_title">I dati dei tuoi mercati appariranno qui</string>
   <string name="markets_daily_volume">Volume 24 ore</string>
   <string name="search_state_empty_description">Controlla l\'ortografia o prova una nuova ricerca.</string>
   <string name="networks_state_empty_search_title">Nessuna rete trovata</string>

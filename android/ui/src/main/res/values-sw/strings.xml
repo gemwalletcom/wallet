@@ -48,7 +48,6 @@
   <string name="common_description">Maelezo</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Hifadhi</string>
   <string name="common_percentage">Asilimia</string>
   <string name="common_details">Maelezo</string>
   <string name="common_info">Habari</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Kwingineko</string>
   <string name="wallet_import_already_imported_message">Pochi hii tayari imeingizwa.</string>
   <string name="wallets_title">Pochi</string>
-  <string name="wallets_watch">Tazama</string>
-  <string name="receive_title">Pokea %1$s</string>
   <string name="receive_warning">Hii ni anwani yako — tuma pekee %1$s kwenye %2$s mtandao.</string>
   <string name="buy_title">Nunua %1$s</string>
   <string name="buy_providers_title">Watoa huduma</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Uthibitishaji</string>
   <string name="settings_notifications_title">Arifa</string>
   <string name="settings_language">Lugha</string>
-  <string name="settings_help_center">Kituo cha Usaidizi</string>
   <string name="settings_support">Msaada</string>
   <string name="settings_price_alerts_title">Tahadhari za Bei</string>
   <string name="settings_hide_balance">Ficha Salio</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Nunua %1$s</string>
   <string name="asset_get_asset">Pata %1$s</string>
   <string name="asset_add_to_wallet">Ongeza kwenye mkoba</string>
-  <string name="asset_hide_from_wallet">Ficha kutoka kwa mkoba</string>
   <string name="asset_added_to_wallet">Imeongezwa kwenye mkoba</string>
   <string name="asset_hidden_from_wallet">Imefichwa kutoka kwa mkoba</string>
   <string name="asset_resources">Rasilimali</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Haraka</string>
   <string name="fee_rates_normal">Kawaida</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Maalum</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Ripoti</string>
   <string name="permissions_access_denied">Ufikiaji Umekataliwa</string>
   <string name="permissions_image_photo_access_denied_description">Programu hii haina ruhusa ya kufikia maktaba yako ya picha. Tafadhali wezesha ufikiaji katika mipangilio ya kifaa chako.</string>
-  <string name="markets_title">Masoko</string>
-  <string name="markets_state_empty_title">Data yako ya masoko itaonekana hapa</string>
   <string name="markets_daily_volume">Kiasi cha 24h</string>
   <string name="search_state_empty_description">Angalia tahajia au jaribu utafutaji mpya.</string>
   <string name="networks_state_empty_search_title">Hakuna mitandao iliyopatikana</string>

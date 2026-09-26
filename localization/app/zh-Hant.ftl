@@ -48,7 +48,6 @@ common_learn_more = 了解更多
 common_description = 描述
 common_emoji = 表情符號
 common_avatar = 頭像
-common_save = 儲存
 common_percentage = 百分比
 common_details = 詳細
 common_info = 資訊
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = 此錢包已匯入。
 # Wallets
 
 wallets_title = 錢包
-wallets_watch = 觀察
 
 # Receive
 
-receive_title = 接收%@
 receive_warning = 請僅向此地址傳送 %2$@ 網路上的 %1$@。
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = 開啟密碼
 settings_security_authentication = 身分驗證
 settings_notifications_title = 通知
 settings_language = 語言
-settings_help_center = 幫助中心
 settings_support = 支援
 settings_price_alerts_title = 價格提醒
 settings_hide_balance = 隱藏餘額
@@ -329,7 +325,6 @@ asset_verification_warning_message = 任何人都可以建立代幣，請謹防�
 asset_buy_asset = 購買%@
 asset_get_asset = 取得 %@
 asset_add_to_wallet = 加入錢包
-asset_hide_from_wallet = 從錢包中隱藏
 asset_added_to_wallet = 已加入錢包
 asset_hidden_from_wallet = 已從錢包隱藏
 asset_resources = 資源
@@ -479,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = 聰/vB
-fee_rate_satB = %@ 聰/B
 fee_rate_gwei = gwei
 fee_rate_custom = 自訂
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = 此應用程式無權存取�
 
 # Markets
 
-markets_title = 市場
-markets_state_empty_title = 市場資訊將顯示在此處
 markets_daily_volume = 24小時交易量
 
 # Search

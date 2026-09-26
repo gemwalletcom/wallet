@@ -48,7 +48,6 @@
   <string name="common_description">Descriere</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Salvați</string>
   <string name="common_percentage">Procent</string>
   <string name="common_details">Detalii</string>
   <string name="common_info">Informații</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portofoliu</string>
   <string name="wallet_import_already_imported_message">Acest portofel a fost deja importat.</string>
   <string name="wallets_title">Portofele</string>
-  <string name="wallets_watch">Privește</string>
-  <string name="receive_title">Primește %1$s</string>
   <string name="receive_warning">Aceasta este adresa dvs. — trimiteți doar %1$s în rețeaua %2$s.</string>
   <string name="buy_title">Cumpără %1$s</string>
   <string name="buy_providers_title">Furnizorii</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Autentificare</string>
   <string name="settings_notifications_title">Notificări</string>
   <string name="settings_language">Limba</string>
-  <string name="settings_help_center">Centrul de ajutor</string>
   <string name="settings_support">Sprijin</string>
   <string name="settings_price_alerts_title">Alerte de preț</string>
   <string name="settings_hide_balance">Ascundeți soldul</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Cumpără %1$s</string>
   <string name="asset_get_asset">Obține %1$s</string>
   <string name="asset_add_to_wallet">Adaugă în portofel</string>
-  <string name="asset_hide_from_wallet">Ascunde din portofel</string>
   <string name="asset_added_to_wallet">Adăugat în portofel</string>
   <string name="asset_hidden_from_wallet">Ascuns din portofel</string>
   <string name="asset_resources">Resurse</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Rapid</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizat</string>
   <string name="banner_account_activation_title">Taxa de activare a contului</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Raportează</string>
   <string name="permissions_access_denied">Acces refuzat</string>
   <string name="permissions_image_photo_access_denied_description">Această aplicație nu are permisiunea de a accesa biblioteca dvs. de fotografii. Vă rugăm să activați accesul în setările dispozitivului dvs.</string>
-  <string name="markets_title">Piețele</string>
-  <string name="markets_state_empty_title">Datele dvs. de piață vor apărea aici</string>
   <string name="markets_daily_volume">Volum 24h</string>
   <string name="search_state_empty_description">Verificați ortografia sau încercați o căutare nouă.</string>
   <string name="networks_state_empty_search_title">Nu s-au găsit rețele</string>

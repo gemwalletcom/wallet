@@ -48,7 +48,6 @@
   <string name="common_description">Popis</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Uložit</string>
   <string name="common_percentage">Procento</string>
   <string name="common_details">Podrobnosti</string>
   <string name="common_info">Informace</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Tato peněženka již byla importována.</string>
   <string name="wallets_title">Peněženky</string>
-  <string name="wallets_watch">Sledovat</string>
-  <string name="receive_title">Přijmout %1$s</string>
   <string name="receive_warning">Toto je vaše adresa – pouze pro odeslání %1$s na %2$s síť.</string>
   <string name="buy_title">Koupit %1$s</string>
   <string name="buy_providers_title">Poskytovatelé</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Autentizace</string>
   <string name="settings_notifications_title">Oznámení</string>
   <string name="settings_language">Jazyk</string>
-  <string name="settings_help_center">Centrum nápovědy</string>
   <string name="settings_support">Podpora</string>
   <string name="settings_price_alerts_title">Upozornění na cenu</string>
   <string name="settings_hide_balance">Skrýt zůstatek</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Koupit %1$s</string>
   <string name="asset_get_asset">Získat %1$s</string>
   <string name="asset_add_to_wallet">Přidat do peněženky</string>
-  <string name="asset_hide_from_wallet">Skrýt z peněženky</string>
   <string name="asset_added_to_wallet">Přidáno do peněženky</string>
   <string name="asset_hidden_from_wallet">Skryto z peněženky</string>
   <string name="asset_resources">Zdroje</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Rychle</string>
   <string name="fee_rates_normal">Normální</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Vlastní</string>
   <string name="banner_account_activation_title">Poplatek za aktivaci účtu</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Nahlásit</string>
   <string name="permissions_access_denied">Přístup odepřen</string>
   <string name="permissions_image_photo_access_denied_description">Tato aplikace nemá oprávnění k přístupu do vaší knihovny fotografií. Povolte přístup v nastavení zařízení.</string>
-  <string name="markets_title">Trhy</string>
-  <string name="markets_state_empty_title">Zde se zobrazí vaše tržní data</string>
   <string name="markets_daily_volume">24hodinový objem</string>
   <string name="search_state_empty_description">Zkontrolujte pravopis nebo zkuste nové vyhledávání.</string>
   <string name="networks_state_empty_search_title">Nenalezeny žádné sítě</string>

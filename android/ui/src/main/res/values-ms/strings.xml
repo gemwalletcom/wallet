@@ -48,7 +48,6 @@
   <string name="common_description">Penerangan</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Simpan</string>
   <string name="common_percentage">Peratusan</string>
   <string name="common_details">Butiran</string>
   <string name="common_info">Info</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Dompet ini telah pun diimport.</string>
   <string name="wallets_title">Dompet</string>
-  <string name="wallets_watch">Tonton</string>
-  <string name="receive_title">Terima %1$s</string>
   <string name="receive_warning">Ini alamat anda — hantar sahaja %1$s pada %2$s rangkaian.</string>
   <string name="buy_title">Beli %1$s</string>
   <string name="buy_providers_title">Pembekal</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Pengesahan</string>
   <string name="settings_notifications_title">Pemberitahuan</string>
   <string name="settings_language">Bahasa</string>
-  <string name="settings_help_center">Pusat Bantuan</string>
   <string name="settings_support">Sokongan</string>
   <string name="settings_price_alerts_title">Makluman Harga</string>
   <string name="settings_hide_balance">Sembunyikan Baki</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Beli %1$s</string>
   <string name="asset_get_asset">Dapatkan %1$s</string>
   <string name="asset_add_to_wallet">Tambah pada dompet</string>
-  <string name="asset_hide_from_wallet">Sembunyi dari dompet</string>
   <string name="asset_added_to_wallet">Ditambah ke dompet</string>
   <string name="asset_hidden_from_wallet">Disembunyikan dari dompet</string>
   <string name="asset_resources">Sumber</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Cepat</string>
   <string name="fee_rates_normal">Biasa</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tersuai</string>
   <string name="banner_account_activation_title">Yuran Pengaktifan Akaun</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Laporan</string>
   <string name="permissions_access_denied">Akses Ditolak</string>
   <string name="permissions_image_photo_access_denied_description">Apl ini tidak mempunyai kebenaran untuk mengakses pustaka foto anda. Sila dayakan akses dalam tetapan peranti anda.</string>
-  <string name="markets_title">Pasaran</string>
-  <string name="markets_state_empty_title">Data pasaran anda akan dipaparkan di sini</string>
   <string name="markets_daily_volume">Volum 24j</string>
   <string name="search_state_empty_description">Semak ejaan atau cuba carian baharu.</string>
   <string name="networks_state_empty_search_title">Tiada rangkaian ditemui</string>

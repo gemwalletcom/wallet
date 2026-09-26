@@ -48,7 +48,6 @@
   <string name="common_description">توضیحات</string>
   <string name="common_emoji">ایموجی</string>
   <string name="common_avatar">آواتار</string>
-  <string name="common_save">ذخیره کنید</string>
   <string name="common_percentage">درصد</string>
   <string name="common_details">جزئیات</string>
   <string name="common_info">اطلاعات</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">سبد دارایی</string>
   <string name="wallet_import_already_imported_message">این کیف پول قبلاً وارد شده است.</string>
   <string name="wallets_title">کیف پول ها</string>
-  <string name="wallets_watch">تماشا کردن</string>
-  <string name="receive_title">دریافت %1$s</string>
   <string name="receive_warning">این آدرس شماست — فقط ارسال %1$s روی %2$s شبکه.</string>
   <string name="buy_title">خرید %1$s</string>
   <string name="buy_providers_title">ارائه دهندگان</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">احراز هویت</string>
   <string name="settings_notifications_title">اعلان ها</string>
   <string name="settings_language">زبان</string>
-  <string name="settings_help_center">مرکز راهنمایی</string>
   <string name="settings_support">پشتیبانی کنید</string>
   <string name="settings_price_alerts_title">هشدارهای قیمت</string>
   <string name="settings_hide_balance">مخفی کردن موجودی</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">خرید %1$s</string>
   <string name="asset_get_asset">دریافت %1$s</string>
   <string name="asset_add_to_wallet">اضافه کردن به کیف پول</string>
-  <string name="asset_hide_from_wallet">پنهان شدن از کیف پول</string>
   <string name="asset_added_to_wallet">به کیف پول اضافه شد</string>
   <string name="asset_hidden_from_wallet">از کیف پول پنهان شد</string>
   <string name="asset_resources">منابع</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">سریع</string>
   <string name="fee_rates_normal">عادی</string>
   <string name="fee_rate_satvB">ساتوشی بر بایت</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">سفارشی</string>
   <string name="banner_account_activation_title">کارمزد فعال سازی حساب.</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">گزارش</string>
   <string name="permissions_access_denied">دسترسی ممنوع شد</string>
   <string name="permissions_image_photo_access_denied_description">این برنامه اجازه دسترسی به کتابخانه عکس شما را ندارد. لطفاً دسترسی را در تنظیمات دستگاه خود فعال کنید.</string>
-  <string name="markets_title">بازارها</string>
-  <string name="markets_state_empty_title">داده‌های بازار شما اینجا نمایش داده می‌شود</string>
   <string name="markets_daily_volume">حجم ۲۴ ساعته</string>
   <string name="search_state_empty_description">املای صحیح را بررسی کنید یا جستجوی جدیدی را امتحان کنید.</string>
   <string name="networks_state_empty_search_title">هیچ شبکه‌ای یافت نشد</string>

@@ -101,9 +101,6 @@ common_emoji = Emoji
 # Used in shared app UI for the style label.
 # Used in shared app UI for the avatar label.
 common_avatar = Avatar
-# Used in shared app UI for the photo label.
-# Used in shared app UI for the save label.
-common_save = Save
 # Used in shared app UI for the edit label.
 # Used in shared app UI for the percentage label.
 common_percentage = Percentage
@@ -224,13 +221,9 @@ wallet_import_already_imported_message = This wallet has already been imported.
 
 # Used in wallet list and wallet switcher screens as a title.
 wallets_title = Wallets
-# Used in wallet list and wallet switcher screens for the watch label.
-wallets_watch = Watch
 
 # Receive
 
-# Used in Receive screen as a title. Contains 1 string placeholder.
-receive_title = Receive %@
 # Receive screen network warning. First %@ is the asset symbol, second %@ is the network name.
 receive_warning = This is your address — send only %@ on the %@ network.
 
@@ -362,8 +355,6 @@ settings_security_authentication = Authentication
 settings_notifications_title = Notifications
 # Used in Settings screens for the language label.
 settings_language = Language
-# Used in Settings screens for the help center label.
-settings_help_center = Help Center
 # Used in Settings screens for the support label.
 settings_support = Support
 # Used in Settings screens for the price alerts title.
@@ -625,8 +616,6 @@ asset_buy_asset = Buy %@
 asset_get_asset = Get %@
 # Used in asset detail and asset verification screens for the add to wallet label.
 asset_add_to_wallet = Add to wallet
-# Used in asset detail and asset verification screens for the hide from wallet label.
-asset_hide_from_wallet = Hide from wallet
 # Used in toast confirmations after an asset is added to the wallet.
 asset_added_to_wallet = Added to wallet
 # Used in toast confirmations after an asset is hidden from the wallet.
@@ -888,8 +877,6 @@ fee_rates_normal = Normal
 
 # Fee unit label for satoshis per virtual byte.
 fee_rate_satvB = sat/vB
-# Used in network fee rate selector for the satB label. Contains 1 string placeholder.
-fee_rate_satB = %@ sat/B
 # Fee unit label for gwei.
 fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
@@ -1150,10 +1137,6 @@ permissions_image_photo_access_denied_description = This app does not have permi
 
 # Markets
 
-# Used in markets UI as a title.
-markets_title = Markets
-# Used in markets UI for the state empty title.
-markets_state_empty_title = Your markets data will appear here
 # Used in markets UI for the daily volume label.
 markets_daily_volume = 24h Volume
 

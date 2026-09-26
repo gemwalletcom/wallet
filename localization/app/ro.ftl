@@ -48,7 +48,6 @@ common_learn_more = Aflați mai multe
 common_description = Descriere
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Salvați
 common_percentage = Procent
 common_details = Detalii
 common_info = Informații
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Acest portofel a fost deja importat.
 # Wallets
 
 wallets_title = Portofele
-wallets_watch = Privește
 
 # Receive
 
-receive_title = Primește %@
 receive_warning = Aceasta este adresa dvs. — trimiteți doar %@ în rețeaua %@.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Activați codul de acces
 settings_security_authentication = Autentificare
 settings_notifications_title = Notificări
 settings_language = Limba
-settings_help_center = Centrul de ajutor
 settings_support = Sprijin
 settings_price_alerts_title = Alerte de preț
 settings_hide_balance = Ascundeți soldul
@@ -329,7 +325,6 @@ asset_verification_warning_message = Oricine poate crea unul - inclusiv jetoane 
 asset_buy_asset = Cumpără %@
 asset_get_asset = Obține %@
 asset_add_to_wallet = Adaugă în portofel
-asset_hide_from_wallet = Ascunde din portofel
 asset_added_to_wallet = Adăugat în portofel
 asset_hidden_from_wallet = Ascuns din portofel
 asset_resources = Resurse
@@ -479,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizat
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Această aplicație nu are p
 
 # Markets
 
-markets_title = Piețele
-markets_state_empty_title = Datele dvs. de piață vor apărea aici
 markets_daily_volume = Volum 24h
 
 # Search

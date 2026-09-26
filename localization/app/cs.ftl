@@ -48,7 +48,6 @@ common_learn_more = Další informace
 common_description = Popis
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Uložit
 common_percentage = Procento
 common_details = Podrobnosti
 common_info = Informace
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Tato peněženka již byla importována
 # Wallets
 
 wallets_title = Peněženky
-wallets_watch = Sledovat
 
 # Receive
 
-receive_title = Přijmout %@
 receive_warning = Toto je vaše adresa – pouze pro odeslání %@ na %@ síť.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Povolit přístupový kód
 settings_security_authentication = Autentizace
 settings_notifications_title = Oznámení
 settings_language = Jazyk
-settings_help_center = Centrum nápovědy
 settings_support = Podpora
 settings_price_alerts_title = Upozornění na cenu
 settings_hide_balance = Skrýt zůstatek
@@ -329,7 +325,6 @@ asset_verification_warning_message = Každý si jej může vytvořit – včetn�
 asset_buy_asset = Koupit %@
 asset_get_asset = Získat %@
 asset_add_to_wallet = Přidat do peněženky
-asset_hide_from_wallet = Skrýt z peněženky
 asset_added_to_wallet = Přidáno do peněženky
 asset_hidden_from_wallet = Skryto z peněženky
 asset_resources = Zdroje
@@ -479,7 +474,6 @@ fee_rates_normal = Normální
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Vlastní
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Tato aplikace nemá oprávn�
 
 # Markets
 
-markets_title = Trhy
-markets_state_empty_title = Zde se zobrazí vaše tržní data
 markets_daily_volume = 24hodinový objem
 
 # Search

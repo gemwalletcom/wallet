@@ -48,7 +48,6 @@ common_learn_more = بیشتر بدانید
 common_description = توضیحات
 common_emoji = ایموجی
 common_avatar = آواتار
-common_save = ذخیره کنید
 common_percentage = درصد
 common_details = جزئیات
 common_info = اطلاعات
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = این کیف پول قبلاً وار�
 # Wallets
 
 wallets_title = کیف پول ها
-wallets_watch = تماشا کردن
 
 # Receive
 
-receive_title = دریافت %@
 receive_warning = این آدرس شماست — فقط ارسال %@ روی %@ شبکه.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = فعال کردن رمزعبور
 settings_security_authentication = احراز هویت
 settings_notifications_title = اعلان ها
 settings_language = زبان
-settings_help_center = مرکز راهنمایی
 settings_support = پشتیبانی کنید
 settings_price_alerts_title = هشدارهای قیمت
 settings_hide_balance = مخفی کردن موجودی
@@ -329,7 +325,6 @@ asset_verification_warning_message = هر کسی می تواند یکی را ا�
 asset_buy_asset = خرید %@
 asset_get_asset = دریافت %@
 asset_add_to_wallet = اضافه کردن به کیف پول
-asset_hide_from_wallet = پنهان شدن از کیف پول
 asset_added_to_wallet = به کیف پول اضافه شد
 asset_hidden_from_wallet = از کیف پول پنهان شد
 asset_resources = منابع
@@ -479,7 +474,6 @@ fee_rates_normal = عادی
 # Fee Rate
 
 fee_rate_satvB = ساتوشی بر بایت
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = این برنامه اجاز
 
 # Markets
 
-markets_title = بازارها
-markets_state_empty_title = داده‌های بازار شما اینجا نمایش داده می‌شود
 markets_daily_volume = حجم ۲۴ ساعته
 
 # Search

@@ -48,7 +48,6 @@ common_learn_more = Pelajari lebih lanjut
 common_description = Keterangan
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Simpan
 common_percentage = Persentase
 common_details = Rincian
 common_info = Informasi
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Dompet ini sudah diimpor.
 # Wallets
 
 wallets_title = Dompet
-wallets_watch = Pantau
 
 # Receive
 
-receive_title = Terima %@
 receive_warning = Ini alamat Anda — kirim saja %@ pada %@ jaringan.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Aktifkan Kode Sandi
 settings_security_authentication = Otentikasi
 settings_notifications_title = Notifikasi
 settings_language = Bahasa
-settings_help_center = Pusat Bantuan
 settings_support = Dukungan
 settings_price_alerts_title = Peringatan Harga
 settings_hide_balance = Sembunyikan Saldo
@@ -329,7 +325,6 @@ asset_verification_warning_message = Siapa pun dapat membuatnya - termasuk token
 asset_buy_asset = Beli %@
 asset_get_asset = Dapatkan %@
 asset_add_to_wallet = Tambahkan ke dompet
-asset_hide_from_wallet = Sembunyikan dari dompet
 asset_added_to_wallet = Ditambahkan ke dompet
 asset_hidden_from_wallet = Disembunyikan dari dompet
 asset_resources = Sumber daya
@@ -479,7 +474,6 @@ fee_rates_normal = Biasa
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Kustom
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Aplikasi ini tidak memiliki 
 
 # Markets
 
-markets_title = Pasar
-markets_state_empty_title = Data pasar Anda akan muncul di sini
 markets_daily_volume = Volume 24 jam
 
 # Search

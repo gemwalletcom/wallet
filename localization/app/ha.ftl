@@ -48,7 +48,6 @@ common_learn_more = Ƙara Koyi
 common_description = Bayani
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Ajiye
 common_percentage = Kashi
 common_details = Cikakkun bayanai
 common_info = Bayani
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = An riga an shigo da wannan walat ɗin.
 # Wallets
 
 wallets_title = Wallets
-wallets_watch = Kalli
 
 # Receive
 
-receive_title = Karba %@
 receive_warning = Wannan shine adireshinka — aika kawai %@ a kan %@ hanyar sadarwa.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Kunna lambar wucewa
 settings_security_authentication = Tabbatarwa
 settings_notifications_title = Sanarwa
 settings_language = Harshe
-settings_help_center = Cibiyar Taimako
 settings_support = Taimako
 settings_price_alerts_title = Faɗakarwar Farashin
 settings_hide_balance = Boye Ma'auni
@@ -329,7 +325,6 @@ asset_verification_warning_message = Kowa na iya ƙirƙirar ɗaya - gami da alam
 asset_buy_asset = Sayi %@
 asset_get_asset = Sami %@
 asset_add_to_wallet = Ƙara zuwa walat
-asset_hide_from_wallet = Boye daga walat
 asset_added_to_wallet = An ƙara zuwa walat
 asset_hidden_from_wallet = An ɓoye daga walat
 asset_resources = Albarkatu
@@ -479,7 +474,6 @@ fee_rates_normal = Na al'ada
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Na Musamman
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Wannan app ɗin bashi da izi
 
 # Markets
 
-markets_title = Kasuwanni
-markets_state_empty_title = Bayanan kasuwanninku zai bayyana a nan
 markets_daily_volume = 24h girma
 
 # Search

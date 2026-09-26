@@ -48,7 +48,6 @@
   <string name="common_description">설명</string>
   <string name="common_emoji">이모티콘</string>
   <string name="common_avatar">아바타</string>
-  <string name="common_save">저장</string>
   <string name="common_percentage">백분율</string>
   <string name="common_details">세부</string>
   <string name="common_info">정보</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">포트폴리오</string>
   <string name="wallet_import_already_imported_message">이 지갑은 이미 가져왔습니다.</string>
   <string name="wallets_title">지갑</string>
-  <string name="wallets_watch">시계</string>
-  <string name="receive_title">%1$s 받습니다.</string>
   <string name="receive_warning">이 주소는 귀하의 주소입니다. %1$s만 %2$s 네트워크에서 보내세요.</string>
   <string name="buy_title">%1$s 구매</string>
   <string name="buy_providers_title">공급자</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">인증</string>
   <string name="settings_notifications_title">알림</string>
   <string name="settings_language">언어</string>
-  <string name="settings_help_center">도움말 센터</string>
   <string name="settings_support">지원하다</string>
   <string name="settings_price_alerts_title">가격 알림</string>
   <string name="settings_hide_balance">잔액 숨기기</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">%1$s 구매</string>
   <string name="asset_get_asset">%1$s 받기</string>
   <string name="asset_add_to_wallet">지갑에 추가</string>
-  <string name="asset_hide_from_wallet">지갑에서 숨기기</string>
   <string name="asset_added_to_wallet">지갑에 추가됨</string>
   <string name="asset_hidden_from_wallet">지갑에서 숨김</string>
   <string name="asset_resources">자원</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">빠르게</string>
   <string name="fee_rates_normal">보통</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">사용자 지정</string>
   <string name="banner_account_activation_title">계정 활성화 수수료</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">신고</string>
   <string name="permissions_access_denied">접근 불가</string>
   <string name="permissions_image_photo_access_denied_description">이 앱은 사진 라이브러리에 액세스할 권한이 없습니다. 기기 설정에서 액세스를 활성화하세요.</string>
-  <string name="markets_title">시장</string>
-  <string name="markets_state_empty_title">귀하의 시장 데이터가 여기에 표시됩니다.</string>
   <string name="markets_daily_volume">24시간 볼륨</string>
   <string name="search_state_empty_description">철자를 확인하거나 새로 검색해 보세요.</string>
   <string name="networks_state_empty_search_title">네트워크를 찾을 수 없습니다</string>

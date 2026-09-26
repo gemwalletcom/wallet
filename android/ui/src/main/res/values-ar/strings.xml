@@ -48,7 +48,6 @@
   <string name="common_description">وصف</string>
   <string name="common_emoji">الرموز التعبيرية</string>
   <string name="common_avatar">الصورة الرمزية</string>
-  <string name="common_save">يحفظ</string>
   <string name="common_percentage">نسبة مئوية</string>
   <string name="common_details">تفاصيل</string>
   <string name="common_info">معلومات</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">المحفظة الاستثمارية</string>
   <string name="wallet_import_already_imported_message">تم استيراد هذه المحفظة بالفعل.</string>
   <string name="wallets_title">المحافظ</string>
-  <string name="wallets_watch">يشاهد</string>
-  <string name="receive_title">استقبل %1$s</string>
   <string name="receive_warning">هذا عنوانك — أرسل فقط %1$s على %2$s شبكة.</string>
   <string name="buy_title">شراء %1$s</string>
   <string name="buy_providers_title">مقدمي الخدمات</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">المصادقة</string>
   <string name="settings_notifications_title">إشعارات</string>
   <string name="settings_language">لغة</string>
-  <string name="settings_help_center">مركز المساعدة</string>
   <string name="settings_support">يدعم</string>
   <string name="settings_price_alerts_title">تنبيهات الأسعار</string>
   <string name="settings_hide_balance">إخفاء الرصيد</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">شراء %1$s</string>
   <string name="asset_get_asset">احصل على %1$s</string>
   <string name="asset_add_to_wallet">أضف إلى المحفظة</string>
-  <string name="asset_hide_from_wallet">إخفاء من المحفظة</string>
   <string name="asset_added_to_wallet">تمت الإضافة إلى المحفظة</string>
   <string name="asset_hidden_from_wallet">تم الإخفاء من المحفظة</string>
   <string name="asset_resources">موارد</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">سريع</string>
   <string name="fee_rates_normal">طبيعي</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">مخصص</string>
   <string name="banner_account_activation_title">رسوم تفعيل الحساب</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">تقرير</string>
   <string name="permissions_access_denied">تم الرفض</string>
   <string name="permissions_image_photo_access_denied_description">لا يتوفر لهذا التطبيق إذن بالوصول إلى مكتبة الصور الخاصة بك. يُرجى تمكين هذا الإذن في إعدادات جهازك.</string>
-  <string name="markets_title">الأسواق</string>
-  <string name="markets_state_empty_title">ستظهر بيانات أسواقك هنا</string>
   <string name="markets_daily_volume">حجم 24 ساعة</string>
   <string name="search_state_empty_description">تحقق من التهجئة أو حاول إجراء بحث جديد.</string>
   <string name="networks_state_empty_search_title">لم يتم العثور على شبكات</string>

@@ -48,7 +48,6 @@ common_learn_more = Tìm hiểu thêm
 common_description = Sự miêu tả
 common_emoji = Emoji
 common_avatar = Hình đại diện
-common_save = Lưu
 common_percentage = Phần trăm
 common_details = Chi tiết
 common_info = Thông tin
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Ví này đã được nhập khẩu.
 # Wallets
 
 wallets_title = Ví
-wallets_watch = Xem
 
 # Receive
 
-receive_title = Nhận %@
 receive_warning = Đây là địa chỉ của bạn — chỉ gửi %@ trên mạng %@.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Kích hoạt mật mã
 settings_security_authentication = Xác thực
 settings_notifications_title = Thông báo
 settings_language = Ngôn ngữ
-settings_help_center = Trung tâm trợ giúp
 settings_support = Ủng hộ
 settings_price_alerts_title = Cảnh báo giá
 settings_hide_balance = Ẩn số dư
@@ -329,7 +325,6 @@ asset_verification_warning_message = Bất cứ ai cũng có thể tạo một c
 asset_buy_asset = Mua %@
 asset_get_asset = Nhận %@
 asset_add_to_wallet = Thêm vào ví
-asset_hide_from_wallet = Ẩn khỏi ví
 asset_added_to_wallet = Đã thêm vào ví
 asset_hidden_from_wallet = Đã ẩn khỏi ví
 asset_resources = Tài nguyên
@@ -479,7 +474,6 @@ fee_rates_normal = Bình thường
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Tùy chỉnh
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Ứng dụng này không có
 
 # Markets
 
-markets_title = Thị trường
-markets_state_empty_title = Dữ liệu thị trường của bạn sẽ xuất hiện ở đây
 markets_daily_volume = Khối lượng 24 giờ
 
 # Search

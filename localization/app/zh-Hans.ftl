@@ -48,7 +48,6 @@ common_learn_more = 了解更多
 common_description = 描述
 common_emoji = 表情符号
 common_avatar = 头像
-common_save = 保存
 common_percentage = 百分比
 common_details = 详情
 common_info = 信息
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = 此钱包已导入。
 # Wallets
 
 wallets_title = 钱包
-wallets_watch = 观察
 
 # Receive
 
-receive_title = 接收%@
 receive_warning = 请仅向此地址发送 %2$@ 网络上的 %1$@。
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = 启用密码
 settings_security_authentication = 身份验证
 settings_notifications_title = 通知
 settings_language = 语言
-settings_help_center = 帮助中心
 settings_support = 支持
 settings_price_alerts_title = 价格提醒
 settings_hide_balance = 隐藏余额
@@ -329,7 +325,6 @@ asset_verification_warning_message = 任何人都可以创建代币，请谨防�
 asset_buy_asset = 购买%@
 asset_get_asset = 获取 %@
 asset_add_to_wallet = 添加到钱包
-asset_hide_from_wallet = 从钱包隐藏
 asset_added_to_wallet = 已添加到钱包
 asset_hidden_from_wallet = 已从钱包隐藏
 asset_resources = 资源
@@ -479,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = 聪/vB
-fee_rate_satB = %@ 聪/B
 fee_rate_gwei = gwei
 fee_rate_custom = 自定义
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = 此应用无权访问照片�
 
 # Markets
 
-markets_title = 市场
-markets_state_empty_title = 市场信息将显示在此处
 markets_daily_volume = 24小时交易量
 
 # Search

@@ -48,7 +48,6 @@
   <string name="common_description">Paglalarawan</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">I-save</string>
   <string name="common_percentage">Porsiyento</string>
   <string name="common_details">Mga Detalye</string>
   <string name="common_info">Impormasyon</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Na-import na ang wallet na ito.</string>
   <string name="wallets_title">Mga Wallet</string>
-  <string name="wallets_watch">Panoorin</string>
-  <string name="receive_title">Tumanggap ng %1$s</string>
   <string name="receive_warning">Ito ang iyong address — ipadala lamang %1$s sa %2$s network.</string>
   <string name="buy_title">Bumili ng %1$s</string>
   <string name="buy_providers_title">Mga tagapagbigay</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Authentication</string>
   <string name="settings_notifications_title">Mga abiso</string>
   <string name="settings_language">Wika</string>
-  <string name="settings_help_center">Help Center</string>
   <string name="settings_support">Suporta</string>
   <string name="settings_price_alerts_title">Mga Alerto sa Presyo</string>
   <string name="settings_hide_balance">Itago ang Balanse</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Bumili ng %1$s</string>
   <string name="asset_get_asset">Kumuha ng %1$s</string>
   <string name="asset_add_to_wallet">Idagdag sa wallet</string>
-  <string name="asset_hide_from_wallet">Itago sa wallet</string>
   <string name="asset_added_to_wallet">Naidagdag sa wallet</string>
   <string name="asset_hidden_from_wallet">Naitago sa wallet</string>
   <string name="asset_resources">Mga mapagkukunan</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Mabilis</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Pasadya</string>
   <string name="banner_account_activation_title">Bayarin sa Pag-activate ng Account</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">I-report</string>
   <string name="permissions_access_denied">Tinanggihan ang Access</string>
   <string name="permissions_image_photo_access_denied_description">Walang pahintulot ang app na ito na i-access ang iyong library ng larawan. Mangyaring paganahin ang pag-access sa mga setting ng iyong device.</string>
-  <string name="markets_title">Mga Pamilihan</string>
-  <string name="markets_state_empty_title">Lalabas dito ang data ng iyong mga market</string>
   <string name="markets_daily_volume">24h Volume</string>
   <string name="search_state_empty_description">Suriin ang spelling o subukan ang isang bagong paghahanap.</string>
   <string name="networks_state_empty_search_title">Walang nakitang mga network</string>

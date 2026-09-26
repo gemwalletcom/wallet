@@ -48,7 +48,6 @@ common_learn_more = Jifunze Zaidi
 common_description = Maelezo
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Hifadhi
 common_percentage = Asilimia
 common_details = Maelezo
 common_info = Habari
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Pochi hii tayari imeingizwa.
 # Wallets
 
 wallets_title = Pochi
-wallets_watch = Tazama
 
 # Receive
 
-receive_title = Pokea %@
 receive_warning = Hii ni anwani yako — tuma pekee %@ kwenye %@ mtandao.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Washa Nambari ya siri
 settings_security_authentication = Uthibitishaji
 settings_notifications_title = Arifa
 settings_language = Lugha
-settings_help_center = Kituo cha Usaidizi
 settings_support = Msaada
 settings_price_alerts_title = Tahadhari za Bei
 settings_hide_balance = Ficha Salio
@@ -329,7 +325,6 @@ asset_verification_warning_message = Mtu yeyote anaweza kuunda moja - ikiwa ni p
 asset_buy_asset = Nunua %@
 asset_get_asset = Pata %@
 asset_add_to_wallet = Ongeza kwenye mkoba
-asset_hide_from_wallet = Ficha kutoka kwa mkoba
 asset_added_to_wallet = Imeongezwa kwenye mkoba
 asset_hidden_from_wallet = Imefichwa kutoka kwa mkoba
 asset_resources = Rasilimali
@@ -479,7 +474,6 @@ fee_rates_normal = Kawaida
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Maalum
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Programu hii haina ruhusa ya
 
 # Markets
 
-markets_title = Masoko
-markets_state_empty_title = Data yako ya masoko itaonekana hapa
 markets_daily_volume = Kiasi cha 24h
 
 # Search

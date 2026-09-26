@@ -48,7 +48,6 @@ common_learn_more = और अधिक जानें
 common_description = विवरण
 common_emoji = इमोजी
 common_avatar = अवतार
-common_save = बचाना
 common_percentage = प्रतिशत
 common_details = विवरण
 common_info = जानकारी
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = यह बटुआ पहले ही
 # Wallets
 
 wallets_title = बटुए
-wallets_watch = देखो
 
 # Receive
 
-receive_title = %@ प्राप्त करें
 receive_warning = यह आपका पता है — केवल %@ ही %@ नेटवर्क पर भेजें।
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = पासकोड सक्षम करें
 settings_security_authentication = प्रमाणीकरण
 settings_notifications_title = सूचनाएं
 settings_language = भाषा
-settings_help_center = सहायता केंद्र
 settings_support = सहायता
 settings_price_alerts_title = मूल्य अलर्ट
 settings_hide_balance = बैलेंस छिपाएँ
@@ -329,7 +325,6 @@ asset_verification_warning_message = कोई भी इसे बना सक
 asset_buy_asset = %@ खरीदें
 asset_get_asset = %@ प्राप्त करें
 asset_add_to_wallet = वॉलेट में जोड़ें
-asset_hide_from_wallet = बटुए से छिपाएँ
 asset_added_to_wallet = वॉलेट में जोड़ा गया
 asset_hidden_from_wallet = वॉलेट से छिपाया गया
 asset_resources = संसाधन
@@ -479,7 +474,6 @@ fee_rates_normal = सामान्य
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = कस्टम
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = इस ऐप को आप�
 
 # Markets
 
-markets_title = बाज़ार
-markets_state_empty_title = आपका बाज़ार डेटा यहाँ दिखाई देगा
 markets_daily_volume = 24 घंटे की मात्रा
 
 # Search

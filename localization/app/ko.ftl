@@ -48,7 +48,6 @@ common_learn_more = 더 알아보기
 common_description = 설명
 common_emoji = 이모티콘
 common_avatar = 아바타
-common_save = 저장
 common_percentage = 백분율
 common_details = 세부
 common_info = 정보
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = 이 지갑은 이미 가져왔습니다
 # Wallets
 
 wallets_title = 지갑
-wallets_watch = 시계
 
 # Receive
 
-receive_title = %@ 받습니다.
 receive_warning = 이 주소는 귀하의 주소입니다. %@만 %@ 네트워크에서 보내세요.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = 비밀번호 활성화
 settings_security_authentication = 인증
 settings_notifications_title = 알림
 settings_language = 언어
-settings_help_center = 도움말 센터
 settings_support = 지원하다
 settings_price_alerts_title = 가격 알림
 settings_hide_balance = 잔액 숨기기
@@ -329,7 +325,6 @@ asset_verification_warning_message = 가짜 또는 악성 토큰을 포함하여
 asset_buy_asset = %@ 구매
 asset_get_asset = %@ 받기
 asset_add_to_wallet = 지갑에 추가
-asset_hide_from_wallet = 지갑에서 숨기기
 asset_added_to_wallet = 지갑에 추가됨
 asset_hidden_from_wallet = 지갑에서 숨김
 asset_resources = 자원
@@ -479,7 +474,6 @@ fee_rates_normal = 보통
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = 사용자 지정
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = 이 앱은 사진 라이브�
 
 # Markets
 
-markets_title = 시장
-markets_state_empty_title = 귀하의 시장 데이터가 여기에 표시됩니다.
 markets_daily_volume = 24시간 볼륨
 
 # Search

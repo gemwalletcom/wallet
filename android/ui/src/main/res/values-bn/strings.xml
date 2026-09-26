@@ -48,7 +48,6 @@
   <string name="common_description">বর্ণনা</string>
   <string name="common_emoji">ইমোজি</string>
   <string name="common_avatar">অবতার</string>
-  <string name="common_save">সংরক্ষণ করুন</string>
   <string name="common_percentage">শতাংশ</string>
   <string name="common_details">বিস্তারিত</string>
   <string name="common_info">তথ্য</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">পোর্টফোলিও</string>
   <string name="wallet_import_already_imported_message">এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।</string>
   <string name="wallets_title">ওয়ালেট</string>
-  <string name="wallets_watch">পর্যবেক্ষণ</string>
-  <string name="receive_title">%1$s গ্রহণ করুন</string>
   <string name="receive_warning">এটি আপনার ঠিকানা — শুধুমাত্র পাঠান %1$s উপরে %2$s নেটওয়ার্ক।</string>
   <string name="buy_title">%1$s কিনুন</string>
   <string name="buy_providers_title">প্রদানকারী</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">প্রমাণীকরণ</string>
   <string name="settings_notifications_title">বিজ্ঞপ্তি</string>
   <string name="settings_language">ভাষা</string>
-  <string name="settings_help_center">সহায়তা কেন্দ্র</string>
   <string name="settings_support">সমর্থন</string>
   <string name="settings_price_alerts_title">মূল্য সতর্কতা</string>
   <string name="settings_hide_balance">ব্যালেন্স লুকান</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">%1$s কিনুন</string>
   <string name="asset_get_asset">%1$s পান</string>
   <string name="asset_add_to_wallet">ওয়ালেটে যোগ করুন</string>
-  <string name="asset_hide_from_wallet">মানিব্যাগ থেকে লুকান</string>
   <string name="asset_added_to_wallet">ওয়ালেটে যোগ করা হয়েছে</string>
   <string name="asset_hidden_from_wallet">ওয়ালেট থেকে লুকানো হয়েছে</string>
   <string name="asset_resources">রিসোর্স</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">দ্রুত</string>
   <string name="fee_rates_normal">স্বাভাবিক</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">কাস্টম</string>
   <string name="banner_account_activation_title">অ্যাকাউন্ট অ্যাক্টিভেশন ফি</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">রিপোর্ট করুন</string>
   <string name="permissions_access_denied">অ্যাক্সেস অস্বীকার করা হয়েছে৷</string>
   <string name="permissions_image_photo_access_denied_description">এই অ্যাপটির আপনার ফটো লাইব্রেরি অ্যাক্সেস করার অনুমতি নেই। অনুগ্রহ করে আপনার ডিভাইস সেটিংসে অ্যাক্সেস সক্ষম করুন৷</string>
-  <string name="markets_title">বাজার</string>
-  <string name="markets_state_empty_title">আপনার বাজারের তথ্য এখানে প্রদর্শিত হবে।</string>
   <string name="markets_daily_volume">২৪ ঘন্টা ভলিউম</string>
   <string name="search_state_empty_description">বানান পরীক্ষা করুন অথবা নতুন করে অনুসন্ধান করে দেখুন।</string>
   <string name="networks_state_empty_search_title">কোনও নেটওয়ার্ক পাওয়া যায়নি</string>

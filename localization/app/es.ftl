@@ -48,7 +48,6 @@ common_learn_more = Más información
 common_description = Descripción
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Guardar
 common_percentage = Porcentaje
 common_details = Detalles
 common_info = Información
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Esta billetera ya ha sido importada.
 # Wallets
 
 wallets_title = Billeteras
-wallets_watch = Observar
 
 # Receive
 
-receive_title = Recibir %@
 receive_warning = Esta es tu dirección: envía solo %@ en la red %@.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Activar código de acceso
 settings_security_authentication = Autenticación
 settings_notifications_title = Notificaciones
 settings_language = Idioma
-settings_help_center = Centro de ayuda
 settings_support = Soporte
 settings_price_alerts_title = Alertas de precios
 settings_hide_balance = Ocultar saldo
@@ -329,7 +325,6 @@ asset_verification_warning_message = Cualquiera puede crear uno, incluidos los t
 asset_buy_asset = Comprar %@
 asset_get_asset = Obtener %@
 asset_add_to_wallet = Añadir a la billetera
-asset_hide_from_wallet = Ocultar de la billetera
 asset_added_to_wallet = Añadido a la billetera
 asset_hidden_from_wallet = Oculto de la billetera
 asset_resources = Recursos
@@ -479,7 +474,6 @@ fee_rates_normal = Normales
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizado
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Esta aplicación no tiene pe
 
 # Markets
 
-markets_title = Mercados
-markets_state_empty_title = Los datos de tus mercados aparecerán aquí
 markets_daily_volume = Volumen de 24 horas
 
 # Search

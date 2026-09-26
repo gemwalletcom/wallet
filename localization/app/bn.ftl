@@ -48,7 +48,6 @@ common_learn_more = আরও জানুন
 common_description = বর্ণনা
 common_emoji = ইমোজি
 common_avatar = অবতার
-common_save = সংরক্ষণ করুন
 common_percentage = শতাংশ
 common_details = বিস্তারিত
 common_info = তথ্য
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = এই ওয়ালেটটি ই�
 # Wallets
 
 wallets_title = ওয়ালেট
-wallets_watch = পর্যবেক্ষণ
 
 # Receive
 
-receive_title = %@ গ্রহণ করুন
 receive_warning = এটি আপনার ঠিকানা — শুধুমাত্র পাঠান %@ উপরে %@ নেটওয়ার্ক।
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = পাসকোড সক্ষম করুন
 settings_security_authentication = প্রমাণীকরণ
 settings_notifications_title = বিজ্ঞপ্তি
 settings_language = ভাষা
-settings_help_center = সহায়তা কেন্দ্র
 settings_support = সমর্থন
 settings_price_alerts_title = মূল্য সতর্কতা
 settings_hide_balance = ব্যালেন্স লুকান
@@ -329,7 +325,6 @@ asset_verification_warning_message = যে কেউ একটি তৈরি 
 asset_buy_asset = %@ কিনুন
 asset_get_asset = %@ পান
 asset_add_to_wallet = ওয়ালেটে যোগ করুন
-asset_hide_from_wallet = মানিব্যাগ থেকে লুকান
 asset_added_to_wallet = ওয়ালেটে যোগ করা হয়েছে
 asset_hidden_from_wallet = ওয়ালেট থেকে লুকানো হয়েছে
 asset_resources = রিসোর্স
@@ -479,7 +474,6 @@ fee_rates_normal = স্বাভাবিক
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = কাস্টম
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = এই অ্যাপটি
 
 # Markets
 
-markets_title = বাজার
-markets_state_empty_title = আপনার বাজারের তথ্য এখানে প্রদর্শিত হবে।
 markets_daily_volume = ২৪ ঘন্টা ভলিউম
 
 # Search

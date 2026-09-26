@@ -53,8 +53,6 @@ public enum Localized {
     }
     /// Hidden from wallet
     public static let hiddenFromWallet = Localized.tr("Localizable", "asset.hidden_from_wallet", fallback: "Hidden from wallet")
-    /// Hide from wallet
-    public static let hideFromWallet = Localized.tr("Localizable", "asset.hide_from_wallet", fallback: "Hide from wallet")
     /// Market Cap
     public static let marketCap = Localized.tr("Localizable", "asset.market_cap", fallback: "Market Cap")
     /// Name
@@ -317,8 +315,6 @@ public enum Localized {
     public static let recommended = Localized.tr("Localizable", "common.recommended", fallback: "Recommended")
     /// Refresh
     public static let refresh = Localized.tr("Localizable", "common.refresh", fallback: "Refresh")
-    /// Save
-    public static let save = Localized.tr("Localizable", "common.save", fallback: "Save")
     /// Secret Phrase
     public static let secretPhrase = Localized.tr("Localizable", "common.secret_phrase", fallback: "Secret Phrase")
     /// Share
@@ -541,10 +537,6 @@ public enum Localized {
     public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
     /// gwei
     public static let gwei = Localized.tr("Localizable", "fee_rate.gwei", fallback: "gwei")
-    /// %@ sat/B
-    public static func satB(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "fee_rate.satB", String(describing: p1), fallback: "%@ sat/B")
-    }
     /// sat/vB
     public static let satvB = Localized.tr("Localizable", "fee_rate.satvB", fallback: "sat/vB")
   }
@@ -765,14 +757,6 @@ public enum Localized {
   public enum Markets {
     /// 24h Volume
     public static let dailyVolume = Localized.tr("Localizable", "markets.daily_volume", fallback: "24h Volume")
-    /// Markets
-    public static let title = Localized.tr("Localizable", "markets.title", fallback: "Markets")
-    public enum State {
-      public enum Empty {
-        /// Your markets data will appear here
-        public static let title = Localized.tr("Localizable", "markets.state.empty.title", fallback: "Your markets data will appear here")
-      }
-    }
   }
   public enum Networks {
     public enum State {
@@ -1071,10 +1055,6 @@ public enum Localized {
     }
   }
   public enum Receive {
-    /// Receive %@
-    public static func title(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "receive.title", String(describing: p1), fallback: "Receive %@")
-    }
     /// This is your address — send only %@ on the %@ network.
     public static func warning(_ p1: Any, _ p2: Any) -> String {
       return Localized.tr("Localizable", "receive.warning", String(describing: p1), String(describing: p2), fallback: "This is your address — send only %@ on the %@ network.")
@@ -1248,8 +1228,6 @@ public enum Localized {
     public static func enableValue(_ p1: Any) -> String {
       return Localized.tr("Localizable", "settings.enable_value", String(describing: p1), fallback: "Enable %@")
     }
-    /// Help Center
-    public static let helpCenter = Localized.tr("Localizable", "settings.help_center", fallback: "Help Center")
     /// Hide Balance
     public static let hideBalance = Localized.tr("Localizable", "settings.hide_balance", fallback: "Hide Balance")
     /// Language
@@ -1770,8 +1748,6 @@ public enum Localized {
   public enum Wallets {
     /// Wallets
     public static let title = Localized.tr("Localizable", "wallets.title", fallback: "Wallets")
-    /// Watch
-    public static let watch = Localized.tr("Localizable", "wallets.watch", fallback: "Watch")
   }
   public enum Warnings {
     /// This %@ account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.

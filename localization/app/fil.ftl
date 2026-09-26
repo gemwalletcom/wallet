@@ -48,7 +48,6 @@ common_learn_more = Matuto pa
 common_description = Paglalarawan
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = I-save
 common_percentage = Porsiyento
 common_details = Mga Detalye
 common_info = Impormasyon
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Na-import na ang wallet na ito.
 # Wallets
 
 wallets_title = Mga Wallet
-wallets_watch = Panoorin
 
 # Receive
 
-receive_title = Tumanggap ng %@
 receive_warning = Ito ang iyong address — ipadala lamang %@ sa %@ network.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Paganahin ang Passcode
 settings_security_authentication = Authentication
 settings_notifications_title = Mga abiso
 settings_language = Wika
-settings_help_center = Help Center
 settings_support = Suporta
 settings_price_alerts_title = Mga Alerto sa Presyo
 settings_hide_balance = Itago ang Balanse
@@ -329,7 +325,6 @@ asset_verification_warning_message = Kahit sino ay maaaring gumawa ng isa - kabi
 asset_buy_asset = Bumili ng %@
 asset_get_asset = Kumuha ng %@
 asset_add_to_wallet = Idagdag sa wallet
-asset_hide_from_wallet = Itago sa wallet
 asset_added_to_wallet = Naidagdag sa wallet
 asset_hidden_from_wallet = Naitago sa wallet
 asset_resources = Mga mapagkukunan
@@ -479,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Pasadya
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Walang pahintulot ang app na
 
 # Markets
 
-markets_title = Mga Pamilihan
-markets_state_empty_title = Lalabas dito ang data ng iyong mga market
 markets_daily_volume = 24h Volume
 
 # Search

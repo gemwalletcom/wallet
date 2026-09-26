@@ -48,7 +48,6 @@ common_learn_more = Daha fazla bilgi edin
 common_description = Tanım
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Kaydet
 common_percentage = Yüzde
 common_details = Detaylar
 common_info = Bilgi
@@ -116,11 +115,9 @@ wallet_import_already_imported_message = Bu cüzdan zaten içe aktarıldı.
 # Wallets
 
 wallets_title = Cüzdanlar
-wallets_watch = İzle
 
 # Receive
 
-receive_title = %@ alın
 receive_warning = Bu sizin adresiniz — yalnızca %@ varlığını %@ ağında gönderin.
 
 # Buy
@@ -190,7 +187,6 @@ settings_enable_passcode = Şifreyi Etkinleştir
 settings_security_authentication = Kimlik doğrulama
 settings_notifications_title = Bildirimler
 settings_language = Dil
-settings_help_center = Yardım Merkezi
 settings_support = Destek
 settings_price_alerts_title = Fiyat Uyarıları
 settings_hide_balance = Bakiyeyi Gizle
@@ -329,7 +325,6 @@ asset_verification_warning_message = Sahte veya kötü amaçlı belirteçler de 
 asset_buy_asset = %@ satın al
 asset_get_asset = %@ al
 asset_add_to_wallet = Cüzdana ekle
-asset_hide_from_wallet = Cüzdandan gizle
 asset_added_to_wallet = Cüzdana eklendi
 asset_hidden_from_wallet = Cüzdandan gizlendi
 asset_resources = Kaynaklar
@@ -479,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Özel
 
@@ -627,8 +621,6 @@ permissions_image_photo_access_denied_description = Bu uygulama fotoğraf kütü
 
 # Markets
 
-markets_title = Piyasalar
-markets_state_empty_title = Piyasa verileriniz burada görünecek
 markets_daily_volume = 24 saatlik Hacim
 
 # Search

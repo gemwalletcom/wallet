@@ -48,7 +48,6 @@
   <string name="common_description">Bayani</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Ajiye</string>
   <string name="common_percentage">Kashi</string>
   <string name="common_details">Cikakkun bayanai</string>
   <string name="common_info">Bayani</string>
@@ -104,8 +103,6 @@
   <string name="wallet_portfolio_title">Fayil ɗin Kadari</string>
   <string name="wallet_import_already_imported_message">An riga an shigo da wannan walat ɗin.</string>
   <string name="wallets_title">Wallets</string>
-  <string name="wallets_watch">Kalli</string>
-  <string name="receive_title">Karba %1$s</string>
   <string name="receive_warning">Wannan shine adireshinka — aika kawai %1$s a kan %2$s hanyar sadarwa.</string>
   <string name="buy_title">Saya %1$s</string>
   <string name="buy_providers_title">Masu bayarwa</string>
@@ -166,7 +163,6 @@
   <string name="settings_security_authentication">Tabbatarwa</string>
   <string name="settings_notifications_title">Sanarwa</string>
   <string name="settings_language">Harshe</string>
-  <string name="settings_help_center">Cibiyar Taimako</string>
   <string name="settings_support">Taimako</string>
   <string name="settings_price_alerts_title">Faɗakarwar Farashin</string>
   <string name="settings_hide_balance">Boye Ma\'auni</string>
@@ -287,7 +283,6 @@
   <string name="asset_buy_asset">Sayi %1$s</string>
   <string name="asset_get_asset">Sami %1$s</string>
   <string name="asset_add_to_wallet">Ƙara zuwa walat</string>
-  <string name="asset_hide_from_wallet">Boye daga walat</string>
   <string name="asset_added_to_wallet">An ƙara zuwa walat</string>
   <string name="asset_hidden_from_wallet">An ɓoye daga walat</string>
   <string name="asset_resources">Albarkatu</string>
@@ -398,7 +393,6 @@
   <string name="fee_rates_fast">Mai sauri</string>
   <string name="fee_rates_normal">Na al\'ada</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Na Musamman</string>
   <string name="banner_account_activation_title">Kudin Kunna Asusu</string>
@@ -510,8 +504,6 @@
   <string name="nft_report_report_button_title">Yi korafi</string>
   <string name="permissions_access_denied">An hana shiga</string>
   <string name="permissions_image_photo_access_denied_description">Wannan app ɗin bashi da izinin shiga ɗakin karatu na hoton ku. Da fatan za a ba da damar shiga cikin saitunan na\'urar ku.</string>
-  <string name="markets_title">Kasuwanni</string>
-  <string name="markets_state_empty_title">Bayanan kasuwanninku zai bayyana a nan</string>
   <string name="markets_daily_volume">24h girma</string>
   <string name="search_state_empty_description">Duba harafin ko gwada sabon bincike.</string>
   <string name="networks_state_empty_search_title">Babu cibiyoyin sadarwa da aka samu</string>
