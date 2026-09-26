@@ -400,13 +400,13 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(model.simulationWarnings == [warning], "the request's warnings show before the load")
 
         await model.load()
-        #expect(model.viewState.feeRates?.rows.map(\.kind) == kinds)
+        #expect(model.feeModel.feeRateRows.map(\.kind) == kinds)
 
         model.changeFeeSelection(.priority(priority: .fast))
         await model.load()
 
         #expect(model.simulationWarnings.isEmpty)
-        #expect(model.viewState.feeRates?.rows.map(\.kind) == kinds)
+        #expect(model.feeModel.feeRateRows.map(\.kind) == kinds)
     }
 
     @Test
@@ -439,7 +439,7 @@ struct ConfirmTransferSceneViewModelTests {
             model.changeFeeSelection(.priority(priority: .fast))
             await model.load()
         }
-        #expect(model.viewState.feeRates?.rows.count == 2)
+        #expect(model.feeModel.feeRateRows.count == 2)
     }
 
     @Test

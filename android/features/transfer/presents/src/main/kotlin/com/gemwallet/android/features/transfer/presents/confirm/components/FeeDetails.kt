@@ -33,11 +33,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
-import com.gemwallet.android.domains.confirm.FeeDetailsModel
-import com.gemwallet.android.domains.confirm.FeeUIModel
+import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.NetworkFeeCustomUIModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.networkFeeListItem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
@@ -59,7 +57,9 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.errorText
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.suffix
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
@@ -73,42 +73,28 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemAssetItemTrailing
+import uniffi.gemstone.GemCustomFeeEstimate
+import uniffi.gemstone.GemCustomFeeSession
 import uniffi.gemstone.GemFeeRateKind
 import uniffi.gemstone.GemFeeRateRow
+import uniffi.gemstone.GemNetworkFeeScreen
 import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeeDetails(
-    isVisible: Boolean,
-    currentFee: FeeUIModel.FeeInfo?,
-    feeItems: List<ListItemModel>,
-    feeListItem: ListItemModel?,
-    selection: FeeSelectionUIModel,
-    feeDetailsModel: (FeeUIModel.FeeInfo) -> FeeDetailsModel?,
-    feeAsset: FeeAssetUIModel?,
-    feeAssets: List<FeeAssetUIModel>,
-    showFeeAssets: Boolean,
-    onSelectPriority: (FeePriority) -> Unit,
-    onSelectCustom: (BigInteger) -> Unit,
-    onSelectFeeAsset: (AssetId) -> Unit,
-    onCancel: () -> Unit,
-) {
-    currentFee ?: return
-    feeAsset ?: return
-    val model = remember(currentFee, feeAsset, selection) {
-        feeDetailsModel(currentFee)
-    } ?: return
-    val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
+fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: ListItemModel?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (BigInteger) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
+    screen?.fee ?: return
+    val rates = screen.rates ?: return
+    val context = LocalContext.current
+    val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
+    val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 
-    val selectedCustomRate = selection.customRate
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
-    val customModel = remember(page, model, selection) {
-        NetworkFeeCustomUIModel(model, selectedCustomRate)
-    }
+    var custom by remember(page, screen.custom) { mutableStateOf(screen.custom) }
+    val estimate = remember(custom) { custom?.viewState() }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
-        customModel.rate?.let {
+        estimate?.rate?.let {
             onSelectCustom(it)
             onCancel()
         }
@@ -143,16 +129,15 @@ fun FeeDetails(
             ),
             onBack = onBack,
             onConfirm = onConfirm,
-            isConfirmEnabled = page != FeeDetailsPage.CustomFee || customModel.isConfirmEnabled,
+            isConfirmEnabled = page != FeeDetailsPage.CustomFee || estimate?.isValid == true,
         )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
-                feeItems = feeItems,
+                feeItems = screen.additionalFees.map { ListItemModel(title = context.getString(it.option.stringRes()), subtitle = it.amount.amount.text()) },
                 feeListItem = feeListItem,
-                feeRateRows = model.feeRateRows,
-                showsOptions = model.showsOptions,
+                feeRateRows = rates.rows,
+                showsOptions = rates.showsOptions,
                 feeAsset = feeAsset,
-                showFeeAssets = showFeeAssets,
                 onSelectPriority = {
                     onSelectPriority(it)
                     onCancel()
@@ -161,14 +146,19 @@ fun FeeDetails(
                 onFeeAssets = { page = FeeDetailsPage.FeeAssets },
             )
 
-            FeeDetailsPage.CustomFee -> CustomFeeInput(
-                model = customModel,
-                unitSymbol = unitSymbol,
-            )
+            FeeDetailsPage.CustomFee -> custom?.let { session ->
+                estimate?.let {
+                    CustomFeeInput(
+                        custom = session,
+                        estimate = it,
+                        onInputChange = { text -> custom = session.onInput(text) },
+                    )
+                }
+            }
 
             FeeDetailsPage.FeeAssets -> FeeAssets(
                 assets = feeAssets,
-                selectedAssetId = currentFee.feeAsset.id,
+                selectedAssetId = feeAsset?.asset?.id,
                 onSelect = {
                     onSelectFeeAsset(it)
                     onCancel()
@@ -184,14 +174,13 @@ private fun FeeRates(
     feeListItem: ListItemModel?,
     feeRateRows: List<GemFeeRateRow>,
     showsOptions: Boolean,
-    feeAsset: FeeAssetUIModel,
-    showFeeAssets: Boolean,
+    feeAsset: FeeAssetUIModel?,
     onSelectPriority: (FeePriority) -> Unit,
     onCustom: () -> Unit,
     onFeeAssets: () -> Unit,
 ) {
     LazyColumn {
-        if (showFeeAssets) {
+        if (feeAsset != null) {
             item { SubheaderItem(R.string.swap_you_pay) }
             item {
                 FeeAssetRow(
@@ -234,7 +223,7 @@ private fun FeeRates(
 }
 
 @Composable
-private fun FeeAssets(assets: List<FeeAssetUIModel>, selectedAssetId: AssetId, onSelect: (AssetId) -> Unit) {
+private fun FeeAssets(assets: List<FeeAssetUIModel>, selectedAssetId: AssetId?, onSelect: (AssetId) -> Unit) {
     LazyColumn {
         itemsIndexed(assets) { index, feeAsset ->
             FeeAssetRow(
@@ -273,7 +262,8 @@ private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosi
 }
 
 @Composable
-private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomUIModel, unitSymbol: String) {
+private fun ColumnScope.CustomFeeInput(custom: GemCustomFeeSession, estimate: GemCustomFeeEstimate, onInputChange: (String) -> Unit) {
+    val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     Row(
         modifier = Modifier.fillMaxWidth().listItem(ListPosition.Single).padding(paddingDefault),
@@ -282,22 +272,22 @@ private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomUIModel, unitSymbo
         ListItemTitleText(stringResource(R.string.fee_rate_custom))
         SuffixTextField(
             modifier = Modifier.weight(1f),
-            value = model.input,
-            onValueChange = model::onInputChange,
-            suffix = unitSymbol,
-            placeholder = model.placeholder,
+            value = custom.input,
+            onValueChange = onInputChange,
+            suffix = feeUnitSuffix(custom.rows.unitType.toPrimitives(), custom.feeAsset.symbol),
+            placeholder = estimate.placeholder?.text().orEmpty(),
             focusRequester = focusRequester,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         )
     }
     Text(
         modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingHalfSmall),
-        text = model.errorText(LocalContext.current).orEmpty(),
+        text = estimate.check.errorText(context).orEmpty(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
     )
     ListItem(
-        model = model.networkFeeItem(LocalContext.current),
+        model = estimate.fee.networkFeeListItem(context, custom.feeAsset.toPrimitives()),
         listPosition = ListPosition.Single,
     )
     LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }

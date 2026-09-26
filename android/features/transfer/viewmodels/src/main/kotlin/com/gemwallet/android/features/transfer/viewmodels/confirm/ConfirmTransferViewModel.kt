@@ -9,8 +9,6 @@ import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
-import com.gemwallet.android.domains.confirm.FeeDetailsModel
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
@@ -18,7 +16,6 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
-import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -27,13 +24,12 @@ import com.gemwallet.android.features.transfer.viewmodels.confirm.models.Acquire
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.acquireOptions
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.feeItems
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.uiModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
@@ -92,6 +88,7 @@ import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemInfoAction
+import uniffi.gemstone.GemNetworkFeeScreen
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
 import uniffi.gemstone.GemTransferAmountResult
@@ -212,14 +209,15 @@ class ConfirmTransferViewModel @Inject constructor(
     val button = viewState.map { it?.button ?: GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING))
 
+    val feeRow = viewState.map { it?.feeRow ?: GemConfirmFeeRow.Loading }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmFeeRow.Loading)
+
     val feeAsset = content.map { it?.feeAssetUIModel }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeAssets = content.map { it?.feeAssets.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val showsFeeAssets = content.map { it?.load?.showsFeeAssets() == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val feeScreen: StateFlow<GemNetworkFeeScreen?> = combine(confirmation, load) { confirmation, _ -> confirmation?.networkFeeScreen(numberFormat()) }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(transfer, content, ::buildDetailElements)
         .distinctUntilChanged()
@@ -232,29 +230,6 @@ class ConfirmTransferViewModel @Inject constructor(
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val feeInfo: StateFlow<FeeUIModel.FeeInfo?> = content.map { content ->
-        val fee = content?.load?.fee ?: return@map null
-        FeeUIModel.FeeInfo(
-            amount = fee.value,
-            additionalFees = fee.additionalFees,
-            feeAsset = content.feeAssetUIModel.asset,
-            price = content.load.metadata.feePrice()?.price,
-            currency = content.currency,
-            priority = fee.selectedPriority.toPrimitives(),
-            display = fee.formatted,
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val feeUIModel = combine(feeInfo, viewState) { feeInfo, viewState ->
-        when (val feeRow = viewState?.feeRow ?: GemConfirmFeeRow.Loading) {
-            GemConfirmFeeRow.Loading -> FeeUIModel.Calculating
-            is GemConfirmFeeRow.Unavailable -> FeeUIModel.Unavailable(feeRow.text)
-            is GemConfirmFeeRow.Ready -> feeInfo ?: FeeUIModel.Calculating
-        }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
     val acquireRequest = acquireRequestState.asStateFlow()
@@ -322,9 +297,6 @@ class ConfirmTransferViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeItems: StateFlow<List<ListItemModel>> = feeInfo.map { it?.feeItems(context).orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
     val balanceChangeRows: StateFlow<List<ListItemModel>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.changes.orEmpty().map { change -> change.listItem() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -344,20 +316,11 @@ class ConfirmTransferViewModel @Inject constructor(
         confirmation?.header(screen)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = loadOptions.filterNotNull()
-        .map { FeeSelectionUIModel(it.feeSelection.selectedPriority()?.toPrimitives(), it.feeSelection.customGasPrice()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, FeeSelectionUIModel(FeePriority.Normal, null))
-
     fun changeFeePriority(priority: FeePriority) = changeFeeSelection(GemConfirmFeeSelection.Priority(priority.toGem()))
 
     fun changeCustomFee(gasPrice: BigInteger) = changeFeeSelection(GemConfirmFeeSelection.Custom(gasPrice))
 
     private fun changeFeeSelection(selection: GemConfirmFeeSelection) = loadOptions.update { it?.onFeeSelection(selection) }
-
-    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo): FeeDetailsModel? {
-        val rows = viewState.value?.feeRates ?: return null
-        return FeeDetailsModel(currentFee, rows)
-    }
 
     fun changePaymentAsset(assetId: AssetId) {
         val current = transfer.value ?: return
@@ -403,8 +366,6 @@ class ConfirmTransferViewModel @Inject constructor(
 
     private data class ConfirmContent(val session: GemConfirmation, val currency: Currency, val load: GemConfirmLoad) {
         val feeAssetUIModel: FeeAssetUIModel = FeeAssetUIModel(load.feeAsset.toPrimitives(), load.feeAssetRow(currency.toGem()))
-
-        val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel() }
 
         fun price(asset: Asset): Double? = load.metadata.price(asset.id.toIdentifier())?.price
     }

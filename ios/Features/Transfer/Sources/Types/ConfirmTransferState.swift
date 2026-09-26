@@ -7,7 +7,6 @@ import struct Gemstone.GemConfirmFee
 import struct Gemstone.GemConfirmLoad
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmScreen
-import struct Gemstone.GemFeeAsset
 import struct Gemstone.GemTransferData
 import Primitives
 import PrimitivesComponents
@@ -19,7 +18,6 @@ struct ConfirmTransferState {
     var screen: GemConfirmScreen
 
     var metadata: GemConfirmMetadata? { load?.metadata }
-    var feeAssets: [GemFeeAsset] { load?.feeAssets ?? [] }
     var fee: GemConfirmFee? { load?.fee }
 }
 

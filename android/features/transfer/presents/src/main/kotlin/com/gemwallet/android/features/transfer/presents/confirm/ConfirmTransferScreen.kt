@@ -28,7 +28,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transfer.presents.confirm.components.ConfirmErrorInfo
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
@@ -69,6 +68,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
@@ -95,25 +95,20 @@ fun ConfirmTransferScreen(
 
     val context = LocalContext.current
     val transactionRows by viewModel.transactionRows.collectAsStateWithLifecycle()
-    val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeListItem by viewModel.feeListItem.collectAsStateWithLifecycle()
     val acquireOptions by viewModel.acquireOptions.collectAsStateWithLifecycle()
-    val feeItems by viewModel.feeItems.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val payloadChain by viewModel.payloadChain.collectAsStateWithLifecycle()
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
-    val feeInfo by viewModel.feeInfo.collectAsStateWithLifecycle()
+    val feeRow by viewModel.feeRow.collectAsStateWithLifecycle()
     val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
     val isVerificationFailed by viewModel.isVerificationFailed.collectAsStateWithLifecycle()
     val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
-    val feeSelectionUIModel by viewModel.feeSelectionUIModel.collectAsStateWithLifecycle()
-    val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
-    val showsFeeAssets by viewModel.showsFeeAssets.collectAsStateWithLifecycle()
-    val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
+    val feeScreen by viewModel.feeScreen.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
@@ -254,7 +249,7 @@ fun ConfirmTransferScreen(
                                 val onSelect: (() -> Unit)? = when {
                                     verification != null -> viewModel::showVerification
 
-                                    feeInfo != null && feeModel !is FeeUIModel.Unavailable -> {
+                                    feeScreen?.fee != null && feeRow !is GemConfirmFeeRow.Unavailable -> {
                                         { showSelectTxSpeed = true }
                                     }
 
@@ -292,14 +287,8 @@ fun ConfirmTransferScreen(
 
         FeeDetails(
             isVisible = showSelectTxSpeed,
-            currentFee = feeInfo,
-            feeItems = feeItems,
+            screen = feeScreen,
             feeListItem = feeListItem,
-            selection = feeSelectionUIModel,
-            feeDetailsModel = viewModel::feeDetailsModel,
-            feeAsset = feeAsset,
-            feeAssets = feeAssets,
-            showFeeAssets = showsFeeAssets,
             onSelectPriority = viewModel::changeFeePriority,
             onSelectCustom = viewModel::changeCustomFee,
             onSelectFeeAsset = viewModel::changeFeeAsset,

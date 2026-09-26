@@ -8,11 +8,12 @@ use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows,
+    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen,
     GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::simulation::warning_rows;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
@@ -130,7 +131,6 @@ impl GemConfirmation {
         GemConfirmViewState {
             button: screen.button(),
             fee_row: screen.fee_row(load.cloned()),
-            fee_rates: state.as_ref().and_then(|state| state.fee_rate_rows(self.service.get_currency())),
             title: transfer.title(),
             sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
             verification,
@@ -138,9 +138,9 @@ impl GemConfirmation {
         }
     }
 
-    pub fn fee_rate_rows(&self) -> Option<GemFeeRateRows> {
+    pub fn network_fee_screen(&self, format: GemNumberFormat) -> Option<GemNetworkFeeScreen> {
         let stored = self.stored();
-        stored.as_ref()?.fee_rate_rows(self.service.get_currency())
+        Some(stored.as_ref()?.network_fee_screen(self.service.get_currency(), format))
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -302,7 +302,11 @@ mod tests {
 
         assert_eq!(state.button, screen.button());
         assert_eq!(state.fee_row, screen.fee_row(None));
-        assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
+        assert_eq!(
+            confirmation.network_fee_screen(crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }),
+            None,
+            "nothing loaded, no fee screen"
+        );
         assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());
         assert_eq!(state.verification, None);

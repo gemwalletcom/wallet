@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -40,6 +39,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
@@ -73,14 +73,14 @@ class ConfirmTransferViewModelHeaderTest {
         val header = viewModel.header.first { it != null }
 
         assertEquals(symbolHeader(asset), header)
-        assertEquals(FeeUIModel.Calculating, viewModel.feeUIModel.first { it != null })
+        assertEquals(GemConfirmFeeRow.Loading, viewModel.viewState.first { it != null }?.feeRow)
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {
         val confirmation = mockk<GemConfirmation> {
             every { rowContents(any()) } returns emptyList()
-            every { feeRateRows() } returns null
+            every { networkFeeScreen(any()) } returns null
         }.stubViewState()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.screen() } returns mockGemConfirmScreen()

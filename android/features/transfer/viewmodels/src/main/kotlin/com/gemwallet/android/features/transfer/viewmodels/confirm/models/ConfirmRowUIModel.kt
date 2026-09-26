@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer.viewmodels.confirm.models
 
 import android.content.Context
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
@@ -10,7 +9,6 @@ import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -72,7 +70,3 @@ internal fun verificationListItem(context: Context): ListItemModel = ListItemMod
     subtitleTagType = ListItemTagType.Pending,
     info = GemInfoTopic.PaymentVerification.infoSheet(),
 )
-
-internal fun FeeUIModel.FeeInfo.feeItems(context: Context): List<ListItemModel> = feeItems.map { (option, info) ->
-    ListItemModel(title = context.getString(option.stringRes()), subtitle = info.cryptoAmount)
-}

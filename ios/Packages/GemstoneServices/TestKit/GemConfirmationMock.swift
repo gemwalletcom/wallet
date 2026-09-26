@@ -16,6 +16,8 @@ public import struct Gemstone.GemConfirmViewState
 public import struct Gemstone.GemFeeRateRows
 public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemListRow
+public import struct Gemstone.GemNetworkFeeScreen
+public import struct Gemstone.GemNumberFormat
 public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
@@ -86,7 +88,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         return GemConfirmViewState(
             button: screen.button(),
             feeRow: screen.feeRow(load: loaded),
-            feeRates: feeRateRows(),
             title: transfer().title(),
             verification: transfer().verification(),
             authentication: authenticationValue,
@@ -94,8 +95,8 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         )
     }
 
-    public func feeRateRows() -> GemFeeRateRows? {
-        feeRates
+    public func networkFeeScreen(format _: GemNumberFormat) -> GemNetworkFeeScreen? {
+        feeRates.map { GemNetworkFeeScreen.mock(fee: loaded?.fee?.formatted, additionalFees: loaded?.fee?.additionalFees ?? [], rates: $0) }
     }
 
     public func transfer() -> GemTransferData {

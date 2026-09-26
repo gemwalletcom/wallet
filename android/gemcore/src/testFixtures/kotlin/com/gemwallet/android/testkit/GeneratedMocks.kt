@@ -1443,6 +1443,24 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
+fun mockGemCustomFeeSession(
+    feeAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    input: String = "",
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
+    rows: uniffi.gemstone.GemFeeRateRows = mockGemFeeRateRows(),
+    loadedFee: java.math.BigInteger? = null,
+    price: Double? = null,
+    currency: uniffi.gemstone.Currency = uniffi.gemstone.Currency.MXN,
+) = uniffi.gemstone.GemCustomFeeSession(
+    feeAsset = feeAsset,
+    input = input,
+    format = format,
+    rows = rows,
+    loadedFee = loadedFee,
+    price = price,
+    currency = currency,
+)
+
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,
@@ -1625,6 +1643,22 @@ fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTo
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 
+fun mockGemNetworkFeeScreen(
+    fee: uniffi.gemstone.GemFeeAmount? = null,
+    additionalFees: List<uniffi.gemstone.GemFeeOptionItem> = emptyList(),
+    rates: uniffi.gemstone.GemFeeRateRows? = null,
+    feeAsset: uniffi.gemstone.GemFeeAsset? = null,
+    feeAssets: List<uniffi.gemstone.GemFeeAsset> = emptyList(),
+    custom: uniffi.gemstone.GemCustomFeeSession? = null,
+) = uniffi.gemstone.GemNetworkFeeScreen(
+    fee = fee,
+    additionalFees = additionalFees,
+    rates = rates,
+    feeAsset = feeAsset,
+    feeAssets = feeAssets,
+    custom = custom,
+)
+
 fun mockGemNftEntry(
     item: uniffi.gemstone.GemNftItem = mockGemNftItem(),
     row: uniffi.gemstone.GemNftRow = mockGemNftRow(),
@@ -1678,6 +1712,12 @@ fun mockGemNodeSelection(
 fun mockGemNodeStatusState(): uniffi.gemstone.GemNodeStatusState = uniffi.gemstone.GemNodeStatusState.Loading
 
 fun mockGemNumberDisplay(): uniffi.gemstone.GemNumberDisplay = uniffi.gemstone.GemNumberDisplay.Number(precision = mockGemPrecision())
+
+fun mockGemNumberFormat(
+    decimalSeparator: String = "",
+) = uniffi.gemstone.GemNumberFormat(
+    decimalSeparator = decimalSeparator,
+)
 
 fun mockGemNumberUnit(): uniffi.gemstone.GemNumberUnit = uniffi.gemstone.GemNumberUnit.Currency(code = "USD")
 

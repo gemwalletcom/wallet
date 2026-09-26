@@ -47,6 +47,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
@@ -132,10 +133,15 @@ class ConfirmTransferViewModelRequestTest {
         viewModel.changeFeePriority(FeePriority.Fast)
         advanceUntilIdle()
 
+        val options = mutableListOf<GemConfirmLoadOptions>()
+        coEvery { confirmation.load(capture(options)) } throws IllegalStateException("preload failed")
+
         viewModel.init(transfer)
         advanceUntilIdle()
+        viewModel.fetch()
+        advanceUntilIdle()
 
-        assertEquals(FeePriority.Fast, viewModel.feeSelectionUIModel.value.selectedPriority)
+        assertEquals(GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()), options.last().feeSelection)
     }
 
     private fun viewModel(handle: SavedStateHandle): ConfirmTransferViewModel {

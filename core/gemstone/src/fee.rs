@@ -5,9 +5,10 @@ use primitives::{Asset, CustomFee, FeeUnitType};
 
 use crate::config::fee_config::get_fee_config;
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::custom_types::GemBigInt;
 use crate::precision::GemValueStyle;
 use crate::services::amount::model::GemNumberFormat;
-use crate::services::amount::rules::value_from_input;
+use crate::services::amount::rules::{input_text, sanitize_number_input, value_from_input};
 use crate::services::assets::model::GemFeeAmount;
 use crate::services::assets::rules::fee_amount;
 use crate::services::confirm::GemFeeRateRows;
@@ -20,13 +21,13 @@ pub enum GemCustomFeeCheck {
     OverMaximum { rate: GemLocalizedText },
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemCustomFeeInput {
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCustomFeeSession {
     pub fee_asset: Asset,
     pub input: String,
     pub format: GemNumberFormat,
     pub rows: GemFeeRateRows,
-    pub loaded_fee: Option<BigInt>,
+    pub loaded_fee: Option<GemBigInt>,
     pub price: Option<f64>,
     pub currency: Currency,
 }
@@ -51,45 +52,69 @@ pub fn fee_rate_text(unit_type: FeeUnitType, rate: &BigInt, decimals: u32, symbo
     GemLocalizedText::FeeRate { rate, unit: unit_type }
 }
 
+impl GemCustomFeeSession {
+    pub(crate) fn new(fee_asset: Asset, format: GemNumberFormat, rows: GemFeeRateRows, loaded_fee: Option<GemBigInt>, price: Option<f64>, currency: Currency, rate: Option<&GemBigInt>) -> Self {
+        let input = rate.and_then(|rate| input_text(&format.decimal_separator, &rate.to_string(), rows.unit_decimals)).unwrap_or_default();
+        Self {
+            fee_asset,
+            input,
+            format,
+            rows,
+            loaded_fee,
+            price,
+            currency,
+        }
+    }
+}
+
 #[uniffi::export]
-pub fn custom_fee_estimate(input: GemCustomFeeInput) -> GemCustomFeeEstimate {
-    let GemCustomFeeInput {
-        fee_asset,
-        input,
-        format,
-        rows,
-        loaded_fee,
-        price,
-        currency,
-    } = input;
-    let config = get_fee_config(fee_asset.chain());
-    let rate = value_from_input(&format.decimal_separator, &input, rows.unit_decimals).ok().filter(|rate| rate > &BigInt::ZERO);
-    let base_total = rows.selected_total.clone().unwrap_or_default();
-    let normal_total = rows.normal_total.clone().unwrap_or_else(|| base_total.clone());
-    let fee = CustomFee::calculate(
-        rate.clone(),
-        loaded_fee.clone().unwrap_or_default(),
-        base_total,
-        normal_total,
-        config.max_multiplier,
-        config.minimum_custom_fee_rate.map(BigInt::from),
-    );
-    let text = |rate: &BigInt| fee_rate_text(rows.unit_type, rate, rows.unit_decimals, &fee_asset.symbol);
-    let check = match (&fee.minimum_rate, fee.is_below_minimum, fee.is_over_max) {
-        (Some(minimum), true, _) => GemCustomFeeCheck::BelowMinimum { rate: text(minimum) },
-        (_, _, true) => GemCustomFeeCheck::OverMaximum { rate: text(&fee.max_rate) },
-        _ => GemCustomFeeCheck::Valid,
-    };
-    GemCustomFeeEstimate {
-        placeholder: rows
-            .selected_total
-            .as_ref()
-            .map(|total| GemFormattedNumber::amount(BigNumberFormatter::f64_value(total, rows.unit_decimals), None, GemValueStyle::Auto)),
-        fee: loaded_fee.map(|_| fee_amount(&fee_asset, &fee.fee_value, price, currency)),
-        fee_value: fee.fee_value,
-        is_valid: fee.is_valid,
-        check,
-        rate,
+impl GemCustomFeeSession {
+    pub fn on_input(&self, text: String) -> Self {
+        Self {
+            input: sanitize_number_input(&self.format.decimal_separator, &text, Some(self.rows.unit_decimals), None),
+            ..self.clone()
+        }
+    }
+
+    pub fn view_state(&self) -> GemCustomFeeEstimate {
+        let Self {
+            fee_asset,
+            input,
+            format,
+            rows,
+            loaded_fee,
+            price,
+            currency,
+        } = self;
+        let config = get_fee_config(fee_asset.chain());
+        let rate = value_from_input(&format.decimal_separator, input, rows.unit_decimals).ok().filter(|rate| rate > &BigInt::ZERO);
+        let base_total = rows.selected_total.clone().unwrap_or_default();
+        let normal_total = rows.normal_total.clone().unwrap_or_else(|| base_total.clone());
+        let fee = CustomFee::calculate(
+            rate.clone(),
+            loaded_fee.clone().unwrap_or_default(),
+            base_total,
+            normal_total,
+            config.max_multiplier,
+            config.minimum_custom_fee_rate.map(BigInt::from),
+        );
+        let text = |rate: &BigInt| fee_rate_text(rows.unit_type, rate, rows.unit_decimals, &fee_asset.symbol);
+        let check = match (&fee.minimum_rate, fee.is_below_minimum, fee.is_over_max) {
+            (Some(minimum), true, _) => GemCustomFeeCheck::BelowMinimum { rate: text(minimum) },
+            (_, _, true) => GemCustomFeeCheck::OverMaximum { rate: text(&fee.max_rate) },
+            _ => GemCustomFeeCheck::Valid,
+        };
+        GemCustomFeeEstimate {
+            placeholder: rows
+                .selected_total
+                .as_ref()
+                .map(|total| GemFormattedNumber::amount(BigNumberFormatter::f64_value(total, rows.unit_decimals), None, GemValueStyle::Auto)),
+            fee: loaded_fee.as_ref().map(|_| fee_amount(fee_asset, &fee.fee_value, *price, currency.clone())),
+            fee_value: fee.fee_value,
+            is_valid: fee.is_valid,
+            check,
+            rate,
+        }
     }
 }
 
@@ -109,20 +134,31 @@ mod tests {
         }
     }
 
+    fn session(chain: Chain, rows: GemFeeRateRows, loaded_fee: Option<BigInt>, rate: Option<&BigInt>) -> GemCustomFeeSession {
+        GemCustomFeeSession::new(Asset::from_chain(chain), GemNumberFormat { decimal_separator: ".".to_string() }, rows, loaded_fee, Some(2.0), Currency::USD, rate)
+    }
+
     fn estimate_with(chain: Chain, input: &str, rows: GemFeeRateRows, loaded_fee: Option<BigInt>) -> GemCustomFeeEstimate {
-        custom_fee_estimate(GemCustomFeeInput {
-            fee_asset: Asset::from_chain(chain),
+        GemCustomFeeSession {
             input: input.to_string(),
-            format: GemNumberFormat { decimal_separator: ".".to_string() },
-            rows,
-            loaded_fee,
-            price: Some(2.0),
-            currency: Currency::USD,
-        })
+            ..session(chain, rows, loaded_fee, None)
+        }
+        .view_state()
     }
 
     fn estimate(chain: Chain, input: &str) -> GemCustomFeeEstimate {
         estimate_with(chain, input, rows(Some(100)), Some(BigInt::from(1_000)))
+    }
+
+    #[test]
+    fn test_a_session_opens_on_the_picked_rate_and_keeps_typing_to_the_unit_decimals() {
+        let picked = session(Chain::Bitcoin, rows(Some(100)), Some(BigInt::from(1_000)), Some(&BigInt::from(25)));
+        assert_eq!(picked.input, "2.5", "a custom rate reopens as the text it was typed as");
+        assert_eq!(session(Chain::Bitcoin, rows(Some(100)), None, None).input, "");
+
+        let typed = picked.on_input("3.456".to_string());
+        assert_eq!(typed.input, "3.4", "the field stops at the unit decimals");
+        assert_eq!(typed.view_state().rate, Some(BigInt::from(34)));
     }
 
     #[test]

@@ -156,17 +156,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            feeAsset: state.feeAsset,
-            currency: confirmation.currency,
-            selection: loadOptions.feeSelection,
-            feeRates: viewState.feeRates,
-            feeAssetPrice: state.metadata?.feePrice,
-            feeAmount: state.fee?.value,
-            fee: state.fee?.formatted,
-            additionalFees: state.fee?.additionalFees ?? [],
-            feeAssets: state.feeAssets.map(\.feeAssetItem),
-            selectedFeeAsset: state.load.map { FeeAssetItem(asset: state.feeAsset, row: $0.feeAssetRow(currency: confirmation.currency.toGem()), isSelected: false) },
-            showsFeeAssets: state.load?.showsFeeAssets() ?? false,
+            screen: confirmation.networkFeeScreen(format: NumberInput.format()),
             onSelect: { [weak self] in self?.changeFeeSelection($0) },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )

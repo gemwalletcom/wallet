@@ -70,7 +70,7 @@ class ConfirmTransferViewModelRetryTest {
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation> {
         every { rowContents(any()) } returns emptyList()
-        every { feeRateRows() } returns null
+        every { networkFeeScreen(any()) } returns null
     }.stubViewState()
     private var model: ConfirmTransferViewModel? = null
 

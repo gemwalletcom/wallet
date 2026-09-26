@@ -355,7 +355,6 @@ struct NetworkFeeSceneViewModelTests {
 
         let reopened = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
-            selection: .custom(gasPrice: 200),
             feeRates: .mock(
                 rows: [.rate(fee: 1000)],
                 showsOptions: false,

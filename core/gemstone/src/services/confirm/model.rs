@@ -1,5 +1,6 @@
 use super::error::{GemConfirmError, GemConfirmErrorSheet};
 use super::rules::approval_value_from;
+use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
@@ -7,6 +8,7 @@ use crate::models::gateway::GemFeeRate;
 use crate::models::list::{GemAddressRow, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
 use crate::services::balance::GemAssetBalance;
@@ -35,16 +37,8 @@ pub enum GemConfirmFeeSelection {
     Custom { gas_price: GemBigInt },
 }
 
-#[uniffi::export]
 impl GemConfirmFeeSelection {
-    pub fn selected_priority(&self) -> Option<FeePriority> {
-        match self {
-            Self::Priority { priority } => Some(*priority),
-            Self::Custom { .. } => None,
-        }
-    }
-
-    pub fn custom_gas_price(&self) -> Option<GemBigInt> {
+    pub(super) fn custom_gas_price(&self) -> Option<GemBigInt> {
         match self {
             Self::Priority { .. } => None,
             Self::Custom { gas_price } => Some(gas_price.clone()),
@@ -281,6 +275,59 @@ impl ConfirmState {
         let price = self.load.metadata.fee_price().map(|price| price.price);
         Some(self.confirm_data.as_ref()?.fee_rate_rows(&self.load.fee_asset, price, currency))
     }
+
+    pub(super) fn network_fee_screen(&self, currency: Currency, format: GemNumberFormat) -> GemNetworkFeeScreen {
+        let load = &self.load;
+        let rates = self.fee_rate_rows(currency.clone());
+        let custom_rate = self.confirm_data.as_ref().and_then(|data| data.fee_selection.custom_gas_price());
+        let custom = rates.clone().filter(|rates| rates.rows.iter().any(|row| row.kind == GemFeeRateKind::Custom)).map(|rates| {
+            GemCustomFeeSession::new(
+                load.fee_asset.clone(),
+                format,
+                rates,
+                load.fee.as_ref().map(|fee| fee.value.clone()),
+                load.metadata.fee_price().map(|price| price.price),
+                currency.clone(),
+                custom_rate.as_ref(),
+            )
+        });
+        GemNetworkFeeScreen {
+            fee: load.fee.as_ref().map(|fee| fee.formatted.clone()),
+            additional_fees: load.fee.as_ref().map(|fee| fee.additional_fees.clone()).unwrap_or_default(),
+            rates,
+            fee_asset: load.shows_fee_assets().then(|| GemFeeAsset {
+                asset: load.fee_asset.clone(),
+                balance: load.metadata.fee_asset_balance.clone(),
+                price: load.metadata.fee_price(),
+                row: load.fee_asset_row(currency),
+            }),
+            fee_assets: load.fee_assets.clone(),
+            custom,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemNetworkFeeScreen {
+    pub fee: Option<GemFeeAmount>,
+    pub additional_fees: Vec<GemFeeOptionItem>,
+    pub rates: Option<GemFeeRateRows>,
+    pub fee_asset: Option<GemFeeAsset>,
+    pub fee_assets: Vec<GemFeeAsset>,
+    pub custom: Option<GemCustomFeeSession>,
+}
+
+impl GemNetworkFeeScreen {
+    pub fn fee(fee: GemFeeAmount) -> Self {
+        Self {
+            fee: Some(fee),
+            additional_fees: vec![],
+            rates: None,
+            fee_asset: None,
+            fee_assets: vec![],
+            custom: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -389,8 +436,10 @@ impl GemConfirmLoad {
     pub fn fee_asset_row(&self, currency: Currency) -> GemAssetItemRow {
         super::rules::fee_asset_row(&self.fee_asset, &self.metadata.fee_asset_balance, self.metadata.fee_price().map(|price| price.price), &currency)
     }
+}
 
-    pub fn shows_fee_assets(&self) -> bool {
+impl GemConfirmLoad {
+    pub(super) fn shows_fee_assets(&self) -> bool {
         let fee_asset_ids: Vec<AssetId> = self.fee_assets.iter().map(|fee_asset| fee_asset.asset.id.clone()).collect();
         super::rules::shows_fee_assets(&fee_asset_ids, Some(&self.fee_asset.id))
     }
@@ -423,7 +472,6 @@ pub enum GemConfirmSection {
 pub struct GemConfirmViewState {
     pub button: GemConfirmButton,
     pub fee_row: GemConfirmFeeRow,
-    pub fee_rates: Option<GemFeeRateRows>,
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
     pub authentication: GemKeystoreAuthentication,
@@ -433,6 +481,33 @@ pub struct GemConfirmViewState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_network_fee_screen_opens_a_custom_field_only_where_a_custom_row_is_offered() {
+        let format = GemNumberFormat { decimal_separator: ".".to_string() };
+        let fee = GemConfirmFee::mock(GemTransferAmountResult::mock());
+        let state = |chain: primitives::Chain, fee_selection: GemConfirmFeeSelection| ConfirmState {
+            load: GemConfirmLoad {
+                fee_asset: Asset::from_chain(chain),
+                fee: Some(fee.clone()),
+                ..GemConfirmLoad::mock()
+            },
+            confirm_data: Some(GemConfirmData {
+                fee_rates: vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)],
+                fee_selection,
+                ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
+            }),
+        };
+
+        let picked = state(primitives::Chain::Bitcoin, GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(25) }).network_fee_screen(Currency::USD, format.clone());
+        assert_eq!(picked.fee, Some(fee.formatted.clone()));
+        assert_eq!(picked.custom.map(|custom| custom.input), Some("2.5".to_string()), "a picked custom rate reopens in the field");
+
+        let preset = state(primitives::Chain::Ethereum, GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }).network_fee_screen(Currency::USD, format);
+        assert!(preset.rates.is_some());
+        assert!(preset.custom.is_none(), "no custom row, no custom field");
+        assert!(preset.fee_asset.is_none(), "one fee asset is nothing to pick");
+    }
 
     #[test]
     fn test_metadata_pairs_each_balance_with_its_own_price() {
@@ -517,9 +592,7 @@ mod tests {
         let priority = GemConfirmFeeSelection::Priority { priority: FeePriority::Fast };
         let custom = GemConfirmFeeSelection::Custom { gas_price: 7.into() };
 
-        assert_eq!(priority.selected_priority(), Some(FeePriority::Fast));
         assert_eq!(priority.custom_gas_price(), None);
-        assert_eq!(custom.selected_priority(), None);
         assert_eq!(custom.custom_gas_price(), Some(7.into()));
     }
 }

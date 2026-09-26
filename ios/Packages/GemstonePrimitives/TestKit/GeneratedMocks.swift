@@ -498,6 +498,28 @@ public extension Gemstone.GemConnectionRow {
     }
 }
 
+public extension Gemstone.GemCustomFeeSession {
+    static func mock(
+        feeAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        input: String = "",
+        format: Gemstone.GemNumberFormat = .mock(),
+        rows: Gemstone.GemFeeRateRows = .mock(),
+        loadedFee: BigInt? = nil,
+        price: Double? = nil,
+        currency: Gemstone.Currency = .mxn,
+    ) -> Gemstone.GemCustomFeeSession {
+        Gemstone.GemCustomFeeSession(
+            feeAsset: feeAsset,
+            input: input,
+            format: format,
+            rows: rows,
+            loadedFee: loadedFee,
+            price: price,
+            currency: currency,
+        )
+    }
+}
+
 public extension Gemstone.GemEmptyState {
     static func mock(
         title: Gemstone.GemEmptyStateText = .nftsTitle,
@@ -752,6 +774,26 @@ public extension Gemstone.GemLocalizedText {
     }
 }
 
+public extension Gemstone.GemNetworkFeeScreen {
+    static func mock(
+        fee: Gemstone.GemFeeAmount? = nil,
+        additionalFees: [Gemstone.GemFeeOptionItem] = [],
+        rates: Gemstone.GemFeeRateRows? = nil,
+        feeAsset: Gemstone.GemFeeAsset? = nil,
+        feeAssets: [Gemstone.GemFeeAsset] = [],
+        custom: Gemstone.GemCustomFeeSession? = nil,
+    ) -> Gemstone.GemNetworkFeeScreen {
+        Gemstone.GemNetworkFeeScreen(
+            fee: fee,
+            additionalFees: additionalFees,
+            rates: rates,
+            feeAsset: feeAsset,
+            feeAssets: feeAssets,
+            custom: custom,
+        )
+    }
+}
+
 public extension Gemstone.GemNftEntry {
     static func mock(
         item: Gemstone.GemNftItem = .mock(),
@@ -831,6 +873,16 @@ public extension Gemstone.GemNodeStatusState {
 public extension Gemstone.GemNumberDisplay {
     static func mock() -> Gemstone.GemNumberDisplay {
         .number(precision: .mock())
+    }
+}
+
+public extension Gemstone.GemNumberFormat {
+    static func mock(
+        decimalSeparator: String = "",
+    ) -> Gemstone.GemNumberFormat {
+        Gemstone.GemNumberFormat(
+            decimalSeparator: decimalSeparator,
+        )
     }
 }
 

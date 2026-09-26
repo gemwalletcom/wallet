@@ -17,7 +17,6 @@ struct ConfirmTransferStateTests {
 
         #expect(state.fee == nil)
         #expect(state.metadata != nil)
-        #expect(state.feeAssets.count == 1)
     }
 
     @Test

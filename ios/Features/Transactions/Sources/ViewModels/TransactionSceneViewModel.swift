@@ -163,12 +163,7 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        NetworkFeeSceneViewModel(
-            feeAsset: rows.fee.asset.toPrimitives(),
-            currency: service.getCurrency().toPrimitives(),
-            selection: .priority(priority: .normal),
-            fee: rows.feeRow.fee,
-        )
+        NetworkFeeSceneViewModel(screen: rows.feeRow.screen())
     }
 }
 

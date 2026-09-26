@@ -11,12 +11,6 @@ import Testing
 @MainActor
 struct NetworkFeeCustomViewModelTests {
     @Test
-    func anInitialRateFillsTheField() {
-        #expect(NetworkFeeCustomViewModel.mock(initialRate: BigInt(3_000_000_000)).input == "3")
-        #expect(NetworkFeeCustomViewModel.mock(initialRate: nil).input.isEmpty)
-    }
-
-    @Test
     func anEmptyFieldCannotBeConfirmed() {
         let model = NetworkFeeCustomViewModel.mock()
 

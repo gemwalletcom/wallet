@@ -4,6 +4,7 @@ use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTit
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
+use crate::services::confirm::GemNetworkFeeScreen;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
@@ -325,6 +326,13 @@ pub struct GemTransactionFeeRow {
     pub text: GemFeeText,
     pub fee: GemFeeAmount,
     pub info: GemInfoTopic,
+}
+
+#[uniffi::export]
+impl GemTransactionFeeRow {
+    pub fn screen(&self) -> GemNetworkFeeScreen {
+        GemNetworkFeeScreen::fee(self.fee.clone())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

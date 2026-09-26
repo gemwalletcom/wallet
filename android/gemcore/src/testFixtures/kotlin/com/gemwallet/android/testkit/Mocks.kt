@@ -6,8 +6,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.confirm.FeeDetailsModel
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.BuildInfo
@@ -16,7 +14,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.PerpetualId
@@ -25,12 +22,8 @@ import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.FeeOption
-import uniffi.gemstone.FeeUnitType
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAssetItemTrailing
-import uniffi.gemstone.GemFeeOptionItem
-import uniffi.gemstone.GemFeeRateRows
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemRowText
@@ -39,8 +32,6 @@ import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.assetText
-import uniffi.gemstone.feeAmount
-import java.math.BigInteger
 
 fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId(
     chain = chain,
@@ -95,32 +86,6 @@ fun mockBuildInfo(platformStore: PlatformStore = PlatformStore.GooglePlay) = Bui
     versionName = "1.0.0",
     versionCode = 1,
 )
-
-fun mockFeeDetailsModel(
-    currentFee: FeeUIModel.FeeInfo = mockFeeInfo(),
-    rows: GemFeeRateRows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 0u, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2")),
-): FeeDetailsModel = FeeDetailsModel(
-    currentFee = currentFee,
-    rows = rows,
-)
-
-fun mockFeeInfo(
-    amount: BigInteger = BigInteger("1000"),
-    feeAsset: Asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18),
-    price: Double? = null,
-    additionalFees: List<Pair<FeeOption, BigInteger>> = emptyList(),
-): FeeUIModel.FeeInfo {
-    val formatted = { value: BigInteger -> feeAmount(feeAsset.toGem(), value, price, Currency.USD.toGem()) }
-    return FeeUIModel.FeeInfo(
-        amount = amount,
-        feeAsset = feeAsset,
-        price = price,
-        currency = Currency.USD,
-        priority = FeePriority.Normal,
-        display = formatted(amount),
-        additionalFees = additionalFees.map { (option, value) -> GemFeeOptionItem(option, value, formatted(value)) },
-    )
-}
 
 fun mockSession(wallet: Wallet = mockWallet(), currency: Currency = Currency.USD) = Session(
     wallet = wallet,
