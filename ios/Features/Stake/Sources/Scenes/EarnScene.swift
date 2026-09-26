@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
+import enum Gemstone.GemEarnSection
+import struct Gemstone.GemEarnView
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -18,39 +19,18 @@ public struct EarnScene: View {
         List {
             ListAssetHeaderView(model: earn.asset)
 
-            switch model.providersState(earn) {
-            case .noData:
-                Section {
-                    ListItemView(model: model.noDataListItem)
-                }
-            case .loading:
-                ListItemLoadingView()
-                    .id(UUID())
-            case .data:
-                Section {
-                    GemListRowView(row: earn.aprRow)
-                }
-            case let .error(error):
-                ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+            Section {
+                GemListRowView(row: earn.rateRow)
             }
 
-            if model.depositRoute(earn) != nil {
-                Section(Localized.Common.manage) {
-                    NavigationCustomLink(with: ListItemView(model: model.depositListItem)) {
-                        model.onSelectDeposit()
-                    }
+            ForEach(earn.sections, id: \.self) { section in
+                Section(section.title) {
+                    content(for: section, earn: earn)
                 }
             }
 
-            Section(model.positionsSectionTitle(earn)) {
-                if earn.positions.isNotEmpty {
-                    ForEach(earn.positions) { item in
-                        NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
-                            model.onSelect(item: item)
-                        }
-                    }
-                    .listRowInsets(.assetListRowInsets)
-                } else if model.showsEmptyState(earn) {
+            if earn.showsEmpty {
+                Section {
                     EmptyContentView(model: model.emptyContentModel)
                         .cleanListRow()
                 }
@@ -65,6 +45,27 @@ public struct EarnScene: View {
             Task {
                 await model.load()
             }
+        }
+    }
+}
+
+// MARK: - UI Components
+
+extension EarnScene {
+    @ViewBuilder
+    private func content(for section: GemEarnSection, earn: GemEarnView) -> some View {
+        switch section {
+        case .manage:
+            NavigationCustomLink(with: GemListRowView(row: earn.depositRow)) {
+                model.onSelectDeposit()
+            }
+        case .positions:
+            ForEach(earn.positions) { item in
+                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
+                    model.onSelect(item: item)
+                }
+            }
+            .listRowInsets(.assetListRowInsets)
         }
     }
 }

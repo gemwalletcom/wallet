@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,27 +27,28 @@ import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.theme.paddingLarge
+import uniffi.gemstone.GemEarnSection
 import uniffi.gemstone.GemEmptyStateKind
-import uniffi.gemstone.GemListRow
 
 @Composable
 fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val positions by viewModel.positions.collectAsStateWithLifecycle()
-    val aprRow by viewModel.aprRow.collectAsStateWithLifecycle()
-    val header by viewModel.header.collectAsStateWithLifecycle()
+    val earnView by viewModel.earnView.collectAsStateWithLifecycle()
     val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
-    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val earnAssetInfo = assetInfo
     if (earnAssetInfo == null) {
@@ -63,47 +65,45 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
             onRefresh = viewModel::onRefresh,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                header?.let { header ->
-                    item {
-                        CenteredListHead(
-                            title = header.asset.name,
-                            subtitle = header.subtitleSymbol,
-                            leading = { HeaderIcon(header.icon) },
-                        )
-                    }
+                val earn = earnView ?: return@LazyColumn
+                item {
+                    CenteredListHead(
+                        title = earn.asset.asset.name,
+                        subtitle = earn.asset.subtitleSymbol,
+                        leading = { HeaderIcon(earn.asset.icon) },
+                    )
                 }
 
-                item { GemListRowView(row = aprRow, listPosition = ListPosition.Single) }
+                item { GemListRowView(row = earn.rateRow, listPosition = ListPosition.Single) }
 
-                depositParams?.let { params ->
-                    item {
-                        ListItem(
-                            model = viewModel.depositListItem,
-                            listPosition = ListPosition.Single,
-                            modifier = Modifier.clickable { amountAction(params) },
-                            accessory = { DataBadgeChevron() },
-                        )
-                    }
-                }
-
-                if (positions.isEmpty()) {
-                    if (!inSync) {
-                        item {
-                            Spacer(modifier = Modifier.height(paddingLarge))
-                            when (val error = loadError) {
-                                null -> EmptyContentView(kind = GemEmptyStateKind.EARN, symbol = earnAssetInfo.asset.symbol)
-                                else -> GemListRowView(row = GemListRow.Error(error), listPosition = ListPosition.Single)
+                earn.sections.forEach { section ->
+                    item { SubheaderItem(section.stringRes()) }
+                    when (section) {
+                        GemEarnSection.MANAGE -> depositParams?.let { params ->
+                            item {
+                                ListItem(
+                                    model = earn.depositRow.listItemModel(context) ?: ListItemModel(title = ""),
+                                    listPosition = ListPosition.Single,
+                                    modifier = Modifier.clickable { amountAction(params) },
+                                    accessory = { DataBadgeChevron() },
+                                )
                             }
                         }
+
+                        GemEarnSection.POSITIONS -> itemsIndexed(earn.positions) { index, item ->
+                            DelegationItem(
+                                row = item.row,
+                                listPosition = ListPosition.getPosition(index, earn.positions.size),
+                                onClick = { viewModel.onPosition(item.delegation.toPrimitives(), onDelegation, amountAction, onConfirm) },
+                            )
+                        }
                     }
-                } else {
-                    item { SubheaderItem(R.string.perpetual_positions) }
-                    itemsIndexed(positions) { index, item ->
-                        DelegationItem(
-                            row = item.row,
-                            listPosition = ListPosition.getPosition(index, positions.size),
-                            onClick = { viewModel.onPosition(item.delegation.toPrimitives(), onDelegation, amountAction, onConfirm) },
-                        )
+                }
+
+                if (earn.showsEmpty) {
+                    item {
+                        Spacer(modifier = Modifier.height(paddingLarge))
+                        EmptyContentView(kind = GemEmptyStateKind.EARN, symbol = earnAssetInfo.asset.symbol)
                     }
                 }
             }

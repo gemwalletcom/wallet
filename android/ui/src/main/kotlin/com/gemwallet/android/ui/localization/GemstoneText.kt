@@ -62,6 +62,7 @@ import uniffi.gemstone.GemCurrencySectionKind
 import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationStatus
+import uniffi.gemstone.GemEarnSection
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateText
 import uniffi.gemstone.GemErrorText
@@ -843,6 +844,8 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.ADD_TO_WALLET -> context.getString(R.string.asset_add_to_wallet)
     GemListRowTitle.PRICE_ALERTS -> context.getString(R.string.settings_price_alerts_title)
     GemListRowTitle.ENABLE_PRICE_ALERTS -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_price_alerts_title))
+    GemListRowTitle.DEPOSIT -> context.getString(R.string.wallet_deposit)
+    GemListRowTitle.NO_DATA -> context.getString(R.string.errors_no_data_available)
     GemListRowTitle.SET_PRICE_ALERT -> context.getString(R.string.price_alerts_set_alert_title)
     GemListRowTitle.ENERGY -> context.getString(R.string.stake_resource_energy)
     GemListRowTitle.BANDWIDTH -> context.getString(R.string.stake_resource_bandwidth)
@@ -1305,6 +1308,12 @@ fun GemDelegationAction.stringRes(): Int = when (this) {
     GemDelegationAction.UNSTAKE -> R.string.transfer_unstake_title
     GemDelegationAction.WITHDRAW -> R.string.transfer_withdraw_title
     GemDelegationAction.DEPOSIT -> R.string.wallet_deposit
+}
+
+@StringRes
+fun GemEarnSection.stringRes(): Int = when (this) {
+    GemEarnSection.MANAGE -> R.string.common_manage
+    GemEarnSection.POSITIONS -> R.string.perpetual_positions
 }
 
 @StringRes

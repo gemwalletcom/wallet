@@ -250,15 +250,19 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func earnView(input: GemEarnInput) -> GemEarnView {
-        let positions = input.delegations.filter { BigInt($0.base.balance) > 0 }
+        let delegations = input.delegations.filter { BigInt($0.base.balance) > 0 }
+        let positions = zip(delegations, Gemstone.delegationListRows(delegations: delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
+            GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
+        }
+        let depositProvider = input.walletType == .view ? nil : input.providers.first
         return GemEarnView(
             asset: Gemstone.assetText(asset: input.asset),
-            aprRow: .text(title: .stakeApr, value: ""),
-            providers: input.providers,
-            depositProvider: input.walletType == .view ? nil : input.providers.first,
-            positions: zip(positions, Gemstone.delegationListRows(delegations: positions, asset: input.asset, price: input.price, currency: input.currency)).map {
-                GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
-            },
+            rateRow: .text(title: .stakeApr, value: ""),
+            sections: [depositProvider.map { _ in .manage }, positions.isEmpty ? nil : .positions].compactMap(\.self),
+            depositRow: .action(title: .deposit, value: nil, info: nil),
+            depositProvider: depositProvider,
+            positions: positions,
+            showsEmpty: positions.isEmpty && input.state != .loading,
         )
     }
 }

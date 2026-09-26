@@ -1,6 +1,7 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::GemListRow;
+use crate::models::state::GemLoadState;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::assets::icon::GemAssetIcon;
@@ -198,13 +199,21 @@ pub struct GemStakeValidatorOptions {
     pub sections: Vec<GemValidatorSection>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemEarnSection {
+    Manage,
+    Positions,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
     pub asset: GemAssetText,
-    pub apr_row: GemListRow,
-    pub providers: Vec<DelegationValidator>,
+    pub rate_row: GemListRow,
+    pub sections: Vec<GemEarnSection>,
+    pub deposit_row: GemListRow,
     pub deposit_provider: Option<DelegationValidator>,
     pub positions: Vec<GemStakeDelegationItem>,
+    pub shows_empty: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -216,6 +225,7 @@ pub struct GemEarnInput {
     pub asset_apr: Option<f64>,
     pub price: Option<f64>,
     pub currency: Currency,
+    pub state: GemLoadState,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

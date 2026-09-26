@@ -66,15 +66,8 @@ public final class EarnSceneViewModel {
             assetApr: assetData.metadata.earnApr,
             price: assetData.price?.price,
             currency: service.getCurrency(),
+            state: viewState,
         ))
-    }
-
-    var noDataListItem: ListItemModel {
-        ListItemModel(title: Localized.Errors.noDataAvailable)
-    }
-
-    var depositListItem: ListItemModel {
-        ListItemModel(title: Localized.Wallet.deposit)
     }
 
     func depositRoute(_ view: GemEarnView) -> StakeRoute? {
@@ -83,18 +76,6 @@ public final class EarnSceneViewModel {
 
     var emptyContentModel: EmptyStateViewModel {
         EmptyStateViewModel(kind: .earn, symbol: asset.symbol)
-    }
-
-    func showsEmptyState(_ view: GemEarnView) -> Bool {
-        view.positions.isEmpty && viewState != .loading
-    }
-
-    func positionsSectionTitle(_ view: GemEarnView) -> String {
-        view.positions.isEmpty ? .empty : Localized.Perpetual.positions
-    }
-
-    func providersState(_ view: GemEarnView) -> StateViewType<Bool> {
-        viewState.stateViewType(view.providers).map { _ in true }
     }
 }
 

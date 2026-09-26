@@ -36,6 +36,7 @@ import enum Gemstone.GemCurrencySectionKind
 import enum Gemstone.GemCustomFeeCheck
 import enum Gemstone.GemDayLabel
 import enum Gemstone.GemDelegationAction
+import enum Gemstone.GemEarnSection
 import enum Gemstone.GemEmptyStateAction
 import enum Gemstone.GemEmptyStateText
 import enum Gemstone.GemErrorText
@@ -890,6 +891,8 @@ public extension GemListRowTitle {
         case .addToWallet: Localized.Asset.addToWallet
         case .priceAlerts: Localized.Settings.PriceAlerts.title
         case .enablePriceAlerts: Localized.Settings.enableValue(Localized.Settings.PriceAlerts.title)
+        case .deposit: Localized.Wallet.deposit
+        case .noData: Localized.Errors.noDataAvailable
         case .setPriceAlert: Localized.PriceAlerts.SetAlert.title
         case .energy: Localized.Stake.Resource.energy
         case .bandwidth: Localized.Stake.Resource.bandwidth
@@ -1389,6 +1392,15 @@ public extension GemLockPeriod {
         case .fifteenMinutes: Localized.Lock.fifteenMinutes
         case .oneHour: Localized.Lock.oneHour
         case .sixHours: Localized.Lock.sixHours
+        }
+    }
+}
+
+public extension GemEarnSection {
+    var title: String {
+        switch self {
+        case .manage: Localized.Common.manage
+        case .positions: Localized.Perpetual.positions
         }
     }
 }

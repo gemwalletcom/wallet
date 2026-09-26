@@ -15,9 +15,9 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
-    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
-    GemValidatorSectionKind,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnSection, GemEarnView, GemStakeAction,
+    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
+    GemValidatorSection, GemValidatorSectionKind,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -25,6 +25,7 @@ use crate::duration_formatter::{GemDurationPart, countdown_parts, day_parts};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::state::GemLoadState;
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
@@ -559,21 +560,45 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
         asset_apr,
         price,
         currency,
+        state,
     } = input;
     let providers = selectable_validators(providers);
+    let deposit_provider = (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten();
+    let positions: Vec<GemStakeDelegationItem> = sorted_delegations(positions(delegations))
+        .into_iter()
+        .map(|delegation| GemStakeDelegationItem {
+            row: delegation_list_row(&delegation, &asset, price, currency.clone()),
+            destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
+            delegation,
+        })
+        .collect();
     GemEarnView {
         asset: crate::services::assets::rules::asset_text(&asset),
-        apr_row: earn_apr_row(&providers, asset_apr),
-        deposit_provider: (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten(),
-        positions: sorted_delegations(positions(delegations))
+        rate_row: earn_rate_row(&state, &providers, asset_apr),
+        sections: [deposit_provider.is_some().then_some(GemEarnSection::Manage), (!positions.is_empty()).then_some(GemEarnSection::Positions)]
             .into_iter()
-            .map(|delegation| GemStakeDelegationItem {
-                row: delegation_list_row(&delegation, &asset, price, currency.clone()),
-                destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
-                delegation,
-            })
+            .flatten()
             .collect(),
-        providers,
+        deposit_row: GemListRow::Action {
+            title: GemListRowTitle::Deposit,
+            value: None,
+            info: None,
+        },
+        deposit_provider,
+        shows_empty: positions.is_empty() && state != GemLoadState::Loading,
+        positions,
+    }
+}
+
+fn earn_rate_row(state: &GemLoadState, providers: &[DelegationValidator], asset_apr: Option<f64>) -> GemListRow {
+    match (state, providers.is_empty()) {
+        (GemLoadState::Error { error }, _) => GemListRow::Error { error: error.clone() },
+        (GemLoadState::Loading, true) => GemListRow::Loading,
+        (GemLoadState::NoData, _) | (GemLoadState::Data, true) => GemListRow::Text {
+            title: GemListRowTitle::NoData,
+            value: String::new(),
+        },
+        (GemLoadState::Loading | GemLoadState::Data, false) => earn_apr_row(providers, asset_apr),
     }
 }
 
@@ -1824,6 +1849,7 @@ mod tests {
                 asset_apr: None,
                 price: None,
                 currency: Currency::USD,
+                state: GemLoadState::Data,
             })
         };
 
@@ -1852,6 +1878,7 @@ mod tests {
                 asset_apr,
                 price: None,
                 currency: Currency::USD,
+                state: GemLoadState::Data,
             })
         };
         let deposit = |wallet_type, providers| earn(wallet_type, providers, None).deposit_provider;
@@ -1859,10 +1886,53 @@ mod tests {
         assert_eq!(deposit(WalletType::View, vec![best.clone()]), None, "a watch wallet cannot deposit");
         assert_eq!(deposit(WalletType::Multicoin, vec![inactive.clone()]), None, "an inactive provider is no provider");
 
-        let view = earn(WalletType::Multicoin, vec![worse, inactive, best], Some(1.0));
-        assert_eq!(view.providers.first().map(|provider| provider.apr), Some(9.0), "the listed providers are the selectable ones, best first");
-        assert_eq!(view.providers.len(), 2);
-        assert_eq!(view.apr_row, earn_apr_row(&view.providers, Some(1.0)), "the rate comes from the provider that would take the deposit");
+        let view = earn(WalletType::Multicoin, vec![worse, inactive, best.clone()], Some(1.0));
+        assert_eq!(view.rate_row, earn_apr_row(&[best], Some(1.0)), "the rate comes from the provider that would take the deposit");
+    }
+
+    #[test]
+    fn test_the_earn_screen_follows_the_load_state() {
+        let provider = DelegationValidator::mock_cosmos("provider");
+        let position = Delegation::mock_base(DelegationBase::mock_with_balance(10, 0));
+        let view = |state, providers, delegations| {
+            earn_view(GemEarnInput {
+                wallet_type: WalletType::Multicoin,
+                asset: Asset::from_chain(Chain::Ethereum),
+                providers,
+                delegations,
+                asset_apr: None,
+                price: None,
+                currency: Currency::USD,
+                state,
+            })
+        };
+        let error = GemLoadState::Error {
+            error: crate::services::error::GemServiceError::Offline,
+        };
+
+        assert_eq!(view(GemLoadState::Loading, vec![], vec![]).rate_row, GemListRow::Loading);
+        assert_eq!(
+            view(GemLoadState::Data, vec![], vec![]).rate_row,
+            GemListRow::Text {
+                title: GemListRowTitle::NoData,
+                value: String::new(),
+            }
+        );
+        assert_eq!(
+            view(GemLoadState::Loading, vec![provider.clone()], vec![]).rate_row,
+            earn_apr_row(std::slice::from_ref(&provider), None),
+            "stored providers show while refreshing"
+        );
+        assert!(matches!(view(error, vec![provider.clone()], vec![]).rate_row, GemListRow::Error { .. }));
+
+        assert!(!view(GemLoadState::Loading, vec![], vec![]).shows_empty, "nothing is empty before the first load ends");
+        let empty = view(GemLoadState::Data, vec![provider.clone()], vec![]);
+        assert!(empty.shows_empty);
+        assert_eq!(empty.sections, vec![GemEarnSection::Manage]);
+
+        let invested = view(GemLoadState::Data, vec![provider], vec![position]);
+        assert!(!invested.shows_empty);
+        assert_eq!(invested.sections, vec![GemEarnSection::Manage, GemEarnSection::Positions]);
     }
 
     #[test]

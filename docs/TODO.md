@@ -50,7 +50,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM279; preserve exact atomic values |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | — |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM291, VM292 |
@@ -141,10 +141,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Screen composition
 
-- **VM279** **S** **The earn screen's rows are built in the apps.**
-  - **iOS:** `EarnSceneViewModel` builds the "No data" and "Deposit" rows, decides the empty state and shows "Positions" only when positions exist.
-  - **Android:** `EarnViewModel.depositListItem` and `EarnScreen` build the same.
-  - **Expected:** the earn view returns its sections and rows.
 - **VM280** **M** **Transaction details are composed per row kind in the apps.**
   - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
   - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.

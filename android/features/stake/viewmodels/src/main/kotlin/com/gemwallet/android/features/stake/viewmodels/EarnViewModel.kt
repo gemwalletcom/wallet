@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.stake.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -16,8 +15,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -26,12 +23,10 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -41,12 +36,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemEarnInput
-import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeServiceInterface
 import javax.inject.Inject
 
@@ -61,7 +52,6 @@ class EarnViewModel @Inject constructor(
     getSession: GetSession,
     stateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val assetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
@@ -81,7 +71,9 @@ class EarnViewModel @Inject constructor(
     private val delegations = session.filterNotNull()
         .flatMapLatest { current -> delegationsQuery(current.wallet.id, assetId, StakeProviderType.Earn) }
 
-    private val earnView = combine(providers, delegations, assetInfo, session) { providers, delegations, assetInfo, current ->
+    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
+
+    val earnView = combine(providers, delegations, assetInfo, session, loadState) { providers, delegations, assetInfo, current, state ->
         val info = assetInfo ?: return@combine null
         stakeService.earnView(
             GemEarnInput(
@@ -92,6 +84,7 @@ class EarnViewModel @Inject constructor(
                 assetApr = info.metadata?.earnApr,
                 price = info.price?.price,
                 currency = (current?.currency ?: Currency.USD).toGem(),
+                state = state,
             ),
         )
     }
@@ -106,23 +99,10 @@ class EarnViewModel @Inject constructor(
         item.destination.open(delegation, onOpenDetail, onAmount, onConfirm)
     }
 
-    val header: StateFlow<GemAssetText?> = earnView.map { it?.asset }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val aprRow: StateFlow<GemListRow> = earnView.map { it?.aprRow ?: GemListRow.Text(GemListRowTitle.STAKE_APR, "") }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))
-
-    val depositListItem = ListItemModel(title = context.getString(R.string.wallet_deposit))
-
     val depositParams = earnView.map { view -> view?.depositProvider?.let { AmountParams.Earn.Deposit(assetId, it.id) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val sync = MutableStateFlow(true)
-    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
-
-    val loadError: StateFlow<GemServiceException?> = loadState
-        .map { (it as? GemLoadState.Error)?.error }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val isSync = sync
         .flatMapLatest { isSync ->

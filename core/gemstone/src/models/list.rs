@@ -102,6 +102,8 @@ pub enum GemListRowTitle {
     AddToWallet,
     PriceAlerts,
     EnablePriceAlerts,
+    Deposit,
+    NoData,
     SetPriceAlert,
     Energy,
     Bandwidth,

@@ -57,17 +57,19 @@ class EarnViewModelTest {
     private val funded = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("500"), shares = BigInteger("500")), validator = provider)
     private val empty = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger.ZERO, shares = BigInteger.ZERO, delegationId = "empty"), validator = provider)
 
-    private val aprRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
+    private val rateRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
     private var destination: GemDelegationDestination = GemDelegationDestination.Details
     private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
         every { earnView(any()) } answers {
             val input = firstArg<GemEarnInput>()
             GemEarnView(
                 asset = assetText(input.asset),
-                aprRow = aprRow,
-                providers = input.providers,
+                rateRow = rateRow,
+                sections = emptyList(),
+                depositRow = GemListRow.Action(GemListRowTitle.DEPOSIT, null, null),
                 depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },
                 positions = listOf(GemStakeDelegationItem(funded.toGem(), delegationListRows(listOf(funded.toGem()), input.asset, null, input.currency).first(), destination)),
+                showsEmpty = false,
             )
         }
     }
@@ -102,7 +104,6 @@ class EarnViewModelTest {
         getSession = getSession,
         stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
         ioDispatcher = testDispatcher,
-        context = mockk(relaxed = true),
     )
 
     @Test
@@ -129,7 +130,7 @@ class EarnViewModelTest {
     fun `the rate row is the one core answers for the providers`() = runTest(testDispatcher) {
         val model = viewModel()
 
-        assertEquals(aprRow, model.aprRow.first { it == aprRow })
+        assertEquals(rateRow, model.earnView.first { it != null }?.rateRow)
     }
 
     @Test
