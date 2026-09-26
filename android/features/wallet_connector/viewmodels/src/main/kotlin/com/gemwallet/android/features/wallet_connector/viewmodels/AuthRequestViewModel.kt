@@ -13,9 +13,9 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.ReviewTexts
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.WalletConnectReviewModel
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.map
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.ReviewTexts
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletConnectReviewModel
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.uiModel
@@ -52,7 +52,7 @@ import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
 @HiltViewModel
-class WCAuthViewModel @Inject constructor(
+class AuthRequestViewModel @Inject constructor(
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -64,11 +64,11 @@ class WCAuthViewModel @Inject constructor(
     private var authRequest: WalletConnectAuthenticationRequest? = null
     private var hasResponded = false
 
-    private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
-    val state: StateFlow<AuthSceneState> = _state.asStateFlow()
+    private val _state = MutableStateFlow<AuthRequestUIState>(AuthRequestUIState.Loading)
+    val state: StateFlow<AuthRequestUIState> = _state.asStateFlow()
 
     val buttonState: StateFlow<ButtonState> = state
-        .map { buttonState(loading = it is AuthSceneState.Approving) }
+        .map { buttonState(loading = it is AuthRequestUIState.Approving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
     fun onRequest(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit) {
@@ -77,7 +77,7 @@ class WCAuthViewModel @Inject constructor(
         }
         authRequest = request
         hasResponded = false
-        _state.update { AuthSceneState.Loading }
+        _state.update { AuthRequestUIState.Loading }
         viewModelScope.launch {
             val content = withContext(ioDispatcher) {
                 runCatchingCancellable { requestContent(request, verifyContext) }
@@ -91,7 +91,7 @@ class WCAuthViewModel @Inject constructor(
                     approveWalletConnectAuthentication.rejectAuthentication(request)
                     finish(request)
                 } else {
-                    rejectRequest(request, AuthSceneState.Error(err.errorText().text(context)))
+                    rejectRequest(request, AuthRequestUIState.Error(err.errorText().text(context)))
                 }
                 return@launch
             }
@@ -102,13 +102,13 @@ class WCAuthViewModel @Inject constructor(
     }
 
     fun onWalletSelected(walletId: WalletId) {
-        val current = _state.value as? AuthSceneState.Request ?: return
+        val current = _state.value as? AuthRequestUIState.Request ?: return
         val wallet = current.availableWallets.firstOrNull { it.id == walletId } ?: return
         val request = authRequest ?: return
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
-            _state.update { AuthSceneState.Error(err.errorText().text(context)) }
+            _state.update { AuthRequestUIState.Error(err.errorText().text(context)) }
             return
         }
 
@@ -122,12 +122,12 @@ class WCAuthViewModel @Inject constructor(
 
     fun onApprove() {
         val request = authRequest ?: return
-        val current = _state.value as? AuthSceneState.Request ?: return
+        val current = _state.value as? AuthRequestUIState.Request ?: return
         if (hasResponded) {
             return
         }
         val approval = current.approval
-        _state.update { AuthSceneState.Approving(current) }
+        _state.update { AuthRequestUIState.Approving(current) }
 
         viewModelScope.launch(ioDispatcher) {
             try {
@@ -159,20 +159,20 @@ class WCAuthViewModel @Inject constructor(
                     },
                     onError = { error ->
                         if (authRequest?.id == request.id) {
-                            _state.update { AuthSceneState.Error(error.text(context)) }
+                            _state.update { AuthRequestUIState.Error(error.text(context)) }
                         }
                     },
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    _state.update { AuthSceneState.Error(err.errorText().text(context)) }
+                    _state.update { AuthRequestUIState.Error(err.errorText().text(context)) }
                 }
             }
         }
     }
 
     fun onReject() {
-        if (_state.value is AuthSceneState.Approving) {
+        if (_state.value is AuthRequestUIState.Approving) {
             return
         }
         val request = authRequest
@@ -185,7 +185,7 @@ class WCAuthViewModel @Inject constructor(
         finish()
     }
 
-    private fun rejectRequest(request: WalletConnectAuthenticationRequest, errorState: AuthSceneState.Error) {
+    private fun rejectRequest(request: WalletConnectAuthenticationRequest, errorState: AuthRequestUIState.Error) {
         if (!isActiveRequest(request)) {
             return
         }
@@ -209,10 +209,10 @@ class WCAuthViewModel @Inject constructor(
 
     private fun reset() {
         authRequest = null
-        _state.update { AuthSceneState.Loading }
+        _state.update { AuthRequestUIState.Loading }
     }
 
-    private suspend fun requestContent(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext): AuthSceneState.Request {
+    private suspend fun requestContent(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext): AuthRequestUIState.Request {
         val prepared = walletConnectService.prepareSessionProposal(
             requiredChainIds = emptyList(),
             optionalChainIds = walletConnectService.authenticationChainIds(request.payloadParams.chains),
@@ -226,7 +226,7 @@ class WCAuthViewModel @Inject constructor(
             validation = verifyContext.map(),
         )
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
-        return AuthSceneState.Request(
+        return AuthRequestUIState.Request(
             texts = ReviewTexts(context),
             peer = applicationConnectionRow(prepared.proposal.metadata),
             availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
@@ -288,14 +288,14 @@ class WCAuthViewModel @Inject constructor(
     )
 }
 
-sealed interface AuthSceneState {
+sealed interface AuthRequestUIState {
 
-    data object Loading : AuthSceneState
+    data object Loading : AuthRequestUIState
 
-    class Error(val text: String) : AuthSceneState
+    class Error(val text: String) : AuthRequestUIState
 
     sealed interface Content :
-        AuthSceneState,
+        AuthRequestUIState,
         WalletConnectReviewModel {
         val peer: GemConnectionRow
         val availableWallets: List<Wallet>

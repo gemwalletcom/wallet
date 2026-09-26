@@ -8,7 +8,7 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
 import com.gemwallet.android.data.services.store.queries.ConnectionQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.listItem
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.listItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument

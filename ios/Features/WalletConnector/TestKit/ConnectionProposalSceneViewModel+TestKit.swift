@@ -4,9 +4,9 @@ import Primitives
 import PrimitivesTestKit
 import WalletConnector
 
-public extension ConnectionProposalViewModel {
-    static func mock(metadata: ApplicationMetadata = .mock()) -> ConnectionProposalViewModel {
-        ConnectionProposalViewModel(
+public extension ConnectionProposalSceneViewModel {
+    static func mock(metadata: ApplicationMetadata = .mock()) -> ConnectionProposalSceneViewModel {
+        ConnectionProposalSceneViewModel(
             confirmTransferDelegate: { _ in },
             pairingProposal: .mock(proposal: .mock(metadata: metadata)),
         )

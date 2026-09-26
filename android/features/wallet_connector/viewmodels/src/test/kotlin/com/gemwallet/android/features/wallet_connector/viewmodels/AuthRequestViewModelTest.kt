@@ -43,10 +43,10 @@ import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WCAuthViewModelTest {
+class AuthRequestViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val models = mutableListOf<WCAuthViewModel>()
+    private val models = mutableListOf<AuthRequestViewModel>()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -102,7 +102,7 @@ class WCAuthViewModelTest {
         every { authMessage(any(), any()) } returns "app.uniswap.org wants you to sign in"
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval()) = WCAuthViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval()) = AuthRequestViewModel(
         approveWalletConnectAuthentication = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
@@ -113,11 +113,11 @@ class WCAuthViewModelTest {
         },
     ).also { models.add(it) }
 
-    private suspend fun WCAuthViewModel.awaitSettled(): AuthSceneState = state.first { it !is AuthSceneState.Loading }
+    private suspend fun AuthRequestViewModel.awaitSettled(): AuthRequestUIState = state.first { it !is AuthRequestUIState.Loading }
 
-    private suspend fun WCAuthViewModel.awaitContent(): AuthSceneState.Content = when (val settled = awaitSettled()) {
-        is AuthSceneState.Content -> settled
-        is AuthSceneState.Error -> throw AssertionError(settled.text.toString())
+    private suspend fun AuthRequestViewModel.awaitContent(): AuthRequestUIState.Content = when (val settled = awaitSettled()) {
+        is AuthRequestUIState.Content -> settled
+        is AuthRequestUIState.Error -> throw AssertionError(settled.text.toString())
         else -> throw AssertionError("unexpected state $settled")
     }
 
@@ -133,7 +133,7 @@ class WCAuthViewModelTest {
 
         assertEquals("Malicious origin", notified.await())
         verify { approve.rejectAuthentication(request, any(), any()) }
-        assertTrue(model.state.value is AuthSceneState.Loading)
+        assertTrue(model.state.value is AuthRequestUIState.Loading)
     }
 
     @Test
@@ -143,7 +143,7 @@ class WCAuthViewModelTest {
         model.onRequest(request, verifyContext) {}
 
         val content = model.awaitContent()
-        assertTrue(content is AuthSceneState.Request)
+        assertTrue(content is AuthRequestUIState.Request)
         assertEquals("Uniswap", content.peer.title)
         assertEquals(main, content.selectedWallet)
         assertEquals(listOf(main, secondary), content.availableWallets)
@@ -172,7 +172,7 @@ class WCAuthViewModelTest {
         model.onWalletSelected(secondary.id)
         model.onRequest(request, verifyContext) {}
 
-        val content = model.state.value as AuthSceneState.Content
+        val content = model.state.value as AuthRequestUIState.Content
         assertEquals(secondary, content.selectedWallet)
     }
 
@@ -194,7 +194,7 @@ class WCAuthViewModelTest {
         model.awaitContent()
         model.onWalletSelected(secondary.id)
 
-        val content = model.state.value as AuthSceneState.Content
+        val content = model.state.value as AuthRequestUIState.Content
         assertEquals(secondary, content.selectedWallet)
         assertEquals("0xdef", content.approval.account.address)
         assertEquals("did:pkh:eip155:1:0xdef", content.approval.issuer)
@@ -207,7 +207,7 @@ class WCAuthViewModelTest {
 
         model.onRequest(request, verifyContext) {}
 
-        assertTrue(model.awaitSettled() is AuthSceneState.Error)
+        assertTrue(model.awaitSettled() is AuthRequestUIState.Error)
         verify { approve.rejectAuthentication(request, any(), any()) }
     }
 
@@ -242,6 +242,6 @@ class WCAuthViewModelTest {
         model.onReject()
 
         verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
-        assertTrue(model.state.value is AuthSceneState.Loading)
+        assertTrue(model.state.value is AuthRequestUIState.Loading)
     }
 }

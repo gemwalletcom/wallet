@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallet_connector.viewmodels.model
+package com.gemwallet.android.features.wallet_connector.viewmodels.models
 
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext

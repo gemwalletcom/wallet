@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallet_connector.viewmodels.model
+package com.gemwallet.android.features.wallet_connector.viewmodels.models
 
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel

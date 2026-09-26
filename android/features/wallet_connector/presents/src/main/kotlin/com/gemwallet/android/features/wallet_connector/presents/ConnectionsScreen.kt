@@ -44,7 +44,7 @@ import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemEmptyStateKind
 
 @Composable
-fun ConnectionsScene(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
+fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 

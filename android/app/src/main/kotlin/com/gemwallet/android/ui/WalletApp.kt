@@ -23,7 +23,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
-import com.gemwallet.android.WalletConnectRequestContent
+import com.gemwallet.android.WalletConnectorRequestContent
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.features.onboarding.presents.OnboardScreen
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
@@ -66,14 +66,14 @@ fun WalletApp(
         }
     }
 
-    val walletConnectRequest = activeWalletConnectRequest?.current?.collectAsStateWithLifecycle()?.value
-    LaunchedEffect(walletConnectRequest?.key, navigator) {
-        navigator.showWalletConnectRequest(walletConnectRequest?.key)
+    val walletConnectorRequest = activeWalletConnectRequest?.current?.collectAsStateWithLifecycle()?.value
+    LaunchedEffect(walletConnectorRequest?.key, navigator) {
+        navigator.showWalletConnectorRequest(walletConnectorRequest?.key)
     }
-    val walletConnectRequestContent: @Composable (String) -> Unit = remember(activeWalletConnectRequest, navigator, onWalletConnectError) {
+    val walletConnectorRequestContent: @Composable (String) -> Unit = remember(activeWalletConnectRequest, navigator, onWalletConnectError) {
         { key ->
             activeWalletConnectRequest?.let { activeRequest ->
-                WalletConnectRequestContent(
+                WalletConnectorRequestContent(
                     activeRequest = activeRequest,
                     requestKey = key,
                     onGetAsset = navigator::openGetAsset,
@@ -89,7 +89,7 @@ fun WalletApp(
         onWalletContentReady = onContentReady,
         onAcceptTerms = viewModel::acceptTerms,
         onPayment = viewModel::openPayment,
-        walletConnectRequest = walletConnectRequestContent,
+        walletConnectorRequest = walletConnectorRequestContent,
         onboard = {
             OnboardScreen(
                 onCreateWallet = {

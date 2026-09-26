@@ -50,8 +50,8 @@ public extension ViewModelFactory {
     func connectionsScene(
         connector: any WalletConnectorServiceable,
         walletConnectorPresenter: WalletConnectorPresenter,
-    ) -> ConnectionsViewModel {
-        ConnectionsViewModel(
+    ) -> ConnectionsSceneViewModel {
+        ConnectionsSceneViewModel(
             connector: connector,
             service: walletConnectService,
             walletConnectorPresenter: walletConnectorPresenter,

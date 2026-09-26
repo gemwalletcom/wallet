@@ -14,7 +14,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyConte
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.wallet_connector.viewmodels.RequestSceneState
 import com.gemwallet.android.features.wallet_connector.viewmodels.WCRequestViewModel
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.WCRequest
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.WCRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem

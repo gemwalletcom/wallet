@@ -16,8 +16,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
-import com.gemwallet.android.features.wallet_connector.viewmodels.AuthSceneState
-import com.gemwallet.android.features.wallet_connector.viewmodels.WCAuthViewModel
+import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestUIState
+import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -29,9 +29,9 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit) {
+fun AuthRequestScreen(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit) {
     val context = LocalContext.current
-    val viewModel: WCAuthViewModel = hiltViewModel()
+    val viewModel: AuthRequestViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
@@ -43,19 +43,19 @@ fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext:
     }
 
     when (val currentState = state) {
-        is AuthSceneState.Error -> FatalStateScene(
+        is AuthRequestUIState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
             message = currentState.text,
             onCancel = viewModel::onReject,
         )
 
-        AuthSceneState.Loading -> LoadingScene(
+        AuthRequestUIState.Loading -> LoadingScene(
             title = stringResource(id = R.string.transfer_review_request),
             onCancel = viewModel::onReject,
             closeIcon = true,
         )
 
-        is AuthSceneState.Content -> AuthRequestContent(
+        is AuthRequestUIState.Content -> AuthRequestContent(
             state = currentState,
             buttonState = buttonState,
             onApprove = viewModel::onApprove,
@@ -67,7 +67,14 @@ fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext:
 }
 
 @Composable
-private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: ButtonState, onApprove: () -> Unit, onReject: () -> Unit, onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
+private fun AuthRequestContent(
+    state: AuthRequestUIState.Content,
+    buttonState: ButtonState,
+    onApprove: () -> Unit,
+    onReject: () -> Unit,
+    onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit,
+    onOpenAddress: (ChainAddress) -> Unit,
+) {
     var isShowSelectWallets by remember { mutableStateOf(false) }
     val canSelectWallet = state.availableWallets.size > 1
 
@@ -83,7 +90,7 @@ private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: Butto
                 ListItem(
                     model = state.walletListItem,
                     listPosition = if (hasHeader) ListPosition.Middle else ListPosition.First,
-                    modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
+                    modifier = if (canSelectWallet && state !is AuthRequestUIState.Approving) {
                         Modifier.clickable { isShowSelectWallets = true }
                     } else {
                         Modifier
@@ -102,7 +109,7 @@ private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: Butto
         onOpenAddress = onOpenAddress,
     )
 
-    WalletSelectionSheet(
+    SelectWalletSheet(
         isVisible = isShowSelectWallets,
         walletSections = state.availableWalletSections,
         selectedWalletId = state.selectedWallet.id,

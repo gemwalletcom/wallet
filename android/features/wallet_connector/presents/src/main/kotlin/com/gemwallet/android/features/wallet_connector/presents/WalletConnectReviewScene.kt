@@ -2,8 +2,11 @@ package com.gemwallet.android.features.wallet_connector.presents
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.WalletConnectReviewModel
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletConnectReviewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -20,6 +23,8 @@ import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
@@ -88,7 +93,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
         }
     }
 
-    WalletConnectPayloadDetailsSheet(
+    SignMessagePayloadDetailsSheet(
         isVisible = sheetType == WalletConnectReviewSheetType.Details,
         primaryFields = model.primaryPayloadFields,
         secondaryFields = model.secondaryPayloadFields,
@@ -97,7 +102,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
         onDismissRequest = { sheetType = null },
         viewFullMessageListItem = model.viewFullMessageListItem,
     )
-    WalletConnectFullMessageSheet(
+    TextMessageSheet(
         isVisible = sheetType == WalletConnectReviewSheetType.FullMessage,
         message = model.message,
         onDismissRequest = { sheetType = null },
@@ -107,4 +112,17 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
 private enum class WalletConnectReviewSheetType {
     Details,
     FullMessage,
+}
+
+private fun LazyListScope.walletConnectTextMessage(message: String) {
+    item {
+        SubheaderItem(R.string.sign_message_message)
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .listItem()
+                .padding(paddingDefault),
+            text = message,
+        )
+    }
 }

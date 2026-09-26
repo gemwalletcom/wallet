@@ -15,7 +15,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct ConnectionProposalViewModel {
+public struct ConnectionProposalSceneViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let pairingProposal: WCPairingProposal
     private let row: GemConnectionRow
@@ -125,7 +125,7 @@ public struct ConnectionProposalViewModel {
 
 // MARK: - Business Logic
 
-extension ConnectionProposalViewModel {
+extension ConnectionProposalSceneViewModel {
     func accept() {
         guard let selectedWallet = walletSelectorModel.selectedItems.first else {
             return

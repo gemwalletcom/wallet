@@ -16,9 +16,9 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.ReviewTexts
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.WCRequest
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.map
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.ReviewTexts
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.WCRequest
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState

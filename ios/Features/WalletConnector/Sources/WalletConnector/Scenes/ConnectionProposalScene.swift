@@ -8,11 +8,11 @@ import Style
 import SwiftUI
 
 public struct ConnectionProposalScene: View {
-    @State private var model: ConnectionProposalViewModel
+    @State private var model: ConnectionProposalSceneViewModel
     private let onComplete: () -> Void
 
     public init(
-        model: ConnectionProposalViewModel,
+        model: ConnectionProposalSceneViewModel,
         onComplete: @escaping () -> Void,
     ) {
         _model = State(initialValue: model)

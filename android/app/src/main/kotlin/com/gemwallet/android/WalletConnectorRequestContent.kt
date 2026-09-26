@@ -7,25 +7,25 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.WalletConnectUserRequest
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
-import com.gemwallet.android.features.wallet_connector.presents.AuthRequestScene
-import com.gemwallet.android.features.wallet_connector.presents.ProposalScene
+import com.gemwallet.android.features.wallet_connector.presents.AuthRequestScreen
+import com.gemwallet.android.features.wallet_connector.presents.ConnectionProposalScreen
 import com.gemwallet.android.features.wallet_connector.presents.RequestScene
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectRequest, requestKey: String, onGetAsset: (GetAssetAction, AssetId) -> Unit, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
+internal fun WalletConnectorRequestContent(activeRequest: ActiveWalletConnectRequest, requestKey: String, onGetAsset: (GetAssetAction, AssetId) -> Unit, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
     val request by activeRequest.current.collectAsStateWithLifecycle()
     when (val current = request?.takeIf { it.key == requestKey }) {
         null -> Unit
 
-        is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScene(
+        is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScreen(
             request = current.request,
             verifyContext = current.verifyContext,
             onOpenAddress = onOpenAddress,
         )
 
-        is WalletConnectUserRequest.SessionProposal -> ProposalScene(
+        is WalletConnectUserRequest.SessionProposal -> ConnectionProposalScreen(
             proposal = current.proposal,
             verifyContext = current.verifyContext,
             onError = onError,

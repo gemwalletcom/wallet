@@ -40,10 +40,10 @@ import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ProposalSceneViewModelTest {
+class ConnectionProposalViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val models = mutableListOf<ProposalSceneViewModel>()
+    private val models = mutableListOf<ConnectionProposalViewModel>()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -72,7 +72,7 @@ class ProposalSceneViewModelTest {
         )
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true)) = ProposalSceneViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true)) = ConnectionProposalViewModel(
         approveWalletConnection = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,

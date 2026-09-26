@@ -11,9 +11,9 @@ import Style
 import SwiftUI
 
 public struct ConnectionsScene: View {
-    @State private var model: ConnectionsViewModel
+    @State private var model: ConnectionsSceneViewModel
 
-    public init(model: ConnectionsViewModel) {
+    public init(model: ConnectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

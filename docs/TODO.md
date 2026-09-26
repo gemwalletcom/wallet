@@ -399,7 +399,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the Core bubble row carries side and outcome; palette from the style mapper; the models go.
 - **VM260** **S** **WalletConnect connection rows are built in the apps.**
   - **iOS:** `ConnectionViewModel` and `ConnectionSceneViewModel` build the row and title.
-  - **Android:** `ConnectionRowUIModel` picks icon or initial placeholder.
+  - **Android:** `ConnectionUIModel` picks icon or initial placeholder.
   - **Expected:** the shared renderer draws the Core connection row; both go.
 
 ### Shared components, second round
@@ -483,8 +483,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.
   - **Expected:** the details sections carry finished rows (with VM209, VM211, VM212); both item layers go.
 - **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
-  - **iOS:** `ConnectionProposalViewModel` builds wallet, connection, status and the two permission rows.
-  - **Android:** `ProposalSceneViewModel` builds the same four.
+  - **iOS:** `ConnectionProposalSceneViewModel` builds wallet, connection, status and the two permission rows.
+  - **Android:** `ConnectionProposalViewModel` builds the same four.
   - **Expected:** a Core proposal record returns the rows.
 - **VM282** **S** **The perpetual market hides its header while searching in the views.**
   - **iOS:** `PerpetualsScene` gates the balance header on `!model.isSearching`.
@@ -526,11 +526,11 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
-  - **Android:** `ReferralScreen` checks `availableWallets.size > 1`; `AuthRequestScene` does the same for WalletConnect authentication.
+  - **Android:** `ReferralScreen` checks `availableWallets.size > 1`; `AuthRequestScreen` does the same for WalletConnect authentication.
   - **Expected:** the rewards state and the WalletConnect request say whether a wallet can be chosen; the counts go.
 - **VM292** **S** **The rewards screen's intro and action placement are written in the apps.**
   - **iOS:** `RewardsScene` lists the three intro features with their emojis and titles and places share or create-code, use-code and the pending referral.
@@ -637,9 +637,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM363** **M** **WalletConnect: connections, proposal and request screens follow iOS.**
-  - **iOS:** `ConnectionsViewModel`/`ConnectionProposalViewModel` (+ tests) → `…SceneViewModel`; the private `SignMessageNavigationView` follows the destination-host rule.
-  - **Android:** `ConnectionsScene`/`ConnectionScene` (bind view models) → `ConnectionsScreen`/`ConnectionScreen`; `ConnectionRowUIModel` → `ConnectionUIModel`; `BridgeConnectionsRoute`/`BridgeConnectionDetailsRoute`/`bridgesScreen` (file `Bridge.kt`) → `ConnectionsRoute`/`ConnectionRoute`/`connectionsScreen` in `Connections.kt`; `ProposalScene`/`ProposalSceneViewModel`/`ProposalSceneState`/`ProposalSceneViewModelTest` → `ConnectionProposalScreen` + `ConnectionProposalScene`/`ConnectionProposalViewModel`/`ConnectionProposalUIState`/`ConnectionProposalViewModelTest`; `AuthRequestScene`/`WCAuthViewModel`/`AuthSceneState` → `AuthRequestScreen`/`AuthRequestViewModel`/`AuthRequestUIState`; `WalletConnectPayloadDetailsSheet`/`WalletConnectFullMessageSheet`/`WalletSelectionSheet` → `SignMessagePayloadDetailsSheet`/`TextMessageSheet`/`SelectWalletSheet`; `WalletConnectRequestRoute`/`WalletConnectRequestContent` → `WalletConnectorRequest…`; package `viewmodels.model` → `viewmodels.models`; `VerifyContext.kt` named after its contents.
+- **NAM363** **M** **WalletConnect: the request screen follows iOS.**
   - **Request screen, as iOS:** Android `RequestScene`/`WCRequestViewModel`/`RequestSceneState` today handle messages and transactions. A message request becomes `SignMessageScreen` + `SignMessageScene`/`SignMessageViewModel`/`SignMessageUIState`, and the app's `WalletConnectorRequestContent` opens it for a message and `ConfirmTransferScreen` for a transaction, as iOS `WalletConnectorNavigationStack` does, so every transaction passes the one confirmation screen.
 - **NAM364** **M** **Onboarding: import is `ImportWallet`, the phrase check `VerifyPhrase`.**
   - **iOS:** `CreateWalletModel` (+ tests, TestKit) → `CreateWalletViewModel`; `ImportWalletTypeViewModel`/`AcceptTermsViewModel`/`VerifyPhraseViewModel` → `…SceneViewModel`; `VerifyPhraseWalletScene` → `VerifyPhraseScene`; `OnboardingViewModelTests.swift` splits per type; `Types/WalletType.swift` → `ImportWalletType.swift`.

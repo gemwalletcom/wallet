@@ -6,10 +6,10 @@ import Testing
 @testable import WalletConnector
 import WalletConnectorTestKit
 
-struct ConnectionProposalViewModelTests {
+struct ConnectionProposalSceneViewModelTests {
     @Test
     func appIconPrefersTheProposedIcon() {
-        let model = ConnectionProposalViewModel.mock(
+        let model = ConnectionProposalSceneViewModel.mock(
             metadata: .mock(url: "https://tronscan.org/some/page", icon: "https://tronscan.org/static/media/logo.png"),
         )
 
@@ -19,7 +19,7 @@ struct ConnectionProposalViewModelTests {
 
     @Test
     func unsafeAppWebsiteUsesPlaceholder() {
-        let model = ConnectionProposalViewModel.mock(metadata: .mock(url: "http://app.example.com"))
+        let model = ConnectionProposalSceneViewModel.mock(metadata: .mock(url: "http://app.example.com"))
 
         #expect(model.imageUrl == nil)
     }

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallet_connector.viewmodels.model
+package com.gemwallet.android.features.wallet_connector.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest

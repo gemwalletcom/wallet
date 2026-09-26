@@ -46,7 +46,7 @@ import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
-import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectorRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
@@ -602,22 +602,22 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun showWalletConnectRequest_pushesOneRouteAndReplacesItForTheNextRequest() {
+    fun showWalletConnectorRequest_pushesOneRouteAndReplacesItForTheNextRequest() {
         val navigator = navigatorWith(WalletRootRoute)
 
-        navigator.showWalletConnectRequest("request/topic/1")
-        navigator.showWalletConnectRequest("request/topic/1")
-        assertEquals(listOf(WalletRootRoute, WalletConnectRequestRoute("request/topic/1")), navigator.backStack.toList())
+        navigator.showWalletConnectorRequest("request/topic/1")
+        navigator.showWalletConnectorRequest("request/topic/1")
+        assertEquals(listOf(WalletRootRoute, WalletConnectorRequestRoute("request/topic/1")), navigator.backStack.toList())
 
-        navigator.showWalletConnectRequest("request/topic/2")
-        assertEquals(listOf(WalletRootRoute, WalletConnectRequestRoute("request/topic/2")), navigator.backStack.toList())
+        navigator.showWalletConnectorRequest("request/topic/2")
+        assertEquals(listOf(WalletRootRoute, WalletConnectorRequestRoute("request/topic/2")), navigator.backStack.toList())
     }
 
     @Test
-    fun showWalletConnectRequest_removesTheRouteUnderneathAScreenItOpened() {
-        val navigator = navigatorWith(WalletRootRoute, WalletConnectRequestRoute("request/topic/1"), ReceiveRoute(mockAssetId(Chain.Tron)))
+    fun showWalletConnectorRequest_removesTheRouteUnderneathAScreenItOpened() {
+        val navigator = navigatorWith(WalletRootRoute, WalletConnectorRequestRoute("request/topic/1"), ReceiveRoute(mockAssetId(Chain.Tron)))
 
-        navigator.showWalletConnectRequest(null)
+        navigator.showWalletConnectorRequest(null)
 
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }

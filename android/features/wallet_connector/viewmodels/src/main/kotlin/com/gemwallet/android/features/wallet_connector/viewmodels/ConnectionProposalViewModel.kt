@@ -12,7 +12,7 @@ import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConne
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.wallet_connector.viewmodels.model.map
+import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -46,7 +46,7 @@ import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
 @HiltViewModel
-class ProposalSceneViewModel @Inject constructor(
+class ConnectionProposalViewModel @Inject constructor(
     private val approveWalletConnection: ApproveWalletConnection,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -54,7 +54,7 @@ class ProposalSceneViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
+    val state = MutableStateFlow<ConnectionProposalUIState>(ConnectionProposalUIState.Init(WalletConnectionVerificationStatus.UNKNOWN))
 
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
     private val _sessionProposal = MutableStateFlow<GemSessionProposal?>(null)
@@ -93,7 +93,7 @@ class ProposalSceneViewModel @Inject constructor(
         .map { ListItemModel(title = context.getString(it), image = ListItemImage.Symbol(ListItemSymbol.Check)) }
 
     val buttonState = combine(selectedWallet, state) { wallet, sceneState ->
-        buttonState(enabled = wallet != null, loading = sceneState is ProposalSceneState.Approving)
+        buttonState(enabled = wallet != null, loading = sceneState is ConnectionProposalUIState.Approving)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun onProposal(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit) {
@@ -117,7 +117,7 @@ class ProposalSceneViewModel @Inject constructor(
                 reject(proposal, (error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
-            state.update { ProposalSceneState.Init(prepared.verificationStatus) }
+            state.update { ConnectionProposalUIState.Init(prepared.verificationStatus) }
             _sessionProposal.update { prepared }
             _proposal.update { proposal }
         }
@@ -126,7 +126,7 @@ class ProposalSceneViewModel @Inject constructor(
     fun onApprove(onError: (GemErrorText) -> Unit) {
         val wallet = selectedWallet.value
         val proposal = _proposal.value
-        if (state.value is ProposalSceneState.Approving) {
+        if (state.value is ConnectionProposalUIState.Approving) {
             return
         }
 
@@ -134,7 +134,7 @@ class ProposalSceneViewModel @Inject constructor(
             finish()
             return
         }
-        state.update { ProposalSceneState.Approving(it.verificationStatus) }
+        state.update { ConnectionProposalUIState.Approving(it.verificationStatus) }
         viewModelScope.launch(ioDispatcher) {
             val result = runCatching {
                 approveWalletConnection.approveConnection(
@@ -149,7 +149,7 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     fun onReject() {
-        if (state.value is ProposalSceneState.Approving) {
+        if (state.value is ConnectionProposalUIState.Approving) {
             return
         }
         val proposal = _proposal.value
@@ -161,7 +161,7 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     fun onWalletSelected(walletId: WalletId) {
-        if (state.value is ProposalSceneState.Approving) {
+        if (state.value is ConnectionProposalUIState.Approving) {
             return
         }
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
@@ -200,18 +200,18 @@ class ProposalSceneViewModel @Inject constructor(
         _proposal.update { null }
         _sessionProposal.update { null }
         _selectedWallet.update { null }
-        state.update { ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
+        state.update { ConnectionProposalUIState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
     }
 
     private companion object {
-        const val TAG = "ProposalSceneViewModel"
+        const val TAG = "ConnectionProposalViewModel"
     }
 }
 
-sealed interface ProposalSceneState {
+sealed interface ConnectionProposalUIState {
     val verificationStatus: WalletConnectionVerificationStatus
 
-    data class Init(override val verificationStatus: WalletConnectionVerificationStatus) : ProposalSceneState
+    data class Init(override val verificationStatus: WalletConnectionVerificationStatus) : ConnectionProposalUIState
 
-    data class Approving(override val verificationStatus: WalletConnectionVerificationStatus) : ProposalSceneState
+    data class Approving(override val verificationStatus: WalletConnectionVerificationStatus) : ConnectionProposalUIState
 }

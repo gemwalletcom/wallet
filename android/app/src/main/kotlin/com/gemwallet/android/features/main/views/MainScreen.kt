@@ -243,7 +243,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                         SettingsSceneAction.Security -> navigator.openSecurity()
                                         SettingsSceneAction.Notifications -> navigator.openNotifications()
                                         SettingsSceneAction.Preferences -> navigator.openPreferences()
-                                        SettingsSceneAction.Bridges -> navigator.openBridgeConnections()
+                                        SettingsSceneAction.Bridges -> navigator.openConnections()
                                         SettingsSceneAction.Support -> navigator.openSupport()
                                         SettingsSceneAction.Referral -> navigator.openReferral()
                                         SettingsSceneAction.AboutUs -> navigator.openAboutUs()

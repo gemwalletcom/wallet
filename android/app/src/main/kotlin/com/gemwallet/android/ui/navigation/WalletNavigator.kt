@@ -37,13 +37,13 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
-import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
-import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
 import com.gemwallet.android.ui.navigation.routes.CollectionRoute
 import com.gemwallet.android.ui.navigation.routes.CollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
+import com.gemwallet.android.ui.navigation.routes.ConnectionRoute
+import com.gemwallet.android.ui.navigation.routes.ConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
@@ -82,7 +82,7 @@ import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.gemwallet.android.ui.navigation.routes.UnverifiedCollectionsRoute
-import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectorRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
@@ -151,10 +151,10 @@ class WalletNavigator(
         }
     }
 
-    fun showWalletConnectRequest(key: String?) {
-        val route = key?.let(::WalletConnectRequestRoute)
+    fun showWalletConnectorRequest(key: String?) {
+        val route = key?.let(::WalletConnectorRequestRoute)
         if (route != null && backStack.contains(route)) return
-        backStack.removeAll { it is WalletConnectRequestRoute }
+        backStack.removeAll { it is WalletConnectorRequestRoute }
         if (route != null) {
             push(route)
         }
@@ -222,8 +222,8 @@ class WalletNavigator(
     fun openPortfolio(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
     fun openTransaction(transactionId: TransactionId) = push(TransactionRoute(transactionId))
     fun openAddress(chainAddress: ChainAddress) = push(AddressDetailsRoute(chainAddress))
-    fun openBridgeConnections() = push(BridgeConnectionsRoute)
-    fun openBridgeConnectionDetails(connectionId: String) = push(BridgeConnectionDetailsRoute(connectionId))
+    fun openConnections() = push(ConnectionsRoute)
+    fun openConnection(connectionId: String) = push(ConnectionRoute(connectionId))
     fun openCurrencies() = push(CurrenciesRoute)
     fun openContacts() = push(ContactsRoute)
     fun openAddContact() = push(AddContactRoute)

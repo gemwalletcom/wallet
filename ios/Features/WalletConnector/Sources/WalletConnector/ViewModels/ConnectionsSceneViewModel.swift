@@ -16,7 +16,7 @@ import WalletConnectorService
 
 @Observable
 @MainActor
-public final class ConnectionsViewModel {
+public final class ConnectionsSceneViewModel {
     let connector: any WalletConnectorServiceable
     let walletConnectorPresenter: WalletConnectorPresenter?
     private let service: any GemWalletConnectServiceProtocol
@@ -88,7 +88,7 @@ public final class ConnectionsViewModel {
 
 // MARK: - Actions
 
-extension ConnectionsViewModel {
+extension ConnectionsSceneViewModel {
     func onScan() {
         isPresentingScanner = true
     }

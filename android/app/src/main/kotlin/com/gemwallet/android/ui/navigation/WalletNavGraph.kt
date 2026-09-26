@@ -34,10 +34,10 @@ import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.addressDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetScreen
-import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.chartScreen
 import com.gemwallet.android.ui.navigation.routes.collectionsScreen
 import com.gemwallet.android.ui.navigation.routes.confirmTransfer
+import com.gemwallet.android.ui.navigation.routes.connectionsScreen
 import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
@@ -51,7 +51,7 @@ import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
 import com.gemwallet.android.ui.navigation.routes.swapSelect
 import com.gemwallet.android.ui.navigation.routes.transactionScreen
-import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
+import com.gemwallet.android.ui.navigation.routes.walletConnectorRequest
 import com.gemwallet.android.ui.navigation.routes.walletDetailScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
@@ -66,13 +66,13 @@ fun WalletNavGraph(
     onAcceptTerms: () -> Unit,
     onPayment: (String) -> Unit,
     onWalletContentReady: () -> Unit = {},
-    walletConnectRequest: @Composable (String) -> Unit = {},
+    walletConnectorRequest: @Composable (String) -> Unit = {},
 ) {
     val onCancel: () -> Unit = navigator::pop
     val currentOnWalletContentReady by rememberUpdatedState(onWalletContentReady)
     val currentOnPayment by rememberUpdatedState(onPayment)
 
-    val entryProvider = remember(navigator, onboard, onAcceptTerms, walletConnectRequest) {
+    val entryProvider = remember(navigator, onboard, onAcceptTerms, walletConnectorRequest) {
         entryProvider<NavKey> {
             entry<WalletRootRoute> {
                 MainScreen(
@@ -242,8 +242,8 @@ fun WalletNavGraph(
                 },
             )
 
-            bridgesScreen(
-                onConnection = navigator::openBridgeConnectionDetails,
+            connectionsScreen(
+                onConnection = navigator::openConnection,
                 onCancel = onCancel,
             )
 
@@ -313,7 +313,7 @@ fun WalletNavGraph(
 
             addressDetailsScreen(onCancel = onCancel)
 
-            walletConnectRequest(content = walletConnectRequest)
+            walletConnectorRequest(content = walletConnectorRequest)
         }
     }
     val entries = rememberWalletNavEntries(navigator.backStack, entryProvider)
