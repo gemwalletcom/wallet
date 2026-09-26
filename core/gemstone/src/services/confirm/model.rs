@@ -152,7 +152,9 @@ impl GemConfirmMetadata {
     pub fn price(&self, asset_id: AssetId) -> Option<AssetPrice> {
         self.prices.iter().find(|price| price.asset_id == asset_id).cloned()
     }
+}
 
+impl GemConfirmMetadata {
     pub fn asset_price(&self) -> Option<AssetPrice> {
         self.price(self.asset_balance.asset_id.clone())
     }
