@@ -22,11 +22,9 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.acquireOptions
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.uiModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
@@ -80,6 +78,7 @@ import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemConfirmStage
@@ -219,9 +218,9 @@ class ConfirmTransferViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val transactionRows: StateFlow<List<ConfirmRowUIModel>> = combine(content, viewState) { content, viewState ->
+    val transactionRows: StateFlow<List<GemConfirmRowContent>> = combine(content, viewState) { content, viewState ->
         content ?: return@combine emptyList()
-        viewState?.sections.orEmpty().filterIsInstance<GemConfirmSection.Details>().firstOrNull()?.rows.orEmpty().mapNotNull { it.uiModel(context) }
+        viewState?.sections.orEmpty().filterIsInstance<GemConfirmSection.Details>().firstOrNull()?.rows.orEmpty().filterNot { it is GemConfirmRowContent.Details }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

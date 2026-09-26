@@ -633,6 +633,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
             GemConfirmRow::Details => Some(GemConfirmRowContent::Details),
             GemConfirmRow::PaymentAsset => match &transfer.input_type {
                 TransactionInputType::Payment { asset, invoice, .. } => Some(GemConfirmRowContent::PaymentAsset {
+                    title: GemListRowTitle::PayWith,
                     symbol: asset.symbol.clone(),
                     selectable: invoice.quotes.len() > 1,
                     asset_ids: invoice.quotes.iter().map(|quote| quote.asset_id.clone()).collect(),

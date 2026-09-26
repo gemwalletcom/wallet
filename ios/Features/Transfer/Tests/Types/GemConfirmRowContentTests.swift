@@ -17,24 +17,35 @@ import Testing
 @testable import Transfer
 import TransferTestKit
 
-struct ConfirmRowViewModelTests {
+struct GemConfirmRowContentTests {
     @Test
     func sharedRowsPassThroughAndDetailsDrawNothing() {
         let memo = GemListRow.memo(title: .memo, value: "test memo", menu: [])
-        guard case let .row(row) = ConfirmRowViewModel(content: .row(row: memo)).itemModel else {
+        guard case let .row(row) = GemConfirmRowContent.row(row: memo).itemModel else {
             Issue.record("Expected a shared row")
             return
         }
         #expect(row == memo)
-        #expect(ConfirmRowViewModel(content: .details).isEmpty)
+        #expect(GemConfirmRowContent.details.isEmpty)
     }
 
     @Test
     func aRecipientPassesThroughAsCoreBuiltIt() throws {
         let row = GemAddressRow.mock(title: .confirmDestination(destination: .recipient(name: nil, address: "0xrecipient")), address: "0xrecipient", isSelectable: true)
-        let item = try #require(ConfirmRowViewModel(content: .recipient(row: row)).recipientItem)
+        let item = try #require(GemConfirmRowContent.recipient(row: row).recipientItem)
 
         #expect(item == row)
+    }
+
+    @Test
+    func aPaymentAssetRowReadsTheTitleCoreGaveIt() {
+        guard case let .paymentAsset(item, selectable) = GemConfirmRowContent.paymentAsset(title: .payWith, symbol: "USDC", selectable: true, assetIds: []).itemModel else {
+            Issue.record("Expected a payment asset row")
+            return
+        }
+        #expect(item.title == Localized.Transfer.payWith)
+        #expect(item.subtitle == "USDC")
+        #expect(selectable)
     }
 
     @Test
@@ -59,7 +70,7 @@ struct ConfirmRowViewModelTests {
     }
 }
 
-private extension ConfirmRowViewModel {
+private extension GemConfirmRowContent {
     var recipientItem: GemAddressRow? {
         guard case let .recipient(item) = itemModel else { return nil }
         return item

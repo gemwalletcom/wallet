@@ -190,7 +190,7 @@ extension ConfirmTransferSceneViewModel {
         case .warnings:
             .warnings(simulationWarnings)
         case let .row(index):
-            ConfirmRowViewModel(content: rowContents[index]).itemModel
+            rowContents[index].itemModel
         case .verification:
             verificationItem
         case .details:
@@ -264,7 +264,7 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectPaymentAsset() {
         let assetIds = rowContents.lazy.compactMap { content -> [String]? in
-            guard case let .paymentAsset(_, selectable, assetIds) = content, selectable else { return nil }
+            guard case let .paymentAsset(_, _, selectable, assetIds) = content, selectable else { return nil }
             return assetIds
         }.first
         guard let assetIds else { return }

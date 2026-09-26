@@ -630,5 +630,5 @@ pub enum GemConfirmRowContent {
     Row { row: GemListRow },
     Recipient { row: GemAddressRow },
     Details,
-    PaymentAsset { symbol: String, selectable: bool, asset_ids: Vec<AssetId> },
+    PaymentAsset { title: GemListRowTitle, symbol: String, selectable: bool, asset_ids: Vec<AssetId> },
 }

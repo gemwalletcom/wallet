@@ -118,7 +118,8 @@ impl GemConfirmation {
             .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
             .map(|content| match content {
-                GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                GemConfirmRowContent::PaymentAsset { title, symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                    title,
                     selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
                     symbol,
                     asset_ids,

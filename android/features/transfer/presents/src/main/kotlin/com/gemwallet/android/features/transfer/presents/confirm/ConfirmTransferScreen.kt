@@ -28,13 +28,13 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transfer.presents.confirm.components.ConfirmErrorInfo
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
 import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmTransferViewModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -60,6 +61,7 @@ import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
@@ -68,6 +70,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
@@ -198,26 +201,26 @@ fun ConfirmTransferScreen(
                         itemsIndexed(transactionRows) { index, row ->
                             val listPosition = ListPosition.getPosition(index, sectionSize)
                             when (row) {
-                                is ConfirmRowUIModel.Row -> GemListRowView(row = row.row, listPosition = listPosition)
+                                is GemConfirmRowContent.Row -> GemListRowView(row = row.row, listPosition = listPosition)
 
-                                is ConfirmRowUIModel.Item -> ListItem(model = row.model, listPosition = listPosition)
-
-                                is ConfirmRowUIModel.Address -> AddressPropertyItem(
+                                is GemConfirmRowContent.Recipient -> AddressPropertyItem(
                                     row = row.row,
                                     listPosition = listPosition,
                                     onClick = { onOpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address)) },
                                 )
 
-                                is ConfirmRowUIModel.PaymentAsset -> ListItem(
-                                    model = row.model,
+                                is GemConfirmRowContent.PaymentAsset -> ListItem(
+                                    model = ListItemModel(title = row.title.text(context), subtitle = row.symbol),
                                     listPosition = listPosition,
-                                    modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds) } else Modifier,
+                                    modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds.mapNotNull { it.toAssetId() }) } else Modifier,
                                     accessory = if (row.selectable) {
                                         { DataBadgeChevron() }
                                     } else {
                                         null
                                     },
                                 )
+
+                                GemConfirmRowContent.Details -> Unit
                             }
                         }
                         itemsIndexed(detailElements) { index, item ->

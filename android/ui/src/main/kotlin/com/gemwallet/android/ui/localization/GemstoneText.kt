@@ -699,6 +699,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.NORMAL_FEE -> context.getString(R.string.fee_rates_normal)
     GemListRowTitle.FAST_FEE -> context.getString(R.string.fee_rates_fast)
     GemListRowTitle.CUSTOM_FEE -> context.getString(R.string.fee_rate_custom)
+    GemListRowTitle.PAY_WITH -> context.getString(R.string.transfer_pay_with)
     GemListRowTitle.VALIDATOR -> context.getString(R.string.stake_validator)
     GemListRowTitle.PROVIDER -> context.getString(R.string.common_provider)
     GemListRowTitle.STATUS -> context.getString(R.string.transaction_status)

@@ -52,6 +52,7 @@ struct ConfirmTransferSceneViewModelTests {
             state: .mock(fee: nil),
             load: .success(.mock(transfer: bnb, fee: .mock())),
             rows: { _ in [.paymentAsset(
+                title: .payWith,
                 symbol: "ETH",
                 selectable: true,
                 assetIds: [Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id.identifier, Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).id.identifier],

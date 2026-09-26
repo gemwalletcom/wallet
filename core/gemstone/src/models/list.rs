@@ -87,6 +87,7 @@ pub enum GemListRowTitle {
     NormalFee,
     FastFee,
     CustomFee,
+    PayWith,
     Validator,
     Provider,
     Status,

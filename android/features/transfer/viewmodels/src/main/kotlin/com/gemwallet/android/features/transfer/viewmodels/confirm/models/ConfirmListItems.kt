@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer.viewmodels.confirm.models
 
 import android.content.Context
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -12,35 +11,10 @@ import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import uniffi.gemstone.GemAddressRow
 import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmFeeValue
-import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemFeeAmount
 import uniffi.gemstone.GemInfoTopic
-import uniffi.gemstone.GemListRow
-
-sealed interface ConfirmRowUIModel {
-    data class Row(val row: GemListRow) : ConfirmRowUIModel
-    data class Item(val model: ListItemModel) : ConfirmRowUIModel
-    data class Address(val row: GemAddressRow) : ConfirmRowUIModel
-    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean, val assetIds: List<AssetId>) : ConfirmRowUIModel
-}
-
-internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? = when (this) {
-    is GemConfirmRowContent.Row -> ConfirmRowUIModel.Row(row)
-
-    is GemConfirmRowContent.Recipient -> ConfirmRowUIModel.Address(row)
-
-    is GemConfirmRowContent.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
-        model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),
-        selectable = selectable,
-        assetIds = assetIds.mapNotNull { it.toAssetId() },
-    )
-
-    is GemConfirmRowContent.Details -> null
-}
 
 fun GemConfirmFeeRow.listItem(context: Context): ListItemModel {
     val title = title.text(context)
