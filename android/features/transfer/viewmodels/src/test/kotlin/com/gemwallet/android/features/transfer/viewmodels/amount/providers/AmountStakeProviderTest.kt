@@ -10,6 +10,7 @@ import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
+import com.gemwallet.android.testkit.mockGemValidatorSection
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Resource
 import io.mockk.every
@@ -30,6 +31,8 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeAmountSelection
 import uniffi.gemstone.GemStakeServiceInterface
+import uniffi.gemstone.GemStakeValidatorOptions
+import uniffi.gemstone.GemValidatorSectionKind
 import java.math.BigInteger
 
 class AmountStakeProviderTest {
@@ -49,9 +52,14 @@ class AmountStakeProviderTest {
             GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), true)
         every { stakeValidatorOptions(any(), any(), any()) } answers {
             mockGemStakeValidatorOptions(
-                options = thirdArg<List<DelegationValidator>>().map {
-                    mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null))
-                },
+                sections = listOf(
+                    mockGemValidatorSection(
+                        kind = GemValidatorSectionKind.ACTIVE,
+                        rows = thirdArg<List<DelegationValidator>>().map {
+                            mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null))
+                        },
+                    ),
+                ),
             )
         }
     }
@@ -88,7 +96,7 @@ class AmountStakeProviderTest {
     @Test
     fun `picking a validator the picker offers changes where the stake goes`() = runBlocking {
         val provider = makeProvider(GemStakeAmountInput.Stake(validator.toGem()))
-        provider.validatorOptions.first { it?.options?.size == 2 }
+        provider.validatorOptions.first { it?.rowCount() == 2 }
 
         provider.selectValidator("v2")
         assertEquals("v2", (provider.input() as GemStakeAmountInput.Stake).validator.id)
@@ -100,11 +108,11 @@ class AmountStakeProviderTest {
     @Test
     fun `the picker follows the stored validators`() = runBlocking {
         val provider = makeProvider(GemStakeAmountInput.Stake(validator.toGem()))
-        provider.validatorOptions.first { it?.options?.size == 2 }
+        provider.validatorOptions.first { it?.rowCount() == 2 }
 
         storedValidators.value = listOf(validator)
 
-        assertEquals(1, provider.validatorOptions.first { it?.options?.size == 1 }?.options?.size)
+        assertEquals(1, provider.validatorOptions.first { it?.rowCount() == 1 }?.rowCount())
     }
 
     @Test
@@ -137,4 +145,6 @@ class AmountStakeProviderTest {
     }
 
     private suspend fun AmountStakeProvider.input(): GemStakeAmountInput = (request.filterNotNull().first() as GemAmountRequest.Stake).input
+
+    private fun GemStakeValidatorOptions.rowCount() = sections.sumOf { it.rows.size }
 }

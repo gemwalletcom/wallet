@@ -46,11 +46,9 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public var list: [ListItemValueSection<GemValidatorRow>] {
-        let options = service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
-        return [
-            listSection(title: Localized.Common.recommended, rows: options.recommended),
-            listSection(title: Localized.Stake.active, rows: options.options),
-        ].filter(\.values.isNotEmpty)
+        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() }).sections.map {
+            ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
+        }
     }
 
     public func isSelected(_ row: GemValidatorRow) -> Bool {
@@ -66,13 +64,6 @@ public final class ValidatorSelectSceneViewModel {
         return row.explorer.map {
             ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
         }
-    }
-
-    private func listSection(title: String, rows: [GemValidatorRow]) -> ListItemValueSection<GemValidatorRow> {
-        ListItemValueSection(
-            section: title,
-            values: rows.map { ListItemValue(value: $0) },
-        )
     }
 }
 

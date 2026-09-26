@@ -181,10 +181,21 @@ pub enum GemStakeAmountSelection {
     Resource { options: Vec<Resource>, selected: Resource },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemValidatorSectionKind {
+    Recommended,
+    Active,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemValidatorSection {
+    pub kind: GemValidatorSectionKind,
+    pub rows: Vec<GemValidatorRow>,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorOptions {
-    pub recommended: Vec<GemValidatorRow>,
-    pub options: Vec<GemValidatorRow>,
+    pub sections: Vec<GemValidatorSection>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

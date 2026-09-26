@@ -1902,11 +1902,9 @@ fun mockGemSocialLink(
 )
 
 fun mockGemStakeValidatorOptions(
-    recommended: List<uniffi.gemstone.GemValidatorRow> = emptyList(),
-    options: List<uniffi.gemstone.GemValidatorRow> = emptyList(),
+    sections: List<uniffi.gemstone.GemValidatorSection> = emptyList(),
 ) = uniffi.gemstone.GemStakeValidatorOptions(
-    recommended = recommended,
-    options = options,
+    sections = sections,
 )
 
 fun mockGemSwapPairSuggestion(
@@ -2109,6 +2107,14 @@ fun mockGemValidatorRow(
     provider = provider,
     apr = apr,
     explorer = explorer,
+)
+
+fun mockGemValidatorSection(
+    kind: uniffi.gemstone.GemValidatorSectionKind = uniffi.gemstone.GemValidatorSectionKind.RECOMMENDED,
+    rows: List<uniffi.gemstone.GemValidatorRow> = emptyList(),
+) = uniffi.gemstone.GemValidatorSection(
+    kind = kind,
+    rows = rows,
 )
 
 fun mockGemValueHeader(

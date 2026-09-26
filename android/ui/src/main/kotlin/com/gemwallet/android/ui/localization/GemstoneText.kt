@@ -116,6 +116,7 @@ import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
+import uniffi.gemstone.GemValidatorSectionKind
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletConnectFailure
@@ -717,6 +718,12 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.RESOURCES -> R.string.asset_resources
     GemListSectionTitle.SOCIAL_LINKS -> R.string.social_links
     GemListSectionTitle.PROPERTIES -> R.string.nft_properties
+}
+
+@StringRes
+fun GemValidatorSectionKind.titleRes(): Int = when (this) {
+    GemValidatorSectionKind.RECOMMENDED -> R.string.common_recommended
+    GemValidatorSectionKind.ACTIVE -> R.string.stake_active
 }
 
 fun GemListRowTitle.text(context: Context): String = when (this) {

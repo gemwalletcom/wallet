@@ -344,6 +344,7 @@ mocks:
   - GemTransferAmountResult
   - GemTransferData
   - GemValidatorRow
+  - GemValidatorSection
   - GemValueHeader
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest

@@ -83,6 +83,7 @@ import enum Gemstone.GemTransactionsFilterSummary
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
+import enum Gemstone.GemValidatorSectionKind
 import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
@@ -778,6 +779,15 @@ extension GemRecipientErrorDisplay: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .invalidAddress(network): Localized.Errors.invalidAssetAddress(network.boldMarkdown())
+        }
+    }
+}
+
+public extension GemValidatorSectionKind {
+    var title: String {
+        switch self {
+        case .recommended: Localized.Common.recommended
+        case .active: Localized.Stake.active
         }
     }
 }

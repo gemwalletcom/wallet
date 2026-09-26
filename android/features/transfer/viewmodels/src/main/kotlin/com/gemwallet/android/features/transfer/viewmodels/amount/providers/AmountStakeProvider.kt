@@ -41,7 +41,7 @@ class AmountStakeProvider(val params: AmountParams.Stake, validators: Flow<List<
 
     fun selectValidator(id: String?) {
         val options = validatorOptions.value ?: return
-        val validator = (options.recommended + options.options).firstOrNull { it.validator.id == id }?.validator ?: return
+        val validator = options.sections.flatMap { it.rows }.firstOrNull { it.validator.id == id }?.validator ?: return
         stakeInput.update { it.withValidator(validator) }
     }
 

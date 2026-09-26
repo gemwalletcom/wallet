@@ -11,12 +11,15 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ValidatorItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.theme.WalletTheme
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeValidatorOptions
 import uniffi.gemstone.GemValidatorRow
+import uniffi.gemstone.GemValidatorSection
+import uniffi.gemstone.GemValidatorSectionKind
 import uniffi.gemstone.StakeProviderType
 
 @Composable
@@ -26,29 +29,16 @@ fun ValidatorSelectScene(selection: GemStakeValidatorOptions, selectedValidatorI
         onClose = onCancel,
     ) {
         LazyColumn {
-            if (selection.recommended.isEmpty() && selection.options.isEmpty()) {
+            if (selection.sections.isEmpty()) {
                 item {
                     EmptyContentView(kind = GemEmptyStateKind.VALIDATORS, modifier = Modifier.fillParentMaxSize())
                 }
             }
-            if (selection.recommended.isNotEmpty()) {
+            selection.sections.forEach { section ->
                 item {
-                    SubheaderItem(R.string.common_recommended)
+                    SubheaderItem(section.kind.titleRes())
                 }
-                itemsPositioned(selection.recommended, key = { _, item -> "recommended-${item.validator.id}" }) { position, item ->
-                    ValidatorItem(
-                        data = item,
-                        listPosition = position,
-                        isSelected = selectedValidatorId == item.validator.id,
-                        onClick = onSelect,
-                    )
-                }
-            }
-            if (selection.options.isNotEmpty()) {
-                item {
-                    SubheaderItem(R.string.stake_active)
-                }
-                itemsPositioned(selection.options, key = { _, item -> item.validator.id }) { position, item ->
+                itemsPositioned(section.rows, key = { _, item -> "${section.kind}-${item.validator.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
@@ -67,12 +57,16 @@ fun PreviewValidatorSelectScene() {
     WalletTheme {
         ValidatorSelectScene(
             selection = GemStakeValidatorOptions(
-                options = listOf(
-                    previewRow("some_validator_id", "Castlenode"),
-                    previewRow("some_validator_id_1", "Ubik Capital 0%Fee"),
-                    previewRow("some_validator_id_2", "Virtual Hive"),
+                sections = listOf(
+                    GemValidatorSection(
+                        kind = GemValidatorSectionKind.ACTIVE,
+                        rows = listOf(
+                            previewRow("some_validator_id", "Castlenode"),
+                            previewRow("some_validator_id_1", "Ubik Capital 0%Fee"),
+                            previewRow("some_validator_id_2", "Virtual Hive"),
+                        ),
+                    ),
                 ),
-                recommended = emptyList(),
             ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},

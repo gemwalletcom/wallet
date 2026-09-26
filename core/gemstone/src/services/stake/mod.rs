@@ -19,7 +19,7 @@ use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionKind,
-    GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
+    GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
 };
 pub use store::GemStakeStore;
 
@@ -80,8 +80,14 @@ impl GemStakeService {
             ..row
         };
         GemStakeValidatorOptions {
-            recommended: options.recommended.into_iter().map(with_explorer).collect(),
-            options: options.options.into_iter().map(with_explorer).collect(),
+            sections: options
+                .sections
+                .into_iter()
+                .map(|section| GemValidatorSection {
+                    rows: section.rows.into_iter().map(with_explorer).collect(),
+                    ..section
+                })
+                .collect(),
         }
     }
 

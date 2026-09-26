@@ -1126,12 +1126,10 @@ public extension Gemstone.GemSocialLink {
 
 public extension Gemstone.GemStakeValidatorOptions {
     static func mock(
-        recommended: [Gemstone.GemValidatorRow] = [],
-        options: [Gemstone.GemValidatorRow] = [],
+        sections: [Gemstone.GemValidatorSection] = [],
     ) -> Gemstone.GemStakeValidatorOptions {
         Gemstone.GemStakeValidatorOptions(
-            recommended: recommended,
-            options: options,
+            sections: sections,
         )
     }
 }
@@ -1394,6 +1392,18 @@ public extension Gemstone.GemValidatorRow {
             provider: provider,
             apr: apr,
             explorer: explorer,
+        )
+    }
+}
+
+public extension Gemstone.GemValidatorSection {
+    static func mock(
+        kind: Gemstone.GemValidatorSectionKind = .recommended,
+        rows: [Gemstone.GemValidatorRow] = [],
+    ) -> Gemstone.GemValidatorSection {
+        Gemstone.GemValidatorSection(
+            kind: kind,
+            rows: rows,
         )
     }
 }

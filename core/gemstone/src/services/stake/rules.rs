@@ -16,7 +16,8 @@ use std::str::FromStr;
 
 use super::model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
-    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
+    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
+    GemValidatorSectionKind,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -634,9 +635,14 @@ pub fn validator_options(chain: Chain, input: &GemStakeAmountInput, validators: 
         GemStakeAmountInput::Unstake { delegation } | GemStakeAmountInput::Withdraw { delegation } => (vec![delegation.validator.clone()], vec![]),
         GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => (vec![], vec![]),
     };
+    let section = |kind, validators: Vec<DelegationValidator>| {
+        (!validators.is_empty()).then(|| GemValidatorSection {
+            kind,
+            rows: validators.iter().map(validator_row).collect(),
+        })
+    };
     GemStakeValidatorOptions {
-        recommended: recommended.iter().map(validator_row).collect(),
-        options: options.iter().map(validator_row).collect(),
+        sections: [section(GemValidatorSectionKind::Recommended, recommended), section(GemValidatorSectionKind::Active, options)].into_iter().flatten().collect(),
     }
 }
 
@@ -1594,16 +1600,16 @@ mod tests {
         };
 
         let leaving_other = options("other");
-        assert_eq!(ids(&leaving_other.options), vec![recommended[0].as_str()]);
-        assert_eq!(ids(&leaving_other.recommended), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&leaving_other, GemValidatorSectionKind::Active), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&leaving_other, GemValidatorSectionKind::Recommended), vec![recommended[0].as_str()]);
 
         let leaving_recommended = options(&recommended[0]);
-        assert_eq!(ids(&leaving_recommended.options), vec!["other"]);
-        assert!(leaving_recommended.recommended.is_empty());
+        assert_eq!(ids(&leaving_recommended, GemValidatorSectionKind::Active), vec!["other"]);
+        assert!(ids(&leaving_recommended, GemValidatorSectionKind::Recommended).is_empty());
     }
 
-    fn ids(rows: &[GemValidatorRow]) -> Vec<&str> {
-        rows.iter().map(|row| row.validator.id.as_str()).collect()
+    fn ids(options: &GemStakeValidatorOptions, kind: GemValidatorSectionKind) -> Vec<&str> {
+        options.sections.iter().filter(|section| section.kind == kind).flat_map(|section| &section.rows).map(|row| row.validator.id.as_str()).collect()
     }
 
     #[test]
@@ -1618,18 +1624,22 @@ mod tests {
         let options = |input| validator_options(Chain::Cosmos, &input, validators.clone());
 
         let stake = options(GemStakeAmountInput::Stake { validator: current.clone() });
-        assert_eq!(ids(&stake.options), vec!["current", recommended[0].as_str()], "an inactive validator is not offered");
-        assert_eq!(ids(&stake.recommended), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&stake, GemValidatorSectionKind::Active), vec!["current", recommended[0].as_str()], "an inactive validator is not offered");
+        assert_eq!(ids(&stake, GemValidatorSectionKind::Recommended), vec![recommended[0].as_str()]);
 
         let rewards = options(GemStakeAmountInput::Rewards {
             delegations: vec![Delegation::mock_with_validator(current.clone()), Delegation::mock_with_validator(DelegationValidator::mock_cosmos("second"))],
             validator: current.clone(),
         });
-        assert_eq!(ids(&rewards.options), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");
-        assert!(rewards.recommended.is_empty());
+        assert_eq!(
+            rewards.sections.iter().map(|section| section.kind).collect::<Vec<_>>(),
+            vec![GemValidatorSectionKind::Active],
+            "a section without rows is left out"
+        );
+        assert_eq!(ids(&rewards, GemValidatorSectionKind::Active), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");
 
         let freeze = options(GemStakeAmountInput::Freeze { resource: Resource::Bandwidth });
-        assert!(freeze.options.is_empty());
+        assert!(freeze.sections.is_empty());
     }
 
     #[test]
