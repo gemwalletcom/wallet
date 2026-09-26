@@ -261,16 +261,22 @@ pub enum GemApprovalValue {
 pub struct GemSimulationValue {
     pub asset: Asset,
     pub value: GemApprovalValue,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
 }
 
 impl GemSimulationValue {
+    pub fn new(asset: Asset, value: GemApprovalValue) -> Self {
+        Self {
+            icon: crate::services::assets::icon::asset_icon(&asset.id),
+            asset,
+            value,
+        }
+    }
+
     pub(crate) fn from_simulation(simulation: &SimulationResult, assets: &[Asset]) -> Option<Self> {
         let header = simulation.valid_header()?;
         let asset = assets.iter().find(|asset| asset.id == header.asset_id)?.clone();
-        Some(Self {
-            asset,
-            value: approval_value_from(header.value.as_ref(), header.is_unlimited),
-        })
+        Some(Self::new(asset, approval_value_from(header.value.as_ref(), header.is_unlimited)))
     }
 }
 

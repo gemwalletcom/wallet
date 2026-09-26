@@ -1,4 +1,5 @@
 use crate::models::button::GemButtonState;
+use crate::services::assets::icon::asset_icon;
 use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::{Quote as SwapperQuote, SwapperError, SwapperProvider};
@@ -179,6 +180,7 @@ impl GemSwapErrorDisplay {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapSideState {
     pub interaction: GemSwapSideInteraction,
+    pub icon: Option<crate::services::assets::icon::GemAssetIcon>,
     pub balance: Option<GemLocalizedText>,
     pub fiat: Option<GemFormattedNumber>,
 }
@@ -387,6 +389,7 @@ impl GemSwapSession {
             allows_provider_selection: self.allows_provider_selection(),
             is_input_empty: self.is_input_empty(),
             pay: GemSwapSideState {
+                icon: pay.as_ref().map(|pay| asset_icon(&pay.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: !is_transfer_loading,
                     is_asset_selectable: !is_transfer_loading,
@@ -399,6 +402,7 @@ impl GemSwapSession {
                     .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
             },
             receive: GemSwapSideState {
+                icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: false,
                     is_asset_selectable: !is_transfer_loading,

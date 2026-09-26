@@ -14,7 +14,7 @@ internal fun AssetHeadItem(uiState: AssetUIState, onTransfer: AssetIdAction, onR
     AmountListHead(
         amount = uiState.details.balanceValue.text(),
         equivalent = uiState.details.fiatValue?.text().orEmpty(),
-        icon = uiState.asset,
+        icon = uiState.details.icon,
     ) {
         AssetHeadActions(
             uiState.details.state.headerActions.uiModel(

@@ -55,6 +55,7 @@ struct ConfirmHeaderItemTests {
         let value = GemSimulationValue(
             asset: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
             value: .exact(value: BigUInt(1_000_000)),
+            icon: .mock(),
         )
         let model = GemConfirmHeader.value(value: value)
 
@@ -71,7 +72,7 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
-        let model = GemConfirmHeader.placeholder(assetId: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id.identifier)
+        let model = GemConfirmHeader.placeholder(icon: .mock())
 
         guard case let .header(headerType, _) = model.itemModel,
               case let .assetValue(header) = headerType

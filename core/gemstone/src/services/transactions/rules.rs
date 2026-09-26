@@ -21,6 +21,7 @@ use crate::models::asset::wallet_default_assets;
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::assets::icon::asset_icon;
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::assets::rules::{fee_amount, fiat_amount_of};
 use crate::services::collections::unique;
@@ -64,7 +65,7 @@ pub fn row(item: &TransactionListItem) -> GemTransactionRow {
     let transaction = &item.transaction;
     let value = row_value(item, transaction_value(transaction));
     GemTransactionRow {
-        icon: crate::services::assets::icon::asset_icon(&item.asset.id),
+        icon: asset_icon(&item.asset.id),
         id: transaction.id.clone(),
         asset: item.asset.clone(),
         transaction_type: transaction.transaction_type.clone(),
@@ -252,7 +253,7 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
 }
 
 fn status_icon(rows: &GemTransactionDetailRows) -> GemAssetIcon {
-    let icon = crate::services::assets::icon::asset_icon(&rows.asset.id);
+    let icon = asset_icon(&rows.asset.id);
     match &rows.header {
         GemTransactionHeader::Nft { image_url, .. } => GemAssetIcon {
             image: GemAssetIconImage::Remote { url: image_url.clone() },
@@ -355,6 +356,7 @@ pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fi
     GemHeaderAmount {
         amount: amount.sign.amount(&amount.value, &amount.asset, GemValueStyle::Auto),
         fiat: fiat_amount_of(&amount.asset, &amount.value, amount.price.map(|price| price.price), currency.clone(), GemCurrencyStyle::Currency).filter(|_| shows_fiat),
+        icon: asset_icon(&amount.asset.id),
         asset: amount.asset,
     }
 }
@@ -381,8 +383,8 @@ fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransaction
             },
             None => amount(false),
         },
-        GemTransactionHeaderKind::Symbol => GemTransactionHeader::Symbol { asset: extended.asset.clone() },
-        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::AssetImage { asset: extended.asset.clone() },
+        GemTransactionHeaderKind::Symbol => GemTransactionHeader::symbol(extended.asset.clone()),
+        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::asset_image(&extended.asset),
     }
 }
 
@@ -1381,7 +1383,7 @@ mod tests {
                     info: Some(GemInfoTopic::TransactionStatus {
                         state: TransactionState::Confirmed,
                         tone: GemTransactionStateTone::Success,
-                        icon: crate::services::assets::icon::asset_icon(&transfer.asset.id),
+                        icon: asset_icon(&transfer.asset.id),
                     }),
                     progress: false,
                 },

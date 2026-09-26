@@ -168,7 +168,7 @@ impl GemConfirmService {
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self.simulation_formatter.payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
         let header = match approval {
-            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue { asset: asset.clone(), value }),
+            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue::new(asset.clone(), value)),
             None => simulation.as_ref().and_then(|simulation| GemSimulationValue::from_simulation(simulation, &assets)),
         };
         let balance_changes = self

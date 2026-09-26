@@ -10,6 +10,7 @@ import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.GemSwapSideInteraction
@@ -28,6 +29,8 @@ data class SwapUIState(
     val isReceiveLoading: Boolean = false,
     val payBalance: GemLocalizedText? = null,
     val receiveBalance: GemLocalizedText? = null,
+    val payIcon: GemAssetIcon? = null,
+    val receiveIcon: GemAssetIcon? = null,
     val payEquivalent: String = "",
     val receiveEquivalent: String = "",
 ) {
@@ -48,6 +51,8 @@ internal fun createSwapUIState(state: GemSwapViewState, context: Context) = Swap
     isReceiveLoading = state.isReceiveLoading,
     payBalance = state.pay.balance,
     receiveBalance = state.receive.balance,
+    payIcon = state.pay.icon,
+    receiveIcon = state.receive.icon,
     payEquivalent = state.pay.fiat?.text().orEmpty(),
     receiveEquivalent = state.receive.fiat?.text().orEmpty(),
 )

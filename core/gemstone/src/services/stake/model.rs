@@ -23,6 +23,7 @@ pub struct GemDelegationStatus {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub header: GemDelegationListRow,
     pub actions: Vec<GemDelegationActionItem>,
     pub balance: GemFormattedNumber,

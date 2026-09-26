@@ -1177,6 +1177,7 @@ fun mockGemAssetBalance(
 
 fun mockGemAssetDetails(
     state: uniffi.gemstone.GemAssetDetailsState = mockGemAssetDetailsState(),
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
     banner: uniffi.gemstone.GemBannerRow? = null,
     balanceValue: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
     sections: List<uniffi.gemstone.GemAssetDetailSection> = emptyList(),
@@ -1191,6 +1192,7 @@ fun mockGemAssetDetails(
     swapPair: uniffi.gemstone.GemSwapPairSuggestion = mockGemSwapPairSuggestion(),
 ) = uniffi.gemstone.GemAssetDetails(
     state = state,
+    icon = icon,
     banner = banner,
     balanceValue = balanceValue,
     sections = sections,
@@ -1527,10 +1529,12 @@ fun mockGemHeaderAmount(
     asset: uniffi.gemstone.Asset = mockAsset().toGem(),
     amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
     fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
 ) = uniffi.gemstone.GemHeaderAmount(
     asset = asset,
     amount = amount,
     fiat = fiat,
+    icon = icon,
 )
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.NetworkFee(asset = mockAsset().toGem())
@@ -1652,6 +1656,7 @@ fun mockGemRecipient(
 fun mockGemRewardsRedemption(
     id: String = "",
     assetId: String = mockAssetId().toIdentifier(),
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     canRedeem: Boolean = false,
     points: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
@@ -1659,6 +1664,7 @@ fun mockGemRewardsRedemption(
 ) = uniffi.gemstone.GemRewardsRedemption(
     id = id,
     assetId = assetId,
+    icon = icon,
     title = title,
     canRedeem = canRedeem,
     points = points,

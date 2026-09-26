@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun AssetValueListHead(header: SimulationHeaderUIModel) {
-    AmountListHead(amount = header.amount, icon = header.asset)
+    AmountListHead(amount = header.amount, icon = header.icon)
 }

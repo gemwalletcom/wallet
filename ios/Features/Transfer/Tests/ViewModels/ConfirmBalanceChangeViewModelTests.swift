@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemSimulationBalanceChange
 import enum Gemstone.GemValueTone
 @testable import GemstonePrimitives
@@ -18,7 +17,7 @@ struct ConfirmBalanceChangeViewModelTests {
         let change = { (value: Double, tone: GemValueTone) in
             ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
                 asset: solana.toGem(),
-                icon: GemAssetConfigService.shared.assetIcon(assetId: solana.id.identifier),
+                icon: .mock(),
                 amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .signed, tone: tone, rounding: .toNearest, exact: "1.5"),
             ))
         }

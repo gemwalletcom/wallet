@@ -30,8 +30,8 @@ class SimulationTest {
         val solana = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
         val usdc = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
         val changes = listOf(
-            GemSimulationBalanceChange(asset = solana.toGem(), icon = solana.id.icon(), amount = fullAmount(-0.100005, "SOL", GemValueTone.NEGATIVE, "0.100005")),
-            GemSimulationBalanceChange(asset = usdc.toGem(), icon = usdc.id.icon(), amount = fullAmount(0.75, "USDC", GemValueTone.POSITIVE, "0.75")),
+            GemSimulationBalanceChange(asset = solana.toGem(), icon = solana.icon, amount = fullAmount(-0.100005, "SOL", GemValueTone.NEGATIVE, "0.100005")),
+            GemSimulationBalanceChange(asset = usdc.toGem(), icon = usdc.icon, amount = fullAmount(0.75, "USDC", GemValueTone.POSITIVE, "0.75")),
         )
 
         assertEquals(listOf("-0.100005 SOL", "+0.75 USDC"), changes.map { it.listItem().subtitle })

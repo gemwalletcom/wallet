@@ -50,6 +50,7 @@ pub enum GemIncomingCode {
 pub struct GemRewardsRedemption {
     pub id: String,
     pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: GemLocalizedText,
     pub can_redeem: bool,
     pub points: GemFormattedNumber,

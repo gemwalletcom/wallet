@@ -6,6 +6,7 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.assetText
 
@@ -17,6 +18,9 @@ val Asset.stakeChain: StakeChain?
 
 private val Asset.text: GemAssetText
     get() = assetText(toGem())
+
+val Asset.icon: GemAssetIcon
+    get() = text.icon
 
 val Asset.networkFullName: String
     get() = text.networkFullName

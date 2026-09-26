@@ -270,7 +270,8 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.headerData == GemSimulationValue(asset: asset.toGem(), value: .unlimited))
+        #expect(viewModel.headerData?.asset == asset.toGem())
+        #expect(viewModel.headerData?.value == .unlimited)
         #expect(!(viewModel.primaryPayloadFields + viewModel.secondaryPayloadFields).contains { $0.title == .value })
     }
 

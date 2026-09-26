@@ -35,7 +35,7 @@ struct SwapTokenViewModel {
     }
 
     var assetImage: AssetImage? {
-        asset.map { AssetIdViewModel(assetId: $0.id).assetImage }
+        side.icon.map { AssetImage(icon: $0) }
     }
 
     var actionTitle: String {

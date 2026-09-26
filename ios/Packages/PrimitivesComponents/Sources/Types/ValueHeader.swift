@@ -59,7 +59,7 @@ public extension GemWalletHomeViewState {
 public extension GemSimulationValue {
     var valueHeader: ValueHeader {
         ValueHeader(
-            assetImage: AssetViewModel(asset: asset.toPrimitives()).assetImage,
+            assetImage: AssetImage(icon: icon),
             title: value.title(symbol: asset.symbol, formatter: ValueFormatter(style: .full), decimals: Int(asset.decimals)),
         )
     }

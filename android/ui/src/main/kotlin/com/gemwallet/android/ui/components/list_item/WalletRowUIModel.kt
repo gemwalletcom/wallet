@@ -6,7 +6,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.localization.string
-import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
@@ -30,7 +29,7 @@ fun GemWalletRow.listItemImage(): ListItemImage = walletListItemImage(imageUrl, 
 
 fun walletListItemImage(imageUrl: String?, placeholder: GemWalletPlaceholder): ListItemImage = imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it) } ?: when (placeholder) {
     GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, style = ListItemImageStyle.Avatar)
-    is GemWalletPlaceholder.Chain -> ListItemImage.Asset(AssetId(placeholder.chain.toChain()))
+    is GemWalletPlaceholder.Chain -> ListItemImage.Asset(placeholder.chain)
 }
 
 fun GemWalletPlaceholder.iconModel(): Any? = when (this) {

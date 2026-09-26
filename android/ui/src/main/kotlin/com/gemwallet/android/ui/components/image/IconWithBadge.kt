@@ -21,13 +21,7 @@ import uniffi.gemstone.GemAssetIcon
 
 @Composable
 fun AssetIcon(asset: Asset, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
-    IconWithBadge(
-        icon = asset.iconModel(),
-        placeholder = asset.id.icon().placeholder,
-        supportIcon = asset.supportIconModel(),
-        size = size,
-        badgeBackgroundColor = badgeBackgroundColor,
-    )
+    AssetIcon(asset.icon, size, badgeBackgroundColor)
 }
 
 @Composable

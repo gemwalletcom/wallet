@@ -6,6 +6,7 @@ import Formatters
 import Foundation
 import func Gemstone.assetListRow
 import enum Gemstone.FiatProviderName
+import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemFiatAmountCheck
 import struct Gemstone.GemFiatQuoteRow
 import protocol Gemstone.GemFiatQuoteServiceProtocol
@@ -131,7 +132,7 @@ public final class FiatSceneViewModel {
     }
 
     var assetImage: AssetImage {
-        AssetIdViewModel(assetId: asset.id).assetImage
+        AssetImage(icon: assetRow.icon)
     }
 
     var suggestedAmounts: [GemFiatSuggestedAmount] {
@@ -139,14 +140,17 @@ public final class FiatSceneViewModel {
     }
 
     var assetBalance: String {
-        let row = assetListRow(
+        guard case let .value(value, _) = assetRow.trailing else { return .empty }
+        return value.text.text
+    }
+
+    private var assetRow: GemAssetItemRow {
+        assetListRow(
             data: assetData.toGem(),
             currency: GemConstants.fiatQuoteCurrency.toGem(),
             scope: .available,
             style: GemSelectAssetType.buy.flow().rowStyle,
         )
-        guard case let .value(value, _) = row.trailing else { return .empty }
-        return value.text.text
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {

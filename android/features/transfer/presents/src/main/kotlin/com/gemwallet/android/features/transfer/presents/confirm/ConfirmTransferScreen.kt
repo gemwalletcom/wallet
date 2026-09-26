@@ -47,6 +47,7 @@ import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetListHead
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
@@ -201,18 +202,22 @@ fun ConfirmTransferScreen(
 
                                 is ConfirmHeaderUIModel.Swap -> SwapListHead(
                                     fromAsset = model.fromAsset,
+                                    fromIcon = model.fromIcon,
                                     fromValueText = model.fromValueText,
                                     fromEquivalentText = model.fromEquivalentText,
                                     toAsset = model.toAsset,
+                                    toIcon = model.toIcon,
                                     toValueText = model.toValueText,
                                     toEquivalentText = model.toEquivalentText,
                                 )
 
                                 is ConfirmHeaderUIModel.Nft -> NftHead(model.source)
 
-                                is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
+                                is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.icon)
 
-                                is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.asset)
+                                is ConfirmHeaderUIModel.AssetImage -> AssetListHead(icon = model.icon)
+
+                                is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.icon)
 
                                 null -> Unit
                             }

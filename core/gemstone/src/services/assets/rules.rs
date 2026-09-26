@@ -194,6 +194,7 @@ fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> 
 pub fn asset_text(asset: &Asset) -> GemAssetText {
     let network_name = ChainAsset::from_chain(asset.chain()).network_name;
     GemAssetText {
+        icon: super::icon::asset_icon(&asset.id),
         title: match asset.name == asset.symbol {
             true => asset.name.clone(),
             false => format!("{} ({})", asset.name, asset.symbol),

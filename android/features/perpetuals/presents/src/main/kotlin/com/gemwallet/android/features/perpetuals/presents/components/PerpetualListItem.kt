@@ -96,7 +96,7 @@ internal fun previewPerpetual(asset: Asset, title: String, price: Double, change
     override val asset = asset
     override val isPinned = isPinned
     override val row = GemAssetItemRow(
-        icon = asset.id.icon(),
+        icon = asset.icon,
         title = title,
         titleExtra = null,
         subtitle = GemRowText(GemLocalizedText.Number(formattedCurrency(price, Currency.USD.string, GemCurrencyStyle.SHORT)), GemValueTone.NEUTRAL),

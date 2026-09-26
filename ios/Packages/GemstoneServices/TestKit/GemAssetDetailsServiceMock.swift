@@ -45,6 +45,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 priceAlert: .disabled,
                 emptyTransactionsAction: nil,
             ),
+            icon: .mock(),
             banner: nil,
             balanceValue: .mock(value: 0, unit: .symbol(symbol: input.assetData.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
             sections: [],

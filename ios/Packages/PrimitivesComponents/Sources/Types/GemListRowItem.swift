@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAssetIcon
 import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
@@ -122,7 +123,7 @@ extension GemListRow {
             .network(
                 title: title.text,
                 subtitle: name,
-                image: AssetIdViewModel(assetId: Chain(core: chain).assetId).networkAssetImage,
+                image: AssetImage(type: .text(.empty), placeholder: ChainImage(chain: Chain(core: chain)).image),
             )
         case let .app(name, iconUrl, websiteUrl):
             .app(
@@ -165,8 +166,8 @@ extension GemListRow {
             identifierItem(title: title, copy: copy, explorer: explorer?.toPrimitives())
         case let .explorer(name, url):
             .page(ListItemModel(title: Localized.Transaction.viewOn(name)), url: URL(string: url) ?? BlockExplorerLink(name: name, link: url).url)
-        case let .icon(assetId, imageUrl):
-            .icon(headerImage(assetId: AssetId(core: assetId), imageUrl: imageUrl))
+        case let .icon(icon, imageUrl):
+            .icon(headerImage(icon: icon, imageUrl: imageUrl))
         case let .avatar(avatar):
             .icon(avatar.assetImage)
         case let .walletAvatar(imageUrl, placeholder):
@@ -224,8 +225,8 @@ public extension GemListRow {
 }
 
 private extension GemListRow {
-    func headerImage(assetId: AssetId, imageUrl: String?) -> AssetImage {
-        let assetImage = AssetIdViewModel(assetId: assetId).assetImage
+    func headerImage(icon: GemAssetIcon, imageUrl: String?) -> AssetImage {
+        let assetImage = AssetImage(icon: icon)
         guard let imageUrl else { return assetImage }
         return AssetImage(imageURL: URL(string: imageUrl), placeholder: assetImage.placeholder)
     }

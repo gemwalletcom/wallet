@@ -57,7 +57,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         self.warnings = warnings
     }
 
-    public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem()))
+    public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem(), icon: .mock()))
 
     public func screen() -> GemConfirmScreen {
         .mock()

@@ -35,7 +35,7 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     }
 
     public var assetImage: AssetImage {
-        AssetIdViewModel(assetId: asset.id).assetImage
+        AssetImage(icon: text.icon)
     }
 
     public var networkName: String {

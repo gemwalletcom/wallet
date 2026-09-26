@@ -2,6 +2,7 @@ use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTon
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
+use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
 use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
@@ -186,6 +187,7 @@ pub struct GemHeaderAmount {
     pub asset: Asset,
     pub amount: GemFormattedNumber,
     pub fiat: Option<GemFormattedNumber>,
+    pub icon: GemAssetIcon,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -265,8 +267,18 @@ pub enum GemTransactionHeader {
     Amount { amount: GemHeaderAmount },
     Swap { from: GemHeaderAmount, to: GemHeaderAmount },
     Nft { asset_id: NFTAssetId, name: Option<String>, image_url: String },
-    Symbol { asset: Asset },
-    AssetImage { asset: Asset },
+    Symbol { asset: Asset, icon: GemAssetIcon },
+    AssetImage { icon: GemAssetIcon },
+}
+
+impl GemTransactionHeader {
+    pub fn symbol(asset: Asset) -> Self {
+        Self::Symbol { icon: asset_icon(&asset.id), asset }
+    }
+
+    pub fn asset_image(asset: &Asset) -> Self {
+        Self::AssetImage { icon: asset_icon(&asset.id) }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetIcon
 import Primitives
 
 public protocol AmountDisplayable: Sendable {
@@ -42,7 +43,8 @@ extension AmountDisplay: AmountDisplayable {
 extension AmountDisplay {
     static func symbol(
         asset: Asset,
+        icon: GemAssetIcon? = nil,
     ) -> AmountDisplay {
-        .symbol(SymbolViewModel(asset: asset))
+        .symbol(SymbolViewModel(asset: asset, icon: icon))
     }
 }

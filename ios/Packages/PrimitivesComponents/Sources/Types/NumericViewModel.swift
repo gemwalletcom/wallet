@@ -32,6 +32,6 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var assetImage: AssetImage? {
-        AssetIdViewModel(assetId: header.asset.toPrimitives().id).assetImage
+        AssetImage(icon: header.icon)
     }
 }

@@ -56,6 +56,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                 amount = viewModel.amount,
                 amountSymbol = uiState.amountSymbol,
                 asset = asset,
+                icon = uiState.icon,
                 currency = viewModel.currency,
                 canSwitchInputType = uiState.canSwitchInputType,
                 readOnly = uiState.readOnly,

@@ -6,6 +6,6 @@ import PrimitivesTestKit
 
 public extension SymbolViewModel {
     static func mock(asset: Asset = .mock()) -> SymbolViewModel {
-        SymbolViewModel(asset: asset)
+        SymbolViewModel(asset: asset, icon: nil)
     }
 }

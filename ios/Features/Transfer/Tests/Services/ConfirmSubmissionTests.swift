@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationPayloadRow
@@ -78,7 +77,7 @@ struct ConfirmSubmissionTests {
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: .mock(simulation: .mock(balanceChanges: [GemSimulationBalanceChange(
                 asset: usdt.toGem(),
-                icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier),
+                icon: .mock(),
                 amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
             )])),
         )))
@@ -86,7 +85,7 @@ struct ConfirmSubmissionTests {
 
         #expect(model.viewState.sections.contains(.balanceChanges(changes: [GemSimulationBalanceChange(
             asset: usdt.toGem(),
-            icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier),
+            icon: .mock(),
             amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
         )])))
     }

@@ -113,6 +113,7 @@ internal fun SwapScene(
             item {
                 SwapToken(
                     item = pay,
+                    icon = swapState.payIcon,
                     balance = payBalance,
                     equivalent = payEquivalent,
                     state = payValue,
@@ -136,6 +137,7 @@ internal fun SwapScene(
             item {
                 SwapToken(
                     item = receive,
+                    icon = swapState.receiveIcon,
                     balance = receiveBalance,
                     equivalent = receiveEquivalent,
                     state = receiveValue,

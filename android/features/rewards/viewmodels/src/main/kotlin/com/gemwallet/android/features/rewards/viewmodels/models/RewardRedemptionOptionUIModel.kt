@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.rewards.viewmodels.models
 
 import android.content.Context
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -16,7 +15,7 @@ internal fun GemRewardsRedemption.uiModel(context: Context): RewardRedemptionOpt
     model = ListItemModel(
         title = title.string(context),
         subtitle = points.text(),
-        image = assetId.toAssetId()?.let(ListItemImage::Asset),
+        image = ListItemImage.Asset(icon),
     ),
     confirmationMessage = context.getString(R.string.rewards_confirm_redeem, value.text(), points.text()),
 )

@@ -44,12 +44,14 @@ import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetData
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSideInteraction
 
 @Composable
 internal fun SwapToken(
     item: AssetData?,
+    icon: GemAssetIcon?,
     balance: GemLocalizedText?,
     equivalent: String,
     calculating: Boolean = false,
@@ -85,6 +87,7 @@ internal fun SwapToken(
         ) {
             SwapItemLotInfo(
                 asset = item?.asset,
+                icon = icon,
                 enabled = interaction.isAssetSelectable,
                 onClick = onAssetSelect,
             )
@@ -98,11 +101,11 @@ internal fun SwapToken(
 }
 
 @Composable
-private fun SwapItemLotInfo(asset: Asset?, enabled: Boolean, onClick: () -> Unit) {
-    if (asset == null) {
+private fun SwapItemLotInfo(asset: Asset?, icon: GemAssetIcon?, enabled: Boolean, onClick: () -> Unit) {
+    if (asset == null || icon == null) {
         SelectAssetInfo(enabled, onClick)
     } else {
-        AssetData(asset, enabled, onClick)
+        AssetData(asset, icon, enabled, onClick)
     }
 }
 
@@ -125,7 +128,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AssetData(asset: Asset, enabled: Boolean, onClick: () -> Unit) {
+private fun AssetData(asset: Asset, icon: GemAssetIcon, enabled: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
@@ -134,7 +137,7 @@ private fun AssetData(asset: Asset, enabled: Boolean, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {
-        AssetIcon(asset)
+        AssetIcon(icon)
         Text(
             text = asset.symbol,
             style = MaterialTheme.typography.titleMedium,

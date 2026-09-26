@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetIcon
 import Primitives
 import Style
 
 public struct SymbolViewModel: Sendable, AmountDisplayable {
     private let symbol: String
-    private let image: AssetImage
+    private let image: AssetImage?
 
-    public init(asset: Asset) {
+    public init(asset: Asset, icon: GemAssetIcon?) {
         symbol = asset.symbol
-        image = AssetIdViewModel(assetId: asset.id).assetImage
+        image = icon.map { AssetImage(icon: $0) }
     }
 
     public var amount: TextValue {

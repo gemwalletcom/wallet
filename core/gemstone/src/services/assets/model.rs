@@ -88,6 +88,7 @@ pub enum GemAssetTrailingStyle {
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetText {
+    pub icon: super::icon::GemAssetIcon,
     pub title: String,
     pub subtitle_symbol: Option<String>,
     pub network_name: String,
@@ -625,6 +626,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub icon: super::icon::GemAssetIcon,
     pub banner: Option<GemBannerRow>,
     pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,

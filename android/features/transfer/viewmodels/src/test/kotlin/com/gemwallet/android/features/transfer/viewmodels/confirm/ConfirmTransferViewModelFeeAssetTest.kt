@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemAssetBalance
+import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -97,7 +98,7 @@ class ConfirmTransferViewModelFeeAssetTest {
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(ethereum.toGem()))
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(ethereum.toGem(), mockGemAssetIcon()))
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(
                 transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),

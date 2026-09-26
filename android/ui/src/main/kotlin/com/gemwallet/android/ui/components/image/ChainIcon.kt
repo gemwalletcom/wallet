@@ -1,13 +1,9 @@
 package com.gemwallet.android.ui.components.image
 
 import androidx.annotation.DrawableRes
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.asset.iconChain
-import com.gemwallet.android.domains.asset.supportIconChain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
@@ -83,8 +79,6 @@ fun GemLocalTokenIcon.iconResource(): Int = when (this) {
 
 fun Chain.iconModel(): Any? = iconChain().iconResource()
 
-fun AssetId.iconModel(): Any? = icon().iconModel()
-
 fun GemAssetIcon.supportIconModel(): Any? = badge?.toChain()?.iconResource()
 
 fun GemAssetIcon.iconModel(): Any? = when (val image = image) {
@@ -92,9 +86,3 @@ fun GemAssetIcon.iconModel(): Any? = when (val image = image) {
     is GemAssetIconImage.LocalToken -> image.token.iconResource()
     is GemAssetIconImage.Remote -> image.url
 }
-
-fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource()
-
-fun Asset.iconModel(): Any? = id.iconModel()
-
-fun Asset.supportIconModel(): Any? = id.supportIconModel()

@@ -199,7 +199,7 @@ public final class AssetSceneViewModel: Sendable {
 
     func assetHeader(_ details: GemAssetDetails) -> ValueHeader {
         ValueHeader(
-            assetImage: AssetIdViewModel(assetId: asset.id).assetImage,
+            assetImage: AssetImage(icon: details.icon),
             title: details.balanceValue.text(),
             subtitle: details.fiatValue?.text(),
             buttons: details.state.headerActions.headerButtons,

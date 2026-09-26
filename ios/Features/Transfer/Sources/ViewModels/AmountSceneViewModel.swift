@@ -141,7 +141,7 @@ public final class AmountSceneViewModel {
     }
 
     var assetImage: AssetImage {
-        AssetIdViewModel(assetId: displayAsset.id).assetImage
+        AssetImage(icon: input.icon)
     }
 
     var assetName: String {

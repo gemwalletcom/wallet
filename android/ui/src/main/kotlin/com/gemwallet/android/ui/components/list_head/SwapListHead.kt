@@ -25,9 +25,21 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetIcon
 
 @Composable
-fun SwapListHead(fromAsset: Asset?, fromValueText: String, fromEquivalentText: String?, toAsset: Asset?, toValueText: String, toEquivalentText: String?, onSwapClick: (() -> Unit)? = null, onAssetClick: ((AssetId) -> Unit)? = null) {
+fun SwapListHead(
+    fromAsset: Asset?,
+    fromIcon: GemAssetIcon,
+    fromValueText: String,
+    fromEquivalentText: String?,
+    toAsset: Asset?,
+    toIcon: GemAssetIcon,
+    toValueText: String,
+    toEquivalentText: String?,
+    onSwapClick: (() -> Unit)? = null,
+    onAssetClick: ((AssetId) -> Unit)? = null,
+) {
     if (fromAsset == null || toAsset == null) {
         return
     }
@@ -41,6 +53,7 @@ fun SwapListHead(fromAsset: Asset?, fromValueText: String, fromEquivalentText: S
         ) {
             SwapItem(
                 asset = fromAsset,
+                icon = fromIcon,
                 valueText = fromValueText,
                 equivalentText = fromEquivalentText,
                 onSwapClick = onSwapClick,
@@ -58,6 +71,7 @@ fun SwapListHead(fromAsset: Asset?, fromValueText: String, fromEquivalentText: S
             Spacer16()
             SwapItem(
                 asset = toAsset,
+                icon = toIcon,
                 valueText = toValueText,
                 equivalentText = toEquivalentText,
                 onSwapClick = onSwapClick,
@@ -68,7 +82,7 @@ fun SwapListHead(fromAsset: Asset?, fromValueText: String, fromEquivalentText: S
 }
 
 @Composable
-private fun SwapItem(asset: Asset, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
+private fun SwapItem(asset: Asset, icon: GemAssetIcon, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -109,7 +123,7 @@ private fun SwapItem(asset: Asset, valueText: String, equivalentText: String?, o
                 Modifier
             },
         ) {
-            HeaderIcon(asset, listItemIconSize)
+            HeaderIcon(icon, listItemIconSize)
         }
     }
 }

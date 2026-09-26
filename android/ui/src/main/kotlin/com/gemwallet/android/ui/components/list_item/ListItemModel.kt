@@ -40,8 +40,8 @@ import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
-import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.GemAssetIconImage
 
 data class ListItemModel(
     val title: String,
@@ -107,7 +107,7 @@ sealed interface ListItemImage {
     val style: ListItemImageStyle
 
     data class Asset(val icon: GemAssetIcon) : ListItemImage {
-        constructor(assetId: AssetId) : this(assetId.icon())
+        constructor(chain: String) : this(GemAssetIcon(image = GemAssetIconImage.Local(chain), badge = null, placeholder = null))
 
         override val style: ListItemImageStyle = ListItemImageStyle.Avatar
     }

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAssetIcon
 import struct Gemstone.GemAvatar
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerIcon
@@ -485,10 +486,9 @@ extension GemSocialLink {
 
 public extension GemHeaderAmount {
     var swapAmountField: SwapAmountField {
-        let assetId = asset.toPrimitives().id
-        return SwapAmountField(
-            assetId: assetId,
-            assetImage: AssetIdViewModel(assetId: assetId).assetImage,
+        SwapAmountField(
+            assetId: asset.toPrimitives().id,
+            assetImage: AssetImage(icon: icon),
             amount: amount.text(),
             fiatAmount: fiat?.text(),
         )
@@ -525,10 +525,10 @@ public extension GemTransactionHeader {
                     chainPlaceholder: .none,
                 ),
             )
-        case let .symbol(asset):
-            .amount(.symbol(asset: asset.toPrimitives()))
-        case let .assetImage(asset):
-            .asset(image: AssetViewModel(asset: asset.toPrimitives()).assetImage)
+        case let .symbol(asset, icon):
+            .amount(.symbol(asset: asset.toPrimitives(), icon: icon))
+        case let .assetImage(icon):
+            .asset(image: AssetImage(icon: icon))
         }
     }
 }
@@ -579,5 +579,21 @@ public extension GemCollectibleAction {
         case .refresh: SystemImage.refresh
         case .report: nil
         }
+    }
+}
+
+public extension AssetImage {
+    init(icon: GemAssetIcon) {
+        let (imageURL, placeholder): (URL?, Image?) = switch icon.image {
+        case let .local(chain): (.none, ChainImage(chain: Chain(core: chain)).image)
+        case let .localToken(token): (.none, TokenImage(token: token).image)
+        case let .remote(url): (URL(string: url), .none)
+        }
+        self.init(
+            type: .text(icon.placeholder ?? .empty),
+            imageURL: imageURL,
+            placeholder: placeholder,
+            chainPlaceholder: icon.badge.map { ChainImage(chain: Chain(core: $0)).image },
+        )
     }
 }

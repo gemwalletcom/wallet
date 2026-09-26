@@ -21,12 +21,13 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemFormattedNumber
 
 @Composable
-fun PropertyAssetInfoItem(asset: Asset, availableAmount: String, onMaxAmount: () -> Unit) {
+fun PropertyAssetInfoItem(asset: Asset, icon: GemAssetIcon, availableAmount: String, onMaxAmount: () -> Unit) {
     ListItem(
-        leading = { AssetIcon(asset) },
+        leading = { AssetIcon(icon) },
         title = { ListItemTitleText(asset.name) },
         subtitle = { ListItemSupportText(stringResource(id = R.string.transfer_balance, availableAmount)) },
         listPosition = ListPosition.Single,

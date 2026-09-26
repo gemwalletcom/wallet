@@ -133,7 +133,7 @@ fun GemListRowView(
                 .padding(top = paddingDefault, bottom = paddingSmall),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            row.imageUrl?.let { url -> IconWithBadge(icon = url, placeholder = row.assetId.icon().placeholder, size = headerIconSize) } ?: HeaderIcon(row.assetId)
+            row.imageUrl?.let { url -> IconWithBadge(icon = url, placeholder = row.icon.placeholder, size = headerIconSize) } ?: HeaderIcon(row.icon)
         }
 
         is GemListRowUIModel.Avatar -> Column(

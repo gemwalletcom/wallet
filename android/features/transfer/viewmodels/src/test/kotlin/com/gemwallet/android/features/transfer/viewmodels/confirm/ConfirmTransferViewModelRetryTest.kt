@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemAssetBalance
+import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemConfirmFee
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
@@ -134,7 +135,7 @@ class ConfirmTransferViewModelRetryTest {
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem(), mockGemAssetIcon()))
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(
                 transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),

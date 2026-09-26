@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetId, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
+use primitives::{Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
 
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
@@ -385,7 +385,7 @@ pub enum GemListRow {
         links: Vec<GemSocialLink>,
     },
     Icon {
-        asset_id: AssetId,
+        icon: crate::services::assets::icon::GemAssetIcon,
         image_url: Option<String>,
     },
     Avatar {

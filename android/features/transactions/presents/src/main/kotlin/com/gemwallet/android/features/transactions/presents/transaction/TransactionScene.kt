@@ -90,21 +90,23 @@ internal fun TransactionScene(title: String, sections: List<ListSection<Transact
                     )
 
                     is TransactionItemUIModel.AmountHead -> AmountListHead(
-                        icon = row.asset,
+                        icon = row.icon,
                         amount = row.amount,
                         equivalent = row.equivalent,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 
                     is TransactionItemUIModel.AssetHead -> AssetListHead(
-                        asset = row.asset,
+                        icon = row.icon,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 
                     is TransactionItemUIModel.SwapHead -> SwapListHead(
                         fromAsset = row.fromAsset,
+                        fromIcon = row.fromIcon,
                         fromValueText = row.fromValueText,
                         toAsset = row.toAsset,
+                        toIcon = row.toIcon,
                         toValueText = row.toValueText,
                         fromEquivalentText = row.fromEquivalentText,
                         toEquivalentText = row.toEquivalentText,

@@ -12,6 +12,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::assets::icon::asset_icon;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
@@ -63,6 +64,7 @@ impl GemAmountType {
         let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
         let can_change_value = can_change_value(self, asset);
         GemAmountInput {
+            icon: asset_icon(&asset.id),
             balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
             available_value: available,
             prefill: (!can_change_value).then(|| GemAmountMaxEntry {
@@ -229,6 +231,7 @@ pub fn transfer_input(transfer: &GemAmountTransfer, asset: &Asset, balance: &Gem
         value,
     });
     GemAmountInput {
+        icon: asset_icon(&transfer_display_asset(transfer, asset.clone()).id),
         prefill: prefill.or(input.prefill.clone()),
         ..input
     }

@@ -73,7 +73,7 @@ fun mockTransactionId(chain: Chain = Chain.Bitcoin, hash: String = "tx-id") = Tr
 fun mockAssetInfoDataAggregate(asset: Asset = mockAsset(), pinned: Boolean = false) = AssetInfoDataAggregate(
     asset = asset,
     row = GemAssetItemRow(
-        icon = asset.id.icon(),
+        icon = asset.icon,
         title = asset.name,
         titleExtra = null,
         subtitle = null,

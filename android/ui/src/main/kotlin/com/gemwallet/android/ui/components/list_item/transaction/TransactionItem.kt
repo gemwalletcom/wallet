@@ -228,5 +228,5 @@ private fun previewRow(
     equivalentValue = equivalentValue?.let { GemTransactionRowValue.Number(it) } ?: GemTransactionRowValue.None,
     nftImageUrl = null,
     badge = badge,
-    icon = asset.id.icon(),
+    icon = asset.icon,
 )

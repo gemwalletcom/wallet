@@ -159,6 +159,7 @@ impl GemAssetDetailsService {
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;
         GemAssetDetails {
+            icon: super::icon::asset_icon(&asset.id),
             title: rules::asset_title(&asset),
             balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
             fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),

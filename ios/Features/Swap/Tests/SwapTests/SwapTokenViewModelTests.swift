@@ -40,6 +40,7 @@ struct SwapTokenViewModelTests {
     private func side(isBalanceActionEnabled: Bool, fiat: GemFormattedNumber?) -> GemSwapSideState {
         GemSwapSideState(
             interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: isBalanceActionEnabled),
+            icon: nil,
             balance: nil,
             fiat: fiat,
         )

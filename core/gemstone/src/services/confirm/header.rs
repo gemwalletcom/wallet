@@ -2,13 +2,14 @@ use std::str::FromStr;
 
 use chrono::Utc;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetId, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
+use primitives::{Asset, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
 
 use super::model::{GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemSimulationValue, GemTransferAmountResult};
 use super::rules;
 use crate::config::image::GemImage;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::perpetual::GemPerpetual;
+use crate::services::assets::icon::asset_icon;
 use crate::services::transactions::model::{GemAmountSign, GemTransactionAmount, GemTransactionHeader, GemTransactionHeaderKind};
 use crate::services::transactions::rules::header_amount;
 use crate::services::transfer::model::GemTransferData;
@@ -16,7 +17,7 @@ use crate::services::transfer::model::GemTransferData;
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemConfirmHeader {
-    Placeholder { asset_id: AssetId },
+    Placeholder { icon: crate::services::assets::icon::GemAssetIcon },
     Reserved { header: GemTransactionHeader },
     Value { value: GemSimulationValue },
     Transaction { header: GemTransactionHeader },
@@ -28,14 +29,11 @@ pub fn header(transfer: &GemTransferData, requested: Option<&SimulationResult>, 
     }
     if let TransactionInputType::TokenApprove { asset, approval_data } = &transfer.input_type {
         return GemConfirmHeader::Value {
-            value: GemSimulationValue {
-                asset: asset.clone(),
-                value: rules::approval_value_from(Some(&approval_data.value), approval_data.is_unlimited),
-            },
+            value: GemSimulationValue::new(asset.clone(), rules::approval_value_from(Some(&approval_data.value), approval_data.is_unlimited)),
         };
     }
     if let (TransactionInputType::Generic { .. }, Some(header)) = (&transfer.input_type, requested.and_then(|result| result.valid_header())) {
-        return GemConfirmHeader::Placeholder { asset_id: header.asset_id.clone() };
+        return GemConfirmHeader::Placeholder { icon: asset_icon(&header.asset_id) };
     }
     let header = transaction_header(transfer, load, currency);
     if screen.phase == GemConfirmPhase::Loading && is_amountless_payment(transfer) {
@@ -70,8 +68,8 @@ fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>,
             },
             _ => amount(false),
         },
-        GemTransactionHeaderKind::Symbol => GemTransactionHeader::Symbol { asset: header_asset(transfer) },
-        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::AssetImage { asset: header_asset(transfer) },
+        GemTransactionHeaderKind::Symbol => GemTransactionHeader::symbol(header_asset(transfer)),
+        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::asset_image(&header_asset(transfer)),
     }
 }
 
@@ -114,7 +112,7 @@ fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransaction
 
 #[cfg(test)]
 mod tests {
-    use primitives::{ApprovalData, Chain, NFTAsset, PaymentInvoice, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransferDataExtra};
+    use primitives::{ApprovalData, AssetId, Chain, NFTAsset, PaymentInvoice, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransferDataExtra};
 
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
@@ -156,7 +154,7 @@ mod tests {
         assert_eq!(
             unlimited,
             GemConfirmHeader::Value {
-                value: GemSimulationValue { asset, value: GemApprovalValue::Unlimited }
+                value: GemSimulationValue::new(asset, GemApprovalValue::Unlimited)
             },
             "both apps show the approved asset, not one of them a bare symbol"
         );
@@ -198,7 +196,7 @@ mod tests {
         assert_eq!(
             header,
             GemConfirmHeader::Transaction {
-                header: GemTransactionHeader::Symbol { asset: market }
+                header: GemTransactionHeader::symbol(market)
             }
         );
     }
@@ -227,7 +225,7 @@ mod tests {
                 Currency::USD,
                 &ready(),
             ),
-            GemConfirmHeader::Placeholder { asset_id: asset.id },
+            GemConfirmHeader::Placeholder { icon: asset_icon(&asset.id) },
             "the head keeps its place until the simulation answers"
         );
     }

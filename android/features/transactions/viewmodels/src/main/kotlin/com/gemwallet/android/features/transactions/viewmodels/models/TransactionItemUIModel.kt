@@ -14,6 +14,7 @@ import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
@@ -27,9 +28,10 @@ sealed interface TransactionItemUIModel {
     data class SwapProgress(val model: TransactionSwapProgressUIModel) : TransactionItemUIModel
     data class Row(val row: GemListRow) : TransactionItemUIModel
     data class NftHead(val metadata: TransactionNFTTransferMetadata) : TransactionItemUIModel
-    data class AmountHead(val asset: Asset, val amount: String, val equivalent: String?) : TransactionItemUIModel
-    data class AssetHead(val asset: Asset) : TransactionItemUIModel
-    data class SwapHead(val fromAsset: Asset, val fromValueText: String, val fromEquivalentText: String?, val toAsset: Asset, val toValueText: String, val toEquivalentText: String?) : TransactionItemUIModel
+    data class AmountHead(val asset: Asset, val icon: GemAssetIcon, val amount: String, val equivalent: String?) : TransactionItemUIModel
+    data class AssetHead(val icon: GemAssetIcon) : TransactionItemUIModel
+    data class SwapHead(val fromAsset: Asset, val fromIcon: GemAssetIcon, val fromValueText: String, val fromEquivalentText: String?, val toAsset: Asset, val toIcon: GemAssetIcon, val toValueText: String, val toEquivalentText: String?) :
+        TransactionItemUIModel
 
     data class SwapAgain(val fromAssetId: AssetId, val toAssetId: AssetId) : TransactionItemUIModel
 }
@@ -65,15 +67,18 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
 private fun GemTransactionHeader.head(): TransactionItemUIModel = when (this) {
     is GemTransactionHeader.Amount -> TransactionItemUIModel.AmountHead(
         asset = amount.asset.toPrimitives(),
+        icon = amount.icon,
         amount = amount.amount.text(),
         equivalent = amount.fiat?.text().orEmpty(),
     )
 
     is GemTransactionHeader.Swap -> TransactionItemUIModel.SwapHead(
         fromAsset = from.asset.toPrimitives(),
+        fromIcon = from.icon,
         fromValueText = from.amount.text(),
         fromEquivalentText = from.fiat?.text(),
         toAsset = to.asset.toPrimitives(),
+        toIcon = to.icon,
         toValueText = to.amount.text(),
         toEquivalentText = to.fiat?.text(),
     )
@@ -82,9 +87,9 @@ private fun GemTransactionHeader.head(): TransactionItemUIModel = when (this) {
         TransactionNFTTransferMetadata(assetId = NFTAssetId(assetId), name = name),
     )
 
-    is GemTransactionHeader.Symbol -> asset.toPrimitives().let { TransactionItemUIModel.AmountHead(it, it.symbol, null) }
+    is GemTransactionHeader.Symbol -> asset.toPrimitives().let { TransactionItemUIModel.AmountHead(it, icon, it.symbol, null) }
 
-    is GemTransactionHeader.AssetImage -> TransactionItemUIModel.AssetHead(asset.toPrimitives())
+    is GemTransactionHeader.AssetImage -> TransactionItemUIModel.AssetHead(icon)
 }
 
 private fun GemTransactionParticipant.address(context: Context, chain: Chain): TransactionItemUIModel.Address = TransactionItemUIModel.Address(

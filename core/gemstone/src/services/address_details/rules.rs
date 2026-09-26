@@ -8,6 +8,7 @@ use crate::formatted_number::GemValueTone;
 use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
 use crate::models::state::{GemLoad, GemLoadState};
+use crate::services::assets::icon::asset_icon;
 use crate::services::assets::rules::asset_text;
 use crate::services::balance::rules::{BalanceKind, balance_amount, balance_updates};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
@@ -106,7 +107,7 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
 fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> GemListRow {
     let chain = details.chain;
     let chain_icon = GemListRow::Icon {
-        asset_id: AssetId::from_chain(chain),
+        icon: asset_icon(&AssetId::from_chain(chain)),
         image_url: None,
     };
     match address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone()) {
@@ -116,11 +117,11 @@ fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> Ge
         },
         Some(AddressType::Contact) => contact_avatar(address_name, None).map_or(chain_icon, |avatar| GemListRow::Avatar { avatar }),
         Some(AddressType::Asset) => GemListRow::Icon {
-            asset_id: AssetId::from_token(chain, &details.address),
+            icon: asset_icon(&AssetId::from_token(chain, &details.address)),
             image_url: None,
         },
         Some(AddressType::Validator) => GemListRow::Icon {
-            asset_id: AssetId::from_chain(chain),
+            icon: asset_icon(&AssetId::from_chain(chain)),
             image_url: Some(
                 GemImage::Validator {
                     chain,
@@ -377,7 +378,7 @@ mod tests {
         assert_eq!(
             sections(&loading, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Cosmos),
+                icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: None
             }]
         );
@@ -397,21 +398,21 @@ mod tests {
         assert_eq!(
             sections(&token, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                icon: asset_icon(&AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
                 image_url: None,
             }]
         );
         assert_eq!(
             sections(&validator, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Cosmos),
+                icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: Some("https://assets.gemwallet.com/blockchains/cosmos/validators/cosmosvaloper1/logo.png".to_string()),
             }]
         );
         assert_eq!(
             sections(&contract, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Ethereum),
+                icon: asset_icon(&AssetId::from_chain(Chain::Ethereum)),
                 image_url: None,
             }]
         );

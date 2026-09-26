@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use crate::services::assets::icon::asset_icon;
 use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
@@ -198,6 +199,7 @@ pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asse
         title: GemLocalizedText::StakeProvider {
             provider: delegation.validator.provider_type,
         },
+        icon: asset_icon(&asset.id),
         header: delegation_list_row(delegation, asset, price, currency.clone()),
         actions: delegation_actions(wallet_type, delegation)
             .into_iter()

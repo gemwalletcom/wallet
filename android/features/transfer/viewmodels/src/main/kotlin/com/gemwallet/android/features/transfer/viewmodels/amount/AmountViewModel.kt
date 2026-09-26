@@ -188,6 +188,7 @@ class AmountViewModel @Inject constructor(
         AmountUIState(
             title = (screen[0] as GemAmountTitle?)?.text(context).orEmpty(),
             asset = screen[1] as Asset?,
+            icon = input?.icon,
             amountSymbol = screen[2] as AmountSymbolUIModel,
             canSwitchInputType = (rest[0] as GemAmountType?)?.canSwitchInputType() == true,
             readOnly = input?.canChangeValue == false,

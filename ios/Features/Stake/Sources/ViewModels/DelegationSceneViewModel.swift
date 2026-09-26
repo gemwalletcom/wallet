@@ -94,7 +94,7 @@ public final class DelegationSceneViewModel {
     }
 
     public var assetImageStyle: ListItemImageStyle? {
-        .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
+        .asset(assetImage: AssetImage(icon: details.icon))
     }
 }
 

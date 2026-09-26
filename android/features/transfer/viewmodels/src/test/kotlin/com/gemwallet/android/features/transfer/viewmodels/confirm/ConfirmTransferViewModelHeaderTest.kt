@@ -12,6 +12,7 @@ import com.gemwallet.android.features.transfer.viewmodels.confirm.models.Confirm
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockGemAssetBalance
+import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -88,7 +89,7 @@ class ConfirmTransferViewModelHeaderTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem(), mockGemAssetIcon()))
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(
                 transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),

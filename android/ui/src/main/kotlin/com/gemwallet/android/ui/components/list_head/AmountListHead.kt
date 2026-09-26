@@ -84,7 +84,7 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
@@ -122,7 +122,7 @@ fun AmountListHead(
             when (icon) {
                 is Asset -> HeaderIcon(icon)
 
-                is AssetId -> HeaderIcon(icon)
+                is GemAssetIcon -> HeaderIcon(icon)
 
                 else -> IconWithBadge(
                     icon = icon,
@@ -207,15 +207,15 @@ fun AmountListHead(
 @Composable
 fun HeaderIcon(asset: Asset?, iconSize: Dp = headerIconSize) {
     asset ?: return
-    HeaderIcon(asset.id, iconSize)
+    HeaderIcon(asset.icon, iconSize)
 }
 
 @Composable
-fun HeaderIcon(assetId: AssetId, iconSize: Dp = headerIconSize) {
+fun HeaderIcon(icon: GemAssetIcon, iconSize: Dp = headerIconSize) {
     IconWithBadge(
-        icon = assetId.iconModel(),
-        placeholder = assetId.icon().placeholder,
-        supportIcon = assetId.supportIconModel(),
+        icon = icon.iconModel(),
+        placeholder = icon.placeholder,
+        supportIcon = icon.supportIconModel(),
         size = iconSize,
         badgeBackgroundColor = MaterialTheme.colorScheme.surface,
     )

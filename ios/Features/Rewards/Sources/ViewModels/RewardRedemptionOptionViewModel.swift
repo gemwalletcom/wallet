@@ -28,7 +28,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
     }
 
     var assetImage: AssetImage {
-        AssetIdViewModel(assetId: Primitives.AssetId(core: redemption.assetId)).assetImage
+        AssetImage(icon: redemption.icon)
     }
 
     var pointsText: String {

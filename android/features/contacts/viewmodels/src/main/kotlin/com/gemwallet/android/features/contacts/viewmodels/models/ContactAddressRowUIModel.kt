@@ -1,13 +1,14 @@
 package com.gemwallet.android.features.contacts.viewmodels.models
 
 import android.content.Context
+import com.gemwallet.android.domains.asset.icon
+import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ContactAddress
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemContactEditorServiceInterface
@@ -20,7 +21,7 @@ internal fun List<ContactAddress>.rows(service: GemContactEditorServiceInterface
         model = ListItemModel(
             title = address.chain.networkName(),
             titleExtra = service.formatAddress(address.address, address.chain.string, GemAddressFormatStyle.Short),
-            image = ListItemImage.Asset(AssetId(address.chain)),
+            image = ListItemImage.Asset(address.chain.asset().icon),
         ),
     )
 }

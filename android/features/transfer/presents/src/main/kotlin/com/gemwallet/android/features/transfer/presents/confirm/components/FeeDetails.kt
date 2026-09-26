@@ -45,6 +45,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_item.Badge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -258,7 +259,6 @@ private fun FeeAssets(assets: List<FeeAssetUIModel>, selectedAssetId: AssetId, o
 
 @Composable
 private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosition: ListPosition, onClick: () -> Unit) {
-    val asset = feeAsset.asset
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
@@ -270,7 +270,7 @@ private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosi
                     null
                 },
             ) {
-                AsyncImage(model = asset, placeholderText = asset.id.icon().placeholder, size = listItemIconSize)
+                AsyncImage(model = feeAsset.row.icon.iconModel(), placeholderText = feeAsset.row.icon.placeholder, size = listItemIconSize)
             }
         },
         title = { ListItemTitleText(feeAsset.row.title, { Badge(text = feeAsset.row.titleExtra) }) },

@@ -27,7 +27,7 @@ public final class RecentsSceneViewModel {
         ListItemModel(
             title: asset.name,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-            imageStyle: .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage),
+            imageStyle: .asset(assetImage: AssetViewModel(asset: asset).assetImage),
         )
     }
 

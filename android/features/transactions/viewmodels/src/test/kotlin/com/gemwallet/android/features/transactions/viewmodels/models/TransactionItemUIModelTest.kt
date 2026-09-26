@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemHeaderAmount
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
@@ -49,8 +50,8 @@ class TransactionItemUIModelTest {
     @Test
     fun `an approval header is the asset image and a symbol header is its text`() {
         val asset = mockGemHeaderAmount(asset = mockAsset().toGem(), amount = mockGemFormattedNumber(value = 1.0, unit = GemNumberUnit.Symbol(mockAsset().symbol)), fiat = mockGemFormattedNumber(value = 2.0)).asset
-        val image = mockGemTransactionDetailRows(header = GemTransactionHeader.AssetImage(asset)).uiModel(GemTransactionDetailRow.Header, context)
-        val symbol = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(asset)).uiModel(GemTransactionDetailRow.Header, context)
+        val image = mockGemTransactionDetailRows(header = GemTransactionHeader.AssetImage(mockGemAssetIcon())).uiModel(GemTransactionDetailRow.Header, context)
+        val symbol = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(asset, mockGemAssetIcon())).uiModel(GemTransactionDetailRow.Header, context)
 
         assertTrue("a token approval shows the asset, not its symbol as an amount", image is TransactionItemUIModel.AssetHead)
         assertTrue(symbol is TransactionItemUIModel.AmountHead)

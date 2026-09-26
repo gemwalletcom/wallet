@@ -136,6 +136,7 @@ pub enum GemAmountPerpetualPosition {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountInput {
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub available_value: GemBigInt,
     pub balance: GemFormattedNumber,
     pub max_value: GemBigInt,

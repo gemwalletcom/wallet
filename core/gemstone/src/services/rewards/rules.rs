@@ -1,5 +1,6 @@
 use crate::duration_formatter::countdown_parts;
 use crate::precision::GemValueStyle;
+use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
@@ -122,6 +123,7 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
             Some(GemRewardsRedemption {
                 id: option.id.clone(),
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: GemLocalizedText::RewardsRedeemAsset { value: value.clone() },
                 points: points_number(option.points),
                 value,

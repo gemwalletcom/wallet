@@ -145,6 +145,7 @@ public extension Gemstone.GemAssetBalance {
 public extension Gemstone.GemAssetDetails {
     static func mock(
         state: Gemstone.GemAssetDetailsState = .mock(),
+        icon: Gemstone.GemAssetIcon = .mock(),
         banner: Gemstone.GemBannerRow? = nil,
         balanceValue: Gemstone.GemFormattedNumber = .mock(),
         sections: [Gemstone.GemAssetDetailSection] = [],
@@ -160,6 +161,7 @@ public extension Gemstone.GemAssetDetails {
     ) -> Gemstone.GemAssetDetails {
         Gemstone.GemAssetDetails(
             state: state,
+            icon: icon,
             banner: banner,
             balanceValue: balanceValue,
             sections: sections,
@@ -607,11 +609,13 @@ public extension Gemstone.GemHeaderAmount {
         asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
         amount: Gemstone.GemFormattedNumber = .mock(),
         fiat: Gemstone.GemFormattedNumber? = nil,
+        icon: Gemstone.GemAssetIcon = .mock(),
     ) -> Gemstone.GemHeaderAmount {
         Gemstone.GemHeaderAmount(
             asset: asset,
             amount: amount,
             fiat: fiat,
+            icon: icon,
         )
     }
 }
@@ -796,6 +800,7 @@ public extension Gemstone.GemRewardsRedemption {
     static func mock(
         id: String = "",
         assetId: String = Primitives.AssetId.mock().identifier,
+        icon: Gemstone.GemAssetIcon = .mock(),
         title: Gemstone.GemLocalizedText = .mock(),
         canRedeem: Bool = false,
         points: Gemstone.GemFormattedNumber = .mock(),
@@ -804,6 +809,7 @@ public extension Gemstone.GemRewardsRedemption {
         Gemstone.GemRewardsRedemption(
             id: id,
             assetId: assetId,
+            icon: icon,
             title: title,
             canRedeem: canRedeem,
             points: points,
