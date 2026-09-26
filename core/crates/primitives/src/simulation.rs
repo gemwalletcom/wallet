@@ -20,11 +20,6 @@ impl SimulationInput {
             signer_address: None,
         }
     }
-
-    pub fn with_signer_address(mut self, signer_address: impl Into<String>) -> Self {
-        self.signer_address = Some(signer_address.into());
-        self
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -400,7 +395,11 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(input, SimulationInput::new("AAACAAhkAAA").with_signer_address(TEST_SOLANA_SENDER));
+        let expected = SimulationInput {
+            encoded_transaction: "AAACAAhkAAA".to_string(),
+            signer_address: Some(TEST_SOLANA_SENDER.to_string()),
+        };
+        assert_eq!(input, expected);
 
         let input: SimulationInput = serde_json::from_value(serde_json::json!({
             "address": TEST_SOLANA_SENDER,
@@ -408,7 +407,7 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(input, SimulationInput::new("AAACAAhkAAA").with_signer_address(TEST_SOLANA_SENDER));
+        assert_eq!(input, expected);
     }
 
     #[test]

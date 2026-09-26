@@ -172,7 +172,8 @@ mod tests {
 
     #[test]
     fn test_known_usdt_and_usdc_draw_the_bundled_token_logo_badged_with_their_chain() {
-        use primitives::known_assets::{ETHEREUM_USDT, HYPERCORE_PERPETUAL_USDC, SOLANA_USDC, SUI_SBUSDT, TEMPO_BRIDGED_USDC, TRON_USDT};
+        use primitives::asset_constants::SUI_SBUSDT_ASSET_ID;
+        use primitives::known_assets::{ETHEREUM_USDT, HYPERCORE_PERPETUAL_USDC, SOLANA_USDC, TEMPO_BRIDGED_USDC, TRON_USDT};
         assert_eq!(
             asset_icon(&ETHEREUM_USDT.id),
             GemAssetIcon {
@@ -199,7 +200,7 @@ mod tests {
         );
         assert_eq!(asset_icon(&HYPERCORE_PERPETUAL_USDC.id).image, GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usdc });
         assert_eq!(asset_icon(&TEMPO_BRIDGED_USDC.id).image, GemAssetIconImage::mock_remote(&TEMPO_BRIDGED_USDC.id));
-        assert_eq!(asset_icon(&SUI_SBUSDT.id).image, GemAssetIconImage::mock_remote(&SUI_SBUSDT.id));
+        assert_eq!(asset_icon(&SUI_SBUSDT_ASSET_ID).image, GemAssetIconImage::mock_remote(&SUI_SBUSDT_ASSET_ID));
         assert_eq!(
             asset_icon(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001")).image,
             GemAssetIconImage::mock_remote(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001"))
