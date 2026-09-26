@@ -6,7 +6,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
@@ -39,6 +38,7 @@ import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSubtitle
+import uniffi.gemstone.assetText
 import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
@@ -73,7 +73,7 @@ fun mockTransactionId(chain: Chain = Chain.Bitcoin, hash: String = "tx-id") = Tr
 fun mockAssetInfoDataAggregate(asset: Asset = mockAsset(), pinned: Boolean = false) = AssetInfoDataAggregate(
     asset = asset,
     row = GemAssetItemRow(
-        icon = asset.icon,
+        icon = assetText(asset.toGem()).icon,
         title = asset.name,
         titleExtra = null,
         subtitle = null,

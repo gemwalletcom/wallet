@@ -85,7 +85,7 @@ public final class AssetSceneViewModel: Sendable {
         chainAssetData.assetData
     }
 
-    private var asset: Asset {
+    var asset: Asset {
         assetData.asset
     }
 
@@ -193,7 +193,7 @@ public final class AssetSceneViewModel: Sendable {
         let buy: (() -> Void)? = state.emptyTransactionsAction == .buy ? { self.onSelectBuy() } : nil
         let swap: (() -> Void)? = state.emptyTransactionsAction == .swap ? { self.onSelectSwap() } : nil
         return EmptyContentTypeViewModel(
-            type: EmptyContentType(.asset, symbol: assetModel.symbol, isViewOnly: state.isViewOnly, actions: [.buy: buy, .swap: swap]),
+            type: EmptyContentType(.asset, symbol: asset.symbol, isViewOnly: state.isViewOnly, actions: [.buy: buy, .swap: swap]),
         )
     }
 
@@ -209,10 +209,6 @@ public final class AssetSceneViewModel: Sendable {
 
     public func shareAssetUrl(_ details: GemAssetDetails) -> URL {
         details.shareUrl.asURL!
-    }
-
-    public var assetModel: AssetViewModel {
-        AssetViewModel(asset: assetData.asset)
     }
 
     public var optionsImage: Image {
@@ -398,11 +394,11 @@ extension AssetSceneViewModel {
     }
 
     private func setPriceAlert(enabled: Bool) async throws {
-        try await service.setPriceAlert(assetId: assetModel.asset.id.identifier, enabled: enabled)
+        try await service.setPriceAlert(assetId: asset.id.identifier, enabled: enabled)
     }
 
     func refresh() async {
-        let refresh = await service.refresh(assetId: assetModel.asset.id.identifier, hasTransactions: showTransactions)
+        let refresh = await service.refresh(assetId: asset.id.identifier, hasTransactions: showTransactions)
         transactionsState = refresh.transactions
         for failure in refresh.failures {
             debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")

@@ -135,7 +135,7 @@ public extension ViewModelFactory {
                 explorer: explorerService,
             ),
             preferences: observablePreferences,
-            assetModel: AssetViewModel(asset: asset),
+            asset: asset,
             onSetPriceAlert: onSetPriceAlert,
             onSelectAddress: onSelectAddress,
         )

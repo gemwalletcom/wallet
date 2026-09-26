@@ -57,10 +57,6 @@ public final class EarnSceneViewModel {
         Localized.Common.earn
     }
 
-    var assetModel: AssetViewModel {
-        AssetViewModel(asset: asset)
-    }
-
     var earnView: GemEarnView {
         service.earnView(input: GemEarnInput(
             walletType: wallet.type.toGem(),

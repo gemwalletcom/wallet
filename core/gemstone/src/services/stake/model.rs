@@ -132,6 +132,7 @@ pub struct GemStakeDelegationItem {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeViewState {
+    pub asset: crate::services::assets::model::GemAssetText,
     pub sections: Vec<GemStakeSection>,
     pub info_rows: Vec<GemListRow>,
     pub actions: Vec<GemStakeActionItem>,
@@ -187,6 +188,7 @@ pub struct GemStakeValidatorOptions {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
+    pub asset: crate::services::assets::model::GemAssetText,
     pub apr_row: GemListRow,
     pub providers: Vec<DelegationValidator>,
     pub deposit_provider: Option<DelegationValidator>,

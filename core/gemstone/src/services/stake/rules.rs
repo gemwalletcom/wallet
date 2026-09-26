@@ -281,6 +281,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeVie
     let delegations = sorted_delegations(delegations);
     let actions = stake_actions(wallet_type, chain, &validators, &GemAssetBalance::from(&asset_data), &delegations);
     GemStakeViewState {
+        asset: crate::services::assets::rules::asset_text(asset),
         sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
         info_rows: stake_info_rows(asset, asset_data.metadata.staking_apr),
         resource_rows: crate::services::balance::rules::balance_resource_rows(asset_data.balance.metadata.clone()),
@@ -550,6 +551,7 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
     } = input;
     let providers = selectable_validators(providers);
     GemEarnView {
+        asset: crate::services::assets::rules::asset_text(&asset),
         apr_row: earn_apr_row(&providers, asset_apr),
         deposit_provider: (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten(),
         positions: sorted_delegations(positions(delegations))

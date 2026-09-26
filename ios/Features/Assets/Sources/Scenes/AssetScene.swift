@@ -94,7 +94,7 @@ extension AssetScene {
     private func detailRow(_ item: AssetDetailRowItem) -> some View {
         switch item.action {
         case .price:
-            NavigationLink(value: Scenes.Chart(asset: model.assetModel.asset), label: { rowContent(item.content) })
+            NavigationLink(value: Scenes.Chart(asset: model.asset), label: { rowContent(item.content) })
                 .accessibilityIdentifier(item.accessibilityIdentifier ?? "")
         case let .network(destination):
             switch destination {

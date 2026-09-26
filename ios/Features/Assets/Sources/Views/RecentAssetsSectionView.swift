@@ -23,11 +23,11 @@ public struct RecentAssetsSectionView: View {
             VStack(alignment: .leading, spacing: Spacing.space12) {
                 SectionHeaderView(title: Localized.RecentActivity.title, action: model.present)
                     .padding(.leading, Spacing.space12)
-                AssetsCollectionView(models: model.assetModels) { assetModel in
+                AssetsCollectionView(models: model.assetTexts) { text in
                     Button {
-                        onSelect(assetModel.asset)
+                        onSelect(text.asset.toPrimitives())
                     } label: {
-                        AssetChipView(model: assetModel)
+                        AssetChipView(model: text)
                     }
                 }
             }

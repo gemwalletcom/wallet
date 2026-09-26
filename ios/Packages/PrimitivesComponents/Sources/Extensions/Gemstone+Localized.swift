@@ -1507,9 +1507,9 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
 }
 
 public extension GemReceiveWarning {
-    func text(asset: AssetViewModel) -> String {
+    var text: String {
         switch self {
-        case .assetNetwork: Localized.Receive.warning(asset.symbol.boldMarkdown(), asset.networkFullName.boldMarkdown())
+        case let .assetNetwork(symbol, network): Localized.Receive.warning(symbol.boldMarkdown(), network.boldMarkdown())
         case .noDestinationTagRequired: Localized.Wallet.Receive.noDestinationTagRequired
         case .noMemoRequired: Localized.Wallet.Receive.noMemoRequired
         }

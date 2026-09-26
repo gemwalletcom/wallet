@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
@@ -110,6 +111,10 @@ class StakeViewModel @Inject constructor(
             ),
         )
     }.flowOn(ioDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val header: StateFlow<GemAssetText?> = viewState
+        .map { it?.asset }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val stakeInfoUrl: StateFlow<String?> = viewState
         .map { it?.docsUrl }

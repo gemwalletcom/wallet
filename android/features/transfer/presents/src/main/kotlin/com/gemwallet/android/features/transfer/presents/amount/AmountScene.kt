@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -51,6 +50,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.assetText
 
 @Composable
 internal fun AmountScene(
@@ -127,7 +127,7 @@ internal fun AmountScene(
                 item {
                     PropertyAssetInfoItem(
                         asset = asset,
-                        icon = icon ?: asset.icon,
+                        icon = icon ?: assetText(asset.toGem()).icon,
                         availableAmount = availableBalance,
                         onMaxAmount = { onAction(AmountAction.SetMaxAmount) },
                     )

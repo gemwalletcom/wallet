@@ -1,16 +1,25 @@
 use primitives::{Asset, AssetId, AssetType, Chain, Wallet};
 
-use super::model::{GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
+use super::model::{GemReceiveAssetState, GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
 use crate::config::chain::is_memo_supported;
 use crate::services::localization::GemLocalizedText;
 
-pub fn warnings(chain: Chain) -> Vec<GemReceiveWarning> {
+pub fn asset_state(asset: &Asset) -> GemReceiveAssetState {
+    let text = crate::services::assets::rules::asset_text(asset);
+    let chain = asset.chain();
     let memo = match (is_memo_supported(chain), chain) {
         (false, _) => None,
         (true, Chain::Xrp) => Some(GemReceiveWarning::NoDestinationTagRequired),
         (true, _) => Some(GemReceiveWarning::NoMemoRequired),
     };
-    std::iter::once(GemReceiveWarning::AssetNetwork).chain(memo).collect()
+    let network = GemReceiveWarning::AssetNetwork {
+        symbol: asset.symbol.clone(),
+        network: text.network_full_name.clone(),
+    };
+    GemReceiveAssetState {
+        warnings: std::iter::once(network).chain(memo).collect(),
+        asset: text,
+    }
 }
 
 pub fn networks(asset: &Asset, associations: Vec<AssetId>, wallet: &Wallet) -> GemReceiveNetworks {
@@ -100,10 +109,32 @@ mod tests {
 
     #[test]
     fn test_receive_warnings_lead_with_the_asset_network_sentence_and_name_the_memo_field() {
-        assert_eq!(warnings(Chain::Ethereum), vec![GemReceiveWarning::AssetNetwork]);
-        assert_eq!(warnings(Chain::Bitcoin), vec![GemReceiveWarning::AssetNetwork]);
-        assert_eq!(warnings(Chain::Xrp), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoDestinationTagRequired]);
-        assert_eq!(warnings(Chain::Cosmos), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoMemoRequired]);
-        assert_eq!(warnings(Chain::Ton), vec![GemReceiveWarning::AssetNetwork, GemReceiveWarning::NoMemoRequired]);
+        let warnings = |chain: Chain| asset_state(&Asset::from_chain(chain)).warnings;
+        let network = |chain: Chain| {
+            let asset = Asset::from_chain(chain);
+            GemReceiveWarning::AssetNetwork {
+                network: crate::services::assets::rules::asset_text(&asset).network_full_name,
+                symbol: asset.symbol,
+            }
+        };
+        assert_eq!(warnings(Chain::Ethereum), vec![network(Chain::Ethereum)]);
+        assert_eq!(warnings(Chain::Bitcoin), vec![network(Chain::Bitcoin)]);
+        assert_eq!(warnings(Chain::Xrp), vec![network(Chain::Xrp), GemReceiveWarning::NoDestinationTagRequired]);
+        assert_eq!(warnings(Chain::Cosmos), vec![network(Chain::Cosmos), GemReceiveWarning::NoMemoRequired]);
+        assert_eq!(warnings(Chain::Ton), vec![network(Chain::Ton), GemReceiveWarning::NoMemoRequired]);
+    }
+
+    #[test]
+    fn test_a_token_names_its_network_and_standard_in_the_warning() {
+        let usdt = Asset::new(AssetId::from_token(Chain::Ethereum, "0xdac17f958d2ee523a2206206994597c13d831ec7"), "Tether".into(), "USDT".into(), 6, AssetType::ERC20);
+
+        assert_eq!(
+            asset_state(&usdt).warnings[0],
+            GemReceiveWarning::AssetNetwork {
+                symbol: "USDT".to_string(),
+                network: "Ethereum (ERC20)".to_string()
+            }
+        );
+        assert_eq!(asset_state(&usdt).asset.subtitle_symbol.as_deref(), Some("USDT"));
     }
 }

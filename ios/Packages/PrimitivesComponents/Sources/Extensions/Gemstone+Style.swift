@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemAssetIcon
+import struct Gemstone.GemAssetText
 import struct Gemstone.GemAvatar
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerIcon
@@ -595,5 +596,15 @@ public extension AssetImage {
             placeholder: placeholder,
             chainPlaceholder: icon.badge.map { ChainImage(chain: Chain(core: $0)).image },
         )
+    }
+}
+
+extension GemAssetText: AssetPreviewable {
+    public var name: String {
+        asset.name
+    }
+
+    public var assetImage: AssetImage {
+        AssetImage(icon: icon)
     }
 }

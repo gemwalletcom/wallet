@@ -1,6 +1,7 @@
 import Components
 import Foundation
 import func Gemstone.addressCopy
+import struct Gemstone.GemReceiveAssetState
 import struct Gemstone.GemReceiveNetworks
 import protocol Gemstone.GemReceiveServiceProtocol
 import GemstonePrimitives
@@ -16,7 +17,7 @@ public final class ReceiveSceneViewModel: Sendable {
         UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
     }
 
-    private(set) var assetModel: AssetViewModel
+    private(set) var assetState: GemReceiveAssetState
     private(set) var address: String
 
     var presentation: ReceivePresentationType?
@@ -36,7 +37,7 @@ public final class ReceiveSceneViewModel: Sendable {
         address: String,
         service: any GemReceiveServiceProtocol,
     ) {
-        assetModel = AssetViewModel(asset: asset)
+        assetState = service.assetState(asset: asset.toGem())
         self.wallet = wallet
         self.address = address
         self.service = service
@@ -71,18 +72,22 @@ public final class ReceiveSceneViewModel: Sendable {
         Localized.Wallet.receive
     }
 
+    var asset: Asset {
+        assetState.asset.asset.toPrimitives()
+    }
+
     var copyTitle: String {
         Localized.Common.copy
     }
 
     var warningMessage: String {
-        service.warnings(chain: assetModel.asset.chain.rawValue)
-            .map { $0.text(asset: assetModel) }
+        assetState.warnings
+            .map(\.text)
             .joined(separator: " ")
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(content: addressCopy(chain: assetModel.asset.chain.toGem(), address: address))
+        CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
     }
 
     var showNetworkSelector: Bool {
@@ -138,7 +143,7 @@ public final class ReceiveSceneViewModel: Sendable {
             let asset = try await service.asset(assetId: assetId.identifier).toPrimitives()
             let account = try wallet.account(for: asset.chain)
             try Task.checkCancellation()
-            assetModel = AssetViewModel(asset: asset)
+            assetState = service.assetState(asset: asset.toGem())
             address = account.address
         } catch {
             guard !error.isCancelled else { return }
@@ -163,7 +168,7 @@ public final class ReceiveSceneViewModel: Sendable {
 extension ReceiveSceneViewModel {
     func onChangeAsset() async {
         do {
-            try await service.enableAsset(walletId: wallet.id.id, assetId: assetModel.asset.id.identifier)
+            try await service.enableAsset(walletId: wallet.id.id, assetId: asset.id.identifier)
         } catch {
             debugLog("ReceiveSceneViewModel enableAsset error: \(error)")
         }
@@ -175,7 +180,7 @@ extension ReceiveSceneViewModel {
 
     func onFinishNetworkSelection(_ assetIds: [AssetId]) {
         presentation = nil
-        guard let assetId = assetIds.first, assetId != assetModel.asset.id else { return }
+        guard let assetId = assetIds.first, assetId != asset.id else { return }
 
         selectNetworkTask?.cancel()
         selectNetworkTask = Task { await selectNetwork(assetId: assetId) }

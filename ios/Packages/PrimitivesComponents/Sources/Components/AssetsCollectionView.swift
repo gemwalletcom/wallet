@@ -1,17 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetText
 import Primitives
 import Style
 import SwiftUI
 
 public struct AssetsCollectionView<Content: View>: View {
-    private let models: [AssetViewModel]
-    private let content: (AssetViewModel) -> Content
+    private let models: [GemAssetText]
+    private let content: (GemAssetText) -> Content
 
     public init(
-        models: [AssetViewModel],
-        @ViewBuilder content: @escaping (AssetViewModel) -> Content,
+        models: [GemAssetText],
+        @ViewBuilder content: @escaping (GemAssetText) -> Content,
     ) {
         self.models = models
         self.content = content
@@ -29,9 +30,9 @@ public struct AssetsCollectionView<Content: View>: View {
 }
 
 public struct AssetChipView: View {
-    private let model: AssetViewModel
+    private let model: GemAssetText
 
-    public init(model: AssetViewModel) {
+    public init(model: GemAssetText) {
         self.model = model
     }
 
@@ -41,7 +42,7 @@ public struct AssetChipView: View {
                 assetImage: model.assetImage,
                 size: .list.image,
             )
-            Text(model.symbol)
+            Text(model.asset.symbol)
                 .textStyle(TextStyle(font: .body, color: .primary, fontWeight: .semibold))
         }
         .padding(.small)

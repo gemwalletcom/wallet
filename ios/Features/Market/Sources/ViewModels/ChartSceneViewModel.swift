@@ -27,7 +27,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
     private let preferences: ObservablePreferences
 
-    let assetModel: AssetViewModel
+    let asset: Asset
 
     private var session: GemChartSession
     public var selectedPeriod: ChartPeriod {
@@ -52,11 +52,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
     var title: String {
-        assetModel.name
-    }
-
-    var asset: Asset {
-        assetModel.asset
+        asset.name
     }
 
     public var chartState: StateViewType<ChartValuesViewModel> {
@@ -85,15 +81,15 @@ public final class ChartSceneViewModel: ChartListViewable {
     public init(
         service: any GemChartServiceProtocol,
         preferences: ObservablePreferences,
-        assetModel: AssetViewModel,
+        asset: Asset,
         onSetPriceAlert: @escaping (Asset) -> Void,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
         self.service = service
         self.preferences = preferences
-        self.assetModel = assetModel
+        self.asset = asset
         session = service.newSession()
-        priceQuery = ObservableQuery(PriceQuery(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
+        priceQuery = ObservableQuery(PriceQuery(assetId: asset.id), initialValue: .with(asset: asset))
         self.onSetPriceAlert = onSetPriceAlert
         self.onSelectAddress = onSelectAddress
     }
@@ -106,7 +102,7 @@ public extension ChartSceneViewModel {
         let period = selectedPeriod.toGem()
         session = session.onRefresh()
         do {
-            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: period)
+            let chart = try await service.syncCharts(assetId: asset.id.identifier, period: period)
             session = session.onLoaded(chart: chart, period: period)
         } catch let error as GemServiceError {
             session = session.onFailed(error: error, period: period)
@@ -146,7 +142,7 @@ public extension ChartSceneViewModel {
     }
 
     func onSelectSetPriceAlerts() {
-        onSetPriceAlert(assetModel.asset)
+        onSetPriceAlert(asset)
     }
 
     var onSelectContract: ((String) -> Void)? {

@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.assetText
 import enum Gemstone.GemAssetAction
+import struct Gemstone.GemAssetText
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -38,7 +40,7 @@ public final class RecentAssetsViewModel {
     }
 
     public var assets: [RecentAsset] { query.value }
-    public var assetModels: [AssetViewModel] { assets.map { AssetViewModel(asset: $0.asset) }}
+    public var assetTexts: [GemAssetText] { assets.map { assetText(asset: $0.asset.toGem()) } }
     public var hasAssets: Bool { assets.isNotEmpty }
 
     public func recentModel(onSelect: @escaping (Asset) -> Void) -> RecentsSceneViewModel {

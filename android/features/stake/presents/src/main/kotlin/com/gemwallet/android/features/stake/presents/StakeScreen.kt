@@ -20,6 +20,7 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
@@ -32,6 +33,7 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
         StakeScene(
             inSync = inSync,
             assetInfo = stakeAssetInfo,
+            header = header,
             actions = actions,
             stakeInfoUrl = stakeInfoUrl,
             sections = sections,

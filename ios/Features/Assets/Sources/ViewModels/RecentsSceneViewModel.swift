@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.assetText
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemRecentsSections
 import struct Gemstone.GemRecentsViewState
@@ -27,7 +28,7 @@ public final class RecentsSceneViewModel {
         ListItemModel(
             title: asset.name,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-            imageStyle: .asset(assetImage: AssetViewModel(asset: asset).assetImage),
+            imageStyle: .asset(assetImage: AssetImage(icon: assetText(asset: asset.toGem()).icon)),
         )
     }
 

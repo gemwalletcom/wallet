@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
@@ -38,6 +37,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.AssetData
+import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemServiceException
@@ -46,6 +46,7 @@ import uniffi.gemstone.GemServiceException
 internal fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetData,
+    header: GemAssetText?,
     actions: List<StakeActionUIModel>,
     stakeInfoUrl: String?,
     sections: List<StakeSectionUIModel>,
@@ -73,12 +74,14 @@ internal fun StakeScene(
             onRefresh = { onAction(StakeAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item {
-                    CenteredListHead(
-                        title = assetInfo.asset.name,
-                        subtitle = assetInfo.asset.subtitleSymbol,
-                        leading = { HeaderIcon(assetInfo.asset) },
-                    )
+                header?.let { header ->
+                    item {
+                        CenteredListHead(
+                            title = header.asset.name,
+                            subtitle = header.subtitleSymbol,
+                            leading = { HeaderIcon(header.icon) },
+                        )
+                    }
                 }
 
                 stakeInfoSection(infoRows)

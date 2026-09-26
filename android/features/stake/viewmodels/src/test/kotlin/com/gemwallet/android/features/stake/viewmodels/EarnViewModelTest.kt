@@ -44,6 +44,7 @@ import uniffi.gemstone.GemEarnView
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemStakeDelegationItem
+import uniffi.gemstone.assetText
 import uniffi.gemstone.delegationListRows
 import java.math.BigInteger
 
@@ -62,6 +63,7 @@ class EarnViewModelTest {
         every { earnView(any()) } answers {
             val input = firstArg<GemEarnInput>()
             GemEarnView(
+                asset = assetText(input.asset),
                 aprRow = aprRow,
                 providers = input.providers,
                 depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },

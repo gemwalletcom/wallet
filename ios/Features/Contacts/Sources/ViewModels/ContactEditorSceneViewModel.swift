@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.assetText
 import struct Gemstone.GemContactAddressInput
 import enum Gemstone.GemContactAvatar
 import enum Gemstone.GemContactAvatarChoice
@@ -157,7 +158,7 @@ public final class ContactEditorSceneViewModel {
         ListItemModel(
             title: address.chain.networkName,
             titleExtra: service.formatAddress(address: address.address, chain: address.chain.rawValue, style: .short),
-            imageStyle: .asset(assetImage: AssetViewModel(asset: address.chain.asset).assetImage),
+            imageStyle: .asset(assetImage: AssetImage(icon: assetText(asset: address.chain.asset.toGem()).icon)),
         )
     }
 

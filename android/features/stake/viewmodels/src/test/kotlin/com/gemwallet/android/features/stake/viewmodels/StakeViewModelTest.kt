@@ -8,6 +8,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
@@ -44,6 +45,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeViewState
+import uniffi.gemstone.assetText
 import java.math.BigInteger
 import kotlin.time.Duration.Companion.seconds
 
@@ -75,6 +77,7 @@ class StakeViewModelTest {
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
         every { stakeViewState(any()) } returns GemStakeViewState(
+            asset = assetText(asset.toGem()),
             sections = emptyList(),
             infoRows = emptyList(),
             actions = emptyList(),

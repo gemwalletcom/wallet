@@ -122,10 +122,6 @@ extension StakeSceneViewModel {
 // MARK: - Private
 
 extension StakeSceneViewModel {
-    var assetModel: AssetViewModel {
-        AssetViewModel(asset: asset)
-    }
-
     private var asset: Asset {
         chain.chain.asset
     }

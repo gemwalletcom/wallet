@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.transfer.presents.receive.components.rememberQRCodePainter
@@ -66,6 +65,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemLocalizedText
 
@@ -89,10 +89,12 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
         LaunchedEffect(info.asset.id) {
             viewModel.setVisible()
         }
+        val assetState = remember(info.asset.id) { viewModel.assetState(info.asset) }
         ReceiveScene(
             closeIcon = closeIcon,
             assetInfo = info,
-            warning = remember(info.asset.id) { viewModel.warningText(info.asset) },
+            header = assetState.asset,
+            warning = remember(assetState) { viewModel.warningText(assetState) },
             shareText = viewModel.shareAddress(),
             copyText = viewModel.copyAddress(),
             standard = networks.networks.firstOrNull { it.assetId == info.asset.id.toIdentifier() }?.standard,
@@ -115,7 +117,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 }
 
 @Composable
-private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
+private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAssetText, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -176,10 +178,10 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, warning: Stri
             verticalArrangement = Arrangement.spacedBy(imagePadding),
         ) {
             CenteredListHead(
-                title = assetInfo.asset.name,
-                subtitle = assetInfo.asset.subtitleSymbol,
+                title = header.asset.name,
+                subtitle = header.subtitleSymbol,
                 bottomPadding = space0,
-                leading = { HeaderIcon(assetInfo.asset) },
+                leading = { HeaderIcon(header.icon) },
             )
             ElevatedCard(
                 modifier = Modifier.width(imageSize),

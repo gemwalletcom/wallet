@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
@@ -31,6 +31,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.assetText
 import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.formattedPercentage
 
@@ -96,7 +97,7 @@ internal fun previewPerpetual(asset: Asset, title: String, price: Double, change
     override val asset = asset
     override val isPinned = isPinned
     override val row = GemAssetItemRow(
-        icon = asset.icon,
+        icon = assetText(asset.toGem()).icon,
         title = title,
         titleExtra = null,
         subtitle = GemRowText(GemLocalizedText.Number(formattedCurrency(price, Currency.USD.string, GemCurrencyStyle.SHORT)), GemValueTone.NEUTRAL),

@@ -31,10 +31,12 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemReceiveAssetState
 import uniffi.gemstone.GemReceiveNetwork
 import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemReceiveWarning
+import uniffi.gemstone.assetText
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReceiveViewModelTest {
@@ -74,14 +76,13 @@ class ReceiveViewModelTest {
     fun `the networks and the warnings both come from Core`() = runTest(dispatcher) {
         val service: GemReceiveServiceInterface = mockk(relaxed = true) {
             every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), standard = null), GemReceiveNetwork(ethereum.id.toIdentifier(), standard = null)), showsSelector = true)
-            every { warnings(Chain.Bitcoin.string) } returns listOf(GemReceiveWarning.NO_MEMO_REQUIRED)
-            every { warnings(Chain.Ethereum.string) } returns emptyList()
+            every { assetState(any()) } answers { GemReceiveAssetState(assetText(firstArg()), listOf(GemReceiveWarning.NoMemoRequired)) }
         }
         val model = receiveModel(service)
 
         assertEquals(listOf(bitcoin.id.toIdentifier(), ethereum.id.toIdentifier()), model.networks.first { it.showsSelector }.networks.map { it.assetId })
-        assertEquals(listOf(GemReceiveWarning.NO_MEMO_REQUIRED), model.warnings(Chain.Bitcoin))
-        assertEquals(emptyList<GemReceiveWarning>(), model.warnings(Chain.Ethereum))
+        assertEquals(listOf(GemReceiveWarning.NoMemoRequired), model.assetState(bitcoin).warnings)
+        assertEquals(bitcoin.name, model.assetState(bitcoin).asset.asset.name)
     }
 
     @Test

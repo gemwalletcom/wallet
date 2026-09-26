@@ -20,7 +20,7 @@ public struct StakeScene: View {
     public var body: some View {
         let state = model.viewState
         List {
-            headerSection
+            ListAssetHeaderView(model: state.asset)
             stakeInfoSection(state)
             ForEach(state.sections) { section in
                 Section(section.title) {
@@ -52,10 +52,6 @@ public struct StakeScene: View {
 // MARK: - UI Components
 
 extension StakeScene {
-    private var headerSection: some View {
-        ListAssetHeaderView(model: model.assetModel)
-    }
-
     @ViewBuilder
     private func content(for section: GemStakeSection, state: GemStakeViewState) -> some View {
         switch section {

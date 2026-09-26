@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -36,10 +35,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemReceiveAssetState
 import uniffi.gemstone.GemReceiveNetwork
 import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
-import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.addressCopy
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -83,9 +82,9 @@ class ReceiveViewModel @AssistedInject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(networks = listOf(GemReceiveNetwork(sourceAssetId.toIdentifier(), standard = null)), showsSelector = false))
 
-    fun warnings(chain: Chain): List<GemReceiveWarning> = service.warnings(chain.string)
+    fun assetState(asset: Asset): GemReceiveAssetState = service.assetState(asset.toGem())
 
-    fun warningText(asset: Asset): String = warnings(asset.id.chain).joinToString(" ") { it.text(context, asset) }
+    fun warningText(state: GemReceiveAssetState): String = state.warnings.joinToString(" ") { it.text(context) }
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId

@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
@@ -1298,16 +1297,16 @@ fun GemPerpetualChartLineKind.stringRes(): Int = when (this) {
     GemPerpetualChartLineKind.TAKE_PROFIT -> R.string.perpetual_take_profit
 }
 
-fun GemReceiveWarning.text(context: Context, asset: Asset): String = when (this) {
-    GemReceiveWarning.ASSET_NETWORK -> context.getString(
+fun GemReceiveWarning.text(context: Context): String = when (this) {
+    is GemReceiveWarning.AssetNetwork -> context.getString(
         R.string.receive_warning,
-        asset.symbol.boldMarkdown(),
-        asset.networkFullName.boldMarkdown(),
+        symbol.boldMarkdown(),
+        network.boldMarkdown(),
     )
 
-    GemReceiveWarning.NO_DESTINATION_TAG_REQUIRED -> context.getString(R.string.wallet_receive_no_destination_tag_required)
+    GemReceiveWarning.NoDestinationTagRequired -> context.getString(R.string.wallet_receive_no_destination_tag_required)
 
-    GemReceiveWarning.NO_MEMO_REQUIRED -> context.getString(R.string.wallet_receive_no_memo_required)
+    GemReceiveWarning.NoMemoRequired -> context.getString(R.string.wallet_receive_no_memo_required)
 }
 
 @StringRes

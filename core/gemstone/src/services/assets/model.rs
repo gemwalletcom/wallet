@@ -86,8 +86,9 @@ pub enum GemAssetTrailingStyle {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetText {
+    pub asset: Asset,
     pub icon: super::icon::GemAssetIcon,
     pub title: String,
     pub subtitle_symbol: Option<String>,

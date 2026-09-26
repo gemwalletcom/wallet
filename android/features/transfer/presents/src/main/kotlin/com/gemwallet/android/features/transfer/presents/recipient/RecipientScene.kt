@@ -78,7 +78,7 @@ internal fun RecipientScene(
             contentPadding = PaddingValues(bottom = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item { RecipientHead(asset, head) }
+            item { RecipientHead(head) }
             destinationView(
                 hasMemo = hasMemo,
                 address = address,

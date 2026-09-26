@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.features.stake.viewmodels.EarnViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
@@ -44,6 +43,7 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
     val aprRow by viewModel.aprRow.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
     val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
@@ -63,12 +63,14 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
             onRefresh = viewModel::onRefresh,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item {
-                    CenteredListHead(
-                        title = earnAssetInfo.asset.name,
-                        subtitle = earnAssetInfo.asset.subtitleSymbol,
-                        leading = { HeaderIcon(earnAssetInfo.asset) },
-                    )
+                header?.let { header ->
+                    item {
+                        CenteredListHead(
+                            title = header.asset.name,
+                            subtitle = header.subtitleSymbol,
+                            leading = { HeaderIcon(header.icon) },
+                        )
+                    }
                 }
 
                 item { GemListRowView(row = aprRow, listPosition = ListPosition.Single) }

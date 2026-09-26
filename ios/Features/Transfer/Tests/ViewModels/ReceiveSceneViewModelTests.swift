@@ -109,7 +109,7 @@ struct ReceiveSceneViewModelTests {
         await model.onChangeAsset()
 
         #expect(service.requestedAssetIds == [ethereum.id.identifier])
-        #expect(model.assetModel.asset.chain == .ethereum)
+        #expect(model.asset.chain == .ethereum)
         #expect(model.address == "0xabc")
         #expect(service.enabledAssetIds == [ethereum.id.identifier])
     }
@@ -125,7 +125,7 @@ struct ReceiveSceneViewModelTests {
         await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
-        #expect(model.assetModel.asset.chain == .solana)
+        #expect(model.asset.chain == .solana)
         #expect(model.address == "So1ana")
         #expect(service.enabledAssetIds == [solana.id.identifier], "the network the user left is not enabled behind their back")
     }
@@ -140,7 +140,7 @@ struct ReceiveSceneViewModelTests {
         await model.selectNetworkTask?.value
 
         #expect(model.isPresentingAlertMessage?.message == "asset is gone")
-        #expect(model.assetModel.asset.chain == .bitcoin)
+        #expect(model.asset.chain == .bitcoin)
     }
 
     @Test

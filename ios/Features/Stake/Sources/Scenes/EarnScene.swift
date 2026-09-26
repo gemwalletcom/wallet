@@ -16,7 +16,7 @@ public struct EarnScene: View {
     public var body: some View {
         let earn = model.earnView
         List {
-            ListAssetHeaderView(model: model.assetModel)
+            ListAssetHeaderView(model: earn.asset)
 
             switch model.providersState(earn) {
             case .noData:

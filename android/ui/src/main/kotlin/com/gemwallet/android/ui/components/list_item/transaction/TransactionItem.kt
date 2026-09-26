@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.BadgeCircle
@@ -54,6 +53,7 @@ import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.assetText
 import uniffi.gemstone.formattedAmount
 
 private val badgeStartPadding = 5.dp
@@ -228,5 +228,5 @@ private fun previewRow(
     equivalentValue = equivalentValue?.let { GemTransactionRowValue.Number(it) } ?: GemTransactionRowValue.None,
     nftImageUrl = null,
     badge = badge,
-    icon = asset.icon,
+    icon = assetText(asset.toGem()).icon,
 )

@@ -202,6 +202,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             ),
         ]
         return GemStakeViewState(
+            asset: Gemstone.assetText(asset: input.assetData.asset),
             sections: [.manage, freezes ? .resources : nil, input.delegations.isEmpty ? nil : .delegations].compactMap(\.self),
             infoRows: infoRows,
             actions: actions,
@@ -247,6 +248,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     public func earnView(input: GemEarnInput) -> GemEarnView {
         let positions = input.delegations.filter { BigInt($0.base.balance) > 0 }
         return GemEarnView(
+            asset: Gemstone.assetText(asset: input.asset),
             aprRow: .text(title: .stakeApr, value: ""),
             providers: input.providers,
             depositProvider: input.walletType == .view ? nil : input.providers.first,
@@ -317,8 +319,8 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
         networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, standard: nil)], showsSelector: false)
     }
 
-    public func warnings(chain _: Gemstone.Chain) -> [GemReceiveWarning] {
-        warningsValue
+    public func assetState(asset: Gemstone.Asset) -> GemReceiveAssetState {
+        GemReceiveAssetState(asset: Gemstone.assetText(asset: asset), warnings: warningsValue)
     }
 }
 

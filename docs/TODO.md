@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM198 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM199 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD347, BD349 to BD351.
@@ -60,7 +60,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM247, VM259 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM198, VM203, VM205, VM206, VM266 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM203, VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Shared components
 
-- **VM198** **S** **`AssetViewModel` re-asks Core for asset text on every read.**
-  - **iOS:** `AssetViewModel` calls `assetText` per asset for icon, title, network name and subtitle symbol.
-  - **Android:** `Asset.icon`, `Asset.networkFullName` and `Asset.subtitleSymbol` (`AssetExt.kt`) call `assetText` on each access.
-  - **Expected:** the rows that show these texts carry them; both wrappers go.
 - **VM199** **S** **Chain rows are built by the apps.**
   - **iOS:** `ChainViewModel` builds title, image and list item from a `Chain` (network name, `standard` suffix).
   - **Android:** `ChainItem`, `ChainSettingsScene`, `AddNodeScene` and the contact chain rows build the same row from `Chain.networkName()` and the chain icon.

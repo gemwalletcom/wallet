@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
@@ -108,6 +109,9 @@ class EarnViewModel @Inject constructor(
         val item = positions.value.firstOrNull { it.delegation.toPrimitives() == delegation } ?: return
         item.destination.open(delegation, onOpenDetail, onAmount, onConfirm)
     }
+
+    val header: StateFlow<GemAssetText?> = earnView.map { it?.asset }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val aprRow: StateFlow<GemListRow> = earnView.map { it?.aprRow ?: GemListRow.Text(GemListRowTitle.STAKE_APR, "") }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))

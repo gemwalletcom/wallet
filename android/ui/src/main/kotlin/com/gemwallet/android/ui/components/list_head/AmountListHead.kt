@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.asset.icon
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
@@ -89,6 +89,7 @@ import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.assetText
 import kotlin.math.floor
 
 private val headerChangeTextHeight = 24.dp
@@ -207,7 +208,7 @@ fun AmountListHead(
 @Composable
 fun HeaderIcon(asset: Asset?, iconSize: Dp = headerIconSize) {
     asset ?: return
-    HeaderIcon(asset.icon, iconSize)
+    HeaderIcon(assetText(asset.toGem()).icon, iconSize)
 }
 
 @Composable
