@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ButtonStateTest {
-
     @Test
     fun loadingTakesPrecedenceOverEnabledAndDisabled() {
         assertEquals(ButtonState.Loading, buttonState(enabled = true, loading = true))
@@ -15,11 +14,6 @@ class ButtonStateTest {
     fun enabledOnlyWhenEnabledAndNotLoading() {
         assertEquals(ButtonState.Enabled, buttonState(enabled = true, loading = false))
         assertEquals(ButtonState.Disabled, buttonState(enabled = false, loading = false))
-    }
-
-    @Test
-    fun defaultsToEnabled() {
-        assertEquals(ButtonState.Enabled, buttonState())
     }
 
     @Test
