@@ -28,12 +28,6 @@ flowchart LR
 | The delegation is awaiting withdrawal | Withdraw is offered | |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
 
-## Platform differences
-
-| When | iOS | Android | Expected |
-|---|---|---|---|
-| Earn, not offered yet, opens for a token such as USDC or USDT | the Earn providers are listed | no provider is found, so none is offered | Android matches iOS (BD341) |
-
 ## Rules
 
 - Earn (deposit with the best provider) sits behind the same screens but is behind a flag and not offered in the shipped apps.

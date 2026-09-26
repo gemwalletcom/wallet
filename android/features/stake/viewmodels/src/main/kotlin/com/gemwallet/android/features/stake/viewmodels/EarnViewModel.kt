@@ -18,6 +18,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
@@ -64,7 +65,7 @@ class EarnViewModel @Inject constructor(
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val providers = validatorsQuery(assetId, StakeProviderType.Earn)
+    private val providers = validatorsQuery(AssetId(assetId.chain), StakeProviderType.Earn)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

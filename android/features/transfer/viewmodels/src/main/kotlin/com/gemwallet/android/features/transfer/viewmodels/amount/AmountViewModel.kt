@@ -31,6 +31,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetData
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.StakeProviderType
@@ -107,7 +108,7 @@ class AmountViewModel @Inject constructor(
 
         is AmountParams.Withdraw -> flowOf(GemAmountRequest.Transfer(GemAmountTransfer.Withdraw))
 
-        is AmountParams.Earn.Deposit -> assetInfo.map { current -> current?.let { validatorQuery(it.asset.id, params.providerId)?.toGem() }?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
+        is AmountParams.Earn.Deposit -> assetInfo.map { current -> current?.let { validatorQuery(AssetId(it.asset.id.chain), params.providerId)?.toGem() }?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
 
         is AmountParams.Earn.Withdraw -> getSession()
             .flatMapLatest { session -> session?.wallet?.id?.let { delegationQuery(it, params.validatorId, params.delegationId) } ?: flowOf(null) }

@@ -19,6 +19,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
@@ -91,20 +92,31 @@ class EarnViewModelTest {
     @After
     fun tearDown() = kotlinx.coroutines.Dispatchers.resetMain()
 
-    private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty)) = EarnViewModel(
-        getCurrentWalletId = getCurrentWalletId,
-        assetQuery = assetQuery,
-        delegationsQuery = mockk<DelegationsQuery> {
-            every { this@mockk(any(), asset.id, StakeProviderType.Earn) } returns flowOf(positions)
-        },
-        validatorsQuery = mockk<ValidatorsQuery> {
-            every { this@mockk(asset.id, StakeProviderType.Earn) } returns flowOf(providers)
-        },
-        stakeService = stakeService,
-        getSession = getSession,
-        stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
-        ioDispatcher = testDispatcher,
-    )
+    private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty), screenAssetId: AssetId = asset.id) =
+        EarnViewModel(
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
+            delegationsQuery = mockk<DelegationsQuery> {
+                every { this@mockk(any(), screenAssetId, StakeProviderType.Earn) } returns flowOf(positions)
+            },
+            validatorsQuery = mockk<ValidatorsQuery> {
+                every { this@mockk(AssetId(screenAssetId.chain), StakeProviderType.Earn) } returns flowOf(providers)
+            },
+            stakeService = stakeService,
+            getSession = getSession,
+            stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to screenAssetId.toIdentifier())),
+            ioDispatcher = testDispatcher,
+        )
+
+    @Test
+    fun `a token reads the earn providers stored under its chain's coin`() = runTest(testDispatcher) {
+        val token = mockAsset(id = AssetId(Chain.Cosmos, "usdc"), name = "USD Coin", symbol = "USDC", decimals = 6)
+        every { assetQuery(walletId.id, token.id) } returns flowOf(mockAssetData(asset = token))
+
+        val model = viewModel(screenAssetId = token.id)
+
+        assertEquals(AmountParams.Earn.Deposit(token.id, provider.id), model.depositParams.first { it != null })
+    }
 
     @Test
     fun `positions are the ones core keeps`() = runTest(testDispatcher) {
