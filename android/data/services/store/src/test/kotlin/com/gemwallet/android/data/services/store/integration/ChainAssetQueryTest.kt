@@ -63,22 +63,22 @@ class ChainAssetQueryTest {
 
     @Test
     fun aNativeAssetPaysItsOwnFee() = runBlocking(Dispatchers.IO) {
-        val info = query("wallet-1", ethereum).first()
+        val info = query("wallet-1", ethereum, ethereum).first()
 
         assertEquals(ethereum, info?.assetData?.asset?.id)
         assertEquals(ethereum, info?.feeAssetData?.asset?.id)
     }
 
     @Test
-    fun aTokenPaysItsFeeInTheChainCoin() = runBlocking(Dispatchers.IO) {
-        val info = query("wallet-1", usdt).first()
+    fun aTokenReadsTheFeeAssetBesideIt() = runBlocking(Dispatchers.IO) {
+        val info = query("wallet-1", usdt, ethereum).first()
 
         assertEquals(listOf(usdt, ethereum), listOf(info?.assetData?.asset?.id, info?.feeAssetData?.asset?.id))
         assertEquals(listOf(BigInteger.valueOf(9), BigInteger.valueOf(5)), listOf(info?.assetData?.balance?.available, info?.feeAssetData?.balance?.available))
     }
 
     @Test
-    fun aTokenWhoseChainCoinIsMissingIsNull() = runBlocking(Dispatchers.IO) {
-        assertNull(query("wallet-1", usdc).first())
+    fun aTokenWhoseFeeAssetIsMissingIsNull() = runBlocking(Dispatchers.IO) {
+        assertNull(query("wallet-1", usdc, AssetId(Chain.Solana)).first())
     }
 }

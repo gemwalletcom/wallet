@@ -85,7 +85,7 @@ class AssetViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { chainAssetQuery(mockSession().wallet.id.id, asset.id) } returns chainAssetInfoFlow
+        every { chainAssetQuery(mockSession().wallet.id.id, asset.id, any()) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any(), any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any(), any()) } returns emptyList()

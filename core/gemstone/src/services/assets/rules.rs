@@ -98,6 +98,26 @@ pub fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
     wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
 }
 
+pub fn fee_asset_id(asset_id: &AssetId) -> AssetId {
+    let chain = asset_id.chain;
+    match chain {
+        Chain::Tempo => asset_id.clone(),
+        Chain::HyperCore => default_asset(chain, AssetType::TOKEN).map(|asset| asset.id).unwrap_or_else(|| asset_id.clone()),
+        _ => AssetId::from_chain(chain),
+    }
+}
+
+pub fn fee_asset(asset: Asset) -> Asset {
+    let fee_asset_id = fee_asset_id(&asset.id);
+    if fee_asset_id == asset.id {
+        return asset;
+    }
+    if fee_asset_id.is_native() {
+        return Asset::from_chain(fee_asset_id.chain);
+    }
+    wallet_default_assets(fee_asset_id.chain).into_iter().find(|known| known.id == fee_asset_id).unwrap_or(asset)
+}
+
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
     let asset_id = asset.id.clone();
     AssetBasic::new(asset, AssetProperties::default(asset_id.clone()), AssetScore::new(asset_id.default_rank()))
@@ -746,6 +766,21 @@ pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_e
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_a_token_pays_fees_in_its_chain_coin_except_where_the_chain_charges_in_a_token() {
+        let token = AssetId::from_token(Chain::Ethereum, "0xusdc");
+
+        assert_eq!(fee_asset_id(&token), AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(fee_asset_id(&AssetId::from_chain(Chain::Bitcoin)), AssetId::from_chain(Chain::Bitcoin));
+        let tempo = AssetId::from_token(Chain::Tempo, "0xusdc");
+        assert_eq!(fee_asset_id(&tempo), tempo, "Tempo charges the fee in the token it moves");
+        assert_eq!(
+            Some(fee_asset_id(&AssetId::from_chain(Chain::HyperCore))),
+            default_asset(Chain::HyperCore, AssetType::TOKEN).map(|asset| asset.id),
+            "HyperCore charges its fees in its default token"
+        );
+    }
 
     #[test]
     fn test_changed_assets_drops_identical_rows_and_keeps_real_edits() {

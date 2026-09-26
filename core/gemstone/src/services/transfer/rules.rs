@@ -3,7 +3,7 @@ use num_bigint::BigInt;
 use primitives::SwapProvider;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
+    AccountDataType, AddressName, Asset, AssetId, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
@@ -152,14 +152,7 @@ impl TransferInput for TransactionInputType {
         if let Self::Perpetual { perpetual_type, .. } = self {
             return perpetual_type.base_asset().clone();
         }
-        let asset = self.transaction_asset();
-        let chain = asset.chain();
-        match chain {
-            Chain::Tempo => asset,
-            Chain::HyperCore => asset_rules::default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
-            _ if asset.id.is_token() => Asset::from_chain(chain),
-            _ => asset,
-        }
+        asset_rules::fee_asset(self.transaction_asset())
     }
 
     fn default_fee_priority(&self) -> FeePriority {
@@ -631,7 +624,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
+        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
         TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},

@@ -38,7 +38,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM262, VM286 |
-| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM285 |
+| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Models and adapters
 
-- **VM285** **S** **The fee asset of an asset screen is the chain coin in both apps.**
-  - **iOS:** `ChainAssetQuery` loads `assetId.chain.assetId` as the fee asset.
-  - **Android:** `ChainAssetQuery` does the same for tokens.
-  - **Expected:** Core answers the fee asset for an asset; both stores read it.
 - **VM286** **S** **iOS twins `GemSelectAssetType`.**
   - **iOS:** `SelectAssetType` and `SelectAssetSwapType` mirror the generated enum and map back through `flowType`.
   - **Android:** uses `GemSelectAssetType` directly.

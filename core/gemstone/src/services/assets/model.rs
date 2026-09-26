@@ -103,6 +103,11 @@ pub fn asset_text(asset: Asset) -> GemAssetText {
     super::rules::asset_text(&asset)
 }
 
+#[uniffi::export]
+pub fn fee_asset_id(asset_id: AssetId) -> AssetId {
+    super::rules::fee_asset_id(&asset_id)
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetRowText {
     pub title: String,

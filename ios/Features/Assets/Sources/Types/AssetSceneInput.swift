@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.feeAssetId
 import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import Primitives
@@ -23,6 +24,7 @@ public struct AssetSceneInput: Sendable {
         assetRequest = ChainAssetQuery(
             walletId: wallet.id,
             assetId: asset.id,
+            feeAssetId: (try? AssetId(id: feeAssetId(assetId: asset.id.identifier))) ?? asset.id,
         )
 
         transactionsRequest = MappedQuery(

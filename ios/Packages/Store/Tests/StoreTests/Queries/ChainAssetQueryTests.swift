@@ -37,7 +37,7 @@ struct ChainAssetQueryTests {
         let assetId = AssetId(chain: .ethereum)
 
         try db.dbQueue.read { db in
-            let result = try ChainAssetQuery(walletId: .mock(), assetId: assetId).fetch(db)
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: assetId, feeAssetId: assetId).fetch(db)
 
             #expect(result.assetData.asset.id == assetId)
             #expect(result.feeAssetData.asset.id == assetId)
@@ -50,7 +50,7 @@ struct ChainAssetQueryTests {
         let token = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
 
         try db.dbQueue.read { db in
-            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id).fetch(db)
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id, feeAssetId: token.chain.assetId).fetch(db)
 
             #expect(result.assetData.asset.id == token.id)
             #expect(result.feeAssetData.asset.id == token.chain.assetId)
@@ -66,7 +66,7 @@ struct ChainAssetQueryTests {
         try balanceStore.deleteBalance(assetId: token.id)
 
         try db.dbQueue.read { db in
-            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id).fetch(db)
+            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id, feeAssetId: token.chain.assetId).fetch(db)
 
             #expect(result.assetData.asset.id == token.id)
             #expect(result.assetData.balance == .zero)

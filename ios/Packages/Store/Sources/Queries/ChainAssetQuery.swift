@@ -8,9 +8,9 @@ public struct ChainAssetQuery: DatabaseQueryable {
     public var assetRequest: AssetQuery
     public var feeAssetRequest: AssetQuery
 
-    public init(walletId: WalletId, assetId: AssetId) {
+    public init(walletId: WalletId, assetId: AssetId, feeAssetId: AssetId) {
         assetRequest = AssetQuery(walletId: walletId, assetId: assetId)
-        feeAssetRequest = AssetQuery(walletId: walletId, assetId: assetId.chain.assetId)
+        feeAssetRequest = AssetQuery(walletId: walletId, assetId: feeAssetId)
     }
 
     public func fetch(_ db: Database) throws -> ChainAssetData {

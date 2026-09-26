@@ -18,6 +18,7 @@ import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Session
@@ -64,6 +65,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.feeAssetId
 import uniffi.gemstone.loadError
 import javax.inject.Inject
 
@@ -109,7 +111,7 @@ class AssetViewModel @Inject constructor(
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    private val chainAssetInfo = getCurrentWalletId().flatMapLatest { walletId -> chainAssetQuery(walletId.id, assetId) }
+    private val chainAssetInfo = getCurrentWalletId().flatMapLatest { walletId -> chainAssetQuery(walletId.id, assetId, feeAssetId(assetId.toIdentifier()).toAssetId() ?: assetId) }
         .onStart { restartAssetSync() }
         .filterNotNull()
         .flowOn(ioDispatcher)
