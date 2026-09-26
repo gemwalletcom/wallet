@@ -38,8 +38,8 @@ public struct TransactionScene: View {
             )
         case let .swapProgress(model):
             TransactionSwapProgressView(model: model)
-        case let .participant(model):
-            AddressListItemView(model: model)
+        case let .participant(row):
+            AddressListItemView(row: row, onSelect: model.selectAction(row), onAddContact: model.addContactAction)
         case let .row(row):
             GemListRowView(row: row, onSelectAddress: model.onSelectProviderContract, onInfo: model.onInfo)
         case let .swapAgain(text):

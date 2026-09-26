@@ -10,8 +10,8 @@ use primitives::{
 
 use super::model::{
     GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails,
-    GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue,
+    GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -19,7 +19,7 @@ use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
@@ -28,6 +28,7 @@ use crate::services::collections::unique;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
+use crate::services::transfer::GemRecipient;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
 fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
@@ -107,25 +108,30 @@ pub fn badge(transaction_type: &TransactionType, direction: &TransactionDirectio
     }
 }
 
-pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> BlockExplorerLink) -> Option<GemTransactionParticipant> {
+pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> BlockExplorerLink) -> Option<GemAddressRow> {
     let transaction = &extended.transaction;
     let (role, address) = transaction_participant(transaction)?;
     let name = address_name(&extended.from_address, &extended.to_address, &address);
     let can_add_contact = name.is_none() && matches!(transaction.transaction_type, TransactionType::Transfer | TransactionType::TransferNFT);
-    Some(GemTransactionParticipant {
-        role,
-        link: link(&address),
-        text: match &name {
-            Some(name) => name.name.clone(),
-            None => format_address(&address, Some(transaction.asset_id.chain), GemAddressFormatStyle::Short),
-        },
-        name,
-        address,
-        can_add_contact,
+    Some(GemAddressRow {
+        contact: can_add_contact.then(|| GemRecipient {
+            address: address.clone(),
+            name: None,
+            memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
+            references: vec![],
+        }),
+        is_selectable: true,
+        ..GemAddressRow::new(
+            GemLocalizedText::ParticipantRole { role },
+            transaction.asset_id.chain,
+            address.clone(),
+            name.as_ref().map(|name| name.name.as_str()),
+            &link(&address),
+        )
     })
 }
 
-pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, participant: Option<GemTransactionParticipant>, explorer: BlockExplorerLink, currency: Currency) -> GemTransactionDetailRows {
+pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, participant: Option<GemAddressRow>, explorer: BlockExplorerLink, currency: Currency) -> GemTransactionDetailRows {
     let transaction = &extended.transaction;
     let details = details(extended, wallet_type);
     let fee = GemTransactionAmount {
@@ -720,6 +726,7 @@ pub fn pending_activity_filters() -> TransactionsFilter {
 #[cfg(test)]
 mod tests {
     use crate::formatted_number::GemNumberNotation;
+    use crate::models::list::GemRowMenuItem;
 
     #[test]
     fn test_only_transfers_badge_their_direction() {
@@ -958,8 +965,10 @@ mod tests {
         let link = |address: &str| BlockExplorerLink::mock_with_address(address);
 
         let unnamed = participant(&extended, link).expect("a transfer has a participant");
-        assert_ne!(unnamed.text, unnamed.address, "an unnamed participant reads short on both apps");
-        assert_eq!(unnamed.text, format_address(&unnamed.address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short));
+        let short = format_address(&unnamed.address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short);
+        assert_ne!(short, unnamed.address, "an unnamed participant reads short on both apps");
+        assert_eq!(unnamed.text, GemLocalizedText::Text { text: short.clone() });
+        assert_eq!(unnamed.short_address, None);
 
         let mut named = extended.clone();
         named.to_address = Some(primitives::AddressName {
@@ -970,7 +979,9 @@ mod tests {
             status: primitives::VerificationStatus::Verified,
             image_url: None,
         });
-        assert_eq!(participant(&named, link).unwrap().text, "Binance");
+        let named = participant(&named, link).unwrap();
+        assert_eq!(named.text, GemLocalizedText::Text { text: "Binance".to_string() });
+        assert_eq!(named.short_address, Some(short), "a name reveals the short address on a tap");
     }
 
     #[test]
@@ -1215,8 +1226,17 @@ mod tests {
         transfer.transaction.memo = Some(String::new());
         let unnamed = detail_rows(&transfer, WalletType::Multicoin, participant(&transfer, BlockExplorerLink::mock_with_address), explorer.clone(), Currency::USD);
         let recipient = unnamed.participant.clone().unwrap();
-        assert_eq!((recipient.role, recipient.address.as_str(), recipient.can_add_contact), (GemTransactionParticipantRole::Recipient, "to", true));
-        assert_eq!(recipient.link.link, "https://explorer/to");
+        assert_eq!(
+            (recipient.title, recipient.address.as_str(), recipient.contact.map(|contact| contact.address)),
+            (
+                GemLocalizedText::ParticipantRole {
+                    role: GemTransactionParticipantRole::Recipient
+                },
+                "to",
+                Some("to".to_string())
+            )
+        );
+        assert!(matches!(recipient.menu.as_slice(), [_, GemRowMenuItem::Open { url, .. }] if url == "https://explorer/to"));
         assert_eq!(unnamed.memo, None, "an empty memo is not a row");
         assert_eq!((unnamed.fee.asset.id.clone(), unnamed.fee.value.clone(), unnamed.fee.sign), (transfer.fee_asset.id.clone(), 1u32.into(), GemAmountSign::None));
         assert_eq!(unnamed.fee_row.title, GemListRowTitle::NetworkFee);
@@ -1249,13 +1269,21 @@ mod tests {
         transfer.to_address = Some(primitives::AddressName::mock("to", "Bob", primitives::AddressType::Address, primitives::VerificationStatus::Verified));
         let named_rows = detail_rows(&transfer, WalletType::Multicoin, participant(&transfer, BlockExplorerLink::mock_with_address), explorer.clone(), Currency::USD);
         let recipient = named_rows.participant.unwrap();
-        assert_eq!((recipient.name.map(|name| name.name), recipient.can_add_contact), (Some("Bob".to_string()), false));
+        assert_eq!((recipient.text, recipient.contact), (GemLocalizedText::Text { text: "Bob".to_string() }, None), "a named address is already known");
 
         let approval = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::TokenApproval, TransactionState::Confirmed, TransactionDirection::Outgoing));
         let approval_rows = detail_rows(&approval, WalletType::Multicoin, participant(&approval, BlockExplorerLink::mock_with_address), explorer, Currency::USD);
         assert!(matches!(approval_rows.header, GemTransactionHeader::AssetImage { .. }));
         let contract = approval_rows.participant.unwrap();
-        assert_eq!((contract.role, contract.can_add_contact), (GemTransactionParticipantRole::Contract, false));
+        assert_eq!(
+            (contract.title, contract.contact),
+            (
+                GemLocalizedText::ParticipantRole {
+                    role: GemTransactionParticipantRole::Contract
+                },
+                None
+            )
+        );
     }
 
     #[test]

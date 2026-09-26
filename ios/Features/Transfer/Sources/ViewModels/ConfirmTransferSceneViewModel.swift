@@ -201,10 +201,7 @@ extension ConfirmTransferSceneViewModel {
         case .warnings:
             .warnings(simulationWarnings)
         case let .row(index):
-            ConfirmRowViewModel(
-                content: rowContents[index],
-                onSelectAddress: { [weak self] in self?.onSelectAddress($0) },
-            ).itemModel
+            ConfirmRowViewModel(content: rowContents[index]).itemModel
         case .verification:
             verificationItem
         case .details:

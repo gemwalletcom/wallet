@@ -7,20 +7,18 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAddressRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionHeader
-import uniffi.gemstone.GemTransactionParticipant
 
 sealed interface TransactionItemUIModel {
     data class Item(val model: ListItemModel, val url: String? = null) : TransactionItemUIModel
-    data class Address(val title: String, val address: String, val chain: Chain?, val text: String, val explorerLink: BlockExplorerLink?) : TransactionItemUIModel
+    data class Address(val row: GemAddressRow) : TransactionItemUIModel
     data class Fee(val model: ListItemModel, val details: ListItemModel) : TransactionItemUIModel
     data class SwapProgress(val model: TransactionSwapProgressUIModel) : TransactionItemUIModel
     data class Row(val row: GemListRow) : TransactionItemUIModel
@@ -41,7 +39,7 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
             TransactionItemUIModel.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId))
         }
 
-        GemTransactionDetailRow.Participant -> requireNotNull(participant).address(context, asset.chain)
+        GemTransactionDetailRow.Participant -> TransactionItemUIModel.Address(requireNotNull(participant))
 
         GemTransactionDetailRow.Fee -> TransactionItemUIModel.Fee(
             model = ListItemModel(
@@ -60,11 +58,3 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
         is GemTransactionDetailRow.Row -> TransactionItemUIModel.Row(row.row)
     }
 }
-
-private fun GemTransactionParticipant.address(context: Context, chain: Chain): TransactionItemUIModel.Address = TransactionItemUIModel.Address(
-    title = context.getString(role.stringRes()),
-    address = address,
-    chain = chain,
-    text = text,
-    explorerLink = link.toPrimitives(),
-)

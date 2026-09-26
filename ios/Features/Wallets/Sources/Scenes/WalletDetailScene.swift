@@ -52,9 +52,9 @@ public struct WalletDetailScene: View {
                         Text(secretKind.title)
                     }
                 }
-                if let addressModel = model.addressModel {
+                if let addressRow = model.addressRow {
                     Section {
-                        AddressListItemView(model: addressModel)
+                        AddressListItemView(row: addressRow)
                     }
                 }
                 Section {

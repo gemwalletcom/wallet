@@ -13,8 +13,7 @@ use primitives::{AssetId, Chain, Transaction, Wallet, WalletId};
 pub use details::GemTransactionDetailsService;
 pub use model::{
     GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionFilter, GemTransactionHeader,
-    GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus,
-    GemTransactionTitle,
+    GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionTitle,
 };
 
 use crate::api::{GemApiError, GemDeviceApiClient};

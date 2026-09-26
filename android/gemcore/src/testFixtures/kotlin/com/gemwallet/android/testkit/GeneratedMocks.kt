@@ -1135,6 +1135,28 @@ fun mockFiatQuote(
     paymentMethods = paymentMethods,
 )
 
+fun mockGemAddressRow(
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    text: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    shortAddress: String? = null,
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    address: String = "",
+    avatar: uniffi.gemstone.GemAvatar? = null,
+    menu: List<uniffi.gemstone.GemRowMenuItem> = emptyList(),
+    contact: uniffi.gemstone.GemRecipient? = null,
+    isSelectable: Boolean = false,
+) = uniffi.gemstone.GemAddressRow(
+    title = title,
+    text = text,
+    shortAddress = shortAddress,
+    chain = chain,
+    address = address,
+    avatar = avatar,
+    menu = menu,
+    contact = contact,
+    isSelectable = isSelectable,
+)
+
 fun mockGemAppUpdateOffer(
     version: String = "",
     canSkip: Boolean = false,
@@ -1893,7 +1915,7 @@ fun mockGemTransactionDetailRows(
     swapProgress: uniffi.gemstone.GemSwapProgress? = null,
     swapAgain: uniffi.gemstone.GemSwapAgain? = null,
     estimatedConfirmationSeconds: UInt? = null,
-    participant: uniffi.gemstone.GemTransactionParticipant? = null,
+    participant: uniffi.gemstone.GemAddressRow? = null,
     providerName: String? = null,
     providerContract: String? = null,
     memo: String? = null,

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAddressRow
 import struct Gemstone.GemConfirmHeader
 import enum Gemstone.GemListRow
 import GemstonePrimitives
@@ -45,7 +46,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 public enum ConfirmTransferItemModel {
     case header(GemConfirmHeader)
     case row(GemListRow)
-    case recipient(AddressListItemViewModel)
+    case recipient(GemAddressRow)
     case paymentAsset(ListItemModel, selectable: Bool)
     case verification(ListItemModel)
     case swapDetails(SwapDetailsViewModel)

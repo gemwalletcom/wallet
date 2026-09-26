@@ -1,4 +1,5 @@
 import Components
+import struct Gemstone.GemAddressRow
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletDetails
 import struct Gemstone.GemWalletRow
@@ -74,14 +75,8 @@ public final class WalletDetailSceneViewModel {
         details.secretKind
     }
 
-    var addressModel: AddressListItemViewModel? {
-        guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
-        return AddressListItemViewModel(
-            title: Localized.Common.address,
-            account: SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
-            mode: .auto(addressStyle: .short),
-            addressLink: link,
-        )
+    var addressRow: GemAddressRow? {
+        details.address
     }
 
     var avatarAssetImage: AssetImage {

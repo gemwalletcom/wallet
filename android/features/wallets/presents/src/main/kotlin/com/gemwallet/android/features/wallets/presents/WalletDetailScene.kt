@@ -84,7 +84,7 @@ internal fun WalletDetailScene(wallet: WalletDetailUIModel?, secret: WalletSecre
                     accessory = { DataBadgeChevron() },
                 )
             }
-            WalletAddress(wallet.address, wallet.addressExplorer)
+            WalletAddress(wallet.address)
 
             Spacer16()
 

@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemAddressRow
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
@@ -82,13 +83,7 @@ extension TransactionSceneViewModel {
         case .header: headerItem
         case .swapProgress: swapProgressItem
         case .swapAgain: rows.swapAgain == nil ? .empty : .swapAgain(text: Localized.Transaction.swapAgain)
-        case .participant: TransactionParticipantViewModel(
-                participant: rows.participant,
-                chain: transactionExtended.transaction.assetId.chain,
-                memo: transactionExtended.transaction.memo,
-                onAddContact: onAddContact,
-                onSelectAddress: onSelectAddress,
-            ).itemModel
+        case .participant: rows.participant.map(TransactionItemModel.participant) ?? .empty
         case .fee: feeItem
         case let .row(row): .row(row)
         }
@@ -121,6 +116,16 @@ extension TransactionSceneViewModel {
 // MARK: - Actions
 
 extension TransactionSceneViewModel {
+    var addContactAction: ((AddContactType) -> Void)? {
+        onAddContact
+    }
+
+    func selectAction(_ row: GemAddressRow) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        let chainAddress = ChainAddress(chain: Chain(core: row.chain), address: row.address)
+        return { onSelectAddress(chainAddress) }
+    }
+
     private func onHeaderTap(_ tap: TransactionHeaderTap) {
         guard let onHeaderAction, let headerAction = rows.headerAction else { return }
         switch tap {

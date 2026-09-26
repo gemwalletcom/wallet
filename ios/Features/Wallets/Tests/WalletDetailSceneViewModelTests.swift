@@ -28,7 +28,7 @@ struct WalletDetailSceneViewModelTests {
     func aMulticoinWalletHasNoSingleAddressRow() {
         let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
 
-        #expect(model.addressModel == nil)
+        #expect(model.addressRow == nil)
     }
 
     @Test
@@ -36,9 +36,9 @@ struct WalletDetailSceneViewModelTests {
         let account = Account.mock(chain: .ethereum, address: "0xabc")
         let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
 
-        let address = try #require(model.addressModel)
-        #expect(address.account.address == "0xabc")
-        #expect(address.addressExplorerUrl.absoluteString.contains("0xabc"))
+        let address = try #require(model.addressRow)
+        #expect(address.address == "0xabc")
+        #expect(address.menu.contains { if case let .open(_, url) = $0 { url.contains("0xabc") } else { false } })
     }
 
     @Test

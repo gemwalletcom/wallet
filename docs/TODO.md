@@ -19,10 +19,10 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM207 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD373 to BD375.
+4. **Parity:** BD373 to BD376.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -46,7 +46,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Shared components
 
-- **VM207** **S** **`AddressListItemViewModel` decides how an address row reads.**
-  - **iOS:** `AddressListItemViewModel` decides `canToggleAddress` (a name that is not the address), picks name or short address for the subtitle, and builds "View on X".
-  - **Android:** the recipient and participant rows in `TransactionItemUIModel` and `ConfirmRowUIModel` build the same row.
-  - **Expected:** one Core address row (name, short and full address, whether it toggles, explorer link, contact actions) rendered by one shared component per app.
 - **VM208** **S** **The name-resolve indicator is mapped in two places per app.**
   - **iOS:** `NameRecordViewModel` drives the lookup and maps the state to an image (`resolveImage`).
   - **Android:** `NameRecordController` and `NameResolveIndicatorUIModel` do the same.
@@ -140,10 +136,10 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `DateSectionBuilder` (transactions, recents, notifications, fiat transactions) and `SupportChatDayBuilder` group by local day and sort.
   - **Android:** `rememberDateSections`, `dateSectionLabels` and `SupportChatModels` (`groupBy` on local date) do the same, relying on pre-sorted input.
   - **Expected:** Core returns sectioned lists given the device's day boundaries (`GemDayBoundaries`), labels included; the builders go.
-- **VM211** **S** **Transaction participants are assembled by the apps.**
-  - **iOS:** `TransactionParticipantViewModel` builds a `SimpleAccount` and an address row from `GemTransactionParticipant`, deciding contact and select actions.
-  - **Android:** `TransactionItemUIModel` builds the same row (`GemTransactionParticipant.address`).
-  - **Expected:** details sections carry finished participant rows (with VM207's address row); both models go.
+- **VM211** **S** **Transaction details carry the participant beside their sections.**
+  - **iOS:** `TransactionSceneViewModel` fills the sections' `participant` marker from `rows.participant`.
+  - **Android:** `TransactionItemUIModel` does the same.
+  - **Expected:** the details sections carry the finished participant `GemAddressRow` itself; the marker and the separate field go.
 - **VM212** **S** **Swap progress steps are composed in the apps.**
   - **iOS:** `TransactionSwapProgressItemModel` derives tag, marker, spinner and colours from `GemSwapProgressState`.
   - **Android:** `TransactionSwapProgressUIModel` composes the transfer subtitle as "amount (network)", activates the connector when the transfer step completed and shows the estimate only with a spinner.
@@ -167,10 +163,10 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `ConfirmNetworkFeeViewModel` shows fiat else value, hides the symbol when unavailable and decides selectability.
   - **Android:** `ConfirmTransferViewModel` builds the fee list item and `FeeUIModel.Unavailable` the same way.
   - **Expected:** `GemConfirmFeeRow` carries the final texts and whether it opens details.
-- **VM217** **S** **Confirm rows are assembled by the apps.**
-  - **iOS:** `ConfirmRowViewModel` builds the recipient row from eight fields and titles the payment row "Pay with".
-  - **Android:** `ConfirmRowUIModel` builds the same rows.
-  - **Expected:** `GemConfirmRowContent` rows are complete (with VM207's address row); both models go.
+- **VM217** **S** **The confirm payment row is titled by the apps.**
+  - **iOS:** `ConfirmRowViewModel` titles the payment row "Pay with".
+  - **Android:** `ConfirmRowUIModel` does the same.
+  - **Expected:** `GemConfirmRowContent::PaymentAsset` carries its title; both models go.
 - **VM218** **S** **The confirm details block is chosen by input type in the apps.**
   - **iOS:** `ConfirmDetailsViewModel` switches on `TransactionInputType` and calls `swapQuoteDetails` or `perpetualConfirmDetails` itself.
   - **Android:** `ConfirmTransferViewModel.swapDetails` does the same for swaps.
@@ -384,7 +380,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM267** **S** **Simulation payload fields are mapped twice.**
   - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
   - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
-  - **Expected:** payload rows render through the shared row renderer (address rows from VM207); both go.
+  - **Expected:** payload rows render through the shared row renderer (address rows as `GemAddressRow`); both go.
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
@@ -539,6 +535,10 @@ Differences between the apps, or between an app and the server, each with its de
 - **BD375** **S** **A deleted transaction keeps or clears its details screen.**
   - **iOS:** the details screen keeps showing the transaction it was opened with, and reads it before opening.
   - **Android:** the screen loads the transaction just after opening and clears when the row is deleted (`TransactionViewModel`).
+  - **Expected:** Android matches iOS.
+- **BD376** **S** **Android address rows offer no contact actions.**
+  - **iOS:** an unnamed transaction recipient or sender offers "Create New Contact" and "Add to Contact" on a long press, from the address row's `contact`.
+  - **Android:** `AddressPropertyItem` offers copy and the explorer only; no add-contact route takes an address.
   - **Expected:** Android matches iOS.
 - **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
 - **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.

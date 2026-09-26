@@ -132,6 +132,10 @@ public extension GemLocalizedText {
             Localized.Settings.enableValue(value)
         case let .viewOn(name):
             Localized.Transaction.viewOn(name)
+        case let .participantRole(role):
+            role.title
+        case let .confirmDestination(destination):
+            destination.title
         case let .number(number):
             number.text()
         case .none:

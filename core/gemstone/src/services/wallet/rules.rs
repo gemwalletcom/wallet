@@ -1,9 +1,10 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::models::list::{GemAddressRow, GemListRowTitle};
 use crate::services::localization::GemLocalizedText;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
@@ -171,15 +172,20 @@ pub fn sections(wallets: &[Wallet]) -> Vec<GemWalletSection> {
         .collect()
 }
 
-pub fn details(wallet: &Wallet) -> GemWalletDetails {
+pub fn details(wallet: &Wallet, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemWalletDetails {
     GemWalletDetails {
         row: row(wallet),
         secret_kind: secret_kind(wallet),
         address: match wallet.accounts.as_slice() {
-            [account] => Some(ChainAddress::new(account.chain, account.address.clone())),
+            [account] => Some(GemAddressRow::new(
+                GemLocalizedText::RowTitle { title: GemListRowTitle::Address },
+                account.chain,
+                account.address.clone(),
+                None,
+                &address_url(account.chain, account.address.clone()),
+            )),
             _ => None,
         },
-        address_explorer: None,
     }
 }
 
@@ -481,11 +487,12 @@ mod tests {
         let single = Wallet::mock_with_id(WalletId::Single(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
         let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::Bitcoin]);
 
-        let single_details = details(&single);
+        let link = |_: Chain, address: String| BlockExplorerLink::mock_with_address(&address);
+        let single_details = details(&single, link);
         assert_eq!(single_details.row.id, single.id.id());
         assert_eq!(single_details.secret_kind, Some(GemWalletSecretKind::Phrase));
-        assert_eq!(single_details.address, Some(ChainAddress::new(Chain::Ethereum, "address".to_string())));
-        assert_eq!(details(&multicoin).address, None);
+        assert_eq!(single_details.address.map(|row| (row.chain, row.address)), Some((Chain::Ethereum, "address".to_string())));
+        assert_eq!(details(&multicoin, link).address, None);
     }
 
     #[test]

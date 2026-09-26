@@ -3,7 +3,7 @@ use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
-use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemRowText};
@@ -11,7 +11,7 @@ use crate::services::assets::rules::{asset_text, balance_text, fee_amount};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
-use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
+use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
@@ -599,17 +599,18 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some() || !destination.shows_address_beside_name());
+                let text = match &destination {
+                    GemConfirmDestination::Resource { resource } => GemLocalizedText::Resource { resource: *resource },
+                    _ => GemLocalizedText::Text { text: name.unwrap_or(short_address) },
+                };
                 let link = address_url(chain, address.clone());
                 GemConfirmRowContent::Recipient {
-                    text: name.clone().unwrap_or(short_address),
-                    name,
-                    is_selectable: !address.is_empty(),
-                    address,
-                    destination,
-                    avatar,
-                    memo: transfer.recipient.memo.clone(),
-                    chain,
-                    link,
+                    row: GemAddressRow {
+                        text,
+                        avatar,
+                        is_selectable: !address.is_empty(),
+                        ..GemAddressRow::new(GemLocalizedText::ConfirmDestination { destination: destination.clone() }, chain, address, destination.name().as_deref(), &link)
+                    },
                 }
             }),
             GemConfirmRow::Network => {
@@ -1670,40 +1671,36 @@ mod tests {
         let link = |chain: Chain, address: String| BlockExplorerLink { name: chain.to_string(), link: address };
         let transfer = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) });
         let contact = AddressName::mock("recipient", "John Smith", AddressType::Contact, VerificationStatus::Verified);
-        let recipient = |address_name: Option<AddressName>| {
-            confirm_row_contents(&transfer, Wallet::mock(), address_name, link)
-                .into_iter()
-                .find_map(|content| match content {
-                    GemConfirmRowContent::Recipient {
-                        name, text, address, avatar, is_selectable, ..
-                    } => Some((name, text, address, avatar, is_selectable)),
-                    _ => None,
-                })
-                .unwrap()
+        let text = |text: &str| GemLocalizedText::Text { text: text.to_string() };
+        let recipient_row = |transfer: &GemTransferData, address_name: Option<AddressName>| {
+            confirm_row_contents(transfer, Wallet::mock(), address_name, link).into_iter().find_map(|content| match content {
+                GemConfirmRowContent::Recipient { row } => Some(row),
+                _ => None,
+            })
         };
 
-        let (name, text, address, avatar, is_selectable) = recipient(Some(contact));
-        assert_eq!(text, "John Smith");
-        assert_eq!(avatar.as_ref().map(|avatar| avatar.initials.clone()), Some("JO".to_string()), "a contact reads as the initials Core writes everywhere else");
-        assert_eq!(name, Some("John Smith".to_string()), "a contact with a picture needs no address beside its name");
-        assert_eq!(address, "recipient");
-        assert!(is_selectable);
+        let named = recipient_row(&transfer, Some(contact)).unwrap();
+        assert_eq!(named.text, text("John Smith"), "a contact with a picture needs no address beside its name");
+        assert_eq!(
+            named.avatar.as_ref().map(|avatar| avatar.initials.clone()),
+            Some("JO".to_string()),
+            "a contact reads as the initials Core writes everywhere else"
+        );
+        assert_eq!(named.short_address, Some("recipient".to_string()), "a name reveals the short address on a tap");
+        assert_eq!(named.address, "recipient");
+        assert!(named.is_selectable);
 
-        let (nameless, text, _, no_avatar, _) = recipient(None);
-        assert_eq!(no_avatar, None, "an address nobody named shows no avatar");
-        assert_eq!(nameless, None, "an unnamed address has no name text");
-        assert_eq!(text, "recipient", "an unnamed address reads as its short form");
+        let unnamed = recipient_row(&transfer, None).unwrap();
+        assert_eq!(unnamed.avatar, None, "an address nobody named shows no avatar");
+        assert_eq!(unnamed.short_address, None, "an unnamed address has nothing to reveal");
+        assert_eq!(unnamed.text, text("recipient"), "an unnamed address reads as its short form");
 
         let validator = DelegationValidator::stake(Chain::HyperCore, "0x000000000056f99d36b6f2e0c51fd41496bbacb8".into(), "ValiDAO".into(), true, 0.0, 0.0);
         let unstake = GemTransferData::mock(TransactionInputType::Stake {
             asset: Asset::from_chain(Chain::HyperCore),
             stake_type: StakeType::Unstake(Delegation::mock_with_validator(validator)),
         });
-        let validator_name = confirm_row_contents(&unstake, Wallet::mock(), None, link).into_iter().find_map(|content| match content {
-            GemConfirmRowContent::Recipient { name, .. } => name,
-            _ => None,
-        });
-        assert_eq!(validator_name.as_deref(), Some("ValiDAO"), "a validator reads as its name alone");
+        assert_eq!(recipient_row(&unstake, None).map(|row| row.text), Some(text("ValiDAO")), "a validator reads as its name alone");
 
         let swap_data = SwapData::mock_with_provider(SwapProvider::PancakeswapV3);
         let provider_name = swap_data.quote.provider_data.name.clone();
@@ -1712,11 +1709,7 @@ mod tests {
             to_asset: Asset::mock_ethereum_usdc(),
             swap_data,
         });
-        let swap_provider_name = confirm_row_contents(&swap, Wallet::mock(), None, link).into_iter().find_map(|content| match content {
-            GemConfirmRowContent::Recipient { name, .. } => name,
-            _ => None,
-        });
-        assert_eq!(swap_provider_name, Some(provider_name), "a swap provider reads as its name alone");
+        assert_eq!(recipient_row(&swap, None).map(|row| row.text), Some(text(&provider_name)), "a swap provider reads as its name alone");
     }
 
     #[test]
@@ -1745,7 +1738,7 @@ mod tests {
             &contents[0],
             GemConfirmRowContent::Row { row: GemListRow::Wallet { menu, .. } } if matches!(menu.as_slice(), [GemRowMenuItem::Copy { copy }, GemRowMenuItem::Open { url, .. }] if copy.value == "address" && url == "address")
         ));
-        assert!(matches!(&contents[1], GemConfirmRowContent::Recipient { link, chain: Chain::Ethereum, .. } if link.link == "recipient"));
+        assert!(matches!(&contents[1], GemConfirmRowContent::Recipient { row } if row.chain == Chain::Ethereum && matches!(row.menu.as_slice(), [_, GemRowMenuItem::Open { url, .. }] if url == "recipient")));
         assert!(matches!(
             &contents[2],
             GemConfirmRowContent::Row { row: GemListRow::Network { chain: Chain::Ethereum, name, .. } } if name == "Ethereum"

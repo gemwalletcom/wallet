@@ -4,22 +4,20 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::list::GemListRow;
+use crate::models::list::{GemAddressRow, GemListRow};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
 use crate::services::balance::GemAssetBalance;
-use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transfer::GemTransferData;
-use crate::services::transfer::model::{GemConfirmDestination, GemConfirmTitle};
+use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::BlockExplorerLink;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 
@@ -502,25 +500,10 @@ mod tests {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemConfirmRowContent {
-    Row {
-        row: GemListRow,
-    },
-    Recipient {
-        destination: GemConfirmDestination,
-        name: Option<String>,
-        text: String,
-        address: String,
-        memo: Option<String>,
-        chain: Chain,
-        link: BlockExplorerLink,
-        avatar: Option<GemAvatar>,
-        is_selectable: bool,
-    },
+    Row { row: GemListRow },
+    Recipient { row: GemAddressRow },
     Details,
-    PaymentAsset {
-        symbol: String,
-        selectable: bool,
-        asset_ids: Vec<AssetId>,
-    },
+    PaymentAsset { symbol: String, selectable: bool, asset_ids: Vec<AssetId> },
 }

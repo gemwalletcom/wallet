@@ -1,7 +1,8 @@
 use std::fmt;
 
+use crate::models::list::GemAddressRow;
 use crate::services::localization::GemLocalizedText;
-use primitives::{BlockExplorerLink, Chain, ChainAddress, NameRecord, Wallet, WalletSource};
+use primitives::{Chain, NameRecord, Wallet, WalletSource};
 
 use super::rules;
 
@@ -180,12 +181,7 @@ pub fn wallet_sections(wallets: Vec<Wallet>) -> Vec<GemWalletSection> {
 pub struct GemWalletDetails {
     pub row: GemWalletRow,
     pub secret_kind: Option<GemWalletSecretKind>,
-    pub address: Option<ChainAddress>,
-    pub address_explorer: Option<BlockExplorerLink>,
-}
-
-pub fn wallet_details(wallet: Wallet) -> GemWalletDetails {
-    rules::details(&wallet)
+    pub address: Option<GemAddressRow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

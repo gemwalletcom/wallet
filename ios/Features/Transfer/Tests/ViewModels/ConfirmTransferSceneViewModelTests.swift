@@ -241,9 +241,9 @@ struct ConfirmTransferSceneViewModelTests {
         ))
         let recipientItem = model.itemModel(for: .row(1))
 
-        if case let .recipient(addressViewModel) = recipientItem {
-            #expect(addressViewModel.account.address == address)
-            #expect(addressViewModel.account.name == nil)
+        if case let .recipient(row) = recipientItem {
+            #expect(row.address == address)
+            #expect(row.text.text != address, "an unnamed address reads short")
         } else {
             Issue.record("Expected recipient item model")
         }
@@ -262,9 +262,9 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
         let recipientItem = model.itemModel(for: .row(1))
 
-        if case let .recipient(addressViewModel) = recipientItem {
-            #expect(addressViewModel.account.address == address)
-            #expect(addressViewModel.account.name == "Bitcoin")
+        if case let .recipient(row) = recipientItem {
+            #expect(row.address == address)
+            #expect(row.text.text == "Bitcoin")
         } else {
             Issue.record("Expected recipient item model")
         }
@@ -283,9 +283,9 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
         let recipientItem = model.itemModel(for: .row(1))
 
-        if case let .recipient(addressViewModel) = recipientItem {
-            #expect(addressViewModel.account.address == checksummedAddress)
-            #expect(addressViewModel.account.name == "Uniswap")
+        if case let .recipient(row) = recipientItem {
+            #expect(row.address == checksummedAddress)
+            #expect(row.text.text == "Uniswap")
         } else {
             Issue.record("Expected recipient item model")
         }

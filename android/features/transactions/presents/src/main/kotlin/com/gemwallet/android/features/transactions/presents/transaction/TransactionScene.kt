@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transactions.presents.transaction.components.TransactionSwapProgressItem
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
@@ -58,12 +59,9 @@ internal fun TransactionScene(title: String, sections: List<ListSection<Transact
                     )
 
                     is TransactionItemUIModel.Address -> AddressPropertyItem(
-                        title = row.title,
-                        displayText = row.text,
-                        copyValue = row.address,
-                        explorerLink = row.explorerLink,
+                        row = row.row,
                         listPosition = position,
-                        onClick = row.chain?.let { chain -> { onAction(TransactionAction.OpenAddress(ChainAddress(chain, row.address))) } },
+                        onClick = { onAction(TransactionAction.OpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address))) },
                     )
 
                     is TransactionItemUIModel.Fee -> ListItem(

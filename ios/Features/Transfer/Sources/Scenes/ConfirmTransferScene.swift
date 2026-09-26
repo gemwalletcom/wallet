@@ -53,8 +53,8 @@ extension ConfirmTransferScene {
                 .isVisible(!header.isReserved)
         case let .row(row):
             GemListRowView(row: row)
-        case let .recipient(model):
-            AddressListItemView(model: model)
+        case let .recipient(row):
+            AddressListItemView(row: row, onSelect: { model.onSelectAddress(ChainAddress(chain: Chain(core: row.chain), address: row.address)) })
         case let .paymentAsset(model, selectable):
             NavigationCustomLink(
                 with: ListItemView(model: model),

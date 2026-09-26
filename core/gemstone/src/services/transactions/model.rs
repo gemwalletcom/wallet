@@ -1,13 +1,13 @@
 use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
+use primitives::{Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
 use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
@@ -164,16 +164,6 @@ pub enum GemTransactionParticipantRole {
     Contract,
     Validator,
     Provider,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemTransactionParticipant {
-    pub role: GemTransactionParticipantRole,
-    pub address: String,
-    pub text: String,
-    pub name: Option<AddressName>,
-    pub link: BlockExplorerLink,
-    pub can_add_contact: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -340,7 +330,7 @@ pub struct GemTransactionDetailRows {
     pub swap_progress: Option<GemSwapProgress>,
     pub swap_again: Option<GemSwapAgain>,
     pub estimated_confirmation_seconds: Option<u32>,
-    pub participant: Option<GemTransactionParticipant>,
+    pub participant: Option<GemAddressRow>,
     pub provider_name: Option<String>,
     pub provider_contract: Option<String>,
     pub memo: Option<String>,

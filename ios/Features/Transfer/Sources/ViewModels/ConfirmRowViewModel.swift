@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmRowContent
 import GemstonePrimitives
 import Localization
@@ -11,14 +10,9 @@ import PrimitivesComponents
 
 struct ConfirmRowViewModel {
     private let content: GemConfirmRowContent
-    private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    init(
-        content: GemConfirmRowContent,
-        onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
-    ) {
+    init(content: GemConfirmRowContent) {
         self.content = content
-        self.onSelectAddress = onSelectAddress
     }
 }
 
@@ -29,36 +23,13 @@ extension ConfirmRowViewModel {
         switch content {
         case let .row(row):
             .row(row)
-        case let .recipient(destination, name, text, address, memo, chain, link, avatar, isSelectable):
-            .recipient(
-                AddressListItemViewModel(
-                    title: destination.title,
-                    account: SimpleAccount(
-                        name: name,
-                        chain: Chain(core: chain),
-                        address: address,
-                        memo: memo,
-                        assetImage: avatar.map(\.assetImage),
-                    ),
-                    mode: .text(text),
-                    addressLink: link.toPrimitives(),
-                    onSelect: isSelectable ? selectAction(chainAddress: ChainAddress(chain: Chain(core: chain), address: address)) : nil,
-                ),
-            )
+        case let .recipient(row):
+            .recipient(row)
         case let .paymentAsset(symbol, selectable, _):
             .paymentAsset(ListItemModel(title: Localized.Transfer.payWith, subtitle: symbol), selectable: selectable)
         case .details:
             .empty
         }
-    }
-}
-
-// MARK: - Private
-
-extension ConfirmRowViewModel {
-    private func selectAction(chainAddress: ChainAddress) -> (@MainActor @Sendable () -> Void)? {
-        guard let onSelectAddress else { return nil }
-        return { onSelectAddress(chainAddress) }
     }
 }
 

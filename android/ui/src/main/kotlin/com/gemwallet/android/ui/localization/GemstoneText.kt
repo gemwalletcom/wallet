@@ -231,6 +231,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.ViewOn -> context.getString(R.string.transaction_view_on, name)
 
+    is GemLocalizedText.ParticipantRole -> context.getString(role.stringRes())
+
+    is GemLocalizedText.ConfirmDestination -> context.getString(destination.title())
+
     is GemLocalizedText.Number -> number.text()
 
     GemLocalizedText.None -> context.getString(R.string.common_none)

@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
 use primitives::{Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
 
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::models::copy::GemCopy;
+use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::icon::GemAssetIcon;
 use crate::services::contact::model::GemAvatar;
@@ -13,6 +14,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
 use crate::services::swap::GemAssetRate;
 use crate::services::transactions::GemTransactionStateTone;
+use crate::services::transfer::GemRecipient;
 use crate::services::wallet::model::{GemWalletPlaceholder, GemWalletRow};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -422,6 +424,43 @@ pub enum GemListRow {
     Error {
         error: GemServiceError,
     },
+}
+
+/// An address a screen shows: the text it reads, the short address a tap reveals when the text is a name, and its long-press menu.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAddressRow {
+    pub title: GemLocalizedText,
+    pub text: GemLocalizedText,
+    pub short_address: Option<String>,
+    pub chain: Chain,
+    pub address: String,
+    pub avatar: Option<GemAvatar>,
+    pub menu: Vec<GemRowMenuItem>,
+    pub contact: Option<GemRecipient>,
+    pub is_selectable: bool,
+}
+
+impl GemAddressRow {
+    pub fn new(title: GemLocalizedText, chain: Chain, address: String, name: Option<&str>, explorer: &BlockExplorerLink) -> Self {
+        let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
+        let name = name.filter(|name| !name.is_empty() && *name != address);
+        Self {
+            title,
+            text: GemLocalizedText::Text {
+                text: name.map(str::to_string).unwrap_or_else(|| short_address.clone()),
+            },
+            short_address: name.map(|_| short_address),
+            chain,
+            menu: match address.is_empty() {
+                true => vec![],
+                false => vec![GemRowMenuItem::Copy { copy: address_copy(chain, address.clone()) }, GemRowMenuItem::view_on(explorer)],
+            },
+            address,
+            avatar: None,
+            contact: None,
+            is_selectable: false,
+        }
+    }
 }
 
 /// An entry of a row's long-press menu; a copy entry reads "Copy" on both apps.

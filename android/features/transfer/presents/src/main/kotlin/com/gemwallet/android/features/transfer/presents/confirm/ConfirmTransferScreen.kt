@@ -29,7 +29,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.features.transfer.presents.confirm.components.AddressRow
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transfer.presents.confirm.components.ConfirmErrorInfo
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
@@ -208,19 +208,10 @@ fun ConfirmTransferScreen(
 
                                 is ConfirmRowUIModel.Item -> ListItem(model = row.model, listPosition = listPosition)
 
-                                is ConfirmRowUIModel.Address -> AddressRow(
-                                    row = row,
+                                is ConfirmRowUIModel.Address -> AddressPropertyItem(
+                                    row = row.row,
                                     listPosition = listPosition,
-                                    onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
-                                )
-
-                                is ConfirmRowUIModel.Validator -> AddressPropertyItem(
-                                    title = row.title,
-                                    displayText = row.name,
-                                    copyValue = row.address,
-                                    explorerLink = row.explorerLink,
-                                    listPosition = listPosition,
-                                    onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
+                                    onClick = { onOpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address)) },
                                 )
 
                                 is ConfirmRowUIModel.PaymentAsset -> ListItem(

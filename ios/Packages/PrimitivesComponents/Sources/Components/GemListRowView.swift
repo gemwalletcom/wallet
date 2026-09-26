@@ -124,12 +124,7 @@ public struct GemListRowView: View {
 
 extension GemListRowView {
     private func contextMenu(_ menu: [GemRowMenuItem]) -> [ContextMenuItemType] {
-        menu.map { item in
-            switch item {
-            case let .copy(copy): .copy(value: copy.value)
-            case let .open(title, url): .url(title: title.text, onOpen: { presentation = URL(string: url).map { .url($0) } })
-            }
-        }
+        menu.contextMenuItems { presentation = .url($0) }
     }
 
     private var isPresentingUrl: Binding<URL?> {

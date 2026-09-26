@@ -173,9 +173,9 @@ struct TransactionSceneViewModelTests {
             to: "0xRecipientAddress",
         )
 
-        if case let .participant(item) = modelWithAddresses.itemModel(for: GemTransactionDetailRow.participant) {
-            #expect(item.title == Localized.Transaction.sender)
-            #expect(item.account.address == "0xSenderAddress")
+        if case let .participant(row) = modelWithAddresses.itemModel(for: GemTransactionDetailRow.participant) {
+            #expect(row.title.text == Localized.Transaction.sender)
+            #expect(row.address == "0xSenderAddress")
         } else {
             Issue.record("Expected participant item for incoming transfer")
         }

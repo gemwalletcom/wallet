@@ -1,11 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAddressRow
 import struct Gemstone.GemAvatar
 import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmRowContent
 import enum Gemstone.GemListRow
+import enum Gemstone.GemLocalizedText
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Localization
 @testable import Primitives
 import PrimitivesComponents
@@ -27,52 +30,37 @@ struct ConfirmRowViewModelTests {
     }
 
     @Test
-    func recipientFollowsTheDestination() throws {
-        let cases: [(GemConfirmDestination, String, String)] = [
-            (.recipient(name: nil, address: "0xrecipient"), Localized.Transfer.Recipient.title, "0xrecipient"),
-            (.contract(name: nil, address: "0xspender"), Localized.Asset.contract, "0xspender"),
-            (.validator(name: "Allnodes", address: "validator1"), Localized.Stake.validator, "validator1"),
-            (.provider(name: "Yo", address: "0xprovider"), Localized.Common.provider, "0xprovider"),
-        ]
-        for (destination, title, address) in cases {
-            let item = try #require(model(destination, address: address).recipientItem)
-            #expect(item.title == title)
-            #expect(item.account.address == address)
-            #expect(item.onSelect != nil, "a destination with an address can be opened")
-        }
+    func aRecipientPassesThroughAsCoreBuiltIt() throws {
+        let row = GemAddressRow.mock(title: .confirmDestination(destination: .recipient(name: nil, address: "0xrecipient")), address: "0xrecipient", isSelectable: true)
+        let item = try #require(ConfirmRowViewModel(content: .recipient(row: row)).recipientItem)
 
-        let resource = try #require(model(.resource(resource: Resource.energy.toGem()), address: "").recipientItem)
-        #expect(resource.title == Localized.Stake.resource)
-        #expect(resource.onSelect == nil, "a resource has no address to open")
+        #expect(item == row)
     }
 
     @Test
-    func aContactShowsItsPictureOrTheInitialsCoreWrote() throws {
-        let withImage = try #require(model(.recipient(name: "Ada", address: "0x1"), address: "0x1", avatar: GemAvatar(imageUrl: "avatar.png", initials: "AD")).recipientItem)
-        let withoutImage = try #require(model(.recipient(name: "Ada", address: "0x1"), address: "0x1", avatar: GemAvatar(imageUrl: nil, initials: "AD")).recipientItem)
-
-        #expect(withImage.account.assetImage?.imageURL == ImageSource("avatar.png").url)
-        #expect(withoutImage.account.assetImage?.imageURL == nil)
-        #expect(withoutImage.account.assetImage?.type == .text("AD"))
+    func aDestinationTitlesItsRow() {
+        let cases: [(GemConfirmDestination, String)] = [
+            (.recipient(name: nil, address: "0xrecipient"), Localized.Transfer.Recipient.title),
+            (.contract(name: nil, address: "0xspender"), Localized.Asset.contract),
+            (.validator(name: "Allnodes", address: "validator1"), Localized.Stake.validator),
+            (.provider(name: "Yo", address: "0xprovider"), Localized.Common.provider),
+            (.resource(resource: Resource.energy.toGem()), Localized.Stake.resource),
+        ]
+        for (destination, title) in cases {
+            #expect(GemLocalizedText.confirmDestination(destination: destination).text == title)
+        }
     }
 
-    private func model(_ destination: GemConfirmDestination, address: String, avatar: GemAvatar? = nil) -> ConfirmRowViewModel {
-        ConfirmRowViewModel(content: .recipient(
-            destination: destination,
-            name: nil,
-            text: address,
-            address: address,
-            memo: nil,
-            chain: Chain.ethereum.rawValue,
-            link: BlockExplorerLink.mock().toGem(),
-            avatar: avatar,
-            isSelectable: !address.isEmpty,
-        ), onSelectAddress: { _ in })
+    @Test
+    func aContactShowsItsPictureOrTheInitialsCoreWrote() {
+        #expect(GemAvatar(imageUrl: "avatar.png", initials: "AD").assetImage.imageURL == ImageSource("avatar.png").url)
+        #expect(GemAvatar(imageUrl: nil, initials: "AD").assetImage.imageURL == nil)
+        #expect(GemAvatar(imageUrl: nil, initials: "AD").assetImage.type == .text("AD"))
     }
 }
 
 private extension ConfirmRowViewModel {
-    var recipientItem: AddressListItemViewModel? {
+    var recipientItem: GemAddressRow? {
         guard case let .recipient(item) = itemModel else { return nil }
         return item
     }

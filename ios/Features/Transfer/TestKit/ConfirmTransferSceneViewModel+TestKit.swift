@@ -39,17 +39,13 @@ public extension ConfirmTransferSceneViewModel {
                     .open(title: .viewOn(name: explorer.name), url: explorer.link),
                 ],
             ))
-            let recipient: GemConfirmRowContent = .recipient(
-                destination: .recipient(name: addressName?.name, address: data.recipient.address),
-                name: addressName?.name,
-                text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain, style: .short),
-                address: data.recipient.address,
-                memo: data.recipient.memo,
+            let recipient: GemConfirmRowContent = .recipient(row: .mock(
+                title: .confirmDestination(destination: .recipient(name: addressName?.name, address: data.recipient.address)),
+                text: .text(text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain, style: .short)),
                 chain: data.chain.rawValue,
-                link: BlockExplorerLink.mock().toGem(),
-                avatar: nil,
+                address: data.recipient.address,
                 isSelectable: true,
-            )
+            ))
             let network: GemConfirmRowContent = .row(row: .network(title: .network, chain: data.chain.rawValue, name: data.chain.rawValue))
             let memo: GemConfirmRowContent? = data.recipient.memo.map { .row(row: .memo(title: .memo, value: $0, menu: [.copy(copy: GemCopy(kind: .plain, value: $0, display: $0))])) }
             return [walletContent, recipient, network, memo, .details].compactMap(\.self)

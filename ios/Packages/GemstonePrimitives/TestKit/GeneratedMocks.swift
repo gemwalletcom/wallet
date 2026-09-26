@@ -94,6 +94,32 @@ public extension Gemstone.FiatQuote {
     }
 }
 
+public extension Gemstone.GemAddressRow {
+    static func mock(
+        title: Gemstone.GemLocalizedText = .mock(),
+        text: Gemstone.GemLocalizedText = .mock(),
+        shortAddress: String? = nil,
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        address: String = "",
+        avatar: Gemstone.GemAvatar? = nil,
+        menu: [Gemstone.GemRowMenuItem] = [],
+        contact: Gemstone.GemRecipient? = nil,
+        isSelectable: Bool = false,
+    ) -> Gemstone.GemAddressRow {
+        Gemstone.GemAddressRow(
+            title: title,
+            text: text,
+            shortAddress: shortAddress,
+            chain: chain,
+            address: address,
+            avatar: avatar,
+            menu: menu,
+            contact: contact,
+            isSelectable: isSelectable,
+        )
+    }
+}
+
 public extension Gemstone.GemAppUpdateOffer {
     static func mock(
         version: String = "",
@@ -1117,7 +1143,7 @@ public extension Gemstone.GemTransactionDetailRows {
         swapProgress: Gemstone.GemSwapProgress? = nil,
         swapAgain: Gemstone.GemSwapAgain? = nil,
         estimatedConfirmationSeconds: UInt32? = nil,
-        participant: Gemstone.GemTransactionParticipant? = nil,
+        participant: Gemstone.GemAddressRow? = nil,
         providerName: String? = nil,
         providerContract: String? = nil,
         memo: String? = nil,
