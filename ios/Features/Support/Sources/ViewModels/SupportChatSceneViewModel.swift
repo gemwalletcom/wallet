@@ -61,7 +61,7 @@ public final class SupportChatSceneViewModel {
     }
 
     func enableNotificationsForSupport() async {
-        guard case let .notRegistered(error) = await notifications.enableForSupport()?.result else { return }
+        guard case let .notRegistered(error) = await notifications.askToEnable()?.result else { return }
         isPresentingAlertMessage = AlertMessage(message: error.text)
     }
 

@@ -36,16 +36,9 @@ impl GemNotificationsService {
         self.permissions.is_available() && self.preferences.is_push_notifications_enabled()
     }
 
-    /// Opening support is the one place the app offers to turn notifications on, because a reply
-    /// arrives while the app is closed. It asks once, and only when there is something to ask for.
-    pub async fn enable_for_support(&self) -> Option<GemPushState> {
-        if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() {
-            return None;
-        }
-        Some(self.set_enabled(true).await)
-    }
-
-    pub async fn enable_for_new_wallet(&self) -> Option<GemPushState> {
+    /// Opening support and adding a wallet ask to turn notifications on, under one rule: never after
+    /// the user turned them off, and no sooner than 30 days after the last ask.
+    pub async fn ask_to_enable(&self) -> Option<GemPushState> {
         if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() || !self.preferences.should_ask_notifications() {
             return None;
         }
@@ -173,40 +166,55 @@ mod tests {
     }
 
     #[test]
-    fn test_support_asks_once_and_only_when_there_is_something_to_ask_for() {
+    fn test_asks_only_when_there_is_something_to_ask_for() {
         block_on(async {
             let permissions = Arc::new(TestPermissions::default());
             let service = service(503, permissions.clone());
 
-            assert!(service.enable_for_support().await.is_none(), "nothing to ask for without the os permission");
+            assert!(service.ask_to_enable().await.is_none(), "nothing to ask for without the os permission");
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 0);
 
             permissions.available.store(true, Ordering::SeqCst);
             permissions.granted.store(true, Ordering::SeqCst);
 
-            assert!(service.enable_for_support().await.is_some(), "support offers to turn them on");
+            assert!(service.ask_to_enable().await.is_some(), "the app asks to turn them on");
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
 
-            assert!(service.enable_for_support().await.is_none(), "opening support again never asks twice");
+            assert!(service.ask_to_enable().await.is_none(), "once on, nothing is asked again");
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
         })
     }
 
     #[test]
-    fn test_a_new_wallet_asks_once_and_the_ask_is_recorded() {
+    fn test_a_declined_ask_is_not_repeated_within_the_wait() {
         block_on(async {
             let permissions = Arc::new(TestPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
 
-            let state = service.enable_for_new_wallet().await;
+            let state = service.ask_to_enable().await;
 
             assert_eq!(state.map(|state| state.result), Some(GemPushResult::PermissionDenied));
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
             assert!(!service.preferences.should_ask_notifications(), "the ask is recorded, so the 30-day wait applies");
 
-            assert!(service.enable_for_new_wallet().await.is_none(), "the next wallet within the wait does not ask again");
+            assert!(service.ask_to_enable().await.is_none(), "opening support or adding a wallet within the wait does not ask again");
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
+        })
+    }
+
+    #[test]
+    fn test_push_the_user_turned_off_is_never_asked_for() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            permissions.available.store(true, Ordering::SeqCst);
+            permissions.granted.store(true, Ordering::SeqCst);
+            let service = service(503, permissions.clone());
+            service.preferences.set_push_notifications_declined(true).unwrap();
+
+            assert!(service.ask_to_enable().await.is_none());
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 0);
+            assert!(!service.preferences.is_push_notifications_enabled(), "the user's choice stays");
         })
     }
 

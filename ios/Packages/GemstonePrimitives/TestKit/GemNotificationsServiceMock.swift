@@ -7,7 +7,7 @@ import struct Gemstone.GemPushState
 
 public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol, @unchecked Sendable {
     public var state: GemPushState
-    public var offersForSupport = false
+    public var asksToEnable = false
     public private(set) var requested: [Bool] = []
 
     public init(state: GemPushState = GemPushState(isEnabled: false, result: .stored)) {
@@ -23,12 +23,8 @@ public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol,
         return state
     }
 
-    public func enableForSupport() async -> GemPushState? {
-        guard offersForSupport else { return nil }
+    public func askToEnable() async -> GemPushState? {
+        guard asksToEnable else { return nil }
         return await setEnabled(enabled: true)
-    }
-
-    public func enableForNewWallet() async -> GemPushState? {
-        nil
     }
 }

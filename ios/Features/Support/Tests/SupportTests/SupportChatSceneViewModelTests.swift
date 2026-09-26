@@ -19,7 +19,7 @@ struct SupportChatSceneViewModelTests {
     @Test
     func aFailedPushRegistrationShowsOnTheChat() async {
         let notifications = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline)))
-        notifications.offersForSupport = true
+        notifications.asksToEnable = true
         let model = SupportChatSceneViewModel.mock(notifications: notifications)
 
         await model.enableNotificationsForSupport()
