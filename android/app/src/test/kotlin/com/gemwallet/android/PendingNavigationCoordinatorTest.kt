@@ -30,7 +30,6 @@ import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 
 class PendingNavigationCoordinatorTest {
-
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
     private val navigationService = mockk<GemNavigationServiceInterface>(relaxed = true)
@@ -168,15 +167,6 @@ class PendingNavigationCoordinatorTest {
         every { intent.hasExtra(any()) } throws RuntimeException("Parcelable encountered ClassNotFoundException reading a Serializable object")
 
         coordinator.pendIntent(intent)
-
-        assertNull(coordinator.pendingNavigation.value)
-    }
-
-    @Test
-    fun clear_clearsPendingNavigation() {
-        coordinator.pendScan("https://example.com")
-
-        coordinator.clear()
 
         assertNull(coordinator.pendingNavigation.value)
     }

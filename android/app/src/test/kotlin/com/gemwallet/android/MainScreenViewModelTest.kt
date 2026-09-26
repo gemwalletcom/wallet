@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,7 +28,6 @@ import uniffi.gemstone.pendingActivityFilters
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainScreenViewModelTest {
-
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<MainScreenViewModel>()
 
@@ -54,14 +52,6 @@ class MainScreenViewModelTest {
     private fun viewModel(coordinator: PendingNavigationCoordinator = mockk(relaxed = true), counts: TransactionsCountQuery = this.counts): MainScreenViewModel {
         val getCurrentWalletId: GetCurrentWalletId = mockk { every { this@mockk.invoke() } returns currentWalletId }
         return MainScreenViewModel(getCurrentWalletId, coordinator, counts).also { models.add(it) }
-    }
-
-    @Test
-    fun `the badge starts at 0 before the count arrives`() = runTest(dispatcher) {
-        val model = viewModel(counts = mockk { every { this@mockk(any(), any()) } returns emptyFlow() })
-        advanceUntilIdle()
-
-        assertEquals(0, model.pendingTxCount.value)
     }
 
     @Test

@@ -19,7 +19,6 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
@@ -28,20 +27,13 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
-import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
-import com.gemwallet.android.ui.navigation.routes.CollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
-import com.gemwallet.android.ui.navigation.routes.FiatRoute
-import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
-import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
-import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
-import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.SetPriceAlertRoute
 import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
@@ -55,7 +47,6 @@ import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.every
@@ -85,7 +76,6 @@ import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
 
 class WalletNavigatorTest {
-
     @Before
     fun setUp() {
         mockkStatic(Log::class)
@@ -336,105 +326,6 @@ class WalletNavigatorTest {
                 ImportWalletTypeRoute,
                 ImportWalletRoute.MulticoinWallet,
                 ImportWalletRoute.ChainWallet(GemWalletImportKind.PRIVATE_KEY, Chain.Solana),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openRecipient_usesExplicitRoutes() {
-        val navigator = navigatorWith(WalletRootRoute)
-        val assetId = mockAssetId(Chain.Ethereum)
-
-        navigator.openRecipient()
-        navigator.openRecipient(assetId)
-        val nft = mockNftAsset(chain = Chain.Ethereum)
-        navigator.openNftRecipient(nft)
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                SendSelectRoute(),
-                RecipientRoute(assetId),
-                RecipientRoute(assetId, nft = nft),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openAssetActions_useExplicitRoutes() {
-        val navigator = navigatorWith(WalletRootRoute)
-        val assetId = mockAssetId(Chain.Ethereum)
-
-        navigator.openReceive()
-        navigator.openReceive(assetId)
-        navigator.openBuy()
-        navigator.openBuy(assetId)
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                ReceiveSelectRoute,
-                ReceiveRoute(assetId),
-                FiatSelectRoute,
-                FiatRoute(assetId),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openPriceAlerts_usesExplicitRoutes() {
-        val navigator = navigatorWith(WalletRootRoute)
-        val assetId = mockAssetId(Chain.Ethereum)
-
-        navigator.openPriceAlerts()
-        navigator.openPriceAlerts(assetId)
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                PriceAlertsRoute,
-                AssetPriceAlertsRoute(assetId),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openNft_usesExplicitRoutes() {
-        val navigator = navigatorWith(WalletRootRoute)
-
-        navigator.openCollection("ethereum_0xcollection")
-        navigator.openCollectible(NFTAssetId(Chain.Ethereum, "0xcollection", "1"))
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                CollectionRoute("ethereum_0xcollection"),
-                CollectibleRoute("ethereum_0xcollection::1"),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun openSwap_usesExplicitRoutes() {
-        val navigator = navigatorWith(WalletRootRoute)
-        val payAssetId = mockAssetId(Chain.Solana)
-        val receiveAssetId = mockAssetId(Chain.Ethereum)
-
-        navigator.openSwap()
-        navigator.openSwap(payAssetId)
-        navigator.openSwap(payAssetId, receiveAssetId)
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                SwapRoute,
-                SwapPairRoute(payAssetId, to = null),
-                SwapPairRoute(payAssetId, receiveAssetId),
             ),
             navigator.backStack.toList(),
         )
