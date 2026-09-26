@@ -17,6 +17,12 @@ pub struct GemChainRow {
     pub icon: GemAssetIcon,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemImportWalletTypes {
+    pub multicoin: GemLocalizedText,
+    pub chains: Vec<GemChainRow>,
+}
+
 #[uniffi::export]
 pub fn chain_row(chain: Chain) -> GemChainRow {
     chain_row_with_standard(chain, None)
@@ -49,6 +55,13 @@ impl GemChainService {
         rules::matching_chains(rules::chains_by_rank(), &query)
     }
 
+    pub fn import_wallet_types(&self, query: String) -> GemImportWalletTypes {
+        GemImportWalletTypes {
+            multicoin: GemLocalizedText::WalletMulticoin,
+            chains: self.get_chains(query).into_iter().map(chain_row).collect(),
+        }
+    }
+
     pub fn get_matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
         rules::matching_chains(chains, &query)
     }
@@ -65,6 +78,15 @@ impl GemChainService {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_import_types_lead_with_multicoin_and_list_the_matching_chains() {
+        let types = GemChainService::new().import_wallet_types("bitcoin".to_string());
+
+        assert_eq!(types.multicoin, GemLocalizedText::WalletMulticoin);
+        assert_eq!(types.chains.first().map(|row| row.chain), Some(Chain::Bitcoin));
+        assert!(GemChainService::new().import_wallet_types("zzz-no-chain".to_string()).chains.is_empty());
+    }
 
     #[test]
     fn test_a_chain_row_names_the_network_and_draws_its_icon_chain() {

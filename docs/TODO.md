@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM242 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM243 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -34,7 +34,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM275 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM242, VM294 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
@@ -118,13 +118,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
   - **Phase 5, removal:** stop generating the Swift and Kotlin models, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
   - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with generated `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
-
-### Wallets and onboarding
-
-- **VM242** **S** **Import types are enumerated in the apps.**
-  - **iOS:** `ImportWalletTypeSceneViewModel` and the `ImportWalletType` enum twin the import kinds.
-  - **Android:** `ImportWalletTypeViewModel` and `ImportType` do the same.
-  - **Expected:** Core returns the import type rows; the enums go.
 
 ### Settings
 

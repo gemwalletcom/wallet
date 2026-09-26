@@ -10,23 +10,23 @@ struct ImportWalletTypeSceneViewModelTests {
     func anEmptyQueryOffersEveryChain() {
         let model = ImportWalletTypeSceneViewModel()
 
-        #expect(model.items(for: "").isNotEmpty)
+        #expect(model.types(for: "").chains.isNotEmpty)
     }
 
     @Test
     func aQueryNarrowsTheChains() {
         let model = ImportWalletTypeSceneViewModel()
 
-        let all = model.items(for: "")
-        let filtered = model.items(for: "bitcoin")
+        let all = model.types(for: "").chains
+        let filtered = model.types(for: "bitcoin").chains
 
         #expect(filtered.isNotEmpty)
         #expect(filtered.count < all.count)
-        #expect(filtered.contains(.bitcoin))
+        #expect(filtered.contains { $0.chain == Chain.bitcoin.rawValue })
     }
 
     @Test
     func anUnknownQueryOffersNothing() {
-        #expect(ImportWalletTypeSceneViewModel().items(for: "zzzzzz").isEmpty)
+        #expect(ImportWalletTypeSceneViewModel().types(for: "zzzzzz").chains.isEmpty)
     }
 }
