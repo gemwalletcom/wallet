@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.transactions.presents.details
+package com.gemwallet.android.features.transactions.presents.transaction
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable

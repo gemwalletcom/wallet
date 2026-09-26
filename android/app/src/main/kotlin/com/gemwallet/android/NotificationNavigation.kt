@@ -13,7 +13,7 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
-import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
+import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.FiatQuoteType

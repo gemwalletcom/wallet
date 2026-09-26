@@ -15,7 +15,7 @@ import Store
 
 @Observable
 @MainActor
-public final class TransactionsViewModel {
+public final class TransactionsSceneViewModel {
     private let service: any GemTransactionsServiceProtocol
     private let type: TransactionsQueryType
 
@@ -25,7 +25,7 @@ public final class TransactionsViewModel {
         filterModel.query.value
     }
 
-    public var filterModel: TransactionsFilterViewModel
+    public var filterModel: TransactionsFilterSceneViewModel
 
     public var isPresentingSheet: TransactionsSheetType?
     public var isPresentingToastMessage: ToastMessage?
@@ -40,7 +40,7 @@ public final class TransactionsViewModel {
         self.service = service
         self.type = type
         self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
+        filterModel = TransactionsFilterSceneViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
     }
 
     private static func filterChains(_ service: any GemTransactionsServiceProtocol, wallet: Wallet) -> [Chain] {
@@ -70,7 +70,7 @@ public final class TransactionsViewModel {
 
 // MARK: - Business Logic
 
-public extension TransactionsViewModel {
+public extension TransactionsSceneViewModel {
     func onSelectFilterButton() {
         isPresentingSheet = .filter
     }
@@ -82,9 +82,9 @@ public extension TransactionsViewModel {
 
 // MARK: - Private
 
-extension TransactionsViewModel {
+extension TransactionsSceneViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
+        filterModel = TransactionsFilterSceneViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
     }
 
     private func onSelectReceive() {

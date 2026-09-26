@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.transactions.presents.details.components
+package com.gemwallet.android.features.transactions.presents.transaction.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.features.transactions.viewmodels.models.SwapProgressStepUIModel
-import com.gemwallet.android.features.transactions.viewmodels.models.SwapProgressUIModel
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionSwapProgressStepUIModel
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionSwapProgressUIModel
 import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SwapProgressMarkerUIModel
@@ -46,7 +46,7 @@ import com.gemwallet.android.ui.theme.space8
 private val connectorWidth = 1.5.dp
 
 @Composable
-internal fun SwapProgressItem(progress: SwapProgressUIModel) {
+internal fun TransactionSwapProgressItem(progress: TransactionSwapProgressUIModel) {
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -67,7 +67,7 @@ internal fun SwapProgressItem(progress: SwapProgressUIModel) {
 }
 
 @Composable
-private fun ProgressStep(step: SwapProgressStepUIModel, estimatedTime: String?) {
+private fun ProgressStep(step: TransactionSwapProgressStepUIModel, estimatedTime: String?) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(space6),
@@ -114,7 +114,7 @@ private fun ProgressStep(step: SwapProgressStepUIModel, estimatedTime: String?) 
 }
 
 @Composable
-private fun Timeline(progress: SwapProgressUIModel) {
+private fun Timeline(progress: TransactionSwapProgressUIModel) {
     Column(
         modifier = Modifier.width(iconSize),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -138,7 +138,7 @@ private fun Connector(color: Color) {
 }
 
 @Composable
-private fun ProgressMarker(step: SwapProgressStepUIModel) {
+private fun ProgressMarker(step: TransactionSwapProgressStepUIModel) {
     val color = step.style.color()
     val markerModifier = Modifier
         .size(iconSize)
@@ -184,7 +184,7 @@ private fun ProgressMarker(step: SwapProgressStepUIModel) {
 }
 
 @Composable
-private fun StatusTag(step: SwapProgressStepUIModel) {
+private fun StatusTag(step: TransactionSwapProgressStepUIModel) {
     val label = step.statusLabel ?: return
     val color = step.style.color()
     Text(

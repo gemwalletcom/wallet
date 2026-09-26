@@ -8,8 +8,8 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.TransactionQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionDetailsRowUIModel
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
 import com.gemwallet.android.features.transactions.viewmodels.models.target
 import com.gemwallet.android.features.transactions.viewmodels.models.uiModel
 import com.gemwallet.android.ui.models.ListSection
@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class TransactionDetailsViewModel @Inject constructor(
+class TransactionViewModel @Inject constructor(
     getSession: GetSession,
     transactionQuery: TransactionQuery,
     private val service: GemTransactionDetailsServiceInterface,
@@ -59,7 +59,7 @@ class TransactionDetailsViewModel @Inject constructor(
     val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.headerAction?.target() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<ListSection<TransactionDetailsRowUIModel>>> = data.map { details ->
+    val sections: StateFlow<List<ListSection<TransactionItemUIModel>>> = data.map { details ->
         details?.let { rows ->
             transactionDetailSections(rows).mapIndexed { index, section ->
                 ListSection(id = index.toString(), items = section.rows.map { row -> rows.uiModel(row, context) })

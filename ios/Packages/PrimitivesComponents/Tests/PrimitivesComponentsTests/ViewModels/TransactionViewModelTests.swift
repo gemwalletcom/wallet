@@ -8,7 +8,6 @@ import PrimitivesComponents
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
-@testable import Transactions
 
 final class TransactionViewModelTests {
     @Test

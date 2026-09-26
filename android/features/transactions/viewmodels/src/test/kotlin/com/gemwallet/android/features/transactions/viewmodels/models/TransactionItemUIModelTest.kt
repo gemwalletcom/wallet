@@ -19,7 +19,7 @@ import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionHeader
 
-class TransactionDetailsRowUIModelTest {
+class TransactionItemUIModelTest {
 
     private val context = mockk<Context> {
         every { getString(any()) } answers { "string:${firstArg<Int>()}" }
@@ -41,8 +41,8 @@ class TransactionDetailsRowUIModelTest {
 
         val head = rows.uiModel(GemTransactionDetailRow.Header, context)
 
-        assertTrue(head is TransactionDetailsRowUIModel.SwapHead)
-        assertEquals((head as TransactionDetailsRowUIModel.SwapHead).fromAsset, head.toAsset)
+        assertTrue(head is TransactionItemUIModel.SwapHead)
+        assertEquals((head as TransactionItemUIModel.SwapHead).fromAsset, head.toAsset)
         assertEquals("2.00 BTC", head.toValueText)
     }
 
@@ -52,9 +52,9 @@ class TransactionDetailsRowUIModelTest {
         val image = mockGemTransactionDetailRows(header = GemTransactionHeader.AssetImage(asset)).uiModel(GemTransactionDetailRow.Header, context)
         val symbol = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(asset)).uiModel(GemTransactionDetailRow.Header, context)
 
-        assertTrue("a token approval shows the asset, not its symbol as an amount", image is TransactionDetailsRowUIModel.AssetHead)
-        assertTrue(symbol is TransactionDetailsRowUIModel.AmountHead)
-        assertEquals(asset.symbol, (symbol as TransactionDetailsRowUIModel.AmountHead).amount)
+        assertTrue("a token approval shows the asset, not its symbol as an amount", image is TransactionItemUIModel.AssetHead)
+        assertTrue(symbol is TransactionItemUIModel.AmountHead)
+        assertEquals(asset.symbol, (symbol as TransactionItemUIModel.AmountHead).amount)
     }
 
     @Test
@@ -63,7 +63,7 @@ class TransactionDetailsRowUIModelTest {
 
         val fee = rows.uiModel(GemTransactionDetailRow.Fee, context)
 
-        assertTrue(fee is TransactionDetailsRowUIModel.Fee)
-        assertEquals(rows.feeRow.amount.text(), (fee as TransactionDetailsRowUIModel.Fee).model.subtitle)
+        assertTrue(fee is TransactionItemUIModel.Fee)
+        assertEquals(rows.feeRow.amount.text(), (fee as TransactionItemUIModel.Fee).model.subtitle)
     }
 }

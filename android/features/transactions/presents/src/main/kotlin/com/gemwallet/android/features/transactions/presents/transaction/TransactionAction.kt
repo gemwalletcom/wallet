@@ -1,11 +1,11 @@
-package com.gemwallet.android.features.transactions.presents.details
+package com.gemwallet.android.features.transactions.presents.transaction
 
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAssetId
 
-sealed interface TransactionDetailsAction {
-    sealed interface Navigation : TransactionDetailsAction
+sealed interface TransactionAction {
+    sealed interface Navigation : TransactionAction
 
     data object Close : Navigation
     data class OpenAsset(val assetId: AssetId) : Navigation
@@ -14,6 +14,6 @@ sealed interface TransactionDetailsAction {
     data class OpenSwap(val fromAssetId: AssetId, val toAssetId: AssetId) : Navigation
     data class OpenAddress(val chainAddress: ChainAddress) : Navigation
 
-    data object Share : TransactionDetailsAction
-    data object ShowFeeDetails : TransactionDetailsAction
+    data object Share : TransactionAction
+    data object ShowFeeDetails : TransactionAction
 }

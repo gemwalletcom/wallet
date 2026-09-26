@@ -34,7 +34,7 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func transactionsScene(wallet: Wallet, type: TransactionsQueryType) -> TransactionsViewModel {
-        TransactionsViewModel(service: transactionsService, wallet: wallet, type: type)
+    func transactionsScene(wallet: Wallet, type: TransactionsQueryType) -> TransactionsSceneViewModel {
+        TransactionsSceneViewModel(service: transactionsService, wallet: wallet, type: type)
     }
 }

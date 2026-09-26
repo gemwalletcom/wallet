@@ -56,9 +56,9 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
+import com.gemwallet.android.ui.navigation.routes.TransactionsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
-import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.hairlineThickness
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -99,7 +99,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
         coroutineScope.launch {
             when (route) {
                 assetsRoute -> assetsListState.animateScrollToItem(0)
-                transactionsRoute -> activitiesListState.animateScrollToItem(0)
+                TransactionsRoute -> activitiesListState.animateScrollToItem(0)
                 settingsRoute -> settingsScrollState.animateScrollTo(0)
             }
         }
@@ -115,7 +115,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
         BottomNavItem(
             label = stringResource(R.string.activity_title),
             icon = AppIcons.ElectricBolt,
-            route = transactionsRoute,
+            route = TransactionsRoute,
             badge = pendingCount,
             testTag = "activitiesTab",
         ),
@@ -228,7 +228,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                 viewModel = walletViewModel,
                             )
 
-                            transactionsRoute -> TransactionsScreen(
+                            TransactionsRoute -> TransactionsScreen(
                                 listState = activitiesListState,
                                 onTransaction = navigator::openTransaction,
                                 onBuy = navigator::openBuy,

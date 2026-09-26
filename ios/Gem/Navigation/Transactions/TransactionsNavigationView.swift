@@ -15,9 +15,9 @@ struct TransactionsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
 
-    @State private var model: TransactionsViewModel
+    @State private var model: TransactionsSceneViewModel
 
-    init(model: TransactionsViewModel) {
+    init(model: TransactionsSceneViewModel) {
         _model = State(wrappedValue: model)
     }
 

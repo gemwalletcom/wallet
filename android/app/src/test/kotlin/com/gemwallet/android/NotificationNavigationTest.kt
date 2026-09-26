@@ -13,7 +13,7 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
-import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
+import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
@@ -72,7 +72,7 @@ class NotificationNavigationTest {
                 GemPushNotification.Transaction(walletId = walletId.id, assetId = assetId.toIdentifier(), transaction = transaction.toGem()),
             ).routes
 
-        assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), routes)
+        assertEquals(listOf(AssetRoute(asset.id), TransactionRoute(transaction.id)), routes)
         verify { walletSessionService.setCurrentWalletId(walletId.id) }
     }
 

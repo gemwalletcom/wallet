@@ -8,9 +8,9 @@ import SwiftUI
 
 public struct TransactionsFilterScene: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding private var model: TransactionsFilterViewModel
+    @Binding private var model: TransactionsFilterSceneViewModel
 
-    public init(model: Binding<TransactionsFilterViewModel>) {
+    public init(model: Binding<TransactionsFilterSceneViewModel>) {
         _model = model
     }
 

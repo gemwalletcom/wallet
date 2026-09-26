@@ -24,7 +24,7 @@ import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.onboarding.presents.create_wallet.createWalletScreen
 import com.gemwallet.android.features.onboarding.presents.import_wallet.importWalletScreen
 import com.gemwallet.android.features.onboarding.presents.terms.acceptTermsScreen
-import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsAction
+import com.gemwallet.android.features.transactions.presents.transaction.TransactionAction
 import com.gemwallet.android.features.wallet_tab.presents.WalletSearchAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -50,7 +50,7 @@ import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
 import com.gemwallet.android.ui.navigation.routes.swapSelect
-import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
+import com.gemwallet.android.ui.navigation.routes.transactionScreen
 import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
 import com.gemwallet.android.ui.navigation.routes.walletDetailScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
@@ -229,15 +229,15 @@ fun WalletNavGraph(
                 onFinish = navigator::resetToWallet,
             )
 
-            transactionDetailsScreen(
+            transactionScreen(
                 onAction = {
                     when (it) {
-                        TransactionDetailsAction.Close -> onCancel()
-                        is TransactionDetailsAction.OpenAsset -> navigator.openAsset(it.assetId)
-                        is TransactionDetailsAction.OpenNft -> navigator.openNftAsset(it.assetId)
-                        is TransactionDetailsAction.OpenPerpetual -> navigator.openPerpetualDetails(it.assetId)
-                        is TransactionDetailsAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
-                        is TransactionDetailsAction.OpenAddress -> navigator.openAddress(it.chainAddress)
+                        TransactionAction.Close -> onCancel()
+                        is TransactionAction.OpenAsset -> navigator.openAsset(it.assetId)
+                        is TransactionAction.OpenNft -> navigator.openNftAsset(it.assetId)
+                        is TransactionAction.OpenPerpetual -> navigator.openPerpetualDetails(it.assetId)
+                        is TransactionAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
+                        is TransactionAction.OpenAddress -> navigator.openAddress(it.chainAddress)
                     }
                 },
             )

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.transactions.presents.details
+package com.gemwallet.android.features.transactions.presents.transaction
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,15 +8,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.transactions.viewmodels.TransactionDetailsViewModel
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionDetailsRowUIModel
+import com.gemwallet.android.features.transactions.viewmodels.TransactionViewModel
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
 import com.gemwallet.android.features.transactions.viewmodels.models.chain
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.shareText
 
 @Composable
-fun TransactionDetailsScreen(onAction: (TransactionDetailsAction.Navigation) -> Unit, viewModel: TransactionDetailsViewModel = hiltViewModel()) {
+fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewModel: TransactionViewModel = hiltViewModel()) {
     val transaction by viewModel.data.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()
@@ -31,27 +31,27 @@ fun TransactionDetailsScreen(onAction: (TransactionDetailsAction.Navigation) -> 
     if (model == null) {
         LoadingScene(
             title = "",
-            onCancel = { onAction(TransactionDetailsAction.Close) },
+            onCancel = { onAction(TransactionAction.Close) },
         )
         return
     }
 
-    TransactionDetailsScene(
+    TransactionScene(
         title = model.title.string(context),
         sections = sections,
         headerTarget = headerTarget,
         chain = model.chain(),
         onAction = {
             when (it) {
-                TransactionDetailsAction.Share -> onShare(model.explorer.link, model.explorer.name)
-                TransactionDetailsAction.ShowFeeDetails -> isShowFeeDetails = true
-                is TransactionDetailsAction.Navigation -> onAction(it)
+                TransactionAction.Share -> onShare(model.explorer.link, model.explorer.name)
+                TransactionAction.ShowFeeDetails -> isShowFeeDetails = true
+                is TransactionAction.Navigation -> onAction(it)
             }
         },
     )
 
     FeeDetailsDialog(
         isVisible = isShowFeeDetails,
-        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionDetailsRowUIModel.Fee)?.model },
+        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionItemUIModel.Fee)?.model },
     ) { isShowFeeDetails = false }
 }

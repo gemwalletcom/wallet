@@ -45,14 +45,14 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
         showReceiveAction = onReceive != null,
         onAction = { action ->
             when (action) {
-                TransactionsListAction.Refresh -> viewModel.refresh()
-                is TransactionsListAction.OpenTransaction -> onTransaction(action.transactionId)
-                is TransactionsListAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
-                is TransactionsListAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types.map { it.filter })
-                TransactionsListAction.ClearChainsFilter -> viewModel.clearChainsFilter()
-                TransactionsListAction.ClearTypesFilter -> viewModel.clearTypeFilter()
-                TransactionsListAction.Buy -> onBuy?.invoke()
-                TransactionsListAction.Receive -> onReceive?.invoke()
+                TransactionsAction.Refresh -> viewModel.refresh()
+                is TransactionsAction.OpenTransaction -> onTransaction(action.transactionId)
+                is TransactionsAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
+                is TransactionsAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types.map { it.filter })
+                TransactionsAction.ClearChainsFilter -> viewModel.clearChainsFilter()
+                TransactionsAction.ClearTypesFilter -> viewModel.clearTypeFilter()
+                TransactionsAction.Buy -> onBuy?.invoke()
+                TransactionsAction.Receive -> onReceive?.invoke()
             }
         },
     )

@@ -95,7 +95,7 @@ class TransactionsViewModelFiltersTest {
     @Test
     fun `a details route that is not a transaction id is refused`() {
         assertThrows(IllegalArgumentException::class.java) {
-            TransactionDetailsViewModel(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), dispatcher, mockk(relaxed = true))
+            TransactionViewModel(mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), dispatcher, mockk(relaxed = true))
         }
     }
 }

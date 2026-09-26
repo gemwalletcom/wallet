@@ -1277,7 +1277,7 @@ val data: StateFlow<GemTransactionDetailRows?> = getSession()
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
 
-The Flow example is [`TransactionDetailsViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionDetailsViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
+The Flow example is [`TransactionViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
 
 ## 6. Where derived domain answers live
 
@@ -1855,8 +1855,8 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
-| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionDetailsViewModel` (with `TransactionQuery`) |
-| `GemTransactionsService` | — | `TransactionsViewModel` | `TransactionsViewModel` |
+| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `TransactionQuery`) |
+| `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsViewModel` (+ `ConnectionsQuery`) | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletSummary` (keeps the wallet header, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`, in memory from start for `AssetsViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `AssetsViewModel`) |
 | `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the sorted wallet rows, read through `WalletsQuery`, in memory for `WalletsViewModel`) |

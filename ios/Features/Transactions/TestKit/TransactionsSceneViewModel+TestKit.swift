@@ -7,11 +7,11 @@ import PrimitivesTestKit
 import Store
 import Transactions
 
-public extension TransactionsViewModel {
+public extension TransactionsSceneViewModel {
     @MainActor
     static func mock(
         service: any GemTransactionsServiceProtocol = GemTransactionsServiceMock(),
-    ) -> TransactionsViewModel {
-        TransactionsViewModel(service: service, wallet: .mock(), type: .all)
+    ) -> TransactionsSceneViewModel {
+        TransactionsSceneViewModel(service: service, wallet: .mock(), type: .all)
     }
 }

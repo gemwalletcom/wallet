@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM357 to NAM372 in any order, one feature per change.
+7. **Names:** NAM358 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -176,7 +176,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** a clipboard port per app takes `GemCopy` (with its `clipboard_expiry_seconds`) and the message comes from the mapper; the wrapper goes.
 - **VM207** **S** **`AddressListItemViewModel` decides how an address row reads.**
   - **iOS:** `AddressListItemViewModel` decides `canToggleAddress` (a name that is not the address), picks name or short address for the subtitle, and builds "View on X".
-  - **Android:** the recipient and participant rows in `TransactionDetailsRowUIModel` and `ConfirmRowUIModel` build the same row.
+  - **Android:** the recipient and participant rows in `TransactionItemUIModel` and `ConfirmRowUIModel` build the same row.
   - **Expected:** one Core address row (name, short and full address, whether it toggles, explorer link, contact actions) rendered by one shared component per app.
 - **VM208** **S** **The name-resolve indicator is mapped in two places per app.**
   - **iOS:** `NameRecordViewModel` drives the lookup and maps the state to an image (`resolveImage`).
@@ -195,14 +195,14 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** Core returns sectioned lists given the device's day boundaries (`GemDayBoundaries`), labels included; the builders go.
 - **VM211** **S** **Transaction participants are assembled by the apps.**
   - **iOS:** `TransactionParticipantViewModel` builds a `SimpleAccount` and an address row from `GemTransactionParticipant`, deciding contact and select actions.
-  - **Android:** `TransactionDetailsRowUIModel` builds the same row (`GemTransactionParticipant.address`).
+  - **Android:** `TransactionItemUIModel` builds the same row (`GemTransactionParticipant.address`).
   - **Expected:** details sections carry finished participant rows (with VM207's address row); both models go.
 - **VM212** **S** **Swap progress steps are composed in the apps.**
   - **iOS:** `TransactionSwapProgressItemModel` derives tag, marker, spinner and colours from `GemSwapProgressState`.
-  - **Android:** `SwapProgressUIModel` composes the transfer subtitle as "amount (network)", activates the connector when the transfer step completed and shows the estimate only with a spinner.
+  - **Android:** `TransactionSwapProgressUIModel` composes the transfer subtitle as "amount (network)", activates the connector when the transfer step completed and shows the estimate only with a spinner.
   - **Expected:** the Core swap-progress record carries titles, subtitles and those flags; both models go.
 - **VM213** **S** **Transaction filter screens keep their options and state in the apps.**
-  - **iOS:** `TransactionsFilterViewModel`, `TransactionTypesFilterViewModel`, `TransactionTypesSelectorViewModel`, `TransactionsFilterTypeViewModel` and `ChainsFilterViewModel` hold the selections and titles.
+  - **iOS:** `TransactionsFilterSceneViewModel`, `TransactionTypesFilterViewModel`, `TransactionTypesSelectorViewModel`, `TransactionsFilterTypeViewModel` and `ChainsFilterViewModel` hold the selections and titles.
   - **Android:** `TransactionFilterUIModel` builds options from `GemConstants.transactionFilters`; `TransactionsViewModel` holds the selections.
   - **Expected:** a Core filter session holds the selections and returns option rows, summaries and the `TransactionsFilter` the activity queries read.
 
@@ -486,7 +486,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the earn view returns its sections and rows.
 - **VM280** **M** **Transaction details are composed per row kind in the apps.**
   - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
-  - **Android:** `TransactionDetailsViewModel`, `TransactionDetailsRowUIModel` and `TransactionDetailsScene` do the same.
+  - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.
   - **Expected:** the details sections carry finished rows (with VM209, VM211, VM212); both item layers go.
 - **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
   - **iOS:** `ConnectionProposalViewModel` builds wallet, connection, status and the two permission rows.
@@ -643,9 +643,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM357** **S** **Transactions: the detail screen is `Transaction`.**
-  - **iOS:** `TransactionsViewModel`/`TransactionsFilterViewModel` → `…SceneViewModel`; `TransactionNavigationView`, `TransactionsNavigationView` follow the destination-host rule; `TransactionItemModel` moves to its own file; `TransactionsViewModelTests.swift` splits per type, and `TransactionViewModelTests` moves to `PrimitivesComponents`, where its type lives.
-  - **Android:** `TransactionDetailsScreen`/`Scene`/`ViewModel`/`Action`/`Route`/`transactionDetailsScreen` → `Transaction…`; package `presents.details` → `presents.transaction`; `TransactionDetailsRowUIModel`(`Test`) → `TransactionItemUIModel`(`Test`); `SwapProgressUIModel`/`SwapProgressStepUIModel`/`SwapProgressItem` → `TransactionSwapProgress…`; `TransactionsListAction` → `TransactionsAction`; `transactionsRoute` → `TransactionsRoute`, file `Activities.kt` → `Transactions.kt`; `TransactionsFilterSummaryUIModel` gets its own file.
 - **NAM358** **S** **Swap: the package is `presents`, and the button and token rows follow iOS.**
   - **iOS:** `SwapSlippageViewModel` → `SwapSlippageSceneViewModel`, and `SwapSlippageScene` moves to `Scenes/`; `SwapNavigationView` follows the destination-host rule.
   - **Android:** package `features.swap.views` → `features.swap.presents`; first the composable `SwapAction` → `SwapButton`, then `SwapSceneAction` → `SwapAction`; `SwapItem` → `SwapToken`; `SwapUiState` → `SwapUIState`.

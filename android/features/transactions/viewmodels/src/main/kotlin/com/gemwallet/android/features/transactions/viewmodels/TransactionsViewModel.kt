@@ -10,6 +10,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionsFilterSummaryUIModel
 import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.transactionFilterOptions
 import com.gemwallet.android.ui.localization.text
@@ -183,5 +184,3 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 }
-
-data class TransactionsFilterSummaryUIModel(val chains: String, val types: String)

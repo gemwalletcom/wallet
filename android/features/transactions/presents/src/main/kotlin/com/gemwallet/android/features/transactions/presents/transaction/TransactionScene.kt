@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.transactions.presents.details
+package com.gemwallet.android.features.transactions.presents.transaction
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +12,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.features.transactions.presents.details.components.SwapProgressItem
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionDetailsRowUIModel
+import com.gemwallet.android.features.transactions.presents.transaction.components.TransactionSwapProgressItem
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -38,70 +38,70 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun TransactionDetailsScene(title: String, sections: List<ListSection<TransactionDetailsRowUIModel>>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionDetailsAction) -> Unit) {
+internal fun TransactionScene(title: String, sections: List<ListSection<TransactionItemUIModel>>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     Scene(
         title = title,
         actions = {
-            IconButton(onClick = { onAction(TransactionDetailsAction.Share) }) {
+            IconButton(onClick = { onAction(TransactionAction.Share) }) {
                 Icon(AppIcons.Share, "")
             }
         },
-        onClose = { onAction(TransactionDetailsAction.Close) },
+        onClose = { onAction(TransactionAction.Close) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             listSections(sections) { position, row ->
                 when (row) {
-                    is TransactionDetailsRowUIModel.Item -> ListItem(
+                    is TransactionItemUIModel.Item -> ListItem(
                         model = row.model,
                         listPosition = position,
                         modifier = row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
                         accessory = row.url?.let { { DataBadgeChevron() } },
                     )
 
-                    is TransactionDetailsRowUIModel.Address -> AddressPropertyItem(
+                    is TransactionItemUIModel.Address -> AddressPropertyItem(
                         title = row.title,
                         displayText = row.text,
                         copyValue = row.address,
                         explorerLink = row.explorerLink,
                         listPosition = position,
-                        onClick = row.chain?.let { chain -> { onAction(TransactionDetailsAction.OpenAddress(ChainAddress(chain, row.address))) } },
+                        onClick = row.chain?.let { chain -> { onAction(TransactionAction.OpenAddress(ChainAddress(chain, row.address))) } },
                     )
 
-                    is TransactionDetailsRowUIModel.Fee -> ListItem(
+                    is TransactionItemUIModel.Fee -> ListItem(
                         model = row.model,
                         listPosition = position,
-                        modifier = Modifier.clickable { onAction(TransactionDetailsAction.ShowFeeDetails) },
+                        modifier = Modifier.clickable { onAction(TransactionAction.ShowFeeDetails) },
                         accessory = { DataBadgeChevron() },
                     )
 
-                    is TransactionDetailsRowUIModel.SwapProgress -> SwapProgressItem(row.model)
+                    is TransactionItemUIModel.SwapProgress -> TransactionSwapProgressItem(row.model)
 
-                    is TransactionDetailsRowUIModel.Row -> GemListRowView(
+                    is TransactionItemUIModel.Row -> GemListRowView(
                         row = row.row,
                         listPosition = position,
-                        onSelectAddress = { address -> onAction(TransactionDetailsAction.OpenAddress(ChainAddress(chain, address))) },
+                        onSelectAddress = { address -> onAction(TransactionAction.OpenAddress(ChainAddress(chain, address))) },
                     )
 
-                    is TransactionDetailsRowUIModel.NftHead -> NftHead(
+                    is TransactionItemUIModel.NftHead -> NftHead(
                         metadata = row.metadata,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 
-                    is TransactionDetailsRowUIModel.AmountHead -> AmountListHead(
+                    is TransactionItemUIModel.AmountHead -> AmountListHead(
                         icon = row.asset,
                         amount = row.amount,
                         equivalent = row.equivalent,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 
-                    is TransactionDetailsRowUIModel.AssetHead -> AssetListHead(
+                    is TransactionItemUIModel.AssetHead -> AssetListHead(
                         asset = row.asset,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 
-                    is TransactionDetailsRowUIModel.SwapHead -> SwapListHead(
+                    is TransactionItemUIModel.SwapHead -> SwapListHead(
                         fromAsset = row.fromAsset,
                         fromValueText = row.fromValueText,
                         toAsset = row.toAsset,
@@ -109,15 +109,15 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
                         fromEquivalentText = row.fromEquivalentText,
                         toEquivalentText = row.toEquivalentText,
                         onSwapClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
-                        onAssetClick = { onAction(TransactionDetailsAction.OpenAsset(it)) },
+                        onAssetClick = { onAction(TransactionAction.OpenAsset(it)) },
                     )
 
-                    is TransactionDetailsRowUIModel.SwapAgain -> MainActionButton(
+                    is TransactionItemUIModel.SwapAgain -> MainActionButton(
                         title = stringResource(R.string.transaction_swap_again),
                         modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
                         onClick = {
                             onAction(
-                                TransactionDetailsAction.OpenSwap(
+                                TransactionAction.OpenSwap(
                                     fromAssetId = row.fromAssetId,
                                     toAssetId = row.toAssetId,
                                 ),
@@ -130,9 +130,9 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
     }
 }
 
-private fun TransactionHeaderTarget.navigation(): TransactionDetailsAction.Navigation = when (this) {
-    is TransactionHeaderTarget.Asset -> TransactionDetailsAction.OpenAsset(assetId)
-    is TransactionHeaderTarget.Nft -> TransactionDetailsAction.OpenNft(assetId)
-    is TransactionHeaderTarget.Swap -> TransactionDetailsAction.OpenSwap(fromAssetId = fromAssetId, toAssetId = toAssetId)
-    is TransactionHeaderTarget.Perpetual -> TransactionDetailsAction.OpenPerpetual(assetId)
+private fun TransactionHeaderTarget.navigation(): TransactionAction.Navigation = when (this) {
+    is TransactionHeaderTarget.Asset -> TransactionAction.OpenAsset(assetId)
+    is TransactionHeaderTarget.Nft -> TransactionAction.OpenNft(assetId)
+    is TransactionHeaderTarget.Swap -> TransactionAction.OpenSwap(fromAssetId = fromAssetId, toAssetId = toAssetId)
+    is TransactionHeaderTarget.Perpetual -> TransactionAction.OpenPerpetual(assetId)
 }

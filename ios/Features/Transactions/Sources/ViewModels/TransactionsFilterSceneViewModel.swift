@@ -12,7 +12,7 @@ import Store
 
 @Observable
 @MainActor
-public final class TransactionsFilterViewModel {
+public final class TransactionsFilterSceneViewModel {
     private let wallet: Wallet
     private let type: TransactionsQueryType
 
@@ -97,7 +97,7 @@ public final class TransactionsFilterViewModel {
 
 // MARK: - Actions
 
-extension TransactionsFilterViewModel {
+extension TransactionsFilterSceneViewModel {
     func onSelectChainsFilter() {
         isPresentingChains = true
     }

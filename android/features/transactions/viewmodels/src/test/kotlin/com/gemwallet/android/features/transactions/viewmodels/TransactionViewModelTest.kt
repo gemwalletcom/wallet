@@ -39,7 +39,7 @@ import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
 import uniffi.gemstone.WalletType as GemWalletType
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class TransactionDetailsViewModelTest {
+class TransactionViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val transactionExtended = mockTransactionExtended(
@@ -52,7 +52,7 @@ class TransactionDetailsViewModelTest {
     private val session = MutableStateFlow<Session?>(null)
     private val getSession = mockk<GetSession> { every { this@mockk.invoke() } returns session }
     private val model by lazy {
-        TransactionDetailsViewModel(getSession, transactionQuery, service, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to transactionId.identifier)), dispatcher, mockk(relaxed = true))
+        TransactionViewModel(getSession, transactionQuery, service, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to transactionId.identifier)), dispatcher, mockk(relaxed = true))
     }
 
     @Before

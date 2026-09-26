@@ -17,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.transactions.viewmodels.TransactionsFilterSummaryUIModel
+import com.gemwallet.android.features.transactions.viewmodels.models.TransactionsFilterSummaryUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -52,7 +52,7 @@ internal fun TransactionsScene(
     listState: LazyListState = rememberLazyListState(),
     showBuyAction: Boolean,
     showReceiveAction: Boolean,
-    onAction: (TransactionsListAction) -> Unit,
+    onAction: (TransactionsAction) -> Unit,
 ) {
     var showFilters by remember { mutableStateOf(false) }
 
@@ -76,7 +76,7 @@ internal fun TransactionsScene(
         val transactionSections = rememberDateSections(transactions.orEmpty()) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { onAction(TransactionsListAction.Refresh) },
+            onRefresh = { onAction(TransactionsAction.Refresh) },
         ) {
             when {
                 transactions == null -> Unit
@@ -105,7 +105,7 @@ internal fun TransactionsScene(
                 ) {
                     transactionsList(
                         sections = transactionSections,
-                        onTransactionClick = { onAction(TransactionsListAction.OpenTransaction(it)) },
+                        onTransactionClick = { onAction(TransactionsAction.OpenTransaction(it)) },
                     )
                 }
             }
@@ -120,28 +120,28 @@ internal fun TransactionsScene(
         chainsSummary = filterSummary.chains,
         typesSummary = filterSummary.types,
         onDismissRequest = { showFilters = false },
-        onSelectChainsFilter = { onAction(TransactionsListAction.SelectChainsFilter(it)) },
-        onSelectTypesFilter = { onAction(TransactionsListAction.SelectTypesFilter(it)) },
-        onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
-        onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
+        onSelectChainsFilter = { onAction(TransactionsAction.SelectChainsFilter(it)) },
+        onSelectTypesFilter = { onAction(TransactionsAction.SelectTypesFilter(it)) },
+        onClearChainsFilter = { onAction(TransactionsAction.ClearChainsFilter) },
+        onClearTypesFilter = { onAction(TransactionsAction.ClearTypesFilter) },
     )
 }
 
-private fun transactionsEmptyContentType(kind: GemEmptyStateKind, showBuyAction: Boolean, showReceiveAction: Boolean, onAction: (TransactionsListAction) -> Unit): EmptyContentType {
+private fun transactionsEmptyContentType(kind: GemEmptyStateKind, showBuyAction: Boolean, showReceiveAction: Boolean, onAction: (TransactionsAction) -> Unit): EmptyContentType {
     val onBuy: (() -> Unit)? = if (showBuyAction) {
-        { onAction(TransactionsListAction.Buy) }
+        { onAction(TransactionsAction.Buy) }
     } else {
         null
     }
     val onReceive: (() -> Unit)? = if (showReceiveAction) {
-        { onAction(TransactionsListAction.Receive) }
+        { onAction(TransactionsAction.Receive) }
     } else {
         null
     }
 
     val onClearFilters = {
-        onAction(TransactionsListAction.ClearChainsFilter)
-        onAction(TransactionsListAction.ClearTypesFilter)
+        onAction(TransactionsAction.ClearChainsFilter)
+        onAction(TransactionsAction.ClearTypesFilter)
     }
     return EmptyContentType(kind, actions = mapOf(GemEmptyStateAction.BUY to onBuy, GemEmptyStateAction.RECEIVE to onReceive, GemEmptyStateAction.CLEAR_FILTERS to onClearFilters))
 }
