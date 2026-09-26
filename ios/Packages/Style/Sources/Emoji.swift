@@ -3,16 +3,9 @@
 import SwiftUI
 
 public enum Emoji {
-    public static let greenCircle = "🟢"
-    public static let orangeCircle = "🟠"
-    public static let redCircle = "🔴"
     public static let checkmark = "✅"
     public static let reject = "❌"
     public static let random = "🎲"
-    public static let rocket = "🚀"
-    public static let turtle = "🐢"
-    public static let gem = "💎"
-    public static let party = "🎉"
 
     public enum WalletAvatar: String {
         case gem = "💎"
@@ -28,15 +21,9 @@ public enum Emoji {
 
 #Preview {
     let symbols = [
-        (Emoji.greenCircle, "Green Circle"),
-        (Emoji.orangeCircle, "Orange Circle"),
-        (Emoji.redCircle, "Red Circle"),
         (Emoji.checkmark, "Checkmark"),
         (Emoji.reject, "Reject"),
         (Emoji.random, "Random"),
-        (Emoji.rocket, "Rocket"),
-        (Emoji.turtle, "Turtle"),
-        (Emoji.gem, "Gem"),
     ]
 
     return List {

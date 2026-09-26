@@ -34,9 +34,6 @@ public struct TextStyle: Sendable {
 // MARK: - TextStyle Static
 
 public extension TextStyle {
-    static let title = TextStyle(font: .title, color: Colors.black)
-    static let title2 = TextStyle(font: .title2, color: Colors.black)
-    static let title3 = TextStyle(font: .title3, color: Colors.black)
     static let headline = TextStyle(font: .headline, color: Colors.black)
     static let subHeadline = TextStyle(font: .subheadline, color: Colors.secondaryText)
     static let body = TextStyle(font: .body, color: Colors.black)
@@ -45,9 +42,7 @@ public extension TextStyle {
     static let calloutSecondary = TextStyle(font: .callout, color: Colors.secondaryText)
     static let footnote = TextStyle(font: .footnote, color: Colors.secondaryText)
     static let caption = TextStyle(font: .caption, color: Colors.secondaryText)
-    static let largeTitle = TextStyle(font: .largeTitle, color: Colors.black)
     static let boldTitle = TextStyle(font: .title, color: Colors.black, fontWeight: .bold)
-    static let highlighted = TextStyle(font: .headline, color: .white, background: Colors.blue)
 }
 
 // MARK: - Modifier
@@ -81,12 +76,6 @@ public extension Text {
 
 #Preview {
     VStack(spacing: 16) {
-        Text("Title")
-            .textStyle(.title)
-        Text("Title 2")
-            .textStyle(.title2)
-        Text("Title 3")
-            .textStyle(.title3)
         Text("Headline")
             .textStyle(.headline)
         Text("Subheadline")
@@ -103,12 +92,8 @@ public extension Text {
             .textStyle(.footnote)
         Text("Caption")
             .textStyle(.caption)
-        Text("Large Title")
-            .textStyle(.largeTitle)
         Text("Bold Title")
             .textStyle(.boldTitle)
-        Text("Highlighted Text")
-            .textStyle(.highlighted)
     }
     .padding()
 }

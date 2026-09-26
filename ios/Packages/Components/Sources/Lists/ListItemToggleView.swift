@@ -55,7 +55,7 @@ public struct ListItemToggleView: View {
             let longTitle = "Very Long Title That Keeps Going And Might Truncate"
             let textStyle = TextStyle.body
             let imageStyle = ListItemImageStyle
-                .list(assetImage: AssetImage.image(Images.System.faceid))
+                .list(assetImage: AssetImage.image(Images.System.settings))
 
             List {
                 Section("Basic States") {

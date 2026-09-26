@@ -76,36 +76,6 @@ struct NavigationPathStateTests {
 
         #expect(state.isEmpty == true)
     }
-
-    @Test
-    func removeLast() {
-        let state = NavigationPathState()
-        state.append(TestScene(id: "a"))
-        state.append(TestScene(id: "b"))
-
-        state.removeLast()
-
-        #expect(state.count == 1)
-    }
-
-    @Test
-    func removeLastOnEmptyPath() {
-        let state = NavigationPathState()
-
-        state.removeLast()
-
-        #expect(state.isEmpty == true)
-    }
-
-    @Test
-    func removeLastClampsToAvailableElements() {
-        let state = NavigationPathState()
-        state.append(TestScene(id: "a"))
-
-        state.removeLast(2)
-
-        #expect(state.isEmpty == true)
-    }
 }
 
 private struct TestScene: Hashable, Codable {

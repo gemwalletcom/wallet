@@ -94,15 +94,6 @@ public extension GemValueTone {
         }
     }
 
-    var backgroundColor: Color {
-        switch self {
-        case .plain, .neutral: Colors.grayVeryLight
-        case .positive: Colors.greenLight
-        case .warning: Colors.orange.opacity(.light)
-        case .negative: Colors.redLight
-        }
-    }
-
     @MainActor
     var buttonStyle: ColorButtonStyle {
         switch self {
@@ -462,13 +453,6 @@ public extension GemSwapProgressStep {
     var background: Color {
         color.opacity(.light)
     }
-
-    var lineColor: Color {
-        switch self {
-        case .completed: Colors.green
-        case .pending, .waiting, .failed, .reverted, .refunded: Colors.gray.opacity(.medium)
-        }
-    }
 }
 
 public extension GemSwapProgressState {
@@ -478,10 +462,6 @@ public extension GemSwapProgressState {
 
     var background: Color {
         step.background
-    }
-
-    var lineColor: Color {
-        step.lineColor
     }
 
     var markerBackground: Color {

@@ -212,5 +212,5 @@ extension FloatTextField {
         .padding()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(Color.black.opacity(.extraLight))
+    .background(Color.black.opacity(0.1))
 }

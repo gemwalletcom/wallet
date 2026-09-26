@@ -115,7 +115,7 @@ public extension ButtonType {
                         action: {})
             StateButton(text: "Submit",
                         type: .primary(),
-                        image: Images.System.faceid,
+                        image: Images.System.settings,
                         action: {})
         }
 
@@ -126,7 +126,7 @@ public extension ButtonType {
                         action: {})
             StateButton(text: "Submit",
                         type: .primary(),
-                        image: Images.System.faceid,
+                        image: Images.System.settings,
                         infoTitle: "Long info title Long info title Long info title",
                         action: {})
         }
@@ -134,14 +134,14 @@ public extension ButtonType {
         Section(header: Text("Primary · loading")) {
             StateButton(text: "Submit",
                         type: .primary(.loading()),
-                        image: Images.System.faceid,
+                        image: Images.System.settings,
                         action: {})
         }
 
         Section(header: Text("Primary · disabled")) {
             StateButton(text: "Submit",
                         type: .primary(),
-                        image: Images.System.faceid,
+                        image: Images.System.settings,
                         action: {})
                 .disabled(true)
 

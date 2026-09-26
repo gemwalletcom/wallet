@@ -27,7 +27,6 @@ public enum SystemImage {
     public static let checkmark = "checkmark"
     public static let ellipsis = "ellipsis"
     public static let info = "info.circle"
-    public static let eyeglasses = "eyeglasses"
     public static let plus = "plus"
     public static let plusCircle = "plus.circle"
     public static let minusCircle = "minus.circle"
@@ -46,7 +45,6 @@ public enum SystemImage {
     public static let unpin = "pin.slash"
     public static let filter = "line.horizontal.3.decrease.circle"
     public static let filterFill = "line.horizontal.3.decrease.circle.fill"
-    public static let book = "book"
     public static let starFill = "star.fill"
     public static let textPageFill = "text.page.fill"
     public static let emoji = "face.smiling"
@@ -55,8 +53,6 @@ public enum SystemImage {
     public static let dollarsign = "dollarsign"
     public static let wallet = "wallet.pass"
     public static let bitcoin = "bitcoinsign.arrow.trianglehead.counterclockwise.rotate.90"
-    public static let arrowTriangleUp = "arrowtriangle.up.fill"
-    public static let arrowTriangleDown = "arrowtriangle.down.fill"
     public static let person = "person"
     public static let personCircle = "person.crop.circle"
     public static let personCircleFill = "person.crop.circle.fill"
@@ -88,7 +84,6 @@ public enum SystemImage {
         (SystemImage.checkmark, "Checkmark"),
         (SystemImage.ellipsis, "Ellipsis"),
         (SystemImage.info, "Info"),
-        (SystemImage.eyeglasses, "Eyeglasses"),
         (SystemImage.plus, "Plus"),
         (SystemImage.eye, "Eye"),
         (SystemImage.errorOccurred, "Error Occurred"),
@@ -100,7 +95,6 @@ public enum SystemImage {
         (SystemImage.unpin, "Unpin"),
         (SystemImage.filter, "Filter"),
         (SystemImage.filterFill, "Filter Fill"),
-        (SystemImage.book, "book"),
     ]
 
     return List {
