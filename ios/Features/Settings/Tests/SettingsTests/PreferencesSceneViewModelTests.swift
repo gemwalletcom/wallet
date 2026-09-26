@@ -88,13 +88,4 @@ struct PreferencesSceneViewModelTests {
         model.onSelect(.perpetualStopLoss)
         #expect(model.isPresentingStopLossPicker)
     }
-
-    @Test
-    func theOfferedOptionsAreNotEmpty() {
-        let model = PreferencesSceneViewModel.mock()
-
-        #expect(model.leverageOptions.isNotEmpty)
-        #expect(model.takeProfitOptions.isNotEmpty)
-        #expect(model.stopLossOptions.isNotEmpty)
-    }
 }

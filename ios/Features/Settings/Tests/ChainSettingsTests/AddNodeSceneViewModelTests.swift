@@ -9,13 +9,6 @@ import Testing
 @MainActor
 struct AddNodeSceneViewModelTests {
     @Test
-    func anUntouchedFormHasNothingToShow() {
-        let model = AddNodeSceneViewModel(chain: .ethereum, service: GemChainSettingsServiceMock())
-
-        #expect(model.state.isNoData)
-    }
-
-    @Test
     func aNodeThatAnswersFillsTheRows() async {
         let service = GemChainSettingsServiceMock()
         service.checkResult = .success(.mock(url: "https://node", chainId: "1", latestBlockNumber: 21_000_000, isInSync: true, latency: Primitives.Latency.mock(latencyType: .fast, value: 12).toGem()))

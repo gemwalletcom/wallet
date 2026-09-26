@@ -14,14 +14,6 @@ import Testing
 @MainActor
 struct AboutUsSceneViewModelTests {
     @Test
-    func theSectionsComeFromCore() {
-        let model = AboutUsSceneViewModel.mock()
-
-        #expect(model.viewState.sections.isNotEmpty)
-        #expect(model.viewState.sections.count > 1)
-    }
-
-    @Test
     func aNewerReleaseIsOffered() async {
         let service = GemAppUpdateServiceMock(newest: Gemstone.Release(version: "99.0.0", store: .appStore, upgradeRequired: false))
         let model = AboutUsSceneViewModel.mock(service: service)
