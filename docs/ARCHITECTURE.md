@@ -61,10 +61,13 @@ The same thing has the same base name on both apps; only the platform's suffix o
 | User action | a view model method | `XAction` | `SwapAction` |
 | Component or row model | `XViewModel` | `XUIModel` | `SwapProvidersViewModel` / `PriceAlertItemUIModel` |
 | Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
+| Destination host | `XNavigationView` hosts one scene's sheets and destinations inside a stack it does not own; a view whose body is a `NavigationStack` is `XNavigationStack` | the route's composable | `StakeNavigationView` |
 | Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |
 | Core service held by a view model | `service: any GemXServiceProtocol` | `service: GemXServiceInterface` | `GemPriceAlertServiceProtocol` / `GemPriceAlertServiceInterface` |
 | Platform port | a protocol, implemented in the app | an interface in `gemcore/application/<area>/cases/`, implemented as `XImpl` or `XCoordinator` | `ObservablePreferences` |
 | Test and mock | `XTests`, `X.mock()` in `TestKit` | `XTest`, `mockX()` in `testFixtures` | `SwapSceneViewModelTests` / `SwapViewModelTest` |
+
+A file is named after its main type, one main type per file. Android spells `UIModel` and `UIState` with a capital `UI`, keeps `models` plural, and names a composable `XScreen` only when it binds a view model. A screen, its view model, route, action, state and tests all share the screen's base name.
 
 ```swift
 public struct SwapScene: View {
