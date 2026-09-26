@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
@@ -47,9 +48,8 @@ import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
+import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
-import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.WalletId
@@ -200,7 +200,7 @@ class WalletNavigatorTest {
 
         navigator.openPendingNavigation(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS)
 
-        assertEquals(settingsRoute, navigator.currentTab.value)
+        assertEquals(SettingsRoute, navigator.currentTab.value)
     }
 
     @Test
@@ -629,7 +629,7 @@ class WalletNavigatorTest {
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
     ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
-        currentTab = mutableStateOf(assetsRoute),
+        currentTab = mutableStateOf(WalletRoute),
         deeplinkService = GemDeeplinkService(),
         assetsService = assetsService,
         navigationService = navigationService,

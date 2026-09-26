@@ -31,7 +31,7 @@ import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.theme.Spacer16
 import uniffi.gemstone.GemNavigationTab
 
@@ -50,7 +50,7 @@ fun WalletApp(
     val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
 
     val start = startDestination ?: return
-    val currentTab = rememberSaveable { mutableStateOf(assetsRoute) }
+    val currentTab = rememberSaveable { mutableStateOf(WalletRoute) }
     val navigator = rememberWalletNavigationState(
         startDestination = start,
         currentTab = currentTab,

@@ -56,9 +56,9 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
+import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionsRoute
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
-import com.gemwallet.android.ui.navigation.routes.settingsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.hairlineThickness
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -87,8 +87,8 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
         onShown = { navigator.clearRouteMessage(WalletRootRoute) },
     )
 
-    BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {
-        currentTab.value = assetsRoute
+    BackHandler(isRootRouteActive && currentTab.value != WalletRoute) {
+        currentTab.value = WalletRoute
     }
     val assetsListState = rememberLazyListState()
     val activitiesListState = rememberLazyListState()
@@ -98,9 +98,9 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
     val scrollTabToTop: (String) -> Unit = { route ->
         coroutineScope.launch {
             when (route) {
-                assetsRoute -> assetsListState.animateScrollToItem(0)
+                WalletRoute -> assetsListState.animateScrollToItem(0)
                 TransactionsRoute -> activitiesListState.animateScrollToItem(0)
-                settingsRoute -> settingsScrollState.animateScrollTo(0)
+                SettingsRoute -> settingsScrollState.animateScrollTo(0)
             }
         }
     }
@@ -109,7 +109,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
         BottomNavItem(
             label = stringResource(R.string.common_wallet),
             icon = AppIcons.Wallet,
-            route = assetsRoute,
+            route = WalletRoute,
             testTag = "mainTab",
         ),
         BottomNavItem(
@@ -122,7 +122,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
         BottomNavItem(
             label = stringResource(R.string.settings_title),
             icon = AppIcons.Settings,
-            route = settingsRoute,
+            route = SettingsRoute,
             testTag = "settingsTab",
         ),
     )
@@ -149,7 +149,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                             },
                             icon = {
                                 val modifier = Modifier.size(smallIconSize)
-                                if (item.route == assetsRoute) {
+                                if (item.route == WalletRoute) {
                                     Icon(
                                         modifier = modifier,
                                         painter = painterResource(R.drawable.wallets),
@@ -203,7 +203,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                 ) { tab ->
                     tabStateHolder.SaveableStateProvider(tab) {
                         when (tab) {
-                            assetsRoute -> WalletScreen(
+                            WalletRoute -> WalletScreen(
                                 onAction = { action ->
                                     when (action) {
                                         WalletAction.ShowWallets -> navigator.openWallets()

@@ -75,6 +75,7 @@ import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
@@ -84,10 +85,9 @@ import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
+import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
-import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -170,7 +170,7 @@ class WalletNavigator(
 
     private fun resetTo(route: NavKey) {
         clearTransientState()
-        currentTab.value = assetsRoute
+        currentTab.value = WalletRoute
         backStack.clear()
         backStack.add(route)
     }
@@ -345,8 +345,8 @@ class WalletNavigator(
 
     private fun selectTab(tab: GemNavigationTab?) {
         currentTab.value = when (tab) {
-            GemNavigationTab.WALLET -> assetsRoute
-            GemNavigationTab.SETTINGS -> settingsRoute
+            GemNavigationTab.WALLET -> WalletRoute
+            GemNavigationTab.SETTINGS -> SettingsRoute
             null -> return
         }
     }

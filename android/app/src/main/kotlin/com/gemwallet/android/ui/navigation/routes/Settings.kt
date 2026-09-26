@@ -32,7 +32,7 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemNotificationDestination
 
-const val settingsRoute = "settings"
+const val SettingsRoute = "settings"
 
 @Serializable
 data object CurrenciesRoute : NavKey

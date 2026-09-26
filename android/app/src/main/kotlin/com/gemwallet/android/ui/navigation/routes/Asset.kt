@@ -9,7 +9,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
-const val assetsRoute = "assets"
+const val WalletRoute = "assets"
 
 @Serializable
 data class AssetRoute(val assetId: AssetId) : NavKey
