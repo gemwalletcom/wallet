@@ -81,7 +81,7 @@ public final class WalletImageSceneViewModel: Sendable {
 
     public func setImage(from url: URL) async {
         do {
-            try await service.setImage(url: url, for: wallet)
+            try await service.setAvatarImageUrl(walletId: wallet.id.id, url: url.absoluteString)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
@@ -90,7 +90,7 @@ public final class WalletImageSceneViewModel: Sendable {
     public func onRemoveAvatar() {
         Task {
             do {
-                try await service.removeImage(for: wallet)
+                try await service.removeAvatarImage(walletId: wallet.id.id)
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
@@ -116,7 +116,7 @@ public final class WalletImageSceneViewModel: Sendable {
         }
         Task {
             do {
-                try await service.setImage(data: data, for: wallet)
+                try await service.setAvatarImage(walletId: wallet.id.id, image: data)
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }

@@ -93,7 +93,7 @@ struct AppLifecycleServiceTests {
         let service = AppLifecycleService.mock(hyperliquidObserverService: observer, walletSessionService: session)
         await service.updateWalletConnections()
 
-        try session.setCurrent(walletId: nil)
+        try session.setCurrentWalletId(walletId: nil)
         await service.updateWalletConnections()
 
         #expect(await observer.isConnected == false)

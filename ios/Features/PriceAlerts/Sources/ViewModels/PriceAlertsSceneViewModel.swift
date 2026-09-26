@@ -85,7 +85,7 @@ extension PriceAlertsSceneViewModel {
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
-            try await service.delete(priceAlerts: [priceAlert])
+            try await service.deletePriceAlerts(alerts: [priceAlert.toGem()])
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }

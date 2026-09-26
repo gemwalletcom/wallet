@@ -61,7 +61,7 @@ public struct OnstartService: Sendable {
 
     public func setupWallets() async {
         do {
-            let failures = try await keystore.migrateV3Keystores(for: session.getWallets())
+            let failures = try await keystore.migrateV3Keystores(for: session.getWallets().map { $0.toPrimitives() })
             for failure in failures {
                 debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
             }
@@ -97,7 +97,7 @@ extension OnstartService {
         guard ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil else { return }
         let currency = Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) } ?? .usd
         do {
-            try preferencesService.setCurrencyValue(currency)
+            try preferencesService.setCurrency(currency: currency.toGem())
         } catch {
             debugLog("screenshots currency error: \(error)")
         }

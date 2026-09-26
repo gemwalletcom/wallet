@@ -79,9 +79,9 @@ extension NavigationPresenter {
         to toAssetId: AssetId?,
         wallet: Wallet,
     ) async throws {
-        let fromAsset = try await assetsService.ensureAsset(for: fromAssetId)
+        let fromAsset = try await assetsService.ensureAsset(assetId: fromAssetId.identifier).toPrimitives()
         if let toAssetId {
-            _ = try await assetsService.ensureAsset(for: toAssetId)
+            _ = try await assetsService.ensureAsset(assetId: toAssetId.identifier)
         }
         try presentAssetInput(type: .swap(fromAssetId, toAssetId), for: fromAsset, wallet: wallet)
     }
@@ -108,7 +108,7 @@ extension NavigationPresenter {
     }
 
     func completeSwap(fromAssetId: AssetId, navigationState: NavigationStateManager) async throws {
-        let asset = try await assetsService.ensureAsset(for: fromAssetId)
+        let asset = try await assetsService.ensureAsset(assetId: fromAssetId.identifier).toPrimitives()
         switch navigationState.selectedTab {
         case .wallet:
             navigationState.wallet.setPath([Scenes.Asset(asset: asset)])

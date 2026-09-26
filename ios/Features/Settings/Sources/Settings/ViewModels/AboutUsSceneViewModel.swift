@@ -64,6 +64,6 @@ extension AboutUsSceneViewModel {
     }
 
     func load() async {
-        release = await service.newestRelease()
+        release = try? await service.newest(store: PlatformStore.current.toGem(), currentVersion: Bundle.main.releaseVersionNumber)?.toPrimitives()
     }
 }

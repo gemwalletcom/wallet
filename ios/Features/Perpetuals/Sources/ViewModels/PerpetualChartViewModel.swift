@@ -29,14 +29,18 @@ public final class PerpetualChartViewModel {
         get { session.period.toPrimitives() }
         set {
             session = session.onSelectPeriod(period: newValue.toGem())
-            service.setChartPeriodValue(newValue)
+            do {
+                try service.setChartPeriod(period: newValue.toGem())
+            } catch {
+                debugLog("storing the chart period failed: \(error)")
+            }
         }
     }
 
     public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable) {
         self.service = service
         self.observerService = observerService
-        session = candleSession(period: service.chartPeriodValue.toGem())
+        session = candleSession(period: service.chartPeriod())
     }
 
     public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
@@ -80,7 +84,7 @@ public extension PerpetualChartViewModel {
 
 private extension PerpetualChartViewModel {
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
-        service.candleSubscription(perpetual: perpetual, period: period)
+        service.candleSubscription(perpetual: perpetual.toGem(), period: period.toGem())
     }
 
     func updateCandlesticks(perpetual: Perpetual) async {
@@ -116,7 +120,7 @@ private extension PerpetualChartViewModel {
 
     func mergeCandle(_ update: ChartCandleUpdate, perpetual: Perpetual) {
         let viewState = session.viewState()
-        guard let merged = service.mergedCandles(update: update, into: viewState.candles.map { $0.toPrimitives() }, perpetual: perpetual, period: viewState.period.toPrimitives()) else { return }
-        session = session.onCandles(candles: merged.map { $0.toGem() })
+        guard let merged = service.mergedCandles(candles: viewState.candles, update: update.toGem(), perpetual: perpetual.toGem(), period: viewState.period) else { return }
+        session = session.onCandles(candles: merged)
     }
 }

@@ -26,7 +26,7 @@ public final class WalletsSceneViewModel {
     var walletDelete: Wallet?
 
     var currentWalletId: WalletId? {
-        service.currentWalletId
+        try? service.currentWalletId().map { try WalletId.from(id: $0) }
     }
 
     let walletsQuery: ObservableQuery<WalletsQuery>
@@ -83,14 +83,14 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        _ = try await service.delete(wallet)
+        _ = try await service.deleteWallet(walletId: wallet.id.id)
     }
 
     private func pin(_ wallet: Wallet) async throws {
         if wallet.isPinned {
-            try await service.unpin(wallet: wallet)
+            try await service.setPinned(walletId: wallet.id.id, pinned: false)
         } else {
-            try await service.pin(wallet: wallet)
+            try await service.setPinned(walletId: wallet.id.id, pinned: true)
         }
     }
 }

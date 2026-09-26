@@ -35,7 +35,7 @@ public final class NameRecordViewModel {
     private func loadNameRecord(name: String, chain: Chain, debounceMilliseconds: UInt64) async {
         do {
             try await Task.sleep(for: .milliseconds(debounceMilliseconds))
-            let resolved = try await nameService.getNameRecord(name: name, chain: chain)
+            let resolved = try await nameService.getNameRecord(name: name, chain: chain.rawValue)
             try Task.checkCancellation()
             state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: resolved)
         } catch {

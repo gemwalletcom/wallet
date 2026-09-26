@@ -62,7 +62,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
+| Stores and persistence | `Gem*Store` traits and both adapters | D175, BD299, GEN300 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
@@ -115,7 +115,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 1, coverage:** declare the 10 generated model types the bindings lack, or delete their app use: `AssetSubtype`, `ContactData`, `Device`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.
   - **Phase 2, enums and identifiers:** `Chain` may migrate separately to a generated UniFFI enum. Keep the existing handwritten platform wrappers and parsers for `AssetId`, `NFTAssetId`, `NFTCollectionId`, `PerpetualId`, `TransactionId`, and `WalletId`, including their stable stored-string conversions; do not replace them with generated UniFFI records.
   - **Phase 3, storage and routes:** `just generate-models` emits `Codable` and `Hashable` conformances (iOS) and kotlinx serializers (Android) for the generated types that routes and stored JSON carry: iOS `Scenes`, Android route arguments, and three GRDB JSON columns. iOS `Store` gains the `Gemstone` dependency.
-  - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
+  - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`) and VM289 (Android aggregates) land inside this phase.
   - **Phase 5, removal:** stop generating the Swift and Kotlin models, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
   - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with generated `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
 
@@ -148,10 +148,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `AmountType` and `AmountInput` are rebuilt into a request in `AmountSceneViewModel`.
   - **Android:** `AmountParams` (and `toAmountParams`) is rebuilt into a request in `AmountViewModel`.
   - **Expected:** routes carry `GemAmountRequest` (on `GemAmountSession`).
-- **VM288** **M** **iOS re-wraps Core service methods to take Primitives types.**
-  - **iOS:** `GemstonePrimitives/Sources/Services/*.swift` (wallet, wallet session, WalletConnect, contacts, wallet home, perpetual details, swap quote, and others) and `GemConfirmMetadata+GemstonePrimitives` wrap Core calls with conversions.
-  - **Android:** calls Core with `toGem()` at each call site.
-  - **Expected:** callers use the generated types directly; the wrapper extensions go.
 - **VM289** **S** **Android domain aggregates wrap Core rows.**
   - **iOS:** uses `GemPerpetualMarketItem` directly in views.
   - **Android:** `PerpetualDataAggregate`, `PerpetualPositionDataAggregate(Impl)`, `WalletSummary`, `LeverageState` and `NftAssetDetailsData` (`gemcore/.../domains`) wrap them.

@@ -56,7 +56,7 @@ public final class ContactEditorSceneViewModel {
             self.session = recipient.flatMap { recipient in
                 chain.map {
                     session.onAddressSaved(
-                        input: GemContactAddressInput(contactId: session.id, chain: $0, address: recipient.address, memo: recipient.memo, replacingId: nil),
+                        input: GemContactAddressInput(contactId: session.id, chain: $0.rawValue, address: recipient.address, memo: recipient.memo, replacingId: nil),
                     )
                 }
             } ?? session

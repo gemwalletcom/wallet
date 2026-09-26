@@ -62,12 +62,12 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdQuery(assetId: assetAddress.asset.id), initialValue: nil)
-        session = service.newSession(type: type, amount: amount)
+        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
     }
 
     var type: FiatQuoteType {
-        get { session.type }
+        get { session.quoteType.toPrimitives() }
         set { session = session.onTypeChanged(quoteType: newValue.toGem()) }
     }
 
@@ -198,7 +198,7 @@ extension FiatSceneViewModel {
         session = session
             .onBalanceChanged(available: BigUInt(newValue.balance.available))
             .onSellEnabledChanged(isSellEnabled: newValue.metadata.isSellEnabled)
-        if session.type != type {
+        if session.quoteType.toPrimitives() != type {
             loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
         }
     }
@@ -253,7 +253,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await service.quoteUrl(asset: asset, quoteId: quote.quoteId).redirectUrl.asURL else {
+                guard let url = try await service.quoteUrl(assetId: asset.id.identifier, quoteId: quote.quoteId).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }

@@ -104,7 +104,7 @@ extension AssetPriceAlertsSceneViewModel {
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
-            try await service.delete(priceAlerts: [priceAlert])
+            try await service.deletePriceAlerts(alerts: [priceAlert.toGem()])
         } catch let error as GemServiceError {
             isPresentingToastMessage = .error(error.text().text)
         } catch {

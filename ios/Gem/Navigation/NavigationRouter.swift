@@ -288,10 +288,10 @@ extension NavigationRouter {
     }
 
     private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
-        guard walletSessionService.currentWalletId != walletId else {
+        guard try walletSessionService.getCurrentWalletId() != walletId.id else {
             return navigationState.openWallet(path: path)
         }
-        try walletSessionService.setCurrent(walletId: walletId)
+        try walletSessionService.setCurrentWalletId(walletId: walletId.id)
         navigationState.pendingWalletPath = path
     }
 

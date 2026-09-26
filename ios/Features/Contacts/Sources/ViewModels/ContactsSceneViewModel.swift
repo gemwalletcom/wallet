@@ -81,12 +81,12 @@ public final class ContactsSceneViewModel {
             do {
                 let addresses = GemContactAddressInput(
                     contactId: contact.contact.id,
-                    chain: chain,
+                    chain: chain.rawValue,
                     address: recipient.address,
                     memo: recipient.memo,
                     replacingId: nil,
-                ).addAddress(contact.addresses)
-                try await service.updateContact(contact.contact, addresses: addresses)
+                ).addAddress(addresses: contact.addresses.map { $0.toGem() })
+                try await service.updateContact(contact: contact.contact.toGem(), addresses: addresses)
                 dismiss()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
@@ -120,7 +120,7 @@ public final class ContactsSceneViewModel {
         Task {
             do {
                 for contact in selected {
-                    try await service.deleteContact(contact)
+                    try await service.deleteContact(contact: contact.toGem())
                 }
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)

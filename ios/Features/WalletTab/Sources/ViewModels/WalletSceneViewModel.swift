@@ -125,10 +125,10 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     var homeState: WalletHomeState {
         let viewState = service.viewState(
-            wallet: wallet,
-            balances: fiatValuesQuery.value,
+            wallet: wallet.toGem(),
+            balances: fiatValuesQuery.value.map { $0.toGem() },
             perpetual: perpetualCollateral,
-            banners: bannersQuery.value,
+            banners: bannersQuery.value.map { $0.toGem() },
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
@@ -255,7 +255,7 @@ extension WalletSceneViewModel {
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
 
     var assetItems: ListAssetItemsViewModel {

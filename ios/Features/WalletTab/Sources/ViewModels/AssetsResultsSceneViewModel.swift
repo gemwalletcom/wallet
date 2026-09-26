@@ -122,7 +122,7 @@ extension AssetsResultsSceneViewModel {
     func refresh() async {
         loadState = .loading
         do {
-            try await service.search(query: searchQuery.request.searchBy, scope: searchQuery.request.scope)
+            _ = try await service.search(query: searchQuery.request.searchBy, scope: searchQuery.request.scope.gemScope)
             loadState = .data(true)
         } catch {
             loadState.setError(error)

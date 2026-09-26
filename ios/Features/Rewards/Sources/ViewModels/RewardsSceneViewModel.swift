@@ -199,7 +199,7 @@ public final class RewardsSceneViewModel: Sendable {
 
     private func useReferralCode(_ code: String) async {
         do {
-            let rewards = try await service.useReferralCode(wallet: selectedWallet, code: code)
+            let rewards = try await service.useReferralCode(wallet: selectedWallet.toGem(), code: code)
             session = session.onRewards(rewards: rewards)
             showActivatedToast()
         } catch let error as GemServiceError {
@@ -235,7 +235,7 @@ public final class RewardsSceneViewModel: Sendable {
 
     func redeem(redemptionId: String) async {
         do {
-            _ = try await service.redeem(wallet: selectedWallet, redemptionId: redemptionId)
+            _ = try await service.redeem(wallet: selectedWallet.toGem(), redemptionId: redemptionId)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch let error as GemServiceError {
             showError(error.text().text)

@@ -38,10 +38,10 @@ final class RootSceneViewModel {
     let lockWindow: LockWindow
 
     var currentWallet: Wallet? {
-        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
+        currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
 
-    var currentWalletId: WalletId? { walletSessionService.currentWalletId }
+    var currentWalletId: WalletId? { try? walletSessionService.getCurrentWalletId().map { try WalletId.from(id: $0) } }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
     var isPresentingRootWarning = false
@@ -193,7 +193,7 @@ extension RootSceneViewModel {
 
     private func checkForUpdate() async {
         do {
-            guard let offer = try await appUpdateService.checkForUpdate() else { return }
+            guard let offer = try await appUpdateService.check(store: PlatformStore.current.toGem(), currentVersion: Bundle.main.releaseVersionNumber) else { return }
             updateVersionAlertMessage = makeUpdateAlert(for: offer)
         } catch {
             debugLog("checkForUpdate error: \(error)")

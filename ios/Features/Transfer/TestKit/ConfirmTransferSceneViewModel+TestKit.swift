@@ -41,7 +41,7 @@ public extension ConfirmTransferSceneViewModel {
             ))
             let recipient: GemConfirmRowContent = .recipient(row: .mock(
                 title: .confirmDestination(destination: .recipient(name: addressName?.name, address: data.recipient.address)),
-                text: .text(text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain, style: .short)),
+                text: .text(text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain.rawValue, style: .short)),
                 chain: data.chain.rawValue,
                 address: data.recipient.address,
                 isSelectable: true,

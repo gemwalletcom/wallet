@@ -39,13 +39,13 @@ struct ImportWalletSceneViewModelTests {
             source: .import,
         ).wallet().toPrimitives()
 
-        #expect(session.currentWalletId == walletB.id, "an import needs no second call to become current")
+        #expect(try session.getCurrentWalletId() == walletB.id.id, "an import needs no second call to become current")
 
         let model = ImportWalletSceneViewModel.mock(service: service)
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
-        #expect(session.currentWalletId == walletA.id)
+        #expect(try session.getCurrentWalletId() == walletA.id.id)
     }
 
     @Test

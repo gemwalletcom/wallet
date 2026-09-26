@@ -51,7 +51,7 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
         let code = text
 
         do {
-            let rewards = try await service.createReferral(wallet: wallet, code: code)
+            let rewards = try await service.createReferral(wallet: wallet.toGem(), code: code)
             onSuccess(rewards)
         } catch let error as GemServiceError {
             errorMessage = error.text().text

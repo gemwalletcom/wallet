@@ -63,7 +63,7 @@ public final class ContactAddressEditorSceneViewModel {
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? service.defaultContactChain
+        let chain = mode.contactAddress?.chain ?? Chain(core: service.defaultChain())
         addressInputModel = AddressInputViewModel(
             chain: chain,
             nameService: nameService,
@@ -107,7 +107,7 @@ public final class ContactAddressEditorSceneViewModel {
     private var input: GemContactAddressInput {
         GemContactAddressInput(
             contactId: contactId,
-            chain: chain,
+            chain: chain.rawValue,
             address: addressInputModel.resolvedAddress,
             memo: memo,
             replacingId: mode.contactAddress?.id,

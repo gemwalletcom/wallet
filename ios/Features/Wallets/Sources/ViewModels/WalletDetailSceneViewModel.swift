@@ -75,11 +75,11 @@ public final class WalletDetailSceneViewModel {
 
 extension WalletDetailSceneViewModel {
     func rename(name: String) async throws {
-        try await service.rename(walletId: wallet.id, newName: name)
+        try await service.rename(walletId: wallet.id.id, name: name)
     }
 
     func delete() async throws {
-        _ = try await service.delete(wallet)
+        _ = try await service.deleteWallet(walletId: wallet.id.id)
     }
 
     func onSelectImage() {

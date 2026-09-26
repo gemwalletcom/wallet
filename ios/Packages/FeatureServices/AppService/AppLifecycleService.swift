@@ -127,7 +127,7 @@ extension AppLifecycleService {
     }
 
     private func syncPerpetual(trigger: GemPerpetualEnablementTrigger) async {
-        let wallet = await walletSessionService.currentWallet
+        let wallet = await (try? walletSessionService.getCurrentWallet())?.toPrimitives()
         do {
             let connect = try await perpetualService.syncEnablement(wallet: wallet?.toGem(), trigger: trigger)
             await updatePerpetualObserver(wallet: wallet, connect: connect)

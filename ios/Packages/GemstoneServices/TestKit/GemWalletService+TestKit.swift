@@ -58,7 +58,7 @@ public extension GemWalletSessionService {
 
     static func mock(wallet: Wallet) throws -> GemWalletSessionService {
         let service = GemWalletSessionService.mock(store: .mock(db: .mock(wallets: [wallet])))
-        try service.setCurrent(walletId: wallet.id)
+        try service.setCurrentWalletId(walletId: wallet.id.id)
         return service
     }
 }

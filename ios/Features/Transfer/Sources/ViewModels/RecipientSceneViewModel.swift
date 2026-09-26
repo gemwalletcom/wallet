@@ -112,7 +112,7 @@ public final class RecipientSceneViewModel {
     }
 
     var recipientSections: [ListItemValueSection<GemRecipient>] {
-        service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, contacts: contacts)
+        service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
             .map {
                 ListItemValueSection(
                     section: $0.kind.title,

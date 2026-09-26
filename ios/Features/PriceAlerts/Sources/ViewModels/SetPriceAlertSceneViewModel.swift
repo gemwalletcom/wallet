@@ -131,7 +131,7 @@ extension SetPriceAlertSceneViewModel {
         guard let alert = priceAlert() else { return }
         session = session.onSaving(isSaving: true)
         do {
-            try await service.enable(priceAlert: alert)
+            try await service.enablePriceAlert(alert: alert.toGem())
             onComplete?(completeMessage)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)

@@ -65,7 +65,7 @@ public final class SwapSceneViewModel {
         if let cache = viewStateCache, cache.session == session, cache.pay == pay, cache.receive == receive {
             return cache.state
         }
-        let state = session.viewState(pay: pay?.toGem(), receive: receive?.toGem(), currency: service.currency.toGem())
+        let state = session.viewState(pay: pay?.toGem(), receive: receive?.toGem(), currency: service.getCurrency())
         viewStateCache = (session, pay, receive, state)
         return state
     }
@@ -96,7 +96,7 @@ public final class SwapSceneViewModel {
         fromAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
         toAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.onSwap = onSwap
-        selectedSlippage = service.slippage
+        selectedSlippage = service.slippageBps().map { .manual(bps: $0) } ?? .auto
         session = service.newSession()
     }
 
@@ -262,7 +262,7 @@ extension SwapSceneViewModel {
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
-        for failure in await service.refreshPair(assetIds: Array(assetIds)) {
+        for failure in await service.refreshPair(assetIds: Array(assetIds).ids) {
             debugLog("SwapScene pair refresh error: \(failure.step) \(failure.message)")
         }
     }
@@ -288,7 +288,7 @@ extension SwapSceneViewModel {
         guard slippage != selectedSlippage else { return }
         selectedSlippage = slippage
         do {
-            try service.setSlippage(slippage)
+            try service.setSlippageBps(bps: slippage.bps)
         } catch {
             debugLog("set swap slippage error: \(error)")
         }
@@ -385,10 +385,9 @@ extension SwapSceneViewModel {
 
         Task {
             do {
-                let transferData = try await service.getTransferData(
-                    fromAsset: fromAsset.asset,
-                    toAsset: toAsset.asset,
-                    quote: quote,
+                let transferData = try await service.getTransfer(quote: quote).transferData(
+                    fromAsset: fromAsset.asset.toGem(),
+                    toAsset: toAsset.asset.toGem(),
                 )
                 guard session.transferPhase == transfer else { return }
                 onSwap?(transferData)
@@ -410,7 +409,14 @@ extension SwapSceneViewModel {
         else { return }
         session = session.onFetchStarted(request: input.request)
         do {
-            let swapQuotes = try await service.getQuotes(fromAsset: fromAsset.asset, toAsset: toAsset.asset, input: input)
+            let swapQuotes = try await service.getQuotes(
+                fromAsset: fromAsset.asset.toGem(),
+                toAsset: toAsset.asset.toGem(),
+                value: input.request.value,
+                useMaxAmount: input.useMaxAmount,
+                slippageBps: input.request.slippageBps,
+            )
+            try Task.checkCancellation()
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
             setToValue()
         } catch let error as SwapperError {

@@ -79,7 +79,7 @@ public final class SupportChatSceneViewModel {
 
     func sendText(_ content: String) async {
         await alertOnFailure {
-            try await service.sendMessage(.text(content))
+            try await service.sendText(content: content)
         }
     }
 
@@ -89,14 +89,14 @@ public final class SupportChatSceneViewModel {
                 guard let attachment = try await item.imageAttachment() else {
                     throw AnyError(Localized.Errors.notSupported)
                 }
-                try await service.sendMessage(.image(attachment))
+                try await service.sendImage(image: attachment)
             }
         }
     }
 
     func retry(_ message: SupportMessage) async {
         await alertOnFailure {
-            try await service.retryMessage(message)
+            try await service.retryMessage(message: message.toGem())
         }
     }
 
