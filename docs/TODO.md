@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM184, VM183, VM186, VM196, VM194.
+1. **Small shared rules:** VM183, VM186, VM196, VM194.
 2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 3. **Models:** VM195.
 4. **Sessions:** VM185.
@@ -39,7 +39,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM185, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM237, VM238, VM239, VM240, VM294 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM237, VM238, VM239, VM240, VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204, VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
@@ -114,10 +114,6 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
   - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
   - **Expected:** Core owns both steps beside `phrase_suggestions`: one call takes the input and whether the cursor is at the end and returns the suggestions, one returns the input with the picked word applied.
-- **VM184** **S** **How long a copied secret stays on the clipboard is hardcoded in each app.** `GemCopyKind::is_sensitive` (`core/gemstone/src/models/copy.rs`) says which copies are secret; the lifetime is not in Core ([security](../skills/security.md)).
-  - **iOS:** `CopyTypeViewModel` gives a sensitive copy a local-only pasteboard item that expires after 60 seconds.
-  - **Android:** `ClipboardExt.setClip` marks it sensitive and schedules `clearPrimaryClip()` after one minute, which also wipes anything the user copied after it.
-  - **Expected:** the copy kind carries the lifetime next to `is_sensitive` and both apps read it; Android clears the clipboard only while it still holds that copy, like the iOS expiry.
 - **VM185** **M** **What opening a link or a scanned code shows is decided in each app.** Core parses the code (`GemDeeplinkService.url_action`) and builds the target; the outcome around it is not shared.
   - **iOS:** `NavigationRouter.open(code:)` shows "Not supported" for any code without an action, shows a loading toast for a payment link, and shows every failure as an error alert.
   - **Android:** `PendingNavigationCoordinator.buildRoutes` holds the code until unlock and decides "handled" per source (an unmatched link from an intent is silent unless it is a payment; a scan is unhandled unless it has routes or is WalletConnect). The coordinator swallows every deep-link failure except `NoAccountForChain`, and `MainViewModel` shows a payment failure only while its loading state is up and a service failure only when the input had a code.
@@ -193,7 +189,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM206** **S** **`CopyTypeViewModel` wraps a copy record.**
   - **iOS:** `CopyTypeViewModel` holds `GemCopy`, builds the copied message and the pasteboard options.
   - **Android:** `GemCopyExt.kt` and `ClipboardExt.kt` do the same around `GemCopy`.
-  - **Expected:** a clipboard port per app takes `GemCopy` (with VM184's lifetime) and the message comes from the mapper; the wrapper goes.
+  - **Expected:** a clipboard port per app takes `GemCopy` (with its `clipboard_expiry_seconds`) and the message comes from the mapper; the wrapper goes.
 - **VM207** **S** **`AddressListItemViewModel` decides how an address row reads.**
   - **iOS:** `AddressListItemViewModel` decides `canToggleAddress` (a name that is not the address), picks name or short address for the subtitle, and builds "View on X".
   - **Android:** the recipient and participant rows in `TransactionDetailsRowUIModel` and `ConfirmRowUIModel` build the same row.

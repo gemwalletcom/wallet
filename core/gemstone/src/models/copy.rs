@@ -4,6 +4,8 @@ use primitives::Chain;
 
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 
+const SECRET_CLIPBOARD_SECONDS: u32 = 60;
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemCopyKind {
     Address { chain: Chain },
@@ -19,6 +21,10 @@ impl GemCopyKind {
             Self::Address { .. } | Self::Plain => false,
             Self::SecretPhrase | Self::PrivateKey => true,
         }
+    }
+
+    pub fn clipboard_expiry_seconds(&self) -> Option<u32> {
+        self.is_sensitive().then_some(SECRET_CLIPBOARD_SECONDS)
     }
 }
 
@@ -81,6 +87,14 @@ mod tests {
         assert_eq!(secret_phrase_copy(vec!["a".to_string(), "b".to_string()]).value, "a b");
         assert!(private_key_copy("key".to_string()).kind.is_sensitive());
         assert!(private_key_copy("key".to_string()).display.is_empty());
+    }
+
+    #[test]
+    fn test_a_copied_secret_leaves_the_clipboard_after_a_minute_and_an_address_stays() {
+        assert_eq!(GemCopyKind::SecretPhrase.clipboard_expiry_seconds(), Some(60));
+        assert_eq!(GemCopyKind::PrivateKey.clipboard_expiry_seconds(), Some(60));
+        assert_eq!(GemCopyKind::Address { chain: Chain::Ethereum }.clipboard_expiry_seconds(), None);
+        assert_eq!(GemCopyKind::Plain.clipboard_expiry_seconds(), None);
     }
 
     #[test]

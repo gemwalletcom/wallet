@@ -23,7 +23,7 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
     }
 
     public var expirationTimeInternal: TimeInterval? {
-        content.kind.isSensitive() ? 60 : .none
+        content.kind.clipboardExpirySeconds().map(TimeInterval.init)
     }
 
     public func copy() {

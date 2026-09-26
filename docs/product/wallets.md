@@ -17,4 +17,4 @@ flowchart LR
 ## Rules
 
 - While any wallet exists the app always has a selected wallet.
-- A copied Secret Phrase or private key leaves the clipboard after one minute and is kept off other devices; an address or any other copy stays until something replaces it, because only a secret is dangerous to leave behind.
+- A copied Secret Phrase or private key leaves the clipboard after one minute and is kept off other devices, and whatever the user copies after it stays; an address or any other copy stays until something replaces it, because only a secret is dangerous to leave behind.
