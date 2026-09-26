@@ -379,7 +379,6 @@ fn capitalized(text: &str) -> String {
         .collect()
 }
 
-
 fn swift_file(models: &[Model], mappings: &TypeMappings) -> String {
     format!("{HEADER}import Foundation\n{}", models.iter().map(|model| swift_model(model, &mappings.swift)).collect::<Vec<_>>().concat())
 }

@@ -3,6 +3,8 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::GemListRow;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
+use crate::services::assets::icon::GemAssetIcon;
+use crate::services::assets::model::{GemAssetText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
 use primitives::{Asset, AssetData, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
@@ -23,11 +25,10 @@ pub struct GemDelegationStatus {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,
-    pub icon: crate::services::assets::icon::GemAssetIcon,
+    pub icon: GemAssetIcon,
+    pub value_header: GemValueHeader,
     pub header: GemDelegationListRow,
     pub actions: Vec<GemDelegationActionItem>,
-    pub balance: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
     pub rewards_fiat: Option<GemFormattedNumber>,
     pub rows: Vec<GemListRow>,
@@ -132,7 +133,7 @@ pub struct GemStakeDelegationItem {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeViewState {
-    pub asset: crate::services::assets::model::GemAssetText,
+    pub asset: GemAssetText,
     pub sections: Vec<GemStakeSection>,
     pub info_rows: Vec<GemListRow>,
     pub actions: Vec<GemStakeActionItem>,
@@ -188,7 +189,7 @@ pub struct GemStakeValidatorOptions {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
-    pub asset: crate::services::assets::model::GemAssetText,
+    pub asset: GemAssetText,
     pub apr_row: GemListRow,
     pub providers: Vec<DelegationValidator>,
     pub deposit_provider: Option<DelegationValidator>,

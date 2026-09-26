@@ -38,8 +38,8 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.AssetIcon
-import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
+import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_head.uiModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
@@ -121,16 +121,12 @@ internal fun PerpetualsScene(
             ) {
                 if (!isSearching && balanceHeader != null) {
                     item {
-                        AmountListHead(
-                            amount = balanceHeader.total.text(),
-                            equivalent = stringResource(
-                                R.string.wallet_available_balance,
-                                balanceHeader.available.text(),
-                            ),
+                        ValueListHead(
+                            header = balanceHeader.header,
                             onClick = { onAction(PerpetualsAction.OpenPortfolio) },
                         ) {
                             AssetHeadActions(
-                                balanceHeader.actions.uiModel(
+                                (balanceHeader.header.actions ?: return@ValueListHead).uiModel(
                                     onTransfer = null,
                                     onReceive = null,
                                     onBuy = null,

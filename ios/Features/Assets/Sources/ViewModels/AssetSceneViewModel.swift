@@ -198,13 +198,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     func assetHeader(_ details: GemAssetDetails) -> ValueHeader {
-        ValueHeader(
-            assetImage: AssetImage(icon: details.icon),
-            title: details.balanceValue.text(),
-            subtitle: details.fiatValue?.text(),
-            buttons: details.state.headerActions.headerButtons,
-            isWatchWallet: details.state.headerActions.isWatchOnly,
-        )
+        details.header.valueHeader
     }
 
     public func shareAssetUrl(_ details: GemAssetDetails) -> URL {

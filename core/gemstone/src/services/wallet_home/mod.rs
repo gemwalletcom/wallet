@@ -6,12 +6,11 @@ use std::sync::Arc;
 
 use chrono::Utc;
 
-use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::localization::GemLocalizedText;
 use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::GemHeaderActions;
+use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderSubtitleIcon};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
@@ -24,10 +23,7 @@ pub use rules::GemPerpetualCollateral;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
-    pub total: GemFormattedNumber,
-    pub pnl: Option<GemLocalizedText>,
-    pub pnl_tone: GemValueTone,
-    pub header_actions: GemHeaderActions,
+    pub header: GemValueHeader,
     pub show_collections: bool,
     pub shows_perpetuals: bool,
     pub banner: Option<GemBannerRow>,
@@ -77,10 +73,13 @@ impl GemWalletHomeService {
         let currency = self.preferences.get_currency();
         let header = balance_rules::total_header(&total_value, currency);
         GemWalletHomeViewState {
-            total: header.total,
-            pnl: header.pnl,
-            pnl_tone: header.pnl_tone,
-            header_actions: rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners)),
+            header: GemValueHeader {
+                icon: None,
+                title: GemLocalizedText::Number { number: header.total },
+                subtitle_icon: header.pnl.is_some().then_some(GemValueHeaderSubtitleIcon::Chart),
+                subtitle: header.pnl.map(|text| GemRowText { text, tone: header.pnl_tone }),
+                actions: Some(rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners))),
+            },
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
             banner: visible_banners.into_iter().next(),
@@ -159,9 +158,9 @@ mod tests {
     fn test_the_header_buttons_follow_the_banners_the_screen_shows() {
         let testkit = WalletHomeTestkit::with_status(200);
         let warning = |state| Banner::mock(BannerEvent::AccountBlockedMultiSignature, state);
-        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners).header_actions {
-            GemHeaderActions::Buttons { buttons } => buttons.iter().all(|button| button.is_enabled),
-            GemHeaderActions::WatchOnly => true,
+        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners).header.actions {
+            Some(GemHeaderActions::Buttons { buttons }) => buttons.iter().all(|button| button.is_enabled),
+            Some(GemHeaderActions::WatchOnly) | None => true,
         };
 
         assert!(!buttons_enabled(vec![warning(BannerState::AlwaysActive)]));

@@ -145,12 +145,10 @@ public extension Gemstone.GemAssetBalance {
 public extension Gemstone.GemAssetDetails {
     static func mock(
         state: Gemstone.GemAssetDetailsState = .mock(),
-        icon: Gemstone.GemAssetIcon = .mock(),
+        header: Gemstone.GemValueHeader = .mock(),
         banner: Gemstone.GemBannerRow? = nil,
-        balanceValue: Gemstone.GemFormattedNumber = .mock(),
         sections: [Gemstone.GemAssetDetailSection] = [],
         title: String = "",
-        fiatValue: Gemstone.GemFormattedNumber? = nil,
         explorerName: String = "",
         addressLink: Gemstone.BlockExplorerLink? = nil,
         tokenLink: Gemstone.BlockExplorerLink? = nil,
@@ -161,12 +159,10 @@ public extension Gemstone.GemAssetDetails {
     ) -> Gemstone.GemAssetDetails {
         Gemstone.GemAssetDetails(
             state: state,
-            icon: icon,
+            header: header,
             banner: banner,
-            balanceValue: balanceValue,
             sections: sections,
             title: title,
-            fiatValue: fiatValue,
             explorerName: explorerName,
             addressLink: addressLink,
             tokenLink: tokenLink,
@@ -1198,6 +1194,24 @@ public extension Gemstone.GemValidatorRow {
     }
 }
 
+public extension Gemstone.GemValueHeader {
+    static func mock(
+        icon: Gemstone.GemValueHeaderIcon? = nil,
+        title: Gemstone.GemLocalizedText = .mock(),
+        subtitle: Gemstone.GemRowText? = nil,
+        subtitleIcon: Gemstone.GemValueHeaderSubtitleIcon? = nil,
+        actions: Gemstone.GemHeaderActions? = nil,
+    ) -> Gemstone.GemValueHeader {
+        Gemstone.GemValueHeader(
+            icon: icon,
+            title: title,
+            subtitle: subtitle,
+            subtitleIcon: subtitleIcon,
+            actions: actions,
+        )
+    }
+}
+
 public extension Gemstone.GemWalletConnectAuthAccount {
     static func mock(
         account: Gemstone.Account = Primitives.Account.mock().toGem(),
@@ -1262,19 +1276,13 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
 
 public extension Gemstone.GemWalletHomeViewState {
     static func mock(
-        total: Gemstone.GemFormattedNumber = .mock(),
-        pnl: Gemstone.GemLocalizedText? = nil,
-        pnlTone: Gemstone.GemValueTone = .plain,
-        headerActions: Gemstone.GemHeaderActions = .watchOnly,
+        header: Gemstone.GemValueHeader = .mock(),
         showCollections: Bool = false,
         showsPerpetuals: Bool = false,
         banner: Gemstone.GemBannerRow? = nil,
     ) -> Gemstone.GemWalletHomeViewState {
         Gemstone.GemWalletHomeViewState(
-            total: total,
-            pnl: pnl,
-            pnlTone: pnlTone,
-            headerActions: headerActions,
+            header: header,
             showCollections: showCollections,
             showsPerpetuals: showsPerpetuals,
             banner: banner,

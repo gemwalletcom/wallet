@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::services::assets::icon::asset_icon;
+use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderIcon};
 use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
@@ -195,18 +196,27 @@ pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asse
     let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Currency);
     let shows_rewards = shows_rewards(&delegation.base);
 
+    let header = delegation_list_row(delegation, asset, price, currency.clone());
     GemDelegationDetails {
         title: GemLocalizedText::StakeProvider {
             provider: delegation.validator.provider_type,
         },
         icon: asset_icon(&asset.id),
-        header: delegation_list_row(delegation, asset, price, currency.clone()),
+        value_header: GemValueHeader {
+            icon: Some(GemValueHeaderIcon::Image {
+                url: header.validator.image_url.clone(),
+                placeholder: Some(header.validator.placeholder.clone()),
+            }),
+            title: GemLocalizedText::Number { number: amount(&delegation.base.balance) },
+            subtitle: fiat(&delegation.base.balance).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            subtitle_icon: None,
+            actions: None,
+        },
+        header,
         actions: delegation_actions(wallet_type, delegation)
             .into_iter()
             .filter_map(|action| delegation_action_destination(asset.clone(), delegation.clone(), action, validators).map(|destination| GemDelegationActionItem { action, destination }))
             .collect(),
-        balance: amount(&delegation.base.balance),
-        fiat: fiat(&delegation.base.balance),
         rewards: shows_rewards.then(|| amount(&delegation.base.rewards)),
         rewards_fiat: shows_rewards.then(|| fiat(&delegation.base.rewards)).flatten(),
         claim: can_claim_rewards(wallet_type, delegation).then(|| {
@@ -780,12 +790,11 @@ mod tests {
         assert_eq!(details(StakeProviderType::Stake, 0).title, GemLocalizedText::StakeProvider { provider: StakeProviderType::Stake });
 
         let earning = details(StakeProviderType::Stake, 500_000);
-        assert_eq!(
-            earning.balance.display,
-            GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, GemValueStyle::Auto).display,
-            "the details header keeps the auto precision, not the list row's short one"
-        );
-        assert_ne!(earning.balance.display, GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, GemValueStyle::Short).display);
+        let amount = |style| GemLocalizedText::Number {
+            number: GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, style),
+        };
+        assert_eq!(earning.value_header.title, amount(GemValueStyle::Auto), "the details header keeps the auto precision, not the list row's short one");
+        assert_ne!(earning.value_header.title, amount(GemValueStyle::Short));
         assert!(earning.claim.is_some(), "rewards worth claiming come with the transfer that claims them");
         assert!(details(StakeProviderType::Stake, 0).claim.is_none(), "nothing to claim is no transfer");
     }

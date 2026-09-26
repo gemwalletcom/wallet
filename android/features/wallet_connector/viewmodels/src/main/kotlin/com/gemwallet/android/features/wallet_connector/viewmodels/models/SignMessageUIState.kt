@@ -2,8 +2,6 @@ package com.gemwallet.android.features.wallet_connector.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
-import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
-import com.gemwallet.android.ui.components.list_head.headerUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -13,6 +11,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationPayloadRow
+import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.SignMessage as GemSignMessage
 
 class SignMessageUIState(
@@ -52,8 +51,8 @@ class SignMessageUIState(
     override val hasCriticalWarning: Boolean
         get() = preview.hasCriticalWarning
 
-    override val header: SimulationHeaderUIModel?
-        get() = preview.header?.headerUIModel(context)
+    override val header: GemValueHeader?
+        get() = preview.header?.header
 
     override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = preview.primaryFields
 

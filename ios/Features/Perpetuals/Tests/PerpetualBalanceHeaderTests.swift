@@ -13,7 +13,7 @@ struct PerpetualBalanceHeaderTests {
         perpetualBalanceHeader(
             balance: PerpetualBalance(available: available, reserved: reserved, withdrawable: withdrawable ?? available),
             walletType: walletType.toGem(),
-        ).valueHeader
+        ).header.valueHeader
     }
 
     @Test

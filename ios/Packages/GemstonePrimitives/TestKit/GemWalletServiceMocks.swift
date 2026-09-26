@@ -280,11 +280,16 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         let showsPnl = total.value > 0 && total.pnlAmount != 0
         var pnlAmount = formattedCurrency(value: total.pnlAmount, code: Currency.usd.rawValue, style: .fiat)
         pnlAmount.notation = .signed
+        let pnl: GemLocalizedText? = showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil
+        let pnlTone: GemValueTone = total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral
         return GemWalletHomeViewState(
-            total: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat),
-            pnl: showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil,
-            pnlTone: total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral,
-            headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+            header: GemValueHeader(
+                icon: nil,
+                title: .number(number: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat)),
+                subtitle: pnl.map { GemRowText(text: $0, tone: pnlTone) },
+                subtitleIcon: pnl == nil ? nil : .chart,
+                actions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+            ),
             showCollections: false,
             showsPerpetuals: false,
             banner: nil,

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Formatters
 import Foundation
 import enum Gemstone.AddressType
@@ -11,7 +10,6 @@ import enum Gemstone.GemAcceptTermsItem
 import enum Gemstone.GemAcquireAssetFlow
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountTitle
-import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemBalanceRowValue
 import enum Gemstone.GemBannerButton
@@ -167,6 +165,10 @@ public extension GemLocalizedText {
             Localized.Swap.PriceImpactWarning.description(percent.text(), symbol)
         case let .balance(amount):
             Localized.Transfer.balance(amount.text())
+        case let .availableBalance(amount):
+            Localized.Wallet.availableBalance(amount.text())
+        case let .unlimitedAsset(symbol):
+            Localized.Simulation.Header.unlimitedAsset(symbol)
         case .nftCollections:
             Localized.Nft.collections
         case .nftUnverified:
@@ -422,15 +424,6 @@ public extension Primitives.FeePriority {
         switch self {
         case .normal: Localized.FeeRates.normal
         case .fast: Localized.FeeRates.fast
-        }
-    }
-}
-
-public extension GemApprovalValue {
-    func title(symbol: String, formatter: ValueFormatter, decimals: Int) -> String {
-        switch self {
-        case .unlimited: Localized.Simulation.Header.unlimitedAsset(symbol)
-        case let .exact(value): formatter.string(BigInt(value), decimals: decimals, currency: symbol)
         }
     }
 }

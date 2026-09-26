@@ -588,6 +588,27 @@ pub enum GemHeaderActions {
     Buttons { buttons: Vec<GemHeaderButton> },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemValueHeaderIcon {
+    Asset { icon: super::icon::GemAssetIcon },
+    Image { url: String, placeholder: Option<String> },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemValueHeaderSubtitleIcon {
+    Chart,
+}
+
+/// A screen's value header: its icon, the value, the line under it and the header's buttons.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemValueHeader {
+    pub icon: Option<GemValueHeaderIcon>,
+    pub title: GemLocalizedText,
+    pub subtitle: Option<GemRowText>,
+    pub subtitle_icon: Option<GemValueHeaderSubtitleIcon>,
+    pub actions: Option<GemHeaderActions>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetEmptyAction {
     Buy,
@@ -627,12 +648,10 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
-    pub icon: super::icon::GemAssetIcon,
+    pub header: GemValueHeader,
     pub banner: Option<GemBannerRow>,
-    pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
-    pub fiat_value: Option<GemFormattedNumber>,
     pub explorer_name: String,
     pub address_link: Option<BlockExplorerLink>,
     pub token_link: Option<BlockExplorerLink>,

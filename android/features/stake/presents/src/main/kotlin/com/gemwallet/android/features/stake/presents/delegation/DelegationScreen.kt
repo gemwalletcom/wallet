@@ -11,9 +11,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.stake.viewmodels.delegation.DelegationViewModel
 import com.gemwallet.android.features.stake.viewmodels.delegation.models.DelegationRowUIModel
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -44,12 +43,7 @@ fun DelegationScreen(onAmount: AmountTransactionAction, onConfirm: ConfirmTransa
     ) {
         LazyColumn {
             item {
-                AmountListHead(
-                    amount = details.balance.text(),
-                    equivalent = details.fiat?.text().orEmpty(),
-                    icon = details.header.validator.imageUrl,
-                    iconPlaceholder = details.header.validator.placeholder,
-                )
+                ValueListHead(header = details.valueHeader)
             }
             itemsPositioned(properties.rows) { position, row ->
                 when (row) {

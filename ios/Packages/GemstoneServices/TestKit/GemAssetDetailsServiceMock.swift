@@ -15,6 +15,7 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemValueHeader
 import enum Gemstone.WalletType
 import GemstonePrimitivesTestKit
 import Primitives
@@ -45,12 +46,16 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 priceAlert: .disabled,
                 emptyTransactionsAction: nil,
             ),
-            icon: .mock(),
+            header: GemValueHeader(
+                icon: .asset(icon: .mock()),
+                title: .number(number: .mock(value: 0, unit: .symbol(symbol: input.assetData.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)),
+                subtitle: nil,
+                subtitleIcon: nil,
+                actions: input.wallet.walletType == .view ? .watchOnly : .buttons(buttons: []),
+            ),
             banner: nil,
-            balanceValue: .mock(value: 0, unit: .symbol(symbol: input.assetData.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
             sections: [],
             title: input.assetData.asset.name,
-            fiatValue: .none,
             explorerName: "Explorer",
             addressLink: input.assetData.account.address.isEmpty ? nil : Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(input.assetData.account.address)"),
             tokenLink: .none,

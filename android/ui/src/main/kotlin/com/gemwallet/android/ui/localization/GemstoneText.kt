@@ -11,7 +11,6 @@ import com.gemwallet.android.ext.errorTextOrNull
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
@@ -41,7 +40,6 @@ import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemBalanceRowValue
 import uniffi.gemstone.GemBannerButton
@@ -267,6 +265,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.Balance -> context.getString(R.string.transfer_balance, amount.text())
 
+    is GemLocalizedText.AvailableBalance -> context.getString(R.string.wallet_available_balance, amount.text())
+
+    is GemLocalizedText.UnlimitedAsset -> context.getString(R.string.simulation_header_unlimited_asset, symbol)
+
     GemLocalizedText.NftCollections -> context.getString(R.string.nft_collections)
 
     GemLocalizedText.NftUnverified -> context.getString(R.string.asset_verification_unverified)
@@ -406,11 +408,6 @@ fun PerpetualDirection.stringRes(): Int = when (this) {
 fun FeePriority.stringRes(): Int = when (this) {
     FeePriority.Normal -> R.string.fee_rates_normal
     FeePriority.Fast -> R.string.fee_rates_fast
-}
-
-fun GemApprovalValue.text(context: Context, symbol: String, formatter: ValueFormatter, asset: Asset): String = when (this) {
-    is GemApprovalValue.Exact -> formatter.string(value, asset)
-    GemApprovalValue.Unlimited -> context.getString(R.string.simulation_header_unlimited_asset, symbol)
 }
 
 @StringRes

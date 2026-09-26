@@ -118,6 +118,7 @@ mod tests {
     use super::super::model::GemApprovalValue;
     use crate::formatted_number::GemFormattedNumber;
     use crate::precision::GemValueStyle;
+    use crate::services::localization::GemLocalizedText;
 
     use super::*;
 
@@ -328,6 +329,21 @@ mod tests {
                 GemConfirmHeader::Transaction { .. }
             ),
             "only an amountless payment waits"
+        );
+    }
+
+    #[test]
+    fn test_an_approval_header_names_an_unlimited_amount_and_shows_an_exact_one_in_full() {
+        let usdt = Asset::mock_ethereum_usdc();
+        let unlimited = GemSimulationValue::new(usdt.clone(), GemApprovalValue::Unlimited);
+        let exact = GemSimulationValue::new(usdt.clone(), GemApprovalValue::Exact { value: 1_234_567u32.into() });
+
+        assert_eq!(unlimited.header.title, GemLocalizedText::UnlimitedAsset { symbol: usdt.symbol.clone() });
+        assert_eq!(
+            exact.header.title,
+            GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&1_234_567u32.into(), &usdt, GemValueStyle::Full)
+            }
         );
     }
 }

@@ -1177,12 +1177,10 @@ fun mockGemAssetBalance(
 
 fun mockGemAssetDetails(
     state: uniffi.gemstone.GemAssetDetailsState = mockGemAssetDetailsState(),
-    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
+    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
     banner: uniffi.gemstone.GemBannerRow? = null,
-    balanceValue: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
     sections: List<uniffi.gemstone.GemAssetDetailSection> = emptyList(),
     title: String = "",
-    fiatValue: uniffi.gemstone.GemFormattedNumber? = null,
     explorerName: String = "",
     addressLink: uniffi.gemstone.BlockExplorerLink? = null,
     tokenLink: uniffi.gemstone.BlockExplorerLink? = null,
@@ -1192,12 +1190,10 @@ fun mockGemAssetDetails(
     swapPair: uniffi.gemstone.GemSwapPairSuggestion = mockGemSwapPairSuggestion(),
 ) = uniffi.gemstone.GemAssetDetails(
     state = state,
-    icon = icon,
+    header = header,
     banner = banner,
-    balanceValue = balanceValue,
     sections = sections,
     title = title,
-    fiatValue = fiatValue,
     explorerName = explorerName,
     addressLink = addressLink,
     tokenLink = tokenLink,
@@ -1963,6 +1959,20 @@ fun mockGemValidatorRow(
     explorer = explorer,
 )
 
+fun mockGemValueHeader(
+    icon: uniffi.gemstone.GemValueHeaderIcon? = null,
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    subtitle: uniffi.gemstone.GemRowText? = null,
+    subtitleIcon: uniffi.gemstone.GemValueHeaderSubtitleIcon? = null,
+    actions: uniffi.gemstone.GemHeaderActions? = null,
+) = uniffi.gemstone.GemValueHeader(
+    icon = icon,
+    title = title,
+    subtitle = subtitle,
+    subtitleIcon = subtitleIcon,
+    actions = actions,
+)
+
 fun mockGemWalletConnectAuthAccount(
     account: uniffi.gemstone.Account = mockAccount().toGem(),
     chainId: String = "",
@@ -2014,18 +2024,12 @@ fun mockGemWalletConnectTransactionRequest(
 )
 
 fun mockGemWalletHomeViewState(
-    total: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    pnl: uniffi.gemstone.GemLocalizedText? = null,
-    pnlTone: uniffi.gemstone.GemValueTone = uniffi.gemstone.GemValueTone.PLAIN,
-    headerActions: uniffi.gemstone.GemHeaderActions = uniffi.gemstone.GemHeaderActions.WatchOnly,
+    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
     showCollections: Boolean = false,
     showsPerpetuals: Boolean = false,
     banner: uniffi.gemstone.GemBannerRow? = null,
 ) = uniffi.gemstone.GemWalletHomeViewState(
-    total = total,
-    pnl = pnl,
-    pnlTone = pnlTone,
-    headerActions = headerActions,
+    header = header,
     showCollections = showCollections,
     showsPerpetuals = showsPerpetuals,
     banner = banner,

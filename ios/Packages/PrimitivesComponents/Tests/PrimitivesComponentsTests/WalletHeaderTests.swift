@@ -3,7 +3,8 @@ import func Gemstone.formattedPercentage
 import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemLocalizedText
-import struct Gemstone.GemWalletHomeViewState
+import struct Gemstone.GemRowText
+import struct Gemstone.GemValueHeader
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
@@ -38,24 +39,29 @@ struct WalletHeaderTests {
 
     @Test
     func buttonsDisabled() {
-        let model = GemWalletHomeViewState.mock(
-            total: currency(0),
-            headerActions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
+        let model = GemValueHeader(
+            icon: nil,
+            title: .number(number: currency(0)),
+            subtitle: nil,
+            subtitleIcon: nil,
+            actions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
         ).valueHeader
         #expect(model.buttons.allSatisfy { !$0.isEnabled })
     }
 
     private func model(total: Double, pnlAmount: Double? = nil, pnlPercentage: Double = 0) -> ValueHeader {
-        GemWalletHomeViewState.mock(
-            total: currency(total),
-            pnl: pnlAmount.map {
-                .pnl(
-                    amount: signed(currency($0)),
-                    percent: formattedPercentage(value: pnlPercentage, style: .unsigned),
-                )
-            },
-            pnlTone: .positive,
-            headerActions: .buttons(buttons: []),
+        let pnl: GemLocalizedText? = pnlAmount.map {
+            .pnl(
+                amount: signed(currency($0)),
+                percent: formattedPercentage(value: pnlPercentage, style: .unsigned),
+            )
+        }
+        return GemValueHeader(
+            icon: nil,
+            title: .number(number: currency(total)),
+            subtitle: pnl.map { GemRowText(text: $0, tone: .positive) },
+            subtitleIcon: pnl == nil ? nil : .chart,
+            actions: .buttons(buttons: []),
         ).valueHeader
     }
 

@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import enum Gemstone.GemConfirmHeader
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemValueHeader
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import Localization
 @testable import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -54,8 +55,8 @@ struct ConfirmHeaderItemTests {
     func aValueHeaderDrawsTheAssetAndWhatItApproves() {
         let value = GemSimulationValue(
             asset: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
-            value: .exact(value: BigUInt(1_000_000)),
-            icon: .mock(),
+            value: .unlimited,
+            header: GemValueHeader(icon: .asset(icon: .mock()), title: .unlimitedAsset(symbol: "USDT"), subtitle: nil, subtitleIcon: nil, actions: nil),
         )
         let model = GemConfirmHeader.value(value: value)
 
@@ -65,7 +66,7 @@ struct ConfirmHeaderItemTests {
             Issue.record("Expected assetValue header")
             return
         }
-        #expect(header.title == "1 USDT")
+        #expect(header.title == Localized.Simulation.Header.unlimitedAsset("USDT"))
         #expect(header.assetImage != nil)
         #expect(headerType.showsClearHeader)
     }

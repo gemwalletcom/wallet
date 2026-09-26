@@ -172,8 +172,8 @@ class PerpetualsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(false, requireNotNull(funded.balanceHeader.value).withdrawEnabled())
-        assertEquals(GemHeaderActions.WatchOnly, watching.balanceHeader.value?.actions)
+        assertEquals(GemHeaderActions.WatchOnly, watching.balanceHeader.value?.header?.actions)
     }
 
-    private fun GemPerpetualBalanceHeader.withdrawEnabled(): Boolean? = (actions as? GemHeaderActions.Buttons)?.buttons?.first { it.kind == GemHeaderButtonKind.WITHDRAW }?.isEnabled
+    private fun GemPerpetualBalanceHeader.withdrawEnabled(): Boolean? = (header.actions as? GemHeaderActions.Buttons)?.buttons?.first { it.kind == GemHeaderButtonKind.WITHDRAW }?.isEnabled
 }

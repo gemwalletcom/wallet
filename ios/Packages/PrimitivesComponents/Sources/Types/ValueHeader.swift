@@ -2,9 +2,9 @@
 
 import Components
 import Formatters
-import struct Gemstone.GemPerpetualBalanceHeader
-import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemWalletHomeViewState
+import struct Gemstone.GemValueHeader
+import enum Gemstone.GemValueHeaderIcon
+import enum Gemstone.GemValueHeaderSubtitleIcon
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -43,36 +43,34 @@ public struct ValueHeader {
     }
 }
 
-public extension GemWalletHomeViewState {
+public extension GemValueHeader {
     var valueHeader: ValueHeader {
         ValueHeader(
-            title: total.text(),
-            subtitle: pnl?.text,
-            subtitleColor: pnlTone.color,
-            subtitleImage: Image(systemName: SystemImage.chartLineUptrendXyaxis),
-            buttons: headerActions.headerButtons,
-            isWatchWallet: headerActions.isWatchOnly,
+            assetImage: icon?.assetImage,
+            title: title.text,
+            subtitle: subtitle?.text.text,
+            subtitleColor: subtitle?.tone.color ?? Colors.gray,
+            subtitleImage: subtitleIcon?.image,
+            buttons: actions?.headerButtons ?? [],
+            isWatchWallet: actions?.isWatchOnly ?? false,
         )
     }
 }
 
-public extension GemSimulationValue {
-    var valueHeader: ValueHeader {
-        ValueHeader(
-            assetImage: AssetImage(icon: icon),
-            title: value.title(symbol: asset.symbol, formatter: ValueFormatter(style: .full), decimals: Int(asset.decimals)),
-        )
+extension GemValueHeaderIcon {
+    var assetImage: AssetImage {
+        switch self {
+        case let .asset(icon): AssetImage(icon: icon)
+        case let .image(url, placeholder): AssetImage(type: .text(placeholder ?? .empty), imageURL: URL(string: url), placeholder: .none, chainPlaceholder: .none)
+        }
     }
 }
 
-public extension GemPerpetualBalanceHeader {
-    var valueHeader: ValueHeader {
-        ValueHeader(
-            title: total.text(),
-            subtitle: Localized.Wallet.availableBalance(available.text()),
-            buttons: actions.headerButtons,
-            isWatchWallet: actions.isWatchOnly,
-        )
+extension GemValueHeaderSubtitleIcon {
+    var image: Image {
+        switch self {
+        case .chart: Image(systemName: SystemImage.chartLineUptrendXyaxis)
+        }
     }
 }
 

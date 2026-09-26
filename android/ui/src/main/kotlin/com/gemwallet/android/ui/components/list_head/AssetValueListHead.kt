@@ -1,8 +1,9 @@
 package com.gemwallet.android.ui.components.list_head
 
 import androidx.compose.runtime.Composable
+import uniffi.gemstone.GemValueHeader
 
 @Composable
-fun AssetValueListHead(header: SimulationHeaderUIModel) {
-    AmountListHead(amount = header.amount, icon = header.icon)
+fun AssetValueListHead(header: GemValueHeader) {
+    ValueListHead(header = header)
 }

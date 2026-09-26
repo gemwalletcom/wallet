@@ -6,10 +6,12 @@ use primitives::{AssetData, AssetId, BannerEvent, Deeplink};
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;
 use crate::models::state::GemLoadState;
+use crate::services::balance::rules::balance_amount;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::GemSwapService;
@@ -18,6 +20,8 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 use crate::services::failures::{StepFailure, record_result};
 
+use super::icon::asset_icon;
+use super::model::{GemRowText, GemValueHeader, GemValueHeaderIcon};
 use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -158,12 +162,19 @@ impl GemAssetDetailsService {
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;
+        let state = rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts);
         GemAssetDetails {
-            icon: super::icon::asset_icon(&asset.id),
+            header: GemValueHeader {
+                icon: Some(GemValueHeaderIcon::Asset { icon: asset_icon(&asset.id) }),
+                title: GemLocalizedText::Number {
+                    number: balance_amount(&balance.total(), &asset),
+                },
+                subtitle: rules::fiat_value(&asset, &balance, price, currency.clone()).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                subtitle_icon: None,
+                actions: Some(state.header_actions.clone()),
+            },
             title: rules::asset_title(&asset),
-            balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
-            fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),
-            state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
+            state,
             banner: visible_banners.into_iter().next(),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,

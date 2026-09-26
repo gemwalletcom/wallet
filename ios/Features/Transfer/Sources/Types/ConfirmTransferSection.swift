@@ -68,7 +68,7 @@ extension ListSection where T == ConfirmTransferItem {
 extension GemConfirmHeader {
     var itemModel: ConfirmTransferItemModel {
         let headerType: TransactionHeaderType = switch self {
-        case let .value(value): .assetValue(value.valueHeader)
+        case let .value(value): .assetValue(value.header.valueHeader)
         case let .placeholder(icon): .assetValue(.placeholder(assetImage: AssetImage(icon: icon)))
         case let .transaction(header), let .reserved(header): header.headerType
         }

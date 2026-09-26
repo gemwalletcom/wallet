@@ -59,11 +59,3 @@ public struct DelegationViewModel: Sendable {
         ValidatorViewModel(row: row.validator).validatorImage
     }
 }
-
-// MARK: - Header
-
-public extension DelegationViewModel {
-    var header: ValueHeader {
-        ValueHeader(assetImage: validatorImage, title: balanceText, subtitle: fiatValueText, subtitleColor: .secondary)
-    }
-}

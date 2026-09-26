@@ -129,7 +129,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
-            header: viewState.valueHeader,
+            header: viewState.header.valueHeader,
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
             banner: viewState.banner,

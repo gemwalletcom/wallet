@@ -80,7 +80,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var headerModel: ValueHeader? {
-        headerData?.valueHeader
+        headerData?.header.valueHeader
     }
 
     public var headerData: GemSimulationValue? {

@@ -6,7 +6,9 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount};
+use crate::precision::GemValueStyle;
+use crate::services::assets::icon::asset_icon;
+use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemValueHeader, GemValueHeaderIcon};
 use crate::services::balance::GemAssetBalance;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
@@ -261,13 +263,25 @@ pub enum GemApprovalValue {
 pub struct GemSimulationValue {
     pub asset: Asset,
     pub value: GemApprovalValue,
-    pub icon: crate::services::assets::icon::GemAssetIcon,
+    pub header: GemValueHeader,
 }
 
 impl GemSimulationValue {
     pub fn new(asset: Asset, value: GemApprovalValue) -> Self {
+        let title = match &value {
+            GemApprovalValue::Unlimited => GemLocalizedText::UnlimitedAsset { symbol: asset.symbol.clone() },
+            GemApprovalValue::Exact { value } => GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), &asset, GemValueStyle::Full),
+            },
+        };
         Self {
-            icon: crate::services::assets::icon::asset_icon(&asset.id),
+            header: GemValueHeader {
+                icon: Some(GemValueHeaderIcon::Asset { icon: asset_icon(&asset.id) }),
+                title,
+                subtitle: None,
+                subtitle_icon: None,
+                actions: None,
+            },
             asset,
             value,
         }

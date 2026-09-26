@@ -63,7 +63,7 @@ public final class DelegationSceneViewModel {
     }
 
     public func header(_ details: GemDelegationDetails) -> ValueHeader {
-        DelegationViewModel(row: details.header).header
+        details.valueHeader.valueHeader
     }
 
     private var price: Double? {

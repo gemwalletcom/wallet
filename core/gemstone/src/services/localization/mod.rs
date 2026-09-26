@@ -35,6 +35,8 @@ pub enum GemLocalizedText {
     Apr { value: Option<GemFormattedNumber> },
     PriceImpactWarning { percent: GemFormattedNumber, symbol: String },
     Balance { amount: GemFormattedNumber },
+    AvailableBalance { amount: GemFormattedNumber },
+    UnlimitedAsset { symbol: String },
     StakeProvider { provider: StakeProviderType },
     NftCollections,
     NftUnverified,

@@ -330,6 +330,7 @@ mocks:
   - GemTransferAmountResult
   - GemTransferData
   - GemValidatorRow
+  - GemValueHeader
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest

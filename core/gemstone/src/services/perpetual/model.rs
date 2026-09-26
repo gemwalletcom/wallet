@@ -2,7 +2,7 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
-use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemHeaderActions, GemPriceRow, GemRowText};
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
@@ -501,9 +501,7 @@ mod tests {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualBalanceHeader {
-    pub total: GemFormattedNumber,
-    pub available: GemFormattedNumber,
-    pub actions: GemHeaderActions,
+    pub header: GemValueHeader,
     pub deposit_asset: Asset,
     pub withdraw_asset: Asset,
 }

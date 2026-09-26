@@ -4,20 +4,19 @@ import android.content.Context
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.NftImageSource
-import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
-import com.gemwallet.android.ui.components.list_head.headerUIModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.GemValueHeader
 import java.math.BigInteger
 
 sealed interface ConfirmHeaderUIModel {
     data class Placeholder(val icon: Any?) : ConfirmHeaderUIModel
     data class ReservedSpace(val icon: Any?) : ConfirmHeaderUIModel
-    data class Simulation(val header: SimulationHeaderUIModel) : ConfirmHeaderUIModel
+    data class Simulation(val header: GemValueHeader) : ConfirmHeaderUIModel
     data class Swap(val fromAsset: Asset, val fromIcon: GemAssetIcon, val fromValueText: String, val fromEquivalentText: String?, val toAsset: Asset, val toIcon: GemAssetIcon, val toValueText: String, val toEquivalentText: String?) :
         ConfirmHeaderUIModel
     data class Nft(val source: NftImageSource) : ConfirmHeaderUIModel
@@ -29,7 +28,7 @@ sealed interface ConfirmHeaderUIModel {
 data class FeeSelectionUIModel(val selectedPriority: FeePriority?, val customRate: BigInteger?)
 
 internal fun confirmHeader(header: GemConfirmHeader, context: Context): ConfirmHeaderUIModel = when (header) {
-    is GemConfirmHeader.Value -> ConfirmHeaderUIModel.Simulation(header.value.headerUIModel(context))
+    is GemConfirmHeader.Value -> ConfirmHeaderUIModel.Simulation(header.value.header)
     is GemConfirmHeader.Placeholder -> ConfirmHeaderUIModel.Placeholder(header.icon)
     is GemConfirmHeader.Reserved -> ConfirmHeaderUIModel.ReservedSpace(header.header.uiModel().headerIcon())
     is GemConfirmHeader.Transaction -> header.header.uiModel()

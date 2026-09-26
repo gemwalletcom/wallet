@@ -8,6 +8,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemHeaderAmount
+import com.gemwallet.android.testkit.mockGemValueHeader
 import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -38,7 +39,7 @@ class ConfirmHeaderUIModelTest {
     @Test
     fun `an approval header reads the value Core resolved`() {
         val asset = mockAsset()
-        val header = GemConfirmHeader.Value(GemSimulationValue(asset.toGem(), GemApprovalValue.Unlimited, mockGemAssetIcon()))
+        val header = GemConfirmHeader.Value(GemSimulationValue(asset.toGem(), GemApprovalValue.Unlimited, mockGemValueHeader()))
 
         val model = confirmHeader(header, context = context)
 

@@ -114,7 +114,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var header: ValueHeader {
-        balanceHeader.valueHeader
+        balanceHeader.header.valueHeader
     }
 }
 

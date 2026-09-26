@@ -26,7 +26,6 @@ import uniffi.gemstone.GemAssetDetailRow
 import uniffi.gemstone.GemAssetDetailSection
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemBalanceRowValue
-import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
@@ -135,13 +134,8 @@ class AssetUIStateFactoryTest {
         every { getString(any(), *anyVararg()) } answers { "${firstArg<Int>()}${(args[1] as Array<*>).joinToString("")}" }
     }
 
-    private fun model(
-        assetInfo: AssetData,
-        sections: List<GemAssetDetailSection> = emptyList(),
-        fiatValue: GemFormattedNumber? = null,
-        balanceValue: GemFormattedNumber = mockGemFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
-    ) = AssetUIStateFactory(context).create(
+    private fun model(assetInfo: AssetData, sections: List<GemAssetDetailSection> = emptyList()) = AssetUIStateFactory(context).create(
         mockChainAssetData(assetData = assetInfo, feeAssetData = assetInfo),
-        mockGemAssetDetails(state = mockGemAssetDetailsState(showsBanners = true), balanceValue = balanceValue, sections = sections, fiatValue = fiatValue),
+        mockGemAssetDetails(state = mockGemAssetDetailsState(showsBanners = true), sections = sections),
     )
 }
