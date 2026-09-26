@@ -101,7 +101,7 @@ class RewardsViewModel @Inject constructor(
     val availableWallets = walletsQuery().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }) }
+    val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }, null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val incomingCode: StateFlow<IncomingCodeUIModel> = combine(referralCode, availableWallets) { code, wallets ->

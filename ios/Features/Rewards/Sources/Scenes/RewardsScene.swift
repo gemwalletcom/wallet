@@ -44,7 +44,7 @@ public struct RewardsScene: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if model.showsWalletSelector {
-                    WalletBarView(model: model.walletBarViewModel) {
+                    WalletBarView(row: model.selectedWalletRow) {
                         model.isPresentingSheet = .walletSelector
                     }
                 } else {

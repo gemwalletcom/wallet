@@ -16,24 +16,26 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallets.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSection
+import uniffi.gemstone.GemWalletSectionKind
+import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
 fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEditWallet: (WalletId) -> Unit, onSelectWallet: () -> Unit, onBoard: () -> Unit, onCancel: () -> Unit) {
     val viewModel: WalletsViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     var deleteWalletId by remember { mutableStateOf<WalletId?>(null) }
 
     WalletsScene(
-        pinnedWallets = uiState.pinned,
-        unpinnedWallets = uiState.unpinned,
+        sections = sections,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
@@ -50,7 +52,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 
     deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
-            walletName = uiState.name(pendingDeleteWalletId),
+            walletName = sections.flatMap { it.rows }.firstOrNull { it.id == pendingDeleteWalletId.id }?.name.orEmpty(),
             onConfirm = {
                 deleteWalletId = null
                 viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)
@@ -64,21 +66,33 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 @Preview
 @Composable
 fun PreviewWalletsScene() {
-    val wallet = { id: String, name: String, isCurrent: Boolean ->
-        WalletItemUIModel(
-            row = WalletRowUIModel(id = id, name = name, subtitle = "Multicoin", icon = R.drawable.multicoin_wallet, supportIcon = null),
+    val wallet = { id: String, name: String, isPinned: Boolean, isCurrent: Boolean ->
+        GemWalletRow(
+            id = id,
+            name = name,
+            subtitle = GemWalletSubtitle.Multicoin,
+            placeholder = GemWalletPlaceholder.Multicoin,
+            showsWatchBadge = false,
+            isPinned = isPinned,
             isCurrent = isCurrent,
+            hasAvatar = false,
+            imageUrl = null,
         )
     }
     MaterialTheme {
         Box {
             WalletsScene(
-                unpinnedWallets = listOf(
-                    wallet("1", "Foo wallet #1", true),
-                    wallet("2", "Foo wallet #2", false),
-                    wallet("3", "Foo wallet #3", false),
+                sections = listOf(
+                    GemWalletSection(GemWalletSectionKind.PINNED, listOf(wallet("4", "Foo wallet #4", true, false))),
+                    GemWalletSection(
+                        GemWalletSectionKind.WALLETS,
+                        listOf(
+                            wallet("1", "Foo wallet #1", false, true),
+                            wallet("2", "Foo wallet #2", false, false),
+                            wallet("3", "Foo wallet #3", false, false),
+                        ),
+                    ),
                 ),
-                pinnedWallets = listOf(wallet("4", "Foo wallet #4", true)),
                 onAction = {},
             )
         }

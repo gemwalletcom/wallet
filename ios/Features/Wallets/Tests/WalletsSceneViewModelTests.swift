@@ -26,7 +26,7 @@ struct WalletsSceneViewModelTests {
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = try await session.getWallets().map(WalletEntry.init(wallet:))
+        model.walletsQuery.value = try await session.getWallets()
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 

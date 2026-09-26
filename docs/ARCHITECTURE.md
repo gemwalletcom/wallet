@@ -57,7 +57,7 @@ The same thing has the same base name on both apps; only the platform's suffix o
 | Feature module | `Features/<Name>` | `features/<name>` | `PriceAlerts` / `price_alerts` |
 | Screen | `XScene` | `XScreen` binds the view model, `XScene` is stateless | `SwapScene` / `SwapScreen` + `SwapScene` |
 | Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
-| Screen UI state | — (the view model) | `XUIState` | `WalletsUIState` |
+| Screen UI state | — (the view model) | `XUIState` | `LockUIState` |
 | User action | a view model method | `XAction` | `SwapAction` |
 | Component or row model | `XViewModel` | `XUIModel` | `SwapProvidersViewModel` / `PriceAlertItemUIModel` |
 | Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
@@ -539,13 +539,13 @@ The test is whether the same row is drawn differently somewhere: if it is, the s
 
 ### A row is projected from its value, never fetched from a service
 
-`walletRow(wallet)`, `walletRows(wallets)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
+`walletRow(wallet)`, `walletSections(wallets, currentWalletId)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
 
 A view model that already owns the screen's service still asks that service for anything the *screen* decides. The line is whether the answer depends on state the service holds.
 
 ### The row carries the whole answer; the view model only reads it
 
-Once Core owns the row, the app-side model has nothing left to decide. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `hasAvatar` and `imageUrl`, and each app maps it once, in a row extension, to the platform model its view takes: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `GemWalletRow.uiModel(context)` builds the `WalletRowUIModel` that `WalletItem` draws. Where a model still stands between the row and the view, it is [the row and nothing else](#an-app-row-model-stores-the-row-and-nothing-else).
+Once Core owns the row, the app-side model has nothing left to decide. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `isCurrent`, `hasAvatar` and `imageUrl`, and each app draws it directly: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `WalletItem` takes the row itself, and the avatar image comes from the style mapper on both. Where a model still stands between the row and the view, it is [the row and nothing else](#an-app-row-model-stores-the-row-and-nothing-else).
 
 Two things a record cannot carry are a localized string and a bundled image asset, and both have one home per platform.
 

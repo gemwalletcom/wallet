@@ -253,10 +253,6 @@ impl GemWalletService {
         self.names.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
     }
 
-    pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
-        rules::sorted_wallets(wallets)
-    }
-
     pub async fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         self.store.get_wallets().await
     }

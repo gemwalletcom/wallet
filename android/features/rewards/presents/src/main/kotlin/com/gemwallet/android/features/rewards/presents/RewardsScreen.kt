@@ -22,7 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -98,7 +97,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     ) {
         val context = LocalContext.current
         LazyColumn {
-            walletSections(availableWalletSections.map { it.uiModel(context) }, currentWallet?.id?.id) { id ->
+            walletSections(availableWalletSections, currentWallet?.id?.id) { id ->
                 viewModel.setWallet(walletId = id)
                 isShowSelectWallets = false
             }

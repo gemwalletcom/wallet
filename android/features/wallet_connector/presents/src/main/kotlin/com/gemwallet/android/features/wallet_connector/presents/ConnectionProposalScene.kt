@@ -21,7 +21,6 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
@@ -32,6 +31,7 @@ import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemConnectionRow
+import uniffi.gemstone.GemWalletSection
 
 @Composable
 internal fun ConnectionProposalScene(
@@ -43,7 +43,7 @@ internal fun ConnectionProposalScene(
     permissionListItems: List<ListItemModel>,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
-    availableWalletSections: List<WalletSectionUIModel>,
+    availableWalletSections: List<GemWalletSection>,
     buttonState: ButtonState,
     onReject: () -> Unit,
     onApprove: () -> Unit,

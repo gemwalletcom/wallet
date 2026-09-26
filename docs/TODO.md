@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM237 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM239 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -35,7 +35,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM237, VM238, VM239, VM240, VM294 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM239, VM240, VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM253, VM261, VM285 |
@@ -121,14 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Wallets and onboarding
 
-- **VM237** **S** **Wallet rows are rebuilt and imaged by the apps.**
-  - **iOS:** `WalletEntry` pairs a wallet with `walletRow(wallet:)`; `GemWalletRow` extensions choose image, placeholder and watch badge; `WalletBarViewViewModel` copies the wallet name and avatar for the wallet bar.
-  - **Android:** `WalletRowUIModel`, `WalletSectionUIModel`, `walletListItemImage` and `supportIcon` do the same; the wallet bar takes name and icon separately from `WalletRowUIModel`.
-  - **Expected:** views, the wallet bar included, take `GemWalletRow`/`GemWalletSection`; image choice moves to the mapper; the wrappers and `WalletBarViewViewModel` go.
-- **VM238** **S** **The wallets list splits sections in the app.**
-  - **iOS:** `WalletsSceneViewModel` sorts through `walletService.sorted`; `SelectWalletViewModel` maps `GemWalletSection` kinds to titles.
-  - **Android:** `WalletsUIState` splits pinned and unpinned and marks the current wallet.
-  - **Expected:** Core returns the wallet sections with the current flag; both splits go.
 - **VM239** **S** **Wallet details are twinned.**
   - **iOS:** `WalletDetailSceneViewModel` and `WalletImageSceneViewModel` read and reshape wallet details; `WalletDetailSceneViewModel` also composes "Show {secret}" and the address row.
   - **Android:** `WalletDetailUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`; `WalletDetailViewModel` composes "Show {secret}".
@@ -340,8 +332,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** calls Core with `toGem()` at each call site.
   - **Expected:** callers use the generated types directly; the wrapper extensions go.
 - **VM289** **S** **Android domain aggregates wrap Core rows.**
-  - **iOS:** uses `GemPerpetualMarketItem` directly in views (its wallet-row twin `WalletEntry` is VM237).
-  - **Android:** `PerpetualDataAggregate`, `PerpetualPositionDataAggregate(Impl)`, `WalletDataAggregate`, `WalletSummary`, `LeverageState` and `NftAssetDetailsData` (`gemcore/.../domains`) wrap them.
+  - **iOS:** uses `GemPerpetualMarketItem` directly in views.
+  - **Android:** `PerpetualDataAggregate`, `PerpetualPositionDataAggregate(Impl)`, `WalletSummary`, `LeverageState` and `NftAssetDetailsData` (`gemcore/.../domains`) wrap them.
   - **Expected:** Android uses the records directly; the aggregates go.
 
 ### Scenes

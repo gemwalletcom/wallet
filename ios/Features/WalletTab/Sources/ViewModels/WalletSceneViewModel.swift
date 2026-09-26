@@ -12,6 +12,8 @@ import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletHomeServiceProtocol
+import struct Gemstone.GemWalletRow
+import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -33,11 +35,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public let collectionsModel: CollectionsSceneViewModel
 
     public var wallet: Wallet {
-        walletQuery.value.wallet
+        walletQuery.value
     }
 
     // db queries
-    public let walletQuery: ObservableQuery<MappedQuery<WalletQuery, WalletEntry>>
+    public let walletQuery: ObservableQuery<WalletQuery>
     public let fiatValuesQuery: ObservableQuery<AssetFiatValuesQuery>
     public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
     public let assetsQuery: ObservableQuery<AssetsQuery>
@@ -65,7 +67,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         self.observablePreferences = observablePreferences
         self.collectionsModel = collectionsModel
 
-        walletQuery = ObservableQuery(MappedQuery(WalletQuery(walletId: wallet.id), transform: WalletEntry.init(wallet:)), initialValue: WalletEntry(wallet: wallet))
+        walletQuery = ObservableQuery(WalletQuery(walletId: wallet.id), initialValue: wallet)
         fiatValuesQuery = ObservableQuery(
             AssetFiatValuesQuery(walletId: wallet.id),
             initialValue: [],
@@ -115,12 +117,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Images.Actions.manage
     }
 
-    public var walletBarModel: WalletBarViewViewModel {
-        let row = walletQuery.value.row
-        return WalletBarViewViewModel(
-            name: row.name,
-            image: row.avatarImage,
-        )
+    public var walletRow: GemWalletRow {
+        Gemstone.walletRow(wallet: wallet.toGem())
     }
 
     var homeState: WalletHomeState {

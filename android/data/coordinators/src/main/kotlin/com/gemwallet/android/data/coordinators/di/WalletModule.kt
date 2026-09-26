@@ -8,7 +8,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -17,5 +16,5 @@ object WalletModule {
 
     @Provides
     @Singleton
-    fun provideGetAllWallets(getSession: GetSession, walletsQuery: WalletsQuery, walletService: GemWalletService): GetAllWallets = GetAllWalletsImpl(getSession, walletsQuery, walletService)
+    fun provideGetAllWallets(getSession: GetSession, walletsQuery: WalletsQuery): GetAllWallets = GetAllWalletsImpl(getSession, walletsQuery)
 }

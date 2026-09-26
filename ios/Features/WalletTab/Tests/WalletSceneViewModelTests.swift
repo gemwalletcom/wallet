@@ -22,7 +22,7 @@ struct WalletSceneViewModelTests {
 
         let model = WalletSceneViewModel.mock(wallet: wallet, db: db)
 
-        #expect(model.walletBarModel.name == "First")
+        #expect(model.walletRow.name == "First")
 
         try store.renameWallet(wallet.id, name: "Renamed")
         while model.wallet.name != "Renamed" {
@@ -31,7 +31,7 @@ struct WalletSceneViewModelTests {
             }
         }
 
-        #expect(model.walletBarModel.name == "Renamed")
+        #expect(model.walletRow.name == "Renamed")
     }
 
     @Test

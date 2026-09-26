@@ -17,7 +17,9 @@ import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.style.textStyle
+import com.gemwallet.android.ui.style.walletListItemImage
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon

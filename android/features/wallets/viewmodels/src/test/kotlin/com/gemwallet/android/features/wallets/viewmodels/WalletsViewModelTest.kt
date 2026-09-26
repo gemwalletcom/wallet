@@ -3,9 +3,7 @@ package com.gemwallet.android.features.wallets.viewmodels
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
-import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.testkit.mockGemWalletRow
-import com.gemwallet.android.testkit.mockWalletDataAggregate
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,17 +16,17 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletSection
+import uniffi.gemstone.GemWalletSectionKind
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletSubtitle
 
@@ -36,7 +34,7 @@ import uniffi.gemstone.GemWalletSubtitle
 class WalletsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val wallets = MutableStateFlow<List<WalletDataAggregate>>(emptyList())
+    private val wallets = MutableStateFlow<List<GemWalletSection>>(emptyList())
     private val models = mutableListOf<WalletsViewModel>()
 
     @Before
@@ -50,30 +48,18 @@ class WalletsViewModelTest {
     }
 
     @Test
-    fun `the pinned wallets come first and each row is already rendered`() = runTest(dispatcher) {
-        wallets.value = listOf(
-            mockWalletDataAggregate(mockGemWalletRow(id = "pinned", name = "Pinned", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)),
-            mockWalletDataAggregate(mockGemWalletRow(id = "unpinned", name = "Plain", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin)),
-            mockWalletDataAggregate(mockGemWalletRow(id = "second-pinned", name = "Second", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)),
-        )
-        val model = viewModel()
-        advanceUntilIdle()
+    fun `a pin toggles the wallet Core listed`() = runTest(dispatcher) {
+        val pinned = mockGemWalletRow(id = "pinned", name = "Pinned", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)
+        wallets.value = listOf(GemWalletSection(GemWalletSectionKind.PINNED, listOf(pinned)))
+        val service: GemWalletServiceInterface = mockk(relaxed = true)
+        val model = viewModel(service)
 
-        val state = model.uiState.value
-        assertEquals(listOf("pinned", "second-pinned"), state.pinned.map { it.row.id })
-        assertEquals(listOf("unpinned"), state.unpinned.map { it.row.id })
-        assertEquals(listOf("Pinned", "Second"), state.pinned.map { it.row.name })
-        assertEquals("Plain", state.name(WalletId("unpinned")))
-        assertEquals("", state.name(WalletId("gone")))
-    }
+        model.togglePin(WalletId("pinned")).join()
+        model.togglePin(WalletId("gone")).join()
 
-    @Test
-    fun `no wallets leaves both sections empty`() = runTest(dispatcher) {
-        val model = viewModel()
-        advanceUntilIdle()
-
-        assertTrue(model.uiState.value.pinned.isEmpty())
-        assertTrue(model.uiState.value.unpinned.isEmpty())
+        assertEquals(wallets.value, model.sections.value)
+        coVerify(exactly = 1) { service.setPinned("pinned", false) }
+        coVerify(exactly = 0) { service.setPinned("gone", any()) }
     }
 
     @Test

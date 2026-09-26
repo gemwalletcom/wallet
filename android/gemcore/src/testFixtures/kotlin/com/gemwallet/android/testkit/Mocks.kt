@@ -6,7 +6,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.Session
@@ -28,9 +27,6 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.GemWalletPlaceholder
-import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.assetText
 
 fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId(
@@ -91,9 +87,6 @@ fun mockSession(wallet: Wallet = mockWallet(), currency: Currency = Currency.USD
     wallet = wallet,
     currency = currency,
 )
-
-fun mockWalletDataAggregate(row: GemWalletRow = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin)): WalletDataAggregate =
-    WalletDataAggregate(row = row, isCurrent = false)
 
 fun mockWalletConnectSessionProposal(): WalletConnectSessionProposal {
     val metadata = mockApplicationMetadata()

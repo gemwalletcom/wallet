@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.style
 
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
@@ -16,6 +18,7 @@ import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.supportIconModel
+import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
@@ -52,6 +55,8 @@ import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemVerificationLevel
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
@@ -335,4 +340,24 @@ fun VerificationStatus.badgeIconRes(): Int? = when (this) {
     VerificationStatus.Verified -> null
     VerificationStatus.Unverified -> R.drawable.unverified
     VerificationStatus.Suspicious -> R.drawable.suspicious
+}
+
+fun GemWalletRow.iconModel(context: Context): Any? = walletImageModel(context, imageUrl) ?: placeholder.iconModel()
+
+fun GemWalletRow.listItemImage(): ListItemImage = walletListItemImage(imageUrl, placeholder)
+
+fun walletListItemImage(imageUrl: String?, placeholder: GemWalletPlaceholder): ListItemImage = imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it) } ?: when (placeholder) {
+    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, style = ListItemImageStyle.Avatar)
+    is GemWalletPlaceholder.Chain -> ListItemImage.Asset(placeholder.chain)
+}
+
+fun GemWalletPlaceholder.iconModel(): Any? = when (this) {
+    GemWalletPlaceholder.Multicoin -> R.drawable.multicoin_wallet
+    is GemWalletPlaceholder.Chain -> chain.toChain().iconModel()
+}
+
+fun GemWalletRow.supportIcon(): String? = if (showsWatchBadge) {
+    "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
+} else {
+    null
 }

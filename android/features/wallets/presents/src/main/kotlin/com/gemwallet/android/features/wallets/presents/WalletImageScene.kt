@@ -34,10 +34,9 @@ import com.gemwallet.android.ui.components.EmojiPickerGrid
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
-import com.gemwallet.android.ui.components.list_item.iconModel
-import com.gemwallet.android.ui.components.list_item.supportIcon
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.style.supportIcon
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault

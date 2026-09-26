@@ -40,6 +40,8 @@ import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
 import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletPlaceholder
+import struct Gemstone.GemWalletRow
+import enum Gemstone.GemWalletSectionKind
 import enum Gemstone.LinkType
 import enum Gemstone.YieldProvider
 import GemstonePrimitives
@@ -430,6 +432,26 @@ public extension GemWalletPlaceholder {
         switch self {
         case .multicoin: Images.Logo.logo
         case let .chain(chain): ChainImage(chain: Primitives.Chain(core: chain)).image
+        }
+    }
+}
+
+public extension GemWalletRow {
+    var avatarImage: AssetImage {
+        AssetImage(
+            type: .text(name),
+            imageURL: imageUrl.map { ImageSource($0).url },
+            placeholder: placeholder.image,
+            chainPlaceholder: showsWatchBadge ? Images.Wallets.watch : nil,
+        )
+    }
+}
+
+public extension GemWalletSectionKind {
+    var image: Image? {
+        switch self {
+        case .pinned: Images.System.pin
+        case .wallets: nil
         }
     }
 }

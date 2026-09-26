@@ -98,7 +98,7 @@ public final class RewardsSceneViewModel: Sendable {
 
     var walletSelectorModel: SelectWalletViewModel {
         SelectWalletViewModel(
-            sections: walletSections(wallets: wallets.map { $0.toGem() }),
+            sections: walletSections(wallets: wallets.map { $0.toGem() }, currentWalletId: nil),
             selectedRow: selectedWalletRow,
         )
     }
@@ -140,11 +140,6 @@ public final class RewardsSceneViewModel: Sendable {
 
     var activatePendingButtonType: ButtonType {
         pendingReferral?.isEnabled == true ? .primary() : .primary(.disabled)
-    }
-
-    var walletBarViewModel: WalletBarViewViewModel {
-        let row = selectedWalletRow
-        return WalletBarViewViewModel(name: row.name, image: row.avatarImage)
     }
 
     var rewardsUrl: URL {

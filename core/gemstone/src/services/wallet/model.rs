@@ -146,6 +146,7 @@ pub struct GemWalletRow {
     pub placeholder: GemWalletPlaceholder,
     pub shows_watch_badge: bool,
     pub is_pinned: bool,
+    pub is_current: bool,
     pub has_avatar: bool,
     pub image_url: Option<String>,
 }
@@ -153,11 +154,6 @@ pub struct GemWalletRow {
 #[uniffi::export]
 pub fn wallet_row(wallet: Wallet) -> GemWalletRow {
     rules::row(&wallet)
-}
-
-#[uniffi::export]
-pub fn wallet_rows(wallets: Vec<Wallet>) -> Vec<GemWalletRow> {
-    rules::rows(&wallets)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -173,8 +169,8 @@ pub struct GemWalletSection {
 }
 
 #[uniffi::export]
-pub fn wallet_sections(wallets: Vec<Wallet>) -> Vec<GemWalletSection> {
-    rules::sections(&wallets)
+pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<String>) -> Vec<GemWalletSection> {
+    rules::sections(wallets, current_wallet_id.as_deref())
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

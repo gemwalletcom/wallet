@@ -20,9 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
-import com.gemwallet.android.ui.components.image.walletImageModel
-import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.style.iconModel
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 
@@ -32,8 +31,7 @@ private const val ManageActionTag = "assetsManageAction"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WalletTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
-    val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletRow?.imageUrl)
-        ?: walletSummary?.walletRow?.placeholder?.iconModel()
+    val walletIcon = walletSummary?.walletRow?.iconModel(LocalContext.current)
 
     CenterAlignedTopAppBar(
         title = {

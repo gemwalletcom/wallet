@@ -1,7 +1,9 @@
 import Components
 import Foundation
+import struct Gemstone.GemWalletRow
+import struct Gemstone.GemWalletSection
 import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.walletRows
+import func Gemstone.walletSections
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -26,10 +28,9 @@ public final class WalletsSceneViewModel {
         service.currentWalletId
     }
 
-    let pinnedWalletsQuery: ObservableQuery<MappedQuery<WalletsQuery, [WalletEntry]>>
-    let walletsQuery: ObservableQuery<MappedQuery<WalletsQuery, [WalletEntry]>>
+    let walletsQuery: ObservableQuery<WalletsQuery>
 
-    var hasWallets: Bool { walletsQuery.value.isNotEmpty || pinnedWalletsQuery.value.isNotEmpty }
+    var hasWallets: Bool { walletsQuery.value.isNotEmpty }
 
     public init(
         navigationPath: Binding<NavigationPath>,
@@ -45,24 +46,19 @@ public final class WalletsSceneViewModel {
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
         self.isPresentingImportWalletSheet = isPresentingImportWalletSheet
-        let entries: @Sendable ([Wallet]) -> [WalletEntry] = { [walletService] wallets in
-            let sorted = walletService.sorted(wallets: wallets)
-            return zip(sorted, walletRows(wallets: sorted.map { $0.toGem() })).map(WalletEntry.init)
-        }
-        pinnedWalletsQuery = ObservableQuery(MappedQuery(WalletsQuery(isPinned: true), transform: entries), initialValue: [])
-        walletsQuery = ObservableQuery(MappedQuery(WalletsQuery(isPinned: false), transform: entries), initialValue: [])
+        walletsQuery = ObservableQuery(WalletsQuery(isPinned: nil), initialValue: [])
     }
 
     var title: String {
         Localized.Wallets.title
     }
 
-    var pinnedItems: [(wallet: Wallet, listItem: ListItemModel)] {
-        pinnedWalletsQuery.value.map { ($0.wallet, $0.row.listItem) }
+    var sections: [GemWalletSection] {
+        walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId?.id)
     }
 
-    var walletItems: [(wallet: Wallet, listItem: ListItemModel)] {
-        walletsQuery.value.map { ($0.wallet, $0.row.listItem) }
+    func wallet(for row: GemWalletRow) -> Wallet? {
+        walletsQuery.value.first { $0.id.id == row.id }
     }
 }
 

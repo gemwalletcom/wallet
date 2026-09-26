@@ -144,6 +144,7 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
         placeholder,
         shows_watch_badge,
         is_pinned: wallet.is_pinned,
+        is_current: false,
         has_avatar: wallet.image_url.as_ref().is_some_and(|url| !url.is_empty()),
         image_url: wallet.image_url.clone(),
     };
@@ -159,12 +160,14 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
     }
 }
 
-pub fn rows(wallets: &[Wallet]) -> Vec<GemWalletRow> {
-    wallets.iter().map(row).collect()
-}
-
-pub fn sections(wallets: &[Wallet]) -> Vec<GemWalletSection> {
-    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = rows(wallets).into_iter().partition(|row| row.is_pinned);
+pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&str>) -> Vec<GemWalletSection> {
+    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_wallets(wallets)
+        .iter()
+        .map(|wallet| GemWalletRow {
+            is_current: current_wallet_id == Some(wallet.id.id().as_str()),
+            ..row(wallet)
+        })
+        .partition(|row| row.is_pinned);
     [(GemWalletSectionKind::Pinned, pinned), (GemWalletSectionKind::Wallets, rest)]
         .into_iter()
         .filter(|(_, rows)| !rows.is_empty())
@@ -295,12 +298,12 @@ mod tests {
             ..Wallet::mock()
         };
 
-        let sections = sections(&[plain.clone(), pinned.clone()]);
+        let sections = sections(vec![plain.clone(), pinned.clone()], Some(&plain.id.id()));
         assert_eq!(sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemWalletSectionKind::Pinned, GemWalletSectionKind::Wallets]);
         assert_eq!(sections[0].rows, vec![row(&pinned)]);
-        assert_eq!(sections[1].rows, vec![row(&plain)]);
+        assert_eq!(sections[1].rows, vec![GemWalletRow { is_current: true, ..row(&plain) }], "the current wallet is marked where it is listed");
 
-        assert_eq!(super::sections(&[plain]).len(), 1, "no empty pinned section");
+        assert_eq!(super::sections(vec![plain], None).len(), 1, "no empty pinned section");
     }
 
     #[test]

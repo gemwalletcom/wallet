@@ -1,17 +1,17 @@
 import Components
-import Primitives
+import struct Gemstone.GemWalletRow
 import Style
 import SwiftUI
 
 public struct WalletBarView: View {
-    private let model: WalletBarViewViewModel
+    private let row: GemWalletRow
     private let action: (() -> Void)?
 
     public init(
-        model: WalletBarViewViewModel,
+        row: GemWalletRow,
         action: (() -> Void)? = nil,
     ) {
-        self.model = model
+        self.row = row
         self.action = action
     }
 
@@ -20,9 +20,9 @@ public struct WalletBarView: View {
             action?()
         } label: {
             HStack(spacing: .small) {
-                AssetImageView(assetImage: model.image, size: .large)
+                AssetImageView(assetImage: row.avatarImage, size: .large)
 
-                Text(model.name)
+                Text(row.name)
                     .foregroundStyle(Colors.black)
                     .fontWeight(.medium)
                     .font(.body)
@@ -39,15 +39,4 @@ public struct WalletBarView: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("walletBar")
     }
-}
-
-// MARK: - Previews
-
-#Preview {
-    WalletBarView(
-        model: WalletBarViewViewModel(
-            name: "Wallet #1",
-            image: AssetImage(imageURL: .none, placeholder: .none, chainPlaceholder: .none),
-        ),
-    )
 }

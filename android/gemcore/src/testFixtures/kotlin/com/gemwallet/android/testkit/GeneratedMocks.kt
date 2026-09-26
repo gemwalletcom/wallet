@@ -2190,6 +2190,7 @@ fun mockGemWalletRow(
     placeholder: uniffi.gemstone.GemWalletPlaceholder = uniffi.gemstone.GemWalletPlaceholder.Multicoin,
     showsWatchBadge: Boolean = false,
     isPinned: Boolean = false,
+    isCurrent: Boolean = false,
     hasAvatar: Boolean = false,
     imageUrl: String? = null,
 ) = uniffi.gemstone.GemWalletRow(
@@ -2199,6 +2200,7 @@ fun mockGemWalletRow(
     placeholder = placeholder,
     showsWatchBadge = showsWatchBadge,
     isPinned = isPinned,
+    isCurrent = isCurrent,
     hasAvatar = hasAvatar,
     imageUrl = imageUrl,
 )

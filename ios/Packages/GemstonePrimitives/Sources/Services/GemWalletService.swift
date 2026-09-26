@@ -15,10 +15,6 @@ public extension GemWalletServiceProtocol {
         }
     }
 
-    func sorted(wallets: [Wallet]) -> [Wallet] {
-        sortedWallets(wallets: wallets.map { $0.toGem() }).map { $0.toPrimitives() }
-    }
-
     func delete(_ wallet: Wallet) async throws -> GemWalletDeletion {
         try await deleteWallet(walletId: wallet.id.id)
     }

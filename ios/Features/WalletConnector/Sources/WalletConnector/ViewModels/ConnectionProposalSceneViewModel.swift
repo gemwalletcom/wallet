@@ -32,7 +32,7 @@ public struct ConnectionProposalSceneViewModel {
         row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
         verification = verificationLevel(status: pairingProposal.verificationStatus.toGem())
         walletSelectorModel = SelectWalletViewModel(
-            sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
+            sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )
     }

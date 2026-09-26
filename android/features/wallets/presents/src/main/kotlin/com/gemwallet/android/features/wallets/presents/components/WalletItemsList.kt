@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
@@ -21,38 +20,32 @@ import com.gemwallet.android.ui.components.list_item.pinnedHeader
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletSection
+import uniffi.gemstone.GemWalletSectionKind
 
-internal fun LazyListScope.wallets(
-    wallets: List<WalletItemUIModel>,
-    longPressedWallet: MutableState<String>,
-    isPinned: Boolean = false,
-    onEdit: (WalletId) -> Unit,
-    onSelectWallet: (WalletId) -> Unit,
-    onDeleteWallet: (WalletId) -> Unit,
-    onTogglePin: (WalletId) -> Unit,
-) {
-    if (isPinned && wallets.isNotEmpty()) {
+internal fun LazyListScope.wallets(section: GemWalletSection, longPressedWallet: MutableState<String>, onEdit: (WalletId) -> Unit, onSelectWallet: (WalletId) -> Unit, onDeleteWallet: (WalletId) -> Unit, onTogglePin: (WalletId) -> Unit) {
+    if (section.kind == GemWalletSectionKind.PINNED) {
         pinnedHeader()
     }
-    itemsIndexed(items = wallets, key = { _, item -> item.row.id }) { index, item ->
-        val walletId = WalletId(item.row.id)
+    itemsIndexed(items = section.rows, key = { _, row -> row.id }) { index, row ->
+        val walletId = WalletId(row.id)
 
         DropDownContextItem(
             isExpanded = longPressedWallet.value == walletId.id,
             onDismiss = { longPressedWallet.value = "" },
             content = {
                 WalletItem(
-                    model = item.row,
-                    isCurrent = item.isCurrent,
-                    listPosition = ListPosition.getPosition(index, wallets.size),
+                    row = row,
+                    isCurrent = row.isCurrent,
+                    listPosition = ListPosition.getPosition(index, section.rows.size),
                     onEdit = { onEdit(walletId) },
                     modifier = it,
                 )
             },
             menuItems = {
                 WalletDropDownItem(
-                    if (isPinned) R.string.common_unpin else R.string.common_pin,
-                    if (isPinned) R.drawable.keep_off else AppIcons.PushPin,
+                    if (row.isPinned) R.string.common_unpin else R.string.common_pin,
+                    if (row.isPinned) R.drawable.keep_off else AppIcons.PushPin,
                 ) {
                     onTogglePin(walletId)
                     longPressedWallet.value = ""

@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.wallets.viewmodels.models
 
-import com.gemwallet.android.ui.components.list_item.iconModel
-import com.gemwallet.android.ui.components.list_item.supportIcon
+import com.gemwallet.android.ui.style.iconModel
+import com.gemwallet.android.ui.style.supportIcon
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemAddressRow
 import uniffi.gemstone.GemWalletDetails

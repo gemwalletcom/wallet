@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components.list_item
 
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.style.supportIcon
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

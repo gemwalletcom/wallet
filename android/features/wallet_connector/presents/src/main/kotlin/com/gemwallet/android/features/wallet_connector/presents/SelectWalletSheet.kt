@@ -8,13 +8,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletSection
 
 @Composable
-internal fun SelectWalletSheet(isVisible: Boolean, walletSections: List<WalletSectionUIModel>, selectedWalletId: WalletId?, onWalletSelected: (WalletId) -> Unit, onDismissRequest: () -> Unit) {
+internal fun SelectWalletSheet(isVisible: Boolean, walletSections: List<GemWalletSection>, selectedWalletId: WalletId?, onWalletSelected: (WalletId) -> Unit, onDismissRequest: () -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         dragHandle = { BottomSheetDefaults.DragHandle() },

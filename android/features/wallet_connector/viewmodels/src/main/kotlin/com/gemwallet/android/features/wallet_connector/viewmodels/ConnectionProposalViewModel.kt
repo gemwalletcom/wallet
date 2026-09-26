@@ -17,7 +17,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
-import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
@@ -65,7 +64,7 @@ class ConnectionProposalViewModel @Inject constructor(
     val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletSections = _sessionProposal.map { prepared -> walletSections(prepared?.proposal?.wallets.orEmpty()).map { it.uiModel(context) } }
+    val availableWalletSections = _sessionProposal.map { prepared -> walletSections(prepared?.proposal?.wallets.orEmpty(), null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedWallet = MutableStateFlow<com.wallet.core.primitives.Wallet?>(null)

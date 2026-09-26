@@ -65,7 +65,7 @@ struct WalletNavigationView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     WalletBarView(
-                        model: model.walletBarModel,
+                        row: model.walletRow,
                         action: model.onSelectWalletBar,
                     )
                     .liquidGlass()

@@ -7,18 +7,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.iconModel
+import com.gemwallet.android.ui.style.supportIcon
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
-fun WalletItem(model: WalletRowUIModel, isCurrent: Boolean, modifier: Modifier = Modifier, listPosition: ListPosition, onEdit: ((String) -> Unit)? = null) {
+fun WalletItem(row: GemWalletRow, isCurrent: Boolean, modifier: Modifier = Modifier, listPosition: ListPosition, onEdit: ((String) -> Unit)? = null) {
+    val context = LocalContext.current
     ListItem(
         modifier = modifier,
         minHeight = ListItemDefaults.iconMinHeight,
@@ -26,15 +33,15 @@ fun WalletItem(model: WalletRowUIModel, isCurrent: Boolean, modifier: Modifier =
         trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(
-                icon = model.icon,
-                supportIcon = model.supportIcon,
+                icon = row.iconModel(context),
+                supportIcon = row.supportIcon(),
             )
         },
         title = {
-            ListItemTitleText(text = model.name)
+            ListItemTitleText(text = row.name)
         },
         subtitle = {
-            ListItemSupportText(model.subtitle)
+            ListItemSupportText(row.subtitle.string(context))
         },
         listPosition = listPosition,
         trailing = {
@@ -47,7 +54,7 @@ fun WalletItem(model: WalletRowUIModel, isCurrent: Boolean, modifier: Modifier =
                 }
                 if (onEdit != null) {
                     Spacer8()
-                    WalletEditButton(onClick = { onEdit(model.id) })
+                    WalletEditButton(onClick = { onEdit(row.id) })
                 }
             }
         },
@@ -70,12 +77,16 @@ private fun WalletEditButton(onClick: () -> Unit) {
 fun PreviewWalletItem() {
     MaterialTheme {
         WalletItem(
-            model = WalletRowUIModel(
+            row = GemWalletRow(
                 id = "1",
                 name = "Foo wallet name",
-                subtitle = "Multicoin",
-                icon = R.drawable.multicoin_wallet,
-                supportIcon = null,
+                subtitle = GemWalletSubtitle.Multicoin,
+                placeholder = GemWalletPlaceholder.Multicoin,
+                showsWatchBadge = false,
+                isPinned = false,
+                isCurrent = true,
+                hasAvatar = false,
+                imageUrl = null,
             ),
             listPosition = ListPosition.Single,
             isCurrent = true,

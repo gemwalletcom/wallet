@@ -18,8 +18,7 @@ public struct WalletsScene: View {
     }
 
     public var body: some View {
-        let currentWalletId = model.currentWalletId
-        return List {
+        List {
             Section {
                 Button(
                     action: model.onSelectCreateWallet,
@@ -41,41 +40,27 @@ public struct WalletsScene: View {
                 )
             }
 
-            let pinnedItems = model.pinnedItems
-            if !pinnedItems.isEmpty {
+            ForEach(model.sections, id: \.kind) { section in
                 Section {
-                    ForEach(pinnedItems, id: \.wallet.id) { wallet, listItem in
-                        WalletListItemView(
-                            wallet: wallet,
-                            listItem: listItem,
-                            isPinned: wallet.isPinned,
-                            currentWalletId: currentWalletId,
-                            onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
-                            onEdit: model.onEdit,
-                            onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
-                            onDelete: model.onDelete,
-                        )
+                    ForEach(section.rows) { row in
+                        if let wallet = model.wallet(for: row) {
+                            WalletListItemView(
+                                wallet: wallet,
+                                row: row,
+                                onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
+                                onEdit: model.onEdit,
+                                onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
+                                onDelete: model.onDelete,
+                            )
+                        }
                     }
                 } header: {
-                    HStack {
-                        Images.System.pin
-                        Text(Localized.Common.pinned)
+                    if let title = section.kind.title {
+                        HStack {
+                            section.kind.image
+                            Text(title)
+                        }
                     }
-                }
-            }
-
-            Section {
-                ForEach(model.walletItems, id: \.wallet.id) { wallet, listItem in
-                    WalletListItemView(
-                        wallet: wallet,
-                        listItem: listItem,
-                        isPinned: wallet.isPinned,
-                        currentWalletId: currentWalletId,
-                        onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
-                        onEdit: model.onEdit,
-                        onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
-                        onDelete: model.onDelete,
-                    )
                 }
             }
         }
@@ -94,7 +79,7 @@ public struct WalletsScene: View {
             },
         )
         .navigationBarTitle(model.title)
-        .bindQuery(model.pinnedWalletsQuery, model.walletsQuery)
+        .bindQuery(model.walletsQuery)
         .onChange(of: model.hasWallets) {
             model.onChangeWallets(dismiss: dismiss)
         }

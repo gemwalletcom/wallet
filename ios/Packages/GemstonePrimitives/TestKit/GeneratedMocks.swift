@@ -1498,6 +1498,7 @@ public extension Gemstone.GemWalletRow {
         placeholder: Gemstone.GemWalletPlaceholder = .multicoin,
         showsWatchBadge: Bool = false,
         isPinned: Bool = false,
+        isCurrent: Bool = false,
         hasAvatar: Bool = false,
         imageUrl: String? = nil,
     ) -> Gemstone.GemWalletRow {
@@ -1508,6 +1509,7 @@ public extension Gemstone.GemWalletRow {
             placeholder: placeholder,
             showsWatchBadge: showsWatchBadge,
             isPinned: isPinned,
+            isCurrent: isCurrent,
             hasAvatar: hasAvatar,
             imageUrl: imageUrl,
         )

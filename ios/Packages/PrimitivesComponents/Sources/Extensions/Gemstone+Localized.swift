@@ -83,6 +83,7 @@ import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
 import enum Gemstone.GemWalletSecretKind
+import enum Gemstone.GemWalletSectionKind
 import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
 import enum Gemstone.MessageType
@@ -1661,6 +1662,15 @@ public extension GemTransactionsFilterSummary {
         case .all: Localized.Common.all
         case let .filter(filter): filter.title
         case let .count(count): "\(count)"
+        }
+    }
+}
+
+public extension GemWalletSectionKind {
+    var title: String? {
+        switch self {
+        case .pinned: Localized.Common.pinned
+        case .wallets: nil
         }
     }
 }
