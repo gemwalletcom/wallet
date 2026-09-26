@@ -12,18 +12,18 @@ import SwiftUI
 
 public extension ViewModelFactory {
     @MainActor
-    func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
-        CollectionsViewModel(service: nftService, wallet: wallet, list: .collections)
+    func collectionsScene(wallet: Wallet) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .collections)
     }
 
     @MainActor
-    func collectionScene(wallet: Wallet, collectionId: String) -> CollectionsViewModel {
-        CollectionsViewModel(service: nftService, wallet: wallet, list: .collection, collectionId: collectionId)
+    func collectionScene(wallet: Wallet, collectionId: String) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .collection, collectionId: collectionId)
     }
 
     @MainActor
-    func unverifiedCollectionsScene(wallet: Wallet) -> CollectionsViewModel {
-        CollectionsViewModel(service: nftService, wallet: wallet, list: .unverified)
+    func unverifiedCollectionsScene(wallet: Wallet) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .unverified)
     }
 
     @MainActor
@@ -32,8 +32,8 @@ public extension ViewModelFactory {
         assetData: NFTAssetData,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
-    ) -> CollectibleViewModel {
-        CollectibleViewModel(
+    ) -> CollectibleSceneViewModel {
+        CollectibleSceneViewModel(
             wallet: wallet,
             assetData: assetData,
             service: GemCollectibleService(nfts: nftService, avatars: avatarService, explorer: explorerService),

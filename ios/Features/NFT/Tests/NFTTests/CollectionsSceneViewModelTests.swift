@@ -9,10 +9,10 @@ import PrimitivesTestKit
 import Testing
 
 @MainActor
-struct CollectionsViewModelTests {
+struct CollectionsSceneViewModelTests {
     @Test
     func unverifiedCountShowsOnlyWhenACollectionIsUnverified() {
-        let model = CollectionsViewModel.mock()
+        let model = CollectionsSceneViewModel.mock()
 
         #expect(model.content.unverifiedCount == nil)
 
@@ -26,7 +26,7 @@ struct CollectionsViewModelTests {
 
     @Test
     func aFailedRefreshOverOnlyUnverifiedCollectionsShowsNoErrorRow() {
-        let model = CollectionsViewModel.mock()
+        let model = CollectionsSceneViewModel.mock()
         model.query.value = [.mock(collection: .mock(status: .unverified), assets: [.mock()])]
         model.loadState = .error(error: .Gateway(msg: "offline"))
 
@@ -36,7 +36,7 @@ struct CollectionsViewModelTests {
 
     @Test
     func unverifiedCollectionsListsOnlyWhatTheQueryHolds() {
-        let model = CollectionsViewModel.mock(list: .unverified)
+        let model = CollectionsSceneViewModel.mock(list: .unverified)
 
         #expect(model.screen.hasContent == false)
 
@@ -48,7 +48,7 @@ struct CollectionsViewModelTests {
 
     @Test
     func collectionTitleComesFromTheCollectionItHolds() {
-        let model = CollectionsViewModel.mock(list: .collection, collectionId: "collection")
+        let model = CollectionsSceneViewModel.mock(list: .collection, collectionId: "collection")
 
         #expect(model.screen.title.text == Localized.Nft.collections, "a collection with nothing in it still names the screen")
 
@@ -60,7 +60,7 @@ struct CollectionsViewModelTests {
 
     @Test
     func nothingUnverifiedIsWorthAskingFor() {
-        let model = CollectionsViewModel.mock(list: .unverified)
+        let model = CollectionsSceneViewModel.mock(list: .unverified)
 
         #expect(model.screen.title.text == Localized.Asset.Verification.unverified)
         #expect(model.screen.offersReceive == false)

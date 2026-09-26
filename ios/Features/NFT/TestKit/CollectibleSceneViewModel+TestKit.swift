@@ -8,15 +8,15 @@ import NFT
 import Primitives
 import PrimitivesTestKit
 
-public extension CollectibleViewModel {
+public extension CollectibleSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
         assetData: NFTAssetData = .mock(),
         gallery: any ImageGallerySaving = ImageGallerySaverMock(),
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
-    ) -> CollectibleViewModel {
-        CollectibleViewModel(
+    ) -> CollectibleSceneViewModel {
+        CollectibleSceneViewModel(
             wallet: wallet,
             assetData: assetData,
             service: GemCollectibleService.mock(),

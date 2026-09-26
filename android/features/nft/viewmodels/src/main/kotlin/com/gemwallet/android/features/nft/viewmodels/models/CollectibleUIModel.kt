@@ -18,7 +18,7 @@ import uniffi.gemstone.GemListRow
 import java.text.DateFormat
 import java.util.Date
 
-data class NftDetailsUIModel(val asset: NFTAsset, val isVerified: Boolean, val header: GemHeaderActions, val actions: List<NftActionUIModel>, val sections: List<NftSectionUIModel>)
+data class CollectibleUIModel(val asset: NFTAsset, val isVerified: Boolean, val header: GemHeaderActions, val actions: List<NftActionUIModel>, val sections: List<NftSectionUIModel>)
 
 data class NftActionUIModel(val action: GemCollectibleAction, val title: String, val isDestructive: Boolean)
 
@@ -31,7 +31,7 @@ sealed interface NftSectionUIModel {
 
 data class ReportReasonUIModel(val reason: ReportReason, val model: ListItemModel)
 
-internal fun NftAssetDetailsData.uiModel(context: Context): NftDetailsUIModel = NftDetailsUIModel(
+internal fun NftAssetDetailsData.uiModel(context: Context): CollectibleUIModel = CollectibleUIModel(
     asset = asset,
     isVerified = details.isVerified,
     header = details.header,

@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.nft.presents
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,55 +9,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
 import com.gemwallet.android.features.nft.presents.components.NftTitle
-import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
+import com.gemwallet.android.features.nft.viewmodels.models.CollectibleUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.NftSectionUIModel
-import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
-import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.ReportReason
 import uniffi.gemstone.GemCollectibleAction
 
 @Composable
-fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
-    val viewModel: NftDetailsViewModel = hiltViewModel()
-    val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
-
-    val snackbar = remember { SnackbarHostState() }
-    ToastEffect(viewModel.toastEvents, snackbar)
-
-    val model = assetData ?: return
-    var isReportVisible by remember { mutableStateOf(false) }
+internal fun CollectibleScene(model: CollectibleUIModel, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     Scene(
         titleContent = {
             NftTitle(
@@ -67,7 +42,7 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                 iconSize = compactIconSize,
             )
         },
-        onClose = { cancelAction() },
+        onClose = onClose,
         snackbar = snackbar,
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -91,15 +66,8 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                     NftHeaderActions(
                         header = model.header,
                         actions = model.actions,
-                        onSend = { onRecipient(model.asset) },
-                        onAction = { action ->
-                            when (action) {
-                                GemCollectibleAction.REFRESH -> viewModel.refresh()
-                                GemCollectibleAction.SAVE_IMAGE -> viewModel.saveImage()
-                                GemCollectibleAction.SET_AVATAR -> viewModel.setAsAvatar()
-                                GemCollectibleAction.REPORT -> isReportVisible = true
-                            }
-                        },
+                        onSend = onSend,
+                        onAction = onAction,
                     )
                 }
             }
@@ -121,35 +89,6 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                         item { GemListRowView(row = section.row, listPosition = ListPosition.Single) }
                     }
                 }
-            }
-        }
-    }
-    ReportReasonSheet(
-        isVisible = isReportVisible,
-        reasons = viewModel.reportReasons,
-        onDismiss = { isReportVisible = false },
-        onSelect = { reason -> viewModel.report(reason) },
-    )
-}
-
-@Composable
-private fun ReportReasonSheet(isVisible: Boolean, reasons: List<ReportReasonUIModel>, onDismiss: () -> Unit, onSelect: (ReportReason) -> Unit) {
-    ModalBottomSheet(
-        isVisible = isVisible,
-        onDismissRequest = onDismiss,
-        title = stringResource(R.string.nft_report_report_button_title),
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            itemsPositioned(reasons) { position, item ->
-                ListItem(
-                    model = item.model,
-                    listPosition = position,
-                    modifier = Modifier.clickable {
-                        onSelect(item.reason)
-                        onDismiss()
-                    },
-                    minHeight = ListItemDefaults.plainMinHeight,
-                )
             }
         }
     }

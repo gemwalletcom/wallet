@@ -6,12 +6,12 @@ import Primitives
 import Style
 import SwiftUI
 
-struct CollectionsSceneNavigationView: View {
+struct CollectionsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
-    @State private var model: CollectionsViewModel
+    @State private var model: CollectionsSceneViewModel
 
-    init(model: CollectionsViewModel) {
+    init(model: CollectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

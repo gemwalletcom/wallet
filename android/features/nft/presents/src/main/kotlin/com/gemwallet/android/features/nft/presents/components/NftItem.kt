@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun NFTItem(model: NftItemUIModel, onClick: () -> Unit) {
+fun NftItem(model: NftItemUIModel, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier

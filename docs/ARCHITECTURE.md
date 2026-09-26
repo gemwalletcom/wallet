@@ -1830,7 +1830,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
-| `GemCollectibleService` | — | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
+| `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
 | `GemContactService` | — | `ContactsViewModel` | `ContactsViewModel` |
 | `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ `GetCurrentCurrency`); `SessionCoordinator` behind `SetCurrentCurrency` (calls `set_currency` and updates the in-memory currency the session combines, which iOS hears through the `GemPreferencesObserver` that Android's `UserConfig`, behind the `ObservablePreferences` port, holds) |
@@ -1838,7 +1838,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemDeveloperService` | — | `DeveloperViewModel` | `DevelopViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemContactEditorService` | — | `ContactEditorViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
-| `GemNftService` | — | `CollectionsViewModel` | `NftListViewModels` (+ `NFTQuery`) |
+| `GemNftService` | — | `CollectionsSceneViewModel` | `CollectionsViewModel` (+ `NFTQuery`) |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |

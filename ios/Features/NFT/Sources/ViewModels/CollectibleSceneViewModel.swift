@@ -24,7 +24,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class CollectibleViewModel {
+public final class CollectibleSceneViewModel {
     private let wallet: Wallet
     private let service: any GemCollectibleServiceProtocol
     private let gallery: any ImageGallerySaving
@@ -117,7 +117,7 @@ public final class CollectibleViewModel {
 
 // MARK: - Business Logic
 
-extension CollectibleViewModel {
+extension CollectibleSceneViewModel {
     func onSelectHeaderButton(type: GemHeaderButtonKind) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
@@ -201,8 +201,8 @@ extension CollectibleViewModel {
         }
     }
 
-    func reportModel() -> ReportNftViewModel {
-        ReportNftViewModel(service: service, assetData: assetData, onComplete: onReportComplete)
+    func reportModel() -> ReportNftSceneViewModel {
+        ReportNftSceneViewModel(service: service, assetData: assetData, onComplete: onReportComplete)
     }
 
     func onReportComplete() {
@@ -217,7 +217,7 @@ extension CollectibleViewModel {
 
 // MARK: - Private
 
-extension CollectibleViewModel {
+extension CollectibleSceneViewModel {
     private func openSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)

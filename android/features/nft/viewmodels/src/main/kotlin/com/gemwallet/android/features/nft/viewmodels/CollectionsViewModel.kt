@@ -47,7 +47,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class NftListViewModels @Inject constructor(
+class CollectionsViewModel @Inject constructor(
     private val nftService: GemNftServiceInterface,
     nftQuery: NFTQuery,
     getSession: GetSession,

@@ -12,7 +12,7 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.nft.viewmodels.models.NftDetailsUIModel
+import com.gemwallet.android.features.nft.viewmodels.models.CollectibleUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.uiModel
 import com.gemwallet.android.ui.R
@@ -38,7 +38,7 @@ import uniffi.gemstone.GemCollectibleServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
-class NftDetailsViewModel @Inject constructor(
+class CollectibleViewModel @Inject constructor(
     getNftAssetDetails: GetNftAssetDetails,
     private val service: GemCollectibleServiceInterface,
     savedStateHandle: SavedStateHandle,
@@ -54,7 +54,7 @@ class NftDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val nftAsset: StateFlow<NftDetailsUIModel?> = details
+    val nftAsset: StateFlow<CollectibleUIModel?> = details
         .map { it?.uiModel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -88,4 +88,4 @@ class NftDetailsViewModel @Inject constructor(
     }
 }
 
-private const val TAG = "NftDetailsViewModel"
+private const val TAG = "CollectibleViewModel"

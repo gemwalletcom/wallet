@@ -36,11 +36,11 @@ import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.chartScreen
+import com.gemwallet.android.ui.navigation.routes.collectionsScreen
 import com.gemwallet.android.ui.navigation.routes.confirmTransfer
 import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
-import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
@@ -98,12 +98,12 @@ fun WalletNavGraph(
                         WalletSearchAction.AddAsset -> navigator.openAddAsset()
                         WalletSearchAction.Cancel -> onCancel()
                         WalletSearchAction.OpenPerpetuals -> navigator.openPerpetuals()
-                        WalletSearchAction.OpenCollections -> navigator.openNftList()
+                        WalletSearchAction.OpenCollections -> navigator.openCollections()
                         is WalletSearchAction.OpenAsset -> navigator.openAsset(action.asset.id)
                         is WalletSearchAction.OpenPerpetual -> navigator.openPerpetual(action.asset.id)
                         is WalletSearchAction.OpenRecent -> navigator.openRecent(action.asset)
-                        is WalletSearchAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
-                        is WalletSearchAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
+                        is WalletSearchAction.OpenNftCollection -> navigator.openCollection(action.collectionId)
+                        is WalletSearchAction.OpenNftAsset -> navigator.openCollectible(action.assetId)
                         is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query)
                         is WalletSearchAction.OpenList -> navigator.openAssetsResultsList(action.listId, action.title)
                         else -> Unit
@@ -178,13 +178,13 @@ fun WalletNavGraph(
                 cancelAction = onCancel,
             )
 
-            nftCollection(
+            collectionsScreen(
                 cancelAction = onCancel,
-                collectionIdAction = navigator::openNftCollection,
-                assetIdAction = navigator::openNftAsset,
+                collectionIdAction = navigator::openCollection,
+                assetIdAction = navigator::openCollectible,
                 onRecipient = navigator::openNftRecipient,
                 onReceive = navigator::openReceiveCollection,
-                onUnverified = navigator::openNftUnverifiedCollections,
+                onUnverified = navigator::openUnverifiedCollections,
                 onOpenAddress = navigator::openAddress,
             )
 
@@ -234,7 +234,7 @@ fun WalletNavGraph(
                     when (it) {
                         TransactionAction.Close -> onCancel()
                         is TransactionAction.OpenAsset -> navigator.openAsset(it.assetId)
-                        is TransactionAction.OpenNft -> navigator.openNftAsset(it.assetId)
+                        is TransactionAction.OpenNft -> navigator.openCollectible(it.assetId)
                         is TransactionAction.OpenPerpetual -> navigator.openPerpetual(it.assetId)
                         is TransactionAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
                         is TransactionAction.OpenAddress -> navigator.openAddress(it.chainAddress)

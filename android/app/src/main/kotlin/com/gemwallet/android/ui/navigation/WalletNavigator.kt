@@ -40,6 +40,9 @@ import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
+import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
+import com.gemwallet.android.ui.navigation.routes.CollectionRoute
+import com.gemwallet.android.ui.navigation.routes.CollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
@@ -55,10 +58,6 @@ import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
 import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworksRoute
-import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
-import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
-import com.gemwallet.android.ui.navigation.routes.NftListRoute
-import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
@@ -82,6 +81,7 @@ import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionRoute
+import com.gemwallet.android.ui.navigation.routes.UnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
@@ -320,10 +320,10 @@ class WalletNavigator(
         val pack = input.pack() ?: return
         replaceTop(ConfirmTransferRoute(pack))
     }
-    fun openNftList() = push(NftListRoute)
-    fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
-    fun openNftUnverifiedCollections() = push(NftUnverifiedCollectionsRoute)
-    fun openNftAsset(nftAssetId: NFTAssetId) = push(NftAssetRoute(nftAssetId.toIdentifier()))
+    fun openCollections() = push(CollectionsRoute)
+    fun openCollection(nftCollectionId: String) = push(CollectionRoute(nftCollectionId))
+    fun openUnverifiedCollections() = push(UnverifiedCollectionsRoute)
+    fun openCollectible(nftAssetId: NFTAssetId) = push(CollectibleRoute(nftAssetId.toIdentifier()))
 
     fun finishAcceptTerms(destination: AcceptTermsDestination) {
         replaceTop(

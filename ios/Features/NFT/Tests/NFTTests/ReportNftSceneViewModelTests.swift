@@ -6,13 +6,13 @@ import PrimitivesTestKit
 import Testing
 
 @MainActor
-struct ReportNftViewModelTests {
+struct ReportNftSceneViewModelTests {
     @Test
     func aSubmittedReportNamesTheAssetAndTheReason() async throws {
         let service = GemCollectibleServiceMock()
         var completed = false
         let assetData = NFTAssetData.mock(collection: .mock(id: .mock()), asset: .mock(tokenId: "11871"))
-        let model = ReportNftViewModel(service: service, assetData: assetData, onComplete: { completed = true })
+        let model = ReportNftSceneViewModel(service: service, assetData: assetData, onComplete: { completed = true })
 
         await model.submitReport(reason: .spam)
 
@@ -26,7 +26,7 @@ struct ReportNftViewModelTests {
     func aFailedReportLeavesTheSceneInError() async {
         let service = GemCollectibleServiceMock()
         service.reportError = AnyError("no network")
-        let model = ReportNftViewModel(service: service, assetData: .mock(), onComplete: nil)
+        let model = ReportNftSceneViewModel(service: service, assetData: .mock(), onComplete: nil)
 
         await model.submitReport(reason: .spam)
 

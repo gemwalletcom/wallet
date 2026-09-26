@@ -11,7 +11,7 @@ import PrimitivesComponents
 
 @Observable
 @MainActor
-public final class ReportNftViewModel {
+public final class ReportNftSceneViewModel {
     private let service: any GemCollectibleServiceProtocol
     private let assetData: NFTAssetData
     private let onComplete: VoidAction

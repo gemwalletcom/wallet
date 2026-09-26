@@ -10,9 +10,9 @@ import Style
 import SwiftUI
 
 public struct CollectionsScene: View {
-    @State private var model: CollectionsViewModel
+    @State private var model: CollectionsSceneViewModel
 
-    public init(model: CollectionsViewModel) {
+    public init(model: CollectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

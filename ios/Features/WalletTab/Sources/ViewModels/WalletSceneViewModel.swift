@@ -27,7 +27,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     let observablePreferences: ObservablePreferences
 
-    public let collectionsModel: CollectionsViewModel
+    public let collectionsModel: CollectionsSceneViewModel
 
     public var wallet: Wallet {
         walletQuery.value.wallet
@@ -53,7 +53,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public init(
         service: any GemWalletHomeServiceProtocol,
         observablePreferences: ObservablePreferences,
-        collectionsModel: CollectionsViewModel,
+        collectionsModel: CollectionsSceneViewModel,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         isPresentingWallets: Binding<Bool>,

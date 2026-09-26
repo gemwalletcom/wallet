@@ -15,7 +15,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class CollectionsViewModel: Sendable {
+public final class CollectionsSceneViewModel: Sendable {
     public let service: any GemNftServiceProtocol
     public let wallet: Wallet
     public let query: ObservableQuery<NFTQuery>

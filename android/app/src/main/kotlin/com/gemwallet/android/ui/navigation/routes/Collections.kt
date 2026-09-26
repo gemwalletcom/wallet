@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.nft.presents.NFTDetailsScene
-import com.gemwallet.android.features.nft.presents.NftListScreen
+import com.gemwallet.android.features.nft.presents.CollectibleScreen
+import com.gemwallet.android.features.nft.presents.CollectionsScreen
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
@@ -16,18 +16,18 @@ import kotlinx.serialization.Serializable
 const val nftRoute = "nft"
 
 @Serializable
-data object NftListRoute : NavKey
+data object CollectionsRoute : NavKey
 
 @Serializable
-data class NftCollectionRoute(val nftCollectionId: String) : NavKey
+data class CollectionRoute(val nftCollectionId: String) : NavKey
 
 @Serializable
-data object NftUnverifiedCollectionsRoute : NavKey
+data object UnverifiedCollectionsRoute : NavKey
 
 @Serializable
-data class NftAssetRoute(val nftAssetId: String) : NavKey
+data class CollectibleRoute(val nftAssetId: String) : NavKey
 
-fun EntryProviderScope<NavKey>.nftCollection(
+fun EntryProviderScope<NavKey>.collectionsScreen(
     cancelAction: CancelAction,
     onRecipient: (NFTAsset) -> Unit,
     onReceive: () -> Unit,
@@ -36,8 +36,8 @@ fun EntryProviderScope<NavKey>.nftCollection(
     collectionIdAction: NftCollectionIdAction,
     assetIdAction: NftAssetIdAction,
 ) {
-    entry<NftListRoute> {
-        NftListScreen(
+    entry<CollectionsRoute> {
+        CollectionsScreen(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
             assetAction = assetIdAction,
@@ -46,10 +46,10 @@ fun EntryProviderScope<NavKey>.nftCollection(
         )
     }
 
-    entry<NftCollectionRoute>(
+    entry<CollectionRoute>(
         metadata = { key -> routeArguments(RouteArgument.NftCollectionId to key.nftCollectionId) },
     ) {
-        NftListScreen(
+        CollectionsScreen(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
             assetAction = assetIdAction,
@@ -58,10 +58,10 @@ fun EntryProviderScope<NavKey>.nftCollection(
         )
     }
 
-    entry<NftUnverifiedCollectionsRoute>(
+    entry<UnverifiedCollectionsRoute>(
         metadata = { routeArguments(RouteArgument.Unverified to true) },
     ) {
-        NftListScreen(
+        CollectionsScreen(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
             assetAction = assetIdAction,
@@ -70,9 +70,9 @@ fun EntryProviderScope<NavKey>.nftCollection(
         )
     }
 
-    entry<NftAssetRoute>(
+    entry<CollectibleRoute>(
         metadata = { key -> routeArguments(RouteArgument.NftAssetId to key.nftAssetId) },
     ) {
-        NFTDetailsScene(cancelAction, onRecipient, onOpenAddress)
+        CollectibleScreen(cancelAction, onRecipient, onOpenAddress)
     }
 }

@@ -16,16 +16,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.nft.presents.components.NFTItem
-import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
+import com.gemwallet.android.features.nft.presents.components.NftItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -35,14 +29,10 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.models.NftItemUIModel
-import com.gemwallet.android.ui.models.actions.CancelAction
-import com.gemwallet.android.ui.models.actions.NftAssetIdAction
-import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemEmptyStateAction
@@ -52,53 +42,7 @@ import uniffi.gemstone.GemListRow
 private val collectibleCellMinSize = 150.dp
 
 @Composable
-fun NftListScreen(
-    cancelAction: CancelAction,
-    collectionAction: NftCollectionIdAction,
-    assetAction: NftAssetIdAction,
-    onReceive: () -> Unit,
-    onUnverified: () -> Unit,
-    listState: LazyGridState = rememberLazyGridState(),
-    viewModel: NftListViewModels = hiltViewModel(),
-) {
-    val items by viewModel.collections.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
-    val walletId by viewModel.walletId.collectAsStateWithLifecycle()
-    val title by viewModel.title.collectAsStateWithLifecycle()
-    val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
-    val snackbar = remember { SnackbarHostState() }
-    ToastEffect(viewModel.toastEvents, snackbar)
-
-    LaunchedEffect(walletId) {
-        viewModel.syncIfNeeded()
-    }
-
-    NftListScene(
-        items = items,
-        isRefreshing = isRefreshing,
-        errorRow = errorRow,
-        unverifiedListItem = unverifiedListItem,
-        title = title,
-        showReceiveAction = showReceiveAction,
-        listState = listState,
-        snackbar = snackbar,
-        onAction = { action ->
-            when (action) {
-                NftListAction.Refresh -> viewModel.refresh()
-                NftListAction.Close -> cancelAction()
-                NftListAction.Receive -> onReceive()
-                NftListAction.OpenUnverified -> onUnverified()
-                is NftListAction.OpenCollection -> collectionAction(action.collectionId)
-                is NftListAction.OpenAsset -> assetAction(action.assetId)
-            }
-        },
-    )
-}
-
-@Composable
-internal fun NftListScene(
+internal fun CollectionsScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
     errorRow: GemListRow?,
@@ -107,13 +51,13 @@ internal fun NftListScene(
     showReceiveAction: Boolean,
     listState: LazyGridState = rememberLazyGridState(),
     snackbar: SnackbarHostState? = null,
-    onAction: (NftListAction) -> Unit,
+    onAction: (CollectionsAction) -> Unit,
 ) {
     Scene(
         title = title,
         actions = {
             if (showReceiveAction) {
-                IconButton(onClick = { onAction(NftListAction.Receive) }) {
+                IconButton(onClick = { onAction(CollectionsAction.Receive) }) {
                     Icon(
                         imageVector = AppIcons.Add,
                         contentDescription = stringResource(R.string.wallet_receive),
@@ -121,13 +65,13 @@ internal fun NftListScene(
                 }
             }
         },
-        onClose = { onAction(NftListAction.Close) },
+        onClose = { onAction(CollectionsAction.Close) },
         snackbar = snackbar,
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
-            onRefresh = { onAction(NftListAction.Refresh) },
+            onRefresh = { onAction(CollectionsAction.Refresh) },
         ) {
             if (items.isEmpty() && unverifiedListItem == null) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -163,12 +107,12 @@ internal fun NftListScene(
                         ),
                     ) {
                         items(items) { item ->
-                            NFTItem(
+                            NftItem(
                                 model = item,
                                 onClick = {
                                     when (val target = item.target) {
-                                        is NftItemTarget.Collection -> onAction(NftListAction.OpenCollection(target.id))
-                                        is NftItemTarget.Asset -> onAction(NftListAction.OpenAsset(target.id))
+                                        is NftItemTarget.Collection -> onAction(CollectionsAction.OpenCollection(target.id))
+                                        is NftItemTarget.Asset -> onAction(CollectionsAction.OpenAsset(target.id))
                                     }
                                 },
                             )
@@ -179,7 +123,7 @@ internal fun NftListScene(
                     ListItem(
                         model = model,
                         listPosition = ListPosition.Single,
-                        modifier = Modifier.clickable { onAction(NftListAction.OpenUnverified) },
+                        modifier = Modifier.clickable { onAction(CollectionsAction.OpenUnverified) },
                         accessory = { DataBadgeChevron() },
                     )
                 }
@@ -188,9 +132,9 @@ internal fun NftListScene(
     }
 }
 
-private fun nftEmptyContentType(showReceiveAction: Boolean, onAction: (NftListAction) -> Unit): EmptyContentType {
+private fun nftEmptyContentType(showReceiveAction: Boolean, onAction: (CollectionsAction) -> Unit): EmptyContentType {
     val onReceive: (() -> Unit)? = if (showReceiveAction) {
-        { onAction(NftListAction.Receive) }
+        { onAction(CollectionsAction.Receive) }
     } else {
         null
     }

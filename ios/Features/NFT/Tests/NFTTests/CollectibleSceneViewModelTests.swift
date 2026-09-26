@@ -12,10 +12,10 @@ import StoreTestKit
 import Testing
 
 @MainActor
-struct CollectibleViewModelTests {
+struct CollectibleSceneViewModelTests {
     @Test
     func aSavedImageShowsTheSuccessToastOnlyAfterPhotosFinishes() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: {
+        let model = CollectibleSceneViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: {
             try? await Task.sleep(for: .milliseconds(50))
             return nil
         }))
@@ -28,7 +28,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func aFailedPhotosWriteShowsTheErrorInsteadOfASuccessToast() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .saveFailed(AnyError("disk")) }))
+        let model = CollectibleSceneViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .saveFailed(AnyError("disk")) }))
 
         await model.saveToGallery()
 
@@ -38,7 +38,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func deniedPhotosAccessOffersTheSettings() async {
-        let model = CollectibleViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .permissionDenied }))
+        let model = CollectibleSceneViewModel.mock(assetData: .mock(asset: .mock(images: .mock(preview: .mock(url: "https://example.com/nft.png")))), gallery: ImageGallerySaverMock(result: { .permissionDenied }))
 
         await model.saveToGallery()
 
@@ -49,8 +49,8 @@ struct CollectibleViewModelTests {
     @Test
     func canSendOnlyWhileTheWalletHoldsTheAsset() {
         let assetData = NFTAssetData.mock(asset: .mock(chain: .ethereum))
-        let held = CollectibleViewModel.mock(assetData: assetData)
-        let viewOnly = CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
+        let held = CollectibleSceneViewModel.mock(assetData: assetData)
+        let viewOnly = CollectibleSceneViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
 
         #expect(sendEnabled(held) == false)
         held.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
@@ -64,7 +64,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func sectionsAndExplorerLinksComeFromCore() throws {
-        let model = CollectibleViewModel.mock(assetData: .mock(
+        let model = CollectibleSceneViewModel.mock(assetData: .mock(
             collection: .mock(
                 contractAddress: "0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee",
                 status: .unverified,
@@ -88,7 +88,7 @@ struct CollectibleViewModelTests {
 
     @Test
     func verifiedAssetWithoutExtrasOnlyListsItsInfo() {
-        let model = CollectibleViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
+        let model = CollectibleSceneViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
 
         #expect(model.details.sections.count == 1)
         #expect(model.details.isVerified)
@@ -98,15 +98,15 @@ struct CollectibleViewModelTests {
     func theContractRowOpensAddressDetailsOnTheCollectionChain() {
         var selected: ChainAddress?
         let assetData = NFTAssetData.mock()
-        let model = CollectibleViewModel.mock(assetData: assetData, onSelectAddress: { selected = $0 })
+        let model = CollectibleSceneViewModel.mock(assetData: assetData, onSelectAddress: { selected = $0 })
 
         model.onSelectContract?("0xcontract")
 
         #expect(selected == ChainAddress(chain: assetData.asset.chain, address: "0xcontract"))
-        #expect(CollectibleViewModel.mock().onSelectContract == nil)
+        #expect(CollectibleSceneViewModel.mock().onSelectContract == nil)
     }
 
-    private func sendEnabled(_ model: CollectibleViewModel) -> Bool {
+    private func sendEnabled(_ model: CollectibleSceneViewModel) -> Bool {
         model.headerButtons(model.details).first { $0.type == .send }?.isEnabled == true
     }
 }

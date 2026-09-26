@@ -27,7 +27,7 @@ import org.junit.Test
 import uniffi.gemstone.GemCollectibleServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class NftDetailsViewModelTest {
+class CollectibleViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
@@ -49,7 +49,7 @@ class NftDetailsViewModelTest {
         val details = mockk<GetNftAssetDetails> {
             every { this@mockk.invoke(any(), any()) } returns emptyFlow()
         }
-        val viewModel = NftDetailsViewModel(
+        val viewModel = CollectibleViewModel(
             getNftAssetDetails = details,
             service = service,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.NftAssetId.key to "ethereum_0xcontract::1")),

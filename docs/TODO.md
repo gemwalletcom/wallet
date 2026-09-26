@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM361 to NAM372 in any order, one feature per change.
+6. **Names:** NAM362 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -379,11 +379,11 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** Core returns the recents list sectioned (with VM210); the models go.
 - **VM255** **S** **The collections grid is built in the app.**
   - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
-  - **Android:** `NftListViewModels` builds the same grid.
+  - **Android:** `CollectionsViewModel` builds the same grid.
   - **Expected:** views read the Core grid rows; the builders go.
 - **VM256** **S** **Collectible details are reshaped in the apps.**
-  - **iOS:** `CollectibleViewModel` decides which actions go to the menu or the buttons and labels them.
-  - **Android:** `NftDetailsUIModel` copies sections and formats attribute dates.
+  - **iOS:** `CollectibleSceneViewModel` decides which actions go to the menu or the buttons and labels them.
+  - **Android:** `CollectibleUIModel` copies sections and formats attribute dates.
   - **Expected:** a Core details record with placed actions; the models go.
 - **VM257** **S** **Redemption rows compose the confirmation text.**
   - **iOS:** `RewardRedemptionOptionViewModel` composes the confirmation with `Localized.Rewards.confirmRedeem(value, points)`.
@@ -526,7 +526,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM361** **S** **NFT: the list is `Collections` and the detail `Collectible`.**
-  - **iOS:** `CollectionsViewModel`/`CollectibleViewModel`/`ReportNftViewModel` (+ tests) → `…SceneViewModel`; `CollectionsSceneNavigationView` → `CollectionsNavigationStack` or the destination-host rule; one casing, `Nft`, in type names.
-  - **Android:** `NftListScreen`/`NftListScene` (file `NftListScene.kt`) → `CollectionsScreen`/`CollectionsScene` in their own files; `NftListViewModels`/`NftListAction`/`NftListViewModelsTest` → `CollectionsViewModel`/`CollectionsAction`/`CollectionsViewModelTest`; `NftListRoute`/`NftCollectionRoute`/`NftUnverifiedCollectionsRoute` → `CollectionsRoute`/`CollectionRoute`/`UnverifiedCollectionsRoute`; `NFTDetailsScene` (binds a view model) → `CollectibleScreen` + stateless `CollectibleScene`; `NftDetailsViewModel`/`NftDetailsUIModel`/`NftDetailsViewModelTest` → `Collectible…`; `NftAssetRoute` → `CollectibleRoute`; `NFTItem` → `NftItem`.
 - **NAM362** **S** **Fiat: the screen is `Fiat` and a quote row `FiatQuote`.**
   - **iOS:** `FiatTransactionsViewModel` → `FiatTransactionsSceneViewModel`; `FiatConnectNavigationView` follows the destination-host rule.
   - **Android:** `BuyScene` → `FiatScene`; `FiatUiState`/`createFiatUiState` → `FiatUIState`/`createFiatUIState`; `BuyFiatProviderUIModel`/`toProviderUIModel`/`BuyFiatProviderUIModelTest` → `FiatQuoteUIModel`/`toQuoteUIModel`/`FiatQuoteUIModelTest`; `FiatTransactionRowUIModel` → `FiatTransactionUIModel`; `ProviderList` → `FiatProvidersList`; `FiatInputRoute` in `routes/Buy.kt` → `FiatRoute` in `Fiat.kt`.

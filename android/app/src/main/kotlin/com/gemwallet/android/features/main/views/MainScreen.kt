@@ -218,9 +218,9 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                         WalletAction.Perpetuals -> navigator.openPerpetuals()
                                         is WalletAction.OpenPerpetual -> navigator.openPerpetual(action.assetId)
                                         is WalletAction.OpenAsset -> navigator.openAsset(action.assetId)
-                                        WalletAction.OpenCollections -> navigator.openNftList()
-                                        is WalletAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
-                                        is WalletAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
+                                        WalletAction.OpenCollections -> navigator.openCollections()
+                                        is WalletAction.OpenNftCollection -> navigator.openCollection(action.collectionId)
+                                        is WalletAction.OpenNftAsset -> navigator.openCollectible(action.assetId)
                                     }
                                 },
                                 onContentReady = onWalletContentReady,

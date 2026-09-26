@@ -26,13 +26,13 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
+import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
+import com.gemwallet.android.ui.navigation.routes.CollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
-import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
-import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
@@ -400,14 +400,14 @@ class WalletNavigatorTest {
     fun openNft_usesExplicitRoutes() {
         val navigator = navigatorWith(WalletRootRoute)
 
-        navigator.openNftCollection("ethereum_0xcollection")
-        navigator.openNftAsset(NFTAssetId(Chain.Ethereum, "0xcollection", "1"))
+        navigator.openCollection("ethereum_0xcollection")
+        navigator.openCollectible(NFTAssetId(Chain.Ethereum, "0xcollection", "1"))
 
         assertEquals(
             listOf(
                 WalletRootRoute,
-                NftCollectionRoute("ethereum_0xcollection"),
-                NftAssetRoute("ethereum_0xcollection::1"),
+                CollectionRoute("ethereum_0xcollection"),
+                CollectibleRoute("ethereum_0xcollection::1"),
             ),
             navigator.backStack.toList(),
         )

@@ -40,7 +40,7 @@ import uniffi.gemstone.GemRefreshResult
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class NftListViewModelsTest {
+class CollectionsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
@@ -69,7 +69,7 @@ class NftListViewModelsTest {
             every { listScreen(any(), any()) } returns onlyUnverified
             coEvery { refresh(true) } returns GemRefreshResult(state = GemLoadState.Data, toast = GemServiceException.Gateway("offline"))
         }
-        val viewModel = NftListViewModels(
+        val viewModel = CollectionsViewModel(
             nftService = service,
             nftQuery = mockk<NFTQuery>(),
             getSession = mockk<GetSession> { every { this@mockk.invoke() } returns MutableStateFlow(null) },
@@ -93,7 +93,7 @@ class NftListViewModelsTest {
         val service = mockk<GemNftServiceInterface> { every { listScreen(any(), any()) } returns onlyUnverified }
         val query = mockk<NFTQuery> { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
         val sessions = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("wallet-a"))))
-        NftListViewModels(
+        CollectionsViewModel(
             nftService = service,
             nftQuery = query,
             getSession = mockk<GetSession> { every { this@mockk.invoke() } returns sessions },
