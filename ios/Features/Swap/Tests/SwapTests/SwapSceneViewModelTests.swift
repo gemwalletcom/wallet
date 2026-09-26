@@ -10,6 +10,7 @@ import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import Observation
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -178,6 +179,28 @@ struct SwapSceneViewModelTests {
         #expect(model.isReceiveFieldLoading)
         #expect(model.toValue.isEmpty)
         #expect(model.loadTrigger?.isImmediate == true)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func refreshKeepsReceiveValueUntilTheNewQuoteArrives() async {
+        let (answers, answer) = AsyncStream<[SwapperQuote]>.makeStream()
+        let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(quotes: { _ in await answers.first { _ in true } ?? [] }))
+        answer.yield([.mock(toValue: 1_000_000, request: .mock(toAsset: .mock(decimals: 6)))])
+        await model.load()
+
+        let refresh = Task { await model.load() }
+        while !model.isReceiveFieldLoading {
+            await withCheckedContinuation { changed in
+                withObservationTracking { _ = model.session } onChange: { changed.resume() }
+            }
+        }
+
+        #expect(model.toValue == "1")
+
+        answer.yield([.mock(toValue: 2_000_000, request: .mock(toAsset: .mock(decimals: 6)))])
+        await refresh.value
+
+        #expect(model.toValue == "2")
     }
 
     @Test

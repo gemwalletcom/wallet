@@ -391,6 +391,20 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `picking the receive asset for a typed amount requests quotes at once`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState(to = null))
+        advanceUntilIdle()
+        viewModel.setRefreshEnabled(true)
+        requestQuote(viewModel, "0.5")
+
+        pairSelection = GemSwapPairSelection(solAsset.id.toIdentifier(), usdcAsset.id.toIdentifier())
+        viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
+        runCurrent()
+
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(solAsset.toGem(), usdcAsset.toGem(), BigInteger("500000000"), false, null) }
+    }
+
+    @Test
     fun `a quote is refreshed only after the refresh interval`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -399,7 +413,7 @@ class SwapViewModelTest {
         quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
 
-        advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds)
+        advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds - 1)
         runCurrent()
         coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
 
@@ -593,6 +607,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isQuoteLoading)
+        assertEquals("2.5", viewModel.receiveValue.text.toString())
     }
 
     @Test

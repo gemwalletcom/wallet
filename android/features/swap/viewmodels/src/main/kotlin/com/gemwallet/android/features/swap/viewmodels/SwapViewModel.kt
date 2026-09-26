@@ -37,6 +37,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.emptyFlow
@@ -78,8 +80,9 @@ import uniffi.gemstone.formattedPercentage
 import uniffi.gemstone.newSlippageSession
 import java.math.BigInteger
 import javax.inject.Inject
+import kotlin.time.Duration
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class SwapViewModel @Inject constructor(
     private val getCurrentWalletId: GetCurrentWalletId,
@@ -97,6 +100,10 @@ class SwapViewModel @Inject constructor(
 
     private val payValueFlow = snapshotFlow { payValue.text }
         .map { it.toString() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    private val settledPayValue = payValueFlow
+        .debounce(GemConstants.swapQuoteDebounce)
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
@@ -148,15 +155,16 @@ class SwapViewModel @Inject constructor(
                 return@flatMapLatest flowOf<GemSwapQuotesResult?>(null)
             }
 
+            val debounce = if (payValueFlow.value == settledPayValue.value) Duration.ZERO else GemConstants.swapQuoteDebounce
             quoteRefreshEnabled.flatMapLatest { isEnabled ->
                 if (!isEnabled) {
                     return@flatMapLatest emptyFlow()
                 }
 
-                merge(flowOf(Unit), refreshRequests)
-                    .transformLatest {
+                merge(flowOf(debounce), refreshRequests.map { Duration.ZERO })
+                    .transformLatest { wait ->
+                        delay(wait)
                         while (currentCoroutineContext().isActive) {
-                            delay(GemConstants.swapQuoteDebounce)
                             onQuoteFetchStarted(params.key)
                             val results = requestQuotes(params)
                             emit(results)

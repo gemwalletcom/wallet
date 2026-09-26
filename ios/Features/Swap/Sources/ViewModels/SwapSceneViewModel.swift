@@ -404,7 +404,6 @@ extension SwapSceneViewModel {
             let toAsset, toAsset.asset.id.identifier == input.request.receiveAssetId
         else { return }
         session = session.onFetchStarted(request: input.request)
-        resetToValue()
         do {
             let swapQuotes = try await service.getQuotes(fromAsset: fromAsset.asset, toAsset: toAsset.asset, input: input)
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
@@ -412,6 +411,7 @@ extension SwapSceneViewModel {
         } catch let error as SwapperError {
             guard !Task.isCancelled else { return }
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))
+            setToValue()
             debugLog("SwapScene get quotes error: \(error)")
         } catch {
             debugLog("SwapScene get quotes error: \(error)")

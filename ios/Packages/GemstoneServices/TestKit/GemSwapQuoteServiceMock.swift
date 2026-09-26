@@ -23,7 +23,7 @@ import Primitives
 import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
-    private let quotes: @Sendable (BigInt) -> [SwapperQuote]
+    private let quotes: @Sendable (BigInt) async throws -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
@@ -32,7 +32,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public private(set) var balanceUpdates: [[AssetId]] = []
 
     public init(
-        quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
+        quotes: @escaping @Sendable (BigInt) async throws -> [SwapperQuote],
         quoteData: Gemstone.SwapQuoteData = .mock(),
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
@@ -98,7 +98,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         if let quotesError {
             throw quotesError
         }
-        return quotes(BigInt(value))
+        return try await quotes(BigInt(value))
     }
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {

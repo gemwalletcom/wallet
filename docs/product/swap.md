@@ -21,6 +21,7 @@ flowchart LR
 - Details lists the Provider, the Rate, the Estimated Time, the Price Impact when the loss is more than 1%, the Minimum Receive and the Slippage; Providers lets the user pick another provider and the choice survives refreshes.
 - Slippage is Auto (1%, 3% on Solana) or a chosen value between 0.1% and 20%; a chosen value warns from 3%, while Auto never warns, even at Solana's 3%. The choice is kept for later swaps.
 - Quotes refresh every 30 seconds while the screen is open; an answer for an amount or pair the user has already changed is thrown away.
+- Picking an asset asks for quotes at once, a typed amount waits until typing stops, and a refresh keeps You Receive on screen until the new quote arrives; it clears only when the amount, an asset or the slippage changes.
 - Swap prepares the trade with the chosen provider and opens the confirmation screen; a price impact of 10% or more asks "High Price Impact" first.
 
 ## Rules
