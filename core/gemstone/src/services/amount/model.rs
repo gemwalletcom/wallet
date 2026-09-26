@@ -385,10 +385,43 @@ impl GemAmountSession {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountExtras {
+    None,
+    Validator {
+        row: GemValidatorRow,
+        can_select: bool,
+    },
+    Resources {
+        options: Vec<primitives::Resource>,
+        selected: primitives::Resource,
+    },
+    Provider {
+        row: GemValidatorRow,
+    },
+    Perpetual {
+        leverage: Option<GemAmountLeverage>,
+        autoclose: Option<crate::models::list::GemListRow>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountLeverage {
+    pub selection: GemLeverageSelection,
+    pub direction: PerpetualDirection,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemLeverageSelection {
     pub options: Vec<crate::services::settings::rules::GemPickerOption>,
     pub selected: crate::services::settings::rules::GemPickerOption,
+}
+
+impl GemLeverageSelection {
+    pub(super) fn picked(self, leverage: u8) -> Self {
+        let selected = self.options.iter().find(|option| option.value == leverage).cloned().unwrap_or(self.selected);
+        Self { selected, ..self }
+    }
 }
 
 #[cfg(test)]
@@ -435,6 +468,18 @@ mod tests {
 
         let whole = GemAmountInput { uses_whole_amounts: true, ..input };
         assert_eq!(session.field(asset, whole, primitives::Currency::EUR).keyboard, GemAmountKeyboard::Whole, "a whole-unit asset takes no decimal point");
+    }
+
+    #[test]
+    fn test_a_leverage_selection_keeps_the_picked_leverage_it_offers() {
+        let option = crate::services::settings::rules::leverage_option;
+        let selection = GemLeverageSelection {
+            options: vec![option(1), option(5), option(10)],
+            selected: option(5),
+        };
+
+        assert_eq!(selection.clone().picked(10).selected, option(10));
+        assert_eq!(selection.picked(40).selected, option(5), "a leverage the market no longer offers falls back to the default");
     }
 
     #[test]

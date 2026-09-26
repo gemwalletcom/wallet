@@ -8,16 +8,10 @@ import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.listItemModel
-import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
@@ -137,28 +131,6 @@ class AmountPerpetualProvider(
 
     val takeProfit: StateFlow<String?> = draft.map { it.takeProfit.value }.stateIn(scope, SharingStarted.Eagerly, null)
     val stopLoss: StateFlow<String?> = draft.map { it.stopLoss.value }.stateIn(scope, SharingStarted.Eagerly, null)
-
-    val leverageListItem: StateFlow<ListItemModel?> = leverageState.map { state ->
-        state?.let {
-            ListItemModel(
-                title = context.getString(R.string.perpetual_leverage),
-                subtitle = it.current.label.string(context),
-                subtitleStyle = it.direction.textStyle(),
-            )
-        }
-    }.stateIn(scope, SharingStarted.Eagerly, null)
-
-    val autocloseListItem: StateFlow<ListItemModel?> = draft.map { service.perpetualAutocloseRow(it, decimalSeparator).listItemModel(context) }
-        .stateIn(scope, SharingStarted.Eagerly, null)
-
-    val extras: StateFlow<AmountExtrasUIModel> = combine(leverageState, leverageListItem, autocloseListItem) { state, leverage, autoclose ->
-        AmountExtrasUIModel.Perpetual(
-            leverage = leverage,
-            leverages = state?.options.orEmpty(),
-            selectedLeverage = state?.current,
-            autoclose = autoclose.takeIf { showsAutoclose },
-        )
-    }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
     fun openPositionRow(amount: String): GemAssetItemRow? {
         val market = perpetual.value ?: return null

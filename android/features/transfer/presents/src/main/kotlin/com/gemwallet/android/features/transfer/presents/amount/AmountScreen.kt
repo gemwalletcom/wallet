@@ -13,10 +13,10 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.stake.presents.ValidatorSelectScene
 import com.gemwallet.android.features.transfer.presents.amount.dialogs.AmountAutocloseSheet
 import com.gemwallet.android.features.transfer.viewmodels.amount.AmountViewModel
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAmountExtras
 
 @Composable
 fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, onBuy: (AssetId) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
@@ -28,7 +28,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
 
     var isSelectValidator by remember { mutableStateOf(false) }
     var showsAutoclose by remember { mutableStateOf(false) }
-    val canPickValidator = (uiState.extras as? AmountExtrasUIModel.Validator)?.canSelect == true
+    val canPickValidator = (uiState.extras as? GemAmountExtras.Validator)?.canSelect == true
     BackHandler(isSelectValidator && canPickValidator) { isSelectValidator = false }
 
     val validatorPicker by viewModel.validatorPicker.collectAsStateWithLifecycle()

@@ -35,8 +35,6 @@ import org.junit.Test
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemLeverageSelection
-import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualAutoclose
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -129,7 +127,6 @@ class AmountPerpetualProviderTest {
                 selected = GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),
             )
             every { perpetualAutoclose(any(), any(), any()) } answers { autoclose(secondArg<Byte>().toUByte()) }
-            every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Lines(GemListRowTitle.AUTO_CLOSE, emptyList(), null)
         }
         val perpetualAggregate = mockPerpetualData()
         val perpetualQuery = mockk<PerpetualQuery> {

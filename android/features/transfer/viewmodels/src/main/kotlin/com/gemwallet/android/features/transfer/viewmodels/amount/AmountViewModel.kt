@@ -18,7 +18,6 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
 import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountUIState
 import com.gemwallet.android.features.transfer.viewmodels.amount.models.ValidatorSelectUIModel
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountPerpetualProvider
@@ -58,6 +57,7 @@ import uniffi.gemstone.EarnType
 import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountException
+import uniffi.gemstone.GemAmountExtras
 import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
@@ -125,9 +125,11 @@ class AmountViewModel @Inject constructor(
         if (request == null || current == null) null else request.input(current.toGem())
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val extras: StateFlow<AmountExtrasUIModel> = stakeProvider?.extras ?: perpetualProvider?.extras ?: amountType
-        .map { type -> (type as? GemAmountType.Earn)?.let { AmountExtrasUIModel.EarnProvider(it.provider) } ?: AmountExtrasUIModel.None }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
+    private val extras: StateFlow<GemAmountExtras> = combine(request, assetInfo) { request, current ->
+        if (request == null || current == null) GemAmountExtras.None else service.extras(request, current.asset.toGem())
+    }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountExtras.None)
 
     private val session = MutableStateFlow(newAmountSession(numberFormat()))
 
@@ -199,7 +201,7 @@ class AmountViewModel @Inject constructor(
             error = errorDisplay?.text(context).orEmpty(),
             errorTopic = errorDisplay?.info(),
             buttonState = values[3] as ButtonState,
-            extras = rest[2] as AmountExtrasUIModel,
+            extras = rest[2] as GemAmountExtras,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUIState())
 

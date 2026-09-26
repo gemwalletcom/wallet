@@ -3,12 +3,14 @@
 import BigInt
 import struct Gemstone.GemAmountInput
 import class Gemstone.GemAmountService
+import enum Gemstone.GemListRow
 import struct Gemstone.GemPerpetualAutoclose
 import struct Gemstone.GemTransferData
 import enum Gemstone.PerpetualType
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
@@ -49,9 +51,9 @@ struct AmountPerpetualViewModelTests {
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3)))
         let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
-        #expect(open.isAutocloseEnabled == true)
-        #expect(increase.isAutocloseEnabled == false)
-        #expect(reduce.isAutocloseEnabled == false)
+        #expect(open.autoclose != nil)
+        #expect(increase.autoclose == nil)
+        #expect(reduce.autoclose == nil)
     }
 
     @Test
@@ -69,14 +71,14 @@ struct AmountPerpetualViewModelTests {
     func autocloseListItem() {
         let model = AmountPerpetualViewModel.mock()
 
-        #expect(model.autocloseListItem?.subtitle == "-")
-        #expect(model.autocloseListItem?.subtitleExtra == nil)
+        #expect(model.autoclose?.listItemModel()?.subtitle == "-")
+        #expect(model.autoclose?.listItemModel()?.subtitleExtra == nil)
 
         model.updateAutoclose(takeProfit: "100", stopLoss: nil)
-        #expect(model.autocloseListItem?.subtitle == "TP: $100.00")
+        #expect(model.autoclose?.listItemModel()?.subtitle == "TP: $100.00")
 
         model.updateAutoclose(takeProfit: "100", stopLoss: "50")
-        #expect(model.autocloseListItem?.subtitleExtra == "SL: $50.00")
+        #expect(model.autoclose?.listItemModel()?.subtitleExtra == "SL: $50.00")
     }
 
     @Test
@@ -156,5 +158,12 @@ struct AmountPerpetualViewModelTests {
 
     private func amountInput(_ model: AmountPerpetualViewModel, _ assetData: AssetData) -> GemAmountInput {
         model.request.input(data: assetData.toGem())
+    }
+}
+
+private extension AmountPerpetualViewModel {
+    var autoclose: GemListRow? {
+        guard case let .perpetual(_, autoclose) = GemAmountService.mock().extras(request: request, asset: asset.toGem()) else { return nil }
+        return autoclose
     }
 }

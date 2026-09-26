@@ -5,8 +5,10 @@ import Formatters
 import Foundation
 import struct Gemstone.GemAmountEntry
 import enum Gemstone.GemAmountError
+import enum Gemstone.GemAmountExtras
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
+import struct Gemstone.GemAmountLeverage
 import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
 import struct Gemstone.GemAmountSession
@@ -96,9 +98,6 @@ public final class AmountSceneViewModel {
         self.session = session
         entry = Self.entry(session: session, amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, currency: currency)
         amountInputModel = InputValidationViewModel()
-        perpetual?.onInfo = { [weak self] topic in
-            self?.isPresentingSheet = .infoAction(topic.infoSheet)
-        }
     }
 
     var request: GemAmountRequest {
@@ -113,13 +112,28 @@ public final class AmountSceneViewModel {
         amountType.title().title
     }
 
-    var earnProviderRow: GemValidatorRow? {
-        guard case let .earn(_, provider) = amountType else { return nil }
-        return provider
+    var extras: GemAmountExtras {
+        service.extras(request: request, asset: asset.toGem())
+    }
+
+    var validatorTitle: String {
+        Localized.Stake.validator
     }
 
     var providerTitle: String {
         Localized.Common.provider
+    }
+
+    func leverageListItem(_ leverage: GemAmountLeverage) -> ListItemModel {
+        ListItemModel(
+            title: Localized.Perpetual.leverage,
+            subtitle: leverage.selection.selected.label.text,
+            subtitleStyle: TextStyle(font: .callout, color: leverage.direction.toPrimitives().color),
+        )
+    }
+
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingSheet = .infoAction(topic.infoSheet)
     }
 
     var displayAsset: Asset {

@@ -60,44 +60,43 @@ public struct AmountScene: View {
                 }
             }
 
-            if let stake = model.stake {
-                switch stake.selection {
-                case let .validator(validator, destination):
-                    Section(stake.validatorTitle) {
-                        if let destination {
-                            NavigationLink(value: destination) {
-                                ValidatorView(model: validator)
-                            }
-                        } else {
-                            ValidatorView(model: validator)
+            switch model.extras {
+            case let .validator(row, canSelect):
+                Section(model.validatorTitle) {
+                    if canSelect {
+                        NavigationLink(value: row.validator.toPrimitives()) {
+                            ValidatorView(model: ValidatorViewModel(row: row))
                         }
+                    } else {
+                        ValidatorView(model: ValidatorViewModel(row: row))
                     }
-                case let .resource(options, selected):
-                    Section {
-                        Picker("", selection: model.resourceBinding(selected: selected)) {
-                            ForEach(options) { resource in
-                                Text(resource.title)
-                                    .tag(resource)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: Sizing.picker.segmentedWidth)
-                    }
-                    .cleanListRow()
                 }
-            }
-
-            if let perpetual = model.perpetual {
-                if let leverageListItem = perpetual.leverageListItem {
+            case let .resources(options, selected):
+                Section {
+                    Picker("", selection: model.resourceBinding(selected: selected.toPrimitives())) {
+                        ForEach(options.map { $0.toPrimitives() }) { resource in
+                            Text(resource.title)
+                                .tag(resource)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: Sizing.picker.segmentedWidth)
+                }
+                .cleanListRow()
+            case let .provider(row):
+                Section(model.providerTitle) {
+                    ValidatorView(model: ValidatorViewModel(row: row))
+                }
+            case let .perpetual(leverage, autoclose):
+                if let leverage {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(model: leverageListItem),
+                            with: ListItemView(model: model.leverageListItem(leverage)),
                             action: model.onSelectLeverage,
                         )
                     }
                 }
-
-                if perpetual.isAutocloseEnabled, let autocloseListItem = perpetual.autocloseListItem {
+                if let autoclose, let autocloseListItem = autoclose.listItemModel(onInfo: model.onInfo) {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(model: autocloseListItem),
@@ -105,12 +104,8 @@ public struct AmountScene: View {
                         )
                     }
                 }
-            }
-
-            if let row = model.earnProviderRow {
-                Section(model.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(row: row))
-                }
+            case .none:
+                EmptyView()
             }
         }
         .safeAreaButton {

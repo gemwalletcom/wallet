@@ -2,7 +2,6 @@ package com.gemwallet.android.features.transfer.viewmodels.amount.providers
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -109,13 +108,11 @@ class AmountStakeProviderTest {
     }
 
     @Test
-    fun `the validator row follows what Core allows`() = runBlocking {
+    fun `the selected validator follows what Core selected`() = runBlocking {
         every { stakeService.stakeAmountSelection(any(), any()) } returns
             GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), false)
         val locked = makeProvider(GemStakeAmountInput.Unstake(delegation.toGem()))
 
-        val extras = locked.extras.first { it is AmountExtrasUIModel.Validator } as AmountExtrasUIModel.Validator
-        assertEquals(false, extras.canSelect)
         assertEquals("v1", locked.selectedValidatorId.first { it != null })
     }
 

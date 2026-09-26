@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.transfer.viewmodels.amount.providers
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
 import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Resource
@@ -50,16 +48,6 @@ class AmountStakeProvider(val params: AmountParams.Stake, validators: Flow<List<
     fun setResource(value: Resource) {
         stakeInput.update { it.withResource(value.toGem()) }
     }
-
-    val extras: StateFlow<AmountExtrasUIModel> = selection
-        .map { selection ->
-            when (selection) {
-                null -> AmountExtrasUIModel.None
-                is GemStakeAmountSelection.Validator -> AmountExtrasUIModel.Validator(selection.validator, selection.canSelect)
-                is GemStakeAmountSelection.Resource -> AmountExtrasUIModel.Resources(selection.options.map { it.toPrimitives() }, selection.selected.toPrimitives())
-            }
-        }
-        .stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
     val request: StateFlow<GemAmountRequest?> = stakeInput
         .map { GemAmountRequest.Stake(it) }

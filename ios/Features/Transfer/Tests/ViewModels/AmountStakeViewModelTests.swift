@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import enum Gemstone.GemAmountExtras
 import struct Gemstone.GemAmountInput
 import class Gemstone.GemAmountService
 import struct Gemstone.GemTransferData
@@ -52,19 +53,19 @@ struct AmountStakeViewModelTests {
     @Test
     func resourceSelection() {
         let model = AmountStakeViewModel.mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), type: .freeze(resource: Resource.energy.toGem()))
-        guard case let .resource(options, selected) = model.selection else {
+        guard case let .resources(options, selected) = model.extras else {
             Issue.record("Expected resource selection")
             return
         }
-        #expect(options == [.bandwidth, .energy])
-        #expect(selected == .energy)
+        #expect(options.map { $0.toPrimitives() } == [.bandwidth, .energy])
+        #expect(selected.toPrimitives() == .energy)
 
         model.select(.bandwidth)
-        guard case let .resource(_, changed) = model.selection else {
+        guard case let .resources(_, changed) = model.extras else {
             Issue.record("Expected resource selection")
             return
         }
-        #expect(changed == .bandwidth)
+        #expect(changed.toPrimitives() == .bandwidth)
     }
 
     @Test
@@ -158,9 +159,13 @@ struct AmountStakeViewModelTests {
 }
 
 private extension AmountStakeViewModel {
+    var extras: GemAmountExtras {
+        GemAmountService.mock().extras(request: request, asset: asset.toGem())
+    }
+
     var validator: (id: String, isSelectable: Bool)? {
-        if case let .validator(model, destination) = selection {
-            return (model.row.validator.id, destination != nil)
+        if case let .validator(row, canSelect) = extras {
+            return (row.validator.id, canSelect)
         }
         return nil
     }

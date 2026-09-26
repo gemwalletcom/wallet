@@ -107,11 +107,11 @@ struct AmountSceneViewModelTests {
         model.onValidatorSelected(.mock(validator: validator2.toGem()))
 
         #expect(model.amountInputModel.text == "1.5")
-        guard case let .validator(validator, _) = model.stake?.selection else {
+        guard case let .validator(row, _) = model.extras else {
             Issue.record("Expected a validator selection")
             return
         }
-        #expect(validator.row.validator.id == "2")
+        #expect(row.validator.id == "2")
     }
 
     @Test

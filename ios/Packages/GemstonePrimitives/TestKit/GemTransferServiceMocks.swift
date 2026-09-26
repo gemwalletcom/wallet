@@ -38,8 +38,8 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         perpetualAutocloseValue(leverage)
     }
 
-    public func perpetualAutocloseRow(draft: GemAutocloseDraft, decimalSeparator: String) -> GemListRow {
-        builder.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator)
+    public func extras(request: GemAmountRequest, asset: Gemstone.Asset) -> GemAmountExtras {
+        builder.extras(request: request, asset: asset)
     }
 }
 
