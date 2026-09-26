@@ -1,13 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import com.gemwallet.android.data.services.store.database.AddressesDao
 import com.gemwallet.android.data.services.store.database.ContactsDao
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemContactEditorService
 import uniffi.gemstone.GemContactEditorServiceInterface
@@ -39,5 +38,5 @@ object ContactsModule {
     fun provideGemContactServiceInterface(service: GemContactService): GemContactServiceInterface = service
 
     @Provides
-    fun provideGemContactEditorService(contacts: GemContactService, addresses: GemAddressService, payments: GemPaymentService): GemContactEditorServiceInterface = GemContactEditorService(contacts, addresses, payments)
+    fun provideGemContactEditorService(contacts: GemContactService, payments: GemPaymentService): GemContactEditorServiceInterface = GemContactEditorService(contacts, payments)
 }

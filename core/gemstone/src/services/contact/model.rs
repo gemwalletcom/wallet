@@ -2,6 +2,8 @@ use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact};
 
 use super::rules;
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::services::chain::{GemChainRow, chain_row};
 
 #[derive(uniffi::Enum)]
 pub enum GemContactAvatar {
@@ -33,6 +35,13 @@ pub enum GemContactAvatarImage {
     Placeholder,
     Image { image_url: String, initials: String },
     Emoji { emoji: String },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemContactAddressRow {
+    pub address: ContactAddress,
+    pub chain: GemChainRow,
+    pub short_address: String,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -76,6 +85,17 @@ impl GemContactSession {
 
     pub fn on_saving(&self, is_saving: bool) -> Self {
         Self { is_saving, ..self.clone() }
+    }
+
+    pub fn address_rows(&self) -> Vec<GemContactAddressRow> {
+        self.addresses
+            .iter()
+            .map(|address| GemContactAddressRow {
+                chain: chain_row(address.chain),
+                short_address: format_address(&address.address, Some(address.chain), GemAddressFormatStyle::Short),
+                address: address.clone(),
+            })
+            .collect()
     }
 
     pub fn can_save(&self) -> bool {
@@ -179,6 +199,23 @@ mod tests {
         assert_eq!(replaced.addresses.len(), 1);
         assert_eq!(replaced.addresses[0].address, "0x2");
         assert!(replaced.on_address_deleted(replaced.addresses[0].id.clone()).addresses.is_empty());
+    }
+
+    #[test]
+    fn test_each_address_row_names_its_network_and_shortens_the_address() {
+        let address = "0x1234567890abcdef1234567890abcdef12345678";
+        let session = session().on_address_saved(GemContactAddressInput {
+            contact_id: "contact".into(),
+            chain: Chain::Ethereum,
+            address: address.into(),
+            memo: None,
+            replacing_id: None,
+        });
+        let row = session.address_rows().remove(0);
+
+        assert_eq!(row.chain, chain_row(Chain::Ethereum));
+        assert_eq!(row.short_address, format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short));
+        assert_ne!(row.short_address, address);
     }
 
     #[test]

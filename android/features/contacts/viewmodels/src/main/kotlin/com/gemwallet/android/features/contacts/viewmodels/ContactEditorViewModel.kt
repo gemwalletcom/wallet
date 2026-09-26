@@ -10,14 +10,11 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorPage
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
-import com.gemwallet.android.features.contacts.viewmodels.models.addAddressListItem
 import com.gemwallet.android.features.contacts.viewmodels.models.listItemImage
-import com.gemwallet.android.features.contacts.viewmodels.models.rows
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
@@ -92,15 +89,13 @@ class ContactEditorViewModel @Inject constructor(
         addressInput.isValid,
     ) { current, address, resolve, addressError, isValid ->
         val session = current.session
-        val addresses = session.addresses.map { it.toPrimitives() }
         ContactEditorUIState(
             isEdit = current.isEdit,
             name = session.name,
             description = session.description,
             avatar = session.avatarImage().listItemImage(current.emojiBackground),
             hasAvatar = session.avatar !is GemContactAvatarChoice.Empty,
-            addressRows = addresses.rows(service),
-            addAddressListItem = addAddressListItem(context),
+            addressRows = session.addressRows(),
             page = current.page,
             isSaving = session.isSaving,
             saved = current.saved,

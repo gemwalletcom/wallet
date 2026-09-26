@@ -16,11 +16,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -84,12 +89,13 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
             item { SubheaderItem(title = stringResource(R.string.contacts_addresses)) }
 
             itemsIndexed(state.addressRows, key = { _, item -> item.address.id }) { index, row ->
+                val address = row.address.toPrimitives()
                 SwipeableItemWithActions(
                     isRevealed = revealed.value == row.address.id,
                     actions = {
                         ActionIcon(
                             onClick = {
-                                onAction(ContactEditorAction.DeleteAddress(row.address))
+                                onAction(ContactEditorAction.DeleteAddress(address))
                                 revealed.value = null
                             },
                             backgroundColor = MaterialTheme.colorScheme.error,
@@ -101,22 +107,24 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
                     listPosition = if (index == 0) ListPosition.First else ListPosition.Middle,
                 ) { position ->
                     ListItem(
-                        model = row.model,
+                        model = ListItemModel(title = row.chain.title, titleExtra = row.shortAddress, image = ListItemImage.Asset(row.chain.icon)),
                         listPosition = position,
-                        modifier = Modifier.clickable { onAction(ContactEditorAction.EditAddress(row.address)) },
+                        modifier = Modifier.clickable { onAction(ContactEditorAction.EditAddress(address)) },
                         accessory = { DataBadgeChevron() },
                     )
                 }
             }
 
             item {
-                state.addAddressListItem?.let {
-                    ListItem(
-                        model = it,
-                        listPosition = if (state.addressRows.isEmpty()) ListPosition.Single else ListPosition.Last,
-                        modifier = Modifier.clickable { onAction(ContactEditorAction.AddAddress) },
-                    )
-                }
+                ListItem(
+                    model = ListItemModel(
+                        title = stringResource(R.string.common_address),
+                        titleStyle = ListItemTextStyle.Primary,
+                        image = ListItemImage.Symbol(ListItemSymbol.Add, tint = ListItemTextStyle.Primary),
+                    ),
+                    listPosition = if (state.addressRows.isEmpty()) ListPosition.Single else ListPosition.Last,
+                    modifier = Modifier.clickable { onAction(ContactEditorAction.AddAddress) },
+                )
             }
         }
     }

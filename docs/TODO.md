@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM246 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM247 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -54,7 +54,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
-| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM246 |
+| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM265, VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Settings
 
-- **VM246** **S** **Contact address rows are built in the apps.**
-  - **iOS:** `ContactEditorSceneViewModel.listItemModel(for:)` builds network name, short address and image.
-  - **Android:** `ContactAddressRowUIModel` and `addAddressListItem` do the same.
-  - **Expected:** the contact session returns address rows; both builders go.
 - **VM247** **S** **Notification rows decide their tag and icon.**
   - **iOS:** `InAppNotificationListItemViewModel` shows "New" when unread and maps the icon.
   - **Android:** `InAppNotificationListItemUIModel` does the same.

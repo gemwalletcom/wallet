@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.contacts.viewmodels.models
 
 import com.gemwallet.android.ui.components.list_item.ListItemImage
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemContactAddressRow
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.contactAddressFields
 
@@ -20,8 +20,7 @@ data class ContactEditorUIState(
     val description: String = "",
     val avatar: ListItemImage = ListItemImage.Initials(""),
     val hasAvatar: Boolean = false,
-    val addressRows: List<ContactAddressRowUIModel> = emptyList(),
-    val addAddressListItem: ListItemModel? = null,
+    val addressRows: List<GemContactAddressRow> = emptyList(),
     val page: ContactEditorPage = ContactEditorPage.Form,
     val addressInput: ContactAddressInput? = null,
     val isSaving: Boolean = false,

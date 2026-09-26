@@ -3,8 +3,6 @@
 import struct Gemstone.Chain
 import struct Gemstone.Contact
 import struct Gemstone.ContactAddress
-import enum Gemstone.GemAddressFormatStyle
-import class Gemstone.GemAddressService
 import class Gemstone.GemContactEditorService
 import protocol Gemstone.GemContactEditorServiceProtocol
 import struct Gemstone.GemContactInput
@@ -19,7 +17,6 @@ public final class GemContactEditorServiceMock: GemContactEditorServiceProtocol,
     public init() {
         service = GemContactEditorService(
             contacts: .mock(),
-            addresses: GemAddressService(),
             payments: GemPaymentService.mock(),
         )
     }
@@ -34,10 +31,6 @@ public final class GemContactEditorServiceMock: GemContactEditorServiceProtocol,
 
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
-    }
-
-    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
-        service.formatAddress(address: address, chain: chain, style: style)
     }
 
     public func newSession(contact: Gemstone.Contact?, addresses: [Gemstone.ContactAddress]) -> GemContactSession {

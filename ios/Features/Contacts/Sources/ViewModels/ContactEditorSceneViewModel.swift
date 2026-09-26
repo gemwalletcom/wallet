@@ -2,8 +2,8 @@
 
 import Components
 import Foundation
-import func Gemstone.chainRow
 import struct Gemstone.GemContactAddressInput
+import struct Gemstone.GemContactAddressRow
 import enum Gemstone.GemContactAvatar
 import enum Gemstone.GemContactAvatarChoice
 import protocol Gemstone.GemContactEditorServiceProtocol
@@ -101,8 +101,8 @@ public final class ContactEditorSceneViewModel {
         set { session = session.onDescriptionChanged(description: newValue) }
     }
 
-    var addresses: [ContactAddress] {
-        session.addresses.map { $0.toPrimitives() }
+    var addressRows: [GemContactAddressRow] {
+        session.addressRows()
     }
 
     var buttonState: ButtonState {
@@ -152,15 +152,6 @@ public final class ContactEditorSceneViewModel {
             }
             return .rendered(image: data)
         }
-    }
-
-    func listItemModel(for address: ContactAddress) -> ListItemModel {
-        let row = chainRow(chain: address.chain.rawValue)
-        return ListItemModel(
-            title: row.title,
-            titleExtra: service.formatAddress(address: address.address, chain: address.chain.rawValue, style: .short),
-            imageStyle: .asset(assetImage: AssetImage(icon: row.icon)),
-        )
     }
 
     func addressModel(mode: ContactAddressEditorSceneViewModel.Mode) -> ContactAddressEditorSceneViewModel {

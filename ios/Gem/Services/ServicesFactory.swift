@@ -220,7 +220,6 @@ struct ServicesFactory {
         )
 
         let chainService = Gemstone.GemChainService()
-        let addressService = Gemstone.GemAddressService()
         let signMessageService = storages.keystore.signMessageService(
             names: nameService,
             explorer: explorerService,
@@ -364,7 +363,6 @@ struct ServicesFactory {
             contactService: contactService,
             contactEditorService: Gemstone.GemContactEditorService(
                 contacts: contactService,
-                addresses: addressService,
                 payments: paymentService,
             ),
             deeplinkService: Gemstone.GemDeeplinkService(),

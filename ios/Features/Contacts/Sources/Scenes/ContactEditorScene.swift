@@ -111,9 +111,9 @@ extension ContactEditorScene {
 
     private var addressesSection: some View {
         Section {
-            ForEach(model.addresses, id: \.id) { address in
-                NavigationLink(value: Scenes.ContactAddress(address: address)) {
-                    ListItemView(model: model.listItemModel(for: address))
+            ForEach(model.addressRows, id: \.address.id) { row in
+                NavigationLink(value: Scenes.ContactAddress(address: row.address.toPrimitives())) {
+                    ListItemView(model: row.listItem)
                 }
             }
             .onDelete(perform: model.deleteAddress)
