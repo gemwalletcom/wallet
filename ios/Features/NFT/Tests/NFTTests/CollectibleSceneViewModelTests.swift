@@ -8,7 +8,6 @@ import NFTTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
-import StoreTestKit
 import Testing
 
 @MainActor

@@ -7,7 +7,6 @@ import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
-import PrimitivesTestKit
 import Testing
 
 @MainActor

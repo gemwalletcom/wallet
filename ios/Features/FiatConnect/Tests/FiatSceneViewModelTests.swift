@@ -3,7 +3,6 @@
 import BigInt
 @testable import FiatConnect
 import FiatConnectTestKit
-import Formatters
 import Foundation
 import struct Gemstone.FiatQuote
 import func Gemstone.formattedAmount

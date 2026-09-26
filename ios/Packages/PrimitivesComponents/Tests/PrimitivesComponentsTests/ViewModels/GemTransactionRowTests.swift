@@ -3,7 +3,6 @@
 import Components
 import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
-import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit

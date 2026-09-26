@@ -8,7 +8,6 @@ import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
-import PrimitivesComponentsTestKit
 import Style
 import Testing
 

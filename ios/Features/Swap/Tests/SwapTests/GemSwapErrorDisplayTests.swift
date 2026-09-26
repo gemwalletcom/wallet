@@ -2,7 +2,6 @@
 
 import func Gemstone.formattedAmount
 import enum Gemstone.GemSwapErrorDisplay
-@testable import Swap
 import Testing
 
 struct GemSwapErrorDisplayTests {

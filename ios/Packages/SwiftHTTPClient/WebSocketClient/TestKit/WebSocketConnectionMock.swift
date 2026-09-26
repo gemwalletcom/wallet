@@ -58,12 +58,4 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
         state = .disconnected
         continuation?.yield(.disconnected(error))
     }
-
-    public func getSentData() -> [Data] {
-        sentData
-    }
-
-    public func clearSentData() {
-        sentData.removeAll()
-    }
 }

@@ -12,7 +12,6 @@ import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
 import WalletConnectorService
-import WalletConnectorServiceTestKit
 import WalletConnectorTestKit
 
 struct SignMessageSceneViewModelTests {

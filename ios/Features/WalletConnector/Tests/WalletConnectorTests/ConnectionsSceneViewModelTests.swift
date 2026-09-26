@@ -6,7 +6,6 @@ import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
-import StoreTestKit
 import Testing
 @testable import WalletConnector
 import WalletConnectorServiceTestKit

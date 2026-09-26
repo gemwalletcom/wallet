@@ -13,7 +13,6 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Store
-import StoreTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit

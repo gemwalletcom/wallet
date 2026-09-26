@@ -6,7 +6,6 @@ import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import Primitives
 @testable import PrimitivesComponents
-import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 

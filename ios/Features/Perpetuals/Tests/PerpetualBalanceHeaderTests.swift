@@ -3,7 +3,6 @@
 import Components
 import struct Gemstone.PerpetualBalance
 import func Gemstone.perpetualBalanceHeader
-@testable import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Testing

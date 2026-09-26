@@ -12,10 +12,8 @@ import GemstonePrimitivesTestKit
 import Localization
 @testable import Primitives
 import PrimitivesComponents
-import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import TransferTestKit
 
 struct GemConfirmRowContentTests {
     @Test

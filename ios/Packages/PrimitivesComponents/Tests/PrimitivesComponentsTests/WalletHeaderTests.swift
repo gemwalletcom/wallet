@@ -8,7 +8,6 @@ import struct Gemstone.GemValueHeader
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
-import PrimitivesTestKit
 import Testing
 
 struct WalletHeaderTests {

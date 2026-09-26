@@ -9,7 +9,6 @@ import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
-import Localization
 import Primitives
 import PrimitivesTestKit
 @testable import Stake

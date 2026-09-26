@@ -7,7 +7,6 @@ import enum Gemstone.GemNameInputStep
 import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
-import PrimitivesTestKit
 
 public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
     private var values: [String: String] = [:]

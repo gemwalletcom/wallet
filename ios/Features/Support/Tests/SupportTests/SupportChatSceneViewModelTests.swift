@@ -9,7 +9,6 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
-import StoreTestKit
 @testable import Support
 import SupportTestKit
 import Testing

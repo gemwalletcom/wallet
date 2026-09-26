@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import PriceAlerts
 import PriceAlertsTestKit

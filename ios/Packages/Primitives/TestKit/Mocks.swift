@@ -68,24 +68,6 @@ public extension AssetAddress {
     }
 }
 
-public extension PriceData {
-    static func mock(
-        asset: Asset = .mock(),
-        price: Price? = nil,
-        priceAlerts: [PriceAlert] = [],
-        market: AssetMarket? = nil,
-        links: [AssetLink] = [],
-    ) -> PriceData {
-        PriceData(
-            asset: asset,
-            price: price,
-            priceAlerts: priceAlerts,
-            market: market,
-            links: links,
-        )
-    }
-}
-
 public extension AutocloseOpenData {
     static func mock(
         assetId: AssetId = .mock(),

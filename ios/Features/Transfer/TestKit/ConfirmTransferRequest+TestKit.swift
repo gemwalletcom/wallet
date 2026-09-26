@@ -4,7 +4,6 @@ import Foundation
 import struct Gemstone.GemTransferData
 import GemstonePrimitivesTestKit
 import Primitives
-import PrimitivesTestKit
 import Transfer
 import WalletConnector
 

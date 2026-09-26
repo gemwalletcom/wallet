@@ -15,7 +15,6 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
-import Style
 import Testing
 @testable import Transactions
 import TransactionsTestKit

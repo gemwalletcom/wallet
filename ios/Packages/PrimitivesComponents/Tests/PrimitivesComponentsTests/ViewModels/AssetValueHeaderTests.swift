@@ -1,11 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemValueHeader
-import GemstonePrimitives
 import Localization
 import Primitives
 @testable import PrimitivesComponents
-import PrimitivesTestKit
 import Testing
 
 struct AssetValueHeaderTests {

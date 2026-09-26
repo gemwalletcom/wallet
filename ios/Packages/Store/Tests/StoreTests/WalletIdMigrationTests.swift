@@ -46,8 +46,6 @@ private extension DB {
 
 @Suite(.serialized)
 struct WalletIdMigrationTests {
-    private let currentWalletKey = "currentWallet"
-
     @Test
     func migrateMulticoinWallet() throws {
         let userDefaults = UserDefaults.mock()

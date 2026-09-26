@@ -14,7 +14,6 @@ import Observation
 import Primitives
 import PrimitivesTestKit
 @testable import Store
-import StoreTestKit
 @testable import Swap
 import SwapTestKit
 import Testing

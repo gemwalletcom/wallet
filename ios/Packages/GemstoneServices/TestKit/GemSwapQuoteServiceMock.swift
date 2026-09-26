@@ -20,7 +20,6 @@ import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
-import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) async throws -> [SwapperQuote]

@@ -11,8 +11,6 @@ import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import NativeProviderService
-import Primitives
-import PrimitivesTestKit
 import Store
 import StoreTestKit
 

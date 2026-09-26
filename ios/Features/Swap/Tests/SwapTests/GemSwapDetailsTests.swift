@@ -8,7 +8,6 @@ import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import GemstoneServicesTestKit
 import Primitives
-import PrimitivesTestKit
 @testable import Swap
 import SwapTestKit
 import Testing

@@ -9,8 +9,6 @@ struct TestDate: Codable, Equatable {
 }
 
 struct ResponseTests {
-    let encoder = JSONEncoder()
-
     @Test
     func mapInt() throws {
         let response = Response(body: Data("1".utf8))
