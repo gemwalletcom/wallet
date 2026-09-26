@@ -72,7 +72,7 @@ class NotificationNavigationTest {
                 GemPushNotification.Transaction(walletId = walletId.id, assetId = assetId.toIdentifier(), transaction = transaction.toGem()),
             ).routes
 
-        assertEquals(listOf(AssetRoute(asset.id), TransactionRoute(transaction.id)), routes)
+        assertEquals(listOf(AssetRoute(asset.id), TransactionRoute(walletId, transaction.id)), routes)
         verify { walletSessionService.setCurrentWalletId(walletId.id) }
     }
 

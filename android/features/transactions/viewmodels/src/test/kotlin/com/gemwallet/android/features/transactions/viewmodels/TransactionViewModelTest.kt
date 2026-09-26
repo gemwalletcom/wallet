@@ -2,14 +2,12 @@ package com.gemwallet.android.features.transactions.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.TransactionQuery
+import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
-import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockWallet
@@ -47,12 +45,19 @@ class TransactionViewModelTest {
         asset = mockAsset(id = mockAssetId(chain = Chain.Near)),
     )
     private val transactionId = transactionExtended.transaction.id
+    private val wallet = mockWallet(id = WalletId("opened"), type = WalletType.View)
     private val service = mockk<GemTransactionDetailsServiceInterface>()
     private val transactionQuery = mockk<TransactionQuery>()
-    private val session = MutableStateFlow<Session?>(null)
-    private val getSession = mockk<GetSession> { every { this@mockk.invoke() } returns session }
+    private val walletQuery = mockk<WalletQuery> { every { this@mockk(wallet.id) } returns flowOf(wallet) }
     private val model by lazy {
-        TransactionViewModel(getSession, transactionQuery, service, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to transactionId.identifier)), dispatcher, mockk(relaxed = true))
+        TransactionViewModel(
+            walletQuery,
+            transactionQuery,
+            service,
+            SavedStateHandle(mapOf(RouteArgument.WalletId.key to wallet.id.id, RouteArgument.TransactionId.key to transactionId.identifier)),
+            dispatcher,
+            mockk(relaxed = true),
+        )
     }
 
     @Before
@@ -66,14 +71,11 @@ class TransactionViewModelTest {
 
     @Test
     fun theDetailRowsComeFromCoreForTheStoredTransactionAndTheWalletType() {
-        val wallet = mockWallet(type = WalletType.View)
         val rows = mockGemTransactionDetailRows(
             explorer = GemBlockExplorerLink("NEAR Intents", "https://explorer.near-intents.org/transactions/recipient-address"),
         )
         every { transactionQuery(wallet.id, transactionId) } returns flowOf(transactionExtended)
         every { service.detailRows(transactionExtended.toGem(), GemWalletType.VIEW) } returns rows
-
-        session.value = mockSession(wallet = wallet)
 
         assertEquals(rows, model.data.value)
         assertEquals("NEAR Intents", model.data.value?.explorer?.name)
@@ -81,40 +83,25 @@ class TransactionViewModelTest {
     }
 
     @Test
-    fun theDetailsClearWhenTheOtherWalletHasNoSuchRecord() {
-        val first = mockWallet(id = WalletId("first"))
-        val second = mockWallet(id = WalletId("second"))
-        session.value = mockSession(wallet = first)
+    fun theDetailsReadTheWalletTheyWereOpenedForWithoutASession() {
         val rows = mockGemTransactionDetailRows()
-        every { transactionQuery(first.id, transactionId) } returns flowOf(transactionExtended)
-        every { transactionQuery(second.id, transactionId) } returns flowOf(null)
+        every { transactionQuery(wallet.id, transactionId) } returns flowOf(transactionExtended)
         every { service.detailRows(any(), any()) } returns rows
 
         assertEquals(rows, model.data.value)
-
-        session.value = mockSession(wallet = second)
-
-        assertNull(model.data.value)
     }
 
     @Test
     fun theDetailsClearWhenTheShownRecordIsDeleted() {
-        val wallet = mockWallet()
         val record = MutableStateFlow<TransactionExtended?>(transactionExtended)
         val rows = mockGemTransactionDetailRows()
         every { transactionQuery(wallet.id, transactionId) } returns record
         every { service.detailRows(any(), any()) } returns rows
 
-        session.value = mockSession(wallet = wallet)
         assertEquals(rows, model.data.value)
 
         record.value = null
 
-        assertNull(model.data.value)
-    }
-
-    @Test
-    fun noSessionShowsNoDetails() {
         assertNull(model.data.value)
     }
 }

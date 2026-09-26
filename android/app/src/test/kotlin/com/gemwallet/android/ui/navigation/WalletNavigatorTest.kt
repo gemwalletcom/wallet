@@ -16,9 +16,13 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWa
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockNftAsset
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockTransactionId
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
@@ -45,6 +49,7 @@ import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
+import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectorRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
@@ -59,6 +64,8 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.test.runTest
@@ -621,10 +628,22 @@ class WalletNavigatorTest {
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }
 
+    @Test
+    fun openTransaction_keysTheDetailsToTheWalletTheyAreOpenedFor() {
+        val wallet = mockWallet(id = WalletId("shown"))
+        val transactionId = mockTransactionId()
+        val navigator = navigatorWith(WalletRootRoute, session = MutableStateFlow(mockSession(wallet = wallet)))
+
+        navigator.openTransaction(transactionId)
+
+        assertEquals(listOf(WalletRootRoute, TransactionRoute(wallet.id, transactionId)), navigator.backStack.toList())
+    }
+
     private fun navigatorWith(
         vararg routes: NavKey,
         assetsService: GemAssetsServiceInterface = mockk(),
         navigationService: GemNavigationServiceInterface = mockk(relaxed = true),
+        session: StateFlow<Session?> = MutableStateFlow(null),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
     ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
@@ -632,6 +651,7 @@ class WalletNavigatorTest {
         deeplinkService = GemDeeplinkService(),
         assetsService = assetsService,
         navigationService = navigationService,
+        session = session,
         scope = scope,
     )
 }

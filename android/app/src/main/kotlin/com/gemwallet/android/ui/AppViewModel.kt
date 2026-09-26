@@ -20,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -56,6 +57,7 @@ class AppViewModel @Inject constructor(
     val uiState = state.asStateFlow()
     private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
+    val session: StateFlow<Session?> = getSession()
     private val walletReadyState = getWalletSummary.getWalletSummary()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)

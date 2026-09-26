@@ -117,7 +117,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
             label = stringResource(R.string.activity_title),
             icon = AppIcons.ElectricBolt,
             route = TransactionsRoute,
-            badge = pendingCount,
+            badge = pendingCount.takeIf { it > 0 }?.toString(),
             testTag = "activitiesTab",
         ),
         BottomNavItem(

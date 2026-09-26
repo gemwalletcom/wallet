@@ -1266,18 +1266,17 @@ override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
 }
 
 // Flow: flowOn after the operator that calls Core
-val data: StateFlow<GemTransactionDetailRows?> = getSession()
-    .flatMapLatest { session ->
-        session ?: return@flatMapLatest flowOf(null)
-        transactionQuery(session.wallet.id, transactionId).map { transaction ->
-            transaction?.let { service.detailRows(it.toGem(), session.wallet.type.toGem()) }
-        }
-    }
+val data: StateFlow<GemTransactionDetailRows?> = combine(
+    walletQuery(walletId).map { it?.type }.distinctUntilChanged(),
+    transactionQuery(walletId, transactionId),
+) { walletType, transaction ->
+    walletType?.let { type -> transaction?.let { service.detailRows(it.toGem(), type.toGem()) } }
+}
     .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
 
-The Flow example is [`TransactionViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
+The Flow example is [`TransactionViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionViewModel.kt): `WalletQuery` and `TransactionQuery` supply the wallet it was opened for and the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
 
 ## 6. Where derived domain answers live
 
@@ -1855,7 +1854,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatViewModel` (+ `SupportMessagesQuery`) |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
-| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `TransactionQuery`) |
+| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `WalletQuery`, `TransactionQuery`) |
 | `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsSceneViewModel` (+ `ConnectionsQuery`) | `WalletConnectorRequestViewModel`, `SignMessageViewModel`, `ConnectionProposalViewModel`, `AuthRequestViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletSummary` (keeps the wallet header, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`, in memory from start for `AssetsViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `AssetsViewModel`) |

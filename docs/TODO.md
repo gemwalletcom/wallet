@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM199 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD347, BD349 to BD351.
+4. **Parity:** BD349 to BD351.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -561,10 +561,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Same rule, different answers
 
 - **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
-- **BD347** **S** **Transaction details and the pending badge follow different wallets.**
-  - **iOS:** the details screen is keyed to the wallet it was opened for and starts from the transaction it was given; the badge counts a fixed wallet and starts at 0.
-  - **Android:** both follow the session wallet, so switching wallets blanks an open details screen, and the badge shows nothing at 0.
-  - **Expected:** Android matches iOS.
 - **BD349** **S** **The wallet list shows assets without an account differently.**
   - **iOS:** lists only assets whose chain has an account in the wallet.
   - **Android:** lists any visible balance row (`AssetsQuery`).

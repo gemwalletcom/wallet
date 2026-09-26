@@ -7,17 +7,18 @@ import com.gemwallet.android.features.transactions.presents.transaction.Transact
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.TransactionId
+import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
 const val TransactionsRoute = "transactions"
 
 @Serializable
-data class TransactionRoute(val transactionId: TransactionId) : NavKey
+data class TransactionRoute(val walletId: WalletId, val transactionId: TransactionId) : NavKey
 
 fun EntryProviderScope<NavKey>.transactionScreen(onAction: (TransactionAction.Navigation) -> Unit) {
     entry<TransactionRoute>(
         metadata = { key ->
-            routeArguments(RouteArgument.TransactionId to key.transactionId.identifier)
+            routeArguments(RouteArgument.WalletId to key.walletId.id, RouteArgument.TransactionId to key.transactionId.identifier)
         },
     ) {
         TransactionScreen(onAction = onAction)

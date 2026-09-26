@@ -25,6 +25,7 @@ import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.routes
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AboutUsRoute
@@ -99,6 +100,7 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsServiceInterface
@@ -114,6 +116,7 @@ class WalletNavigator(
     private val deeplinkService: GemDeeplinkServiceInterface,
     private val assetsService: GemAssetsServiceInterface,
     private val navigationService: GemNavigationServiceInterface,
+    private val session: StateFlow<Session?>,
     private val scope: CoroutineScope,
 ) {
     private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
@@ -219,7 +222,7 @@ class WalletNavigator(
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openChart(assetId: AssetId) = push(ChartRoute(assetId))
     fun openPortfolio(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
-    fun openTransaction(transactionId: TransactionId) = push(TransactionRoute(transactionId))
+    fun openTransaction(transactionId: TransactionId) = session.value?.wallet?.id?.let { push(TransactionRoute(it, transactionId)) }
     fun openAddress(chainAddress: ChainAddress) = push(AddressDetailsRoute(chainAddress))
     fun openConnections() = push(ConnectionsRoute)
     fun openConnection(connectionId: String) = push(ConnectionRoute(connectionId))

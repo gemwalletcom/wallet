@@ -25,6 +25,7 @@ flowchart LR
 ## Rules
 
 - A sent transaction appears as Pending at once and stays tracked until the network settles it, whatever screen the user is on.
+- Transaction details stay on the wallet they were opened for, so a wallet switch, such as a push for another wallet, never blanks or swaps an open details screen.
 - Amounts and status come from the network, never from the app's guess; a failed or reverted transaction is shown as such.
 - An asset's transactions are the ones that move that asset, so a swap is listed under both the asset paid and the asset received, because the user looks for it under either.
 - Tapping an address opens its page with the name the user already sees for it, so the address is recognisable: a contact or own wallet name comes first, a contact shows its picture or initials as on the confirm screen, and a token or validator shows its logo. The page also shows the full address, copied with a tap, the type and the balances; a flagged address shows a "Suspicious address" warning under its picture, the same warning as on the confirm screen, even when it is a contact, and only a plain address shows balances: a contract, token or validator shows none, and the backend does not fetch them.
