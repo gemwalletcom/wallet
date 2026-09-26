@@ -8,10 +8,10 @@ use primitives::{
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput, GemAssetNetworkDestination,
-    GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds,
-    GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
-    GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuIcon, GemAssetMenuInput,
+    GemAssetMenuRow, GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton,
+    GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
+    GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -37,7 +37,7 @@ use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique, unique_by};
 use primitives::AssetType;
 
-pub fn menu_actions(input: &GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
+pub fn menu_rows(input: &GemAssetMenuInput) -> Vec<GemAssetMenuRow> {
     [
         Some(GemAssetMenuAction::Pin { is_pinned: input.is_pinned }),
         input.offers_hide.then_some(GemAssetMenuAction::Hide),
@@ -46,7 +46,18 @@ pub fn menu_actions(input: &GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
     ]
     .into_iter()
     .flatten()
+    .map(|action| GemAssetMenuRow { icon: menu_icon(&action), action })
     .collect()
+}
+
+fn menu_icon(action: &GemAssetMenuAction) -> GemAssetMenuIcon {
+    match action {
+        GemAssetMenuAction::Pin { is_pinned: true } => GemAssetMenuIcon::Unpin,
+        GemAssetMenuAction::Pin { is_pinned: false } => GemAssetMenuIcon::Pin,
+        GemAssetMenuAction::Hide => GemAssetMenuIcon::Hide,
+        GemAssetMenuAction::AddToWallet => GemAssetMenuIcon::AddToWallet,
+        GemAssetMenuAction::CopyAddress { .. } => GemAssetMenuIcon::Copy,
+    }
 }
 
 pub fn asset_list_versions(versions: &ConfigVersions) -> [(AssetList, i32); 3] {
@@ -891,9 +902,10 @@ mod tests {
             offers_hide: true,
             offers_add_to_wallet: true,
         };
+        let actions = |input: &GemAssetMenuInput| menu_rows(input).into_iter().map(|row| row.action).collect::<Vec<_>>();
 
         assert_eq!(
-            menu_actions(&input),
+            actions(&input),
             vec![
                 GemAssetMenuAction::Pin { is_pinned: false },
                 GemAssetMenuAction::Hide,
@@ -902,12 +914,12 @@ mod tests {
             ]
         );
         assert_eq!(
-            menu_actions(&GemAssetMenuInput { is_balance_enabled: true, ..input.clone() }),
+            actions(&GemAssetMenuInput { is_balance_enabled: true, ..input.clone() }),
             vec![GemAssetMenuAction::Pin { is_pinned: false }, GemAssetMenuAction::Hide, GemAssetMenuAction::CopyAddress { address: "0xabc".to_string() },],
             "an asset already in the wallet cannot be added again"
         );
         assert_eq!(
-            menu_actions(&GemAssetMenuInput {
+            actions(&GemAssetMenuInput {
                 address: String::new(),
                 offers_hide: false,
                 offers_add_to_wallet: false,
@@ -916,6 +928,24 @@ mod tests {
             vec![GemAssetMenuAction::Pin { is_pinned: false }],
             "there is nothing to copy without an address"
         );
+    }
+
+    #[test]
+    fn test_each_menu_row_shows_the_icon_for_what_it_does() {
+        let input = GemAssetMenuInput {
+            is_pinned: true,
+            is_balance_enabled: false,
+            address: "0xabc".to_string(),
+            offers_hide: true,
+            offers_add_to_wallet: true,
+        };
+
+        assert_eq!(
+            menu_rows(&input).into_iter().map(|row| row.icon).collect::<Vec<_>>(),
+            vec![GemAssetMenuIcon::Unpin, GemAssetMenuIcon::Hide, GemAssetMenuIcon::AddToWallet, GemAssetMenuIcon::Copy],
+            "a pinned asset offers to unpin"
+        );
+        assert_eq!(menu_rows(&GemAssetMenuInput { is_pinned: false, ..input })[0].icon, GemAssetMenuIcon::Pin);
     }
     use super::*;
     use crate::services::assets::model::GemHeaderButtonKind;

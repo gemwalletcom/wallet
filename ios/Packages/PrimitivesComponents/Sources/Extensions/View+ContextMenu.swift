@@ -48,14 +48,6 @@ private struct ContextMenuItems: View {
                     onPin?()
                 },
             )
-        case let .hide(onHide):
-            ContextMenuItem(
-                title: Localized.Common.hide,
-                systemImage: SystemImage.hide,
-                action: {
-                    onHide?()
-                },
-            )
         case let .delete(onDelete):
             ContextMenuItem(
                 title: Localized.Common.delete,

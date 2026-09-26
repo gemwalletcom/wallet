@@ -475,11 +475,12 @@ public extension FeeUnitType {
 }
 
 public extension GemAssetMenuAction {
-    var title: String? {
+    var title: String {
         switch self {
+        case let .pin(isPinned): isPinned ? Localized.Common.unpin : Localized.Common.pin
+        case .hide: Localized.Common.hide
         case .addToWallet: Localized.Asset.addToWallet
         case .copyAddress: Localized.Wallet.copyAddress
-        case .pin, .hide: nil
         }
     }
 }

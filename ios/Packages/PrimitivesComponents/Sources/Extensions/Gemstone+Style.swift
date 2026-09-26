@@ -6,6 +6,7 @@ import enum Gemstone.GemAcquireOption
 import enum Gemstone.GemAmountKeyboard
 import enum Gemstone.GemAmountSymbolPlacement
 import struct Gemstone.GemAssetIcon
+import enum Gemstone.GemAssetMenuIcon
 import struct Gemstone.GemAssetText
 import struct Gemstone.GemAvatar
 import enum Gemstone.GemBannerButton
@@ -247,6 +248,18 @@ public extension GemBannerIcon {
 
     var imageStyle: ListItemImageStyle? {
         ListItemImageStyle(assetImage: image, imageSize: imageSize, cornerRadiusType: .custom(cornerRadius))
+    }
+}
+
+public extension GemAssetMenuIcon {
+    var systemImage: String {
+        switch self {
+        case .pin: SystemImage.pin
+        case .unpin: SystemImage.unpin
+        case .hide: SystemImage.hide
+        case .addToWallet: SystemImage.plusCircle
+        case .copy: SystemImage.copy
+        }
     }
 }
 

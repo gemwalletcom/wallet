@@ -598,9 +598,24 @@ pub struct GemAssetMenuInput {
     pub offers_add_to_wallet: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetMenuIcon {
+    Pin,
+    Unpin,
+    Hide,
+    AddToWallet,
+    Copy,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetMenuRow {
+    pub action: GemAssetMenuAction,
+    pub icon: GemAssetMenuIcon,
+}
+
 #[uniffi::export]
-pub fn asset_menu_actions(input: GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
-    super::rules::menu_actions(&input)
+pub fn asset_menu_rows(input: GemAssetMenuInput) -> Vec<GemAssetMenuRow> {
+    super::rules::menu_rows(&input)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

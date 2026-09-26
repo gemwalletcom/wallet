@@ -7,7 +7,6 @@ import SwiftUI
 public enum ContextMenuItemType {
     case copy(title: String? = nil, value: String, expirationTime: TimeInterval? = nil, onCopy: StringAction = nil)
     case pin(isPinned: Bool, onPin: VoidAction)
-    case hide(VoidAction)
     case delete(VoidAction)
     case url(title: String, onOpen: VoidAction)
     case custom(

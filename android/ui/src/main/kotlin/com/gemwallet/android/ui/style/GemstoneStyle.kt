@@ -38,6 +38,7 @@ import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAmountKeyboard
 import uniffi.gemstone.GemAmountSymbol
 import uniffi.gemstone.GemAmountSymbolPlacement
+import uniffi.gemstone.GemAssetMenuIcon
 import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
@@ -61,6 +62,15 @@ import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
+
+@DrawableRes
+fun GemAssetMenuIcon.iconRes(): Int = when (this) {
+    GemAssetMenuIcon.PIN -> R.drawable.ic_push_pin
+    GemAssetMenuIcon.UNPIN -> R.drawable.keep_off
+    GemAssetMenuIcon.HIDE -> R.drawable.ic_visibility_off
+    GemAssetMenuIcon.ADD_TO_WALLET -> R.drawable.ic_add_circle_outlined
+    GemAssetMenuIcon.COPY -> R.drawable.ic_content_copy
+}
 
 @DrawableRes
 fun GemHeaderButtonKind.iconRes(): Int = when (this) {
