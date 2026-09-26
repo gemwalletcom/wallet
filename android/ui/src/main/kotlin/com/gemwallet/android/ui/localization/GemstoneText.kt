@@ -280,6 +280,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.TriggerOrder -> "${context.getString(order.stringRes())}: ${price?.text() ?: EMPTY_VALUE}"
 
+    is GemLocalizedText.ChartLine -> "${context.getString(kind.stringRes())} | ${price.text()}"
+
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.chartDateStyle
 import enum Gemstone.GemChartDateStyle
 import GemstonePrimitives
 import Primitives
@@ -16,10 +15,6 @@ public struct ChartDateFormatter: Sendable {
     ) {
         self.locale = locale
         self.timeZone = timeZone
-    }
-
-    public func string(for date: Date, period: ChartPeriod) -> String {
-        string(for: date, style: chartDateStyle(period: period.toGem()))
     }
 
     public func string(for date: Date, style: GemChartDateStyle) -> String {

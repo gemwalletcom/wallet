@@ -20,7 +20,6 @@ use session::GemChartSession;
 
 pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
 
-#[uniffi::export]
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
     rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None)
 }

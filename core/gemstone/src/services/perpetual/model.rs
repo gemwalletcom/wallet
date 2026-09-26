@@ -3,6 +3,8 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
+use crate::services::chart::candlestick_header;
+use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
@@ -229,6 +231,7 @@ pub enum GemPerpetualChartLineKind {
 pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
     pub price: GemFormattedNumber,
+    pub label: GemLocalizedText,
     pub overlap_level: u32,
 }
 
@@ -241,6 +244,26 @@ pub struct GemPerpetualChartLayout {
     pub lines: Vec<GemPerpetualChartLine>,
     pub current_price: Option<GemFormattedNumber>,
     pub tones: Vec<GemValueTone>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleChart {
+    pub candles: Vec<ChartCandleStick>,
+    pub layout: GemPerpetualChartLayout,
+    pub header: GemChartHeader,
+    pub date_style: GemChartDateStyle,
+}
+
+#[uniffi::export]
+impl GemCandleChart {
+    pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
+        let base = self.candles.first()?.close;
+        let candle = self.candles.get(index as usize)?;
+        Some(GemChartSelection {
+            header: candlestick_header(base, candle.close),
+            date: candle.date,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -268,11 +291,6 @@ pub struct GemCandleTooltip {
 #[uniffi::export]
 pub fn candle_tooltip(candle: ChartCandleStick) -> GemCandleTooltip {
     rules::candle_tooltip(&candle)
-}
-
-#[uniffi::export]
-pub fn perpetual_chart_layout(candles: Vec<ChartCandleStick>, position: Option<PerpetualPosition>) -> GemPerpetualChartLayout {
-    rules::chart_layout(&candles, position.as_ref())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

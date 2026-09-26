@@ -18,7 +18,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
@@ -28,7 +27,6 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionsFilter
@@ -59,6 +57,8 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.ChartCandleStick
+import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -142,19 +142,20 @@ class PerpetualViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candleViewState, position) { state, position ->
+    val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, position) { session, position ->
+        val state = session.viewState()
         when (val error = loadError(state.state, state.candles.isNotEmpty())) {
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position, context))
+                else -> session.chart(position?.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData
             }
 
             else -> StateViewType.Error(error.errorText().text(context))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
-    fun tooltip(candle: ChartCandleStick): CandleTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
+    fun tooltip(candle: ChartCandleStick): CandleTooltipUIModel = candleTooltip(candle).uiModel(context)
 
     private val screenVisible = MutableStateFlow(false)
 

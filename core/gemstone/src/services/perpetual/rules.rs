@@ -13,8 +13,8 @@ use primitives::{
 use strum::IntoEnumIterator;
 
 use super::model::{
-    GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemCandleChart, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind,
+    GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
     GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
     PerpetualPositionLine,
 };
@@ -24,6 +24,8 @@ use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSect
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
+use crate::services::chart::candlestick_header;
+use crate::services::chart::rules::date_style;
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -259,6 +261,17 @@ pub fn autoclose_row(data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
     })
 }
 
+pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position: Option<&PerpetualPosition>) -> Option<GemCandleChart> {
+    let base = candles.first()?.close;
+    let last = candles.last()?.close;
+    Some(GemCandleChart {
+        candles: candles.to_vec(),
+        layout: chart_layout(candles, position),
+        header: candlestick_header(base, last),
+        date_style: date_style(period),
+    })
+}
+
 pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPosition>) -> GemPerpetualChartLayout {
     let candle_low = candles.iter().map(|candle| candle.low).reduce(f64::min).unwrap_or(0.0);
     let candle_high = candles.iter().map(|candle| candle.high).reduce(f64::max).unwrap_or(1.0);
@@ -286,9 +299,11 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
                 _ => 0,
             };
             previous = Some((price, overlap_level));
+            let price = GemFormattedNumber::adaptive(price, None);
             GemPerpetualChartLine {
                 kind,
-                price: GemFormattedNumber::adaptive(price, None),
+                label: GemLocalizedText::ChartLine { kind, price: price.clone() },
+                price,
                 overlap_level,
             }
         })
@@ -898,6 +913,7 @@ mod tests {
     use super::*;
     use crate::services::amount::{GemAmountPerpetualPosition, GemAmountType, rules::perpetual_amount_type};
     use crate::services::assets::model::GemHeaderButtonKind;
+    use crate::services::chart::model::GemChartDateStyle;
     use crate::services::perpetual::model::GemPerpetualMarketSession;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
@@ -1220,6 +1236,29 @@ mod tests {
 
         assert_eq!(lines, vec![(GemPerpetualChartLineKind::StopLoss, 8.0), (GemPerpetualChartLineKind::Entry, 14.0)]);
         assert!(layout.price_low <= 8.0 && layout.price_high >= 14.0);
+    }
+
+    #[test]
+    fn test_candle_chart_labels_each_line_and_answers_the_selection_against_the_first_close() {
+        let mut open = PerpetualPosition::mock();
+        open.entry_price = 11.0;
+        let candles = [ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)];
+
+        let chart = candle_chart(&candles, ChartPeriod::Year, Some(&open)).expect("chart");
+        let entry = chart.layout.lines.first().expect("entry line");
+
+        assert_eq!(
+            entry.label,
+            GemLocalizedText::ChartLine {
+                kind: GemPerpetualChartLineKind::Entry,
+                price: entry.price.clone()
+            }
+        );
+        assert_eq!(chart.date_style, GemChartDateStyle::Day);
+        assert_eq!(chart.header, candlestick_header(candles[0].close, candles[1].close));
+        assert_eq!(chart.selection(0).map(|selection| selection.header), Some(candlestick_header(candles[0].close, candles[0].close)));
+        assert_eq!(chart.selection(2), None);
+        assert_eq!(candle_chart(&[], ChartPeriod::Day, None), None, "no candles, no chart");
     }
 
     #[test]

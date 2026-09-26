@@ -29,18 +29,12 @@ public struct PerpetualScene: View {
             Section {} header: {
                 VStack {
                     VStack {
-                        switch chart.state {
+                        switch chart.state(position: details.position) {
                         case .noData:
                             StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
                         case .loading: LoadingView()
                         case let .data(data):
-                            CandlestickChartView(
-                                model: CandlestickChartViewModel(
-                                    candles: data.candles,
-                                    period: data.period,
-                                    position: details.position?.toPrimitives(),
-                                ),
-                            )
+                            CandlestickChartView(chart: data)
                         case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,

@@ -2,6 +2,7 @@ use primitives::{AddressType, Chain, DelegationState, FeeUnitType, PerpetualDire
 
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
+use crate::services::perpetual::model::GemPerpetualChartLineKind;
 use crate::services::price_alert::rules::GemPriceAlertLabel;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -34,6 +35,7 @@ pub enum GemLocalizedText {
     AddressType { address_type: AddressType },
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
+    ChartLine { kind: GemPerpetualChartLineKind, price: GemFormattedNumber },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: GemFormattedNumber },

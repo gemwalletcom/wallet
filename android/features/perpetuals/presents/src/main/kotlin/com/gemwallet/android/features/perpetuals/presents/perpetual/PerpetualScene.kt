@@ -9,14 +9,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualActions
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -40,6 +39,7 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
@@ -52,14 +52,15 @@ import uniffi.gemstone.GemPerpetualPositionDetailRow
 import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.candleSession
 
 @Composable
 internal fun PerpetualScene(
     details: GemPerpetualDetails?,
     transactions: List<GemTransactionRow>,
-    chart: StateViewType<PerpetualChartUIModel>,
+    chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
-    tooltip: (ChartCandleStick) -> CandleTooltipUIModel,
+    tooltip: (uniffi.gemstone.ChartCandleStick) -> CandleTooltipUIModel,
     isRefreshing: Boolean,
     snackbar: SnackbarHostState? = null,
     onAction: (PerpetualAction) -> Unit,
@@ -203,7 +204,7 @@ private fun PerpetualScenePreview() {
                 positionRow = null,
             ),
             transactions = emptyList(),
-            chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition, LocalContext.current)),
+            chart = candleSession(ChartPeriod.Day.toGem()).onCandles(chartData.map { it.toGem() }).chart(samplePosition.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData,
             tooltip = { CandleTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,

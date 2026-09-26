@@ -166,6 +166,8 @@ public extension GemLocalizedText {
             Localized.Errors.Token.invalidId
         case let .triggerOrder(order, price):
             "\(order.title): \(price?.text() ?? Placeholder.empty)"
+        case let .chartLine(kind, price):
+            "\(kind.title) | \(price.text())"
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):
