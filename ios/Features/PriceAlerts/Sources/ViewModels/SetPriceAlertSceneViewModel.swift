@@ -90,9 +90,8 @@ public final class SetPriceAlertSceneViewModel {
 
     func currencyInputConfig(_ viewState: GemPriceAlertViewState) -> any CurrencyInputConfigurable {
         SetPriceAlertCurrencyInputConfig(
-            type: type,
-            alertDirection: session.selectedDirection.toPrimitives(),
-            currentPrice: viewState.currentPrice,
+            input: viewState.input,
+            secondaryText: viewState.currentPriceText?.text ?? .empty,
             formatter: currencyFormatter,
             onTapActionButton: toggleAlertDirection,
         )

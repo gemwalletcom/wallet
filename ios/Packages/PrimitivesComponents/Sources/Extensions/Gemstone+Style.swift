@@ -45,6 +45,7 @@ import enum Gemstone.GemWalletPlaceholder
 import struct Gemstone.GemWalletRow
 import enum Gemstone.GemWalletSectionKind
 import enum Gemstone.LinkType
+import enum Gemstone.PriceAlertDirection
 import enum Gemstone.YieldProvider
 import GemstonePrimitives
 import Localization
@@ -738,6 +739,15 @@ public extension GemNotificationIcon {
         case let .emoji(glyph): AssetImage(type: .emoji(glyph))
         case let .asset(_, icon): AssetImage(icon: icon)
         case let .image(url): AssetImage(imageURL: url.asURL)
+        }
+    }
+}
+
+public extension PriceAlertDirection {
+    var image: Image {
+        switch self {
+        case .up: Images.PriceAlert.up
+        case .down: Images.PriceAlert.down
         }
     }
 }

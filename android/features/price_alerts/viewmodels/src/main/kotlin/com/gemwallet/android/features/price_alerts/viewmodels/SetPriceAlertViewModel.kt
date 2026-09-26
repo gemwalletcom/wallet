@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetItemRow
+import uniffi.gemstone.GemPriceAlertInput
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertViewState
 import uniffi.gemstone.GemPriceSuggestion
@@ -99,8 +100,11 @@ class SetPriceAlertViewModel @Inject constructor(
     val prompt: StateFlow<Int> = viewState.map { it.prompt.stringRes() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.prompt.stringRes())
 
-    val currentPrice: StateFlow<String> = viewState.map { it.currentPrice?.text().orEmpty() }
+    val currentPriceText: StateFlow<String> = viewState.map { it.currentPriceText?.string(context).orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val input: StateFlow<GemPriceAlertInput> = viewState.map { it.input }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.input)
 
     val buttonState: StateFlow<ButtonState> = viewState.map { buttonState(enabled = it.canConfirm, loading = it.isSaving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))

@@ -10,8 +10,8 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: SetPriceAlertViewModel = hiltViewModel()) {
-    val currency = viewModel.currency
-    val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
+    val currentPriceText by viewModel.currentPriceText.collectAsStateWithLifecycle()
+    val input by viewModel.input.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
     val prompt by viewModel.prompt.collectAsStateWithLifecycle()
@@ -27,8 +27,8 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
         type = type,
         direction = direction,
         prompt = prompt,
-        currency = currency,
-        currentPriceFormatted = currentPriceFormatted,
+        input = input,
+        currentPriceText = currentPriceText,
         priceSuggestions = priceSuggestions,
         percentageSuggestions = percentageSuggestions,
         assetRow = assetRow,

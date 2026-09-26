@@ -182,6 +182,8 @@ public extension GemLocalizedText {
             Localized.Wallet.New.title
         case .newTag:
             Localized.Assets.Tags.new
+        case let .currentPrice(price):
+            [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):

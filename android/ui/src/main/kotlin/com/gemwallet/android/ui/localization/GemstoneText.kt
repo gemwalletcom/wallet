@@ -295,6 +295,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.NewTag -> context.getString(R.string.assets_tags_new)
 
+    is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"
+
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"

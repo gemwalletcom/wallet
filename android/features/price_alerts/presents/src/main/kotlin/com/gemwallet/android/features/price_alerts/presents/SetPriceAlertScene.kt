@@ -35,13 +35,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ButtonState
@@ -53,7 +53,10 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import uniffi.gemstone.GemAmountSymbolPlacement
 import uniffi.gemstone.GemAssetItemRow
+import uniffi.gemstone.GemPriceAlertInput
+import uniffi.gemstone.GemPriceAlertSymbol
 
 private val tabs = listOf(
     PriceAlertNotificationType.Price,
@@ -67,8 +70,8 @@ fun SetPriceAlertScene(
     type: PriceAlertNotificationType,
     direction: PriceAlertDirection,
     @StringRes prompt: Int,
-    currency: Currency,
-    currentPriceFormatted: String,
+    input: GemPriceAlertInput,
+    currentPriceText: String,
     priceSuggestions: List<Pair<String, String>> = emptyList(),
     percentageSuggestions: List<Pair<String, String>> = emptyList(),
     assetRow: GemAssetItemRow? = null,
@@ -155,37 +158,32 @@ fun SetPriceAlertScene(
                     horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
                     Box(Modifier.weight(1f)) {
-                        when (type) {
-                            PriceAlertNotificationType.Price -> {
-                                Text(
-                                    modifier = Modifier.align(Alignment.CenterEnd),
-                                    text = java.util.Currency.getInstance(currency.string).symbol,
-                                    style = MaterialTheme.typography.displaySmall,
-                                )
-                            }
-
-                            PriceAlertNotificationType.PricePercentChange -> {
-                                Icon(
-                                    modifier = Modifier.align(Alignment.CenterEnd).clickable {
-                                        val direction = when (direction) {
-                                            PriceAlertDirection.Up -> PriceAlertDirection.Down
-                                            PriceAlertDirection.Down -> PriceAlertDirection.Up
-                                        }
-                                        onDirection(direction)
-                                    },
-                                    imageVector = when (direction) {
-                                        PriceAlertDirection.Up -> AppIcons.ArrowCircleUp
-                                        PriceAlertDirection.Down -> AppIcons.ArrowCircleDown
-                                    },
-                                    contentDescription = "",
-                                    tint = when (direction) {
-                                        PriceAlertDirection.Up -> MaterialTheme.colorScheme.tertiary
-                                        PriceAlertDirection.Down -> MaterialTheme.colorScheme.error
-                                    },
-                                )
-                            }
-
-                            else -> {}
+                        val directionButton = input.directionButton
+                        if (directionButton != null) {
+                            Icon(
+                                modifier = Modifier.align(Alignment.CenterEnd).clickable {
+                                    val direction = when (direction) {
+                                        PriceAlertDirection.Up -> PriceAlertDirection.Down
+                                        PriceAlertDirection.Down -> PriceAlertDirection.Up
+                                    }
+                                    onDirection(direction)
+                                },
+                                imageVector = when (directionButton) {
+                                    uniffi.gemstone.PriceAlertDirection.UP -> AppIcons.ArrowCircleUp
+                                    uniffi.gemstone.PriceAlertDirection.DOWN -> AppIcons.ArrowCircleDown
+                                },
+                                contentDescription = "",
+                                tint = when (directionButton) {
+                                    uniffi.gemstone.PriceAlertDirection.UP -> MaterialTheme.colorScheme.tertiary
+                                    uniffi.gemstone.PriceAlertDirection.DOWN -> MaterialTheme.colorScheme.error
+                                },
+                            )
+                        } else if (input.placement == GemAmountSymbolPlacement.LEADING) {
+                            Text(
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                                text = input.symbol.text(),
+                                style = MaterialTheme.typography.displaySmall,
+                            )
                         }
                     }
                     BasicTextField(
@@ -201,14 +199,14 @@ fun SetPriceAlertScene(
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         outputTransformation = OutputTransformation {
                             if (this.length == 0) {
-                                this.append("0")
+                                this.append(input.placeholder)
                             }
                         },
                     )
                     Box(Modifier.weight(1f)) {
-                        if (type == PriceAlertNotificationType.PricePercentChange) {
+                        if (input.placement == GemAmountSymbolPlacement.TRAILING) {
                             Text(
-                                text = "%",
+                                text = input.symbol.text(),
                                 style = MaterialTheme.typography.displaySmall,
                             )
                         }
@@ -217,7 +215,7 @@ fun SetPriceAlertScene(
             }
             item {
                 Text(
-                    text = parseMarkdownToAnnotatedString("${stringResource(R.string.price_alerts_set_alert_current_price)} **$currentPriceFormatted**"),
+                    text = currentPriceText,
                     color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodyLarge,
                 )
@@ -239,8 +237,8 @@ fun SetPriceAlertScenePricePreview() {
             value = rememberTextFieldState(""),
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.Price,
-            currency = Currency.USD,
-            currentPriceFormatted = "$901.80",
+            input = GemPriceAlertInput("0", GemPriceAlertSymbol.Currency(uniffi.gemstone.Currency.USD), GemAmountSymbolPlacement.LEADING, null),
+            currentPriceText = "Current price $901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
@@ -261,8 +259,8 @@ fun SetPriceAlertScenePercentagePreview() {
             value = rememberTextFieldState(""),
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.PricePercentChange,
-            currency = Currency.USD,
-            currentPriceFormatted = "$901.80",
+            input = GemPriceAlertInput("5", GemPriceAlertSymbol.Percent, GemAmountSymbolPlacement.TRAILING, uniffi.gemstone.PriceAlertDirection.UP),
+            currentPriceText = "Current price $901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
@@ -273,4 +271,9 @@ fun SetPriceAlertScenePercentagePreview() {
             onCancel = {},
         )
     }
+}
+
+private fun GemPriceAlertSymbol.text(): String = when (this) {
+    is GemPriceAlertSymbol.Currency -> java.util.Currency.getInstance(currency.toPrimitives().string).symbol
+    GemPriceAlertSymbol.Percent -> "%"
 }
