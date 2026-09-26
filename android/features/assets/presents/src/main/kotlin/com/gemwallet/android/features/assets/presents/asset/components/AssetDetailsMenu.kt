@@ -19,10 +19,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.style.symbol
 import uniffi.gemstone.GemAssetDetails
+import uniffi.gemstone.GemAssetOption
 
 @Composable
 fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit) {
@@ -50,27 +52,17 @@ fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit
         onDismissRequest = { menuExpanded = false },
         containerColor = MaterialTheme.colorScheme.background,
     ) {
-        details.addressLink?.link?.let {
+        details.options.forEach { option ->
             DropdownMenuItem(
-                text = {
-                    Text(stringResource(R.string.asset_view_address_on, details.explorerName))
+                text = { Text(option.text(context)) },
+                onClick = {
+                    when (option) {
+                        is GemAssetOption.ViewAddress -> uriHandler.open(context, option.link.link)
+                        is GemAssetOption.ViewToken -> uriHandler.open(context, option.link.link)
+                        GemAssetOption.Share -> onShare()
+                    }
                 },
-                onClick = { uriHandler.open(context, it) },
             )
         }
-        details.tokenLink?.link?.let {
-            DropdownMenuItem(
-                text = {
-                    Text(stringResource(R.string.asset_view_token_on, details.explorerName))
-                },
-                onClick = { uriHandler.open(context, it) },
-            )
-        }
-        DropdownMenuItem(
-            text = {
-                Text(stringResource(R.string.common_share))
-            },
-            onClick = onShare,
-        )
     }
 }

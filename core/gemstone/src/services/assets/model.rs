@@ -759,6 +759,13 @@ pub struct GemAssetDetailsInput {
     pub fee_balance_metadata: Option<BalanceMetadata>,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAssetOption {
+    ViewAddress { link: BlockExplorerLink },
+    ViewToken { link: BlockExplorerLink },
+    Share,
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
@@ -766,9 +773,7 @@ pub struct GemAssetDetails {
     pub banner: Option<GemBannerRow>,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
-    pub explorer_name: String,
-    pub address_link: Option<BlockExplorerLink>,
-    pub token_link: Option<BlockExplorerLink>,
+    pub options: Vec<GemAssetOption>,
     pub verification_status: Option<VerificationStatus>,
     pub network_destination: Option<GemAssetNetworkDestination>,
     pub share_url: String,

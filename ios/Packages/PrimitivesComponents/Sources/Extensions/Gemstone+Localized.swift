@@ -13,6 +13,7 @@ import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountSymbol
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemAssetMenuAction
+import enum Gemstone.GemAssetOption
 import enum Gemstone.GemBalanceRowValue
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDescription
@@ -472,6 +473,16 @@ public extension FeeUnitType {
         case .satVb: Localized.FeeRate.satvB
         case .gwei: Localized.FeeRate.gwei
         case .native: symbol
+        }
+    }
+}
+
+public extension GemAssetOption {
+    var title: String {
+        switch self {
+        case let .viewAddress(link): Localized.Asset.viewAddressOn(link.name)
+        case let .viewToken(link): Localized.Asset.viewTokenOn(link.name)
+        case .share: Localized.Common.share
         }
     }
 }

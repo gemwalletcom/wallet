@@ -6,6 +6,7 @@ import enum Gemstone.GemAssetDetailRow
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import enum Gemstone.GemAssetOption
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
@@ -161,14 +162,9 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public func menuItems(_ details: GemAssetDetails) -> [ActionMenuItemType] {
-        let links = details
-        return [links.addressLink.map { link in
-            .button(title: Localized.Asset.viewAddressOn(link.name), systemImage: SystemImage.globe, action: { self.onSelect(url: link.link.asURL) })
-        },
-        links.tokenLink.map { link in
-            .button(title: Localized.Asset.viewTokenOn(link.name), systemImage: SystemImage.globe, action: { self.onSelect(url: link.link.asURL) })
-        },
-        .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap(\.self)
+        details.options.map { option in
+            .button(title: option.title, systemImage: option.systemImage, action: { self.onSelect(option: option) })
+        }
     }
 
     func verificationStatus(_ details: GemAssetDetails) -> VerificationStatus? {
@@ -265,6 +261,13 @@ public extension AssetSceneViewModel {
 
     func onSelectShareAsset() {
         isPresentingAssetSheet = .share
+    }
+
+    func onSelect(option: GemAssetOption) {
+        switch option {
+        case let .viewAddress(link), let .viewToken(link): onSelect(url: link.link.asURL)
+        case .share: onSelectShareAsset()
+        }
     }
 
     func onTransferComplete() {

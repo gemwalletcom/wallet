@@ -188,9 +188,10 @@ impl GemAssetDetailsService {
                 price_alerts: &price_alerts,
                 fee_balance_metadata,
             }),
-            explorer_name: self.explorer.get_explorer_name(chain),
-            address_link: owner_address.map(|address| self.explorer.get_address_url(chain, address)),
-            token_link: asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(chain, token_id)),
+            options: rules::asset_options(
+                owner_address.map(|address| self.explorer.get_address_url(chain, address)),
+                asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(chain, token_id)),
+            ),
             verification_status: rules::verification_status(&asset, metadata.rank_score),
             network_destination: rules::network_destination(&asset.id),
             share_url: self.deeplinks.build_url(Deeplink::Asset { asset_id: asset.id.clone() }),

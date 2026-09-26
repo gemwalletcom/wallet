@@ -3,14 +3,14 @@ use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert, StakeChain,
-    VerificationStatus, Wallet, WalletType,
+    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert,
+    StakeChain, VerificationStatus, Wallet, WalletType,
 };
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuIcon, GemAssetMenuInput,
-    GemAssetMenuRow, GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton,
-    GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
+    GemAssetMenuRow, GemAssetNetworkDestination, GemAssetOption, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions,
+    GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
     GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
@@ -679,6 +679,17 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
                 false => vec![],
             },
         ),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+pub fn asset_options(address_link: Option<BlockExplorerLink>, token_link: Option<BlockExplorerLink>) -> Vec<GemAssetOption> {
+    [
+        address_link.map(|link| GemAssetOption::ViewAddress { link }),
+        token_link.map(|link| GemAssetOption::ViewToken { link }),
+        Some(GemAssetOption::Share),
     ]
     .into_iter()
     .flatten()
@@ -1786,6 +1797,20 @@ mod tests {
         assert_eq!(alerts_row(Some(0.0), vec![auto.clone()]), None);
         assert_eq!(alerts_row(None, vec![auto]), None);
         assert_eq!(alerts_row(Some(1.0), vec![]), None);
+    }
+
+    #[test]
+    fn test_asset_options_offer_the_explorer_links_that_exist_then_share() {
+        let link = |name: &str| BlockExplorerLink {
+            name: name.to_string(),
+            link: format!("https://{name}"),
+        };
+
+        assert_eq!(
+            asset_options(Some(link("address")), Some(link("token"))),
+            vec![GemAssetOption::ViewAddress { link: link("address") }, GemAssetOption::ViewToken { link: link("token") }, GemAssetOption::Share]
+        );
+        assert_eq!(asset_options(None, None), vec![GemAssetOption::Share], "a coin without an address still shares");
     }
 
     #[test]
