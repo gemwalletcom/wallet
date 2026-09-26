@@ -29,7 +29,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemTransactionDetailsServiceInterface
@@ -91,7 +90,7 @@ class TransactionViewModelTest {
     }
 
     @Test
-    fun theDetailsClearWhenTheShownRecordIsDeleted() {
+    fun theDetailsKeepShowingTheTransactionWhenItsRecordIsDeleted() {
         val record = MutableStateFlow<TransactionExtended?>(transactionExtended)
         val rows = mockGemTransactionDetailRows()
         every { transactionQuery(wallet.id, transactionId) } returns record
@@ -101,6 +100,6 @@ class TransactionViewModelTest {
 
         record.value = null
 
-        assertNull(model.data.value)
+        assertEquals(rows, model.data.value)
     }
 }

@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 2. **Generated mappers:** GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD375, BD376.
+4. **Parity:** BD376.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -183,10 +183,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
-- **BD375** **S** **A deleted transaction keeps or clears its details screen.**
-  - **iOS:** the details screen keeps showing the transaction it was opened with, and reads it before opening.
-  - **Android:** the screen loads the transaction just after opening and clears when the row is deleted (`TransactionViewModel`).
-  - **Expected:** Android matches iOS.
 - **BD376** **S** **Android address rows offer no contact actions.**
   - **iOS:** an unnamed transaction recipient or sender offers "Create New Contact" and "Add to Contact" on a long press, from the address row's `contact`.
   - **Android:** `AddressPropertyItem` offers copy and the explorer only; no add-contact route takes an address.

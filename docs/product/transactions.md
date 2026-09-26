@@ -31,14 +31,9 @@ flowchart LR
 | The user taps Network Fee | the fee in its coin above its value: `0.000021 ETH` over `$0.01` | |
 | A swap | listed under both the asset paid and the asset received | the user looks for it under either |
 | The wallet switches while details are open, such as a push for another wallet | the details stay on the wallet they were opened for | an open details screen never blanks or swaps |
+| A transaction is deleted while its details are open | the details keep showing it | an open details screen never blanks or swaps |
 | The user taps an address | its page, with the name the user already sees for it: a contact or own wallet name first, a contact's picture or initials as on Confirm, a token's or validator's logo | the address is recognisable |
 | The address page opens | the full address, copied with a tap, the type and the balances | |
 | The address is flagged | "Suspicious address" under its picture, the same warning as on Confirm, even for a contact | |
 | The address is a contract, token or validator | no balances | they are not fetched for anything but a plain address |
 | The wallet has no transactions | "Your activity will appear here. Make your first transaction" | |
-
-## Platform differences
-
-| When | iOS | Android | Expected |
-|---|---|---|---|
-| A transaction is deleted while its details are open | the details keep showing it | the details clear | Android matches iOS (BD375) |

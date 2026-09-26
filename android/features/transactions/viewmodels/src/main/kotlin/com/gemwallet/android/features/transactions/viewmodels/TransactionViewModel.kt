@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -48,9 +49,9 @@ class TransactionViewModel @Inject constructor(
 
     val data: StateFlow<GemTransactionDetailRows?> = combine(
         walletQuery(walletId).map { it?.type }.distinctUntilChanged(),
-        transactionQuery(walletId, transactionId),
+        transactionQuery(walletId, transactionId).filterNotNull(),
     ) { walletType, transaction ->
-        walletType?.let { type -> transaction?.let { service.detailRows(it.toGem(), type.toGem()) } }
+        walletType?.let { type -> service.detailRows(transaction.toGem(), type.toGem()) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
