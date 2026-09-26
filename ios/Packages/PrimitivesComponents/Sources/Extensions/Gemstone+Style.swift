@@ -8,6 +8,7 @@ import enum Gemstone.GemAmountSymbolPlacement
 import struct Gemstone.GemAssetIcon
 import enum Gemstone.GemAssetMenuIcon
 import enum Gemstone.GemAssetOption
+import enum Gemstone.GemAssetSectionKind
 import struct Gemstone.GemAssetText
 import struct Gemstone.GemAvatar
 import enum Gemstone.GemBannerButton
@@ -272,6 +273,16 @@ public extension GemSupportBubbleSide {
         switch self {
         case .outgoing: .trailing
         case .incoming: .leading
+        }
+    }
+}
+
+public extension GemAssetSectionKind {
+    var image: Image? {
+        switch self {
+        case .popular: Images.System.starFill
+        case .pinned: Images.System.pin
+        case .assets: nil
         }
     }
 }

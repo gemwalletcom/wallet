@@ -9,9 +9,9 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetSectionKind
 
 @Composable
 internal fun AssetItem(
@@ -19,14 +19,14 @@ internal fun AssetItem(
     item: AssetInfoDataAggregate,
     longPressState: MutableState<AssetId?>,
     modifier: Modifier = Modifier,
-    group: AssetsGroupType = AssetsGroupType.None,
+    group: GemAssetSectionKind = GemAssetSectionKind.ASSETS,
     onAssetClick: (AssetId) -> Unit,
     actions: AssetContextActions,
 ) {
     AssetContextMenuRow(
         assetId = item.id,
         address = item.accountAddress,
-        isPinned = group == AssetsGroupType.Pinned,
+        isPinned = group == GemAssetSectionKind.PINNED,
         isBalanceEnabled = true,
         longPressed = longPressState,
         actions = actions,

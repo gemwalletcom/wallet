@@ -95,14 +95,6 @@ public final class SelectAssetSceneViewModel {
         AssetsSections.from(assets, showsPopular: flow.popularSection)
     }
 
-    var popularImage: Image {
-        Images.System.starFill
-    }
-
-    var popularTitle: String {
-        Localized.Assets.popular
-    }
-
     var assetsTitle: String {
         flow.assetsSection.text
     }

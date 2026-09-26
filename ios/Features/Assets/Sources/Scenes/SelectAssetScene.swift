@@ -54,32 +54,15 @@ public struct SelectAssetScene: View {
                 )
             }
 
-            if sections.popular.isNotEmpty {
+            ForEach(sections.sections, id: \.kind) { section in
                 Section {
-                    assetsList(assets: sections.popular, assetItems: assetItems)
+                    assetsList(assets: section.assets, assetItems: assetItems)
                 } header: {
-                    HStack {
-                        model.popularImage
-                        Text(model.popularTitle)
+                    if let title = section.kind.title {
+                        SectionHeaderView(title: title, image: section.kind.image)
+                    } else {
+                        Text(model.assetsTitle)
                     }
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if sections.pinned.isNotEmpty {
-                Section {
-                    assetsList(assets: sections.pinned, assetItems: assetItems)
-                } header: {
-                    PinnedSectionHeader()
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if sections.assets.isNotEmpty {
-                Section {
-                    assetsList(assets: sections.assets, assetItems: assetItems)
-                } header: {
-                    Text(model.assetsTitle)
                 }
                 .listRowInsets(.assetListRowInsets)
             }

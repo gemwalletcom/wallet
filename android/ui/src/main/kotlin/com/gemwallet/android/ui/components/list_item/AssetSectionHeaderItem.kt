@@ -11,17 +11,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.localization.titleRes
+import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import uniffi.gemstone.GemAssetSectionKind
 
 @Composable
-fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
-    if (type == AssetsGroupType.None) {
-        return
-    }
+fun AssetSectionHeaderItem(kind: GemAssetSectionKind) {
+    val title = kind.titleRes() ?: return
+    val icon = kind.icon() ?: return
     Row(
         modifier = Modifier
             .sectionHeaderItem(),
@@ -30,24 +29,14 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
     ) {
         Icon(
             modifier = Modifier.size(paddingDefault),
-            imageVector = when (type) {
-                AssetsGroupType.Popular -> AppIcons.StarOutlined
-                AssetsGroupType.Pinned -> AppIcons.PushPin
-                AssetsGroupType.None -> return
-            },
+            imageVector = icon,
             tint = MaterialTheme.colorScheme.secondary,
             contentDescription = "pinned_section",
         )
         Text(
             modifier = Modifier
                 .fillMaxWidth(),
-            text = stringResource(
-                when (type) {
-                    AssetsGroupType.Popular -> R.string.assets_popular
-                    AssetsGroupType.Pinned -> R.string.common_pinned
-                    AssetsGroupType.None -> return
-                },
-            ),
+            text = stringResource(title),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
         )

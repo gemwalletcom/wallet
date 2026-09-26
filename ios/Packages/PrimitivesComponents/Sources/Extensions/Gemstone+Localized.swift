@@ -14,6 +14,7 @@ import enum Gemstone.GemAmountSymbol
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemAssetOption
+import enum Gemstone.GemAssetSectionKind
 import enum Gemstone.GemBalanceRowValue
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDescription
@@ -473,6 +474,16 @@ public extension FeeUnitType {
         case .satVb: Localized.FeeRate.satvB
         case .gwei: Localized.FeeRate.gwei
         case .native: symbol
+        }
+    }
+}
+
+public extension GemAssetSectionKind {
+    var title: String? {
+        switch self {
+        case .popular: Localized.Assets.popular
+        case .pinned: Localized.Common.pinned
+        case .assets: nil
         }
     }
 }

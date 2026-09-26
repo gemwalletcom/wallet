@@ -43,12 +43,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerRow
@@ -178,14 +178,14 @@ internal fun WalletScene(
                 assets(
                     items = pinnedAssets,
                     longPressState = longPressedAsset,
-                    group = AssetsGroupType.Pinned,
+                    group = GemAssetSectionKind.PINNED,
                     onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
                 assets(
                     items = unpinnedAssets,
                     longPressState = longPressedAsset,
-                    group = AssetsGroupType.None,
+                    group = GemAssetSectionKind.ASSETS,
                     onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
                     actions = assetActions,
                 )

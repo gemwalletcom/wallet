@@ -39,6 +39,7 @@ import uniffi.gemstone.GemAmountKeyboard
 import uniffi.gemstone.GemAmountSymbol
 import uniffi.gemstone.GemAmountSymbolPlacement
 import uniffi.gemstone.GemAssetMenuIcon
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
@@ -81,6 +82,13 @@ fun GemSupportBubbleSide.colors(): SupportBubbleColors = when (this) {
         meta = MaterialTheme.colorScheme.secondary,
         link = MaterialTheme.colorScheme.primary,
     )
+}
+
+@Composable
+fun GemAssetSectionKind.icon(): ImageVector? = when (this) {
+    GemAssetSectionKind.POPULAR -> AppIcons.StarOutlined
+    GemAssetSectionKind.PINNED -> AppIcons.PushPin
+    GemAssetSectionKind.ASSETS -> null
 }
 
 @DrawableRes

@@ -16,16 +16,16 @@ import com.gemwallet.android.features.perpetuals.presents.components.PerpetualLi
 import com.gemwallet.android.features.wallet_tab.viewmodels.AssetsResultsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
+import com.gemwallet.android.ui.components.list_item.AssetSectionHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.ToastEffect
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
+import uniffi.gemstone.GemAssetSectionKind
 
 @Composable
 fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: AssetsResultsViewModel = hiltViewModel()) {
@@ -65,7 +65,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 if (pinned.isNotEmpty()) {
-                    item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
+                    item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
                     assetRows(
                         items = pinned,
                         onSelect = onAssetClick,

@@ -9,9 +9,9 @@ use primitives::{
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuIcon, GemAssetMenuInput,
-    GemAssetMenuRow, GemAssetNetworkDestination, GemAssetOption, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions,
-    GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
-    GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    GemAssetMenuRow, GemAssetNetworkDestination, GemAssetOption, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSectionKind, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount,
+    GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle,
+    GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -1170,6 +1170,21 @@ mod tests {
         let hidden = asset_sections(ids, vec![], false, popular);
         assert!(hidden.popular.is_empty());
         assert_eq!(hidden.assets.len(), 3);
+    }
+
+    #[test]
+    fn test_asset_sections_list_popular_then_pinned_then_the_rest_and_skip_empty_ones() {
+        let ids = vec![Chain::Bitcoin.as_asset_id(), Chain::Ethereum.as_asset_id(), Chain::Solana.as_asset_id()];
+        let kinds = |pinned: Vec<AssetId>, shows_popular: bool| {
+            asset_sections(ids.clone(), pinned, shows_popular, vec![Chain::Ethereum.as_asset_id()])
+                .sections()
+                .into_iter()
+                .map(|section| section.kind)
+                .collect::<Vec<_>>()
+        };
+
+        assert_eq!(kinds(vec![Chain::Bitcoin.as_asset_id()], true), vec![GemAssetSectionKind::Popular, GemAssetSectionKind::Pinned, GemAssetSectionKind::Assets]);
+        assert_eq!(kinds(vec![], false), vec![GemAssetSectionKind::Assets], "an empty section has no header to show");
     }
 
     #[test]

@@ -464,11 +464,34 @@ impl GemWalletSearchLimits {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct GemAssetSectionIds {
     pub pinned: Vec<AssetId>,
     pub popular: Vec<AssetId>,
     pub assets: Vec<AssetId>,
+}
+
+impl GemAssetSectionIds {
+    pub fn sections(self) -> Vec<GemAssetSection> {
+        [(GemAssetSectionKind::Popular, self.popular), (GemAssetSectionKind::Pinned, self.pinned), (GemAssetSectionKind::Assets, self.assets)]
+            .into_iter()
+            .filter(|(_, asset_ids)| !asset_ids.is_empty())
+            .map(|(kind, asset_ids)| GemAssetSection { kind, asset_ids })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetSectionKind {
+    Popular,
+    Pinned,
+    Assets,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetSection {
+    pub kind: GemAssetSectionKind,
+    pub asset_ids: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, uniffi::Record)]

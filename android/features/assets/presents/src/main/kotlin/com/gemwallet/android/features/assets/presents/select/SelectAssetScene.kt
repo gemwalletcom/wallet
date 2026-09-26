@@ -49,13 +49,12 @@ import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
 import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
+import com.gemwallet.android.ui.components.list_item.AssetSectionHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -68,6 +67,7 @@ import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.drop
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemAssetsFilterView
 import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
@@ -216,9 +216,9 @@ fun SelectAssetScene(
             state = listState,
         ) {
             recent(recent, onSelectRecent, onOpenRecentsSheet)
-            assets(popular, AssetsGroupType.Popular, onSelect, onItemAction, longPressedAsset, contextActions)
+            assets(popular, GemAssetSectionKind.POPULAR, onSelect, onItemAction, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
-                item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
+                item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
                 val pinnedTotal = pinnedPerpetualRows.size + pinned.size
                 itemsPositioned(pinnedPerpetualRows, totalCount = pinnedTotal) { position, row ->
                     row(position)
@@ -241,7 +241,7 @@ fun SelectAssetScene(
                     SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
                 }
             }
-            assets(unpinned, AssetsGroupType.None, onSelect, onItemAction, longPressedAsset, contextActions)
+            assets(unpinned, GemAssetSectionKind.ASSETS, onSelect, onItemAction, longPressedAsset, contextActions)
             searchState(
                 state = state,
                 empty = empty,
@@ -266,7 +266,7 @@ fun SelectAssetScene(
 
 private fun LazyListScope.assets(
     items: List<AssetInfoDataAggregate>,
-    group: AssetsGroupType,
+    group: GemAssetSectionKind,
     onSelect: ((Asset) -> Unit)?,
     onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
@@ -274,7 +274,7 @@ private fun LazyListScope.assets(
 ) {
     if (items.isEmpty()) return
 
-    item { PinnedAssetsHeaderItem(group) }
+    item { AssetSectionHeaderItem(group) }
 
     assetRows(items, onSelect, onItemAction, longPressedAsset, contextActions)
 }

@@ -42,6 +42,7 @@ import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemAssetOption
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBalanceRowValue
 import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDescription
@@ -464,6 +465,13 @@ fun GemVerificationLevel.stringRes(): Int = when (this) {
 
 @StringRes
 fun WalletConnectionVerificationStatus.titleRes(): Int = verificationLevel(this).stringRes()
+
+@StringRes
+fun GemAssetSectionKind.titleRes(): Int? = when (this) {
+    GemAssetSectionKind.POPULAR -> R.string.assets_popular
+    GemAssetSectionKind.PINNED -> R.string.common_pinned
+    GemAssetSectionKind.ASSETS -> null
+}
 
 fun GemAssetOption.text(context: Context): String = when (this) {
     is GemAssetOption.ViewAddress -> context.getString(R.string.asset_view_address_on, link.name)

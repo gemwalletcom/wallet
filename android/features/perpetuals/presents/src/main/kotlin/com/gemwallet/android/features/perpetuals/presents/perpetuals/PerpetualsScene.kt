@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
+import com.gemwallet.android.ui.components.list_item.AssetSectionHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -49,7 +49,6 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -63,6 +62,7 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemHeaderButtonAction
 import uniffi.gemstone.GemPerpetualMarketSection
@@ -161,7 +161,7 @@ internal fun PerpetualsScene(
                         GemPerpetualMarketSection.PINNED -> {
                             item {
                                 Spacer16()
-                                PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
+                                AssetSectionHeaderItem(GemAssetSectionKind.PINNED)
                             }
                             itemsPositioned(pinnedPerpetuals) { position, item ->
                                 PerpetualListItem(

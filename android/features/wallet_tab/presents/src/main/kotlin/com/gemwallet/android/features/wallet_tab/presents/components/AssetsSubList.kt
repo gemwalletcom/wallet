@@ -8,18 +8,18 @@ import androidx.compose.ui.platform.testTag
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
+import com.gemwallet.android.ui.components.list_item.AssetSectionHeaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetSectionKind
 
 private const val AssetsGroupHeaderKeyPrefix = "assets_group_header"
 
 @OptIn(ExperimentalFoundationApi::class)
-internal fun LazyListScope.assets(items: List<AssetInfoDataAggregate>, longPressState: MutableState<AssetId?>, group: AssetsGroupType, onAssetClick: (AssetId) -> Unit, actions: AssetContextActions) {
+internal fun LazyListScope.assets(items: List<AssetInfoDataAggregate>, longPressState: MutableState<AssetId?>, group: GemAssetSectionKind, onAssetClick: (AssetId) -> Unit, actions: AssetContextActions) {
     if (items.isEmpty()) return
 
-    item(key = "$AssetsGroupHeaderKeyPrefix-${group.name}") { PinnedAssetsHeaderItem(group) }
+    item(key = "$AssetsGroupHeaderKeyPrefix-${group.name}") { AssetSectionHeaderItem(group) }
 
     itemsPositioned(items = items, key = { _, item -> "${item.id.toIdentifier()}-${group.name}" }) { position, item ->
         AssetItem(
