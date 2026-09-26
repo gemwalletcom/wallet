@@ -117,7 +117,7 @@ pub use self::payment::{Payment, PaymentAmount, PaymentInvoice, PaymentLink, Pay
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
-pub use self::contact::{Contact, ContactAddress};
+pub use self::contact::{Contact, ContactAddress, ContactData};
 pub mod device;
 pub use self::device::Device;
 pub mod device_locale;

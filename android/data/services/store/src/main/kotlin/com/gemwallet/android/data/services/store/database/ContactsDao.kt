@@ -9,8 +9,6 @@ import androidx.room.Update
 import com.gemwallet.android.data.services.store.database.entities.DbContact
 import com.gemwallet.android.data.services.store.database.entities.DbContactAddress
 import com.gemwallet.android.data.services.store.database.entities.DbContactWithAddresses
-import com.gemwallet.android.data.services.store.database.entities.DbRecipientContact
-import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -36,15 +34,6 @@ interface ContactsDao {
     @Transaction
     @Query("SELECT * FROM contacts ORDER BY name ASC")
     fun getContacts(): Flow<List<DbContactWithAddresses>>
-
-    @Query(
-        "SELECT c.name AS name, a.address AS address, a.chain AS chain, a.memo AS memo " +
-            "FROM contacts_addresses a " +
-            "JOIN contacts c ON c.id = a.contactId " +
-            "WHERE a.chain = :chain " +
-            "ORDER BY c.name ASC",
-    )
-    fun getContactRecipients(chain: Chain): Flow<List<DbRecipientContact>>
 
     @Transaction
     @Query("SELECT * FROM contacts WHERE id = :id LIMIT 1")

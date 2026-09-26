@@ -5,11 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetQuery
-import com.gemwallet.android.data.services.store.queries.ContactRecipientsQuery
+import com.gemwallet.android.data.services.store.queries.ContactsQuery
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -33,6 +32,7 @@ import com.gemwallet.android.ui.models.navigation.optionalNft
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ContactData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -68,7 +67,7 @@ import javax.inject.Inject
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
     private val walletsQuery: WalletsQuery,
-    private val contactRecipientsQuery: ContactRecipientsQuery,
+    private val contactsQuery: ContactsQuery,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
     savedStateHandle: SavedStateHandle,
@@ -110,20 +109,14 @@ class RecipientViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val contacts: StateFlow<List<ContactRecipient>> = state
-        .flatMapLatest { state ->
-            when (state) {
-                RecipientUIState.Loading -> flowOf(emptyList())
-                is RecipientUIState.Ready -> contactRecipientsQuery(state.asset.chain)
-            }
-        }
+    private val contacts: StateFlow<List<ContactData>> = contactsQuery()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val sections: StateFlow<List<ListSection<RecipientRowUIModel>>> = combine(wallets, contacts, state) { wallets, contacts, state ->
         when (state) {
             RecipientUIState.Loading -> emptyList()
 
-            is RecipientUIState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.map { GemRecipient(address = it.address, name = it.name, memo = it.memo) })
+            is RecipientUIState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.map { it.toGem() })
                 .mapIndexed { index, section -> section.uiSection(index.toString(), context) }
         }
     }

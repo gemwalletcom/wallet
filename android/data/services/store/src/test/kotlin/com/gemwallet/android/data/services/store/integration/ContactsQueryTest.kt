@@ -3,12 +3,10 @@ package com.gemwallet.android.data.services.store.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbContact
 import com.gemwallet.android.data.services.store.database.entities.DbContactAddress
 import com.gemwallet.android.data.services.store.queries.ContactQuery
-import com.gemwallet.android.data.services.store.queries.ContactRecipientsQuery
 import com.gemwallet.android.data.services.store.queries.ContactsQuery
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
@@ -55,19 +53,6 @@ class ContactsQueryTest {
 
         assertEquals(listOf("Alice", "Bob", "Carol"), contacts.map { it.contact.name })
         assertEquals(listOf(setOf("alice-eth"), setOf("bob-eth", "bob-btc"), emptySet()), contacts.map { data -> data.addresses.map { it.id }.toSet() })
-    }
-
-    @Test
-    fun listsTheChainsAddressesByContactName() = runBlocking(Dispatchers.IO) {
-        val recipients = ContactRecipientsQuery(database.contactsDao())(Chain.Ethereum).first()
-
-        assertEquals(
-            listOf(
-                ContactRecipient(name = "Alice", address = "0xalice", chain = Chain.Ethereum, memo = "memo"),
-                ContactRecipient(name = "Bob", address = "0xbob", chain = Chain.Ethereum, memo = null),
-            ),
-            recipients,
-        )
     }
 
     @Test

@@ -42,7 +42,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
-| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM284 |
+| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM295 |
@@ -137,14 +137,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
   - **Expected:** Core emits only destinations the screen can open and each app keeps one banner routing function.
-
-
-### Screen composition
-
-- **VM284** **S** **Recipients are built from contacts in each app.**
-  - **iOS:** `RecipientSceneViewModel.contactRecipients` flattens contacts into `GemRecipient`s.
-  - **Android:** `RecipientViewModel` does the same.
-  - **Expected:** `recipientSections` reads contacts through the contact store; both flattenings go.
 
 ### Models and adapters
 

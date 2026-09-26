@@ -36,6 +36,7 @@ remote:
   - ConnectionStatus
   - Contact
   - ContactAddress
+  - ContactData
   - DelegationValidator
   - DeviceLocale
   - Asset

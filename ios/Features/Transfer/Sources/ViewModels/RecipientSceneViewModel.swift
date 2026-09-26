@@ -112,7 +112,7 @@ public final class RecipientSceneViewModel {
     }
 
     var recipientSections: [ListItemValueSection<GemRecipient>] {
-        service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, contacts: contactRecipients)
+        service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, contacts: contacts)
             .map {
                 ListItemValueSection(
                     section: $0.kind.title,
@@ -179,12 +179,6 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private var contactRecipients: [GemRecipient] {
-        contacts.flatMap { data in
-            data.addresses.map { GemRecipient(address: $0.address, name: data.contact.name, memo: $0.memo) }
-        }
-    }
-
     private func scanRecipient(_ string: String) throws {
         switch try service.scan(url: string, recipientType: type) {
         case let .confirm(transfer): onNavigate?(.confirm(transfer))

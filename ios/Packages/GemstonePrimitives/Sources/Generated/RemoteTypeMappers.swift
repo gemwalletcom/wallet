@@ -2044,6 +2044,24 @@ public extension Primitives.ContactAddress {
     }
 }
 
+public extension Gemstone.ContactData {
+    func toPrimitives() -> Primitives.ContactData {
+        Primitives.ContactData(
+            contact: contact.toPrimitives(),
+            addresses: addresses.map { $0.toPrimitives() },
+        )
+    }
+}
+
+public extension Primitives.ContactData {
+    func toGem() -> Gemstone.ContactData {
+        Gemstone.ContactData(
+            contact: contact.toGem(),
+            addresses: addresses.map { $0.toGem() },
+        )
+    }
+}
+
 public extension Gemstone.CoreListItem {
     func toPrimitives() -> Primitives.CoreListItem {
         Primitives.CoreListItem(

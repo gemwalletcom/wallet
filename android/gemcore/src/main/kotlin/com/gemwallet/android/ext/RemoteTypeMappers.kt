@@ -1378,6 +1378,16 @@ fun com.wallet.core.primitives.ContactAddress.toGem(): uniffi.gemstone.ContactAd
     memo = memo,
 )
 
+fun uniffi.gemstone.ContactData.toPrimitives(): com.wallet.core.primitives.ContactData = com.wallet.core.primitives.ContactData(
+    contact = contact.toPrimitives(),
+    addresses = addresses.map { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.ContactData.toGem(): uniffi.gemstone.ContactData = uniffi.gemstone.ContactData(
+    contact = contact.toGem(),
+    addresses = addresses.map { it.toGem() },
+)
+
 fun uniffi.gemstone.CoreListItem.toPrimitives(): com.wallet.core.primitives.CoreListItem = com.wallet.core.primitives.CoreListItem(
     id = id,
     title = title,

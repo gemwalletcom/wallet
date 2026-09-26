@@ -6,7 +6,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress
@@ -35,8 +34,6 @@ data class DbContactWithAddresses(
     @Relation(parentColumn = "id", entityColumn = "contactId")
     val addresses: List<DbContactAddress>,
 )
-
-data class DbRecipientContact(val name: String, val address: String, val chain: Chain, val memo: String?)
 
 fun Contact.toRecord(): DbContact = DbContact(
     id = id,
@@ -75,11 +72,4 @@ fun DbContactAddress.toModel(): ContactAddress = ContactAddress(
 fun DbContactWithAddresses.toModel(): ContactData = ContactData(
     contact = contact.toModel(),
     addresses = addresses.map { it.toModel() },
-)
-
-fun DbRecipientContact.toModel(): ContactRecipient = ContactRecipient(
-    name = name,
-    address = address,
-    chain = chain,
-    memo = memo,
 )
