@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen. Each area has its own short page under [product/](product/): the success path as user stories, a diagram where it reads faster than words, and the few rules that matter. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -10,7 +10,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Fast.** Whatever the app already knows shows at once; a refresh updates it in place and never blanks the screen. Independent requests start together and none waits for a slower one. When one source fails, the others still show; the failed one keeps its last known values.
 
-**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps must differ, the reason is recorded in [TODO.md](TODO.md); any other difference is a bug.
+**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
 
 **Simple.** Every screen uses patterns the user already knows: a list of rows, a sheet, a segmented picker, a button that says what it does. The same thing looks and works the same everywhere in the app: one asset row, one address row, one confirmation screen, one way to copy, one way to pick an asset. A new screen copies an existing one rather than inventing a layout. Each screen asks for one decision at a time, shows the outcome where the action happened, and needs no explanation to use. If something needs a tooltip to be understood, the screen is wrong, not the user.
 
@@ -40,4 +40,12 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 ## Writing a page
 
-One page per area, named after the area's feature module on both apps (`product/<android_module>.md`, [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md)), under 40 lines: one sentence on what the area is for, a diagram of the main flow with one-line labels (at most two per page), the success path as user stories one line each, and only the rules that someone might otherwise simplify away. Use the product's own names from the app strings. No internals, no code, no test names, no edge cases, no platform differences or open questions; those belong in [TODO.md](TODO.md).
+One page per area, named after the area's feature module on both apps (`product/<android_module>.md`, [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md)). Use the product's own names from the app strings. No internals, no code, no test names. A page has, in order:
+
+1. One sentence on what the area is for, and at most two diagrams of the main flow with one-line labels.
+2. **Steps:** the success path as numbered user stories, one line each.
+3. **Expected results:** a `When | Expected | Why` table, one row per situation, with example values in the app's wording (`$0.01`, `0.000021 ETH`, "Not supported"). A rule someone might simplify away becomes a row, and its reason goes in Why.
+4. **Platform differences:** a `When | iOS | Android | Expected` table with every recorded difference in the area; an intentional one says Intentional, an open one names the [TODO.md](TODO.md) item that removes it, and a page without any says "None recorded."
+5. **Rules:** only the always and never invariants that no single situation triggers, one line each with its reason.
+
+A page with more than one flow gives each flow its own steps and table. Transfer ([transfer.md](product/transfer.md)) is the worked example. Edge cases and open questions stay in [TODO.md](TODO.md).

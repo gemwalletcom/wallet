@@ -15,17 +15,31 @@ flowchart LR
     D --> M[Disconnect]
 ```
 
-- The user scans or pastes a WalletConnect code; the proposal shows the app, its verification level, the wallet it will connect and the permissions ("View your balance and activity", "Send approval requests").
-- Approve connects the wallet; the connection appears under WalletConnect in Settings with the app, the wallet and the networks, and can be disconnected there.
-- A request from a connected dapp opens a review: the app, the wallet, the network, and the message or transaction to sign, with the same fee and simulation warnings as any transfer.
-- Approve signs it with the device's authentication and returns the result to the dapp; Reject returns a refusal.
-- A request that has expired reads "Request expired" and cannot be approved.
-- A WalletConnect Pay link opens a payment review instead of a connection (see [Transfer](transfer.md)).
+1. The user scans or pastes a WalletConnect code; the proposal shows the app, its verification level, the wallet it will connect and the permissions ("View your balance and activity", "Send approval requests").
+2. Approve connects the wallet; the connection appears under WalletConnect in Settings with the app, the wallet and the networks, and can be disconnected there.
+3. A request from a connected dapp opens a review: the app, the wallet, the network, and the message or transaction to sign, with the same fee and simulation warnings as any transfer.
+4. Approve signs it with the device's authentication and returns the result to the dapp.
+
+## Expected results
+
+| When | Expected | Why |
+|---|---|---|
+| The dapp fails verification | the proposal shows it before the user connects | |
+| The user rejects a request | a refusal goes back to the dapp | |
+| A request has expired | "Request expired"; it cannot be approved and is never signed | |
+| A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
+| A permit to sign names a flagged spender | a critical warning on the review | |
+| A WalletConnect Pay link | a payment review instead of a connection (see [Transfer](transfer.md)) | |
+| A WalletConnect Pay verification page is over https on the payment's own host | it loads | |
+| A WalletConnect Pay verification page is anywhere else | it opens in the browser | |
+| The verification page reports a failure | it closes and the user sees an error instead of waiting on it | |
+
+## Platform differences
+
+| When | iOS | Android | Expected |
+|---|---|---|---|
+| A dapp asks to sign in with one-click authentication | not supported | supported | Intentional |
 
 ## Rules
 
-- A request is signed only from its review screen, and an expired request is never signed.
-- A dapp that fails verification is shown as such before the user connects.
-- A WalletConnect Pay verification page loads only over https on the payment's own host; anything else opens in the browser.
-- When the verification page reports a failure, it closes and the user sees an error instead of waiting on it.
-- A message to sign is checked like a transaction: a site flagged as malicious is refused before anything is signed, and a flagged spender in a permit shows a critical warning on the review.
+- A request is signed only from its review screen.
