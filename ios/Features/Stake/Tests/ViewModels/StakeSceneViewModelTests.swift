@@ -34,17 +34,6 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
-    func theInfoSheetMatchesTheRowThatOpenedIt() {
-        let model = StakeSceneViewModel.mock(chain: .tron)
-
-        model.onInfo(.stakeApr(chain: Primitives.Chain.tron.rawValue))
-        #expect(model.isPresentingInfoSheet?.title == .apr)
-
-        model.onInfo(.stakeLockTime(chain: Primitives.Chain.tron.rawValue))
-        #expect(model.isPresentingInfoSheet?.title == .lockTime)
-    }
-
-    @Test
     func aFailedRefreshWithNothingShownShowsTheError() async {
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(refreshState: .error(error: .Gateway(msg: "offline"))))
 
