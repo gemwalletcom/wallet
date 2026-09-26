@@ -10,17 +10,17 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.localization.stateText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
+import uniffi.gemstone.GemDelegationListRow
 
 @Composable
-fun DelegationItem(item: DelegationUIModel, listPosition: ListPosition, onClick: () -> Unit) {
-    val row = item.row
+fun DelegationItem(row: GemDelegationListRow, listPosition: ListPosition, onClick: () -> Unit) {
     val validator = row.validator
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
         leading = {
             IconWithBadge(
-                icon = validator.imageUrl,
+                icon = validator.icon,
                 placeholder = validator.placeholder,
             )
         },

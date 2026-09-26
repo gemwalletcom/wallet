@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.stake.viewmodels.EarnViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
@@ -40,7 +41,7 @@ import uniffi.gemstone.GemListRow
 @Composable
 fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val positions by viewModel.positionRows.collectAsStateWithLifecycle()
+    val positions by viewModel.positions.collectAsStateWithLifecycle()
     val aprRow by viewModel.aprRow.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
@@ -99,9 +100,9 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
                     item { SubheaderItem(R.string.perpetual_positions) }
                     itemsIndexed(positions) { index, item ->
                         DelegationItem(
-                            item = item,
+                            row = item.row,
                             listPosition = ListPosition.getPosition(index, positions.size),
-                            onClick = { viewModel.onPosition(item.delegation, onDelegation, amountAction, onConfirm) },
+                            onClick = { viewModel.onPosition(item.delegation.toPrimitives(), onDelegation, amountAction, onConfirm) },
                         )
                     }
                 }

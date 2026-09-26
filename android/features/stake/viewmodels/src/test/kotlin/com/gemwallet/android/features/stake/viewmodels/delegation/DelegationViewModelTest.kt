@@ -101,7 +101,6 @@ class DelegationViewModelTest {
                     RouteArgument.DelegationId.key to "d1",
                 ),
             ),
-            context = mockk(relaxed = true),
         )
         runCurrent()
 
@@ -125,7 +124,6 @@ class DelegationViewModelTest {
             stakeService = stakeService,
             getSession = mockk { every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId))) },
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.ValidatorId.key to "v1", RouteArgument.DelegationId.key to "d1")),
-            context = mockk(relaxed = true),
         )
         runCurrent()
 

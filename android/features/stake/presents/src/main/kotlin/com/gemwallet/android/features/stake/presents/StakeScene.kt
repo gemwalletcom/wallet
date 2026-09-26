@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
@@ -101,9 +102,9 @@ internal fun StakeScene(
 
                         is StakeSectionUIModel.Delegations -> itemsIndexed(section.rows) { index, item ->
                             DelegationItem(
-                                item = item,
+                                row = item.row,
                                 listPosition = ListPosition.getPosition(index, section.rows.size),
-                                onClick = { onAction(StakeAction.OpenDelegation(item.delegation)) },
+                                onClick = { onAction(StakeAction.OpenDelegation(item.delegation.toPrimitives())) },
                             )
                         }
                     }

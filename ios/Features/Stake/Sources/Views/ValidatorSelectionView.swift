@@ -6,12 +6,12 @@ import Style
 import SwiftUI
 
 struct ValidatorSelectionView: View {
-    private let model: ValidatorViewModel
+    private let row: GemValidatorRow
     private let isSelected: Bool
     private let action: () -> Void
 
     init(row: GemValidatorRow, isSelected: Bool, action: @escaping () -> Void) {
-        model = ValidatorViewModel(row: row)
+        self.row = row
         self.isSelected = isSelected
         self.action = action
     }
@@ -19,9 +19,9 @@ struct ValidatorSelectionView: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                ValidatorImageView(model: model)
+                ValidatorImageView(row: row)
                     .assetBadge(isSelected ? Images.Wallets.selected : nil)
-                ListItemView(model: model.listItem)
+                ListItemView(model: row.listItem)
             }
         }
         .contentShape(Rectangle())

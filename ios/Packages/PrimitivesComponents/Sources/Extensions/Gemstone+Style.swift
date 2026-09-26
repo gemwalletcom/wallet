@@ -41,6 +41,7 @@ import enum Gemstone.GemValueTone
 import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletPlaceholder
 import enum Gemstone.LinkType
+import enum Gemstone.YieldProvider
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -617,6 +618,14 @@ public extension SwapProvider {
         case .okx: Images.SwapProviders.okx
         case .squid: Images.SwapProviders.squid
         case .swapsXyz: Images.SwapProviders.swapsXyz
+        }
+    }
+}
+
+public extension YieldProvider {
+    var image: Image {
+        switch self {
+        case .yo: Images.EarnProviders.yo
         }
     }
 }

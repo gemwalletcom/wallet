@@ -4,7 +4,6 @@ import Components
 import Primitives
 import PrimitivesComponents
 import struct Stake.ValidatorView
-import struct Stake.ValidatorViewModel
 import Style
 import SwiftUI
 
@@ -65,10 +64,10 @@ public struct AmountScene: View {
                 Section(model.validatorTitle) {
                     if canSelect {
                         NavigationLink(value: row.validator.toPrimitives()) {
-                            ValidatorView(model: ValidatorViewModel(row: row))
+                            ValidatorView(row: row)
                         }
                     } else {
-                        ValidatorView(model: ValidatorViewModel(row: row))
+                        ValidatorView(row: row)
                     }
                 }
             case let .resources(options, selected):
@@ -85,7 +84,7 @@ public struct AmountScene: View {
                 .cleanListRow()
             case let .provider(row):
                 Section(model.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(row: row))
+                    ValidatorView(row: row)
                 }
             case let .perpetual(leverage, autoclose):
                 if let leverage {

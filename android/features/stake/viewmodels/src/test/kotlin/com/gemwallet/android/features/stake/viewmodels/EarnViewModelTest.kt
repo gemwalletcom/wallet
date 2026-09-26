@@ -109,7 +109,7 @@ class EarnViewModelTest {
     fun `positions are the ones core keeps`() = runTest(testDispatcher) {
         val model = viewModel()
 
-        val shown = model.positionRows.first { it.isNotEmpty() }
+        val shown = model.positions.first { it.isNotEmpty() }
 
         assertEquals(listOf(funded.base.delegationId), shown.map { it.delegation.base.delegationId })
     }
@@ -117,7 +117,7 @@ class EarnViewModelTest {
     @Test
     fun `a position opens where core points it`() = runTest(testDispatcher) {
         val model = viewModel()
-        model.positionRows.first { it.isNotEmpty() }
+        model.positions.first { it.isNotEmpty() }
         var opened: Pair<String, String>? = null
 
         model.onPosition(funded, onOpenDetail = { validator, delegation -> opened = validator to delegation }, onAmount = {}, onConfirm = {})

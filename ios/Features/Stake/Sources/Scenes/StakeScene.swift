@@ -94,7 +94,7 @@ extension StakeScene {
                 .id(UUID())
         case let .data(items):
             ForEach(items, id: \.id) { item in
-                NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
+                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
                     model.onSelect(delegation: item)
                 }
             }

@@ -4,6 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemDelegationActionItem
 import struct Gemstone.GemDelegationDetails
+import struct Gemstone.GemDelegationListRow
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
@@ -71,15 +72,14 @@ public final class DelegationSceneViewModel {
     }
 
     public func rewardsItem(_ details: GemDelegationDetails) -> ListItemModel? {
-        let model = DelegationViewModel(row: details.header)
-        return details.rewards.map { rewards in
+        details.rewards.map { rewards in
             ListItemModel(
                 title: Localized.Stake.rewards,
-                titleStyle: model.titleStyle,
+                titleStyle: GemDelegationListRow.titleStyle,
                 subtitle: rewards.text(),
-                subtitleStyle: model.subtitleStyle,
+                subtitleStyle: details.header.balanceStyle,
                 subtitleExtra: details.rewardsFiat?.text(),
-                subtitleStyleExtra: model.subtitleExtraStyle,
+                subtitleStyleExtra: GemDelegationListRow.fiatStyle,
                 imageStyle: assetImageStyle,
             )
         }

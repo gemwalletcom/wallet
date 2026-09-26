@@ -2,19 +2,20 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemValidatorRow
 import SwiftUI
 
 public struct ValidatorView: View {
-    private let model: ValidatorViewModel
+    private let row: GemValidatorRow
 
-    public init(model: ValidatorViewModel) {
-        self.model = model
+    public init(row: GemValidatorRow) {
+        self.row = row
     }
 
     public var body: some View {
         HStack {
-            ValidatorImageView(model: model)
-            ListItemView(model: model.listItem)
+            ValidatorImageView(row: row)
+            ListItemView(model: row.listItem)
         }
     }
 }
