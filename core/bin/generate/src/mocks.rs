@@ -78,7 +78,6 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
         ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
-        ("UInt64", "UInt64", "0"),
         ("serde_json::Value", "AnyCodableValue", ""),
         ("BigIntValue", "BigIntValue", "0"),
     ],
@@ -104,7 +103,6 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("DateTimeUtc", "Date", "Date(timeIntervalSince1970: 0)"),
         ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
         ("chrono::DateTime<chrono::Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
-        ("primitives::UInt64", "UInt64", "0"),
         ("NaiveDateTime", "Int64", "0"),
         ("NaiveDateTimeUtc", "Int64", "0"),
     ],
@@ -155,13 +153,12 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
         ("u8", "UByte", "0u"),
         ("u16", "UShort", "0u"),
         ("u32", "UInt", "0u"),
-        ("u64", "ULong", "0u"),
+        ("u64", "Long", "0"),
         ("f32", "Float", "0f"),
         ("f64", "Double", "0.0"),
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
         ("DateTime<Utc>", "SerializedDate", "0L"),
-        ("UInt64", "Long", "0"),
         ("serde_json::Value", "JsonValue", ""),
         ("BigIntValue", "SerializedBigInteger", "java.math.BigInteger.ZERO"),
     ],
@@ -187,7 +184,6 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
         ("DateTimeUtc", "Long", "0L"),
         ("DateTime<Utc>", "Long", "0L"),
         ("chrono::DateTime<chrono::Utc>", "Long", "0L"),
-        ("primitives::UInt64", "ULong", "0u"),
         ("NaiveDateTime", "Long", "0L"),
         ("NaiveDateTimeUtc", "Long", "0L"),
     ],
@@ -382,7 +378,7 @@ impl Generator {
             return name;
         }
         let name = self.config.declared(name).unwrap_or(name);
-        let name = match name.contains('<') || name.starts_with("primitives::UInt64") {
+        let name = match name.contains('<') {
             true => name,
             false => name.rsplit("::").next().unwrap_or(name),
         };

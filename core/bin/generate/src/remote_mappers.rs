@@ -262,21 +262,16 @@ impl Generator {
                 primitives.display()
             );
         }
-        let (core_types, mut core_aliases, core_errors) = core_types(gemstone);
+        let sources = source_files(gemstone)
+            .into_iter()
+            .filter(|path| !path.ends_with(REMOTE_TYPES_PATH))
+            .filter_map(|path| fs::read_to_string(path).ok())
+            .collect::<Vec<_>>();
+        let (core_types, mut core_aliases, core_errors) = uniffi_declarations(&sources);
         core_aliases.extend(config.aliases.clone());
-        for name in &mocks {
-            let declarations = mocked.iter().filter(|mock| mock.name() == *name).count();
-            let core = core_types.contains_key(*name) || found.iter().any(|remote| remote.name() == *name && !remote.app_model());
-            assert!(
-                declarations == 1 || (declarations == 0 && core),
-                "{name} is listed under mocks: and has {declarations} app model structs in {} and no UniFFI record or enum in {}, expected one",
-                primitives.display(),
-                gemstone.display()
-            );
-        }
         found.sort_by_key(|remote| (matches!(remote, RemoteType::Record { .. }), remote.name().to_string()));
         mocked.sort_by_key(|mock| mock.name().to_string());
-        Self {
+        let generator = Self {
             config,
             types: found,
             mocked,
@@ -284,7 +279,22 @@ impl Generator {
             core_types,
             core_aliases,
             core_errors,
+        };
+        let (rendered, ..) = uniffi_declarations(&[generator.remote_types()]);
+        let generator = Self {
+            core_types: generator.core_types.into_iter().chain(rendered).collect(),
+            ..generator
+        };
+        for name in generator.config.mocked() {
+            let declarations = generator.mocked.iter().filter(|mock| mock.name() == name).count();
+            assert!(
+                declarations == 1 || (declarations == 0 && generator.core_types.contains_key(name)),
+                "{name} is listed under mocks: and has {declarations} app model structs in {} and no UniFFI record or enum in {}, expected one",
+                primitives.display(),
+                gemstone.display()
+            );
         }
+        generator
     }
 
     pub fn is_empty(&self) -> bool {
@@ -440,12 +450,11 @@ pub(crate) fn source_files(directory: &Path) -> Vec<std::path::PathBuf> {
 
 /// The records and enums gemstone exports with `#[derive(uniffi::Record)]` or `#[derive(uniffi::Enum)]`,
 /// by name, and the type aliases that name one of them under another name.
-fn core_types(gemstone: &Path) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>) {
+fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>) {
     let mut found = BTreeMap::new();
     let mut aliases = BTreeMap::new();
     let mut errors = BTreeSet::new();
-    for path in source_files(gemstone) {
-        let Ok(source) = fs::read_to_string(&path) else { continue };
+    for source in sources {
         let mut lines = source.lines();
         let mut exported = false;
         while let Some(line) = lines.next() {
@@ -960,6 +969,16 @@ mod tests {
     #[test]
     fn test_kotlin_mappers_match_the_expected_file() {
         expect_generated("RemoteTypeMappers.kt", Generator::mock().kotlin());
+    }
+
+    #[test]
+    fn test_core_types_read_the_remote_declarations_this_run_renders() {
+        let generator = Generator::mock();
+        let Some(RemoteType::Record { fields, .. }) = generator.core_types.get("TransferDataExtra") else {
+            panic!("TransferDataExtra is not a core record");
+        };
+        let gas_limit = fields.iter().find(|field| field.rust == "gas_limit").unwrap();
+        assert_eq!(gas_limit.type_name, "Option<GemBigInt>");
     }
 
     #[test]

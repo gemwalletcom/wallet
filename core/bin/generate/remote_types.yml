@@ -419,7 +419,7 @@ defaults:
   AssetRank: Unknown
 
 conversions:
-  UInt64:
+  u64:
     kotlin:
       - "{}.toLong()"
       - "{}.toULong()"
@@ -452,7 +452,6 @@ aliases:
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
-  UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue
   BigUint: GemBigUint
   BigIntValue: GemBigUint
@@ -464,12 +463,12 @@ type_mappings:
     BigIntValue: BigIntValue
     BigUint: String
     DateTime: Date
-    UInt64: UInt64
     Value: AnyCodableValue
+    u64: UInt64
   kotlin:
     BigInt: String
     BigIntValue: SerializedBigInteger
     BigUint: String
     DateTime: SerializedDate
-    UInt64: Long
     Value: JsonValue
+    u64: Long

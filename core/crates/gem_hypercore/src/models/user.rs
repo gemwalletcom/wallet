@@ -2,8 +2,6 @@ use primitives::PerpetualAccountMode;
 use serde::{Deserialize, Serialize};
 use serde_serializers::f64::deserialize_f64_from_str;
 
-use crate::models::UInt64;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum UserAbstractionMode {
@@ -28,7 +26,7 @@ impl From<UserAbstractionMode> for PerpetualAccountMode {
 pub struct AgentSession {
     pub name: String,
     pub address: String,
-    pub valid_until: UInt64,
+    pub valid_until: u64,
 }
 
 pub(crate) struct AgentApproval {

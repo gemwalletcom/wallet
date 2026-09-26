@@ -1,4 +1,4 @@
-use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, UInt64};
+use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
@@ -146,7 +146,7 @@ pub enum AccountDataType {
 #[derive(Debug, Clone)]
 pub struct CancelOrderData {
     pub asset_index: i32,
-    pub order_id: UInt64,
+    pub order_id: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -168,8 +168,8 @@ pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
     pub asset_index: i32,
     pub modify_types: Vec<PerpetualModifyPositionType>,
-    pub take_profit_order_id: Option<UInt64>,
-    pub stop_loss_order_id: Option<UInt64>,
+    pub take_profit_order_id: Option<u64>,
+    pub stop_loss_order_id: Option<u64>,
 }
 
 #[derive(Debug, Clone)]

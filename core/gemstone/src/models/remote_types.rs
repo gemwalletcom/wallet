@@ -1024,7 +1024,7 @@ pub struct BlockExplorerLink {
 #[uniffi::remote(Record)]
 pub struct CancelOrderData {
     pub asset_index: i32,
-    pub order_id: primitives::UInt64,
+    pub order_id: u64,
 }
 
 #[uniffi::remote(Record)]
@@ -1443,8 +1443,8 @@ pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
     pub asset_index: i32,
     pub modify_types: Vec<PerpetualModifyPositionType>,
-    pub take_profit_order_id: Option<primitives::UInt64>,
-    pub stop_loss_order_id: Option<primitives::UInt64>,
+    pub take_profit_order_id: Option<u64>,
+    pub stop_loss_order_id: Option<u64>,
 }
 
 #[uniffi::remote(Record)]
@@ -1692,7 +1692,7 @@ pub struct SupportMessageImage {
     pub url: String,
     pub thumbnail_url: Option<String>,
     pub file_name: Option<String>,
-    pub file_size: Option<primitives::UInt64>,
+    pub file_size: Option<u64>,
     pub width: Option<i32>,
     pub height: Option<i32>,
 }
@@ -1788,7 +1788,7 @@ pub struct Transaction {
 
 #[uniffi::remote(Record)]
 pub struct TransactionExtended {
-    pub record_id: primitives::UInt64,
+    pub record_id: u64,
     pub transaction: Transaction,
     pub asset: Asset,
     pub fee_asset: Asset,
@@ -1840,13 +1840,13 @@ pub struct TransferDataExtra {
 #[uniffi::remote(Record)]
 pub struct TronUnfreeze {
     pub resource: Resource,
-    pub amount: primitives::UInt64,
+    pub amount: u64,
 }
 
 #[uniffi::remote(Record)]
 pub struct TronVote {
     pub validator: String,
-    pub count: primitives::UInt64,
+    pub count: u64,
 }
 
 #[uniffi::remote(Record)]

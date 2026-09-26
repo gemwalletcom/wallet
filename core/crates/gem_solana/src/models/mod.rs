@@ -8,9 +8,6 @@ pub mod simulation;
 pub mod token;
 pub mod transaction;
 
-type UInt64 = u64;
-type Int = i64;
-
 // Re-export commonly used types for backward compatibility
 pub use block::*;
 pub use rpc::*;

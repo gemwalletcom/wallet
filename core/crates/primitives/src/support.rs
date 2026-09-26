@@ -1,4 +1,3 @@
-use crate::UInt64;
 use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
@@ -54,7 +53,7 @@ pub struct SupportMessageImage {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_size: Option<UInt64>,
+    pub file_size: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]

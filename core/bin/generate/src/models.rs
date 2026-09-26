@@ -168,7 +168,7 @@ impl Type {
                     "i32" => Self::I32,
                     "f32" => Self::F32,
                     "f64" => Self::F64,
-                    unsupported @ ("u64" | "i64" | "usize" | "isize") => return Err(format!("{unsupported} is not supported")),
+                    unsupported @ ("i64" | "usize" | "isize") => return Err(format!("{unsupported} is not supported")),
                     name => Self::Named(name.to_string(), parameters),
                 })
             }

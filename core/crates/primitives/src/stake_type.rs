@@ -1,4 +1,4 @@
-use crate::{Delegation, DelegationValidator, UInt64};
+use crate::{Delegation, DelegationValidator};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
@@ -34,13 +34,13 @@ pub enum StakeType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TronVote {
     pub validator: String,
-    pub count: UInt64,
+    pub count: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TronUnfreeze {
     pub resource: Resource,
-    pub amount: UInt64,
+    pub amount: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,14 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_u64_from_str;
 
-use super::UInt64;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Block {
-    pub number: UInt64,
+    pub number: u64,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub slot_no: UInt64,
+    pub slot_no: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
