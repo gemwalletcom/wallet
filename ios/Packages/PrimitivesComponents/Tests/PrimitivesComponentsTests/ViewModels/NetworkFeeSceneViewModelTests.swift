@@ -82,7 +82,6 @@ struct NetworkFeeSceneViewModelTests {
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD], onSelectFeeAsset: onSelect).showFeeAssets == false)
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], showsFeeAssets: true).showFeeAssets == false)
         #expect(selectable.showFeeAssets)
-        #expect(selectable.showFeeDetails)
     }
 
     @Test
@@ -101,59 +100,6 @@ struct NetworkFeeSceneViewModelTests {
             )
             model.selectFeeAsset(usdc)
         }
-    }
-
-    @Test
-    func showFeeDetailsForLoadedSingleRate() {
-        let model = NetworkFeeSceneViewModel.mock(
-            feeRates: .mock(
-                rows: [.rate()],
-                showsOptions: false,
-                unitType: .gwei,
-                unitDecimals: 9,
-                selectedTotal: 1,
-                normalTotal: 1,
-            ),
-            feeAmount: BigInt(1_000_000_000_000_000),
-        )
-
-        #expect(model.showFeeRates == false)
-        #expect(model.showFeeDetails)
-    }
-
-    @Test
-    func showFeeDetailsForMultipleRates() {
-        let model = NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [.rate(), .rate(.fast, isSelected: false)],
-            showsOptions: true,
-            unitType: .gwei,
-            unitDecimals: 9,
-            selectedTotal: 1,
-            normalTotal: 1,
-        ))
-
-        #expect(model.showFeeRates)
-        #expect(model.showFeeDetails)
-    }
-
-    @Test
-    func showFeeDetailsForSingleRateWhileReloading() {
-        let model = NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [.rate()],
-            showsOptions: false,
-            unitType: .gwei,
-            unitDecimals: 9,
-            selectedTotal: 1,
-            normalTotal: 1,
-        ))
-
-        #expect(model.showFeeRates == false)
-        #expect(model.showFeeDetails)
-    }
-
-    @Test
-    func hideFeeDetailsBeforePreload() {
-        #expect(NetworkFeeSceneViewModel.mock().showFeeDetails == false)
     }
 
     @Test

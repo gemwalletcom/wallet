@@ -68,7 +68,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
-import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
@@ -249,7 +248,7 @@ fun ConfirmTransferScreen(
                                 val onSelect: (() -> Unit)? = when {
                                     verification != null -> viewModel::showVerification
 
-                                    feeScreen?.fee != null && feeRow !is GemConfirmFeeRow.Unavailable -> {
+                                    feeRow?.opensDetails == true -> {
                                         { showSelectTxSpeed = true }
                                     }
 

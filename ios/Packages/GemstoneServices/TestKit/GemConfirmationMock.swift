@@ -22,6 +22,7 @@ public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
+import struct Gemstone.GemConfirmFeeRow
 import GemstonePrimitivesTestKit
 import Primitives
 
@@ -87,11 +88,26 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         ]
         return GemConfirmViewState(
             button: screen.button(),
-            feeRow: screen.feeRow(load: loaded),
+            feeRow: feeRow(screen: screen),
             title: transfer().title(),
             verification: transfer().verification(),
             authentication: authenticationValue,
             sections: sections.compactMap(\.self),
+        )
+    }
+
+    private func feeRow(screen: GemConfirmScreen) -> GemConfirmFeeRow {
+        let value = screen.feeValue(load: loaded)
+        let isUnavailable = if case .unavailable = value {
+            true
+        } else {
+            false
+        }
+        return GemConfirmFeeRow(
+            title: .networkFee,
+            value: value,
+            info: .networkFee(asset: loaded?.feeAsset ?? transfer().feeAsset()),
+            opensDetails: feeRates != nil && !isUnavailable,
         )
     }
 

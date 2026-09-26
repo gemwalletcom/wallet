@@ -36,7 +36,6 @@ public struct NetworkFeeSceneViewModel {
     public var value: String? { screen?.fee?.amount.text() }
     public var fiatValue: String? { screen?.fee?.fiat?.text() }
     public var showFeeRates: Bool { screen?.rates?.showsOptions ?? false }
-    public var showFeeDetails: Bool { showFeeAssets || screen?.rates != nil }
 
     var feeItems: [ListItemModel] {
         (screen?.additionalFees ?? []).map { item in

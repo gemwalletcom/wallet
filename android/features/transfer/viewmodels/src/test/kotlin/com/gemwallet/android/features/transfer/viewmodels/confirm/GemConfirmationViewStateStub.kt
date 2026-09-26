@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer.viewmodels.confirm
 
+import com.gemwallet.android.testkit.mockGemConfirmFeeRow
 import com.gemwallet.android.testkit.mockGemConfirmHeader
 import com.gemwallet.android.testkit.mockGemValueHeader
 import com.wallet.core.primitives.Asset
@@ -21,7 +22,7 @@ internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
         val screen = firstArg<GemConfirmScreen>()
         GemConfirmViewState(
             screen.button(),
-            screen.feeRow(runBlocking { state() }),
+            mockGemConfirmFeeRow(value = screen.feeValue(runBlocking { state() })),
             GemConfirmTitle.Send,
             null,
             GemKeystoreAuthentication.NONE,

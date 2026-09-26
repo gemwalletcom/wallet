@@ -1343,6 +1343,18 @@ fun mockGemConfirmFee(
     amount = amount,
 )
 
+fun mockGemConfirmFeeRow(
+    title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
+    value: uniffi.gemstone.GemConfirmFeeValue = uniffi.gemstone.GemConfirmFeeValue.Loading,
+    info: uniffi.gemstone.GemInfoTopic = mockGemInfoTopic(),
+    opensDetails: Boolean = false,
+) = uniffi.gemstone.GemConfirmFeeRow(
+    title = title,
+    value = value,
+    info = info,
+    opensDetails = opensDetails,
+)
+
 fun mockGemConfirmFeeSelection(): uniffi.gemstone.GemConfirmFeeSelection = uniffi.gemstone.GemConfirmFeeSelection.Priority(priority = uniffi.gemstone.FeePriority.NORMAL)
 
 fun mockGemConfirmHeader(

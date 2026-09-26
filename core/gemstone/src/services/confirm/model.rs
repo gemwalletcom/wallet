@@ -5,7 +5,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::list::{GemAddressRow, GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
 use crate::services::amount::model::GemNumberFormat;
@@ -431,14 +431,11 @@ pub struct GemConfirmButton {
     pub state: GemButtonState,
 }
 
-#[uniffi::export]
 impl GemConfirmLoad {
-    pub fn fee_asset_row(&self, currency: Currency) -> GemAssetItemRow {
+    pub(super) fn fee_asset_row(&self, currency: Currency) -> GemAssetItemRow {
         super::rules::fee_asset_row(&self.fee_asset, &self.metadata.fee_asset_balance, self.metadata.fee_price().map(|price| price.price), &currency)
     }
-}
 
-impl GemConfirmLoad {
     pub(super) fn shows_fee_assets(&self) -> bool {
         let fee_asset_ids: Vec<AssetId> = self.fee_assets.iter().map(|fee_asset| fee_asset.asset.id.clone()).collect();
         super::rules::shows_fee_assets(&fee_asset_ids, Some(&self.fee_asset.id))
@@ -447,10 +444,29 @@ impl GemConfirmLoad {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum GemConfirmFeeRow {
+pub enum GemConfirmFeeValue {
     Loading,
     Ready { text: GemFeeText },
     Unavailable { text: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmFeeRow {
+    pub title: GemListRowTitle,
+    pub value: GemConfirmFeeValue,
+    pub info: GemInfoTopic,
+    pub opens_details: bool,
+}
+
+impl GemConfirmFeeRow {
+    pub(super) fn new(value: GemConfirmFeeValue, fee_asset: Asset, opens_details: bool) -> Self {
+        Self {
+            title: GemListRowTitle::NetworkFee,
+            opens_details: opens_details && !matches!(value, GemConfirmFeeValue::Unavailable { .. }),
+            value,
+            info: GemInfoTopic::NetworkFee { asset: fee_asset },
+        }
+    }
 }
 
 /// One block of the confirm screen, in the order the screen shows them.
@@ -481,6 +497,17 @@ pub struct GemConfirmViewState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_fee_row_opens_details_only_while_it_has_a_fee_to_show() {
+        let asset = Asset::mock_eth();
+        let reloading = GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset.clone(), true);
+
+        assert!(reloading.opens_details, "a reload keeps the fee sheet reachable");
+        assert_eq!((reloading.title, reloading.info), (GemListRowTitle::NetworkFee, GemInfoTopic::NetworkFee { asset: asset.clone() }));
+        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Unavailable { text: "-".to_string() }, asset.clone(), true).opens_details);
+        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset, false).opens_details, "nothing loaded, nothing to open");
+    }
 
     #[test]
     fn test_the_network_fee_screen_opens_a_custom_field_only_where_a_custom_row_is_offered() {

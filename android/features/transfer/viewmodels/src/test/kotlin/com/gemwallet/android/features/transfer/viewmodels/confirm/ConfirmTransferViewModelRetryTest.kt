@@ -117,7 +117,6 @@ class ConfirmTransferViewModelRetryTest {
 
         coVerify(exactly = 2) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
-        assertEquals(asset, viewModel.feeAsset.value?.asset)
 
         viewModel.changeFeePriority(FeePriority.Fast)
         advanceUntilIdle()

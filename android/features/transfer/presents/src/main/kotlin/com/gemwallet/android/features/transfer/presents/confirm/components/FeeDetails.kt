@@ -83,8 +83,7 @@ import java.math.BigInteger
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: ListItemModel?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (BigInteger) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
-    screen?.fee ?: return
-    val rates = screen.rates ?: return
+    screen ?: return
     val context = LocalContext.current
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
@@ -135,8 +134,8 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: Li
             FeeDetailsPage.Details -> FeeRates(
                 feeItems = screen.additionalFees.map { ListItemModel(title = context.getString(it.option.stringRes()), subtitle = it.amount.amount.text()) },
                 feeListItem = feeListItem,
-                feeRateRows = rates.rows,
-                showsOptions = rates.showsOptions,
+                feeRateRows = screen.rates?.rows.orEmpty(),
+                showsOptions = screen.rates?.showsOptions == true,
                 feeAsset = feeAsset,
                 onSelectPriority = {
                     onSelectPriority(it)

@@ -1,23 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemConfirmFeeRow
+import struct Gemstone.GemConfirmFeeRow
+import enum Gemstone.GemInfoTopic
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmNetworkFeeViewModel {
     private let feeRow: GemConfirmFeeRow
-    private let feeModel: NetworkFeeSceneViewModel
-    private let infoAction: VoidAction
+    private let onInfo: (GemInfoTopic) -> Void
 
     init(
         feeRow: GemConfirmFeeRow,
-        feeModel: NetworkFeeSceneViewModel,
-        infoAction: VoidAction,
+        onInfo: @escaping (GemInfoTopic) -> Void,
     ) {
         self.feeRow = feeRow
-        self.feeModel = feeModel
-        self.infoAction = infoAction
+        self.onInfo = onInfo
     }
 }
 
@@ -27,13 +25,13 @@ extension ConfirmNetworkFeeViewModel {
     var itemModel: ConfirmTransferItemModel {
         .networkFee(
             .init(
-                title: feeModel.title,
+                title: feeRow.title.text,
                 subtitle: networkFeeValue,
                 subtitleExtra: networkFeeExtra,
                 placeholders: [.subtitle],
-                infoAction: infoAction,
+                infoAction: { [feeRow, onInfo] in onInfo(feeRow.info) },
             ),
-            selectable: feeModel.showFeeDetails && !isUnavailable,
+            selectable: feeRow.opensDetails,
         )
     }
 }
@@ -41,16 +39,8 @@ extension ConfirmNetworkFeeViewModel {
 // MARK: - Private
 
 extension ConfirmNetworkFeeViewModel {
-    private var isUnavailable: Bool {
-        if case .unavailable = feeRow {
-            true
-        } else {
-            false
-        }
-    }
-
     private var networkFeeValue: String? {
-        switch feeRow {
+        switch feeRow.value {
         case let .unavailable(text): text
         case .loading: nil
         case let .ready(text): text.value.text()
@@ -58,7 +48,7 @@ extension ConfirmNetworkFeeViewModel {
     }
 
     private var networkFeeExtra: String? {
-        switch feeRow {
+        switch feeRow.value {
         case .loading, .unavailable: nil
         case let .ready(text): text.extra?.text
         }

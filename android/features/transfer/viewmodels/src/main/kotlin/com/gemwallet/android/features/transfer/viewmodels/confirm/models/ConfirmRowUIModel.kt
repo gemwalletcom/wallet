@@ -9,11 +9,13 @@ import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAddressRow
 import uniffi.gemstone.GemConfirmFeeRow
+import uniffi.gemstone.GemConfirmFeeValue
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemFeeAmount
 import uniffi.gemstone.GemInfoTopic
@@ -40,18 +42,18 @@ internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? 
     is GemConfirmRowContent.Details -> null
 }
 
-fun GemConfirmFeeRow.listItem(context: Context, feeAsset: Asset?): ListItemModel {
-    val title = context.getString(R.string.transfer_network_fee)
-    val info = networkFeeInfo(feeAsset)
-    return when (this) {
-        GemConfirmFeeRow.Loading -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
+fun GemConfirmFeeRow.listItem(context: Context): ListItemModel {
+    val title = title.text(context)
+    val info = info.infoSheet()
+    return when (val value = value) {
+        GemConfirmFeeValue.Loading -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
 
-        is GemConfirmFeeRow.Unavailable -> ListItemModel(title = title, subtitle = text, info = info)
+        is GemConfirmFeeValue.Unavailable -> ListItemModel(title = title, subtitle = value.text, info = info)
 
-        is GemConfirmFeeRow.Ready -> ListItemModel(
+        is GemConfirmFeeValue.Ready -> ListItemModel(
             title = title,
-            subtitle = text.value.text(),
-            subtitleExtra = text.extra?.string(context),
+            subtitle = value.text.value.text(),
+            subtitleExtra = value.text.extra?.string(context),
             info = info,
         )
     }

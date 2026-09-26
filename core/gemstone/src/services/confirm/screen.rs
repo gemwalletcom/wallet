@@ -3,7 +3,7 @@ use crate::services::assets::model::GemFeeText;
 use primitives::SimulationResult;
 
 use super::error::{GemConfirmError, GemConfirmErrorSheet};
-use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
+use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeValue, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
 
 impl GemConfirmScreen {
     pub fn initial(simulation: Option<&SimulationResult>) -> Self {
@@ -64,15 +64,15 @@ impl GemConfirmScreen {
         }
     }
 
-    pub fn fee_row(&self, load: Option<GemConfirmLoad>) -> GemConfirmFeeRow {
-        let unavailable = || GemConfirmFeeRow::Unavailable {
+    pub fn fee_value(&self, load: Option<GemConfirmLoad>) -> GemConfirmFeeValue {
+        let unavailable = || GemConfirmFeeValue::Unavailable {
             text: crate::models::placeholder::EMPTY_VALUE.to_string(),
         };
         match self.phase {
-            GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
+            GemConfirmPhase::Loading => GemConfirmFeeValue::Loading,
             GemConfirmPhase::Failed => unavailable(),
             GemConfirmPhase::Ready | GemConfirmPhase::Confirming => match load.as_ref().and_then(|load| self.fee_text(load)) {
-                Some(text) => GemConfirmFeeRow::Ready { text },
+                Some(text) => GemConfirmFeeValue::Ready { text },
                 None => unavailable(),
             },
         }
@@ -318,7 +318,7 @@ mod tests {
             ..GemConfirmScreen::initial(None)
         };
 
-        assert_eq!(waiting.fee_row(Some(GemConfirmLoad::mock())), GemConfirmFeeRow::Unavailable { text: EMPTY_VALUE.to_string() });
+        assert_eq!(waiting.fee_value(Some(GemConfirmLoad::mock())), GemConfirmFeeValue::Unavailable { text: EMPTY_VALUE.to_string() });
         assert_eq!(
             waiting.button(),
             GemConfirmButton {
@@ -340,17 +340,17 @@ mod tests {
             fee: Some(GemConfirmFee::mock(GemTransferAmountResult::mock())),
             ..GemConfirmLoad::mock()
         };
-        let ready = GemConfirmFeeRow::Ready {
+        let ready = GemConfirmFeeValue::Ready {
             text: GemConfirmFee::mock(GemTransferAmountResult::mock()).formatted.text(),
         };
 
-        assert_eq!(loading.fee_row(Some(load.clone())), GemConfirmFeeRow::Loading);
+        assert_eq!(loading.fee_value(Some(load.clone())), GemConfirmFeeValue::Loading);
         assert_eq!(
             GemConfirmScreen {
                 phase: GemConfirmPhase::Ready,
                 ..loading.clone()
             }
-            .fee_row(Some(load.clone())),
+            .fee_value(Some(load.clone())),
             ready
         );
         assert_eq!(
@@ -358,12 +358,12 @@ mod tests {
                 phase: GemConfirmPhase::Confirming,
                 ..loading.clone()
             }
-            .fee_row(Some(load.clone())),
+            .fee_value(Some(load.clone())),
             ready
         );
         assert_eq!(
-            GemConfirmScreen { phase: GemConfirmPhase::Failed, ..loading }.fee_row(Some(load)),
-            GemConfirmFeeRow::Unavailable {
+            GemConfirmScreen { phase: GemConfirmPhase::Failed, ..loading }.fee_value(Some(load)),
+            GemConfirmFeeValue::Unavailable {
                 text: crate::models::placeholder::EMPTY_VALUE.to_string()
             },
             "a fee the screen could not load reads as the placeholder both apps use"
@@ -385,12 +385,12 @@ mod tests {
                 requirement: GemBalanceRequirement::new(10u64.into(), 0u64.into()),
             },
         };
-        let row = |load: GemConfirmLoad| GemConfirmScreen::initial(None).on_loaded(load.clone()).fee_row(Some(load));
+        let row = |load: GemConfirmLoad| GemConfirmScreen::initial(None).on_loaded(load.clone()).fee_value(Some(load));
         let load = |amount: GemTransferAmountResult| GemConfirmLoad {
             fee: Some(fee(amount)),
             ..GemConfirmLoad::mock()
         };
-        let text = |value: GemFormattedNumber, extra: Option<GemLocalizedText>| GemConfirmFeeRow::Ready { text: GemFeeText { value, extra } };
+        let text = |value: GemFormattedNumber, extra: Option<GemLocalizedText>| GemConfirmFeeValue::Ready { text: GemFeeText { value, extra } };
         let btc = Asset::mock_btc();
         let picker = GemConfirmLoad {
             fee_assets: vec![GemFeeAsset {

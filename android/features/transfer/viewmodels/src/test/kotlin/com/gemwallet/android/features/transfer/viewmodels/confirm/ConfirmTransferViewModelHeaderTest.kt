@@ -39,7 +39,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmFeeRow
+import uniffi.gemstone.GemConfirmFeeValue
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
@@ -73,7 +73,7 @@ class ConfirmTransferViewModelHeaderTest {
         val header = viewModel.header.first { it != null }
 
         assertEquals(symbolHeader(asset), header)
-        assertEquals(GemConfirmFeeRow.Loading, viewModel.viewState.first { it != null }?.feeRow)
+        assertEquals(GemConfirmFeeValue.Loading, viewModel.viewState.first { it != null }?.feeRow?.value)
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
     }
 

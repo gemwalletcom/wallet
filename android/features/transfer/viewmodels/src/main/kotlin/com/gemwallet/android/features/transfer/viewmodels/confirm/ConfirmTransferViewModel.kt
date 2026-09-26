@@ -8,7 +8,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
@@ -76,7 +75,6 @@ import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmButton
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoad
@@ -209,10 +207,7 @@ class ConfirmTransferViewModel @Inject constructor(
     val button = viewState.map { it?.button ?: GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING))
 
-    val feeRow = viewState.map { it?.feeRow ?: GemConfirmFeeRow.Loading }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmFeeRow.Loading)
-
-    val feeAsset = content.map { it?.feeAssetUIModel }
+    val feeRow = viewState.map { it?.feeRow }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeScreen: StateFlow<GemNetworkFeeScreen?> = combine(confirmation, load) { confirmation, _ -> confirmation?.networkFeeScreen(numberFormat()) }
@@ -292,8 +287,8 @@ class ConfirmTransferViewModel @Inject constructor(
         if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
     }
 
-    val feeListItem: StateFlow<ListItemModel?> = combine(viewState, feeAsset, verification) { viewState, asset, verification ->
-        verification?.let { verificationListItem(context) } ?: (viewState?.feeRow ?: GemConfirmFeeRow.Loading).listItem(context, asset?.asset)
+    val feeListItem: StateFlow<ListItemModel?> = combine(feeRow, verification) { feeRow, verification ->
+        verification?.let { verificationListItem(context) } ?: feeRow?.listItem(context)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -327,7 +322,7 @@ class ConfirmTransferViewModel @Inject constructor(
         loadOptions.update { it?.onPaymentAsset(assetId.toIdentifier(), current) }
     }
 
-    fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), feeAsset.value?.asset?.id?.toIdentifier()) }
+    fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), content.value?.load?.feeAsset?.id) }
 
     fun fetch() {
         screen.update { it.onLoadStarted() }
@@ -365,8 +360,6 @@ class ConfirmTransferViewModel @Inject constructor(
     }
 
     private data class ConfirmContent(val session: GemConfirmation, val currency: Currency, val load: GemConfirmLoad) {
-        val feeAssetUIModel: FeeAssetUIModel = FeeAssetUIModel(load.feeAsset.toPrimitives(), load.feeAssetRow(currency.toGem()))
-
         fun price(asset: Asset): Double? = load.metadata.price(asset.id.toIdentifier())?.price
     }
 

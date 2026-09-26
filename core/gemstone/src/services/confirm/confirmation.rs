@@ -8,8 +8,8 @@ use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen,
-    GemSubmitResult, GemTransferAmountResult, SendInput,
+    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService, GemConfirmViewState,
+    GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -130,7 +130,11 @@ impl GemConfirmation {
         let verification = transfer.verification();
         GemConfirmViewState {
             button: screen.button(),
-            fee_row: screen.fee_row(load.cloned()),
+            fee_row: GemConfirmFeeRow::new(
+                screen.fee_value(load.cloned()),
+                load.map(|load| load.fee_asset.clone()).unwrap_or_else(|| transfer.fee_asset()),
+                state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
+            ),
             title: transfer.title(),
             sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
             verification,
@@ -301,7 +305,7 @@ mod tests {
         let state = confirmation.view_state(screen.clone());
 
         assert_eq!(state.button, screen.button());
-        assert_eq!(state.fee_row, screen.fee_row(None));
+        assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), false));
         assert_eq!(
             confirmation.network_fee_screen(crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }),
             None,

@@ -6,7 +6,6 @@ import struct Gemstone.GemAcquireAsset
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmError
-import enum Gemstone.GemConfirmFeeRow
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoadOptions
 import enum Gemstone.GemConfirmRowContent
@@ -203,8 +202,7 @@ extension ConfirmTransferSceneViewModel {
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 feeRow: viewState.feeRow,
-                feeModel: feeModel,
-                infoAction: onSelectNetworkFeeInfo,
+                onInfo: { [weak self] in self?.onInfo($0) },
             ).itemModel
         case .error:
             errorItem(loadError)
@@ -248,10 +246,6 @@ extension ConfirmTransferSceneViewModel {
     public func onInfoAction(_ action: GemInfoAction) {
         guard case let .acquire(asset, acquire) = action else { return }
         onSelectGetAsset(asset.toPrimitives(), acquire: acquire)
-    }
-
-    func onSelectNetworkFeeInfo() {
-        isPresentingSheet = .info(GemInfoTopic.networkFee(asset: state.feeAsset.toGem()).infoSheet)
     }
 
     public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {

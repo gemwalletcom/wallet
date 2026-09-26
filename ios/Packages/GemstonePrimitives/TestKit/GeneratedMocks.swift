@@ -362,6 +362,22 @@ public extension Gemstone.GemConfirmFee {
     }
 }
 
+public extension Gemstone.GemConfirmFeeRow {
+    static func mock(
+        title: Gemstone.GemListRowTitle = .api,
+        value: Gemstone.GemConfirmFeeValue = .loading,
+        info: Gemstone.GemInfoTopic = .mock(),
+        opensDetails: Bool = false,
+    ) -> Gemstone.GemConfirmFeeRow {
+        Gemstone.GemConfirmFeeRow(
+            title: title,
+            value: value,
+            info: info,
+            opensDetails: opensDetails,
+        )
+    }
+}
+
 public extension Gemstone.GemConfirmFeeSelection {
     static func mock() -> Gemstone.GemConfirmFeeSelection {
         .priority(priority: .normal)
