@@ -50,14 +50,14 @@ class DevicePushSettings(
     private val pushEnabledState = MutableStateFlow(false)
 
     override suspend fun enablePushForSupport(): GemPushState? = withContext(ioDispatcher) {
-        notificationsService.get().enableForSupport()?.also { state ->
+        notificationsService.get().askToEnable()?.also { state ->
             pushEnabledState.value = state.isEnabled
         }
     }
 
     override fun enablePushForNewWallet() {
         scope.launch {
-            notificationsService.get().enableForNewWallet()?.let { state -> pushEnabledState.value = state.isEnabled }
+            notificationsService.get().askToEnable()?.let { state -> pushEnabledState.value = state.isEnabled }
         }
     }
 

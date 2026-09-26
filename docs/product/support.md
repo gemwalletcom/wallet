@@ -18,7 +18,7 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| Support opens while push is off and the system can still ask | it asks for notification permission, never twice | it lets a reply reach the user |
+| Support opens while push is off | it offers push under the same rule as a new wallet: never after the user turned push off, and no sooner than 30 days after the last ask | it lets a reply reach the user without overriding the user's choice or sending them to system Settings on every visit |
 | The device cannot register for push | the chat says so | |
 | A new conversation | "How can we help?" | |
 | The user attaches a photo | it is resized before it goes | |
