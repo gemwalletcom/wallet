@@ -41,6 +41,7 @@ import enum Gemstone.GemSupportBubbleSide
 import enum Gemstone.GemSwapProgressMarker
 import struct Gemstone.GemSwapProgressState
 import enum Gemstone.GemSwapProgressStep
+import enum Gemstone.GemToastIcon
 import enum Gemstone.GemTransactionRowValue
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
@@ -273,6 +274,16 @@ public extension GemSupportBubbleSide {
         switch self {
         case .outgoing: .trailing
         case .incoming: .leading
+        }
+    }
+}
+
+public extension GemToastIcon {
+    var systemImage: String {
+        switch self {
+        case .pin: SystemImage.pin
+        case .unpin: SystemImage.unpin
+        case .priceAlert: SystemImage.bellFill
         }
     }
 }

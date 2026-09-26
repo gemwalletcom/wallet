@@ -119,8 +119,8 @@ class NetworkAssetsViewModelTest {
         viewModel.togglePin(unpinnedToken.asset.id)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { service.setAssetPinned(pinnedToken.asset.id.toIdentifier(), false) }
-        coVerify(exactly = 1) { service.setAssetPinned(unpinnedToken.asset.id.toIdentifier(), true) }
+        coVerify(exactly = 1) { service.setAssetPinned(match { it.id == pinnedToken.asset.id.toIdentifier() }, false) }
+        coVerify(exactly = 1) { service.setAssetPinned(match { it.id == unpinnedToken.asset.id.toIdentifier() }, true) }
     }
 
     @Test

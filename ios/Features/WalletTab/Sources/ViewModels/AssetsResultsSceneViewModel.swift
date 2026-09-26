@@ -4,6 +4,7 @@ import Components
 import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemToast
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchState
 import func Gemstone.walletSearchState
@@ -141,16 +142,16 @@ extension AssetsResultsSceneViewModel {
 }
 
 extension AssetsResultsSceneViewModel {
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId.identifier, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
 
-    func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
-        try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
+    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
+        try await service.setPerpetualPinned(perpetualId: perpetual.id.identifier, name: perpetual.name, pinned: pinned)
     }
 
     var assetItems: ListAssetItemsViewModel {

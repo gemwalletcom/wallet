@@ -186,6 +186,10 @@ public extension GemLocalizedText {
             Localized.Assets.Tags.new
         case let .deleteConfirmation(name):
             Localized.Common.deleteConfirmation(name)
+        case let .pinned(name, pinned):
+            pinned ? Localized.Common.pinnedAsset(name) : Localized.Common.unpinnedAsset(name)
+        case let .priceAlertsToggled(name, enabled):
+            enabled ? Localized.PriceAlerts.enabledFor(name) : Localized.PriceAlerts.disabledFor(name)
         case let .currentPrice(price):
             [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):

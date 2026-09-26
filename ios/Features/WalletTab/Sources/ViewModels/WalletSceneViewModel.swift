@@ -12,6 +12,7 @@ import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import struct Gemstone.GemWalletRow
 import func Gemstone.walletRow
@@ -249,8 +250,8 @@ extension WalletSceneViewModel {
         isLoadingAssets = service.showsInitialLoading()
     }
 
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {

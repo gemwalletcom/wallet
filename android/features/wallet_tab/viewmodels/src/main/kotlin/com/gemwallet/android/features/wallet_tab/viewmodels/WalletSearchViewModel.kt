@@ -16,7 +16,7 @@ import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
-import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.components.screen.message
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -171,8 +171,6 @@ class WalletSearchViewModel @Inject constructor(
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = perpetualSections.value.let { it.pinned + it.markets }.firstOrNull { it.id == perpetualId } ?: return@launch
-        if (setPerpetualPinned(perpetualId, !item.isPinned).isSuccess) {
-            emitToast(assetPinnedToast(context, item.title, !item.isPinned))
-        }
+        setPerpetualPinned(perpetualId, item.title, !item.isPinned).onSuccess { emitToast(it.message(context)) }
     }
 }

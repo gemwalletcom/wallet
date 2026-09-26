@@ -25,7 +25,7 @@ import com.gemwallet.android.features.assets.viewmodels.select.models.SelectAsse
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
-import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
@@ -69,6 +69,7 @@ import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemToast
 import uniffi.gemstone.addressCopy
 import uniffi.gemstone.emptyState
 
@@ -227,12 +228,6 @@ open class BaseSelectAssetViewModel(
 
     fun onSelected(asset: Asset) {
         flow.action?.let { updateRecent(asset, it) }
-        if (flow.enablesPriceAlert) {
-            viewModelScope.launch(ioDispatcher) {
-                runCatchingCancellable { service.setPriceAlert(asset.id.toIdentifier(), true) }
-                    .onFailure { Log.e(TAG, "enabling the price alert for ${asset.id.toIdentifier()} failed", it) }
-            }
-        }
     }
 
     fun addressCopy(item: AssetInfoDataAggregate): GemCopy = addressCopy(item.asset.id.chain.string, item.accountAddress)
@@ -248,10 +243,9 @@ open class BaseSelectAssetViewModel(
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        val item = assets.value.firstOrNull { it.asset.id == assetId }
-        val willPin = item?.pinned != true
-        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
-            .onSuccess { item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) } }
+        val item = assets.value.firstOrNull { it.asset.id == assetId } ?: return@launch
+        runCatchingCancellable { service.setAssetPinned(item.asset.toGem(), !item.pinned) }
+            .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
     }
 
@@ -298,8 +292,8 @@ open class BaseSelectAssetViewModel(
         service.searchAssets(query)
     }
 
-    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean): Result<Unit> = withContext(ioDispatcher) {
-        runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
+    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, name: String, pinned: Boolean): Result<GemToast> = withContext(ioDispatcher) {
+        runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), name, pinned) }
             .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }
 

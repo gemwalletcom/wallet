@@ -341,7 +341,6 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         action,
         scope: GemSelectAssetScope::Wallet,
         filters: action.map(|action| action.filters()).unwrap_or_default(),
-        enables_price_alert: false,
         network_search: false,
         chain_filter: false,
         recents: false,
@@ -411,7 +410,6 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         GemSelectAssetType::PriceAlert => with_filter(
             GemSelectAssetFlow {
                 row_style: style(true, GemAssetSubtitleStyle::Price, GemAssetTrailingStyle::None),
-                enables_price_alert: true,
                 network_search: true,
                 chain_filter: true,
                 popular_section: true,
@@ -1026,7 +1024,6 @@ mod tests {
                 ("balance_filter", flow.balance_filter),
                 ("add_custom_token", flow.add_custom_token),
                 ("display_asset", flow.display_asset.is_some()),
-                ("enables_price_alert", flow.enables_price_alert),
             ]
             .into_iter()
             .filter_map(|(name, on)| on.then_some(name))
@@ -1040,7 +1037,7 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::SwapReceive { pay_asset_id: None }), ["network_search", "chain_filter", "recents"]);
         assert!(enabled(GemSelectAssetType::Payment { asset_ids: vec![] }).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Manage), ["network_search", "chain_filter", "balance_filter", "add_custom_token"]);
-        assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section", "enables_price_alert"]);
+        assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section"]);
         assert!(enabled(GemSelectAssetType::Deposit).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Withdraw), ["display_asset"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents", "add_custom_token"]);

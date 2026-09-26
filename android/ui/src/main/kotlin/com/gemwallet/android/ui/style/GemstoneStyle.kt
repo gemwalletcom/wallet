@@ -56,6 +56,7 @@ import uniffi.gemstone.GemSecurityReminderItem
 import uniffi.gemstone.GemSupportBubbleSide
 import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressStep
+import uniffi.gemstone.GemToastIcon
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemVerificationLevel
@@ -89,6 +90,13 @@ fun GemAssetSectionKind.icon(): ImageVector? = when (this) {
     GemAssetSectionKind.POPULAR -> AppIcons.StarOutlined
     GemAssetSectionKind.PINNED -> AppIcons.PushPin
     GemAssetSectionKind.ASSETS -> null
+}
+
+@DrawableRes
+fun GemToastIcon.iconRes(): Int = when (this) {
+    GemToastIcon.PIN -> R.drawable.ic_push_pin
+    GemToastIcon.UNPIN -> R.drawable.keep_off
+    GemToastIcon.PRICE_ALERT -> R.drawable.ic_notifications
 }
 
 @DrawableRes

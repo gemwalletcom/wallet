@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,8 +30,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemToast
+import uniffi.gemstone.GemToastIcon
 import uniffi.gemstone.PriceAlertFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -63,15 +69,15 @@ class PriceAlertsViewModelTest {
     @Test
     fun `an asset alert toggles through the auto alert only`() = runTest {
         val service = service(enabled = false)
-        coEvery { service.setAutoAlert(any(), any()) } returns Unit
+        coEvery { service.setAutoAlert(any(), any()) } answers { GemToast(GemLocalizedText.PriceAlertsToggled(firstArg<uniffi.gemstone.Asset>().name, secondArg()), GemToastIcon.PRICE_ALERT) }
         val viewModel = viewModel(service, assetId)
         try {
             viewModel.toggleAutoAlert(true).join()
             viewModel.toggleAutoAlert(false).join()
 
             coVerify(exactly = 0) { service.setEnabled(any()) }
-            coVerify(exactly = 1) { service.setAutoAlert(assetId.toIdentifier(), true) }
-            coVerify(exactly = 1) { service.setAutoAlert(assetId.toIdentifier(), false) }
+            coVerify(exactly = 1) { service.setAutoAlert(match { it.id == assetId.toIdentifier() }, true) }
+            coVerify(exactly = 1) { service.setAutoAlert(match { it.id == assetId.toIdentifier() }, false) }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -112,8 +118,8 @@ class PriceAlertsViewModelTest {
         priceAlertsQuery = mockk<PriceAlertsQuery> {
             every { this@mockk(any()) } returns flowOf(emptyList())
         },
-        getCurrentWalletId = mockk(relaxed = true),
-        assetQuery = mockk(relaxed = true),
+        getCurrentWalletId = mockk { every { this@mockk() } returns flowOf(WalletId("wallet")) },
+        assetQuery = mockk { every { this@mockk(any(), any()) } returns flowOf(mockAssetData(asset = mockAsset(id = assetId ?: this@PriceAlertsViewModelTest.assetId))) },
         service = service,
         priceAlertFormatter = PriceAlertFormatter(),
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),

@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemNetworkAssetSections
+import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import func Gemstone.networkAssetSections
 import GemstoneServices
@@ -100,8 +101,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 }
 
 extension NetworkAssetsSceneViewModel {
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {

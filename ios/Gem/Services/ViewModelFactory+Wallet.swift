@@ -112,7 +112,6 @@ public extension ViewModelFactory {
             assets: assetsService,
             search: searchService,
             balances: balanceService,
-            priceAlerts: priceAlertService,
             recentActivity: recentAssetsService,
             preferences: preferencesService,
             perpetuals: perpetualService,

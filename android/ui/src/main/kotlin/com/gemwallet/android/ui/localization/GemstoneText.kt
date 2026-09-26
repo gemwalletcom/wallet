@@ -95,7 +95,6 @@ import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemPriceAlertLabel
 import uniffi.gemstone.GemPriceAlertPrompt
 import uniffi.gemstone.GemPriceAlertSectionKind
-import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
@@ -298,6 +297,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     GemLocalizedText.NewTag -> context.getString(R.string.assets_tags_new)
 
     is GemLocalizedText.DeleteConfirmation -> context.getString(R.string.common_delete_confirmation, name)
+
+    is GemLocalizedText.Pinned -> context.getString(if (pinned) R.string.common_pinned_asset else R.string.common_unpinned_asset, name)
+
+    is GemLocalizedText.PriceAlertsToggled -> context.getString(if (enabled) R.string.price_alerts_enabled_for else R.string.price_alerts_disabled_for, name)
 
     is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"
 
@@ -1082,12 +1085,6 @@ fun PortfolioChartType.stringRes(): Int = when (this) {
 fun PortfolioType.stringRes(): Int = when (this) {
     PortfolioType.Wallet -> R.string.wallet_portfolio_title
     PortfolioType.Perpetuals -> R.string.perpetuals_title
-}
-
-@StringRes
-fun GemPriceAlertToggle.toastRes(): Int = when (this) {
-    GemPriceAlertToggle.ENABLED -> R.string.price_alerts_disabled_for
-    GemPriceAlertToggle.DISABLED -> R.string.price_alerts_enabled_for
 }
 
 @StringRes

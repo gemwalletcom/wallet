@@ -94,7 +94,7 @@ extension AssetPriceAlertsSceneViewModel {
 
     func toggleAutoAlert(enabled: Bool) async {
         do {
-            try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
+            _ = try await service.setAutoAlert(asset: asset.toGem(), enabled: enabled)
         } catch let error as GemServiceError {
             isPresentingToastMessage = .error(error.text().text)
         } catch {

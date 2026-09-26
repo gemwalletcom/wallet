@@ -13,9 +13,11 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
@@ -124,7 +126,10 @@ class NetworkAssetsViewModel @Inject constructor(
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), assetGroups.value.pinned.none { it.id == assetId }) }
+        val groups = assetGroups.value
+        val item = (groups.pinned + groups.unpinned + groups.hidden).firstOrNull { it.id == assetId } ?: return@launch
+        runCatchingCancellable { service.setAssetPinned(item.asset.toGem(), groups.pinned.none { it.id == assetId }) }
+            .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
     }
 

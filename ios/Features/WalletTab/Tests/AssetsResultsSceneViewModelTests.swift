@@ -114,9 +114,9 @@ struct AssetsResultsSceneViewModelTests {
         let model = AssetsResultsSceneViewModel.mock(service: service)
         let assetId = AssetId.mock(chain: .ethereum)
 
-        try await model.setAssetPinned(assetId, pinned: true)
+        _ = try await model.setAssetPinned(.mock(id: assetId), pinned: true)
         try await model.setAssetsEnabled([assetId], enabled: false)
-        try await model.setPerpetualPinned(PerpetualId(provider: .hypercore, symbol: "BTC"), pinned: true)
+        _ = try await model.setPerpetualPinned(.mock(), pinned: true)
 
         #expect(calls.pinned == [true])
         #expect(calls.enabled == [false])

@@ -44,6 +44,8 @@ pub enum GemLocalizedText {
     NewWallet,
     NewTag,
     DeleteConfirmation { name: String },
+    Pinned { name: String, pinned: bool },
+    PriceAlertsToggled { name: String, enabled: bool },
     CurrentPrice { price: GemFormattedNumber },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },

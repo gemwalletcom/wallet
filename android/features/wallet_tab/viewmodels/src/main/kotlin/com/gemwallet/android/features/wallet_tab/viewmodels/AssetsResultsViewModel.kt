@@ -24,7 +24,7 @@ import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelect
 import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -139,8 +139,7 @@ class AssetsResultsViewModel @Inject constructor(
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
-        setPerpetualPinned(perpetualId, !item.isPinned)
-        emitToast(assetPinnedToast(context, item.title, !item.isPinned))
+        setPerpetualPinned(perpetualId, item.title, !item.isPinned).onSuccess { emitToast(it.message(context)) }
     }
 }
 

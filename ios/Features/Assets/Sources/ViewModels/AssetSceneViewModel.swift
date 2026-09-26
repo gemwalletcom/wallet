@@ -278,8 +278,8 @@ public extension AssetSceneViewModel {
         Task {
             let toggled = details.state.priceAlert.toggled()
             do {
-                try await setPriceAlert(enabled: toggled == .enabled)
-                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: toggled == .enabled)
+                let toast = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled)
+                isPresentingToastMessage = ToastMessage(toast: toast)
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.text().text)
             } catch {
@@ -309,8 +309,8 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await service.setAssetPinned(assetId: asset.id.identifier, pinned: pinned)
-                isPresentingToastMessage = .pin(asset.name, pinned: pinned)
+                let toast = try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
+                isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("onSelectPin error: \(error)")
             }
@@ -338,10 +338,6 @@ extension AssetSceneViewModel {
     private func onSelect(url: URL?) {
         guard let url else { return }
         isPresentingAssetSheet = .url(url)
-    }
-
-    private func setPriceAlert(enabled: Bool) async throws {
-        try await service.setPriceAlert(assetId: asset.id.identifier, enabled: enabled)
     }
 
     func refresh() async {

@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemToast
+import Localization
 @testable import PrimitivesComponents
 import Style
 import Testing
@@ -12,9 +14,12 @@ struct ToastMessageTests {
     }
 
     @Test
-    func pin() {
-        #expect(ToastMessage.pin("BTC", pinned: true).image == SystemImage.pin)
-        #expect(ToastMessage.pin("BTC", pinned: false).image == SystemImage.unpin)
+    func coreToast() {
+        let unpinned = ToastMessage(toast: GemToast(text: .pinned(name: "BTC", pinned: false), icon: .unpin))
+
+        #expect(unpinned.title == Localized.Common.unpinnedAsset("BTC"))
+        #expect(unpinned.image == SystemImage.unpin)
+        #expect(ToastMessage(toast: GemToast(text: .priceAlertsToggled(name: "ETH", enabled: true), icon: .priceAlert)).image == SystemImage.bellFill)
     }
 
     @Test
@@ -30,7 +35,6 @@ struct ToastMessageTests {
 
     @Test
     func priceAlert() {
-        #expect(ToastMessage.priceAlert(for: "ETH", enabled: true).image == SystemImage.bellFill)
         #expect(ToastMessage.priceAlert(message: "Alert set").image == SystemImage.bellFill)
     }
 

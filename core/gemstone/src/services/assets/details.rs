@@ -1,7 +1,7 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{AssetData, AssetId, BannerEvent, Deeplink};
+use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;
@@ -15,6 +15,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::GemSwapService;
+use crate::services::toast::GemToast;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -125,8 +126,9 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset.id, pinned).await?;
+        Ok(GemToast::pinned(asset.name, pinned))
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
@@ -199,8 +201,8 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        self.price_alerts.set_auto_alert(asset_id, enabled).await
+    pub async fn set_price_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+        self.price_alerts.set_auto_alert(asset, enabled).await
     }
 }
 

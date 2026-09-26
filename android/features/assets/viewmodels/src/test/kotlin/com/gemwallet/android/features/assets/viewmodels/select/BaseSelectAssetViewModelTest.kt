@@ -84,7 +84,6 @@ class BaseSelectAssetViewModelTest {
         every { popularSection } returns false
         every { recents } returns true
         every { networkSearch } returns false
-        every { enablesPriceAlert } returns false
         every { filterSession(any()) } answers { GemAssetsFilterSession(filters = emptyList(), balanceFilter = true, selectedChains = firstArg(), hasBalance = false) }
     }
 

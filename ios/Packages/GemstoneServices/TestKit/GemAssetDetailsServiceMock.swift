@@ -15,6 +15,7 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemToast
 import struct Gemstone.GemValueHeader
 import enum Gemstone.WalletType
 import GemstonePrimitivesTestKit
@@ -31,7 +32,9 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         GemAssetRefresh(transactions: .data, failures: [])
     }
 
-    public func setAssetPinned(assetId _: AssetId, pinned _: Bool) async throws {}
+    public func setAssetPinned(asset: Asset, pinned: Bool) async throws -> GemToast {
+        GemToast(text: .pinned(name: asset.name, pinned: pinned), icon: pinned ? .pin : .unpin)
+    }
 
     public func setAssetsEnabled(assetIds _: [AssetId], enabled _: Bool) async throws {}
 
@@ -63,7 +66,9 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         )
     }
 
-    public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
+    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast {
+        GemToast(text: .priceAlertsToggled(name: asset.name, enabled: enabled), icon: .priceAlert)
+    }
 
     public func deeplinkUrl(deeplink _: Deeplink) -> String {
         "https://gemwallet.com"

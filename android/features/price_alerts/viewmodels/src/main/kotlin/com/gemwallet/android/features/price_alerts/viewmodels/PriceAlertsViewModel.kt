@@ -51,6 +51,7 @@ import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemToast
 import uniffi.gemstone.PriceAlertFormatter
 import uniffi.gemstone.loadError
 import javax.inject.Inject
@@ -159,8 +160,8 @@ class PriceAlertsViewModel @Inject constructor(
     }
 
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
-        val assetId = assetId.value ?: return@launch
-        setAutoAlert(assetId, enabled)
+        val asset = assetInfo.value?.asset ?: return@launch
+        setAutoAlert(asset, enabled)
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
@@ -169,19 +170,17 @@ class PriceAlertsViewModel @Inject constructor(
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 
-    fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(ioDispatcher) {
-        setAutoAlert(assetId, true)
-
-        val assetInfo = assetInfo(assetId).firstOrNull() ?: return@launch
-        withContext(Dispatchers.Main) { callback(assetInfo.asset) }
+    fun includeAsset(assetId: AssetId, callback: (GemToast) -> Unit) = viewModelScope.launch(ioDispatcher) {
+        val asset = assetInfo(assetId).firstOrNull()?.asset ?: return@launch
+        val toast = setAutoAlert(asset, true) ?: return@launch
+        withContext(Dispatchers.Main) { callback(toast) }
     }
 
     private fun assetInfo(assetId: AssetId) = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
 
-    private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
-        runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }
-            .onFailure { errorState.value = it.errorText().text(context) }
-    }
+    private suspend fun setAutoAlert(asset: Asset, enabled: Boolean): GemToast? = runCatchingCancellable { service.setAutoAlert(asset.toGem(), enabled) }
+        .onFailure { errorState.value = it.errorText().text(context) }
+        .getOrNull()
 
     fun clearError() = errorState.update { null }
 

@@ -51,7 +51,7 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
 
                     AssetAction.Add -> viewModel.add()
 
-                    is AssetAction.TogglePriceAlert -> viewModel.togglePriceAlert(action.assetId)
+                    AssetAction.TogglePriceAlert -> viewModel.togglePriceAlert()
 
                     is AssetAction.CloseBanner -> viewModel.closeBanner(action.key)
 

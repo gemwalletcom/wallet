@@ -23,9 +23,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
-import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.localization.toastRes
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
@@ -191,8 +190,8 @@ class AssetViewModel @Inject constructor(
 
     fun pin() = viewModelScope.launch(ioDispatcher) {
         val assetData = chainAssetInfo.value?.assetData ?: return@launch
-        runCatchingCancellable { assetDetailsService.setAssetPinned(assetData.asset.id.toIdentifier(), !assetData.metadata.isPinned) }
-            .onSuccess { emitToast(assetPinnedToast(context, assetData.asset.name, !assetData.metadata.isPinned)) }
+        runCatchingCancellable { assetDetailsService.setAssetPinned(assetData.asset.toGem(), !assetData.metadata.isPinned) }
+            .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning ${assetData.asset.id.toIdentifier()} failed", it) }
     }
 
@@ -203,11 +202,11 @@ class AssetViewModel @Inject constructor(
             .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 
-    fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
+    fun togglePriceAlert() = viewModelScope.launch(ioDispatcher) {
         val current = details.value?.state?.priceAlert ?: return@launch
-        val name = chainAssetInfo.value?.assetData?.asset?.name.orEmpty()
-        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), current.toggled() == GemPriceAlertToggle.ENABLED) }
-            .onSuccess { emitToast(ToastMessage(context.getString(current.toastRes(), name), R.drawable.ic_notifications)) }
+        val asset = chainAssetInfo.value?.assetData?.asset ?: return@launch
+        runCatchingCancellable { assetDetailsService.setPriceAlert(asset.toGem(), current.toggled() == GemPriceAlertToggle.ENABLED) }
+            .onSuccess { emitToast(it.message(context)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

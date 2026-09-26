@@ -28,7 +28,6 @@ import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemRecentActivityServiceInterface
@@ -67,7 +66,6 @@ object DataModule {
         assetsService: GemAssetsService,
         searchService: GemSearchService,
         balanceService: GemBalanceService,
-        priceAlertService: GemPriceAlertService,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
         perpetualService: GemPerpetualService,
@@ -77,7 +75,6 @@ object DataModule {
         assetsService,
         searchService,
         balanceService,
-        priceAlertService,
         recentActivity,
         preferencesService,
         perpetualService,

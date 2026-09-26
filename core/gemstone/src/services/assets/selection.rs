@@ -14,9 +14,9 @@ use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::price_alert::GemPriceAlertService;
 use crate::services::search::{GemSearchScope, GemSearchService};
 use crate::services::swap::GemSwapService;
+use crate::services::toast::GemToast;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -25,7 +25,6 @@ pub struct GemAssetSelectionService {
     assets: Arc<GemAssetsService>,
     search: Arc<GemSearchService>,
     balances: Arc<GemBalanceService>,
-    price_alerts: Arc<GemPriceAlertService>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
     perpetuals: Arc<GemPerpetualService>,
@@ -40,7 +39,6 @@ impl GemAssetSelectionService {
         assets: Arc<GemAssetsService>,
         search: Arc<GemSearchService>,
         balances: Arc<GemBalanceService>,
-        price_alerts: Arc<GemPriceAlertService>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
         perpetuals: Arc<GemPerpetualService>,
@@ -51,7 +49,6 @@ impl GemAssetSelectionService {
             assets,
             search,
             balances,
-            price_alerts,
             recent_activity,
             preferences,
             perpetuals,
@@ -121,21 +118,19 @@ impl GemAssetSelectionService {
         self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
     }
 
-    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset.id, pinned).await?;
+        Ok(GemToast::pinned(asset.name, pinned))
     }
 
-    pub async fn set_perpetual_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
-        self.perpetuals.set_pinned(perpetual_id, pinned).await
+    pub async fn set_perpetual_pinned(&self, perpetual_id: String, name: String, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.perpetuals.set_pinned(perpetual_id, pinned).await?;
+        Ok(GemToast::pinned(name, pinned))
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
         let asset_id = asset.id.clone();
         self.recent_activity.add_recent(action, asset).await?;
         self.assets.prepare_for_action(action, asset_id).await
-    }
-
-    pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        self.price_alerts.set_auto_alert(asset_id, enabled).await
     }
 }

@@ -4,6 +4,7 @@ import Components
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import enum Gemstone.GemServiceError
 import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
 import GemstonePrimitives
@@ -84,6 +85,17 @@ extension PriceAlertsSceneViewModel {
             try await service.delete(priceAlerts: [priceAlert])
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
+        }
+    }
+
+    public func includeAsset(_ asset: Asset) async -> ToastMessage? {
+        do {
+            return try await ToastMessage(toast: service.setAutoAlert(asset: asset.toGem(), enabled: true))
+        } catch let error as GemServiceError {
+            return .error(error.text().text)
+        } catch {
+            debugLog("price alerts include asset error: \(error)")
+            return nil
         }
     }
 

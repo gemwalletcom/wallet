@@ -304,8 +304,9 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         }
     }
 
-    public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
-        pinned.append((assetId, isPinned))
+    public func setAssetPinned(asset: Gemstone.Asset, pinned isPinned: Bool) async throws -> GemToast {
+        pinned.append((asset.id, isPinned))
+        return GemToast(text: .pinned(name: asset.name, pinned: isPinned), icon: isPinned ? .pin : .unpin)
     }
 
     public func setAssetsEnabled(assetIds: [Gemstone.AssetId], enabled isEnabled: Bool) async throws {

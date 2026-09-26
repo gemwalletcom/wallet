@@ -268,11 +268,6 @@ extension SelectAssetSceneViewModel {
     }
 
     private func recordSelection(asset: Asset) {
-        if flow.enablesPriceAlert {
-            Task {
-                await setPriceAlert(assetId: asset.id, enabled: true)
-            }
-        }
         if let action = flow.action {
             Task { [service] in
                 do {
@@ -324,14 +319,6 @@ extension SelectAssetSceneViewModel {
             state = .data(assets)
         } catch {
             guard flow.searchStep(query: searchableQuery) == .search(query: query) else { return }
-            showError(error)
-        }
-    }
-
-    private func setPriceAlert(assetId: AssetId, enabled: Bool) async {
-        do {
-            try await service.setPriceAlert(assetId: assetId.identifier, enabled: enabled)
-        } catch {
             showError(error)
         }
     }

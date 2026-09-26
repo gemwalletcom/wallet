@@ -78,10 +78,11 @@ struct NetworkAssetsSceneViewModelTests {
         let model = NetworkAssetsSceneViewModel.mock(service: service)
         let assetId = AssetId.mock(chain: .ethereum)
 
-        try await model.setAssetPinned(assetId, pinned: true)
+        let toast = try await model.setAssetPinned(.mock(id: assetId, name: "Ethereum"), pinned: true)
         try await model.setAssetsEnabled([assetId], enabled: false)
 
         #expect(service.pinned.map(\.pinned) == [true])
+        #expect(toast.text == .pinned(name: "Ethereum", pinned: true))
         #expect(service.enabled.map(\.enabled) == [false])
     }
 

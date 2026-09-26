@@ -17,7 +17,7 @@ sealed interface AssetAction {
     data object Refresh : AssetAction
     data object Pin : AssetAction
     data object Add : AssetAction
-    data class TogglePriceAlert(val assetId: AssetId) : AssetAction
+    data object TogglePriceAlert : AssetAction
     data class CloseBanner(val key: GemBannerKey) : AssetAction
     data class OpenUrl(val url: String) : AssetAction
 

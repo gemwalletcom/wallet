@@ -7,7 +7,7 @@ use std::sync::Arc;
 use chrono::Utc;
 
 use crate::services::localization::GemLocalizedText;
-use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
+use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderSubtitleIcon};
@@ -16,6 +16,7 @@ use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::toast::GemToast;
 use crate::services::wallet::rules as wallet_rules;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -111,8 +112,9 @@ impl GemWalletHomeService {
         discovery
     }
 
-    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset.id, pinned).await?;
+        Ok(GemToast::pinned(asset.name, pinned))
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {

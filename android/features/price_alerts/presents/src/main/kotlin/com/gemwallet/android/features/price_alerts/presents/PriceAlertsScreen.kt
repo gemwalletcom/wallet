@@ -8,11 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertsViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.navigation.RouteMessage
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onSetPriceAlert: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
-    val resources = LocalResources.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -48,10 +49,10 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
             true -> AddAssetPriceAlertsScreen(
                 onCancel = { selectingAsset = false },
                 onSelect = { assetId ->
-                    viewModel.includeAsset(assetId) { asset ->
-                        val message = resources.getString(R.string.price_alerts_enabled_for, asset.name)
+                    viewModel.includeAsset(assetId) { toast ->
+                        val message = toast.message(context)
                         scope.launch {
-                            snackbar.showSnackbar(message, R.drawable.ic_notifications)
+                            snackbar.showSnackbar(message.title, message.image)
                         }
                     }
                     selectingAsset = false

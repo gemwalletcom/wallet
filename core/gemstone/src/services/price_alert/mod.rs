@@ -6,9 +6,10 @@ pub(crate) mod testkit;
 
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
+use crate::services::toast::GemToast;
 use std::sync::Arc;
 
-use primitives::{AssetId, Currency, PriceAlert};
+use primitives::{Asset, AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::amount::model::GemNumberFormat;
@@ -63,12 +64,13 @@ impl GemPriceAlertService {
         self.set_enabled(true).await
     }
 
-    pub async fn set_auto_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.get_currency());
+    pub async fn set_auto_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+        let alert = PriceAlert::new_auto(asset.id, self.get_currency());
         match enabled {
-            true => self.enable_price_alert(alert).await,
-            false => self.delete_price_alerts(vec![alert]).await,
+            true => self.enable_price_alert(alert).await?,
+            false => self.delete_price_alerts(vec![alert]).await?,
         }
+        Ok(GemToast::price_alerts(asset.name, enabled))
     }
 
     pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {

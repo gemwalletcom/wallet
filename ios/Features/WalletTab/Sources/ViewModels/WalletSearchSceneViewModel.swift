@@ -8,6 +8,7 @@ import protocol Gemstone.GemAssetSelectionServiceProtocol
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemSearchListRow
+import struct Gemstone.GemToast
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchView
@@ -245,16 +246,16 @@ extension WalletSearchSceneViewModel {
 }
 
 extension WalletSearchSceneViewModel {
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId.identifier, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
 
-    func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
-        try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
+    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
+        try await service.setPerpetualPinned(perpetualId: perpetual.id.identifier, name: perpetual.name, pinned: pinned)
     }
 
     var assetItems: ListAssetItemsViewModel {

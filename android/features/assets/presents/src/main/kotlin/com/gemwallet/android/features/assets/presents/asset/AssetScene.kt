@@ -73,7 +73,7 @@ internal fun AssetScene(
         actions = {
             AssetDetailsMenu(
                 details = details,
-                onPriceAlert = { onAction(AssetAction.TogglePriceAlert(asset.id)) },
+                onPriceAlert = { onAction(AssetAction.TogglePriceAlert) },
             )
         },
         onClose = { onAction(AssetAction.Close) },

@@ -215,7 +215,6 @@ pub struct GemSelectAssetFlow {
     pub action: Option<GemAssetAction>,
     pub scope: GemSelectAssetScope,
     pub filters: Vec<GemAssetFilter>,
-    pub enables_price_alert: bool,
     pub network_search: bool,
     pub chain_filter: bool,
     pub recents: bool,
