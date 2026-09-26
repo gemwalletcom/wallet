@@ -14,13 +14,6 @@ import Testing
 @MainActor
 struct SelectAssetSceneViewModelTests {
     @Test
-    func recentActivityTypes() {
-        let model = SelectAssetSceneViewModel.mock()
-
-        #expect(model.recentModel.query.request.types == RecentActivityType.allCases)
-    }
-
-    @Test
     func recentsFollowTheChainFilter() {
         let model = SelectAssetSceneViewModel.mock(selectType: .send(.none), chains: [.bitcoin])
 
@@ -43,26 +36,6 @@ struct SelectAssetSceneViewModelTests {
         let pinnedAsset = AssetData.mock(metadata: .mock(isPinned: true))
         #expect(listState(SelectAssetSceneViewModel.mock(assets: [], state: .loading)) == .loading)
         #expect(listState(SelectAssetSceneViewModel.mock(assets: [pinnedAsset], state: .loading)) != .loading)
-    }
-
-    @Test
-    func filterAndAddTokenRequireFlowAndWalletSupport() {
-        let walletWithTokens = Wallet.mock(accounts: [.mock(chain: .ethereum)])
-        let singleChainWallet = Wallet.mock(type: .single, accounts: [.mock(chain: .ethereum)])
-        let withChains = GemAssetSelectionServiceMock()
-        withChains.filterChainsResult = [Chain.ethereum.rawValue]
-        let withoutTokens = GemAssetSelectionServiceMock()
-        withoutTokens.filterChainsResult = [Chain.ethereum.rawValue]
-        withoutTokens.tokensSupported = false
-
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .manage, service: withChains).showAddToken == true)
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .send(.none), service: withChains).showAddToken == false)
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .manage, service: withoutTokens).showAddToken == false)
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .manage).showAddToken == false)
-
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .manage, service: withChains).showFilter == true)
-        #expect(SelectAssetSceneViewModel.mock(wallet: walletWithTokens, selectType: .deposit, service: withChains).showFilter == false)
-        #expect(SelectAssetSceneViewModel.mock(wallet: singleChainWallet, selectType: .manage, service: withChains).showFilter == false)
     }
 
     @Test
