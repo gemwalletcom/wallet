@@ -13,8 +13,8 @@ struct AcceptTermsSceneViewModelTests {
     func theTermsComeFromCoreAndStartUnconfirmed() {
         let model = AcceptTermsSceneViewModel(preferences: .mock(), onNext: nil)
 
-        #expect(model.items.isNotEmpty)
-        #expect(model.isConfirmed == false)
+        #expect(model.viewState.rows.isNotEmpty)
+        #expect(model.viewState.isAccepted == false)
         #expect(model.state.isNoData)
     }
 
@@ -34,13 +34,13 @@ struct AcceptTermsSceneViewModelTests {
     func everyTermMustBeTickedBeforeContinuing() {
         let model = AcceptTermsSceneViewModel(preferences: .mock(), onNext: nil)
 
-        for item in model.items.dropLast() {
-            item.isConfirmed = true
+        for row in model.viewState.rows.dropLast() {
+            model.onToggle(row.item)
         }
-        #expect(model.isConfirmed == false)
+        #expect(model.viewState.isAccepted == false)
 
-        model.items.forEach { $0.isConfirmed = true }
-        #expect(model.isConfirmed)
+        model.viewState.rows.filter { !$0.isAccepted }.forEach { model.onToggle($0.item) }
+        #expect(model.viewState.isAccepted)
         #expect(model.state.isNoData == false)
     }
 }

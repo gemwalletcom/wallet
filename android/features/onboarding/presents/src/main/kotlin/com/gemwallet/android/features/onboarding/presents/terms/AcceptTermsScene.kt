@@ -19,7 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,12 +32,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.features.onboarding.viewmodels.terms.termItems
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.SelectionIndicator
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.open
@@ -48,20 +48,21 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.PublicUrl
+import uniffi.gemstone.newTermsSession
 
 @Composable
 fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val items = remember { termItems() }
-    val accepted = remember { mutableStateMapOf<Int, Boolean>() }
+    var session by remember { mutableStateOf(newTermsSession()) }
+    val state = session.viewState()
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
         onClose = { onCancel() },
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
-                state = buttonState(enabled = items.indices.all { accepted[it] == true }),
+                state = buttonState(enabled = state.isAccepted),
                 onClick = { onAccept() },
             )
         },
@@ -91,12 +92,12 @@ fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
                 )
                 Spacer(Modifier.size(paddingDefault))
             }
-            items.forEachIndexed { index, item ->
+            state.rows.forEachIndexed { index, row ->
                 termItem(
-                    isUnderstand = accepted[index] == true,
-                    description = item.description,
+                    isUnderstand = row.isAccepted,
+                    description = row.item.stringRes(),
                     testTag = "term_${index + 1}",
-                ) { accepted[index] = accepted[index] != true }
+                ) { session = session.onToggle(row.item) }
             }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
