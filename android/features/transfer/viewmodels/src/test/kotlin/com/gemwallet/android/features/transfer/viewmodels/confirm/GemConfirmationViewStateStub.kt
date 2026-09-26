@@ -23,6 +23,7 @@ internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
         GemConfirmViewState(
             screen.button(),
             mockGemConfirmFeeRow(value = screen.feeValue(runBlocking { state() })),
+            null,
             GemConfirmTitle.Send,
             null,
             GemKeystoreAuthentication.NONE,

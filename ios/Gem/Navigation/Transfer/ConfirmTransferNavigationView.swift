@@ -67,7 +67,7 @@ struct ConfirmTransferNavigationView: View {
                         onComplete: { model.isPresentingSheet = nil },
                     )
                 case .swapDetails:
-                    if case let .swapDetails(model) = model.detailsViewModel.itemModel {
+                    if case let .swapDetails(model) = model.detailsItemModel {
                         NavigationStack {
                             SwapDetailsView(model: model)
                         }

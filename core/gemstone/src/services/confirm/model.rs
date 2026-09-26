@@ -14,8 +14,9 @@ use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, 
 use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
+use crate::services::perpetual::model::GemPerpetualConfirmDetails;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
-use crate::services::swap::model::GemSwapPairSelection;
+use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
@@ -484,10 +485,19 @@ pub enum GemConfirmSection {
     Error { error: GemConfirmError },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemConfirmDetails {
+    Swap { details: GemSwapDetails },
+    Perpetual { details: GemPerpetualConfirmDetails },
+    PerpetualAutoclose { row: GemListRow },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmViewState {
     pub button: GemConfirmButton,
     pub fee_row: GemConfirmFeeRow,
+    pub details: Option<GemConfirmDetails>,
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
     pub authentication: GemKeystoreAuthentication,

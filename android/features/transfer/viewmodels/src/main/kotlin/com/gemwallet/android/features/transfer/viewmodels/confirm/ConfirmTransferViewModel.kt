@@ -12,9 +12,6 @@ import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.perpetualType
-import com.gemwallet.android.domains.confirm.swapData
-import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -41,7 +38,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.uiModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -72,10 +68,10 @@ import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmButton
 import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmDetails
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmHeader
-import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmRowContent
@@ -83,7 +79,6 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
-import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemNetworkFeeScreen
 import uniffi.gemstone.GemRefreshKind
@@ -91,11 +86,8 @@ import uniffi.gemstone.GemSubmitResult
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualProvider
-import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.perpetualConfirmDetails
-import uniffi.gemstone.swapQuoteDetails
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -145,11 +137,6 @@ class ConfirmTransferViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val currency = confirmation.filterNotNull()
-        .map { it.getCurrency().toPrimitives() }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     private val load = combine(
         confirmation.filterNotNull(),
         loadOptions.filterNotNull(),
@@ -172,11 +159,6 @@ class ConfirmTransferViewModel @Inject constructor(
             }
         }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val content = combine(confirmation.filterNotNull(), load.filterNotNull(), currency.filterNotNull()) { session, load, currency ->
-        ConfirmContent(session, currency, load)
-    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val viewState = combine(confirmation.filterNotNull(), screen, load) { confirmation, screen, _ ->
@@ -213,13 +195,13 @@ class ConfirmTransferViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val detailElements = combine(transfer, content, ::buildDetailElements)
+    val detailElements = viewState.map { listOfNotNull(it?.details?.uiModel()) }
         .distinctUntilChanged()
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val transactionRows: StateFlow<List<GemConfirmRowContent>> = combine(content, viewState) { content, viewState ->
-        content ?: return@combine emptyList()
+    val transactionRows: StateFlow<List<GemConfirmRowContent>> = combine(load, viewState) { load, viewState ->
+        load ?: return@combine emptyList()
         viewState?.sections.orEmpty().filterIsInstance<GemConfirmSection.Details>().firstOrNull()?.rows.orEmpty().filterNot { it is GemConfirmRowContent.Details }
     }
         .flowOn(ioDispatcher)
@@ -321,7 +303,7 @@ class ConfirmTransferViewModel @Inject constructor(
         loadOptions.update { it?.onPaymentAsset(assetId.toIdentifier(), current) }
     }
 
-    fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), content.value?.load?.feeAsset?.id) }
+    fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), load.value?.feeAsset?.id) }
 
     fun fetch() {
         screen.update { it.onLoadStarted() }
@@ -357,34 +339,12 @@ class ConfirmTransferViewModel @Inject constructor(
             screen.update { it.onExecuteFailed(err.toConfirmError()) }
         }
     }
+}
 
-    private data class ConfirmContent(val session: GemConfirmation, val currency: Currency, val load: GemConfirmLoad) {
-        fun price(asset: Asset): Double? = load.metadata.price(asset.id.toIdentifier())?.price
-    }
-
-    private fun buildDetailElements(request: GemTransferData?, content: ConfirmContent?): List<ConfirmDetailsUIModel> = listOfNotNull(
-        buildSwapDetailElement(request, content),
-        buildPerpetualDetailElement(request?.inputType?.perpetualType),
-    )
-
-    private fun buildPerpetualDetailElement(perpetualType: PerpetualType?): ConfirmDetailsUIModel? = when (val type = perpetualType) {
-        null -> null
-
-        is PerpetualType.Modify -> confirmation.value?.autocloseRow(type.data)?.let { ConfirmDetailsUIModel.PerpetualModifyAutoclose(it) }
-
-        else -> perpetualConfirmDetails(type)
-            ?.let(ConfirmDetailsUIModel::PerpetualDetails)
-    }
-
-    private fun buildSwapDetailElement(transfer: GemTransferData?, content: ConfirmContent?): ConfirmDetailsUIModel.SwapDetails? {
-        val swapData = transfer?.inputType?.swapData ?: return null
-        content ?: return null
-        val toAsset = transfer.inputType.toAsset ?: return null
-        val model = swapQuoteDetails(swapData.quote, transfer.asset.toGem(), toAsset.toGem(), content.price(transfer.asset), content.price(toAsset), content.currency.toGem())
-            .uiModel() ?: return null
-
-        return ConfirmDetailsUIModel.SwapDetails(model)
-    }
+private fun GemConfirmDetails.uiModel(): ConfirmDetailsUIModel? = when (this) {
+    is GemConfirmDetails.Swap -> details.uiModel()?.let(ConfirmDetailsUIModel::SwapDetails)
+    is GemConfirmDetails.Perpetual -> ConfirmDetailsUIModel.PerpetualDetails(details)
+    is GemConfirmDetails.PerpetualAutoclose -> ConfirmDetailsUIModel.PerpetualModifyAutoclose(row)
 }
 
 private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

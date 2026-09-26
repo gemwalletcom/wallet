@@ -37,6 +37,8 @@ ALLOWED = {
     "confirm_error_info": DOUBLE,
     "delegation_list_rows": DOUBLE,
     "fee_amount": DOUBLE,
+    "perpetual_confirm_details": DOUBLE,
+    "swap_quote_details": DOUBLE,
 }
 
 

@@ -138,12 +138,8 @@ public final class ConfirmTransferSceneViewModel {
         )
     }
 
-    public var detailsViewModel: ConfirmDetailsViewModel {
-        ConfirmDetailsViewModel(
-            type: transfer.inputType,
-            metadata: state.metadata,
-            confirmation: confirmation,
-        )
+    public var detailsItemModel: ConfirmTransferItemModel {
+        viewState.details?.itemModel ?? .empty
     }
 
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
@@ -194,7 +190,7 @@ extension ConfirmTransferSceneViewModel {
         case .verification:
             verificationItem
         case .details:
-            detailsViewModel.itemModel
+            detailsItemModel
         case .payload:
             .payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):

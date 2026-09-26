@@ -22,7 +22,10 @@ public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
+import enum Gemstone.GemConfirmDetails
 import struct Gemstone.GemConfirmFeeRow
+import func Gemstone.perpetualConfirmDetails
+import func Gemstone.swapQuoteDetails
 import GemstonePrimitivesTestKit
 import Primitives
 
@@ -89,11 +92,23 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         return GemConfirmViewState(
             button: screen.button(),
             feeRow: feeRow(screen: screen),
+            details: details(),
             title: transfer().title(),
             verification: transfer().verification(),
             authentication: authenticationValue,
             sections: sections.compactMap(\.self),
         )
+    }
+
+    private func details() -> GemConfirmDetails? {
+        switch transfer().inputType {
+        case let .swap(fromAsset, toAsset, swapData):
+            .swap(details: swapQuoteDetails(quote: swapData.quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: nil, toPrice: nil, currency: getCurrency()))
+        case let .perpetual(_, perpetualType):
+            perpetualConfirmDetails(perpetualType: perpetualType).map { .perpetual(details: $0) }
+        case .transfer, .deposit, .withdrawal, .stake, .tokenApprove, .generic, .payment, .transferNft, .account, .earn:
+            nil
+        }
     }
 
     private func feeRow(screen: GemConfirmScreen) -> GemConfirmFeeRow {

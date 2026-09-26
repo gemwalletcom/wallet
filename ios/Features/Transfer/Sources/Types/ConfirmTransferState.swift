@@ -5,7 +5,6 @@ import Foundation
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmFee
 import struct Gemstone.GemConfirmLoad
-import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmScreen
 import struct Gemstone.GemTransferData
 import Primitives
@@ -17,7 +16,6 @@ struct ConfirmTransferState {
     var load: GemConfirmLoad?
     var screen: GemConfirmScreen
 
-    var metadata: GemConfirmMetadata? { load?.metadata }
     var fee: GemConfirmFee? { load?.fee }
 }
 

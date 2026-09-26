@@ -52,7 +52,7 @@ public enum ConfirmTransferItemModel {
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
     case perpetualDetails(PerpetualDetailsViewModel)
-    case perpetualModifyPosition(GemListRow?)
+    case perpetualModifyPosition(GemListRow)
     case warnings([GemListRow])
     case payload([SimulationPayloadFieldViewModel])
     case balanceChange(ConfirmBalanceChangeViewModel)
