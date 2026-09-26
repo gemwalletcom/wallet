@@ -165,6 +165,14 @@ extension GemListRow {
             URL(string: url).map { .page(ListItemModel(title: title.text), url: $0) } ?? .listItem(ListItemModel(title: title.text))
         case let .icon(icon, imageUrl):
             .icon(headerImage(icon: icon, imageUrl: imageUrl))
+        case let .assetChange(name, icon, amount):
+            .listItem(ListItemModel(
+                title: name,
+                titleLineLimit: 1,
+                subtitle: amount.text(),
+                subtitleStyle: TextStyle(font: .body, color: amount.tone.color, fontWeight: .medium),
+                imageStyle: .list(assetImage: AssetImage(icon: icon), cornerRadiusType: .rounded),
+            ))
         case let .avatar(avatar):
             .icon(avatar.assetImage)
         case let .walletAvatar(imageUrl, placeholder):

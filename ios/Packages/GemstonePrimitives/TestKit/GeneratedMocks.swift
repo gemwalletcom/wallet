@@ -471,7 +471,7 @@ public extension Gemstone.GemConfirmSimulation {
         primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
         secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
         header: Gemstone.GemSimulationValue? = nil,
-        balanceChanges: [Gemstone.GemSimulationBalanceChange] = [],
+        balanceChanges: [Gemstone.GemListRow] = [],
         hasCriticalWarning: Bool = false,
     ) -> Gemstone.GemConfirmSimulation {
         Gemstone.GemConfirmSimulation(

@@ -173,6 +173,10 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
 
     is GemListRow.Icon -> GemListRowUIModel.Icon(icon = icon, imageUrl = imageUrl)
 
+    is GemListRow.AssetChange -> GemListRowUIModel.Item(
+        ListItemModel(title = name, subtitle = amount.text(), subtitleStyle = amount.tone.textStyle(), image = ListItemImage.Asset(icon)),
+    )
+
     is GemListRow.Avatar -> GemListRowUIModel.Avatar(image = avatar.listItemImage())
 
     is GemListRow.WalletAvatar -> GemListRowUIModel.Avatar(image = walletListItemImage(imageUrl, placeholder))

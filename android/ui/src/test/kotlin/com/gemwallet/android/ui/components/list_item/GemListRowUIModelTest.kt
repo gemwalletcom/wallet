@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
@@ -25,7 +26,10 @@ import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemWalletPlaceholder
@@ -35,6 +39,31 @@ import uniffi.gemstone.LatencyType
 import java.math.BigInteger
 
 class GemListRowUIModelTest {
+    @Test
+    fun `an asset change keeps its sign tone and asset`() {
+        val row = { amount: Double, tone: GemValueTone ->
+            val change = GemListRow.AssetChange(
+                name = "Solana",
+                icon = mockGemAssetIcon(),
+                amount = mockGemFormattedNumber(
+                    value = amount,
+                    unit = GemNumberUnit.Symbol("SOL"),
+                    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+                    notation = GemNumberNotation.SIGNED,
+                    tone = tone,
+                    exact = "0.100005",
+                ),
+            )
+            (change.uiModel(context) as GemListRowUIModel.Item).model
+        }
+
+        val spent = row(-0.100005, GemValueTone.NEGATIVE)
+        assertEquals("Solana", spent.title)
+        assertEquals("-0.100005 SOL", spent.subtitle)
+        assertEquals(GemValueTone.NEGATIVE.textStyle(), spent.subtitleStyle)
+        assertEquals("+0.100005 SOL", row(0.100005, GemValueTone.POSITIVE).subtitle)
+    }
+
     @Test
     fun `latency rows render measurements loading and errors`() {
         every { context.getString(R.string.common_latency_in_ms, *anyVararg()) } returns "125 ms"

@@ -544,6 +544,7 @@ mod tests {
             GemListRow::Toggle { .. }
             | GemListRow::Social { .. }
             | GemListRow::Icon { .. }
+            | GemListRow::AssetChange { .. }
             | GemListRow::Avatar { .. }
             | GemListRow::WalletAvatar { .. }
             | GemListRow::Address { .. }

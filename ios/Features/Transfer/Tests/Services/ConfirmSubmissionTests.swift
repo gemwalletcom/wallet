@@ -2,7 +2,7 @@
 
 import Foundation
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemSimulationBalanceChange
+import enum Gemstone.GemListRow
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
@@ -73,21 +73,17 @@ struct ConfirmSubmissionTests {
 
     @Test
     func simulationStateMapsBalanceChanges() async {
-        let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
+        let change = GemListRow.assetChange(
+            name: "Tether",
+            icon: .mock(),
+            amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+        )
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(simulation: .mock(balanceChanges: [GemSimulationBalanceChange(
-                asset: usdt.toGem(),
-                icon: .mock(),
-                amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
-            )])),
+            simulation: .mock(simulation: .mock(balanceChanges: [change])),
         )))
         await model.load()
 
-        #expect(model.viewState.sections.contains(.balanceChanges(changes: [GemSimulationBalanceChange(
-            asset: usdt.toGem(),
-            icon: .mock(),
-            amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
-        )])))
+        #expect(model.viewState.sections.contains(.balanceChanges(rows: [change])))
     }
 }
 

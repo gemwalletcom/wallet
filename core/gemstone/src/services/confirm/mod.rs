@@ -176,11 +176,11 @@ impl GemConfirmService {
             .balance_changes(simulation, assets.iter().map(|asset| asset.id.clone()).collect())
             .into_iter()
             .filter_map(|change| {
-                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
-                Some(GemSimulationBalanceChange {
+                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?;
+                Some(crate::models::list::GemListRow::AssetChange {
+                    name: asset.name.clone(),
                     icon: crate::services::assets::icon::asset_icon(&asset.id),
-                    amount: rules::balance_change_amount(&change.value, &asset),
-                    asset,
+                    amount: rules::balance_change_amount(&change.value, asset),
                 })
             })
             .collect();

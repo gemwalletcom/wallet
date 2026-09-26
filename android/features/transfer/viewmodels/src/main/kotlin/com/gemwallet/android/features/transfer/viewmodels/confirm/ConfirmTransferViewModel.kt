@@ -81,6 +81,7 @@ import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemKeystoreAuthentication
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemNetworkFeeScreen
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
@@ -274,7 +275,7 @@ class ConfirmTransferViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val balanceChangeRows: StateFlow<List<ListItemModel>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.changes.orEmpty().map { change -> change.listItem() } }
+    val balanceChangeRows: StateFlow<List<GemListRow>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.rows.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val acquireOptions: StateFlow<List<GetAssetOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it) }.orEmpty() }

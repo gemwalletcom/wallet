@@ -141,10 +141,10 @@ public final class ConfirmTransferSceneViewModel {
         viewState.details?.itemModel ?? .empty
     }
 
-    var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
-        viewState.sections.lazy.compactMap { section -> [ConfirmBalanceChangeViewModel]? in
-            guard case let .balanceChanges(changes) = section else { return nil }
-            return changes.map(ConfirmBalanceChangeViewModel.init)
+    var balanceChangeRows: [GemListRow] {
+        viewState.sections.lazy.compactMap { section -> [GemListRow]? in
+            guard case let .balanceChanges(rows) = section else { return nil }
+            return rows
         }.first ?? []
     }
 
@@ -168,7 +168,7 @@ extension ConfirmTransferSceneViewModel {
             case let .details(rows): ListSection(type: .details, rows.indices.map { rows[$0].item(at: $0) })
             case .warnings: ListSection(type: .warnings, [.warnings])
             case .payload: ListSection(type: .payload, [.payload])
-            case let .balanceChanges(changes): ListSection(type: .balanceChanges, changes.indices.map(ConfirmTransferItem.balanceChange))
+            case let .balanceChanges(rows): ListSection(type: .balanceChanges, rows.indices.map(ConfirmTransferItem.balanceChange))
             case .networkFee: ListSection(type: .fee, [.networkFee])
             case .verification: ListSection(type: .fee, [.verification])
             case .error: ListSection(type: .error, [.error])
@@ -193,7 +193,7 @@ extension ConfirmTransferSceneViewModel {
         case .payload:
             .payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):
-            .balanceChange(balanceChangeModels[index])
+            .row(balanceChangeRows[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 feeRow: viewState.feeRow,

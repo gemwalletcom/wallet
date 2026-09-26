@@ -1423,7 +1423,7 @@ fun mockGemConfirmSimulation(
     primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
     secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
     header: uniffi.gemstone.GemSimulationValue? = null,
-    balanceChanges: List<uniffi.gemstone.GemSimulationBalanceChange> = emptyList(),
+    balanceChanges: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
 ) = uniffi.gemstone.GemConfirmSimulation(
     primaryFields = primaryFields,

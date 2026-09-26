@@ -7,6 +7,7 @@ import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemRowMenuItem
+import enum Gemstone.GemValueTone
 import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -18,6 +19,27 @@ import Style
 import Testing
 
 struct GemListRowItemTests {
+    @Test
+    func anAssetChangeReadsItsSignedAmountInItsTone() {
+        let change = { (value: Double, tone: GemValueTone) -> ListItemModel? in
+            let row = GemListRow.assetChange(
+                name: "Solana",
+                icon: .mock(),
+                amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .signed, tone: tone, rounding: .toNearest, exact: "1.5"),
+            )
+            guard case let .listItem(model) = row.item(onInfo: nil) else { return nil }
+            return model
+        }
+        let negative = change(-1.5, .negative)
+        let positive = change(1.5, .positive)
+
+        #expect(negative?.title == "Solana")
+        #expect(negative?.subtitle == "-1.5 SOL")
+        #expect(positive?.subtitle == "+1.5 SOL")
+        #expect(negative?.subtitleStyle.color == Colors.red)
+        #expect(positive?.subtitleStyle.color == Colors.green)
+    }
+
     @Test
     func latencyRowsRenderMeasurementsLoadingAndErrors() {
         let row = GemListRow.latency(title: .stream, titleSuffix: "", host: "api.gemwallet.com", status: .result(latency: .init(latencyType: .fast, value: 125)))

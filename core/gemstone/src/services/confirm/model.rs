@@ -366,19 +366,12 @@ impl GemSimulationValue {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSimulationBalanceChange {
-    pub asset: Asset,
-    pub icon: crate::services::assets::icon::GemAssetIcon,
-    pub amount: GemFormattedNumber,
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
     pub primary_fields: Vec<GemSimulationPayloadRow>,
     pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub header: Option<GemSimulationValue>,
-    pub balance_changes: Vec<GemSimulationBalanceChange>,
+    pub balance_changes: Vec<GemListRow>,
     pub has_critical_warning: bool,
 }
 
@@ -490,7 +483,7 @@ pub enum GemConfirmSection {
     Details { rows: Vec<GemConfirmRowContent> },
     Warnings { rows: Vec<GemListRow> },
     Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
-    BalanceChanges { changes: Vec<GemSimulationBalanceChange> },
+    BalanceChanges { rows: Vec<GemListRow> },
     NetworkFee,
     Verification,
     Error { error: GemConfirmError },

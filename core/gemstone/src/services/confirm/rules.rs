@@ -674,7 +674,7 @@ pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRo
         Some(GemConfirmSection::Details { rows }),
         (!warnings.is_empty()).then_some(GemConfirmSection::Warnings { rows: warnings }),
         (!primary.is_empty()).then_some(GemConfirmSection::Payload { primary, secondary }),
-        (!changes.is_empty()).then_some(GemConfirmSection::BalanceChanges { changes }),
+        (!changes.is_empty()).then_some(GemConfirmSection::BalanceChanges { rows: changes }),
         Some(match verifies {
             true => GemConfirmSection::Verification,
             false => GemConfirmSection::NetworkFee,
@@ -698,10 +698,10 @@ mod tests {
             value: crate::services::simulation::GemSimulationPayloadValue::Text { text: value.to_string() },
         };
         let asset = Asset::mock_eth();
-        let change = super::super::model::GemSimulationBalanceChange {
+        let change = GemListRow::AssetChange {
+            name: asset.name.clone(),
             icon: crate::services::assets::icon::asset_icon(&asset.id),
             amount: GemFormattedNumber::amount(1.0, Some("ETH".to_string()), GemValueStyle::Auto),
-            asset,
         };
         let simulation = GemConfirmSimulation {
             primary_fields: vec![text("approve")],
@@ -725,7 +725,7 @@ mod tests {
                     primary: vec![text("approve")],
                     secondary: vec![text("nonce")],
                 },
-                GemConfirmSection::BalanceChanges { changes: vec![change] },
+                GemConfirmSection::BalanceChanges { rows: vec![change] },
                 GemConfirmSection::NetworkFee,
             ]
         );

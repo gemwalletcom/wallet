@@ -399,6 +399,11 @@ pub enum GemListRow {
         icon: crate::services::assets::icon::GemAssetIcon,
         image_url: Option<String>,
     },
+    AssetChange {
+        name: String,
+        icon: crate::services::assets::icon::GemAssetIcon,
+        amount: GemFormattedNumber,
+    },
     Avatar {
         avatar: GemAvatar,
     },

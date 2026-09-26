@@ -86,7 +86,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
             .details(rows: rowContents(addressName: loaded?.addressName)),
             warnings.isEmpty ? nil : .warnings(rows: warnings),
             simulation.flatMap { $0.primaryFields.isEmpty ? nil : .payload(primary: $0.primaryFields, secondary: $0.secondaryFields) },
-            simulation.flatMap { $0.balanceChanges.isEmpty ? nil : .balanceChanges(changes: $0.balanceChanges) },
+            simulation.flatMap { $0.balanceChanges.isEmpty ? nil : .balanceChanges(rows: $0.balanceChanges) },
             transfer().verification() == nil ? .networkFee : .verification,
             screen.failure.flatMap { $0.stage == .load ? .error(error: $0.error) : nil },
         ]
