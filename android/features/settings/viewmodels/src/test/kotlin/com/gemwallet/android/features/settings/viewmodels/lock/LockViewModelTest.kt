@@ -1,35 +1,28 @@
-package com.gemwallet.android
+package com.gemwallet.android.features.settings.viewmodels.lock
 
-import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
-import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
-import com.gemwallet.android.model.AuthState
-import com.gemwallet.android.services.MigrateV3KeystoreService
-import com.wallet.core.primitives.Appearance
+import com.gemwallet.android.application.security.cases.SecurityPreferences
+import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemAppStartServiceInterface
 
-class MainViewModelAuthStateTest {
+class LockViewModelTest {
 
     @Test
     fun authRequired_keepsWalletUnmountedBeforeFirstUnlock() {
-        val viewModel = mainViewModel(authRequired = true)
+        val viewModel = lockViewModel(authRequired = true)
 
         assertFalse(viewModel.uiState.value.hasUnlockedApp)
     }
 
     @Test
     fun initialAuthSuccess_allowsWalletToStayMountedForFutureLocks() {
-        val viewModel = mainViewModel(authRequired = true)
+        val viewModel = lockViewModel(authRequired = true)
 
         viewModel.onInitialAuth(AuthState.Success)
 
@@ -38,14 +31,14 @@ class MainViewModelAuthStateTest {
 
     @Test
     fun authDisabled_mountsWalletImmediately() {
-        val viewModel = mainViewModel(authRequired = false)
+        val viewModel = lockViewModel(authRequired = false)
 
         assertTrue(viewModel.uiState.value.hasUnlockedApp)
     }
 
     @Test
     fun relock_clearsStaleAuthStateAndRepromptsWithoutRemountingWallet() {
-        val viewModel = mainViewModel(authRequired = true)
+        val viewModel = lockViewModel(authRequired = true)
         viewModel.onInitialAuth(AuthState.Success)
         viewModel.requestAuth(requestId = 42L)
         val promptCountBefore = viewModel.uiState.value.authPromptRequest
@@ -68,7 +61,7 @@ class MainViewModelAuthStateTest {
 
     @Test
     fun retryInitialAuth_bumpsPromptWhenStillRequired() {
-        val viewModel = mainViewModel(authRequired = true)
+        val viewModel = lockViewModel(authRequired = true)
         val promptCountBefore = viewModel.uiState.value.authPromptRequest
 
         viewModel.retryInitialAuth()
@@ -78,7 +71,7 @@ class MainViewModelAuthStateTest {
 
     @Test
     fun retryInitialAuth_isNoOpAfterUnlock() {
-        val viewModel = mainViewModel(authRequired = true)
+        val viewModel = lockViewModel(authRequired = true)
         viewModel.onInitialAuth(AuthState.Success)
         val stateBefore = viewModel.uiState.value
 
@@ -87,23 +80,14 @@ class MainViewModelAuthStateTest {
         assertEquals(stateBefore, viewModel.uiState.value)
     }
 
-    private fun mainViewModel(authRequired: Boolean): MainViewModel {
-        val userConfig = mockk<UserConfig>()
-        every { userConfig.authRequired() } returns authRequired
-        every { userConfig.appearance() } returns flowOf(Appearance.System)
+    private fun lockViewModel(authRequired: Boolean): LockViewModel {
+        val securityPreferences = mockk<SecurityPreferences>()
+        every { securityPreferences.authRequired() } returns authRequired
 
-        return MainViewModel(
-            userConfig = userConfig,
-            isWalletConnectEnabledCase = mockk<IsWalletConnectEnabled>(relaxed = true),
-            pairWalletConnect = mockk<PairWalletConnect>(relaxed = true),
-            appStartService = mockk<GemAppStartServiceInterface>(relaxed = true),
-            migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
-            walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true),
-            migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
+        return LockViewModel(
+            securityPreferences = securityPreferences,
             lockTimer = mockk<LockTimer>(relaxed = true),
-            pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),
             ioDispatcher = UnconfinedTestDispatcher(),
-            context = mockk(relaxed = true),
         )
     }
 }

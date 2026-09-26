@@ -1,7 +1,7 @@
-package com.gemwallet.android
+package com.gemwallet.android.features.settings.viewmodels.lock
 
 import android.text.format.DateUtils
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -49,9 +49,9 @@ class LockTimerTest {
     }
 
     private fun lockTimer(authRequired: Boolean, lockIntervalMinutes: Int): LockTimer {
-        val userConfig = mockk<UserConfig>()
-        every { userConfig.authRequired() } returns authRequired
-        every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig, GemSecurityService())
+        val securityPreferences = mockk<SecurityPreferences>()
+        every { securityPreferences.authRequired() } returns authRequired
+        every { securityPreferences.getLockInterval() } returns flowOf(lockIntervalMinutes)
+        return LockTimer(securityPreferences, GemSecurityService())
     }
 }

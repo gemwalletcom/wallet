@@ -22,9 +22,8 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Names:** NAM372.
-5. **Parity:** BD342, BD343, BD345 to BD351.
-6. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+4. **Parity:** BD342, BD343, BD345 to BD351.
+5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -626,9 +625,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
-
-- **NAM372** **M** **App lock belongs to Settings on both apps**, as [settings.md](product/settings.md) already describes the lock.
-  - **Android:** the lock leaves `app` for `features/settings`: `LockedSplash` in `LockedAppContent.kt` → `LockScene` (+ `LockScreen` binding a new `LockViewModel`), the lock state and `AuthState` from `MainViewModel` → `LockViewModel`/`LockUIState`, and `LockTimer` with it; `SystemAuthenticator`, bound to the activity, stays in `app`.
 
 ## 12. Cleanup sweeps
 

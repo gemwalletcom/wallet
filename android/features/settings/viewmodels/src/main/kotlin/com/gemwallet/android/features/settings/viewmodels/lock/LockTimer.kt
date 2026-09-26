@@ -1,15 +1,14 @@
-package com.gemwallet.android
+package com.gemwallet.android.features.settings.viewmodels.lock
 
 import android.os.SystemClock
 import androidx.annotation.VisibleForTesting
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import kotlinx.coroutines.flow.first
-import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSecurityServiceInterface
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
-class LockTimer @Inject constructor(private val userConfig: UserConfig, private val securityService: GemSecurityServiceInterface) {
+class LockTimer @Inject constructor(private val securityPreferences: SecurityPreferences, private val securityService: GemSecurityServiceInterface) {
 
     private val pauseTime = AtomicLong(0L)
 
@@ -22,7 +21,7 @@ class LockTimer @Inject constructor(private val userConfig: UserConfig, private 
     @VisibleForTesting
     internal suspend fun shouldRelock(now: Long): Boolean = securityService.shouldRelock(
         elapsedMilliseconds = now - pauseTime.get(),
-        lockIntervalMinutes = userConfig.getLockInterval().first().toUInt(),
-        authRequired = userConfig.authRequired(),
+        lockIntervalMinutes = securityPreferences.getLockInterval().first().toUInt(),
+        authRequired = securityPreferences.authRequired(),
     )
 }

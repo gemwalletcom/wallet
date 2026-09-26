@@ -11,13 +11,13 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,7 +34,6 @@ import uniffi.gemstone.GemPaymentException
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletServiceInterface
-import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,25 +45,15 @@ class MainViewModel @Inject constructor(
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val walletService: GemWalletServiceInterface,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
-    private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val isInitialAuthRequired = userConfig.authRequired()
-
-    private val _uiState = MutableStateFlow(
-        MainUIState(
-            initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success,
-            hasUnlockedApp = !isInitialAuthRequired,
-        ),
-    )
+    private val _uiState = MutableStateFlow(MainUIState())
     val uiState: StateFlow<MainUIState> = _uiState.asStateFlow()
 
     internal val pendingNavigation: StateFlow<PendingNavigation?> = pendingNavigationCoordinator.pendingNavigation
-
-    private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
     val isWalletConnectEnabled: Boolean = isWalletConnectEnabledCase.isWalletConnectEnabled()
 
@@ -83,10 +71,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    init {
+    private var isMaintained = false
+
+    internal fun maintain(isUnlocked: Flow<Boolean>) {
+        if (isMaintained) return
+        isMaintained = true
         viewModelScope.launch {
             combine(
-                _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
+                isUnlocked.distinctUntilChanged(),
                 pendingNavigation,
             ) { unlocked, pending -> unlocked && pending is PendingNavigation.Input }
                 .distinctUntilChanged()
@@ -103,15 +95,6 @@ class MainViewModel @Inject constructor(
                     }
                 }
         }
-    }
-
-    fun isAuthRequired(): Boolean = userConfig.authRequired()
-
-    private var isMaintained = false
-
-    internal fun maintain() {
-        if (isMaintained) return
-        isMaintained = true
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {
             migratePriceAlertsPreference()
@@ -124,69 +107,6 @@ class MainViewModel @Inject constructor(
 
     private fun logAppStartFailure(failure: GemAppStartFailure) {
         Log.e("MainViewModel", "${failure.step} failed: ${failure.message}")
-    }
-
-    fun requestAuth(requestId: Long) {
-        activeAuthRequestId.set(requestId)
-        _uiState.update { current ->
-            current.copy(
-                authState = AuthState.Required,
-                authPromptRequest = current.authPromptRequest + 1,
-            )
-        }
-    }
-
-    fun retryInitialAuth() {
-        _uiState.update { current ->
-            if (current.initialAuth == AuthState.Success) {
-                current
-            } else {
-                current.copy(
-                    initialAuth = AuthState.Required,
-                    authPromptRequest = current.authPromptRequest + 1,
-                )
-            }
-        }
-    }
-
-    fun onInitialAuth(authState: AuthState) {
-        _uiState.update { current ->
-            if (current.initialAuth == AuthState.Success) {
-                current
-            } else {
-                current.copy(
-                    initialAuth = authState,
-                    hasUnlockedApp = current.hasUnlockedApp || authState == AuthState.Success,
-                )
-            }
-        }
-    }
-
-    fun completeAuthRequest(requestId: Long): Boolean {
-        if (!activeAuthRequestId.compareAndSet(requestId, NoActiveAuthRequestId)) return false
-        _uiState.update { it.copy(authState = null) }
-        return true
-    }
-
-    fun onActivityPaused() {
-        lockTimer.onPaused()
-    }
-
-    fun onActivityResumed() {
-        viewModelScope.launch(ioDispatcher) {
-            if (lockTimer.shouldRelock()) relock()
-        }
-    }
-
-    internal fun relock() {
-        activeAuthRequestId.set(NoActiveAuthRequestId)
-        _uiState.update { current ->
-            current.copy(
-                initialAuth = AuthState.Required,
-                authState = null,
-                authPromptRequest = current.authPromptRequest + 1,
-            )
-        }
     }
 
     fun pendIntent(intent: Intent) = pendingNavigationCoordinator.pendIntent(intent)
@@ -246,16 +166,5 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
     }
 
-    data class MainUIState(
-        val initialAuth: AuthState = AuthState.Required,
-        val authState: AuthState? = null,
-        val authPromptRequest: Int = 0,
-        val hasUnlockedApp: Boolean = false,
-        val isWalletConnectPairingToastVisible: Boolean = false,
-        val walletConnectError: String? = null,
-        val navigationError: String? = null,
-        val isWalletConnectUnsupportedVisible: Boolean = false,
-    )
+    data class MainUIState(val isWalletConnectPairingToastVisible: Boolean = false, val walletConnectError: String? = null, val navigationError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false)
 }
-
-private const val NoActiveAuthRequestId = -1L
