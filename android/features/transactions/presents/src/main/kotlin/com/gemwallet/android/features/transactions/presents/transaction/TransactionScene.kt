@@ -71,7 +71,7 @@ internal fun TransactionScene(title: String, sections: List<ListSection<Transact
                         accessory = { DataBadgeChevron() },
                     )
 
-                    is TransactionItemUIModel.SwapProgress -> TransactionSwapProgressItem(row.model)
+                    is TransactionItemUIModel.SwapProgress -> TransactionSwapProgressItem(row.progress)
 
                     is TransactionItemUIModel.Row -> GemListRowView(
                         row = row.row,

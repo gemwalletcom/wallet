@@ -140,6 +140,8 @@ pub enum GemListRowTitle {
     Wallet,
     App,
     Memo,
+    Transfer,
+    Swap,
     Contract,
     TokenId,
     Collection,

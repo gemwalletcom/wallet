@@ -12,6 +12,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAddressRow
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemSwapProgress
 import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionHeader
@@ -20,7 +21,7 @@ sealed interface TransactionItemUIModel {
     data class Item(val model: ListItemModel, val url: String? = null) : TransactionItemUIModel
     data class Address(val row: GemAddressRow) : TransactionItemUIModel
     data class Fee(val model: ListItemModel, val details: ListItemModel) : TransactionItemUIModel
-    data class SwapProgress(val model: TransactionSwapProgressUIModel) : TransactionItemUIModel
+    data class SwapProgress(val progress: GemSwapProgress) : TransactionItemUIModel
     data class Row(val row: GemListRow) : TransactionItemUIModel
     data class Head(val header: GemTransactionHeader) : TransactionItemUIModel
     data class SwapAgain(val fromAssetId: AssetId, val toAssetId: AssetId) : TransactionItemUIModel
@@ -33,7 +34,7 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
     return when (row) {
         GemTransactionDetailRow.Header -> TransactionItemUIModel.Head(header)
 
-        GemTransactionDetailRow.SwapProgress -> TransactionItemUIModel.SwapProgress(requireNotNull(swapProgress).uiModel(context))
+        GemTransactionDetailRow.SwapProgress -> TransactionItemUIModel.SwapProgress(requireNotNull(swapProgress))
 
         GemTransactionDetailRow.SwapAgain -> requireNotNull(swapAgain).let {
             TransactionItemUIModel.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId))

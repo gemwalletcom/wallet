@@ -371,12 +371,31 @@ pub struct GemTransactionDetails {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapProgress {
-    pub amount: GemFormattedNumber,
-    pub network: String,
-    pub provider_name: String,
-    pub transfer: GemSwapProgressState,
-    pub swap: GemSwapProgressState,
+    pub transfer: GemSwapProgressRow,
+    pub swap: GemSwapProgressRow,
+    pub is_connector_active: bool,
     pub eta_seconds: Option<u32>,
+}
+
+/// One step of a cross-chain swap: its title, what it moves, where it stands, and whether the estimate shows beside it.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapProgressRow {
+    pub title: GemLocalizedText,
+    pub subtitle: GemLocalizedText,
+    pub state: GemSwapProgressState,
+    pub shows_estimate: bool,
+}
+
+impl GemSwapProgressRow {
+    pub fn new(title: GemListRowTitle, subtitle: GemLocalizedText, step: GemSwapProgressStep) -> Self {
+        let state = step.state();
+        Self {
+            title: GemLocalizedText::RowTitle { title },
+            subtitle,
+            shows_estimate: state.marker == GemSwapProgressMarker::Spinner,
+            state,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

@@ -21,18 +21,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionSwapProgressStepUIModel
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionSwapProgressUIModel
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SwapProgressMarkerUIModel
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.markerUIModel
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.iconSize
@@ -42,11 +47,15 @@ import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemSwapProgress
+import uniffi.gemstone.GemSwapProgressRow
+import uniffi.gemstone.GemSwapProgressState
 
 private val connectorWidth = 1.5.dp
 
 @Composable
-internal fun TransactionSwapProgressItem(progress: TransactionSwapProgressUIModel) {
+internal fun TransactionSwapProgressItem(progress: GemSwapProgress) {
+    val estimatedTime = progress.etaSeconds?.let(::formatEstimatedConfirmation)
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -60,14 +69,15 @@ internal fun TransactionSwapProgressItem(progress: TransactionSwapProgressUIMode
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(space8),
         ) {
-            ProgressStep(progress.transfer, progress.estimatedTime)
-            ProgressStep(progress.swap, progress.estimatedTime)
+            ProgressStep(progress.transfer, estimatedTime)
+            ProgressStep(progress.swap, estimatedTime)
         }
     }
 }
 
 @Composable
-private fun ProgressStep(step: TransactionSwapProgressStepUIModel, estimatedTime: String?) {
+private fun ProgressStep(step: GemSwapProgressRow, estimatedTime: String?) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(space6),
@@ -79,14 +89,14 @@ private fun ProgressStep(step: TransactionSwapProgressStepUIModel, estimatedTime
         ) {
             Text(
                 modifier = Modifier.weight(1f),
-                text = step.title,
+                text = step.title.string(context),
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
             )
-            StatusTag(step)
+            StatusTag(step.state)
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -95,13 +105,13 @@ private fun ProgressStep(step: TransactionSwapProgressStepUIModel, estimatedTime
         ) {
             Text(
                 modifier = Modifier.weight(1f),
-                text = step.subtitle,
+                text = step.subtitle.string(context),
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            estimatedTime?.takeIf { step.showsEstimatedTime }?.let {
+            estimatedTime?.takeIf { step.showsEstimate }?.let {
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.secondary,
@@ -114,16 +124,16 @@ private fun ProgressStep(step: TransactionSwapProgressStepUIModel, estimatedTime
 }
 
 @Composable
-private fun Timeline(progress: TransactionSwapProgressUIModel) {
+private fun Timeline(progress: GemSwapProgress) {
     Column(
         modifier = Modifier.width(iconSize),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val connectorColor = if (progress.isConnectorActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant
 
-        ProgressMarker(progress.transfer)
+        ProgressMarker(progress.transfer.state)
         Connector(color = connectorColor)
-        ProgressMarker(progress.swap)
+        ProgressMarker(progress.swap.state)
     }
 }
 
@@ -138,12 +148,13 @@ private fun Connector(color: Color) {
 }
 
 @Composable
-private fun ProgressMarker(step: TransactionSwapProgressStepUIModel) {
-    val color = step.style.color()
+private fun ProgressMarker(state: GemSwapProgressState) {
+    val color = state.step.textStyle().color()
+    val marker = state.marker.markerUIModel()
     val markerModifier = Modifier
         .size(iconSize)
         .then(
-            when (step.marker) {
+            when (marker) {
                 is SwapProgressMarkerUIModel.Icon -> Modifier.background(color.copy(alpha = alpha10), CircleShape)
 
                 SwapProgressMarkerUIModel.Spinner,
@@ -157,7 +168,7 @@ private fun ProgressMarker(step: TransactionSwapProgressStepUIModel) {
         modifier = markerModifier,
         contentAlignment = Alignment.Center,
     ) {
-        when (val marker = step.marker) {
+        when (marker) {
             SwapProgressMarkerUIModel.Spinner -> CircularProgressIndicator16(color = color)
 
             SwapProgressMarkerUIModel.Dots -> Row(
@@ -184,9 +195,9 @@ private fun ProgressMarker(step: TransactionSwapProgressStepUIModel) {
 }
 
 @Composable
-private fun StatusTag(step: TransactionSwapProgressStepUIModel) {
-    val label = step.statusLabel ?: return
-    val color = step.style.color()
+private fun StatusTag(state: GemSwapProgressState) {
+    val label = state.step.stringRes()?.let { stringResource(it) } ?: return
+    val color = state.step.textStyle().color()
     Text(
         modifier = Modifier
             .background(color = color.copy(alpha = alpha10), shape = RoundedCornerShape(space6))

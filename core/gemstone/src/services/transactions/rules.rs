@@ -9,9 +9,9 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails,
-    GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue,
-    GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressRow, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
+    GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
+    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -684,11 +684,16 @@ fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSw
         TransactionState::Confirmed => return None,
     };
     Some(GemSwapProgress {
-        amount: GemFormattedNumber::asset_amount(&metadata.from_value.clone().into(), from_asset, GemValueStyle::Auto),
-        network: ChainAsset::from_chain(from_asset.chain()).network_name,
-        provider_name: provider.name.clone(),
-        transfer: transfer.state(),
-        swap: swap.state(),
+        transfer: GemSwapProgressRow::new(
+            GemListRowTitle::Transfer,
+            GemLocalizedText::AmountOnNetwork {
+                amount: GemFormattedNumber::asset_amount(&metadata.from_value.clone().into(), from_asset, GemValueStyle::Auto),
+                network: ChainAsset::from_chain(from_asset.chain()).network_name,
+            },
+            transfer,
+        ),
+        swap: GemSwapProgressRow::new(GemListRowTitle::Swap, GemLocalizedText::Text { text: provider.name.clone() }, swap),
+        is_connector_active: transfer == GemSwapProgressStep::Completed,
         eta_seconds: extended.confirmation_eta_seconds.filter(|seconds| *seconds > 0 && !extended.transaction.state.is_completed()),
     })
 }
@@ -1472,38 +1477,52 @@ mod tests {
             ..TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("thorchain")))
         });
         let progress = pending.swap_progress.unwrap();
-        assert_eq!((progress.transfer.step, progress.swap.step, progress.eta_seconds), (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(90)));
-        assert_eq!((progress.amount.value, progress.network.as_str()), (5e-18, "Ethereum"), "the transfer step reads what left and on which network");
-        assert_eq!(pending.provider_name.as_deref(), Some(progress.provider_name.as_str()));
+        assert_eq!(
+            (progress.transfer.state.step, progress.swap.state.step, progress.eta_seconds),
+            (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(90))
+        );
+        assert!(
+            matches!(&progress.transfer.subtitle, GemLocalizedText::AmountOnNetwork { amount, network } if amount.value == 5e-18 && network == "Ethereum"),
+            "the transfer step reads what left and on which network"
+        );
+        assert_eq!(
+            progress.swap.subtitle,
+            GemLocalizedText::Text {
+                text: pending.provider_name.clone().unwrap()
+            }
+        );
+        assert!(progress.transfer.shows_estimate && !progress.swap.shows_estimate, "the estimate shows beside the step that is moving");
+        assert!(!progress.is_connector_active);
         assert_eq!(pending.estimated_confirmation_seconds, None, "the progress steps carry the eta");
         assert!(pending.swap_again.is_none());
 
         let in_transit = signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::InTransit, Some("thorchain"))))
             .swap_progress
             .unwrap();
-        assert_eq!((in_transit.transfer.step, in_transit.swap.step), (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending));
+        assert_eq!((in_transit.transfer.state.step, in_transit.swap.state.step), (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending));
+        assert!(in_transit.is_connector_active, "a finished transfer lights the line to the swap");
         let failed = signing_details(&TransactionExtended {
             confirmation_eta_seconds: Some(90),
             ..TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Failed, Some("thorchain")))
         })
         .swap_progress
         .unwrap();
-        assert_eq!((failed.transfer.step, failed.swap.step, failed.eta_seconds), (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed, None));
+        assert_eq!((failed.transfer.state.step, failed.swap.state.step, failed.eta_seconds), (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed, None));
         let reverted = signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Reverted, Some("thorchain"))))
             .swap_progress
             .unwrap();
-        assert_eq!((reverted.transfer.step, reverted.swap.step), (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting));
+        assert_eq!((reverted.transfer.state.step, reverted.swap.state.step), (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting));
         let refunded = signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Refunded, Some("thorchain"))))
             .swap_progress
             .unwrap();
-        assert_eq!((refunded.transfer.step, refunded.swap.step), (GemSwapProgressStep::Completed, GemSwapProgressStep::Refunded));
+        assert_eq!((refunded.transfer.state.step, refunded.swap.state.step), (GemSwapProgressStep::Completed, GemSwapProgressStep::Refunded));
         assert_eq!(
-            (refunded.transfer.marker, refunded.swap.marker),
+            (refunded.transfer.state.marker, refunded.swap.state.marker),
             (GemSwapProgressMarker::Check, GemSwapProgressMarker::Swap),
             "a refund reads as a swap back, not as a failure"
         );
-        assert_eq!((progress.transfer.marker, progress.swap.marker), (GemSwapProgressMarker::Spinner, GemSwapProgressMarker::Dots));
-        assert_eq!(failed.swap.marker, GemSwapProgressMarker::Cross);
+        assert_eq!((progress.transfer.state.marker, progress.swap.state.marker), (GemSwapProgressMarker::Spinner, GemSwapProgressMarker::Dots));
+        assert_eq!(failed.swap.state.marker, GemSwapProgressMarker::Cross);
 
         let confirmed = signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Confirmed, Some("thorchain"))));
         assert!(confirmed.swap_progress.is_none());

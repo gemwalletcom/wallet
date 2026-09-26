@@ -232,6 +232,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.ViewOn -> context.getString(R.string.transaction_view_on, name)
 
+    is GemLocalizedText.AmountOnNetwork -> "${amount.text()} ($network)"
+
     is GemLocalizedText.ParticipantRole -> context.getString(role.stringRes())
 
     is GemLocalizedText.ConfirmDestination -> context.getString(destination.title())
@@ -748,6 +750,8 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.WALLET -> context.getString(R.string.common_wallet)
     GemListRowTitle.APP -> context.getString(R.string.wallet_connect_app)
     GemListRowTitle.MEMO -> context.getString(R.string.transfer_memo)
+    GemListRowTitle.TRANSFER -> context.getString(R.string.transfer_title)
+    GemListRowTitle.SWAP -> context.getString(R.string.wallet_swap)
     GemListRowTitle.CONTRACT -> context.getString(R.string.asset_contract)
     GemListRowTitle.TOKEN_ID -> context.getString(R.string.asset_token_id)
     GemListRowTitle.COLLECTION -> context.getString(R.string.nft_collection)

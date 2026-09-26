@@ -148,13 +148,13 @@ struct TransactionSceneViewModelTests {
         )
 
         if case let .swapProgress(progress) = model.itemModel(for: GemTransactionDetailRow.swapProgress) {
-            #expect(progress.transfer.title == Localized.Transfer.title)
-            #expect(progress.transfer.subtitle == "1 ETH (Ethereum)")
+            #expect(progress.transfer.title.text == Localized.Transfer.title)
+            #expect(progress.transfer.subtitle.text == "1 ETH (Ethereum)")
             #expect(progress.transfer.state.step == .completed)
-            #expect(progress.swap.title == Localized.Wallet.swap)
-            #expect(progress.swap.subtitle == "NEAR Intents")
+            #expect(progress.swap.title.text == Localized.Wallet.swap)
+            #expect(progress.swap.subtitle.text == "NEAR Intents")
             #expect(progress.swap.state.step == .pending)
-            #expect(progress.estimatedTime == "≈ 12 min")
+            #expect(progress.etaSeconds == 720)
         } else {
             Issue.record("Expected swap progress for in-transit cross-chain swap")
         }

@@ -132,6 +132,8 @@ public extension GemLocalizedText {
             Localized.Settings.enableValue(value)
         case let .viewOn(name):
             Localized.Transaction.viewOn(name)
+        case let .amountOnNetwork(amount, network):
+            "\(amount.text()) (\(network))"
         case let .participantRole(role):
             role.title
         case let .confirmDestination(destination):
@@ -850,6 +852,8 @@ public extension GemListRowTitle {
         case .wallet: Localized.Common.wallet
         case .app: Localized.WalletConnect.app
         case .memo: Localized.Transfer.memo
+        case .transfer: Localized.Transfer.title
+        case .swap: Localized.Wallet.swap
         case .contract: Localized.Asset.contract
         case .tokenId: Localized.Asset.tokenId
         case .collection: Localized.Nft.collection

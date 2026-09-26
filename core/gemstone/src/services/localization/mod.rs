@@ -18,6 +18,7 @@ pub enum GemLocalizedText {
     RowTitle { title: crate::models::list::GemListRowTitle },
     EnableValue { value: String },
     ViewOn { name: String },
+    AmountOnNetwork { amount: GemFormattedNumber, network: String },
     ParticipantRole { role: crate::services::transactions::GemTransactionParticipantRole },
     ConfirmDestination { destination: crate::services::transfer::GemConfirmDestination },
     Number { number: GemFormattedNumber },

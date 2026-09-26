@@ -94,12 +94,7 @@ extension TransactionSceneViewModel {
     }
 
     private var swapProgressItem: TransactionItemModel {
-        guard let progress = rows.swapProgress else { return .empty }
-        return .swapProgress(TransactionSwapProgressItemModel(
-            transfer: .init(title: Localized.Transfer.title, subtitle: "\(progress.amount.text()) (\(progress.network))", state: progress.transfer),
-            swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
-            estimatedTime: progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) },
-        ))
+        rows.swapProgress.map(TransactionItemModel.swapProgress) ?? .empty
     }
 
     private var feeItem: TransactionItemModel {
