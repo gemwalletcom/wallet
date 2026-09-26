@@ -1,4 +1,4 @@
-use super::model::{GemConfirmRowContent, GemConfirmSection, GemConfirmSimulation};
+use super::model::{ConfirmSwapQuote, GemConfirmRowContent, GemConfirmSection, GemConfirmSimulation};
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
@@ -18,7 +18,8 @@ use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualT
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
-use swapper::Quote;
+use std::time::Instant;
+use swapper::ProviderType;
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
@@ -256,6 +257,18 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
     }
 }
 
+impl ConfirmSwapQuote {
+    pub(super) fn needs_requote(&self, transfer: &GemTransferData, now: Instant) -> bool {
+        let TransactionInputType::Swap { swap_data, .. } = &transfer.input_type else {
+            return false;
+        };
+        if self.quote.is_none() && swap_data.data.permit2.is_some() {
+            return true;
+        }
+        now.saturating_duration_since(self.quoted_at) >= ProviderType::mode(swap_data.quote.provider_data.provider).quote_lifetime()
+    }
+}
+
 pub fn preload_simulation(request: Option<&SimulationResult>, confirm_data: &GemConfirmData) -> Option<SimulationResult> {
     match request {
         Some(_) => None,
@@ -264,7 +277,7 @@ pub fn preload_simulation(request: Option<&SimulationResult>, confirm_data: &Gem
 }
 
 impl GemConfirmLoad {
-    pub(super) fn with_fee(self, fee: GemConfirmFeeLoad, requested: Option<GemConfirmSimulationState>, swap_quote: Option<Quote>) -> ConfirmState {
+    pub(super) fn with_fee(self, fee: GemConfirmFeeLoad, requested: Option<GemConfirmSimulationState>, swap: Option<ConfirmSwapQuote>) -> ConfirmState {
         ConfirmState {
             load: Self {
                 fee_asset: fee.fee_asset,
@@ -274,7 +287,7 @@ impl GemConfirmLoad {
                 ..self
             },
             confirm_data: Some(fee.confirm_data),
-            swap_quote,
+            swap,
         }
     }
 }
@@ -699,6 +712,40 @@ pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRo
 mod tests {
     use super::*;
     use crate::models::copy::GemCopy;
+
+    #[test]
+    fn test_a_confirm_swap_quote_is_asked_again_past_its_provider_lifetime_or_once_for_a_pending_permit() {
+        use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
+        use std::time::Duration;
+        use swapper::Quote;
+        let swap = |provider: primitives::SwapProvider, permit2: Option<Permit2ApprovalData>| {
+            GemTransferData::mock(TransactionInputType::Swap {
+                from_asset: Asset::mock_eth(),
+                to_asset: Asset::mock_erc20(),
+                swap_data: SwapData {
+                    data: SwapQuoteData { permit2, ..SwapQuoteData::mock() },
+                    ..SwapData::mock_with_provider(provider)
+                },
+            })
+        };
+        let built_at = Instant::now();
+        let unquoted = ConfirmSwapQuote::initial(&swap(primitives::SwapProvider::UniswapV3, None), built_at).unwrap();
+        let quoted = ConfirmSwapQuote::requoted(Quote::mock_with_provider(primitives::SwapProvider::UniswapV3, "1"), built_at);
+        let on_chain = swap(primitives::SwapProvider::UniswapV3, None);
+        let cross_chain = swap(primitives::SwapProvider::NearIntents, None);
+        let permit_pending = swap(primitives::SwapProvider::UniswapV3, Some(Permit2ApprovalData::mock()));
+
+        assert!(!unquoted.needs_requote(&on_chain, built_at + Duration::from_secs(59)), "a fee change right after opening asks nothing");
+        assert!(unquoted.needs_requote(&on_chain, built_at + Duration::from_secs(60)), "an on-chain quote lives one minute");
+        assert!(!quoted.needs_requote(&cross_chain, built_at + Duration::from_secs(299)), "a cross-chain quote keeps its deposit address for five minutes");
+        assert!(quoted.needs_requote(&cross_chain, built_at + Duration::from_secs(300)));
+        assert!(unquoted.needs_requote(&permit_pending, built_at), "a pending permit needs a quote to rebuild with, once");
+        assert!(!quoted.needs_requote(&permit_pending, built_at));
+        assert!(
+            ConfirmSwapQuote::initial(&GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() }), built_at).is_none(),
+            "only a swap holds a quote"
+        );
+    }
     use crate::models::list::GemRowMenuItem;
 
     #[test]

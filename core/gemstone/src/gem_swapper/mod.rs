@@ -27,6 +27,13 @@ impl GemSwapper {
     }
 }
 
+#[cfg(test)]
+impl GemSwapper {
+    pub fn mock(swappers: Vec<Box<dyn swapper::Swapper>>) -> Self {
+        Self { inner: Swapper::mock(swappers) }
+    }
+}
+
 impl GemSwapper {
     pub async fn get_quote(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperQuote>, SwapperError> {
         self.inner.get_quote(request).await

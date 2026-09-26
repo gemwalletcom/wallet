@@ -55,6 +55,14 @@ impl ConfirmTestkit {
     }
 
     pub fn with_provider(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>) -> Self {
+        Self::build(wallet, selected_wallet, provider, Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))))
+    }
+
+    pub fn with_swap(wallet: Wallet, swap: Arc<GemSwapService>) -> Self {
+        Self::build(wallet.clone(), wallet, Arc::new(TestAlienProvider::with_status(503)), swap)
+    }
+
+    fn build(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>, swap: Arc<GemSwapService>) -> Self {
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let selected = Arc::new(MemoryWalletSessionStore {
@@ -122,7 +130,7 @@ impl ConfirmTestkit {
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
             payment,
-            Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))),
+            swap,
         ));
         Self {
             service,

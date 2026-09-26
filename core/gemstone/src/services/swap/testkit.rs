@@ -48,6 +48,10 @@ impl GemSwapStore for MemorySwapStore {
 }
 
 impl GemSwapService {
+    pub fn mock_with_swappers(swappers: Vec<Box<dyn swapper::Swapper>>) -> Self {
+        Self::new(Arc::new(GemSwapper::mock(swappers)), Arc::new(MemorySwapStore::default()))
+    }
+
     pub fn mock(store: Arc<MemorySwapStore>) -> Self {
         Self::new(Arc::new(GemSwapper::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemNodeService::mock()))), store)
     }

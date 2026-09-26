@@ -4,6 +4,19 @@ One asset's screen, the tokens a wallet shows, and the assets the user picks fro
 
 ## Asset screen
 
+```mermaid
+flowchart LR
+    A[Tap an asset] --> B[Balance, value and price shown at once]
+    B --> C[Chart, market data and transactions arrive]
+    B --> D{What the asset allows}
+    D --> E[Send]
+    D --> F[Receive]
+    D --> G[Buy]
+    D --> H[Swap]
+    D --> I[Stake]
+    B --> J[Pin, hide, explorer, share, Price Alerts]
+```
+
 1. Tapping an asset shows its balance and value, the price with its change, the actions the asset allows (Send, Receive, Buy, Swap, Stake), its price chart and market data ([Market](market.md)), its balance breakdown, and its transactions.
 2. The user can pin or hide the asset, open it on the explorer, share it, and set Price Alerts.
 

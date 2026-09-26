@@ -3,7 +3,7 @@ use crate::models::custom_types::GemBigUint;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Currency};
-use swapper::SwapperError;
+use swapper::{Quote, SwapperError};
 
 use super::rules;
 use super::session::provider_row;
@@ -137,6 +137,12 @@ pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
         to_asset,
         quote,
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct GemSwapRequote {
+    pub quote: Quote,
+    pub transfer: GemTransferData,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

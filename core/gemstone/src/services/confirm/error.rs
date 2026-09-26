@@ -389,10 +389,12 @@ impl From<GemServiceError> for GemConfirmError {
     }
 }
 
-pub(super) fn swap_error(error: SwapperError) -> GemConfirmError {
-    match error {
-        SwapperError::Offline => GemConfirmError::Offline,
-        error => GemConfirmError::Load { msg: error.to_string() },
+impl From<SwapperError> for GemConfirmError {
+    fn from(error: SwapperError) -> Self {
+        match error {
+            SwapperError::Offline => GemConfirmError::Offline,
+            error => GemConfirmError::Load { msg: error.to_string() },
+        }
     }
 }
 

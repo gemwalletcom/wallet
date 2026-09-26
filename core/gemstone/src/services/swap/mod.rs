@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use primitives::swap::Permit2ApprovalData;
 use primitives::{Asset, Wallet};
-use swapper::permit2_data::PermitSingle;
+use swapper::permit2_data::{Permit2Data, PermitSingle};
 use swapper::{AssetList, FetchQuoteData, Quote, SwapperError};
 
 use crate::config::swap_config::get_swap_config;
@@ -22,7 +22,7 @@ use crate::message::sign_type::{SignDigestType, SignMessage};
 use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
-pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer, swap_quote_summary};
+pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, GemSwapTransfer, swap_quote_summary};
 use primitives::AssetId;
 pub use session::{GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
@@ -67,30 +67,24 @@ impl GemSwapService {
         rules::swap_transfer(&wallet, &quote, data)
     }
 
-    pub async fn requote(&self, wallet: &Wallet, transfer: &GemTransferData) -> Result<(Quote, GemTransferData), SwapperError> {
+    pub async fn requote(&self, wallet: &Wallet, transfer: &GemTransferData) -> Result<GemSwapRequote, SwapperError> {
         let (provider, request) = rules::requote_request(wallet, transfer)?;
         let quote = self.swapper.get_quote_by_provider(&provider, &request).await?;
-        let transfer = self.rebuild(wallet, &quote, transfer, FetchQuoteData::None).await?;
-        Ok((quote, transfer))
+        let transfer = self.build_transfer(wallet, &quote, transfer, FetchQuoteData::None).await?;
+        Ok(GemSwapRequote { quote, transfer })
     }
 
-    pub async fn rebuild(&self, wallet: &Wallet, quote: &Quote, transfer: &GemTransferData, data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
-        let (from_asset, to_asset) = rules::swap_assets(transfer)?;
-        let data = self.swapper.get_quote_data(quote, data).await?;
-        Ok(rules::swap_transfer(wallet, quote, data)?.transfer_data(from_asset, to_asset))
-    }
-
-    pub fn permit2_message(&self, quote: &Quote, approval: &Permit2ApprovalData) -> Result<(PermitSingle, SignMessage), SwapperError> {
-        let chain = quote.request.from_asset.chain();
-        let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        let permit_single = rules::permit_single(approval, now, &get_swap_config());
-        let json = permit2_data_to_eip712_json(chain, permit_single.clone(), &approval.permit2_contract)?;
-        let message = SignMessage {
-            chain,
-            sign_type: SignDigestType::Eip712,
-            data: json.into_bytes(),
-        };
-        Ok((permit_single, message))
+    pub async fn transfer_with_permit<E: From<SwapperError>>(
+        &self,
+        wallet: &Wallet,
+        quote: &Quote,
+        transfer: &GemTransferData,
+        approval: &Permit2ApprovalData,
+        sign: impl FnOnce(SignMessage) -> Result<Vec<u8>, E>,
+    ) -> Result<GemTransferData, E> {
+        let (permit_single, message) = self.permit2_message(quote, approval)?;
+        let signature = sign(message)?;
+        Ok(self.build_transfer(wallet, quote, transfer, FetchQuoteData::Permit2(Permit2Data { permit_single, signature })).await?)
     }
 
     pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
@@ -103,6 +97,25 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
+    async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, transfer: &GemTransferData, data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
+        let (from_asset, to_asset) = rules::swap_assets(transfer)?;
+        let data = self.swapper.get_quote_data(quote, data).await?;
+        Ok(rules::swap_transfer(wallet, quote, data)?.transfer_data(from_asset, to_asset))
+    }
+
+    fn permit2_message(&self, quote: &Quote, approval: &Permit2ApprovalData) -> Result<(PermitSingle, SignMessage), SwapperError> {
+        let chain = quote.request.from_asset.chain();
+        let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
+        let permit_single = rules::permit_single(approval, now, &get_swap_config());
+        let json = permit2_data_to_eip712_json(chain, permit_single.clone(), &approval.permit2_contract)?;
+        let message = SignMessage {
+            chain,
+            sign_type: SignDigestType::Eip712,
+            data: json.into_bytes(),
+        };
+        Ok((permit_single, message))
+    }
+
     async fn suggest_receive_asset(&self, wallet: &Wallet, pay_asset_id: &AssetId) -> Result<Option<AssetId>, GemServiceError> {
         let supported = rules::assets_in_wallet(self.supported_assets(pay_asset_id.clone()), wallet);
         let pairs = self.store.get_swap_pairs(wallet.id.clone()).await?;

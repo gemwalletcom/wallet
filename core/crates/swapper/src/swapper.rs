@@ -230,8 +230,7 @@ impl GemSwapper {
     pub async fn get_quote_by_provider(&self, provider: &SwapperProvider, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let swapper = self.get_swapper_by_provider(provider)?;
         swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
-        let request = Self::quote_request_for_mode(swapper.amount_mode(request), request)?;
-        swapper.get_quote(&request).await
+        swapper.get_quote(request).await
     }
 
     pub async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
@@ -265,7 +264,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        SwapperChainAsset, SwapperProvider, SwapperQuoteAsset,
+        Options, SwapperChainAsset, SwapperProvider, SwapperQuoteAsset,
         alien::reqwest_provider::NativeProvider,
         testkit::{MockSwapper, mock_quote},
         uniswap::default::{new_pancakeswap, new_uniswap_v3},
@@ -412,9 +411,9 @@ mod tests {
         let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
 
         let gem_swapper = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
-            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::InputAmountError { min_amount: None }))),
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, |_| Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
         ]);
         let result = gem_swapper.get_quotes(&request).await.unwrap();
         assert!(result.quotes.is_empty());
@@ -430,36 +429,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_quote_by_provider_asks_for_the_exact_value_it_is_given() {
+        let max = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
+        let request = QuoteRequest {
+            value: BigUint::from(10u64).pow(18),
+            options: Options { use_max_amount: true, ..max.options },
+            ..max
+        };
+        let gem_swapper = GemSwapper::mock(vec![Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request))))]);
+
+        let quotes = gem_swapper.get_quote(&request).await.unwrap();
+        let requoted = gem_swapper.get_quote_by_provider(&SwapperProvider::UniswapV3, &quotes[0].request).await.unwrap();
+
+        assert!(quotes[0].request.value < request.value, "the first quote of a max swap keeps the fee reserve back");
+        assert_eq!(requoted.request.value, quotes[0].request.value, "a re-quote of that quote asks for the reserved value as it is, never reserving twice");
+    }
+
+    #[tokio::test]
     async fn test_get_quote_aggregates_provider_errors() {
         let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
         let known_minimums = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || Err(SwapperError::InputAmountError { min_amount: Some("5000000".into()) }))),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, |_| Err(SwapperError::InputAmountError { min_amount: Some("5000000".into()) }))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, |_| Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
         ]);
         assert_eq!(known_minimums.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: Some("1264000".into()) });
 
         let unknown_minimum = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::InputAmountError { min_amount: None }))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, |_| Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
         ]);
         assert_eq!(unknown_minimum.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
 
         let route_errors = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::NoQuoteAvailable))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into())))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::NoQuoteAvailable))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into())))),
         ]);
         assert_eq!(route_errors.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
 
         let offline = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::Offline))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::Offline))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::Offline))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::Offline))),
         ]);
         assert_eq!(offline.get_quote(&request).await.unwrap_err(), SwapperError::Offline);
 
         let partly_offline = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::Offline))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::Offline))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
         ]);
         assert_eq!(partly_offline.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
     }

@@ -9,7 +9,6 @@ use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
-    approval::get_swap_gas_limit_with_approval,
     fees::{apply_slippage_in_bp, default_referral_fees},
     uniswap::{
         deadline::get_sig_deadline,
@@ -247,7 +246,7 @@ impl Swapper for UniswapV4 {
             Chain::Tempo => TEMPO_SWAP_GAS_LIMIT,
             _ => DEFAULT_SWAP_GAS_LIMIT,
         };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, swap_gas_limit);
+        let gas_limit = (approval.is_some() || permit2.is_some()).then(|| swap_gas_limit.to_string());
 
         let sig_deadline = get_sig_deadline();
         let base_pair = base_pair(evm_chain, PROTOCOL);

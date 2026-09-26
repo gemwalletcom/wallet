@@ -21,8 +21,9 @@ use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, TransactionInputType, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
+use std::time::Instant;
 use swapper::Quote;
 
 pub type GemAccount = Account;
@@ -281,7 +282,26 @@ pub struct GemConfirmFeeLoad {
 pub struct ConfirmState {
     pub load: GemConfirmLoad,
     pub confirm_data: Option<GemConfirmData>,
-    pub swap_quote: Option<Quote>,
+    pub swap: Option<ConfirmSwapQuote>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConfirmSwapQuote {
+    pub quote: Option<Quote>,
+    pub quoted_at: Instant,
+}
+
+impl ConfirmSwapQuote {
+    pub(super) fn initial(transfer: &GemTransferData, built_at: Instant) -> Option<Self> {
+        match transfer.input_type {
+            TransactionInputType::Swap { .. } => Some(Self { quote: None, quoted_at: built_at }),
+            _ => None,
+        }
+    }
+
+    pub(super) fn requoted(quote: Quote, now: Instant) -> Self {
+        Self { quote: Some(quote), quoted_at: now }
+    }
 }
 
 impl ConfirmState {
@@ -567,7 +587,7 @@ mod tests {
                 fee_selection,
                 ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
             }),
-            swap_quote: None,
+            swap: None,
         };
 
         let picked = state(primitives::Chain::Bitcoin, GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(25) }).network_fee_screen(Currency::USD, format.clone());

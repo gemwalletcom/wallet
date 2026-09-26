@@ -4,6 +4,15 @@ The home screen: what the selected wallet holds, what it is worth, and the way i
 
 ## Wallet screen
 
+```mermaid
+flowchart LR
+    A[Wallet opens from what is stored] --> B[Name, total, actions, asset rows, banner]
+    B --> C[Prices arrive live]
+    B --> D[Pull to refresh] --> E[Balances, new tokens, transactions and NFTs, all at once]
+    B --> F[Search] --> G[Assets, perpetuals and NFTs, grouped] --> H[Add a missing asset]
+    B --> I[Tap an asset] --> J[Asset screen]
+```
+
 1. The screen opens instantly with what the app already knows: wallet name, total with its 24h change, the action buttons, the asset rows with balance, price and value, and any banner.
 2. Pinned assets come first, then the rest by value.
 3. Send, Receive and Buy show for every wallet that can sign, and Swap where a swap is possible.

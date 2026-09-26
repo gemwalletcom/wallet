@@ -1,7 +1,13 @@
-use crate::{AssetList, FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage, SwapperSlippageMode};
+use crate::{
+    AlienError, AssetList, FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Route, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    SwapperSlippage, SwapperSlippageMode, Target,
+};
 use async_trait::async_trait;
+use gem_jsonrpc::RpcResponse;
+use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
+use std::sync::{Arc, Mutex};
 
 use super::{Options, Quote, QuoteRequest};
 
@@ -80,6 +86,14 @@ impl Quote {
         }
     }
 
+    pub fn mock_with_request(request: &QuoteRequest) -> Self {
+        Quote {
+            from_value: request.value.clone(),
+            request: request.clone(),
+            ..Self::mock_with_provider(SwapperProvider::UniswapV3, "1")
+        }
+    }
+
     pub fn mock_with_provider(provider: SwapperProvider, to_value: &str) -> Self {
         Quote {
             from_value: BigUint::from(1000000u64),
@@ -130,23 +144,42 @@ pub fn mock_ton(wallet_address: String) -> QuoteRequest {
     }
 }
 
-#[cfg(feature = "reqwest_provider")]
 impl crate::swapper::GemSwapper {
     pub fn mock(swappers: Vec<Box<dyn Swapper>>) -> Self {
         Self {
-            rpc_provider: std::sync::Arc::new(crate::NativeProvider::default()),
+            rpc_provider: Arc::new(UnusedRpcProvider),
             swappers,
         }
     }
 }
 
-type MockResponse = fn() -> Result<Quote, SwapperError>;
+#[derive(Debug)]
+struct UnusedRpcProvider;
+
+#[async_trait]
+impl GenericRpcProvider for UnusedRpcProvider {
+    type Error = AlienError;
+
+    async fn request(&self, target: Target) -> Result<RpcResponse, Self::Error> {
+        panic!("a mock swapper never reaches the network: {target:?}")
+    }
+}
+
+impl RpcProvider for UnusedRpcProvider {
+    fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError> {
+        panic!("a mock swapper never asks for a node: {chain}")
+    }
+}
+
+type MockResponse = fn(&QuoteRequest) -> Result<Quote, SwapperError>;
 
 #[derive(Debug)]
 pub struct MockSwapper {
     provider: ProviderType,
     supported_assets: Vec<SwapperChainAsset>,
     response: MockResponse,
+    pending_permit: Option<Permit2ApprovalData>,
+    builds: Arc<Mutex<Vec<FetchQuoteData>>>,
 }
 
 impl MockSwapper {
@@ -155,7 +188,17 @@ impl MockSwapper {
             provider: ProviderType::new(provider),
             supported_assets: vec![SwapperChainAsset::All(Chain::Ethereum)],
             response,
+            pending_permit: None,
+            builds: Arc::default(),
         }
+    }
+
+    pub fn with_pending_permit(self, permit: Permit2ApprovalData) -> Self {
+        Self { pending_permit: Some(permit), ..self }
+    }
+
+    pub fn builds(&self) -> Arc<Mutex<Vec<FetchQuoteData>>> {
+        self.builds.clone()
     }
 }
 
@@ -173,11 +216,16 @@ impl Swapper for MockSwapper {
         SwapAmountMode::Fixed
     }
 
-    async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        (self.response)()
+    async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        (self.response)(request)
     }
 
-    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
-        todo!("MockSwapper fetch_quote_data not implemented")
+    async fn get_quote_data(&self, _quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+        let permit2 = match data {
+            FetchQuoteData::Permit2(_) => None,
+            FetchQuoteData::EstimateGas | FetchQuoteData::None => self.pending_permit.clone(),
+        };
+        self.builds.lock().unwrap().push(data);
+        Ok(SwapperQuoteData { permit2, ..SwapperQuoteData::mock() })
     }
 }

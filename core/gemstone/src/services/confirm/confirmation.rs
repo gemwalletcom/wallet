@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::Instant;
 
 use primitives::currency::Currency;
 use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualType, SimulationResult, TransactionInputType, Wallet};
@@ -8,8 +9,8 @@ use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage, GemConfirmTransferService,
-    GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput,
+    ConfirmState, ConfirmSwapQuote, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage,
+    GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -28,6 +29,7 @@ pub struct GemConfirmation {
     simulation: Option<SimulationResult>,
     state: Mutex<Option<ConfirmState>>,
     latest_load: AtomicU64,
+    created_at: Instant,
 }
 
 impl GemConfirmation {
@@ -39,6 +41,7 @@ impl GemConfirmation {
             simulation,
             state: Mutex::new(None),
             latest_load: AtomicU64::new(0),
+            created_at: Instant::now(),
         }
     }
 
@@ -59,7 +62,15 @@ impl GemConfirmation {
     }
 
     async fn load_screen(&self, options: &GemConfirmLoadOptions) -> Result<ConfirmState, GemConfirmError> {
-        let (transfer, swap_quote) = self.service.fresh_transfer(&self.wallet, self.transfer()).await?;
+        let transfer = self.transfer();
+        let swap = self.stored().as_ref().and_then(|state| state.swap.clone()).or_else(|| ConfirmSwapQuote::initial(&transfer, self.created_at));
+        let (transfer, swap) = match swap {
+            Some(swap) => {
+                let (transfer, swap) = self.service.refreshed_swap(&self.wallet, transfer, swap, Instant::now()).await?;
+                (transfer, Some(swap))
+            }
+            None => (transfer, None),
+        };
         let input = self.service.confirm_input(self.wallet.clone(), transfer)?;
         let requested = async {
             match &self.simulation {
@@ -71,7 +82,7 @@ impl GemConfirmation {
         let fee = fee?;
         let requested = requested.transpose()?;
         let screen = GemConfirmLoad { transfer: input.transfer, ..screen? };
-        Ok(screen.with_fee(fee, requested, swap_quote))
+        Ok(screen.with_fee(fee, requested, swap))
     }
 
     fn authentication(&self) -> GemKeystoreAuthentication {
@@ -196,7 +207,7 @@ impl GemConfirmation {
         let Some(ConfirmState {
             load: GemConfirmLoad { fee: Some(fee), .. },
             confirm_data: Some(confirm_data),
-            swap_quote,
+            swap,
         }) = self.stored().clone()
         else {
             return Err(GemConfirmError::Load {
@@ -213,7 +224,7 @@ impl GemConfirmation {
             confirm: confirm_data,
             value: amount.value,
             network_fee: amount.network_fee,
-            swap_quote,
+            swap_quote: swap.and_then(|swap| swap.quote),
         };
         Box::pin(self.service.submit(input)).await
     }
@@ -228,7 +239,7 @@ impl GemConfirmation {
         }
         let input = self.service.confirm_input(self.wallet.clone(), self.transfer())?;
         let load = self.service.state(self.wallet.id.clone(), &input, self.simulation.clone()).await?;
-        Ok(self.stored().get_or_insert(ConfirmState { load, confirm_data: None, swap_quote: None }).load.clone())
+        Ok(self.stored().get_or_insert(ConfirmState { load, confirm_data: None, swap: None }).load.clone())
     }
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -386,18 +397,7 @@ mod tests {
                 ..confirmation.state().await.unwrap()
             };
             let load = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
-            assert!(
-                confirmation
-                    .store_latest(
-                        load,
-                        Ok(ConfirmState {
-                            load: named,
-                            confirm_data: None,
-                            swap_quote: None
-                        })
-                    )
-                    .is_ok()
-            );
+            assert!(confirmation.store_latest(load, Ok(ConfirmState { load: named, confirm_data: None, swap: None })).is_ok());
 
             assert_eq!(details(&confirmation.view_state(confirmation.screen())), confirmation.row_contents(Some(name.clone())));
 
@@ -463,7 +463,7 @@ mod tests {
             let older = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
             let newer = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
 
-            let state = |load: GemConfirmLoad| Ok(ConfirmState { load, confirm_data: None, swap_quote: None });
+            let state = |load: GemConfirmLoad| Ok(ConfirmState { load, confirm_data: None, swap: None });
             assert!(matches!(confirmation.store_latest(older, state(stale.clone())), Err(GemConfirmError::Cancelled)));
             assert!(matches!(confirmation.store_latest(older, Err(GemConfirmError::Offline)), Err(GemConfirmError::Cancelled)));
             assert!(confirmation.state().await.unwrap().address_name.is_none());
