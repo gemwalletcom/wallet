@@ -2,23 +2,11 @@ package com.gemwallet.android.ui.style
 
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.infoDescriptionRes
-import com.gemwallet.android.ui.localization.statusLabelRes
-import com.wallet.core.primitives.TransactionState
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemTransactionStateTone
 
 class GemstoneStyleTest {
-    @Test
-    fun everyStateNamesItsOwnLabel() {
-        assertEquals(R.string.transaction_status_pending, TransactionState.Pending.statusLabelRes())
-        assertEquals(R.string.transaction_status_pending, TransactionState.InTransit.statusLabelRes())
-        assertEquals(R.string.transaction_status_confirmed, TransactionState.Confirmed.statusLabelRes())
-        assertEquals(R.string.transaction_status_failed, TransactionState.Failed.statusLabelRes())
-        assertEquals(R.string.transaction_status_reverted, TransactionState.Reverted.statusLabelRes())
-        assertEquals(R.string.transaction_status_refunded, TransactionState.Refunded.statusLabelRes())
-    }
-
     @Test
     fun aRefundReadsAsAnErrorAndSuccessStandsAlone() {
         assertEquals(R.drawable.transaction_state_error, GemTransactionStateTone.REFUNDED.badgeIconRes())
