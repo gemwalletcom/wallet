@@ -62,4 +62,15 @@ struct AssetSceneViewModelTests {
             value: .amount(amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)),
         )).infoAction != nil)
     }
+
+    @Test
+    func detailRowsKeepTheirScreenshotIdentifiers() {
+        let model = AssetSceneViewModel.mock(.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)))
+        let apr = GemAssetBalanceRow(row: .staked(value: 0), value: .apr(apr: nil))
+
+        #expect(model.accessibilityIdentifier(.balance(row: apr, action: .stake)) == "stake")
+        #expect(model.accessibilityIdentifier(.balance(row: GemAssetBalanceRow(row: .earn(value: 0), value: .apr(apr: nil)), action: .earn)) == "earn")
+        #expect(model.accessibilityIdentifier(.row(row: .quote(title: .price, value: nil, change: nil), action: .price)) == "price")
+        #expect(model.accessibilityIdentifier(.row(row: .network(title: .network, chain: Chain.ethereum.rawValue, name: "Ethereum"), action: .network)) == nil)
+    }
 }

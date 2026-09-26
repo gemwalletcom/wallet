@@ -21,7 +21,8 @@ import com.gemwallet.android.features.assets.presents.asset.components.AssetHead
 import com.gemwallet.android.features.assets.presents.asset.components.BannerItem
 import com.gemwallet.android.features.assets.presents.asset.components.EmptyTransactionsItem
 import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIState
+import com.gemwallet.android.features.assets.viewmodels.asset.models.detailsAction
+import com.gemwallet.android.features.assets.viewmodels.asset.models.navigation
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -32,7 +33,10 @@ import com.gemwallet.android.ui.components.list_item.transaction.transactionsLis
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
@@ -40,17 +44,18 @@ import uniffi.gemstone.GemTransactionRow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetScene(
-    uiState: AssetUIState,
+    details: GemAssetDetails,
+    asset: Asset,
     transactions: List<GemTransactionRow>,
     transactionsErrorRow: GemListRow?,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetAction) -> Unit,
 ) {
-    val detailsState = uiState.details.state
+    val detailsState = details.state
     val swapAction: () -> Unit = {
-        uiState.details.swapPair.payAssetId.toAssetId()?.let { payAssetId ->
-            onAction(AssetAction.Swap(fromAssetId = payAssetId, toAssetId = uiState.details.swapPair.receiveAssetId?.toAssetId()))
+        details.swapPair.payAssetId.toAssetId()?.let { payAssetId ->
+            onAction(AssetAction.Swap(fromAssetId = payAssetId, toAssetId = details.swapPair.receiveAssetId?.toAssetId()))
         }
     }
 
@@ -58,7 +63,7 @@ internal fun AssetScene(
         titleContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = uiState.details.title,
+                    text = details.title,
                     maxLines = 1,
                     overflow = TextOverflow.MiddleEllipsis,
                 )
@@ -67,9 +72,8 @@ internal fun AssetScene(
         progress = null,
         actions = {
             AssetDetailsMenu(
-                uiState = uiState,
-                priceAlert = uiState.priceAlertMenu,
-                onPriceAlert = { onAction(AssetAction.TogglePriceAlert(it)) },
+                details = details,
+                onPriceAlert = { onAction(AssetAction.TogglePriceAlert(asset.id)) },
             )
         },
         onClose = { onAction(AssetAction.Close) },
@@ -85,35 +89,36 @@ internal fun AssetScene(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 item {
-                    AssetHeadItem(header = uiState.details.header, onAction = onAction)
+                    AssetHeadItem(header = details.header, onAction = onAction)
                 }
-                val banner = uiState.details.banner
+                val banner = details.banner
                 if (detailsState.showsBanners && banner != null) {
                     item {
                         BannerItem(
                             banner = banner,
-                            onStake = { onAction(AssetAction.Stake(uiState.asset.id)) },
+                            onStake = { onAction(AssetAction.Stake(asset.id)) },
                             onActivate = { onAction(AssetAction.Confirm(ConfirmTransferInput(it))) },
                             onOpenPerpetuals = { onAction(AssetAction.OpenPerpetuals) },
                             onClose = { onAction(AssetAction.CloseBanner(it)) },
                         )
                     }
                 }
-                uiState.details.verificationStatus?.let { verificationStatusItem(it.toPrimitives()) }
-                uiState.sections.forEach { section ->
-                    section.title?.let { title -> item { SubheaderItem(title) } }
+                details.verificationStatus?.let { verificationStatusItem(it.toPrimitives()) }
+                val network = details.networkDestination.navigation()
+                details.sections.forEach { section ->
+                    section.title.titleRes()?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->
-                        AssetDetailRowItem(row = row, listPosition = position, onAction = onAction)
+                        AssetDetailRowItem(row = row, action = row.detailsAction(asset.id, network), listPosition = position, onAction = onAction)
                     }
                 }
                 item {
                     transactionsErrorRow?.let { GemListRowView(row = it, listPosition = ListPosition.Single) } ?: EmptyTransactionsItem(
                         size = transactions.size,
-                        symbol = uiState.asset.symbol,
+                        symbol = asset.symbol,
                         state = detailsState.emptyState,
                         onAction = { action ->
                             when (action) {
-                                GemEmptyStateAction.BUY -> onAction(AssetAction.Buy(uiState.asset.id))
+                                GemEmptyStateAction.BUY -> onAction(AssetAction.Buy(asset.id))
                                 GemEmptyStateAction.SWAP -> swapAction()
                                 GemEmptyStateAction.RECEIVE, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
                             }

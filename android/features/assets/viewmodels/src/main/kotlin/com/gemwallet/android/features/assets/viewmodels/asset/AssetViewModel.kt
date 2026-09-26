@@ -20,8 +20,6 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIState
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIStateFactory
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
@@ -32,6 +30,7 @@ import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.ChainAssetData
@@ -58,6 +57,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerKey
@@ -80,7 +80,6 @@ class AssetViewModel @Inject constructor(
     private val assetDetailsService: GemAssetDetailsServiceInterface,
     private val bannersQuery: BannersQuery,
     private val priceAlertsQuery: PriceAlertsQuery,
-    private val assetUIStateFactory: AssetUIStateFactory,
     private val preferences: ObservablePreferences,
     private val observeRefreshInterval: ObserveRefreshInterval,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -137,15 +136,19 @@ class AssetViewModel @Inject constructor(
 
     private val priceAlerts = priceAlertsQuery(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
-    val uiModel = combine(chainAssetInfo, session, banners, priceAlerts, ::uiModel)
+    val details: StateFlow<GemAssetDetails?> = combine(chainAssetInfo, session, banners, priceAlerts, ::details)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private fun uiModel(chainInfo: ChainAssetData?, session: Session?, banners: List<Banner>, priceAlerts: List<PriceAlert>): AssetUIState? {
+    val asset: StateFlow<Asset?> = chainAssetInfo
+        .map { it?.assetData?.asset }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, chainAssetInfo.value?.assetData?.asset)
+
+    private fun details(chainInfo: ChainAssetData?, session: Session?, banners: List<Banner>, priceAlerts: List<PriceAlert>): GemAssetDetails? {
         session ?: return null
         val wallet = session.wallet
         val assetData = chainInfo?.assetData ?: return null
-        val details = assetDetailsService.details(
+        return assetDetailsService.details(
             GemAssetDetailsInput(
                 wallet = wallet.toGem(),
                 assetData = assetData.copy(priceAlerts = priceAlerts).toGem(),
@@ -154,7 +157,6 @@ class AssetViewModel @Inject constructor(
                 feeBalanceMetadata = chainInfo.feeAssetData.balance.metadata?.toGem(),
             ),
         )
-        return assetUIStateFactory.create(chainAssetInfo = chainInfo, details = details)
     }
 
     fun refresh() {
@@ -202,7 +204,7 @@ class AssetViewModel @Inject constructor(
     }
 
     fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        val current = uiModel.value?.details?.state?.priceAlert ?: return@launch
+        val current = details.value?.state?.priceAlert ?: return@launch
         val name = chainAssetInfo.value?.assetData?.asset?.name.orEmpty()
         runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), current.toggled() == GemPriceAlertToggle.ENABLED) }
             .onSuccess { emitToast(ToastMessage(context.getString(current.toastRes(), name), R.drawable.ic_notifications)) }

@@ -15,18 +15,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIState
-import com.gemwallet.android.features.assets.viewmodels.asset.models.PriceAlertMenuUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.shareText
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.style.symbol
+import uniffi.gemstone.GemAssetDetails
 
 @Composable
-fun RowScope.AssetDetailsMenu(uiState: AssetUIState, priceAlert: PriceAlertMenuUIModel, onPriceAlert: (AssetId) -> Unit) {
+fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit) {
     val context = LocalContext.current
 
     var menuExpanded by remember { mutableStateOf(false) }
@@ -34,17 +33,11 @@ fun RowScope.AssetDetailsMenu(uiState: AssetUIState, priceAlert: PriceAlertMenuU
     val shareTitle = stringResource(id = R.string.common_share)
 
     val onShare = fun () {
-        context.shareText(subject = null, text = uiState.details.shareUrl, chooserTitle = shareTitle)
+        context.shareText(subject = null, text = details.shareUrl, chooserTitle = shareTitle)
     }
 
-    val enablePriceAlert = fun () {
-        onPriceAlert(uiState.asset.id)
-    }
-
-    IconButton(
-        onClick = enablePriceAlert,
-    ) {
-        Icon(priceAlert.symbol.vector(), "")
+    IconButton(onClick = onPriceAlert) {
+        Icon(details.state.priceAlert.symbol().vector(), "")
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(
@@ -57,18 +50,18 @@ fun RowScope.AssetDetailsMenu(uiState: AssetUIState, priceAlert: PriceAlertMenuU
         onDismissRequest = { menuExpanded = false },
         containerColor = MaterialTheme.colorScheme.background,
     ) {
-        uiState.details.addressLink?.link?.let {
+        details.addressLink?.link?.let {
             DropdownMenuItem(
                 text = {
-                    Text(stringResource(R.string.asset_view_address_on, uiState.details.explorerName))
+                    Text(stringResource(R.string.asset_view_address_on, details.explorerName))
                 },
                 onClick = { uriHandler.open(context, it) },
             )
         }
-        uiState.details.tokenLink?.link?.let {
+        details.tokenLink?.link?.let {
             DropdownMenuItem(
                 text = {
-                    Text(stringResource(R.string.asset_view_token_on, uiState.details.explorerName))
+                    Text(stringResource(R.string.asset_view_token_on, details.explorerName))
                 },
                 onClick = { uriHandler.open(context, it) },
             )

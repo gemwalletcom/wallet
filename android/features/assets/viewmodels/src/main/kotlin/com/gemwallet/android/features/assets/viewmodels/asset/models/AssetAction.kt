@@ -6,6 +6,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
+import uniffi.gemstone.GemAssetDetailRow
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemRowAction
@@ -41,6 +42,11 @@ fun GemAssetNetworkDestination?.navigation(): AssetAction.Navigation? = when (th
     is GemAssetNetworkDestination.Assets -> AssetAction.OpenNetworkAssets(chain.requireChain())
     null -> null
 }
+
+fun GemAssetDetailRow.detailsAction(assetId: AssetId, network: AssetAction.Navigation?): AssetAction? = when (this) {
+    is GemAssetDetailRow.Balance -> action
+    is GemAssetDetailRow.Row -> action
+}?.detailsAction(assetId, network)
 
 fun GemRowAction.detailsAction(assetId: AssetId, network: AssetAction.Navigation?): AssetAction? = when (this) {
     GemRowAction.Price -> AssetAction.OpenChart(assetId)

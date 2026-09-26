@@ -27,14 +27,18 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
     val uriHandler = LocalUriHandler.current
     val snackBar = rememberSnackbarState(message = priceAlertError, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     ToastEffect(viewModel.toastEvents, snackBar)
-    val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
+    val details by viewModel.details.collectAsStateWithLifecycle()
+    val asset by viewModel.asset.collectAsStateWithLifecycle()
 
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
-    if (uiModel != null) {
+    val currentDetails = details
+    val currentAsset = asset
+    if (currentDetails != null && currentAsset != null) {
         AssetScene(
-            uiState = uiModel ?: return,
+            details = currentDetails,
+            asset = currentAsset,
             transactions = transactions,
             transactionsErrorRow = transactionsErrorRow,
             isRefreshing = isRefreshing,

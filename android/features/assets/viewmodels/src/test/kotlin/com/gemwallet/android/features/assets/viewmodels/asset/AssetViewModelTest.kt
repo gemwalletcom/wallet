@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.assets.viewmodels.asset
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +11,6 @@ import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIStateFactory
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
@@ -116,17 +114,17 @@ class AssetViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertNull(viewModel.uiModel.value)
+        assertNull(viewModel.details.value)
 
         banners.emit(emptyList())
         advanceUntilIdle()
 
-        assertNull(viewModel.uiModel.value)
+        assertNull(viewModel.details.value)
 
         priceAlerts.emit(listOf(PriceAlertData(asset = asset, priceAlert = mockPriceAlert(assetId = asset.id), rankScore = 0)))
-        val uiModel = viewModel.uiModel.first { it != null }!!
+        val details = viewModel.details.first { it != null }!!
 
-        assertEquals(GemPriceAlertToggle.ENABLED, uiModel.details.state.priceAlert)
+        assertEquals(GemPriceAlertToggle.ENABLED, details.state.priceAlert)
     }
 
     @Test
@@ -150,7 +148,6 @@ class AssetViewModelTest {
         assetDetailsService = service,
         bannersQuery = bannersQuery,
         priceAlertsQuery = priceAlertsQuery,
-        assetUIStateFactory = AssetUIStateFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         preferences = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,
         observeRefreshInterval = mockk(relaxed = true),

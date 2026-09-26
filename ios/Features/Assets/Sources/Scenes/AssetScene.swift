@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemAssetDetailRow
+import enum Gemstone.GemAssetNetworkDestination
+import enum Gemstone.GemRowAction
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -51,13 +54,13 @@ public struct AssetScene: View {
                 }
             }
 
-            ForEach(model.detailSections(details)) { section in
+            ForEach(Array(details.sections.enumerated()), id: \.offset) { _, section in
                 Section {
-                    ForEach(section.rows) { row in
-                        detailRow(row)
+                    ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
+                        detailRow(row, networkDestination: details.networkDestination)
                     }
                 } header: {
-                    if let title = section.title {
+                    if let title = section.title.text {
                         Text(title)
                     }
                 }
@@ -93,42 +96,44 @@ public struct AssetScene: View {
 
 extension AssetScene {
     @ViewBuilder
-    private func detailRow(_ item: AssetDetailRowItem) -> some View {
-        switch item.action {
-        case .price:
-            NavigationLink(value: Scenes.Chart(asset: model.asset), label: { rowContent(item.content) })
-                .accessibilityIdentifier(item.accessibilityIdentifier ?? "")
-        case let .network(destination):
-            switch destination {
-            case let .asset(asset):
-                NavigationLink(value: Scenes.Asset(asset: asset), label: { rowContent(item.content) })
-            case let .assets(chain):
-                NavigationLink(value: Scenes.NetworkAssets(chain: chain), label: { rowContent(item.content) })
-            }
-        case .stake:
-            NavigationCustomLink(with: rowContent(item.content), action: model.onSelectStake)
-                .accessibilityIdentifier(item.accessibilityIdentifier ?? "")
-        case .earn:
-            NavigationCustomLink(with: rowContent(item.content), action: model.onSelectEarn)
-                .accessibilityIdentifier(item.accessibilityIdentifier ?? "")
-        case let .explorer(url):
-            SafariNavigationLink(url: url) { rowContent(item.content) }
-        case .priceAlerts:
-            NavigationLink(value: Scenes.AssetPriceAlert(asset: model.assetData.asset), label: { rowContent(item.content) })
-        case .pin:
-            NavigationCustomLink(with: rowContent(item.content), action: model.onSelectPin)
-        case .enable:
-            NavigationCustomLink(with: rowContent(item.content), action: model.onSelectEnable)
-        case .none:
-            rowContent(item.content)
+    private func detailRow(_ row: GemAssetDetailRow, networkDestination: GemAssetNetworkDestination?) -> some View {
+        switch row {
+        case let .balance(item, action):
+            detailLink(action, networkDestination: networkDestination) { ListItemView(model: model.balanceListItem(for: item)) }
+                .accessibilityIdentifier(model.accessibilityIdentifier(row) ?? "")
+        case let .row(listRow, action):
+            detailLink(action, networkDestination: networkDestination) { GemListRowView(row: listRow) }
+                .accessibilityIdentifier(model.accessibilityIdentifier(row) ?? "")
         }
     }
 
     @ViewBuilder
-    private func rowContent(_ content: AssetDetailRowContent) -> some View {
-        switch content {
-        case let .item(model): ListItemView(model: model)
-        case let .row(row): GemListRowView(row: row)
+    private func detailLink(_ action: GemRowAction?, networkDestination: GemAssetNetworkDestination?, @ViewBuilder label: @escaping () -> some View) -> some View {
+        switch (action, networkDestination) {
+        case (.price, _):
+            NavigationLink(value: Scenes.Chart(asset: model.asset), label: label)
+        case let (.network, .asset(asset)):
+            NavigationLink(value: Scenes.Asset(asset: asset.toPrimitives()), label: label)
+        case let (.network, .assets(chain)):
+            NavigationLink(value: Scenes.NetworkAssets(chain: Chain(core: chain)), label: label)
+        case (.stake, _):
+            NavigationCustomLink(with: label(), action: model.onSelectStake)
+        case (.earn, _):
+            NavigationCustomLink(with: label(), action: model.onSelectEarn)
+        case let (.explorer(url), _):
+            if let url = URL(string: url) {
+                SafariNavigationLink(url: url, content: label)
+            } else {
+                label()
+            }
+        case (.priceAlerts, _):
+            NavigationLink(value: Scenes.AssetPriceAlert(asset: model.assetData.asset), label: label)
+        case (.pin, _):
+            NavigationCustomLink(with: label(), action: model.onSelectPin)
+        case (.addToWallet, _):
+            NavigationCustomLink(with: label(), action: model.onSelectEnable)
+        default:
+            label()
         }
     }
 }
