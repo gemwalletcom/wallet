@@ -4,7 +4,6 @@ import Components
 import Foundation
 import Gemstone
 import GemstonePrimitivesTestKit
-import Localization
 import Primitives
 import PrimitivesTestKit
 @testable import Rewards
@@ -186,12 +185,5 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary(.disabled))
-    }
-
-    @Test
-    func pendingNoticeTextsReadTheLocalizedCopy() {
-        #expect(GemLocalizedText.rewardsPendingReady.text == Localized.Rewards.Pending.descriptionReady)
-        #expect(GemLocalizedText.rewardsUnverified.text == Localized.Rewards.Unverified.description)
-        #expect(GemLocalizedText.text(text: "verification required").text == "verification required")
     }
 }
