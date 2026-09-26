@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -20,13 +19,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -36,21 +30,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.features.assets.presents.banner.BannerScene
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetuals.presents.PerpetualsPreviewSection
-import com.gemwallet.android.features.wallet_tab.presents.components.AssetsHead
 import com.gemwallet.android.features.wallet_tab.presents.components.AssetsListFooter
+import com.gemwallet.android.features.wallet_tab.presents.components.WalletHeader
 import com.gemwallet.android.features.wallet_tab.presents.components.assets
-import com.gemwallet.android.features.wallet_tab.viewmodels.AssetsViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
-import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -58,8 +51,9 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemBannerDestination
+import uniffi.gemstone.GemBannerKey
 
-private const val AssetsHeadItemKey = "assets_head"
+private const val WalletHeaderItemKey = "assets_head"
 private const val InAppUpdateBannerItemKey = "in_app_update_banner"
 private const val BannersItemKey = "banners"
 private const val ImportingItemKey = "importing"
@@ -70,43 +64,33 @@ private const val AssetsListTag = "assets_list"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = {}, listState: LazyListState = rememberLazyListState(), viewModel: AssetsViewModel = hiltViewModel()) {
+internal fun WalletScene(
+    walletSummary: WalletSummary?,
+    importing: Boolean,
+    pinnedAssets: List<AssetInfoDataAggregate>,
+    unpinnedAssets: List<AssetInfoDataAggregate>,
+    bannerRow: BannerRowUIModel?,
+    isRefreshing: Boolean,
+    collectionsAvailable: Boolean,
+    snackbar: SnackbarHostState,
+    listState: LazyListState,
+    assetActions: AssetContextActions,
+    onRefresh: () -> Unit,
+    onHideBalances: () -> Unit,
+    onCloseBanner: (GemBannerKey) -> Unit,
+    onAction: (WalletAction) -> Unit,
+) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
-    val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
-    val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
-    val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
-    val bannerRow by viewModel.bannerRow.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
-
-    val snackbar = remember { SnackbarHostState() }
-    ToastEffect(viewModel.toastEvents, snackbar)
-
-    val currentOnContentReady by rememberUpdatedState(onContentReady)
-    LaunchedEffect(walletSummary != null) {
-        if (walletSummary != null) currentOnContentReady()
-    }
-
-    val currentWalletId by viewModel.currentWalletId.collectAsStateWithLifecycle()
-    var previousWalletId by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(currentWalletId) {
-        val walletId = currentWalletId?.id ?: return@LaunchedEffect
-        if (previousWalletId != null && previousWalletId != walletId) {
-            listState.scrollToItem(0)
-        }
-        previousWalletId = walletId
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AssetsTopBar(
+            WalletTopBar(
                 walletSummary = walletSummary,
-                onShowWallets = { onAction(AssetsAction.ShowWallets) },
-                onSearch = { onAction(AssetsAction.Search) },
-                onScan = { onAction(AssetsAction.Scan) },
+                onShowWallets = { onAction(WalletAction.ShowWallets) },
+                onSearch = { onAction(WalletAction.Search) },
+                onScan = { onAction(WalletAction.Scan) },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -116,30 +100,24 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
         PullToRefreshBox(
             modifier = Modifier.padding(top = it.calculateTopPadding()),
             isRefreshing = isRefreshing,
-            onRefresh = viewModel::onRefresh,
+            onRefresh = onRefresh,
         ) {
             val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
-            val assetActions = remember(viewModel) {
-                AssetContextActions(
-                    onTogglePin = viewModel::togglePin,
-                    onHide = viewModel::hideAsset,
-                )
-            }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
                     .testTag(AssetsListTag),
                 state = listState,
             ) {
-                item(key = AssetsHeadItemKey) {
-                    AssetsHead(
+                item(key = WalletHeaderItemKey) {
+                    WalletHeader(
                         walletSummary = walletSummary,
-                        onSendClick = { onAction(AssetsAction.Send) },
-                        onReceiveClick = { onAction(AssetsAction.Receive) },
-                        onBuyClick = { onAction(AssetsAction.Buy) },
-                        onSwapClick = { onAction(AssetsAction.Swap) },
-                        onPortfolio = { onAction(AssetsAction.Portfolio) },
-                        onHideBalances = viewModel::hideBalances,
+                        onSendClick = { onAction(WalletAction.Send) },
+                        onReceiveClick = { onAction(WalletAction.Receive) },
+                        onBuyClick = { onAction(WalletAction.Buy) },
+                        onSwapClick = { onAction(WalletAction.Swap) },
+                        onPortfolio = { onAction(WalletAction.Portfolio) },
+                        onHideBalances = onHideBalances,
                     )
                 }
                 item(key = InAppUpdateBannerItemKey) {
@@ -159,9 +137,9 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                                     -> Unit
                                 }
                             },
-                            onClose = viewModel::closeBanner,
-                            onBuy = { onAction(AssetsAction.Buy) },
-                            onReceive = { onAction(AssetsAction.Receive) },
+                            onClose = onCloseBanner,
+                            onBuy = { onAction(WalletAction.Buy) },
+                            onReceive = { onAction(WalletAction.Receive) },
                         )
                     }
                 }
@@ -192,8 +170,8 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                 if (walletSummary?.state?.showsPerpetuals == true) {
                     item(key = PerpetualsSectionItemKey) {
                         PerpetualsPreviewSection(
-                            onOpenPerpetuals = { onAction(AssetsAction.Perpetuals) },
-                            onOpenPerpetualDetails = { onAction(AssetsAction.OpenPerpetualDetails(it)) },
+                            onOpenPerpetuals = { onAction(WalletAction.Perpetuals) },
+                            onOpenPerpetualDetails = { onAction(WalletAction.OpenPerpetualDetails(it)) },
                         )
                     }
                 }
@@ -201,14 +179,14 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                     items = pinnedAssets,
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.Pinned,
-                    onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
+                    onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
                 assets(
                     items = unpinnedAssets,
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.None,
-                    onAssetClick = { onAction(AssetsAction.OpenAsset(it)) },
+                    onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
                 if (collectionsAvailable) {
@@ -216,15 +194,15 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                         CollectionsPreviewSection(
                             onAction = { action ->
                                 when (action) {
-                                    CollectionsPreviewAction.OpenCollections -> onAction(AssetsAction.OpenCollections)
-                                    is CollectionsPreviewAction.OpenCollection -> onAction(AssetsAction.OpenNftCollection(action.collectionId))
-                                    is CollectionsPreviewAction.OpenAsset -> onAction(AssetsAction.OpenNftAsset(action.assetId))
+                                    CollectionsPreviewAction.OpenCollections -> onAction(WalletAction.OpenCollections)
+                                    is CollectionsPreviewAction.OpenCollection -> onAction(WalletAction.OpenNftCollection(action.collectionId))
+                                    is CollectionsPreviewAction.OpenAsset -> onAction(WalletAction.OpenNftAsset(action.assetId))
                                 }
                             },
                         )
                     }
                 }
-                item(key = FooterItemKey) { AssetsListFooter { onAction(AssetsAction.Manage) } }
+                item(key = FooterItemKey) { AssetsListFooter { onAction(WalletAction.Manage) } }
             }
         }
     }

@@ -42,7 +42,7 @@ import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
-class AssetsViewModel @Inject constructor(
+class WalletViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,

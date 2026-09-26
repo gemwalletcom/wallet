@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.market.presents.ChartSection
-import com.gemwallet.android.features.wallet_tab.viewmodels.PortfolioChartViewModel
+import com.gemwallet.android.features.wallet_tab.viewmodels.PortfolioViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.TabsBar
@@ -41,7 +41,7 @@ import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortfolioChartScene(onCancel: () -> Unit, viewModel: PortfolioChartViewModel = hiltViewModel()) {
+fun PortfolioScreen(onCancel: () -> Unit, viewModel: PortfolioViewModel = hiltViewModel()) {
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
@@ -124,7 +124,7 @@ private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (Portfolio
 }
 
 @Composable
-private fun PortfolioChart(viewModel: PortfolioChartViewModel) {
+private fun PortfolioChart(viewModel: PortfolioViewModel) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
     val periods by viewModel.availablePeriods.collectAsStateWithLifecycle()
 

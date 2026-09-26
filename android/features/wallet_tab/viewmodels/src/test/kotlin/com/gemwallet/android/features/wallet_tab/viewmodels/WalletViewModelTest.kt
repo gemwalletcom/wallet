@@ -40,7 +40,7 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletHomeServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AssetsViewModelTest {
+class WalletViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val activeAssetsFlow = MutableStateFlow(
@@ -161,7 +161,7 @@ class AssetsViewModelTest {
         assertFalse(viewModel.isLoadingAssets.value)
     }
 
-    private fun createViewModel() = AssetsViewModel(
+    private fun createViewModel() = WalletViewModel(
         service = service,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,

@@ -53,7 +53,7 @@ If the element you need has no id, **adding the id to the app is part of writing
 | Platform | Add the id | Existing example |
 |----------|-----------|------------------|
 | SwiftUI | `.accessibilityIdentifier("assetsManageAction")` | `AssetScene.swift` (`price`, `stake`, `earn`) |
-| Compose | `Modifier.testTag("assetsManageAction")` | `AssetsTopBar.kt`, `MainScreen.kt` (`mainTab`, `settingsTab`) |
+| Compose | `Modifier.testTag("assetsManageAction")` | `WalletTopBar.kt`, `MainScreen.kt` (`mainTab`, `settingsTab`) |
 
 Use the **same id string on both platforms** so one flow logic runs on both. `id` is regex — keep ids specific so they do not substring-match a neighbor.
 

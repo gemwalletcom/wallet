@@ -31,7 +31,7 @@ private const val ManageActionTag = "assetsManageAction"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AssetsTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
+internal fun WalletTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletRow?.imageUrl)
         ?: walletSummary?.walletRow?.placeholder?.iconModel()
 

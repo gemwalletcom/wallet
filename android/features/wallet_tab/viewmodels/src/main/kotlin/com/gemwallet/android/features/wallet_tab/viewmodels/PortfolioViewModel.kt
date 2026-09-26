@@ -45,7 +45,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PortfolioChartViewModel internal constructor(
+class PortfolioViewModel internal constructor(
     private val service: GemPortfolioServiceInterface,
     getSession: GetSession,
     initialType: PortfolioType,

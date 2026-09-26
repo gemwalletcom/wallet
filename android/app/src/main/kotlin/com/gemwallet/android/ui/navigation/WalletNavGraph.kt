@@ -42,7 +42,7 @@ import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
-import com.gemwallet.android.ui.navigation.routes.portfolioChartScreen
+import com.gemwallet.android.ui.navigation.routes.portfolioScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
@@ -146,7 +146,7 @@ fun WalletNavGraph(
                 onCancel = onCancel,
             )
 
-            portfolioChartScreen(
+            portfolioScreen(
                 onCancel = onCancel,
             )
 

@@ -47,7 +47,7 @@ import uniffi.gemstone.PortfolioStatistic
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PortfolioChartViewModelTest {
+class PortfolioViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val session = mockSession()
@@ -376,7 +376,7 @@ class PortfolioChartViewModelTest {
         assertEquals(99.0, row.value.value, 0.0)
     }
 
-    private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(
+    private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioViewModel(
         service = service,
         getSession = getSession,
         initialType = initialType,

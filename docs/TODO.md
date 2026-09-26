@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM353, then NAM354 to NAM372 in any order, one feature per change.
+7. **Names:** NAM354 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -428,7 +428,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** asset sections from Core carry their titles and kinds; the header choices go.
 - **VM264** **S** **Search result sections are split in the apps.**
   - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
-  - **Android:** `WalletSearchViewModel` and `AssetsViewModel` split the same way; `WalletSummary` re-assembles the home state.
+  - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
 - **VM265** **S** **Chain pickers each search chains themselves.**
   - **iOS:** `ChainListSettingsViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
@@ -444,7 +444,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** payload rows render through the shared row renderer (address rows from VM207); both go.
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
-  - **Android:** `AssetsScreen` ignores the same three; `BannerItem` handles all four.
+  - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
   - **Expected:** Core emits only destinations the screen can open and each app keeps one banner routing function.
 
 ### Texts composed in the apps
@@ -647,9 +647,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM353** **S** **Wallet tab: the home screen is `Wallet` and the chart screen `Portfolio`.**
-  - **Android:** `AssetsScreen`/`AssetsViewModel`/`AssetsAction`/`AssetsTopBar`/`AssetsHead`/`AssetsViewModelTest` → `WalletScreen` (+ stateless `WalletScene`)/`WalletViewModel`/`WalletAction`/`WalletTopBar`/`WalletHeader`/`WalletViewModelTest`; `PortfolioChartScene`/`PortfolioChartViewModel`/`PortfolioChartRoute`/`portfolioChartScreen()` → `PortfolioScreen`/`PortfolioViewModel`/`PortfolioRoute`/`portfolioScreen()`; file `InAppUpdateViewModelsTest.kt` → `InAppUpdateViewModelTest.kt`.
-  - **iOS:** `WalletNavigationView` follows the destination-host rule.
 - **NAM354** **M** **Assets: the asset screen is `Asset`, selection is `SelectAsset`, recents are `Recents`.**
   - **iOS:** `SelectAssetViewModel` → `SelectAssetSceneViewModel`; `SelectAssetSceneNavigationStack` → `SelectAssetNavigationStack`; `RecentAssetsModel` → `RecentAssetsViewModel`; TestKit files `*+AssetsTestKit.swift` → `*+TestKit.swift`; `AssetNavigationView` follows the destination-host rule.
   - **Android:** `AssetDetailsScreen`/`AssetDetailsScene`/`AssetDetailsViewModel`/`AssetDetailsAction` → `Asset…`, `AssetInfoUIModel` (whole screen) → `AssetUIState`, its `RowUIModel`/`SectionUIModel` → `AssetDetailRowUIModel`/`AssetDetailSectionUIModel`; packages `presents.details`/`viewmodels.details.viewmodels` → `presents.asset`/`viewmodels.asset`; `AssetSelectScreen`/`AssetSelectScene`/`AssetSelectRow`/`AssetSelectViewModel`/`BaseAssetSelectViewModel`/`AssetSelectAction`/`AssetSelectFlowUIModel` → `SelectAsset…`; `RecentsSheetHost`/`RecentsBottomSheet`/`RecentsSheetViewModel`/`RecentsSheetUIModel` → `RecentsScreen`/`RecentsScene`/`RecentsViewModel`/`RecentsUIState`; `BannerScene` (file `BannersScene.kt`) → `Banner` in `Banner.kt`; files `AssetDetailsMenuUIModel.kt`, `AssetDetailRowAction.kt` and `AssetsManageNavigation.kt` named after their types.

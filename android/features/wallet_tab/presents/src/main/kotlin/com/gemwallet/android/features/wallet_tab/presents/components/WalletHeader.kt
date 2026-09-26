@@ -13,7 +13,7 @@ import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.textStyle
 
 @Composable
-internal fun AssetsHead(walletSummary: WalletSummary?, onSendClick: () -> Unit, onReceiveClick: () -> Unit, onBuyClick: () -> Unit, onSwapClick: () -> Unit, onHideBalances: () -> Unit, onPortfolio: () -> Unit) {
+internal fun WalletHeader(walletSummary: WalletSummary?, onSendClick: () -> Unit, onReceiveClick: () -> Unit, onBuyClick: () -> Unit, onSwapClick: () -> Unit, onHideBalances: () -> Unit, onPortfolio: () -> Unit) {
     walletSummary ?: return
 
     AmountListHead(

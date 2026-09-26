@@ -44,9 +44,9 @@ import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.presents.SettingsScene
 import com.gemwallet.android.features.transactions.presents.list.TransactionsScreen
-import com.gemwallet.android.features.wallet_tab.presents.AssetsAction
-import com.gemwallet.android.features.wallet_tab.presents.AssetsScreen
-import com.gemwallet.android.features.wallet_tab.viewmodels.AssetsViewModel
+import com.gemwallet.android.features.wallet_tab.presents.WalletAction
+import com.gemwallet.android.features.wallet_tab.presents.WalletScreen
+import com.gemwallet.android.features.wallet_tab.viewmodels.WalletViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onWalletContentReady: () -> Unit = {}, viewModel: MainScreenViewModel = hiltViewModel()) {
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
-    val assetsViewModel: AssetsViewModel = hiltViewModel()
+    val walletViewModel: WalletViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
     var isPresentingScanner by rememberSaveable { mutableStateOf(false) }
 
@@ -203,29 +203,29 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                 ) { tab ->
                     tabStateHolder.SaveableStateProvider(tab) {
                         when (tab) {
-                            assetsRoute -> AssetsScreen(
+                            assetsRoute -> WalletScreen(
                                 onAction = { action ->
                                     when (action) {
-                                        AssetsAction.ShowWallets -> navigator.openWallets()
-                                        AssetsAction.Manage -> navigator.openAssetsManage()
-                                        AssetsAction.Scan -> isPresentingScanner = true
-                                        AssetsAction.Search -> navigator.openAssetsSearch()
-                                        AssetsAction.Send -> navigator.openRecipient()
-                                        AssetsAction.Receive -> navigator.openReceive()
-                                        AssetsAction.Buy -> navigator.openBuy()
-                                        AssetsAction.Swap -> navigator.openSwap()
-                                        AssetsAction.Portfolio -> navigator.openPortfolioChart()
-                                        AssetsAction.Perpetuals -> navigator.openPerpetuals()
-                                        is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
-                                        is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)
-                                        AssetsAction.OpenCollections -> navigator.openNftList()
-                                        is AssetsAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
-                                        is AssetsAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
+                                        WalletAction.ShowWallets -> navigator.openWallets()
+                                        WalletAction.Manage -> navigator.openAssetsManage()
+                                        WalletAction.Scan -> isPresentingScanner = true
+                                        WalletAction.Search -> navigator.openAssetsSearch()
+                                        WalletAction.Send -> navigator.openRecipient()
+                                        WalletAction.Receive -> navigator.openReceive()
+                                        WalletAction.Buy -> navigator.openBuy()
+                                        WalletAction.Swap -> navigator.openSwap()
+                                        WalletAction.Portfolio -> navigator.openPortfolioChart()
+                                        WalletAction.Perpetuals -> navigator.openPerpetuals()
+                                        is WalletAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
+                                        is WalletAction.OpenAsset -> navigator.openAsset(action.assetId)
+                                        WalletAction.OpenCollections -> navigator.openNftList()
+                                        is WalletAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
+                                        is WalletAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
                                     }
                                 },
                                 onContentReady = onWalletContentReady,
                                 listState = assetsListState,
-                                viewModel = assetsViewModel,
+                                viewModel = walletViewModel,
                             )
 
                             transactionsRoute -> TransactionsScreen(
