@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Primitives
 import SwiftUI
 
 public struct NetworkFeeSheet: View {

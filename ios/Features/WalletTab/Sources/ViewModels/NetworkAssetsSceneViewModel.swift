@@ -18,7 +18,6 @@ import SwiftUI
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
     private let service: any GemWalletHomeServiceProtocol
-    let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
     public var isPresentingToastMessage: ToastMessage?
@@ -32,7 +31,6 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         service: any GemWalletHomeServiceProtocol,
         onManageAssets: @escaping () -> Void,
     ) {
-        self.wallet = wallet
         self.service = service
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(

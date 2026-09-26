@@ -6,9 +6,6 @@ import NativeProviderService
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
-    private let nodes: GemNodeService
-    private let preferences: any GemPreferencesStore
-    private let securePreferences: any GemSecureStore
 
     public init(
         provider: NativeProvider,
@@ -16,9 +13,6 @@ public actor GatewayService: Sendable {
         preferences: any GemPreferencesStore,
         securePreferences: any GemSecureStore,
     ) {
-        self.nodes = nodes
-        self.preferences = preferences
-        self.securePreferences = securePreferences
         gateway = GemGateway(
             provider: provider,
             nodes: nodes,

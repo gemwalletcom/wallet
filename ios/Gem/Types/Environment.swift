@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstoneServices
 import SwiftUI
 import WalletConnector
 import WalletConnectorService

@@ -1482,7 +1482,7 @@ public extension GemAmountSymbol {
     var text: String {
         switch self {
         case let .asset(symbol): symbol
-        case let .currency(currency): CurrencyFormatter(type: .currency, currencyCode: currency.toPrimitives().rawValue).symbol
+        case let .currency(currency): CurrencyFormatter(currencyCode: currency.toPrimitives().rawValue).symbol
         }
     }
 }
