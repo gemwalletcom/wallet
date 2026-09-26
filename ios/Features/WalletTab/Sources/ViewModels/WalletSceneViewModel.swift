@@ -9,6 +9,7 @@ import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletHomeServiceProtocol
@@ -101,8 +102,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Localized.Nft.collections
     }
 
-    var collectionsContent: CollectionsContent {
-        collectionsModel.content
+    var collections: [GemNftEntry] {
+        collectionsModel.screen.items
     }
 
     public var searchImage: Image {

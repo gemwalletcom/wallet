@@ -17,7 +17,6 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
-import com.gemwallet.android.ui.models.toUIModels
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -99,7 +98,7 @@ class CollectionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val collections = screen
-        .map { it.items.toUIModels() }
+        .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, screen) { state, screen ->

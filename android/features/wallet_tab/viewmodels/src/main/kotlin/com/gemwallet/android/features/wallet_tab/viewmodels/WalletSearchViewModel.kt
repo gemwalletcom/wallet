@@ -17,8 +17,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
-import com.gemwallet.android.ui.models.NftItemUIModel
-import com.gemwallet.android.ui.models.toUIModels
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemSearchListRow
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
@@ -87,7 +86,7 @@ class WalletSearchViewModel @Inject constructor(
         .map { data -> data.filter { it.assets.isNotEmpty() } }
         .flowOn(ioDispatcher)
 
-    private val nfts: StateFlow<List<NftItemUIModel>> = combine(
+    private val nfts: StateFlow<List<GemNftEntry>> = combine(
         nftData,
         currentQuery,
     ) { data, query ->
@@ -157,7 +156,7 @@ class WalletSearchViewModel @Inject constructor(
         .map { it?.hasMorePerpetuals == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val previewNfts: StateFlow<List<NftItemUIModel>> = combine(nfts, view) { items, view ->
+    val previewNfts: StateFlow<List<GemNftEntry>> = combine(nfts, view) { items, view ->
         items.take(view?.limits?.nfts?.toInt() ?: 0)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -166,7 +165,7 @@ class WalletSearchViewModel @Inject constructor(
         .map { it?.hasMoreNfts == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> = service.searchCollections(data.map { it.toGem() }, query).toUIModels()
+    private fun searchNfts(data: List<NFTData>, query: String): List<GemNftEntry> = service.searchCollections(data.map { it.toGem() }, query)
 
     override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
 

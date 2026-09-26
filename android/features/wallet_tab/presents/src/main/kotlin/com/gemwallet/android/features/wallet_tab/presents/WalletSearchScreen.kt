@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
+import com.gemwallet.android.ui.models.target
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
@@ -144,7 +145,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             }
             itemsPositioned(previewNfts) { position, item ->
                 NftListItem(
-                    model = item,
+                    row = item.row,
                     listPosition = position,
                     onClick = {
                         when (val target = item.target) {

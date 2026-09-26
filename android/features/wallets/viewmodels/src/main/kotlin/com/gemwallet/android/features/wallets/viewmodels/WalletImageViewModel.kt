@@ -12,8 +12,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.models.NftItemUIModel
-import com.gemwallet.android.ui.models.toUIModels
 import com.gemwallet.android.ui.theme.AvatarEmoji
 import com.wallet.core.primitives.NFTAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +27,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemWalletDetails
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -52,8 +51,8 @@ class WalletImageViewModel @Inject constructor(
 
     val emojis: List<String> = AvatarEmoji.all
 
-    val nftImages: StateFlow<List<NftItemUIModel>> = nftQuery(walletId.id)
-        .map { data -> walletService.avatarItems(data.map { it.toGem() }).toUIModels() }
+    val nftImages: StateFlow<List<GemNftEntry>> = nftQuery(walletId.id)
+        .map { data -> walletService.avatarItems(data.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val errorState = MutableStateFlow<String?>(null)

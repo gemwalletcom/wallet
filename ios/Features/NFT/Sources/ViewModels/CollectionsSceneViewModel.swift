@@ -41,10 +41,6 @@ public final class CollectionsSceneViewModel: Sendable {
         service.listScreen(data: query.value.map { $0.toGem() }, list: list)
     }
 
-    public var content: CollectionsContent {
-        CollectionsContent(screen)
-    }
-
     public var columns: [GridItem] {
         Array(repeating: GridItem(spacing: .medium), count: 2)
     }

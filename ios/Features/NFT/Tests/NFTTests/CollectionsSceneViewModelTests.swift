@@ -14,14 +14,14 @@ struct CollectionsSceneViewModelTests {
     func unverifiedCountShowsOnlyWhenACollectionIsUnverified() {
         let model = CollectionsSceneViewModel.mock()
 
-        #expect(model.content.unverifiedCount == nil)
+        #expect(model.screen.unverifiedRow == nil)
 
         model.query.value = [
             .mock(collection: .mock(id: .mock(), status: .verified), assets: [.mock()]),
             .mock(collection: .mock(id: NFTCollectionId(chain: .ethereum, contractAddress: "0xunverified"), status: .unverified), assets: [.mock()]),
         ]
 
-        #expect(model.content.unverifiedCount == "1")
+        #expect(model.screen.unverifiedRow?.countText == "1")
     }
 
     @Test
@@ -30,7 +30,7 @@ struct CollectionsSceneViewModelTests {
         model.query.value = [.mock(collection: .mock(status: .unverified), assets: [.mock()])]
         model.loadState = .error(error: .Gateway(msg: "offline"))
 
-        #expect(model.content.items.isEmpty)
+        #expect(model.screen.items.isEmpty)
         #expect(model.loadError(model.screen) == nil)
     }
 
@@ -42,8 +42,8 @@ struct CollectionsSceneViewModelTests {
 
         model.query.value = [.mock(collection: .mock(status: .unverified), assets: [.mock()])]
 
-        #expect(model.content.items.isEmpty == false)
-        #expect(model.content.unverifiedCount == nil)
+        #expect(model.screen.items.isEmpty == false)
+        #expect(model.screen.unverifiedRow == nil)
     }
 
     @Test

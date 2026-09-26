@@ -279,8 +279,4 @@ extension WalletSearchDerived {
     var previewNFTs: [GemNftEntry] {
         sections.nfts.prefix(Int(view.limits.nfts)).asArray()
     }
-
-    var collectionsContent: CollectionsContent {
-        CollectionsContent(items: NFTGridPosterBuilder.items(previewNFTs))
-    }
 }

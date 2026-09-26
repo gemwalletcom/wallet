@@ -107,7 +107,7 @@ struct WalletSearchSceneViewModelTests {
         ]
 
         #expect(model.derived.view.state.showsNfts == true)
-        #expect(model.derived.collectionsContent.items.count == 2)
+        #expect(model.derived.previewNFTs.count == 2)
     }
 
     @Test

@@ -31,18 +31,19 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
-import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.models.target
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemNftEntry
 
 private val collectibleCellMinSize = 150.dp
 
 @Composable
 internal fun CollectionsScene(
-    items: List<NftItemUIModel>,
+    items: List<GemNftEntry>,
     isRefreshing: Boolean,
     errorRow: GemListRow?,
     unverifiedListItem: ListItemModel?,
@@ -111,7 +112,7 @@ internal fun CollectionsScene(
                     ) {
                         items(items) { item ->
                             NftItem(
-                                model = item,
+                                row = item.row,
                                 onClick = {
                                     when (val target = item.target) {
                                         is NftItemTarget.Collection -> onAction(CollectionsAction.OpenCollection(target.id))

@@ -103,7 +103,7 @@ public struct WalletSearchScene: View {
 
             if state.showsNfts {
                 Section(
-                    content: { CollectionsPreviewView(content: search.collectionsContent) },
+                    content: { CollectionsPreviewView(entries: search.previewNFTs) },
                     header: {
                         if search.view.hasMoreNfts {
                             HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())

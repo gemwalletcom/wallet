@@ -20,16 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
-import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.emptyImageColor
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemNftRow
 
 @Composable
-fun NftItem(model: NftItemUIModel, onClick: () -> Unit) {
+fun NftItem(row: GemNftRow, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -45,13 +45,13 @@ fun NftItem(model: NftItemUIModel, onClick: () -> Unit) {
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 NftImage(
-                    source = model.toImageSource(),
+                    source = row.toImageSource(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(paddingDefault)),
                 )
-                val countText = model.countText
+                val countText = row.countText
                 if (countText != null) {
                     CountBadge(
                         text = countText,
@@ -62,8 +62,8 @@ fun NftItem(model: NftItemUIModel, onClick: () -> Unit) {
                 }
             }
             NftTitle(
-                name = model.name,
-                isVerified = model.isVerified,
+                name = row.title,
+                isVerified = row.isVerified,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

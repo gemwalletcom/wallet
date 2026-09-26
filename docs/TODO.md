@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM255 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM256 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -51,7 +51,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM278, VM279; preserve exact atomic values |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM256 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Assets, NFT, rewards, support
 
-- **VM255** **S** **The collections grid is built in the app.**
-  - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
-  - **Android:** `CollectionsViewModel` builds the same grid.
-  - **Expected:** views read the Core grid rows; the builders go.
 - **VM256** **S** **Collectible details are reshaped in the apps.**
   - **iOS:** `CollectibleSceneViewModel` decides which actions go to the menu or the buttons and labels them.
   - **Android:** `CollectibleUIModel` copies sections and formats attribute dates.
