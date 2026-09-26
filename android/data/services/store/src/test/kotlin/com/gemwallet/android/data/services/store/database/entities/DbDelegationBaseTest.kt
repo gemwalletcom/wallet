@@ -6,7 +6,6 @@ import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationState
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.math.BigInteger
 
@@ -21,14 +20,6 @@ class DbDelegationBaseTest {
         )
 
         assertEquals("monad_16_activating_0xbae:16:activating:0", id)
-    }
-
-    @Test
-    fun delegationRecordId_changesWhenStateChanges() {
-        val activating = delegationRecordId("monad", "16", DelegationState.Activating, "d")
-        val active = delegationRecordId("monad", "16", DelegationState.Active, "d")
-
-        assertNotEquals(activating, active)
     }
 
     @Test

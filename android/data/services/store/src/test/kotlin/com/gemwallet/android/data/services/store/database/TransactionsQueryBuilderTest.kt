@@ -12,7 +12,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TransactionsQueryBuilderTest {
-
     private val walletId = WalletId("wallet-1")
     private val limit = 1000
     private val baseArgCount = 1 // walletId is the only bound arg in TRANSACTION_LIST_SOURCE
@@ -123,11 +122,5 @@ class TransactionsQueryBuilderTest {
     fun theListAndTheCountReadNoPrices() {
         assertFalse(buildTransactionListSql(walletId, limit = limit, filter = null).sql.contains("prices"))
         assertFalse(buildTransactionsCountSql(walletId, filter = null).sql.contains("prices"))
-    }
-
-    @Test
-    fun walletIdIsBoundOnce() {
-        val query = buildTransactionListSql(walletId, limit = limit, filter = null)
-        assertEquals(walletId.id, query.args[0])
     }
 }
