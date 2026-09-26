@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM359 to NAM372 in any order, one feature per change.
+6. **Names:** NAM360 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -270,7 +270,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM229** **S** **Validator and delegation rows are built by the apps.**
   - **iOS:** `ValidatorViewModel` picks the provider logo or a text placeholder; `DelegationViewModel` builds the delegation row and header.
-  - **Android:** `DelegationRowUIModel`, `DelegationProperties` and the validator rows do the same.
+  - **Android:** `DelegationUIModel`, `DelegationUIState` and the validator rows do the same.
   - **Expected:** Core validator and delegation rows are drawn by the shared renderer, provider logos from the style mapper; the models go.
 - **VM230** **S** **Stake sections are wrapped.**
   - **iOS:** `StakeSceneViewModel` maps sections and actions.
@@ -472,7 +472,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM278** **S** **Validator picker sections are titled in the apps.**
   - **iOS:** `ValidatorSelectSceneViewModel` titles "Recommended" and "Active".
-  - **Android:** `ValidatorsScene` does the same.
+  - **Android:** `ValidatorSelectScene` does the same.
   - **Expected:** `GemStakeValidatorOptions` returns titled sections.
 - **VM279** **S** **The earn screen's rows are built in the apps.**
   - **iOS:** `EarnSceneViewModel` builds the "No data" and "Deposit" rows, decides the empty state and shows "Positions" only when positions exist.
@@ -526,7 +526,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualMarketScene`, `ValidatorsScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualMarketScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM359** **S** **Stake: the validator screen is `ValidatorSelect`.**
-  - **iOS:** `StakeNavigationView`, `EarnNavigationView` follow the destination-host rule; `StakeActionViewModel.swift` (only `Identifiable` extensions) → `GemStakeSection+Identifiable.swift`.
-  - **Android:** `ValidatorsScene`/`PreviewValidatorsScene` → `ValidatorSelectScene`; `DelegationScene` (binds a view model) → `DelegationScreen`; `DelegationRowUIModel` → `DelegationUIModel`; `DelegationProperties` → `DelegationUIState` in its own file; `StakeSceneAction` → `StakeAction`; `StakeRowUIModel.kt` → `StakeActionUIModel.kt`; `DelegationDestination.kt` named as iOS `GemDelegationDestination+Navigation.swift`.
 - **NAM360** **M** **Perpetuals: the list is `Perpetuals` and the detail `Perpetual`.**
   - **iOS:** `PerpetualsNavigationView`, `PerpetualNavigationView` follow the destination-host rule; `PerpetualChartModel` → `PerpetualChartViewModel`; `PerpetualsHeaderTests` → `PerpetualBalanceHeaderTests`.
   - **Android:** `PerpetualMarketScreen`/`Scene`/`ViewModel`/`Action`/`ViewModelTest` → `Perpetuals…`; `PerpetualPositionScreen`/`Scene` and `PerpetualDetailsViewModel`/`Action`/`UIModel`/`SectionUIModel`/`ViewModelTest` → `Perpetual…`; routes `PerpetualRoute` (list) → `PerpetualsRoute`, `PerpetualPositionRoute` → `PerpetualRoute`; `PerpetualItem` → `PerpetualListItem`; `CandlestickTooltipUIModel` → `CandleTooltipUIModel`; package `viewmodels.model` merges into `viewmodels.models`; the sealed `PerpetualPositionRowUIModel` → `PerpetualPositionDetailUIModel` (the name is taken twice); `presents.market`/`presents.position` → `presents.perpetuals`/`presents.perpetual`.

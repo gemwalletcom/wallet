@@ -12,7 +12,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 
 @Composable
-fun DelegationItem(item: DelegationRowUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+fun DelegationItem(item: DelegationUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     val row = item.row
     val validator = row.validator
     ListItem(

@@ -12,8 +12,8 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.stake.viewmodels.delegation.models.DelegationProperties
 import com.gemwallet.android.features.stake.viewmodels.delegation.models.DelegationRowUIModel
+import com.gemwallet.android.features.stake.viewmodels.delegation.models.DelegationUIState
 import com.gemwallet.android.features.stake.viewmodels.delegation.models.uiModel
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toAmountParams
@@ -87,7 +87,7 @@ class DelegationViewModel @Inject constructor(
             (assetInfo.price?.currency ?: Currency.USD).toGem(),
             validators.map { it.toGem() },
         )
-        DelegationProperties(
+        DelegationUIState(
             rows = details.rows.map { DelegationRowUIModel.Row(it) } + listOfNotNull(DelegationRowUIModel.Rewards.takeIf { details.rewards != null }),
             details = details,
             actions = details.actions.map { it.uiModel(context) },

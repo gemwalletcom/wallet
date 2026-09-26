@@ -17,7 +17,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.DelegationRowUIModel
+import com.gemwallet.android.ui.components.list_item.DelegationUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -101,7 +101,7 @@ class EarnViewModel @Inject constructor(
     private val positions = earnView.map { view -> view?.positions.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val positionRows = positions.map { items -> items.map { DelegationRowUIModel(it.delegation.toPrimitives(), it.row) } }
+    val positionRows = positions.map { items -> items.map { DelegationUIModel(it.delegation.toPrimitives(), it.row) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onPosition(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

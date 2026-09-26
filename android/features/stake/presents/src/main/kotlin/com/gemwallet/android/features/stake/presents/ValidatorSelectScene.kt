@@ -21,7 +21,7 @@ import uniffi.gemstone.GemValidatorRow
 import uniffi.gemstone.StakeProviderType
 
 @Composable
-fun ValidatorsScene(selection: GemStakeValidatorOptions, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
+fun ValidatorSelectScene(selection: GemStakeValidatorOptions, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.stake_validators),
         onClose = onCancel,
@@ -64,9 +64,9 @@ fun ValidatorsScene(selection: GemStakeValidatorOptions, selectedValidatorId: St
 
 @Composable
 @Preview
-fun PreviewValidatorsScene() {
+fun PreviewValidatorSelectScene() {
     WalletTheme {
-        ValidatorsScene(
+        ValidatorSelectScene(
             selection = GemStakeValidatorOptions(
                 options = listOf(
                     previewRow("some_validator_id", "Castlenode"),

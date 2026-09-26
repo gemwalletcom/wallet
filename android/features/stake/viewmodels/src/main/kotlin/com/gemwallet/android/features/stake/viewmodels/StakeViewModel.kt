@@ -22,7 +22,7 @@ import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIMode
 import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.toGem
-import com.gemwallet.android.ui.components.list_item.DelegationRowUIModel
+import com.gemwallet.android.ui.components.list_item.DelegationUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -128,7 +128,7 @@ class StakeViewModel @Inject constructor(
     val sections: StateFlow<List<StakeSectionUIModel>> = viewState
         .map { state ->
             state ?: return@map emptyList()
-            val rows = state.delegations.map { DelegationRowUIModel(it.delegation.toPrimitives(), it.row) }
+            val rows = state.delegations.map { DelegationUIModel(it.delegation.toPrimitives(), it.row) }
             state.sections.map { it.uiModel(context, rows, state.resourceRows) }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

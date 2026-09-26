@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.features.stake.presents.ValidatorsScene
+import com.gemwallet.android.features.stake.presents.ValidatorSelectScene
 import com.gemwallet.android.features.transfer.presents.amount.dialogs.AmountAutocloseSheet
 import com.gemwallet.android.features.transfer.viewmodels.amount.AmountViewModel
 import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
@@ -40,7 +40,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
     ) { showingPicker ->
         if (showingPicker && validatorPicker != null) {
             validatorPicker?.let { picker ->
-                ValidatorsScene(
+                ValidatorSelectScene(
                     selection = picker.selection,
                     selectedValidatorId = picker.selectedId,
                     onCancel = { isSelectValidator = false },

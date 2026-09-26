@@ -40,10 +40,10 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
             amountAction = amountAction,
             onAction = { action ->
                 when (action) {
-                    StakeSceneAction.Refresh -> viewModel.onRefresh()
-                    is StakeSceneAction.Confirm -> onConfirm(ConfirmTransferInput(action.transfer))
-                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
-                    StakeSceneAction.Cancel -> onCancel()
+                    StakeAction.Refresh -> viewModel.onRefresh()
+                    is StakeAction.Confirm -> onConfirm(ConfirmTransferInput(action.transfer))
+                    is StakeAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
+                    StakeAction.Cancel -> onCancel()
                 }
             },
         )

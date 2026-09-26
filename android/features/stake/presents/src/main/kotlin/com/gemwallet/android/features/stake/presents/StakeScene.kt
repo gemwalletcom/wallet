@@ -52,14 +52,14 @@ internal fun StakeScene(
     infoRows: List<GemListRow>,
     loadError: GemServiceException?,
     amountAction: AmountTransactionAction,
-    onAction: (StakeSceneAction) -> Unit,
+    onAction: (StakeAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
     Scene(
         title = stringResource(id = R.string.transfer_stake_title),
-        onClose = { onAction(StakeSceneAction.Cancel) },
+        onClose = { onAction(StakeAction.Cancel) },
         actions = {
             stakeInfoUrl?.let { url ->
                 IconButton(onClick = { uriHandler.open(context, url) }) {
@@ -70,7 +70,7 @@ internal fun StakeScene(
     ) {
         PullToRefreshBox(
             isRefreshing = inSync,
-            onRefresh = { onAction(StakeSceneAction.Refresh) },
+            onRefresh = { onAction(StakeAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
@@ -90,7 +90,7 @@ internal fun StakeScene(
                             actions = actions,
                             assetId = assetInfo.id(),
                             amountAction = amountAction,
-                            onConfirm = { onAction(StakeSceneAction.Confirm(it)) },
+                            onConfirm = { onAction(StakeAction.Confirm(it)) },
                         )
 
                         is StakeSectionUIModel.Resources -> itemsIndexed(section.rows) { index, row ->
@@ -101,7 +101,7 @@ internal fun StakeScene(
                             DelegationItem(
                                 item = item,
                                 listPosition = ListPosition.getPosition(index, section.rows.size),
-                                onClick = { onAction(StakeSceneAction.OpenDelegation(item.delegation)) },
+                                onClick = { onAction(StakeAction.OpenDelegation(item.delegation)) },
                             )
                         }
                     }

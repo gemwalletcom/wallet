@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onOpenAddress: (ChainAddress) -> Unit, onCancel: () -> Unit, viewModel: DelegationViewModel = hiltViewModel()) {
+fun DelegationScreen(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onOpenAddress: (ChainAddress) -> Unit, onCancel: () -> Unit, viewModel: DelegationViewModel = hiltViewModel()) {
     val current by viewModel.properties.collectAsStateWithLifecycle()
     val properties = current
 
