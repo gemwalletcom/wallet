@@ -47,7 +47,7 @@ impl GemSupportService {
     }
 
     pub async fn enable_notifications(&self) -> Option<GemPushState> {
-        self.notifications.enable_for_support().await
+        self.notifications.ask_to_enable().await
     }
 
     pub async fn image_file(&self, url: String) -> Result<String, GemServiceError> {

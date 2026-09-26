@@ -234,7 +234,7 @@ extension RootSceneViewModel {
 
     private func requestPushPermissions() {
         Task { [notificationsService] in
-            _ = await notificationsService.enableForNewWallet()
+            _ = await notificationsService.askToEnable()
         }
     }
 }
