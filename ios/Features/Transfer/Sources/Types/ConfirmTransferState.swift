@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmFee

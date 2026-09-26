@@ -1,5 +1,4 @@
 import Components
-import Formatters
 import struct Gemstone.GemPerpetualButtonRow
 import struct Gemstone.GemPerpetualPositionDetail
 import struct Gemstone.GemPerpetualPositionRow

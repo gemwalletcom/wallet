@@ -6,9 +6,7 @@ import func Gemstone.emptyState
 import struct Gemstone.GemEmptyState
 import enum Gemstone.GemEmptyStateAction
 import enum Gemstone.GemEmptyStateKind
-import Localization
 import Primitives
-import Style
 import SwiftUI
 
 public struct EmptyStateViewModel: EmptyContentViewable {

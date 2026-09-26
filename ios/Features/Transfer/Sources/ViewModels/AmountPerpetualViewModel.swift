@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import func Gemstone.autocloseDraft
 import enum Gemstone.GemAmountRequest
@@ -11,7 +10,6 @@ import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
 import GemstonePrimitives
 import Localization
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Style

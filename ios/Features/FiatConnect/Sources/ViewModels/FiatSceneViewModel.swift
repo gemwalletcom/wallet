@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import func Gemstone.assetListRow
 import enum Gemstone.FiatProviderName

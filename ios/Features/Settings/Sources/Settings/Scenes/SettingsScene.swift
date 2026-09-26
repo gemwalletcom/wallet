@@ -2,7 +2,6 @@
 
 import Components
 import enum Gemstone.GemListRow
-import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI

@@ -7,7 +7,6 @@ import enum Gemstone.GemAcquireOption
 import struct Gemstone.GemSwapPairSelection
 import GemstonePrimitives
 import InfoSheet
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Swap

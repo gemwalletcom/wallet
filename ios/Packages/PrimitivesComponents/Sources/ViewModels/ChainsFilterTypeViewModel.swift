@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import enum Gemstone.GemChainsFilterSummary
-import GemstonePrimitives
 import Localization
 import Primitives
 import Style

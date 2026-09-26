@@ -4,7 +4,6 @@ import Components
 import Foundation
 import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapViewState
-import Localization
 import Primitives
 import PrimitivesComponents
 import Style

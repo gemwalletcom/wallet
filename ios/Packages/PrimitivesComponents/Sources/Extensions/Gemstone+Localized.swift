@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
 import enum Gemstone.AddressType
 import enum Gemstone.AutocloseValidation

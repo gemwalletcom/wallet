@@ -13,7 +13,6 @@ import PrimitivesComponents
 import Store
 import SwiftUI
 import Transactions
-import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {

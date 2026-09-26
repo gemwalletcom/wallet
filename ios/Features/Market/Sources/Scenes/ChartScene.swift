@@ -3,7 +3,6 @@
 import Components
 import GemstonePrimitives
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store

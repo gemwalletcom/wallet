@@ -2,8 +2,6 @@
 
 import Foundation
 import GemstoneServices
-import GRDB
-import Primitives
 import SwiftUI
 import WalletConnector
 import WalletConnectorService

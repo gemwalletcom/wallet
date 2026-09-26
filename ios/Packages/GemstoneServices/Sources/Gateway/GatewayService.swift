@@ -3,7 +3,6 @@
 import Foundation
 import Gemstone
 import NativeProviderService
-import Primitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway

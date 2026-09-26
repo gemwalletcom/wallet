@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import Gemstone
 import protocol Gemstone.GemPriceAlertServiceProtocol
@@ -9,7 +8,6 @@ import struct Gemstone.GemPriceAlertSession
 import struct Gemstone.GemPriceAlertViewState
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store

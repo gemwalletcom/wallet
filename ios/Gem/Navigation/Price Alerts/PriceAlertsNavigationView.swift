@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Localization
 import PriceAlerts
 import Primitives
 import Style

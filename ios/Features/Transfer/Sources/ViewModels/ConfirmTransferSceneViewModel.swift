@@ -28,7 +28,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import Swap
 import SwiftUI
 import WalletConnector
 

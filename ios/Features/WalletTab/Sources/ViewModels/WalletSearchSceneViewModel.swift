@@ -19,7 +19,6 @@ import NFT
 import Primitives
 import PrimitivesComponents
 import Store
-import Style
 import SwiftUI
 
 @Observable

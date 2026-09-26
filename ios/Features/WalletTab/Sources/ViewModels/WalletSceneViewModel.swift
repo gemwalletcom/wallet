@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
 import Components
-import Formatters
 import Foundation
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDestination

@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemTransactionRow
 import enum Gemstone.Resource
 import func Gemstone.transactionRows
 import GemstonePrimitives
-import Localization
 import Primitives
 import Style
 import SwiftUI

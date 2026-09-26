@@ -3,7 +3,6 @@
 import Components
 import struct Gemstone.GemAmountField
 import struct Gemstone.GemNumberFormat
-import GemstonePrimitives
 import PrimitivesComponents
 import Style
 import SwiftUI

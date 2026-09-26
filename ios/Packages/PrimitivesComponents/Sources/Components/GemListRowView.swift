@@ -7,7 +7,6 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemRowAction
 import enum Gemstone.GemRowMenuItem
-import Localization
 import Primitives
 import Style
 import SwiftUI

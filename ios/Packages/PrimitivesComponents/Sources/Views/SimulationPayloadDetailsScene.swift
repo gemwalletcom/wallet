@@ -2,7 +2,6 @@
 
 import Components
 import Localization
-import Primitives
 import Style
 import SwiftUI
 

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import struct Gemstone.GemListSection
 import protocol Gemstone.GemSettingsServiceProtocol
@@ -10,7 +9,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import Style
 import SwiftUI
 
 @Observable

@@ -6,7 +6,6 @@ import func Gemstone.pendingActivityFilters
 import GemstonePrimitives
 import Primitives
 import Store
-import Transactions
 
 @Observable
 @MainActor

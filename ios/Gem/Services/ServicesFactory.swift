@@ -13,7 +13,6 @@ import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import NativeProviderService
 import Primitives
 import PrimitivesComponents

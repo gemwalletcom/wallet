@@ -2,7 +2,6 @@
 
 import Components
 import func Gemstone.chainRow
-import Localization
 import Primitives
 import PrimitivesComponents
 import QRScanner

@@ -1,13 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import struct Gemstone.GemHeaderButton
 import struct Gemstone.GemValueHeader
 import enum Gemstone.GemValueHeaderIcon
 import enum Gemstone.GemValueHeaderSubtitleIcon
-import GemstonePrimitives
-import Localization
 import Primitives
 import Style
 import SwiftUI

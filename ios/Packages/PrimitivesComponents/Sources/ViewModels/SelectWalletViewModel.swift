@@ -6,7 +6,6 @@ import struct Gemstone.GemWalletRow
 import struct Gemstone.GemWalletSection
 import Localization
 import Primitives
-import Style
 
 public struct SelectWalletViewModel: SelectableListAdoptable {
     public typealias Item = GemWalletRow

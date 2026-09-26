@@ -4,7 +4,6 @@ import Components
 import struct Gemstone.GemCollectibleDetails
 import GemstonePrimitives
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store

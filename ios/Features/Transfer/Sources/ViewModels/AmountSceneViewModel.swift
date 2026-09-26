@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemAmountEntry
 import enum Gemstone.GemAmountError
@@ -23,7 +22,6 @@ import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
 import Localization
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Store

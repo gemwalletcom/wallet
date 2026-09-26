@@ -10,7 +10,6 @@ import func Gemstone.notificationsSections
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 
 @Observable
 @MainActor

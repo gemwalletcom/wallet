@@ -2,7 +2,6 @@
 
 import Assets
 import Components
-import Localization
 import NFT
 import Primitives
 import PrimitivesComponents

@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage

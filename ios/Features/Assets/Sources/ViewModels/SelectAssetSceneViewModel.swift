@@ -21,7 +21,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import Style
 import SwiftUI
 
 @Observable

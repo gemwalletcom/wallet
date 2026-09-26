@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import enum Gemstone.GemListRowTitle
 import struct Gemstone.GemListSection
@@ -14,7 +13,6 @@ import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 @Observable

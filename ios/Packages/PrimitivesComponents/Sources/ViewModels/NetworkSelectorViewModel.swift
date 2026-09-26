@@ -6,7 +6,6 @@ import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
 import Primitives
-import Style
 import SwiftUI
 
 public struct NetworkSelectorViewModel: SelectableSheetViewable {

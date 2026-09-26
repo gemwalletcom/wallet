@@ -11,7 +11,6 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Onboarding
 import Primitives
 import PrimitivesComponents

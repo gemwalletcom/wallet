@@ -8,7 +8,6 @@ import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import NFT
 import Perpetuals
 import Primitives

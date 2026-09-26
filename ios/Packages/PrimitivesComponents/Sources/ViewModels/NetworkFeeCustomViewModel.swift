@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemCustomFeeEstimate
 import struct Gemstone.GemCustomFeeSession

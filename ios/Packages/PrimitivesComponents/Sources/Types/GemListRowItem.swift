@@ -15,7 +15,6 @@ import struct Gemstone.GemSocialLink
 import enum Gemstone.GemUrlTarget
 import enum Gemstone.GemValueTone
 import GemstonePrimitives
-import Localization
 import Primitives
 import Style
 

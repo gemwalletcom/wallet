@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import func Gemstone.aboutViewState
 import struct Gemstone.GemAboutViewState
 import protocol Gemstone.GemAppUpdateServiceProtocol
