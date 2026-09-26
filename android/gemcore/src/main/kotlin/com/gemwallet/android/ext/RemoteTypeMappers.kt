@@ -1858,6 +1858,16 @@ fun com.wallet.core.primitives.PriceAlertData.toGem(): uniffi.gemstone.PriceAler
     rankScore = rankScore,
 )
 
+fun uniffi.gemstone.RecentAsset.toPrimitives(): com.wallet.core.primitives.RecentAsset = com.wallet.core.primitives.RecentAsset(
+    asset = asset.toPrimitives(),
+    createdAt = createdAt,
+)
+
+fun com.wallet.core.primitives.RecentAsset.toGem(): uniffi.gemstone.RecentAsset = uniffi.gemstone.RecentAsset(
+    asset = asset.toGem(),
+    createdAt = createdAt,
+)
+
 fun uniffi.gemstone.Release.toPrimitives(): com.wallet.core.primitives.Release = com.wallet.core.primitives.Release(
     version = version,
     store = store.toPrimitives(),

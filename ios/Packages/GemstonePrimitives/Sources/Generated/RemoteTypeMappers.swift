@@ -2764,6 +2764,24 @@ public extension Primitives.PriceAlertData {
     }
 }
 
+public extension Gemstone.RecentAsset {
+    func toPrimitives() -> Primitives.RecentAsset {
+        Primitives.RecentAsset(
+            asset: asset.toPrimitives(),
+            createdAt: createdAt,
+        )
+    }
+}
+
+public extension Primitives.RecentAsset {
+    func toGem() -> Gemstone.RecentAsset {
+        Gemstone.RecentAsset(
+            asset: asset.toGem(),
+            createdAt: createdAt,
+        )
+    }
+}
+
 public extension Gemstone.Release {
     func toPrimitives() -> Primitives.Release {
         Primitives.Release(

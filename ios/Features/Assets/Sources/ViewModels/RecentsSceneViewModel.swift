@@ -4,6 +4,7 @@ import Components
 import Foundation
 import func Gemstone.assetText
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import struct Gemstone.GemRecentsDay
 import struct Gemstone.GemRecentsSections
 import struct Gemstone.GemRecentsViewState
 import GemstonePrimitives
@@ -57,12 +58,11 @@ public final class RecentsSceneViewModel {
     }
 
     var viewState: GemRecentsViewState {
-        service.viewState(assets: recentAssets.map { $0.asset.toGem() }, query: searchQuery)
+        service.viewState(recents: recentAssets.map { $0.toGem() }, days: recentAssets.map(\.createdAt.gemDay), query: searchQuery)
     }
 
-    func sections(_ state: GemRecentsViewState) -> [ListSection<RecentAsset>] {
-        let matching = Set(state.matchingAssetIds)
-        return DateSectionBuilder(items: recentAssets.filter { matching.contains($0.asset.id.identifier) }, dateKeyPath: \.createdAt).build()
+    func title(for day: GemRecentsDay) -> String {
+        TransactionDateFormatter(date: day.day.date).section
     }
 
     func emptyModel(_ sections: GemRecentsSections) -> any EmptyContentViewable {

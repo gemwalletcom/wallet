@@ -1,7 +1,9 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, RecentActivityType, WalletId};
+use primitives::{Asset, AssetId, RecentActivityType, RecentAsset, WalletId};
 
+use crate::day_section::GemDay;
 use crate::services::assets::GemAssetAction;
 use crate::services::empty_state::GemEmptyStateKind;
 use crate::services::error::GemServiceError;
@@ -45,17 +47,31 @@ impl GemRecentActivityService {
         self.store.clear(self.session.current_wallet_id()?, types).await
     }
 
-    pub fn view_state(&self, assets: Vec<Asset>, query: String) -> GemRecentsViewState {
-        let matching = matching_assets(assets.clone(), &query);
+    /// `days[i]` is the local day of `recents[i]`; the apps know the time zone, Core groups.
+    pub fn view_state(&self, recents: Vec<RecentAsset>, days: Vec<GemDay>, query: String) -> GemRecentsViewState {
+        let count = recents.len() as u32;
+        let matching: HashSet<AssetId> = matching_assets(recents.iter().map(|recent| recent.asset.clone()).collect(), &query).into_iter().map(|asset| asset.id).collect();
+        let dated: Vec<(GemDay, RecentAsset)> = days.into_iter().zip(recents).filter(|(_, recent)| matching.contains(&recent.asset.id)).collect();
         GemRecentsViewState {
             sections: GemRecentsCounts {
-                recents: assets.len() as u32,
-                matching: matching.len() as u32,
+                recents: count,
+                matching: dated.len() as u32,
             }
             .sections(!query.trim().is_empty()),
-            matching_asset_ids: matching.into_iter().map(|asset| asset.id).collect(),
+            days: recent_days(dated),
         }
     }
+}
+
+fn recent_days(mut dated: Vec<(GemDay, RecentAsset)>) -> Vec<GemRecentsDay> {
+    dated.sort_by_key(|(_, recent)| std::cmp::Reverse(recent.created_at));
+    dated.into_iter().fold(Vec::new(), |mut days: Vec<GemRecentsDay>, (day, recent)| {
+        match days.iter_mut().find(|section| section.day == day) {
+            Some(section) => section.recents.push(recent),
+            None => days.push(GemRecentsDay { day, recents: vec![recent] }),
+        }
+        days
+    })
 }
 
 impl GemRecentActivityService {
@@ -69,6 +85,7 @@ impl GemRecentActivityService {
 
 #[cfg(test)]
 mod tests {
+    use chrono::DateTime;
     use futures::executor::block_on;
     use primitives::{Asset, Chain, StakeType};
 
@@ -89,24 +106,49 @@ mod tests {
         assert_eq!(store.added.lock().unwrap().len(), 1);
     }
 
+    fn recent(chain: Chain, seconds: i64) -> RecentAsset {
+        RecentAsset {
+            asset: Asset::from_chain(chain),
+            created_at: DateTime::from_timestamp(seconds, 0).unwrap(),
+        }
+    }
+
     #[test]
     fn test_a_view_state_matches_the_query_and_names_the_sections() {
         let service = GemRecentActivityService::mock(Arc::new(MemoryRecentActivityStore::default()), None);
-        let assets = vec![Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Bitcoin)];
+        let today = GemDay { year: 2026, month: 3, day: 2 };
+        let recents = vec![recent(Chain::Ethereum, 1), recent(Chain::Bitcoin, 2)];
+        let days = vec![today, today];
 
-        let listed = service.view_state(assets.clone(), String::new());
-        assert_eq!(listed.matching_asset_ids.len(), 2);
+        let listed = service.view_state(recents.clone(), days.clone(), String::new());
+        assert_eq!(listed.days.iter().map(|day| day.recents.len()).sum::<usize>(), 2);
         assert!(listed.sections.shows_items && listed.sections.shows_clear);
 
-        let searched = service.view_state(assets.clone(), "bitcoin".to_string());
-        assert_eq!(searched.matching_asset_ids, vec![Asset::from_chain(Chain::Bitcoin).id]);
+        let searched = service.view_state(recents.clone(), days.clone(), "bitcoin".to_string());
+        assert_eq!(searched.days[0].recents, vec![recent(Chain::Bitcoin, 2)]);
         assert!(!searched.sections.shows_clear, "a search hides the clear action");
 
-        let missed = service.view_state(assets, "  nothing  ".to_string());
+        let missed = service.view_state(recents, days, "  nothing  ".to_string());
         assert_eq!(missed.sections.empty, Some(GemEmptyStateKind::SearchAssets));
+        assert!(missed.days.is_empty());
         assert_eq!(listed.sections.empty, None);
 
-        assert_eq!(service.view_state(vec![], String::new()).sections.empty, Some(GemEmptyStateKind::Recents));
+        assert_eq!(service.view_state(vec![], vec![], String::new()).sections.empty, Some(GemEmptyStateKind::Recents));
+    }
+
+    #[test]
+    fn test_recents_are_grouped_by_their_day_newest_first() {
+        let service = GemRecentActivityService::mock(Arc::new(MemoryRecentActivityStore::default()), None);
+        let today = GemDay { year: 2026, month: 3, day: 2 };
+        let yesterday = GemDay { year: 2026, month: 3, day: 1 };
+        let recents = vec![recent(Chain::Ethereum, 10), recent(Chain::Bitcoin, 30), recent(Chain::Solana, 20)];
+
+        let days = service.view_state(recents, vec![yesterday, today, today], String::new()).days;
+
+        assert_eq!(
+            days.iter().map(|day| (day.day, day.recents.iter().map(|recent| recent.asset.chain()).collect::<Vec<_>>())).collect::<Vec<_>>(),
+            vec![(today, vec![Chain::Bitcoin, Chain::Solana]), (yesterday, vec![Chain::Ethereum])]
+        );
     }
 
     #[test]
@@ -131,16 +173,22 @@ mod tests {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemRecentsCounts {
     pub recents: u32,
     pub matching: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRecentsDay {
+    pub day: GemDay,
+    pub recents: Vec<RecentAsset>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentsViewState {
-    pub matching_asset_ids: Vec<AssetId>,
     pub sections: GemRecentsSections,
+    pub days: Vec<GemRecentsDay>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -150,7 +198,6 @@ pub struct GemRecentsSections {
     pub empty: Option<GemEmptyStateKind>,
 }
 
-#[uniffi::export]
 impl GemRecentsCounts {
     pub fn sections(&self, is_searching: bool) -> GemRecentsSections {
         let empty = match (self.matching > 0, self.recents > 0 && is_searching) {

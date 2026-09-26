@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -18,17 +19,18 @@ public struct RecentsScene: View {
         let state = model.viewState
         NavigationStack {
             List {
-                ForEach(model.sections(state)) { section in
+                ForEach(state.days, id: \.day) { day in
                     Section {
-                        ForEach(section.values) { recentAsset in
+                        ForEach(day.recents, id: \.asset.id) { recent in
+                            let asset = recent.asset.toPrimitives()
                             NavigationCustomLink(
-                                with: ListItemView(model: model.listItem(for: recentAsset.asset)),
+                                with: ListItemView(model: model.listItem(for: asset)),
                             ) {
-                                model.onSelect(recentAsset.asset)
+                                model.onSelect(asset)
                             }
                         }
                     } header: {
-                        section.title.map { Text($0) }
+                        Text(model.title(for: day))
                             .fontWeight(.semibold)
                     }
                     .listRowInsets(.assetListRowInsets)

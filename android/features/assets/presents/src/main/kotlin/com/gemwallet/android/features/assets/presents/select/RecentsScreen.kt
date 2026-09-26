@@ -13,7 +13,7 @@ import com.wallet.core.primitives.Asset
 @Composable
 fun RecentsScreen(viewModel: RecentsViewModel, onSelect: (Asset) -> Unit) {
     val isVisible by viewModel.visible.collectAsStateWithLifecycle()
-    val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     var pendingAsset by remember { mutableStateOf<Asset?>(null) }
 
     LaunchedEffect(isVisible) {
@@ -27,7 +27,7 @@ fun RecentsScreen(viewModel: RecentsViewModel, onSelect: (Asset) -> Unit) {
 
     RecentsScene(
         isVisible = isVisible,
-        uiModel = uiModel,
+        viewState = viewState,
         query = viewModel.query,
         onDismissRequest = viewModel::dismiss,
         onClear = viewModel::onClear,

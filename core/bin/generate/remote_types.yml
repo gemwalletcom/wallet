@@ -45,6 +45,7 @@ remote:
   - AssetProperties
   - AssetBasic
   - AssetList
+  - RecentAsset
   - ChainAsset
   - AssetAssociationType
   - AssetAssociation

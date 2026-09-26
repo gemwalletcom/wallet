@@ -3,7 +3,6 @@ package com.gemwallet.android.features.assets.viewmodels.select
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.assets.viewmodels.select.models.RecentsUIState
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.Chain
@@ -13,8 +12,6 @@ import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -30,14 +27,14 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetFilter
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemDay
 import uniffi.gemstone.GemRecentActivityService
-import uniffi.gemstone.GemRecentsCounts
+import uniffi.gemstone.GemRecentsDay
+import uniffi.gemstone.GemRecentsSections
 import uniffi.gemstone.GemRecentsViewState
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,11 +54,11 @@ class RecentsViewModelTest {
     }
     private val recentActivityQuery = mockk<RecentActivityQuery>(relaxed = true)
     private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true) {
-        every { viewState(any(), any()) } answers {
-            val assets = firstArg<List<uniffi.gemstone.Asset>>()
+        every { viewState(any(), any(), any()) } answers {
+            val recents = firstArg<List<uniffi.gemstone.RecentAsset>>()
             GemRecentsViewState(
-                matchingAssetIds = assets.map { it.id },
-                sections = GemRecentsCounts(assets.size.toUInt(), assets.size.toUInt()).sections(false),
+                sections = GemRecentsSections(showsItems = recents.isNotEmpty(), showsClear = recents.isNotEmpty(), empty = null),
+                days = secondArg<List<GemDay>>().firstOrNull()?.let { listOf(GemRecentsDay(it, recents)) }.orEmpty(),
             )
         }
     }
@@ -92,16 +89,16 @@ class RecentsViewModelTest {
     }
 
     @Test
-    fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
+    fun `the view state keeps content after dismiss`() = runTest(testDispatcher) {
         every { recentActivityQuery(WalletId("wallet-1"), any(), any(), 0) } returns flowOf(recentItems)
         val vm = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
         vm.show()
-        vm.uiModel.first { it.items.isNotEmpty() }
+        vm.viewState.first { it.days.isNotEmpty() }
 
         vm.dismiss()
         withContext(Dispatchers.Default) { delay(100) }
-        assertEquals(recentItems, vm.uiModel.value.items)
+        assertEquals(recentItems.map { it.toGem() }, vm.viewState.value.days.flatMap { it.recents })
     }
 
     @Test
@@ -115,32 +112,5 @@ class RecentsViewModelTest {
         advanceUntilIdle()
 
         coVerify { recentActivityService.clear(types.map { it.toGem() }) }
-    }
-
-    @Test
-    fun `uiModel properties derive correctly`() {
-        val withItems = RecentsUIState(
-            items = recentItems.toImmutableList(),
-            sections = GemRecentsCounts(recents = 5u, matching = 5u).sections(false),
-        )
-        assertFalse(withItems.isEmpty)
-        assertTrue(withItems.showClear)
-        assertNull(withItems.emptyState)
-
-        val searchNoResults = RecentsUIState(
-            items = persistentListOf(),
-            sections = GemRecentsCounts(recents = 5u, matching = 0u).sections(true),
-        )
-        assertTrue(searchNoResults.isEmpty)
-        assertFalse(searchNoResults.showClear)
-        assertEquals(GemEmptyStateKind.SEARCH_ASSETS, searchNoResults.emptyState)
-
-        val noRecents = RecentsUIState(
-            items = persistentListOf(),
-            sections = GemRecentsCounts(recents = 0u, matching = 0u).sections(false),
-        )
-        assertTrue(noRecents.isEmpty)
-        assertFalse(noRecents.showClear)
-        assertEquals(GemEmptyStateKind.RECENTS, noRecents.emptyState)
     }
 }

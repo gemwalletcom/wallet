@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM254 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM255 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -37,7 +37,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM254, VM262, VM263, VM286 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Assets, NFT, rewards, support
 
-- **VM254** **S** **Recents are wrapped and grouped in the apps.**
-  - **iOS:** `RecentAssetsViewModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
-  - **Android:** `RecentsUIState` and `RecentAsset` do the same and sort by date in the view.
-  - **Expected:** Core returns the recents list sectioned by day (`GemDayBoundaries.sections`); the models go.
 - **VM255** **S** **The collections grid is built in the app.**
   - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
   - **Android:** `CollectionsViewModel` builds the same grid.
@@ -158,7 +154,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemAssetDetails` returns the menu rows (kind and link); the mapper supplies titles and icons; both builders go.
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
   - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualsViewModel`, `RecentsUIState` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
+  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
   - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
 - **VM263** **S** **Asset list section titles are chosen in the apps.**
   - **iOS:** `SelectAssetSceneViewModel` titles the popular section and `SelectAssetScene` shows popular, pinned and other sections by emptiness.

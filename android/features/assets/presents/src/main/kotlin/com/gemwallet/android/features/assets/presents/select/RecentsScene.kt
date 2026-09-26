@@ -19,13 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.assets.viewmodels.select.models.RecentsUIState
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
-import com.gemwallet.android.ui.components.list_item.rememberDateSections
+import com.gemwallet.android.ui.components.list_item.rememberDaySections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
@@ -34,9 +34,10 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemRecentsViewState
 
 @Composable
-fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldState, onDismissRequest: () -> Unit, onClear: () -> Unit, onSelect: (Asset) -> Unit) {
+fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: TextFieldState, onDismissRequest: () -> Unit, onClear: () -> Unit, onSelect: (Asset) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
@@ -66,7 +67,7 @@ fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldSt
                     text = stringResource(R.string.recent_activity_title),
                     style = MaterialTheme.typography.titleLarge,
                 )
-                if (uiModel.showClear) {
+                if (viewState.sections.showsClear) {
                     TextButton(
                         onClick = onClear,
                         modifier = Modifier.align(Alignment.CenterEnd),
@@ -76,9 +77,8 @@ fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldSt
                 }
             }
             SearchBar(query = query)
-            val recents = uiModel.items.sortedByDescending { it.createdAt }
-            val sections = rememberDateSections(recents) { it.createdAt }
-            val empty = uiModel.emptyState
+            val sections = rememberDaySections(viewState.days, day = { it.day }, items = { day -> day.recents.map { it.toPrimitives() } })
+            val empty = viewState.sections.empty
             if (empty != null) {
                 RecentsEmptyStateView(empty)
             } else {

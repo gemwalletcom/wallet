@@ -16,6 +16,7 @@ import com.gemwallet.android.ui.format.SectionDateFormatter
 import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.format.localDate
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemDay
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -31,6 +32,17 @@ fun <T> rememberDateSections(items: List<T>, createdAt: (T) -> Long): List<DateS
     return remember(items, todayLabel, yesterdayLabel, locale) {
         val zone = ZoneId.systemDefault()
         dateSections(items, createdAt, zone, locale, SectionDateFormatter(todayLabel, yesterdayLabel, Clock.system(zone)))
+    }
+}
+
+@Composable
+fun <D, T> rememberDaySections(days: List<D>, day: (D) -> GemDay, items: (D) -> List<T>): List<DateSection<T>> {
+    val todayLabel = stringResource(R.string.date_today)
+    val yesterdayLabel = stringResource(R.string.date_yesterday)
+    val locale = LocalConfiguration.current.locales[0]
+    return remember(days, todayLabel, yesterdayLabel, locale) {
+        val formatter = SectionDateFormatter(todayLabel, yesterdayLabel, Clock.system(ZoneId.systemDefault()))
+        days.map { DateSection(label = formatter.format(day(it).localDate(), locale), items = items(it)) }
     }
 }
 
