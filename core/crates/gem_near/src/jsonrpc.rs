@@ -8,6 +8,7 @@ pub enum NearRpc {
     CallFunction { contract_id: String, method_name: String, args_base64: String },
     GetAccount { account_id: String },
     GetAccountAccessKey { address: String, public_key: String },
+    GetAccountAccessKeys { address: String },
     GetGasPrice,
     GetLatestBlock,
     GetProtocolConfig,
@@ -19,7 +20,7 @@ pub enum NearRpc {
 impl ToJsonRpcRequest for NearRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::CallFunction { .. } | Self::GetAccount { .. } | Self::GetAccountAccessKey { .. } => method::QUERY,
+            Self::CallFunction { .. } | Self::GetAccount { .. } | Self::GetAccountAccessKey { .. } | Self::GetAccountAccessKeys { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
             Self::GetLatestBlock => method::BLOCK,
             Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
@@ -48,6 +49,11 @@ impl ToJsonRpcRequest for NearRpc {
                 "finality": "final",
                 "account_id": address,
                 "public_key": public_key
+            }),
+            Self::GetAccountAccessKeys { address } => json!({
+                "request_type": "view_access_key_list",
+                "finality": "final",
+                "account_id": address
             }),
             Self::GetGasPrice => json!([null]),
             Self::GetLatestBlock => json!({"finality": "final"}),
@@ -87,6 +93,19 @@ mod tests {
                 "finality": "final",
                 "account_id": "account.near",
                 "public_key": "ed25519:key"
+            }),
+        );
+    }
+
+    #[test]
+    fn builds_access_key_list_query() {
+        assert_request(
+            NearRpc::GetAccountAccessKeys { address: "account.near".into() },
+            method::QUERY,
+            json!({
+                "request_type": "view_access_key_list",
+                "finality": "final",
+                "account_id": "account.near"
             }),
         );
     }

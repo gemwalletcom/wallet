@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 
 use num_bigint::BigInt;
 use primitives::{AssetId, Chain, FeeOption, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
@@ -8,12 +8,6 @@ use crate::{
     constants::FUNGIBLE_TOKEN_FUNCTION_CALL_GAS,
     models::{AccountAccessKey, Block, ProtocolConfig},
 };
-
-pub fn address_to_public_key(address: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
-    let address_bytes = hex::decode(address)?;
-    let encoded = bs58::encode(address_bytes).into_string();
-    Ok(format!("ed25519:{}", encoded))
-}
 
 pub fn map_transaction_preload(access_key: &AccountAccessKey, block: &Block) -> TransactionLoadMetadata {
     TransactionLoadMetadata::Near {
@@ -60,19 +54,15 @@ pub(super) fn map_transaction_fee(input: &TransactionLoadInput, destination_addr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{AccountAccessKey, Block, BlockHeader};
+    use crate::models::{AccountAccessKey, AccountAccessKeyPermission, Block, BlockHeader};
     use primitives::{Asset, Chain, GasPriceType, SwapProvider, TransactionInputType, swap::SwapData};
 
     #[test]
-    fn test_address_to_public_key() {
-        let address = "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95";
-        let result = address_to_public_key(address).unwrap();
-        assert!(result.starts_with("ed25519:"));
-    }
-
-    #[test]
     fn test_map_transaction_preload() {
-        let access_key = AccountAccessKey { nonce: 116479371000026 };
+        let access_key = AccountAccessKey {
+            nonce: 116479371000026,
+            permission: AccountAccessKeyPermission::FullAccess,
+        };
 
         let block = Block {
             header: BlockHeader {

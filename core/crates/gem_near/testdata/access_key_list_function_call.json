@@ -1,0 +1,25 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "block_hash": "CTe9GAQDBZJZC1rydhwQXszPGDD2kTZjFZZLtZUos5um",
+    "block_height": 217390938,
+    "keys": [
+      {
+        "public_key": "ed25519:8vUkjKNYjhBASno1gW2G68kR9CRN4FBH8LTkCBVKUMaT",
+        "access_key": {
+          "nonce": 116489113000005,
+          "permission": {
+            "FunctionCall": {
+              "allowance": "250000000000000000000000",
+              "receiver_id": "contract.near",
+              "method_names": [
+                "call"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "id": 1
+}

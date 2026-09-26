@@ -1,10 +1,7 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{
-    ChainAccount, ChainAddressStatus, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits, ChainTransaction, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest,
-    TransactionsResult,
-};
+use chain_traits::{ChainAccount, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits, ChainTransaction, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::{Chain, Transaction, TransactionIdRequest};
 
@@ -70,7 +67,6 @@ impl<C: Client + Clone> ChainProvider for NearProvider<C> {
 
 impl<C: Client + Clone> ChainStaking for NearProvider<C> {}
 impl<C: Client + Clone> ChainPerpetual for NearProvider<C> {}
-impl<C: Client + Clone> ChainAddressStatus for NearProvider<C> {}
 impl<C: Client + Clone> ChainAccount for NearProvider<C> {}
 impl<C: Client + Clone> ChainSimulation for NearProvider<C> {}
 impl<C: Client + Clone> ChainTraits for NearProvider<C> {}
