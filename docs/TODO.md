@@ -26,10 +26,10 @@ These need no further answer; work them in this order, one family per change.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
 7. **Names:** NAM352 before NAM353, then NAM354 to NAM372 in any order, one feature per change.
-8. **Parity:** BD342, BD343, BD345 to BD349, BD351 (Android matches iOS).
+8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Waiting on the owner: BD350, BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -619,9 +619,9 @@ Differences between the apps, or between an app and the server, each with its de
   - **Android:** lists any visible balance row (`AssetsQuery`).
   - **Expected:** Android matches iOS.
 - **BD350** **S** **Swap quotes are fetched and shown on a different schedule.**
-  - **iOS:** changing the pay or receive asset fetches at once and only typed amounts wait for the debounce; You Receive clears whenever a fetch starts, including the 30 s refresh.
+  - **iOS:** changing the pay or receive asset fetches at once and only typed amounts wait for the debounce; every fetch clears You Receive first (`SwapSceneViewModel.fetchQuotes` calls `resetToValue()`), including the 30 s refresh, so the amount blanks every 30 s.
   - **Android:** every change waits the 250 ms debounce, and a refresh keeps the previous amount on screen (`SwapViewModel`).
-  - **Expected:** needs a decision: keeping the amount during a refresh avoids a flicker.
+  - **Expected:** an asset change fetches at once and a typed amount waits for the debounce, as iOS; a timed refresh keeps You Receive until the new quote arrives, as Android and as [PRODUCT.md](PRODUCT.md)'s "a refresh updates it in place and never blanks the screen"; You Receive clears only when the amount, pair or asset changes.
 - **BD351** **S** **Recents and all-assets search ignore filters on Android.**
   - **iOS:** `RecentActivityQuery` applies every filter and shows 20 by default; the all-assets search applies its filters.
   - **Android:** `RecentActivityQuery` ignores the sellable filter and shows 10 by default; the all-assets search ignores filters (`AssetsQuery`).
