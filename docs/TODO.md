@@ -419,7 +419,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM280** **M** **Transaction details are composed per row kind in the apps.**
   - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
   - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.
-  - **Expected:** the details sections carry finished rows (with VM209, VM211, VM212); both item layers go.
+  - **Expected:** the details sections carry finished rows (with VM211, VM212); both item layers go.
 - **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
   - **iOS:** `ConnectionProposalSceneViewModel` builds wallet, connection, status and the two permission rows.
   - **Android:** `ConnectionProposalViewModel` builds the same four.
