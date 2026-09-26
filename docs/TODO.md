@@ -22,7 +22,8 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM201 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+4. **Parity:** BD373 to BD375.
+5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -551,6 +552,18 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
+- **BD373** **S** **A network's asset list shows assets without an account on Android.**
+  - **iOS:** the per-network asset screen requires an account on the chain, like the wallet list.
+  - **Android:** the wallet list does since BD349, but the per-network screen (`NetworkAssetsViewModel`) still lists account-less assets.
+  - **Expected:** Android matches iOS.
+- **BD374** **S** **Swap's percentage buttons fetch on a different schedule.**
+  - **iOS:** 25/50/100% and "Use minimum amount" fetch at once.
+  - **Android:** they set the amount field like typing, so they wait the 250 ms debounce (`SwapViewModel`).
+  - **Expected:** Android matches iOS; the view model tells a button tap from typing.
+- **BD375** **S** **A deleted transaction keeps or clears its details screen.**
+  - **iOS:** the details screen keeps showing the transaction it was opened with, and reads it before opening.
+  - **Android:** the screen loads the transaction just after opening and clears when the row is deleted (`TransactionViewModel`).
+  - **Expected:** Android matches iOS.
 - **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
 - **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.
 - **BD341** **S** **Android finds no stored Earn provider for a token.** Both apps store an Earn provider under its chain's native asset (`DelegationValidator.toRecord`, iOS `StakeValidatorRecord`). iOS `EarnSceneViewModel` reads `ValidatorsQuery(chain:providerType:)` by that native asset; Android `EarnViewModel` reads `ValidatorsQuery` by the screen's asset, and `AmountViewModel` reads `ValidatorQuery` for an Earn deposit the same way, so a Yo USDC or USDT screen gets no providers and Core returns no `deposit_provider`. **Expected:** Android reads Earn providers by the chain's native asset, as iOS does.
