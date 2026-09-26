@@ -178,6 +178,7 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = model.titleLineLimit ?: Int.MAX_VALUE,
                 titleBadge = model.titleTag?.let { { TitleTag(it, model.titleTagStyle, model.titleTagType) } },
+                info = model.info,
             )
         },
         subtitle = model.titleExtra?.let {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,10 +15,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.components.InfoButton
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 @Composable
-fun ListItemTitleText(text: String, titleBadge: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.onSurface, style: TextStyle = MaterialTheme.typography.titleMedium, maxLines: Int = 1) {
+fun ListItemTitleText(
+    text: String,
+    titleBadge: (@Composable () -> Unit)? = null,
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
+    maxLines: Int = 1,
+    info: InfoSheetEntity? = null,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
@@ -37,6 +47,11 @@ fun ListItemTitleText(text: String, titleBadge: (@Composable () -> Unit)? = null
                     .wrapContentHeight(Alignment.CenterVertically, unbounded = true),
             ) {
                 titleBadge()
+            }
+        }
+        info?.let {
+            Box(modifier = Modifier.padding(start = paddingHalfSmall)) {
+                InfoButton(entity = it)
             }
         }
     }
