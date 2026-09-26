@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.presents.select.SelectAssetAction
 import com.gemwallet.android.features.assets.presents.select.SelectAssetScene
@@ -97,7 +98,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                 listPosition = position,
                 longPressState = longPressedPerpetual,
                 onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
-                onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.asset)) },
+                onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.data.asset.toPrimitives())) },
             )
         }
     }
@@ -113,7 +114,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                     listPosition = position,
                     longPressState = longPressedPerpetual,
                     onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
-                    onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.asset)) },
+                    onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.data.asset.toPrimitives())) },
                 )
             }
         }

@@ -8,7 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
-import com.gemwallet.android.domains.nft.NftAssetDetailsData
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.domains.nft.NFTAssetDetails
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -23,6 +24,7 @@ import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireNftAssetId
+import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.ReportReason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,16 +32,20 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemCollectibleDetails
 import uniffi.gemstone.GemCollectibleServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class CollectibleViewModel @Inject constructor(
     getNftAssetDetails: GetNftAssetDetails,
+    getSession: GetSession,
     private val service: GemCollectibleServiceInterface,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
@@ -49,8 +55,17 @@ class CollectibleViewModel @Inject constructor(
 
     private val nftAssetId = savedStateHandle.requireNftAssetId()
 
-    val nftAsset: StateFlow<NftAssetDetailsData?> = getNftAssetDetails(nftAssetId, canSaveImage = canSaveImageToGallery)
+    private val assetDetails: StateFlow<NFTAssetDetails?> = getNftAssetDetails(nftAssetId)
         .catch { Log.e(TAG, "Collectible details unavailable", it) }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val nftAsset: StateFlow<NFTAssetData?> = assetDetails.map { it?.assetData }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val details: StateFlow<GemCollectibleDetails?> = combine(assetDetails.filterNotNull(), getSession().filterNotNull()) { asset, session ->
+        service.details(session.wallet.type.toGem(), asset.assetData.toGem(), asset.isOwned, canSaveImageToGallery)
+    }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

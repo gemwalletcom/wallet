@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -22,13 +21,17 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Perpetual
+import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualProvider
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAssetItemTrailing
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.assetText
@@ -36,17 +39,12 @@ import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.formattedPercentage
 
 @Composable
-fun PerpetualListItem(
-    item: PerpetualDataAggregate,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition = ListPosition.Single,
-    longPressState: MutableState<PerpetualId?>,
-    onTogglePin: (PerpetualId) -> Unit,
-    onClick: (AssetId) -> Unit,
-) {
+fun PerpetualListItem(item: GemPerpetualMarketItem, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single, longPressState: MutableState<PerpetualId?>, onTogglePin: (PerpetualId) -> Unit, onClick: () -> Unit) {
+    val perpetualId = PerpetualId(item.data.perpetual.id)
+    val isPinned = item.data.metadata.isPinned
     DropDownContextItem(
         modifier = modifier,
-        isExpanded = longPressState.value == item.id,
+        isExpanded = longPressState.value == perpetualId,
         onDismiss = { longPressState.value = null },
         content = {
             PerpetualListItem(
@@ -57,26 +55,26 @@ fun PerpetualListItem(
         },
         menuItems = {
             DropdownMenuItem(
-                text = { Text(text = stringResource(id = if (item.isPinned) R.string.common_unpin else R.string.common_pin)) },
+                text = { Text(text = stringResource(id = if (isPinned) R.string.common_unpin else R.string.common_pin)) },
                 trailingIcon = {
-                    if (item.isPinned) {
+                    if (isPinned) {
                         Icon(painterResource(R.drawable.keep_off), "unpin")
                     } else {
                         Icon(AppIcons.PushPin, "pin")
                     }
                 },
                 onClick = {
-                    onTogglePin(item.id)
+                    onTogglePin(perpetualId)
                     longPressState.value = null
                 },
             )
         },
-        onLongClick = { longPressState.value = item.id },
-    ) { onClick(item.asset.id) }
+        onLongClick = { longPressState.value = perpetualId },
+    ) { onClick() }
 }
 
 @Composable
-fun PerpetualListItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
+fun PerpetualListItem(item: GemPerpetualMarketItem, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
     AssetListItem(
         row = item.row,
         modifier = modifier,
@@ -92,11 +90,26 @@ private fun PerpetualListItemPreview() {
     }
 }
 
-internal fun previewPerpetual(asset: Asset, title: String, price: Double, change: Double, volume: String, isPinned: Boolean = false) = object : PerpetualDataAggregate {
-    override val id = PerpetualId(PerpetualProvider.Hypercore, asset.symbol)
-    override val asset = asset
-    override val isPinned = isPinned
-    override val row = GemAssetItemRow(
+internal fun previewPerpetual(asset: Asset, title: String, price: Double, change: Double, volume: String, isPinned: Boolean = false) = GemPerpetualMarketItem(
+    data = PerpetualData(
+        perpetual = Perpetual(
+            id = PerpetualId(PerpetualProvider.Hypercore, asset.symbol),
+            name = asset.symbol,
+            provider = PerpetualProvider.Hypercore,
+            assetId = asset.id,
+            identifier = asset.symbol,
+            price = price,
+            pricePercentChange24h = change,
+            openInterest = 0.0,
+            volume24h = 0.0,
+            funding = 0.0,
+            maxLeverage = 1u,
+            isIsolatedOnly = false,
+        ),
+        asset = asset,
+        metadata = PerpetualMetadata(isPinned),
+    ).toGem(),
+    row = GemAssetItemRow(
         icon = assetText(asset.toGem()).icon,
         title = title,
         titleExtra = null,
@@ -104,5 +117,5 @@ internal fun previewPerpetual(asset: Asset, title: String, price: Double, change
         subtitleExtra = GemRowText(GemLocalizedText.Number(formattedPercentage(change, GemPercentageStyle.SIGNED)), if (change < 0) GemValueTone.NEGATIVE else GemValueTone.POSITIVE),
         trailing = GemAssetItemTrailing.Value(GemRowText(GemLocalizedText.Text(volume), GemValueTone.PLAIN), null),
         masksBalance = false,
-    )
-}
+    ),
+)

@@ -17,14 +17,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemCollectibleServiceInterface
 import uniffi.gemstone.GemNftServiceInterface
 
 class GetNftAssetDetailsImplTest {
@@ -41,20 +39,17 @@ class GetNftAssetDetailsImplTest {
     private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val getSession = mockk<GetSession> { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
     private val nftService = mockk<GemNftServiceInterface>()
-    private val collectibleService = mockk<GemCollectibleServiceInterface>(relaxed = true)
     private val nftAssetQuery = mockk<NFTAssetQuery>()
 
-    private fun subject() = GetNftAssetDetailsImpl(getSession, nftAssetQuery, nftService, collectibleService)
+    private fun subject() = GetNftAssetDetailsImpl(getSession, nftAssetQuery, nftService)
 
     @Test
-    fun aStoredAssetIsDetailedWithItsOwnershipInTheSessionWallet() = runTest {
+    fun aStoredAssetIsReadWithItsOwnershipInTheSessionWallet() = runTest {
         every { nftAssetQuery("wallet-1", assetId) } returns flowOf(NFTAssetDetails(assetData = stored, isOwned = true))
 
-        val result = subject()(assetId, canSaveImage = true).first()
+        val result = subject()(assetId).first()
 
-        assertEquals(stored.collection, result.collection)
-        assertEquals(stored.asset, result.asset)
-        verify { collectibleService.details(wallet.type.toGem(), stored.toGem(), true, true) }
+        assertEquals(NFTAssetDetails(assetData = stored, isOwned = true), result)
         coVerify(exactly = 0) { nftService.ensureAsset(any()) }
     }
 
@@ -63,10 +58,8 @@ class GetNftAssetDetailsImplTest {
         every { nftAssetQuery("wallet-1", assetId) } returns flowOf(null)
         coEvery { nftService.ensureAsset(assetId.toIdentifier()) } returns ensured.toGem()
 
-        val result = subject()(assetId, canSaveImage = false).first()
+        val result = subject()(assetId).first()
 
-        assertEquals(ensured.collection, result.collection)
-        assertEquals(ensured.asset, result.asset)
-        verify { collectibleService.details(wallet.type.toGem(), ensured.toGem(), false, false) }
+        assertEquals(NFTAssetDetails(assetData = ensured, isOwned = false), result)
     }
 }

@@ -10,10 +10,8 @@ import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
-import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.ui.components.screen.message
@@ -36,6 +34,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemNftEntry
+import uniffi.gemstone.GemPerpetualMarketItem
+import uniffi.gemstone.GemPerpetualMarketSections
 import uniffi.gemstone.GemSearchListRow
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
@@ -44,6 +44,7 @@ import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchInput
 import uniffi.gemstone.GemWalletSearchView
 import uniffi.gemstone.perpetualMarketQuery
+import uniffi.gemstone.perpetualMarketSections
 import uniffi.gemstone.searchListRows
 import javax.inject.Inject
 
@@ -73,11 +74,11 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val perpetualSections: StateFlow<PerpetualSections> = currentQuery
+    private val perpetualSections: StateFlow<GemPerpetualMarketSections> = currentQuery
         .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
-        .map { it.marketSections() }
+        .map { markets -> perpetualMarketSections(markets.map { it.toGem() }) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemPerpetualMarketSections(emptyList(), emptyList()))
 
     private val nftData: Flow<List<NFTData>> = getSession()
         .filterNotNull()
@@ -142,12 +143,12 @@ class WalletSearchViewModel @Inject constructor(
         .map { it?.hasMoreAssets == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val pinnedPerpetuals: StateFlow<List<PerpetualDataAggregate>> = combine(perpetualSections, view) { sections, view ->
+    val pinnedPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = combine(perpetualSections, view) { sections, view ->
         if (view?.state?.showsPinnedPerpetuals == true) sections.pinned else emptyList()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = combine(perpetualSections, view) { sections, view ->
+    val previewPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = combine(perpetualSections, view) { sections, view ->
         if (view?.state?.showsPerpetuals == true) sections.markets.take(view.limits.perpetuals.toInt()) else emptyList()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -170,7 +171,7 @@ class WalletSearchViewModel @Inject constructor(
     override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
-        val item = perpetualSections.value.let { it.pinned + it.markets }.firstOrNull { it.id == perpetualId } ?: return@launch
-        setPerpetualPinned(perpetualId, item.title, !item.isPinned).onSuccess { emitToast(it.message(context)) }
+        val item = perpetualSections.value.let { it.pinned + it.markets }.firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
+        setPerpetualPinned(perpetualId, item.row.title, !item.data.metadata.isPinned).onSuccess { emitToast(it.message(context)) }
     }
 }

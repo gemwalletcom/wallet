@@ -8,7 +8,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemCollectibleServiceInterface
 import uniffi.gemstone.GemNftServiceInterface
 import javax.inject.Singleton
 
@@ -18,6 +17,5 @@ object NftCoordinatorModule {
 
     @Provides
     @Singleton
-    fun provideGetNftAssetDetails(getSession: GetSession, nftAssetQuery: NFTAssetQuery, nftService: GemNftServiceInterface, collectibleService: GemCollectibleServiceInterface): GetNftAssetDetails =
-        GetNftAssetDetailsImpl(getSession, nftAssetQuery, nftService, collectibleService)
+    fun provideGetNftAssetDetails(getSession: GetSession, nftAssetQuery: NFTAssetQuery, nftService: GemNftServiceInterface): GetNftAssetDetails = GetNftAssetDetailsImpl(getSession, nftAssetQuery, nftService)
 }

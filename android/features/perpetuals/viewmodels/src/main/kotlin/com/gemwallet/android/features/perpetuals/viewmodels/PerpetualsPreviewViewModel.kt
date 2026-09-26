@@ -9,7 +9,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.domains.balance.hiddenWhen
-import com.gemwallet.android.domains.perpetual.aggregates.positionAggregates
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.perpetualBalanceTotal
+import uniffi.gemstone.perpetualPositionRows
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,10 +50,9 @@ class PerpetualsPreviewViewModel @Inject constructor(
         .map { it?.balance }
         .distinctUntilChanged()
 
-    private val positionAggregates = getSession()
+    private val positionData = getSession()
         .filterNotNull()
         .flatMapLatest { perpetualPositionsQuery(it.wallet.id) }
-        .map { it.positionAggregates() }
         .flowOn(ioDispatcher)
 
     val tradeListItem = combine(balance, preferences.isHideBalances()) { balance, hideBalance ->
@@ -64,8 +63,8 @@ class PerpetualsPreviewViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
 
-    val positions = combine(positionAggregates, preferences.isHideBalances()) { positions, hideBalance ->
-        positions.map { PerpetualPositionRowUIModel(it.asset, it.row, hideBalance) }
+    val positions = combine(positionData, preferences.isHideBalances()) { positions, hideBalance ->
+        positions.zip(perpetualPositionRows(positions.map { it.toGem() })) { data, row -> PerpetualPositionRowUIModel(data.asset, row.row, hideBalance) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }

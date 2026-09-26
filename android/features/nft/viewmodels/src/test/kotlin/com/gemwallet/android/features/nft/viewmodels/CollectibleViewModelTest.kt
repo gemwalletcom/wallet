@@ -13,6 +13,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -47,10 +48,11 @@ class CollectibleViewModelTest {
             coEvery { report(any(), any()) } throws RuntimeException("rate limited")
         }
         val details = mockk<GetNftAssetDetails> {
-            every { this@mockk.invoke(any(), any()) } returns emptyFlow()
+            every { this@mockk.invoke(any()) } returns emptyFlow()
         }
         val viewModel = CollectibleViewModel(
             getNftAssetDetails = details,
+            getSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) },
             service = service,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.NftAssetId.key to "ethereum_0xcontract::1")),
             context = mockk<Context>(relaxed = true),

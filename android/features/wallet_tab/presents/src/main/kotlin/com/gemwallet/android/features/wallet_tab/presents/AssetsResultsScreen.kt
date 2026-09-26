@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.assetRows
 import com.gemwallet.android.features.assets.presents.select.searchState
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
@@ -87,7 +88,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                             listPosition = position,
                             longPressState = longPressedPerpetual,
                             onTogglePin = viewModel::onTogglePerpetualPin,
-                            onClick = { onPerpetualClick(item.asset) },
+                            onClick = { onPerpetualClick(item.data.asset.toPrimitives()) },
                         )
                     }
                 }

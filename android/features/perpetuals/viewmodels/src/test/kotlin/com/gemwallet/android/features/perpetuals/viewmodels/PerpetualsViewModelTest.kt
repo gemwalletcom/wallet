@@ -8,6 +8,7 @@ import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalance
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockPerpetual
@@ -109,8 +110,8 @@ class PerpetualsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, collections.get())
-        assertEquals(listOf(pinned.perpetual.id), subject.pinnedPerpetuals.value.map { it.id })
-        assertEquals(listOf(unpinned.perpetual.id), subject.unpinnedPerpetuals.value.map { it.id })
+        assertEquals(listOf(pinned.perpetual.id.toIdentifier()), subject.pinnedPerpetuals.value.map { it.data.perpetual.id })
+        assertEquals(listOf(unpinned.perpetual.id.toIdentifier()), subject.unpinnedPerpetuals.value.map { it.data.perpetual.id })
     }
 
     private fun viewModel(
@@ -160,7 +161,7 @@ class PerpetualsViewModelTest {
         viewModel.setQuery(" bitcoin ")
         advanceUntilIdle()
 
-        assertEquals(listOf(position.perpetual.id), viewModel.positions.value.map { it.perpetualId })
+        assertEquals(listOf(position.perpetual.id), viewModel.positions.value.map { it.perpetual.id })
     }
 
     @Test

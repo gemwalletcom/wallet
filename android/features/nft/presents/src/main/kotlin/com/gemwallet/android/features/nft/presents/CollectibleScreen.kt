@@ -31,14 +31,17 @@ import uniffi.gemstone.GemCollectibleAction
 fun CollectibleScreen(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     val viewModel: CollectibleViewModel = hiltViewModel()
     val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
+    val details by viewModel.details.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     ToastEffect(viewModel.toastEvents, snackbar)
 
     val data = assetData ?: return
+    val collectible = details ?: return
     var isReportVisible by remember { mutableStateOf(false) }
     CollectibleScene(
-        data = data,
+        assetData = data,
+        details = collectible,
         snackbar = snackbar,
         onClose = { cancelAction() },
         onSend = { onRecipient(data.asset) },

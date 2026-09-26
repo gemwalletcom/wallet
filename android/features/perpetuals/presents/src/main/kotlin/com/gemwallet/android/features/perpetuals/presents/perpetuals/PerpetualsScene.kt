@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
@@ -65,6 +64,7 @@ import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemHeaderButtonAction
+import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualBalance
@@ -75,8 +75,8 @@ internal fun PerpetualsScene(
     isRefreshing: Boolean,
     balanceHeader: GemValueHeader?,
     positions: List<PerpetualPositionRowUIModel>,
-    unpinnedPerpetuals: List<PerpetualDataAggregate>,
-    pinnedPerpetuals: List<PerpetualDataAggregate>,
+    unpinnedPerpetuals: List<GemPerpetualMarketItem>,
+    pinnedPerpetuals: List<GemPerpetualMarketItem>,
     recent: List<Asset> = emptyList(),
     query: TextFieldState,
     sections: List<GemPerpetualMarketSection>,
@@ -170,7 +170,7 @@ internal fun PerpetualsScene(
                                     listPosition = position,
                                     longPressState = longPressedAsset,
                                     onTogglePin = { onAction(PerpetualsAction.TogglePin(it)) },
-                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.asset)) },
+                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.data.asset.toPrimitives())) },
                                 )
                             }
                         }
@@ -183,7 +183,7 @@ internal fun PerpetualsScene(
                                     listPosition = position,
                                     longPressState = longPressedAsset,
                                     onTogglePin = { onAction(PerpetualsAction.TogglePin(it)) },
-                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.asset)) },
+                                    onClick = { onAction(PerpetualsAction.OpenPerpetual(item.data.asset.toPrimitives())) },
                                 )
                             }
                         }

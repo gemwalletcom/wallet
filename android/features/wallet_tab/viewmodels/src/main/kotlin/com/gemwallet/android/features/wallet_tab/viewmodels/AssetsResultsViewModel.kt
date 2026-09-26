@@ -11,14 +11,13 @@ import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.perpetual.aggregates.marketAggregates
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
@@ -40,10 +39,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.perpetualMarketQuery
+import uniffi.gemstone.perpetualMarketRows
 import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
@@ -78,10 +79,12 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = when (scope) {
+    val previewPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = when (scope) {
         is WalletSearchTag.List ->
             combine(
-                perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }.map { it.marketAggregates() },
+                perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }.map { markets ->
+                    markets.map { it.toGem() }.let { data -> data.zip(perpetualMarketRows(data), ::GemPerpetualMarketItem) }
+                },
                 getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false },
             ) { items, show ->
                 if (show) items.take(resultsLimit()) else emptyList()
@@ -90,7 +93,7 @@ class AssetsResultsViewModel @Inject constructor(
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
         WalletSearchTag.All ->
-            MutableStateFlow(emptyList<PerpetualDataAggregate>())
+            MutableStateFlow(emptyList<GemPerpetualMarketItem>())
     }
 
     val state: StateFlow<GemSelectAssetState> = combine(
@@ -138,8 +141,8 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
-        val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
-        setPerpetualPinned(perpetualId, item.title, !item.isPinned).onSuccess { emitToast(it.message(context)) }
+        val item = previewPerpetuals.value.firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
+        setPerpetualPinned(perpetualId, item.row.title, !item.data.metadata.isPinned).onSuccess { emitToast(it.message(context)) }
     }
 }
 

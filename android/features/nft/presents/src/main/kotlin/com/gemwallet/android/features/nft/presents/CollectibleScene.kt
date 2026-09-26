@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
 import com.gemwallet.android.features.nft.presents.components.NftTitle
@@ -32,20 +31,22 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
+import com.wallet.core.primitives.NFTAssetData
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemCollectibleAttributeValue
+import uniffi.gemstone.GemCollectibleDetails
 import uniffi.gemstone.GemCollectibleSection
 import uniffi.gemstone.GemListRow
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
-internal fun CollectibleScene(data: NftAssetDetailsData, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
+internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDetails, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     Scene(
         titleContent = {
             NftTitle(
-                name = data.asset.name,
-                isVerified = data.details.isVerified,
+                name = assetData.asset.name,
+                isVerified = details.isVerified,
                 iconSize = compactIconSize,
             )
         },
@@ -55,7 +56,7 @@ internal fun CollectibleScene(data: NftAssetDetailsData, snackbar: SnackbarHostS
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 NftImage(
-                    source = data.asset.toImageSource(),
+                    source = assetData.asset.toImageSource(),
                     modifier = Modifier
                         .padding(horizontal = sceneContentPadding())
                         .fillMaxWidth()
@@ -71,20 +72,20 @@ internal fun CollectibleScene(data: NftAssetDetailsData, snackbar: SnackbarHostS
                     contentAlignment = Alignment.Center,
                 ) {
                     NftHeaderActions(
-                        header = data.details.header,
-                        actions = data.details.actions,
+                        header = details.header,
+                        actions = details.actions,
                         onSend = onSend,
                         onAction = onAction,
                     )
                 }
             }
-            data.details.sections.forEach { group ->
+            details.sections.forEach { group ->
                 val title = group.title.titleRes()
                 when (val section = group.section) {
                     is GemCollectibleSection.Status -> verificationStatusItem(section.status.toPrimitives())
 
                     is GemCollectibleSection.Info -> itemsPositioned(section.rows) { position, row ->
-                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onOpenAddress(ChainAddress(data.asset.chain, it)) })
+                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onOpenAddress(ChainAddress(assetData.asset.chain, it)) })
                     }
 
                     is GemCollectibleSection.Attributes -> {
