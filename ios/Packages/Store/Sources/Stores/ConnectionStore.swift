@@ -60,10 +60,4 @@ public struct ConnectionStore: Sendable {
                 .deleteAll(db)
         }
     }
-
-    public func deleteAll() throws -> Int {
-        try db.write { db in
-            try WalletConnectionRecord.deleteAll(db)
-        }
-    }
 }

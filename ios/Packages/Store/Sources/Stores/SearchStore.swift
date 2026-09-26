@@ -19,10 +19,6 @@ public struct SearchStore: Sendable {
         case .nft: break
         }
     }
-
-    public func clear() throws {
-        _ = try dbQueue.write { try SearchRecord.deleteAll($0) }
-    }
 }
 
 // MARK: - Private

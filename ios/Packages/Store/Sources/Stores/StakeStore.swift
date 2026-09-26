@@ -29,14 +29,6 @@ public struct StakeStore: Sendable {
         }
     }
 
-    public func updateDelegations(walletId: WalletId, delegations: [DelegationBase]) throws {
-        try db.write { db in
-            for delegation in delegations {
-                try delegation.record(walletId: walletId.id).upsert(db)
-            }
-        }
-    }
-
     public func updateAndDelete(walletId: WalletId, delegations: [DelegationBase], deleteIds: [String]) throws {
         try db.write { db in
             for delegation in delegations {
@@ -86,12 +78,6 @@ public struct StakeStore: Sendable {
         }
     }
 
-    public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
-        try db.read { db in
-            try DelegationsQuery(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
-        }
-    }
-
     public func getDelegationIds(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [String] {
         try db.read { db in
             try StakeDelegationRecord
@@ -116,10 +102,5 @@ public struct StakeStore: Sendable {
         try db.write { db in
             try StakeValidatorRecord.deleteAll(db)
         }
-    }
-
-    public func clear() throws {
-        try clearDelegations()
-        try clearValidators()
     }
 }

@@ -8,7 +8,6 @@ struct NFTCollectionRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "nft_collections"
 
     enum Columns {
-        static let walletId = Column("walletId")
         static let id = Column("id")
         static let name = Column("name")
         static let description = Column("description")

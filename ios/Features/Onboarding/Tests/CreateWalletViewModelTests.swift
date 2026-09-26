@@ -15,7 +15,7 @@ import Testing
 struct CreateWalletViewModelTests {
     @Test
     func aCreatedWalletIsStoredAsCreated() async throws {
-        let service = GemWalletService.mock(db: .mock(chains: AssetConfiguration.allChains))
+        let service = GemWalletService.mock(db: .mock(chains: Chain.allCases))
         let model = CreateWalletViewModel.mock(service: service)
 
         try await model.createWallet(words: LocalKeystore.words)

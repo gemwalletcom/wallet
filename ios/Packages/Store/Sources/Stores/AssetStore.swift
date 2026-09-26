@@ -44,20 +44,6 @@ public struct AssetStore: Sendable {
         }
     }
 
-    public func getAssetData(walletId: WalletId, assetId: AssetId) throws -> AssetData {
-        try db.read { db in
-            try AssetQuery(walletId: walletId, assetId: assetId).fetch(db)
-        }
-    }
-
-    public func getAssets() throws -> [Asset] {
-        try db.read { db in
-            try AssetRecord
-                .fetchAll(db)
-                .map { $0.mapToAsset() }
-        }
-    }
-
     public func getAssetBasics(for assetIds: [String]) throws -> [AssetBasic] {
         try db.read { db in
             try AssetRecord

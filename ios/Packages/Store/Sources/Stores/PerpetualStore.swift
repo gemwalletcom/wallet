@@ -44,16 +44,6 @@ public struct PerpetualStore: Sendable {
         }
     }
 
-    public func getPositions(walletId: WalletId) throws -> [PerpetualPosition] {
-        try db.read { db in
-            try PerpetualPositionRecord
-                .filter(PerpetualPositionRecord.Columns.walletId == walletId.id)
-                .order(PerpetualPositionRecord.Columns.updatedAt.desc)
-                .fetchAll(db)
-                .map { $0.toPerpetualPosition() }
-        }
-    }
-
     public func getPositions(walletId: WalletId, provider: PerpetualProvider) throws -> [PerpetualPosition] {
         try db.read { db in
             try PerpetualPositionRecord

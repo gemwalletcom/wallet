@@ -28,15 +28,6 @@ public struct PriceAlertStore: Sendable {
         }
     }
 
-    @discardableResult
-    public func deletePriceAlerts(_ alertsIds: [String]) throws -> Int {
-        try db.write { (db: Database) in
-            try PriceAlertRecord
-                .filter(alertsIds.contains(PriceAlertRecord.Columns.id))
-                .deleteAll(db)
-        }
-    }
-
     public func diffPriceAlerts(deleteIds: [String], alerts: [(id: String, alert: PriceAlert)]) throws {
         if deleteIds.isEmpty, alerts.isEmpty {
             return
@@ -51,13 +42,6 @@ public struct PriceAlertStore: Sendable {
                     .toRecord(id: value.id)
                     .upsert(db)
             }
-        }
-    }
-
-    public func clear() throws -> Int {
-        try db.write {
-            try PriceAlertRecord
-                .deleteAll($0)
         }
     }
 }

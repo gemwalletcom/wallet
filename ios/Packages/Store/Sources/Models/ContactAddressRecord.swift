@@ -20,8 +20,6 @@ public struct ContactAddressRecord: Codable, FetchableRecord, PersistableRecord,
     public var address: String
     public var chain: Chain
     public var memo: String?
-
-    static let contact = belongsTo(ContactRecord.self).forKey("contact")
 }
 
 extension ContactAddressRecord: CreateTable {
