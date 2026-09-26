@@ -80,13 +80,13 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetData: assetData, wallet: wallet, service: receiveService())
+    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetData: assetData, wallet: wallet, service: receiveService())
     }
 
     @MainActor
-    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
+    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
     }
 
     private func receiveService() -> GemReceiveService {

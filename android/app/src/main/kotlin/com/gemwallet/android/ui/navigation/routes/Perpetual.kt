@@ -4,8 +4,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.perpetuals.presents.market.PerpetualMarketScreen
 import com.gemwallet.android.features.perpetuals.presents.position.PerpetualPositionScreen
-import com.gemwallet.android.features.transfer.presents.confirm.ConfirmScreen
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
+import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -28,7 +28,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
+    onGetAsset: (GetAssetAction, AssetId) -> Unit,
 ) {
     entry<PerpetualRoute> {
         PerpetualMarketScreen(
@@ -48,11 +48,11 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
             onClose = onCancel,
             onTransaction = onTransaction,
             confirmContent = { input, finishAction, cancelAction, onOpenAddress ->
-                ConfirmScreen(
+                ConfirmTransferScreen(
                     input = input,
                     cancelAction = cancelAction,
                     finishAction = finishAction,
-                    onAcquireAsset = onAcquireAsset,
+                    onGetAsset = onGetAsset,
                     onOpenAddress = onOpenAddress,
                     handleSystemBack = true,
                 )

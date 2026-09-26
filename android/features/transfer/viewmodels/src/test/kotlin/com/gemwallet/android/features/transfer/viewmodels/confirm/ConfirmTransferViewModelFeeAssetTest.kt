@@ -50,7 +50,7 @@ import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelFeeAssetTest {
+class ConfirmTransferViewModelFeeAssetTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
@@ -58,7 +58,7 @@ class ConfirmViewModelFeeAssetTest {
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -91,7 +91,7 @@ class ConfirmViewModelFeeAssetTest {
         coVerify(exactly = 0) { confirmation.load(match<GemConfirmLoadOptions> { it.feeAssetId != null }) }
     }
 
-    private fun viewModel(): ConfirmViewModel {
+    private fun viewModel(): ConfirmTransferViewModel {
         val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
@@ -126,7 +126,7 @@ class ConfirmViewModelFeeAssetTest {
                 )
             }
         }
-        return ConfirmViewModel(
+        return ConfirmTransferViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(account))))
             },

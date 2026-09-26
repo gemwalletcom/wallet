@@ -25,12 +25,12 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireOptionUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailElement
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.acquireOptions
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.confirmHeader
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.feeItems
@@ -110,7 +110,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ConfirmViewModel @Inject constructor(
+class ConfirmTransferViewModel @Inject constructor(
     private val getSession: GetSession,
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
@@ -331,7 +331,7 @@ class ConfirmViewModel @Inject constructor(
     val balanceChangeRows: StateFlow<List<ListItemModel>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.changes.orEmpty().map { change -> change.listItem() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val acquireOptions: StateFlow<List<AcquireOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it) }.orEmpty() }
+    val acquireOptions: StateFlow<List<GetAssetOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it) }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val executeErrorText: StateFlow<String?> = screen.map { it.failure?.takeIf { failure -> failure.stage == GemConfirmStage.EXECUTE }?.error?.broadcastLabel(context) }
@@ -412,21 +412,21 @@ class ConfirmViewModel @Inject constructor(
         fun assetPrice(asset: Asset): AssetPriceValue = AssetPriceValue(asset, load.metadata.price(asset.id.toIdentifier())?.toAssetPriceInfo(currency))
     }
 
-    private fun buildDetailElements(request: GemTransferData?, content: ConfirmContent?): List<ConfirmDetailElement> = listOfNotNull(
+    private fun buildDetailElements(request: GemTransferData?, content: ConfirmContent?): List<ConfirmDetailsUIModel> = listOfNotNull(
         buildSwapDetailElement(request, content),
         buildPerpetualDetailElement(request?.inputType?.perpetualType),
     )
 
-    private fun buildPerpetualDetailElement(perpetualType: PerpetualType?): ConfirmDetailElement? = when (val type = perpetualType) {
+    private fun buildPerpetualDetailElement(perpetualType: PerpetualType?): ConfirmDetailsUIModel? = when (val type = perpetualType) {
         null -> null
 
-        is PerpetualType.Modify -> confirmation.value?.autocloseRow(type.data)?.let { ConfirmDetailElement.PerpetualModifyAutoclose(it) }
+        is PerpetualType.Modify -> confirmation.value?.autocloseRow(type.data)?.let { ConfirmDetailsUIModel.PerpetualModifyAutoclose(it) }
 
         else -> perpetualConfirmDetails(type)
-            ?.let(ConfirmDetailElement::PerpetualDetails)
+            ?.let(ConfirmDetailsUIModel::PerpetualDetails)
     }
 
-    private fun buildSwapDetailElement(transfer: GemTransferData?, content: ConfirmContent?): ConfirmDetailElement.SwapDetails? {
+    private fun buildSwapDetailElement(transfer: GemTransferData?, content: ConfirmContent?): ConfirmDetailsUIModel.SwapDetails? {
         val swapData = transfer?.inputType?.swapData ?: return null
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
@@ -434,7 +434,7 @@ class ConfirmViewModel @Inject constructor(
         val model = swapQuoteDetails(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem(), fromAsset.price?.price?.price, toAsset.price?.price?.price, content.currency.toGem())
             .uiModel() ?: return null
 
-        return ConfirmDetailElement.SwapDetails(model)
+        return ConfirmDetailsUIModel.SwapDetails(model)
     }
 }
 

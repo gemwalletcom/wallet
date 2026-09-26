@@ -56,14 +56,14 @@ import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelRequestTest {
+class ConfirmTransferViewModelRequestTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -139,7 +139,7 @@ class ConfirmViewModelRequestTest {
         assertEquals(FeePriority.Fast, viewModel.feeSelectionUIModel.value.selectedPriority)
     }
 
-    private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
+    private fun viewModel(handle: SavedStateHandle): ConfirmTransferViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
@@ -155,10 +155,10 @@ class ConfirmViewModelRequestTest {
                 simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
             )
         coEvery { confirmation.load(any()) } throws IllegalStateException("preload failed")
-        return confirmViewModel(handle)
+        return confirmTransferViewModel(handle)
     }
 
-    private fun confirmViewModel(handle: SavedStateHandle) = ConfirmViewModel(
+    private fun confirmTransferViewModel(handle: SavedStateHandle) = ConfirmTransferViewModel(
         getSession = mockk<GetSession> {
             every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(account))))
         },

@@ -6,7 +6,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemInfoTopic
 
-data class AmountUiState(
+data class AmountUIState(
     val title: String = "",
     val asset: Asset? = null,
     val amountSymbol: AmountSymbolUIModel = AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),

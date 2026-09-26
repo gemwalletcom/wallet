@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireOptionUIModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
-internal fun GetAssetBottomSheet(asset: Asset?, options: List<AcquireOptionUIModel>, onDismiss: () -> Unit, onAction: (AcquireAssetAction) -> Unit) {
+internal fun GetAssetSheet(asset: Asset?, options: List<GetAssetOptionUIModel>, onDismiss: () -> Unit, onAction: (GetAssetAction) -> Unit) {
     ModalBottomSheet(
         item = asset,
         onDismissRequest = onDismiss,

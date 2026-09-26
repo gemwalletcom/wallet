@@ -23,7 +23,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportMu
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportSelectTypeRoute
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.routes
@@ -40,7 +40,7 @@ import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
-import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
@@ -70,7 +70,7 @@ import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
-import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
+import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
@@ -277,8 +277,8 @@ class WalletNavigator(
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveCollection() = push(ReceiveCollectionRoute)
     fun openRecipient(payment: GemPaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
-    fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientInputRoute(assetId, payment = payment))
-    fun openNftRecipient(nft: NFTAsset) = push(RecipientInputRoute(AssetId(nft.chain), nft = nft))
+    fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientRoute(assetId, payment = payment))
+    fun openNftRecipient(nft: NFTAsset) = push(RecipientRoute(AssetId(nft.chain), nft = nft))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return
         push(AmountRoute(pack))
@@ -304,21 +304,21 @@ class WalletNavigator(
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
     fun openBuy(assetId: AssetId, amount: Int?) = push(FiatInputRoute(assetId, amount, FiatQuoteType.Buy))
-    fun openAcquireAsset(action: AcquireAssetAction, assetId: AssetId) {
+    fun openGetAsset(action: GetAssetAction, assetId: AssetId) {
         when (action) {
-            is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount)
-            is AcquireAssetAction.Swap -> action.payAssetId?.let { openSwap(from = it, to = assetId) } ?: openSwapTo(assetId)
-            AcquireAssetAction.Receive -> openReceive(assetId)
+            is GetAssetAction.Buy -> openBuy(assetId, amount = action.amount)
+            is GetAssetAction.Swap -> action.payAssetId?.let { openSwap(from = it, to = assetId) } ?: openSwapTo(assetId)
+            GetAssetAction.Receive -> openReceive(assetId)
         }
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
-    fun openConfirm(input: ConfirmTransferInput) {
+    fun openConfirmTransfer(input: ConfirmTransferInput) {
         val pack = input.pack() ?: return
-        push(ConfirmRoute(pack))
+        push(ConfirmTransferRoute(pack))
     }
-    fun replaceWithConfirm(input: ConfirmTransferInput) {
+    fun replaceWithConfirmTransfer(input: ConfirmTransferInput) {
         val pack = input.pack() ?: return
-        replaceTop(ConfirmRoute(pack))
+        replaceTop(ConfirmTransferRoute(pack))
     }
     fun openNftList() = push(NftListRoute)
     fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
@@ -379,9 +379,9 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
 
     is SendSelectRoute,
     is AmountRoute,
-    is ConfirmRoute,
+    is ConfirmTransferRoute,
     is DelegationRoute,
-    is RecipientInputRoute,
+    is RecipientRoute,
     is EarnRoute,
     is StakeRoute,
     is SwapPairRoute,

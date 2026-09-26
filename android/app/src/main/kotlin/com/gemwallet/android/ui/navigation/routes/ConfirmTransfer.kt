@@ -5,9 +5,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.unpackConfirmTransferInput
 import com.gemwallet.android.features.assets.presents.select.SelectPaymentScreen
-import com.gemwallet.android.features.transfer.presents.confirm.ConfirmScreen
+import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.presents.confirm.PaymentVerificationScreen
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.PaymentLink
 
 @Serializable
-data class ConfirmRoute(val params: String) : NavKey
+data class ConfirmTransferRoute(val params: String) : NavKey
 
 @Serializable
 data class PaymentSelectRoute(val assetIds: List<AssetId>) : NavKey
@@ -29,15 +29,15 @@ data class PaymentSelectRoute(val assetIds: List<AssetId>) : NavKey
 @Serializable
 data class PaymentVerificationRoute(val url: String, val link: @Contextual PaymentLink) : NavKey
 
-fun EntryProviderScope<NavKey>.confirm(navigator: WalletNavigator, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, cancelAction: CancelAction) {
-    entry<ConfirmRoute>(
+fun EntryProviderScope<NavKey>.confirmTransfer(navigator: WalletNavigator, finishAction: FinishConfirmAction, onGetAsset: (GetAssetAction, AssetId) -> Unit, cancelAction: CancelAction) {
+    entry<ConfirmTransferRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) { key ->
         val input = remember(key.params) { unpackConfirmTransferInput(key.params) }
-        ConfirmScreen(
+        ConfirmTransferScreen(
             input = input,
             cancelAction = cancelAction,
-            onAcquireAsset = onAcquireAsset,
+            onGetAsset = onGetAsset,
             paymentAsset = navigator.paymentSelection(key),
             onPaymentAssetConsumed = { navigator.clearPaymentSelection(key) },
             onSelectPaymentAsset = navigator::openPaymentSelect,
@@ -59,7 +59,7 @@ fun EntryProviderScope<NavKey>.confirm(navigator: WalletNavigator, finishAction:
     ) {
         PaymentVerificationScreen(
             onCancel = cancelAction::invoke,
-            onConfirm = navigator::replaceWithConfirm,
+            onConfirm = navigator::replaceWithConfirmTransfer,
         )
     }
 }

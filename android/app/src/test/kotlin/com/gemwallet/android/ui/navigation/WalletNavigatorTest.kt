@@ -26,7 +26,7 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
-import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
@@ -36,7 +36,7 @@ import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
-import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
+import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
@@ -307,10 +307,10 @@ class WalletNavigatorTest {
             SecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             ExportWalletRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             CreateWalletRoute,
-            RecipientInputRoute(assetId),
+            RecipientRoute(assetId),
             AmountRoute("amount"),
             AmountRoute("perpetual"),
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         ).dropNonRestorableRoutes(WalletRootRoute)
 
         assertEquals(listOf(WalletRootRoute, AssetRoute(assetId)), restored)
@@ -349,8 +349,8 @@ class WalletNavigatorTest {
             listOf(
                 WalletRootRoute,
                 SendSelectRoute(),
-                RecipientInputRoute(assetId),
-                RecipientInputRoute(assetId, nft = nft),
+                RecipientRoute(assetId),
+                RecipientRoute(assetId, nft = nft),
             ),
             navigator.backStack.toList(),
         )
@@ -479,9 +479,9 @@ class WalletNavigatorTest {
             WalletRootRoute,
             WalletsRoute,
             AssetRoute(assetId),
-            RecipientInputRoute(assetId),
+            RecipientRoute(assetId),
             AmountRoute("amount"),
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         )
 
         navigator.popConfirmFlow()
@@ -506,7 +506,7 @@ class WalletNavigatorTest {
             AssetRoute(stakeAssetId),
             StakeRoute(stakeAssetId),
             AmountRoute("amount"),
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         )
 
         navigator.popConfirmFlow()
@@ -530,7 +530,7 @@ class WalletNavigatorTest {
             StakeRoute(assetId),
             DelegationRoute(validatorId = "validator", delegationId = "delegation"),
             AmountRoute("amount"),
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         )
 
         navigator.popConfirmFlow()
@@ -552,7 +552,7 @@ class WalletNavigatorTest {
             WalletsRoute,
             AssetRoute(assetId),
             SwapPairRoute(assetId, to = null),
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         )
 
         navigator.popConfirmFlow()
@@ -571,7 +571,7 @@ class WalletNavigatorTest {
     fun popConfirmFlow_popsToRootWhenNoAssetUnderneath() {
         val navigator = navigatorWith(
             WalletRootRoute,
-            ConfirmRoute("confirm"),
+            ConfirmTransferRoute("confirm"),
         )
 
         navigator.popConfirmFlow()

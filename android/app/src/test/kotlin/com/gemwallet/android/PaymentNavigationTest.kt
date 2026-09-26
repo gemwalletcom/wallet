@@ -9,9 +9,9 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
-import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
-import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
+import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -50,7 +50,7 @@ class PaymentNavigationTest {
     fun `a prepared transfer confirms`() = runTest {
         val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(mockAsset().toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
 
-        val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmRoute
+        val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmTransferRoute
 
         assertEquals(transfer.value, requireNotNull(unpackTransferData(route.params)).value)
     }
@@ -70,7 +70,7 @@ class PaymentNavigationTest {
 
         val route = navigation(GemPaymentTarget.Recipient(asset.toGem(), recipient())).routes(payment).single()
 
-        assertEquals(asset.id, (route as RecipientInputRoute).assetId)
+        assertEquals(asset.id, (route as RecipientRoute).assetId)
     }
 
     @Test

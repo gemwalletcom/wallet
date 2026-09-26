@@ -13,7 +13,7 @@ import Testing
 import TransferTestKit
 
 @MainActor
-struct ReceiveViewModelTests {
+struct ReceiveSceneViewModelTests {
     private let bitcoin = Primitives.Asset.mock(id: .mock(chain: .bitcoin))
     private let ethereum = Primitives.Asset.mock(id: .mock(chain: .ethereum))
     private let solana = Primitives.Asset.mock(id: .mock(chain: .solana))
@@ -28,7 +28,7 @@ struct ReceiveViewModelTests {
             ],
             showsSelector: true,
         )
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         #expect(model.networkSelectorModel.items == [bitcoin.id, ethereum.id])
         #expect(model.showNetworkSelector)
@@ -38,7 +38,7 @@ struct ReceiveViewModelTests {
 
     @Test
     func oneNetworkHidesTheSelector() {
-        let model = ReceiveViewModel.mock()
+        let model = ReceiveSceneViewModel.mock()
 
         #expect(model.showNetworkSelector == false)
     }
@@ -47,7 +47,7 @@ struct ReceiveViewModelTests {
     func theWarningsComeFromCore() {
         let service = GemReceiveServiceMock()
         service.warningsValue = [.noMemoRequired, .noDestinationTagRequired]
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         #expect(model.warningMessage.contains(Localized.Wallet.Receive.noMemoRequired))
         #expect(model.warningMessage.contains(Localized.Wallet.Receive.noDestinationTagRequired))
@@ -55,7 +55,7 @@ struct ReceiveViewModelTests {
 
     @Test
     func noWarningsMeanNoMessage() {
-        let model = ReceiveViewModel.mock()
+        let model = ReceiveSceneViewModel.mock()
 
         #expect(model.warningMessage.isEmpty)
     }
@@ -63,7 +63,7 @@ struct ReceiveViewModelTests {
     @Test
     func showingTheSceneEnablesTheAssetItShows() async {
         let service = GemReceiveServiceMock()
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         await model.onChangeAsset()
 
@@ -74,7 +74,7 @@ struct ReceiveViewModelTests {
     func aFailedEnableLeavesNoAlert() async {
         let service = GemReceiveServiceMock()
         service.enableAssetError = AnyError("offline")
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         await model.onChangeAsset()
 
@@ -84,7 +84,7 @@ struct ReceiveViewModelTests {
     @Test
     func pickingTheSameNetworkChangesNothing() async {
         let service = GemReceiveServiceMock()
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
         let address = model.copyModel.content.display
 
         model.onSelectNetwork()
@@ -102,7 +102,7 @@ struct ReceiveViewModelTests {
     func pickingAnotherNetworkSwapsTheAssetAndItsAddress() async {
         let service = GemReceiveServiceMock()
         service.assetResult = .success(ethereum.toGem())
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ethereum.id])
         await model.selectNetworkTask?.value
@@ -118,7 +118,7 @@ struct ReceiveViewModelTests {
     func aSlowerNetworkSwapDoesNotReplaceTheOneChosenAfterIt() async {
         let service = GemReceiveServiceMock()
         service.assetsById = [ethereum.id.identifier: ethereum.toGem(), solana.id.identifier: solana.toGem()]
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ethereum.id])
         model.onFinishNetworkSelection([solana.id])
@@ -134,7 +134,7 @@ struct ReceiveViewModelTests {
     func aFailedNetworkSwapShowsTheError() async {
         let service = GemReceiveServiceMock()
         service.assetResult = .failure(AnyError("asset is gone"))
-        let model = ReceiveViewModel.mock(service: service)
+        let model = ReceiveSceneViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ethereum.id])
         await model.selectNetworkTask?.value
@@ -145,7 +145,7 @@ struct ReceiveViewModelTests {
 
     @Test
     func theSheetAndTheToastReadTheSamePresentation() {
-        let model = ReceiveViewModel.mock()
+        let model = ReceiveSceneViewModel.mock()
 
         model.onShareSheet()
         #expect(model.isPresentingSheet == .share)
@@ -161,7 +161,7 @@ struct ReceiveViewModelTests {
 
     @Test
     func sharingSendsTheAddressWithTheCodeWhenThereIsOne() {
-        let model = ReceiveViewModel.mock()
+        let model = ReceiveSceneViewModel.mock()
 
         #expect(model.activityItems(qrImage: nil).count == 1)
         #expect(model.activityItems(qrImage: UIImage()).count == 2)

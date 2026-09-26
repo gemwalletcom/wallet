@@ -8,11 +8,11 @@ import org.junit.Test
 import uniffi.gemstone.GemCustomFeeCheck
 import java.math.BigInteger
 
-class NetworkFeeCustomViewModelTest {
+class NetworkFeeCustomUIModelTest {
 
     @Test
     fun `the field opens on the rate it was given`() {
-        val viewModel = NetworkFeeCustomViewModel(mockFeeDetailsModel(), BigInteger("4"))
+        val viewModel = NetworkFeeCustomUIModel(mockFeeDetailsModel(), BigInteger("4"))
 
         assertEquals("4", viewModel.input)
         assertEquals(BigInteger("4"), viewModel.rate)
@@ -21,7 +21,7 @@ class NetworkFeeCustomViewModelTest {
 
     @Test
     fun `letters never reach the rate`() {
-        val viewModel = NetworkFeeCustomViewModel(mockFeeDetailsModel(), null)
+        val viewModel = NetworkFeeCustomUIModel(mockFeeDetailsModel(), null)
 
         viewModel.onInputChange("1a2b")
 
@@ -31,7 +31,7 @@ class NetworkFeeCustomViewModelTest {
 
     @Test
     fun `a rate over the maximum cannot be confirmed`() {
-        val viewModel = NetworkFeeCustomViewModel(mockFeeDetailsModel(), null)
+        val viewModel = NetworkFeeCustomUIModel(mockFeeDetailsModel(), null)
 
         viewModel.onInputChange("21")
 

@@ -8,10 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireOptionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.list_item.WarningItem
@@ -22,11 +22,11 @@ import com.wallet.core.primitives.AssetId
 internal fun ConfirmErrorInfo(
     error: ConfirmErrorUIModel?,
     acquireRequest: AcquireAssetRequest?,
-    acquireOptions: List<AcquireOptionUIModel>,
+    acquireOptions: List<GetAssetOptionUIModel>,
     isShowBottomSheetInfo: Boolean,
     onDismissBottomSheetInfo: () -> Unit,
     onDismissAcquire: () -> Unit,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
+    onGetAsset: (GetAssetAction, AssetId) -> Unit,
 ) {
     var isShowInfoSheet by remember { mutableStateOf(false) }
 
@@ -36,17 +36,17 @@ internal fun ConfirmErrorInfo(
         onDismissBottomSheetInfo()
         if (!request.offersOptions) {
             onDismissAcquire()
-            onAcquireAsset(AcquireAssetAction.Buy(request.buyAmount), request.asset.id)
+            onGetAsset(GetAssetAction.Buy(request.buyAmount), request.asset.id)
         }
     }
 
-    GetAssetBottomSheet(
+    GetAssetSheet(
         asset = acquireRequest?.takeIf { it.offersOptions }?.asset,
         options = acquireOptions,
         onDismiss = onDismissAcquire,
         onAction = { action ->
             onDismissAcquire()
-            acquireRequest?.let { onAcquireAsset(action, it.asset.id) }
+            acquireRequest?.let { onGetAsset(action, it.asset.id) }
         },
     )
 

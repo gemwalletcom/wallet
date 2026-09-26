@@ -11,7 +11,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class ReceiveViewModel: Sendable {
+public final class ReceiveSceneViewModel: Sendable {
     var qrSize: CGFloat {
         UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
     }
@@ -160,12 +160,12 @@ public final class ReceiveViewModel: Sendable {
 
 // MARK: - Actions
 
-extension ReceiveViewModel {
+extension ReceiveSceneViewModel {
     func onChangeAsset() async {
         do {
             try await service.enableAsset(walletId: wallet.id.id, assetId: assetModel.asset.id.identifier)
         } catch {
-            debugLog("ReceiveViewModel enableAsset error: \(error)")
+            debugLog("ReceiveSceneViewModel enableAsset error: \(error)")
         }
     }
 

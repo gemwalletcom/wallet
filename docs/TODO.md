@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM356 to NAM372 in any order, one feature per change.
+7. **Names:** NAM357 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -148,7 +148,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemChainService` returns chain rows (title, subtitle, icon) and the shared renderer draws them; `ChainViewModel` goes.
 - **VM200** **M** **Value headers are composed in the apps from several Core records.**
   - **iOS:** `ValueHeader` extensions build headers from `GemWalletHomeViewState`, `GemSimulationValue` (formats the value with a full-style `ValueFormatter`) and `GemPerpetualBalanceHeader` (composes "Available balance: X"); `AmountDisplay`, `NumericViewModel` and `SymbolViewModel` wrap the same parts.
-  - **Android:** `AmountListHead` takes the same parts as parameters; `SimulationHeaderUIModel` formats the simulation value with `ValueFormatter(style = FULL)`; `AmountUiState` carries title, symbol and equivalent.
+  - **Android:** `AmountListHead` takes the same parts as parameters; `SimulationHeaderUIModel` formats the simulation value with `ValueFormatter(style = FULL)`; `AmountUIState` carries title, symbol and equivalent.
   - **Expected:** one Core header record (title, subtitle, tone, icon, buttons) that every header screen returns; the wrappers and header extensions go.
 - **VM201** **M** **Transaction and confirm headers are picked by the apps.**
   - **iOS:** `TransactionHeaderType` (amount, swap, nft, asset, assetValue) is built from `GemConfirmHeader` and transaction details, and decides `showsClearHeader`.
@@ -214,11 +214,11 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemFeeRateRows` returns every row including custom, with title, emoji, value, fiat and selection; the three models go.
 - **VM215** **M** **The network fee screen is modelled twice.**
   - **iOS:** `NetworkFeeSceneViewModel` and `NetworkFeeCustomViewModel` hold fee, rates, assets and custom checks.
-  - **Android:** `FeeDetailsModel`, `FeeUIModel` (a twin of the fee amount record) and `NetworkFeeCustomViewModel` do the same.
+  - **Android:** `FeeDetailsModel`, `FeeUIModel` (a twin of the fee amount record) and `NetworkFeeCustomUIModel` do the same.
   - **Expected:** one Core fee screen record (rows, custom field state, fee assets); the models go.
 - **VM216** **S** **The confirm fee row decides its own text.**
   - **iOS:** `ConfirmNetworkFeeViewModel` shows fiat else value, hides the symbol when unavailable and decides selectability.
-  - **Android:** `ConfirmViewModel` builds the fee list item and `FeeUIModel.Unavailable` the same way.
+  - **Android:** `ConfirmTransferViewModel` builds the fee list item and `FeeUIModel.Unavailable` the same way.
   - **Expected:** `GemConfirmFeeRow` carries the final texts and whether it opens details.
 - **VM217** **S** **Confirm rows are assembled by the apps.**
   - **iOS:** `ConfirmRowViewModel` builds the recipient row from eight fields and titles the payment row "Pay with".
@@ -226,7 +226,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemConfirmRowContent` rows are complete (with VM207's address row); both models go.
 - **VM218** **S** **The confirm details block is chosen by input type in the apps.**
   - **iOS:** `ConfirmDetailsViewModel` switches on `TransactionInputType` and calls `swapQuoteDetails` or `perpetualConfirmDetails` itself.
-  - **Android:** `ConfirmViewModel.swapDetails` does the same for swaps.
+  - **Android:** `ConfirmTransferViewModel.swapDetails` does the same for swaps.
   - **Expected:** the confirm view state carries the details record; both paths go.
 - **VM219** **S** **The confirm button's icon is decided in the app.**
   - **iOS:** `ConfirmButtonViewModel` shows the biometric or passcode icon only for an enabled confirm button.
@@ -234,15 +234,15 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** `GemConfirmButton` carries the icon kind and both apps show it (the iOS behaviour); the mapper supplies the image.
 - **VM220** **S** **Simulated balance changes are wrapped.**
   - **iOS:** `ConfirmBalanceChangeViewModel` builds the list item from `GemSimulationBalanceChange`.
-  - **Android:** `ConfirmViewModel.balanceChangeRows` maps each change with `listItem()`.
+  - **Android:** `ConfirmTransferViewModel.balanceChangeRows` maps each change with `listItem()`.
   - **Expected:** the shared renderer draws the Core row; both wrappers go.
 - **VM221** **S** **The "get this asset" options are written in the apps.**
   - **iOS:** `GetAssetAction` (buy, swap, receive) and its sheet list the options.
-  - **Android:** `AcquireOptionUIModel` builds Buy, Swap and Receive with their subtitles and icons.
+  - **Android:** `GetAssetOptionUIModel` builds Buy, Swap and Receive with their subtitles and icons.
   - **Expected:** `GemAcquireAsset` returns the option rows; both lists go.
 - **VM222** **S** **The amount field's symbol and placement are decided in the apps.**
   - **iOS:** `AmountInputConfig` puts the asset symbol trailing and the currency leading, and picks the keyboard from `usesWholeAmounts`.
-  - **Android:** `AmountSymbolUIModel` and `AmountUiState` make the same choices.
+  - **Android:** `AmountSymbolUIModel` and `AmountUIState` make the same choices.
   - **Expected:** the amount view state carries symbol, placement and keyboard kind (land with VM192).
 - **VM223** **S** **Amount extras are chosen by the apps.**
   - **iOS:** `AmountStakeViewModel` and `AmountPerpetualViewModel` supply validator, resources, leverage and autoclose rows.
@@ -643,9 +643,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM356** **M** **Transfer: confirmation is `ConfirmTransfer`, the get-asset sheet `GetAsset`.**
-  - **iOS:** `ReceiveViewModel` → `ReceiveSceneViewModel`; `RecipientNavigationView`, `AmountNavigationView`, `ConfirmTransferNavigationView` follow the destination-host rule.
-  - **Android:** `ConfirmScreen`/`ConfirmViewModel`/`ConfirmRoute` → `ConfirmTransferScreen`/`ConfirmTransferViewModel`/`ConfirmTransferRoute`; `RecipientInputRoute` (file `RecipientInput.kt`) → `RecipientRoute` in `Recipient.kt`; route file `TransferAmount.kt` → `Amount.kt`; the stateless `RecipientScreen` overload → `RecipientScene`; `AmountUiState` → `AmountUIState`; `RecipientState` → `RecipientUIState`; `AcquireAssetAction`/`AcquireOptionUIModel`/`GetAssetBottomSheet` → `GetAssetAction`/`GetAssetOptionUIModel`/`GetAssetSheet`; `ConfirmDetailElement` → `ConfirmDetailsUIModel`; `ValidatorPickerUIModel` → `ValidatorSelectUIModel`; `NetworkFeeCustomViewModel` → `NetworkFeeCustomUIModel`; `PropertyDestination.kt` → `AddressRow.kt`; `FeeRateUIModelTest` and `FeeDetailsModelTest` move to `gemcore` tests, where their types live.
 - **NAM357** **S** **Transactions: the detail screen is `Transaction`.**
   - **iOS:** `TransactionsViewModel`/`TransactionsFilterViewModel` → `…SceneViewModel`; `TransactionNavigationView`, `TransactionsNavigationView` follow the destination-host rule; `TransactionItemModel` moves to its own file; `TransactionsViewModelTests.swift` splits per type, and `TransactionViewModelTests` moves to `PrimitivesComponents`, where its type lives.
   - **Android:** `TransactionDetailsScreen`/`Scene`/`ViewModel`/`Action`/`Route`/`transactionDetailsScreen` → `Transaction…`; package `presents.details` → `presents.transaction`; `TransactionDetailsRowUIModel`(`Test`) → `TransactionItemUIModel`(`Test`); `SwapProgressUIModel`/`SwapProgressStepUIModel`/`SwapProgressItem` → `TransactionSwapProgress…`; `TransactionsListAction` → `TransactionsAction`; `transactionsRoute` → `TransactionsRoute`, file `Activities.kt` → `Transactions.kt`; `TransactionsFilterSummaryUIModel` gets its own file.

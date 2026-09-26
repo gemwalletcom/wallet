@@ -52,13 +52,13 @@ import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelHeaderTest {
+class ConfirmTransferViewModelHeaderTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset()
     private val account = mockAccount(chain = Chain.Bitcoin)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -80,7 +80,7 @@ class ConfirmViewModelHeaderTest {
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
     }
 
-    private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {
         val confirmation = mockk<GemConfirmation> {
             every { rowContents(any()) } returns emptyList()
             every { feeRateRows() } returns null
@@ -99,7 +99,7 @@ class ConfirmViewModelHeaderTest {
             ).copy(transfer = transfer)
         coEvery { confirmation.load(any()) } coAnswers { awaitCancellation() }
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
-        return ConfirmViewModel(
+        return ConfirmTransferViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(
                     mockSession(wallet = mockWallet(accounts = listOf(account))),

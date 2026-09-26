@@ -38,7 +38,7 @@ import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeRateRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.NetworkFeeCustomViewModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.NetworkFeeCustomUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.customFeeRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.rowUIModel
 import com.gemwallet.android.ui.R
@@ -102,7 +102,7 @@ fun FeeDetails(
     val selectedCustomRate = selection.customRate
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     val customModel = remember(page, model, selection) {
-        NetworkFeeCustomViewModel(model, selectedCustomRate)
+        NetworkFeeCustomUIModel(model, selectedCustomRate)
     }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
@@ -283,7 +283,7 @@ private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosi
 }
 
 @Composable
-private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomViewModel, unitSymbol: String) {
+private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomUIModel, unitSymbol: String) {
     val focusRequester = remember { FocusRequester() }
     Row(
         modifier = Modifier.fillMaxWidth().listItem(ListPosition.Single).padding(paddingDefault),

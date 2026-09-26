@@ -22,12 +22,12 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemPaymentRecipient
 
 @Serializable
-data class RecipientInputRoute(val assetId: AssetId, val nft: NFTAsset? = null, val payment: @Contextual GemPaymentRecipient? = null) : NavKey
+data class RecipientRoute(val assetId: AssetId, val nft: NFTAsset? = null, val payment: @Contextual GemPaymentRecipient? = null) : NavKey
 
 @Serializable
 data class SendSelectRoute(val payment: @Contextual GemPaymentRecipient? = null, val chains: List<Chain> = emptyList()) : NavKey
 
-fun EntryProviderScope<NavKey>.recipientInput(navigator: WalletNavigator, cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
+fun EntryProviderScope<NavKey>.recipient(navigator: WalletNavigator, cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
     entry<SendSelectRoute> { key ->
         val paymentViewModel: SendPaymentViewModel = hiltViewModel()
         SelectSendScreen(
@@ -39,7 +39,7 @@ fun EntryProviderScope<NavKey>.recipientInput(navigator: WalletNavigator, cancel
         )
     }
 
-    entry<RecipientInputRoute>(
+    entry<RecipientRoute>(
         metadata = { key ->
             routeArguments(
                 assetIdArgument(key.assetId),

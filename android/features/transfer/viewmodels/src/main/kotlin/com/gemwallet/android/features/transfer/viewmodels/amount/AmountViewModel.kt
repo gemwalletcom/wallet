@@ -20,8 +20,8 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountExtrasUIModel
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountUiState
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.ValidatorPickerUIModel
+import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountUIState
+import com.gemwallet.android.features.transfer.viewmodels.amount.models.ValidatorSelectUIModel
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountStakeProvider
 import com.gemwallet.android.math.numberFormat
@@ -183,14 +183,14 @@ class AmountViewModel @Inject constructor(
         .map { (it as? GemAmountException)?.display() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState: StateFlow<AmountUiState> = combine(
+    val uiState: StateFlow<AmountUIState> = combine(
         combine(amountType, amountAsset, amountSymbol, input) { type, asset, symbol, input -> listOf(type?.title(), asset, symbol, input) },
         combine(availableBalanceFormatted, reserveForFeeFormatted, amountEquivalent, buttonState) { available, reserve, equivalent, button -> listOf(available, reserve, equivalent, button) },
         combine(amountType, amountErrorDisplay, extras) { amountType, errorDisplay, extras -> listOf(amountType, errorDisplay, extras) },
     ) { screen, values, rest ->
         val input = screen[3] as GemAmountInput?
         val errorDisplay = rest[1] as GemAmountErrorDisplay?
-        AmountUiState(
+        AmountUIState(
             title = (screen[0] as GemAmountTitle?)?.text(context).orEmpty(),
             asset = screen[1] as Asset?,
             amountSymbol = screen[2] as AmountSymbolUIModel,
@@ -207,11 +207,11 @@ class AmountViewModel @Inject constructor(
             buttonState = values[3] as ButtonState,
             extras = rest[2] as AmountExtrasUIModel,
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUiState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUIState())
 
-    val validatorPicker: StateFlow<ValidatorPickerUIModel?> = stakeProvider?.let { stake ->
+    val validatorPicker: StateFlow<ValidatorSelectUIModel?> = stakeProvider?.let { stake ->
         combine(stake.validatorOptions, stake.selectedValidatorId) { options, selectedId ->
-            options?.let { ValidatorPickerUIModel(selection = it, selectedId = selectedId.orEmpty()) }
+            options?.let { ValidatorSelectUIModel(selection = it, selectedId = selectedId.orEmpty()) }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     } ?: MutableStateFlow(null)
 

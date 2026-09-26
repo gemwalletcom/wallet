@@ -65,7 +65,7 @@ import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelNetworkFeeSheetTest {
+class ConfirmTransferViewModelNetworkFeeSheetTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
     private val payAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
@@ -75,7 +75,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         every { rowContents(any()) } returns emptyList()
         every { feeRateRows() } returns null
     }.stubViewState()
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -162,7 +162,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         assertEquals(null, viewModel.acquireRequest.value)
     }
 
-    private fun viewModel(load: () -> GemConfirmLoad = { throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null) }): ConfirmViewModel {
+    private fun viewModel(load: () -> GemConfirmLoad = { throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null) }): ConfirmTransferViewModel {
         val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem(), asset.id.toIdentifier(), asset.id.toIdentifier()) }
@@ -179,7 +179,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
                 simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
             )
         coEvery { confirmation.load(any()) } answers { load() }
-        return ConfirmViewModel(
+        return ConfirmTransferViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(
                     mockSession(wallet = mockWallet(accounts = listOf(account))),

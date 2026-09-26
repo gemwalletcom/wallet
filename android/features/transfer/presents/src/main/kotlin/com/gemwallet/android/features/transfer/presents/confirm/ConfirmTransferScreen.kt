@@ -34,11 +34,11 @@ import com.gemwallet.android.features.transfer.presents.confirm.components.Addre
 import com.gemwallet.android.features.transfer.presents.confirm.components.ConfirmErrorInfo
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
-import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmViewModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailElement
+import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmTransferViewModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -80,18 +80,18 @@ import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConfirmScreen(
+fun ConfirmTransferScreen(
     input: ConfirmTransferInput? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
+    onGetAsset: (GetAssetAction, AssetId) -> Unit,
     paymentAsset: AssetId? = null,
     onPaymentAssetConsumed: () -> Unit = {},
     onSelectPaymentAsset: (List<AssetId>) -> Unit = {},
     onOpenAddress: (ChainAddress) -> Unit,
     handleSystemBack: Boolean = false,
-    viewModel: ConfirmViewModel = hiltViewModel(),
+    viewModel: ConfirmTransferViewModel = hiltViewModel(),
 ) {
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis) {
@@ -128,7 +128,7 @@ fun ConfirmScreen(
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var isVerificationInfoVisible by remember { mutableStateOf(false) }
-    var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
+    var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailsUIModel?>(null) }
     val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
     val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
@@ -259,7 +259,7 @@ fun ConfirmScreen(
                         }
                         itemsIndexed(detailElements) { index, item ->
                             val listPosition = ListPosition.getPosition(transactionRows.size + index, sectionSize)
-                            ConfirmDetailElementRow(
+                            ConfirmDetailsRow(
                                 item = item,
                                 listPosition = listPosition,
                                 onClick = { selectedDetailElement = item },
@@ -316,7 +316,7 @@ fun ConfirmScreen(
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onDismissBottomSheetInfo = viewModel::dismissErrorSheet,
                     onDismissAcquire = viewModel::dismissAcquire,
-                    onAcquireAsset = onAcquireAsset,
+                    onGetAsset = onGetAsset,
                 )
             }
         }
@@ -352,7 +352,7 @@ fun ConfirmScreen(
             }
         }
 
-        ConfirmDetailElementBottomSheet(
+        ConfirmDetailsSheet(
             item = selectedDetailElement,
             onDismiss = { selectedDetailElement = null },
         )
@@ -412,36 +412,36 @@ fun ConfirmScreen(
 }
 
 @Composable
-private fun ConfirmDetailElementRow(item: ConfirmDetailElement, listPosition: ListPosition, onClick: () -> Unit) {
+private fun ConfirmDetailsRow(item: ConfirmDetailsUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     when (item) {
-        is ConfirmDetailElement.SwapDetails -> SwapDetailsSummaryItem(
+        is ConfirmDetailsUIModel.SwapDetails -> SwapDetailsSummaryItem(
             model = item.model,
             onClick = onClick,
             listPosition = listPosition,
         )
 
-        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsSummaryItem(
+        is ConfirmDetailsUIModel.PerpetualDetails -> PerpetualDetailsSummaryItem(
             details = item.details,
             onClick = onClick,
             listPosition = listPosition,
         )
 
-        is ConfirmDetailElement.PerpetualModifyAutoclose -> GemListRowView(row = item.row, listPosition = listPosition)
+        is ConfirmDetailsUIModel.PerpetualModifyAutoclose -> GemListRowView(row = item.row, listPosition = listPosition)
     }
 }
 
 @Composable
-private fun ConfirmDetailElementBottomSheet(item: ConfirmDetailElement?, onDismiss: () -> Unit) {
+private fun ConfirmDetailsSheet(item: ConfirmDetailsUIModel?, onDismiss: () -> Unit) {
     SwapDetailsBottomSheet(
-        isVisible = item is ConfirmDetailElement.SwapDetails,
+        isVisible = item is ConfirmDetailsUIModel.SwapDetails,
         isLoading = false,
-        model = (item as? ConfirmDetailElement.SwapDetails)?.model,
+        model = (item as? ConfirmDetailsUIModel.SwapDetails)?.model,
         onDismiss = onDismiss,
         showProviderSectionHeader = true,
     )
     PerpetualDetailsBottomSheet(
-        isVisible = item is ConfirmDetailElement.PerpetualDetails,
-        details = (item as? ConfirmDetailElement.PerpetualDetails)?.details,
+        isVisible = item is ConfirmDetailsUIModel.PerpetualDetails,
+        details = (item as? ConfirmDetailsUIModel.PerpetualDetails)?.details,
         onDismiss = onDismiss,
     )
 }

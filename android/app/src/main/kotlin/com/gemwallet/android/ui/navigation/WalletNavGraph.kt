@@ -36,7 +36,7 @@ import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.chartScreen
-import com.gemwallet.android.ui.navigation.routes.confirm
+import com.gemwallet.android.ui.navigation.routes.confirmTransfer
 import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
 import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
@@ -44,7 +44,7 @@ import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
-import com.gemwallet.android.ui.navigation.routes.recipientInput
+import com.gemwallet.android.ui.navigation.routes.recipient
 import com.gemwallet.android.ui.navigation.routes.referral
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
@@ -127,7 +127,7 @@ fun WalletNavGraph(
                         is AssetAction.Earn -> navigator.openEarn(action.assetId)
                         AssetAction.OpenPerpetuals -> navigator.openPerpetuals()
                         is AssetAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
-                        is AssetAction.Confirm -> navigator.openConfirm(action.input)
+                        is AssetAction.Confirm -> navigator.openConfirmTransfer(action.input)
                     }
                 },
             )
@@ -152,29 +152,29 @@ fun WalletNavGraph(
 
             swap(
                 navigator = navigator,
-                onConfirm = navigator::openConfirm,
+                onConfirm = navigator::openConfirmTransfer,
                 onSelect = navigator::openSwapSelect,
                 onCancel = onCancel,
             )
             swapSelect(navigator = navigator, onCancel = onCancel)
 
-            recipientInput(
+            recipient(
                 navigator = navigator,
                 cancelAction = onCancel,
                 amountAction = navigator::openAmount,
-                confirmAction = navigator::openConfirm,
+                confirmAction = navigator::openConfirmTransfer,
             )
 
             amount(
                 onCancel = onCancel,
-                onConfirm = navigator::openConfirm,
+                onConfirm = navigator::openConfirmTransfer,
                 onBuy = { navigator.openBuy(it) },
             )
 
-            confirm(
+            confirmTransfer(
                 navigator = navigator,
                 finishAction = { _, warning -> navigator.popConfirmFlow(warning) },
-                onAcquireAsset = navigator::openAcquireAsset,
+                onGetAsset = navigator::openGetAsset,
                 cancelAction = onCancel,
             )
 
@@ -218,7 +218,7 @@ fun WalletNavGraph(
 
             stake(
                 onAmount = navigator::openAmount,
-                onConfirm = navigator::openConfirm,
+                onConfirm = navigator::openConfirmTransfer,
                 onDelegation = navigator::openDelegation,
                 onOpenAddress = navigator::openAddress,
                 onCancel = onCancel,
@@ -303,10 +303,10 @@ fun WalletNavGraph(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,
                 onOpenPortfolio = { navigator.openPortfolio(PortfolioType.Perpetuals) },
                 amountAction = AmountTransactionAction(navigator::openAmount),
-                confirmAction = ConfirmTransactionAction(navigator::openConfirm),
+                confirmAction = ConfirmTransactionAction(navigator::openConfirmTransfer),
                 onCancel = onCancel,
                 onTransaction = navigator::openTransaction,
-                onAcquireAsset = navigator::openAcquireAsset,
+                onGetAsset = navigator::openGetAsset,
             )
 
             referral(onClose = onCancel)

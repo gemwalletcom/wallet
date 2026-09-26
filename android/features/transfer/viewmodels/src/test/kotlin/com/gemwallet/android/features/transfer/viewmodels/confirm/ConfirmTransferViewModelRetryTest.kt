@@ -63,7 +63,7 @@ import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelRetryTest {
+class ConfirmTransferViewModelRetryTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN)
@@ -73,7 +73,7 @@ class ConfirmViewModelRetryTest {
         every { rowContents(any()) } returns emptyList()
         every { feeRateRows() } returns null
     }.stubViewState()
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -128,7 +128,7 @@ class ConfirmViewModelRetryTest {
         coVerify(exactly = 2) { confirmation.load(match { it.feeSelection == GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()) }) }
     }
 
-    private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } returns null
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
@@ -164,7 +164,7 @@ class ConfirmViewModelRetryTest {
                 )
             }
         }
-        return ConfirmViewModel(
+        return ConfirmTransferViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(
                     mockSession(wallet = mockWallet(accounts = listOf(account))),

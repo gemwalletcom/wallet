@@ -18,7 +18,7 @@ import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
-import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientState
+import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientUIState
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.uiSection
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
@@ -98,14 +98,14 @@ class RecipientViewModel @Inject constructor(
     private val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
     private val nft = savedStateHandle.optionalNft()
 
-    val state: StateFlow<RecipientState> = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
+    val state: StateFlow<RecipientUIState> = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
         .filterNotNull()
         .map { assetInfo ->
             val type = nft?.let { GemRecipientType.Nft(it.toGem()) } ?: GemRecipientType.Asset(assetInfo.asset.toGem())
-            RecipientState.Ready(assetInfo.asset, type)
+            RecipientUIState.Ready(assetInfo.asset, type)
         }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientUIState.Loading)
 
     private val wallets = combine(session, walletsQuery()) { _, wallets -> wallets.map { it.toGem() } }
         .flowOn(ioDispatcher)
@@ -114,17 +114,17 @@ class RecipientViewModel @Inject constructor(
     private val contacts: StateFlow<List<ContactRecipient>> = state
         .flatMapLatest { state ->
             when (state) {
-                RecipientState.Loading -> flowOf(emptyList())
-                is RecipientState.Ready -> contactRecipientsQuery(state.asset.chain)
+                RecipientUIState.Loading -> flowOf(emptyList())
+                is RecipientUIState.Ready -> contactRecipientsQuery(state.asset.chain)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val sections: StateFlow<List<ListSection<RecipientRowUIModel>>> = combine(wallets, contacts, state) { wallets, contacts, state ->
         when (state) {
-            RecipientState.Loading -> emptyList()
+            RecipientUIState.Loading -> emptyList()
 
-            is RecipientState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.map { GemRecipient(address = it.address, name = it.name, memo = it.memo) })
+            is RecipientUIState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.map { GemRecipient(address = it.address, name = it.name, memo = it.memo) })
                 .mapIndexed { index, section -> section.uiSection(index.toString(), context) }
         }
     }
@@ -137,7 +137,7 @@ class RecipientViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            state.filterIsInstance<RecipientState.Ready>()
+            state.filterIsInstance<RecipientUIState.Ready>()
                 .collect { addressInput.setChain(it.asset.chain) }
         }
     }
@@ -145,8 +145,8 @@ class RecipientViewModel @Inject constructor(
     val hasMemo: StateFlow<Boolean> = state
         .map {
             when (it) {
-                RecipientState.Loading -> false
-                is RecipientState.Ready -> it.asset.chain.isMemoSupport()
+                RecipientUIState.Loading -> false
+                is RecipientUIState.Ready -> it.asset.chain.isMemoSupport()
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -159,7 +159,7 @@ class RecipientViewModel @Inject constructor(
         addressInput.validate()
     }
 
-    fun onNext(recipient: RecipientState.Ready, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
+    fun onNext(recipient: RecipientUIState.Ready, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         if (!addressInput.validate()) return
         val next = try {
             recipientInput.updateAndGet { it.onAddressChanged(address.value) }.next(recipient.type, addressInput.nameRecordState)
@@ -170,7 +170,7 @@ class RecipientViewModel @Inject constructor(
         route(recipient, next, amountAction, confirmAction)
     }
 
-    fun onDestination(recipient: RecipientState.Ready, destination: GemRecipient, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
+    fun onDestination(recipient: RecipientUIState.Ready, destination: GemRecipient, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         val next = try {
             service.select(recipient.type, destination)
         } catch (rejection: GemRecipientException) {
@@ -180,7 +180,7 @@ class RecipientViewModel @Inject constructor(
         route(recipient, next, amountAction, confirmAction)
     }
 
-    private fun route(recipient: RecipientState.Ready, next: GemRecipientNext, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
+    private fun route(recipient: RecipientUIState.Ready, next: GemRecipientNext, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         when (next) {
             is GemRecipientNext.Amount -> amountAction(
                 AmountParams.Transfer(recipient.asset.id, next.payment),
@@ -199,7 +199,7 @@ class RecipientViewModel @Inject constructor(
         recipientInput.update { it.onMemoChanged(input) }
     }
 
-    fun setQrData(state: RecipientState.Ready, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
+    fun setQrData(state: RecipientUIState.Ready, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
         when (field) {
             QrScanField.None -> Unit
             QrScanField.Memo -> onMemo(data)

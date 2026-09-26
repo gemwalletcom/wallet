@@ -67,7 +67,7 @@ import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ConfirmViewModelPaymentAssetTest {
+class ConfirmTransferViewModelPaymentAssetTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
@@ -75,7 +75,7 @@ class ConfirmViewModelPaymentAssetTest {
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()
-    private var model: ConfirmViewModel? = null
+    private var model: ConfirmTransferViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -162,15 +162,20 @@ class ConfirmViewModelPaymentAssetTest {
                     mockPaymentQuote(id = it.id.toIdentifier(), assetId = it.id.toIdentifier(), value = java.math.BigInteger.ONE)
                 },
             ),
-            extra = mockTransferDataExtra(to = "recipient", outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION, outputAction = uniffi.gemstone.TransferDataOutputAction.SEND, transactionType = TransactionType.Transfer.toGem()),
+            extra = mockTransferDataExtra(
+                to = "recipient",
+                outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION,
+                outputAction = uniffi.gemstone.TransferDataOutputAction.SEND,
+                transactionType = TransactionType.Transfer.toGem(),
+            ),
         ),
         recipient = GemRecipient(address = "recipient"),
         value = BigInteger.ONE,
     )
 
-    private suspend fun ConfirmViewModel.headerAsset() = (header.first { it is ConfirmHeaderUIModel.Symbol } as ConfirmHeaderUIModel.Symbol).asset
+    private suspend fun ConfirmTransferViewModel.headerAsset() = (header.first { it is ConfirmHeaderUIModel.Symbol } as ConfirmHeaderUIModel.Symbol).asset
 
-    private fun viewModel(transfer: GemTransferData, gate: CompletableDeferred<Unit>? = null): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData, gate: CompletableDeferred<Unit>? = null): ConfirmTransferViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
@@ -202,7 +207,7 @@ class ConfirmViewModelPaymentAssetTest {
                     it
             }
         }
-        return ConfirmViewModel(
+        return ConfirmTransferViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(account))))
             },
