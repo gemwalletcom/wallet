@@ -4,7 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.assets.presents.select.SelectReceiveCollectionScreen
 import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
-import com.gemwallet.android.features.receive.presents.ReceiveScreen
+import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 

@@ -5,9 +5,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.unpackConfirmTransferInput
 import com.gemwallet.android.features.assets.presents.select.SelectPaymentScreen
-import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.confirm.presents.PaymentVerificationScreen
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.features.transfer.presents.confirm.ConfirmScreen
+import com.gemwallet.android.features.transfer.presents.confirm.PaymentVerificationScreen
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction

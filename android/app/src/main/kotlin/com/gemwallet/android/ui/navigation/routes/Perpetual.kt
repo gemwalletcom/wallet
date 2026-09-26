@@ -2,10 +2,10 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetuals.presents.market.PerpetualMarketNavScreen
 import com.gemwallet.android.features.perpetuals.presents.position.PerpetualPositionNavScreen
+import com.gemwallet.android.features.transfer.presents.confirm.ConfirmScreen
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction

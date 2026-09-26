@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **Sessions:** VM185.
 5. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 6. **Generated mappers:** BD299, then GEN300.
-7. **Module layout:** MOD309, MOD311, MOD312, MOD313, then MOD315 to MOD317.
+7. **Module layout:** MOD311, MOD312, MOD313, then MOD315 to MOD317.
 8. **Unused code:** CLN318.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -657,10 +657,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
-- **MOD309** **M** **Send, receive, amount and confirm are one `transfer` module.**
-  - **iOS:** `Transfer` holds `RecipientScene`, `AmountScene`, `ReceiveScene`, `ConfirmTransferScene`, `PaymentVerificationScene` and `GetAssetScene`.
-  - **Android:** split over `features/recipient` (package `recipient.viewmodel`), `features/transfer_amount`, `features/receive` and `features/confirm`.
-  - **Expected:** Android `recipient`, `transfer_amount`, `receive` and `confirm` become one `transfer` module, and `AcquireAssetAction` (iOS `GetAssetAction`) becomes its type. Only the app opens the confirm screen.
 - **MOD311** **M** **Onboarding is one module.**
   - **iOS:** `Onboarding` holds `OnboardingScene`, `AcceptTermsScene`, the create, import and verify-phrase flows, `SecurityReminderScene`, `ShowSecretDataScene` and `WalletImageScene`.
   - **Android:** `features/create_wallet`, `features/import_wallet`, and `OnboardScreen` and `AcceptTermsScreen` in `app/features/onboarding`.

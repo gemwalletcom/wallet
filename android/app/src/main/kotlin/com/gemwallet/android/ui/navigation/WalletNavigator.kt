@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -25,6 +24,7 @@ import com.gemwallet.android.features.import_wallet.navigation.ImportSelectTypeR
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.routes

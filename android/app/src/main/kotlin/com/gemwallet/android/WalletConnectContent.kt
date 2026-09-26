@@ -5,8 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectUserRequest
-import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.features.transfer.presents.confirm.ConfirmScreen
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetAction
 import com.gemwallet.android.features.wallet_connector.presents.AuthRequestScene
 import com.gemwallet.android.features.wallet_connector.presents.ProposalScene
 import com.gemwallet.android.features.wallet_connector.presents.RequestScene
