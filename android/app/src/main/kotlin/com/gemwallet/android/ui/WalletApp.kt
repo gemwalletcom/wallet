@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Build
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,7 +31,6 @@ import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
-import com.gemwallet.android.ui.theme.Spacer16
 import uniffi.gemstone.GemNavigationTab
 
 @Composable
@@ -121,7 +119,7 @@ fun WalletApp(
             version = update.version,
             isRequired = !update.canSkip,
             onSkip = viewModel::onSkip,
-            onCancel = viewModel::onCancelUpdate,
+            onUpdateOpened = viewModel::onUpdateOpened,
         )
     }
 
@@ -135,7 +133,7 @@ fun WalletApp(
 }
 
 @Composable
-private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () -> Unit, onCancel: () -> Unit) {
+private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () -> Unit, onUpdateOpened: () -> Unit) {
     val context = LocalContext.current
     val isPlayStoreInstall = fromGooglePlay(context)
 
@@ -146,15 +144,13 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
     AlertDialog(
         onDismissRequest = {
             if (!isRequired) {
-                onCancel()
+                onSkip()
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 openUpdateDestination(context = context, isPlayStoreInstall = isPlayStoreInstall)
-                if (!isRequired) {
-                    onCancel()
-                }
+                onUpdateOpened()
             }) {
                 Text(text = stringResource(id = R.string.update_app_action))
             }
@@ -163,14 +159,8 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
             null
         } else {
             {
-                Row {
-                    TextButton(onClick = onCancel) {
-                        Text(text = stringResource(id = R.string.common_cancel))
-                    }
-                    Spacer16()
-                    TextButton(onClick = onSkip) {
-                        Text(text = stringResource(R.string.common_skip))
-                    }
+                TextButton(onClick = onSkip) {
+                    Text(text = stringResource(R.string.common_skip))
                 }
             }
         },

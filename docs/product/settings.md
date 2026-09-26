@@ -25,7 +25,7 @@ flowchart LR
 ```
 
 - About Us: Terms of Services, Privacy Policy, Visit Website, Community links, Version, and "New update available!" when a newer release exists; a long press on Version turns Developer on or off.
-- At launch a newer release shows "New update available!" with Update and, unless the update is required, Skip; a skipped version is not offered again.
+- At launch a newer release shows "New update available!" with Update and, unless the update is required, Skip; closing the prompt is Skip, and a skipped version is not offered again.
 - After the fifth launch the app asks once for a store review.
 
 ## Rules

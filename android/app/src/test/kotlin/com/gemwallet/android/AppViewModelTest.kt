@@ -107,7 +107,7 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `a required update Core refuses to skip stays offered and cannot be dismissed`() = runTest(dispatcher) {
+    fun `a required update Core refuses to skip stays offered after opening the store`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk {
             coEvery { skipAppUpdate(any()) } throws GemServiceException.InvalidInput("update 2.0.0 is required")
         }
@@ -116,7 +116,7 @@ class AppViewModelTest {
         assertNotNull(offered.update)
 
         model.onSkip().join()
-        model.onCancelUpdate()
+        model.onUpdateOpened()
 
         assertNotNull(model.uiState.value.update)
     }
@@ -131,5 +131,17 @@ class AppViewModelTest {
 
         assertNull(model.uiState.value.update)
         coVerify { skip.skipAppUpdate(match { it.version == "2.0.0" }) }
+    }
+
+    @Test
+    fun `opening the store for an optional update hides it without skipping`() = runTest(dispatcher) {
+        val skip: SkipAppUpdate = mockk(relaxed = true)
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true), skip = skip)
+        model.uiState.first { it.update != null }
+
+        model.onUpdateOpened()
+
+        assertNull(model.uiState.value.update)
+        coVerify(exactly = 0) { skip.skipAppUpdate(any()) }
     }
 }

@@ -103,7 +103,7 @@ class AppViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
     }
 
-    fun onCancelUpdate() {
+    fun onUpdateOpened() {
         if (state.value.update?.canSkip == false) {
             return
         }
