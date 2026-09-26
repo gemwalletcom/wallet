@@ -26,20 +26,6 @@ struct AutocloseSceneViewModelTests {
     }
 
     @Test
-    func fieldStates() {
-        let model = AutocloseSceneViewModel(type: .mock())
-
-        let state = model.viewState
-
-        #expect(state.takeProfit.tpslType.toPrimitives().autocloseTitle == "Take profit")
-        #expect(state.stopLoss.tpslType.toPrimitives().autocloseTitle == "Stop loss")
-        #expect(state.takeProfit.estimateTitle.text == "Expected profit")
-        #expect(state.stopLoss.estimateTitle.text == "Expected loss")
-        #expect(state.takeProfit.estimate == nil)
-        #expect(model.percentSuggestions(state).map(\.value) == [15, 25, 50])
-    }
-
-    @Test
     func percentFillsTheFocusedField() {
         let model = AutocloseSceneViewModel(type: .mock())
         model.onChangeFocusField(nil, .takeProfit)

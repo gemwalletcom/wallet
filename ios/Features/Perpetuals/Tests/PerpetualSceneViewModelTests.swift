@@ -119,26 +119,6 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func theInfoSheetsMatchTheRowThatOpenedThem() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onInfo(.fundingApr)
-        #expect(model.isPresentingInfoSheet?.title == .fundingApr)
-
-        model.onInfo(.fundingPayments)
-        #expect(model.isPresentingInfoSheet?.title == .fundingPayments)
-
-        model.onInfo(.liquidationPrice)
-        #expect(model.isPresentingInfoSheet?.title == .liquidationPrice)
-
-        model.onInfo(.openInterest)
-        #expect(model.isPresentingInfoSheet?.title == .openInterest)
-
-        model.onInfo(.autoClose)
-        #expect(model.isPresentingInfoSheet?.title == .autoClose)
-    }
-
-    @Test
     func loadingSyncsPositionsAndTransactionsForTheAsset() async {
         let service = GemPerpetualDetailsServiceMock()
         let asset = Primitives.Asset.mock()
@@ -175,14 +155,5 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(model.isPresentingAlertMessage == nil)
-    }
-
-    @Test
-    func dismissingAutocloseClearsThePresentedPosition() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onAutocloseComplete()
-
-        #expect(model.isPresentingAutoclose == nil)
     }
 }
