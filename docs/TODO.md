@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD345 to BD351.
+4. **Parity:** BD345 to BD347, BD349 to BD351.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -581,10 +581,6 @@ Differences between the apps, or between an app and the server, each with its de
   - **iOS:** the details screen is keyed to the wallet it was opened for and starts from the transaction it was given; the badge counts a fixed wallet and starts at 0.
   - **Android:** both follow the session wallet, so switching wallets blanks an open details screen, and the badge shows nothing at 0.
   - **Expected:** Android matches iOS.
-- **BD348** **S** **Wallet deletion errors and pinned order differ.**
-  - **iOS:** a failed delete alerts only for a `GemServiceError` and logs anything else; pinned and unpinned wallets come from two queries.
-  - **Android:** every failed delete shows the error; all wallets are sorted once by Core, then split into pinned and unpinned. Whether the order within each section always matches has not been checked.
-  - **Expected:** Android matches iOS; check the section order first.
 - **BD349** **S** **The wallet list shows assets without an account differently.**
   - **iOS:** lists only assets whose chain has an account in the wallet.
   - **Android:** lists any visible balance row (`AssetsQuery`).

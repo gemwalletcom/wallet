@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.wallets.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -75,12 +77,21 @@ class WalletDetailViewModel @Inject constructor(
                 GemWalletDeletion.LAST_WALLET_DELETED -> onBoard()
             }
         }
-            .onFailure(::showError)
+            .onFailure { error ->
+                when (error) {
+                    is GemServiceException -> showError(error)
+                    else -> Log.e(TAG, "deleting wallet ${walletId.id} failed", error)
+                }
+            }
     }
 
     fun clearError() = errorState.update { null }
 
     private fun showError(error: Throwable) {
         errorState.value = error.errorText().text(context)
+    }
+
+    private companion object {
+        const val TAG = "WalletDetail"
     }
 }

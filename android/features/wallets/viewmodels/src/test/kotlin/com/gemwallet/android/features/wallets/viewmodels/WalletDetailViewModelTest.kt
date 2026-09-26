@@ -25,6 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletSecret
 import uniffi.gemstone.GemWalletSecretKind
@@ -109,7 +110,7 @@ class WalletDetailViewModelTest {
     @Test
     fun `a delete Core refuses keeps the user in place and shows its error`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
-            coEvery { deleteWallet(walletId) } throws IllegalStateException("keystore delete failed")
+            coEvery { deleteWallet(walletId) } throws GemServiceException.Platform("keystore delete failed")
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
         val onComplete = mockk<() -> Unit>(relaxed = true)
@@ -118,6 +119,22 @@ class WalletDetailViewModelTest {
         model.delete(onBoard, onComplete).join()
 
         assertEquals("keystore delete failed", model.error.value)
+        verify(exactly = 0) { onBoard() }
+        verify(exactly = 0) { onComplete() }
+    }
+
+    @Test
+    fun `a delete failing outside Core keeps the user in place without an error`() = runTest(dispatcher) {
+        val service: GemWalletServiceInterface = mockk(relaxed = true) {
+            coEvery { deleteWallet(walletId) } throws IllegalStateException("keystore delete failed")
+        }
+        val onBoard = mockk<() -> Unit>(relaxed = true)
+        val onComplete = mockk<() -> Unit>(relaxed = true)
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+
+        model.delete(onBoard, onComplete).join()
+
+        assertNull(model.error.value)
         verify(exactly = 0) { onBoard() }
         verify(exactly = 0) { onComplete() }
     }
