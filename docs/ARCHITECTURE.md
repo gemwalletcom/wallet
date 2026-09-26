@@ -1853,7 +1853,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel` |
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
-| `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) |
+| `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatViewModel` (+ `SupportMessagesQuery`) |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `TransactionQuery`) |
 | `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |

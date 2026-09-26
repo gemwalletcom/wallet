@@ -95,7 +95,7 @@ internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: St
         }
         items(rows, key = { it.key }, contentType = { it::class }) { row ->
             when (row) {
-                is ChatRow.Separator -> DaySeparator(row.day, dateFormatter)
+                is ChatRow.Separator -> SupportDateSeparator(row.day, dateFormatter)
                 is ChatRow.Group -> SupportMessageGroup(group = row.group, onImageClick = onImageClick, onRetry = onRetry)
             }
         }
@@ -103,7 +103,7 @@ internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: St
 }
 
 @Composable
-private fun DaySeparator(day: SupportChatDay, formatter: SectionDateFormatter) {
+private fun SupportDateSeparator(day: SupportChatDay, formatter: SectionDateFormatter) {
     Text(
         text = formatter.format(day.date, LocalConfiguration.current.locales[0]),
         style = MaterialTheme.typography.bodySmall,

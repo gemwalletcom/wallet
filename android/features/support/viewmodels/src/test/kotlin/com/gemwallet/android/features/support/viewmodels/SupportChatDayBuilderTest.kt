@@ -6,7 +6,7 @@ import com.wallet.core.primitives.SupportMessageSender
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class SupportChatModelsTest {
+class SupportChatDayBuilderTest {
 
     private val day1 = 1_749_643_200_000L
     private val day2 = day1 + 2 * 86_400_000L

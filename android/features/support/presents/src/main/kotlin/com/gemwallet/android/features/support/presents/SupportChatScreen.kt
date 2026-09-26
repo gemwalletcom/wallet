@@ -32,7 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.support.viewmodels.SupportChatSceneViewModel
+import com.gemwallet.android.features.support.viewmodels.SupportChatViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -47,7 +47,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
+fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatViewModel = hiltViewModel()) {
     val days by viewModel.days.collectAsStateWithLifecycle()
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
@@ -117,7 +117,7 @@ fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCanc
                     )
                 }
             }
-            SupportInputBar(
+            SupportMessageInputBar(
                 onPickImage = { imagePicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
                 onSend = viewModel::sendText,
             )

@@ -19,7 +19,7 @@ import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemPushState
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SupportChatSceneViewModelTest {
+class SupportChatViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -28,7 +28,7 @@ class SupportChatSceneViewModelTest {
         val enablePushForSupport = mockk<EnablePushForSupport> {
             coEvery { enablePushForSupport() } returns GemPushState(isEnabled = true, result = GemPushResult.NotRegistered(GemErrorText.NetworkOffline))
         }
-        val viewModel = SupportChatSceneViewModel(
+        val viewModel = SupportChatViewModel(
             supportService = mockk(relaxed = true),
             supportMessagesQuery = mockk<SupportMessagesQuery> { every { this@mockk() } returns flowOf(emptyList()) },
             getSupportTyping = mockk(relaxed = true),

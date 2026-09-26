@@ -38,7 +38,7 @@ import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @HiltViewModel
-class SupportChatSceneViewModel @Inject constructor(
+class SupportChatViewModel @Inject constructor(
     private val supportService: GemSupportServiceInterface,
     private val supportMessagesQuery: SupportMessagesQuery,
     private val getSupportTyping: GetSupportTyping,

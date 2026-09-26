@@ -42,7 +42,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 private val messageInputCornerRadius = 24.dp
 
 @Composable
-internal fun SupportInputBar(onPickImage: () -> Unit, onSend: (String) -> Unit) {
+internal fun SupportMessageInputBar(onPickImage: () -> Unit, onSend: (String) -> Unit) {
     var input by remember { mutableStateOf("") }
     val canSend = input.isNotBlank()
     val focusRequester = remember { FocusRequester() }

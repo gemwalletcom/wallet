@@ -3,7 +3,7 @@ package com.gemwallet.android.features.support.viewmodels
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class SupportImageSizeTest {
+class SupportImageAttachmentTest {
 
     @Test
     fun anImageWithinTheLimitKeepsItsSize() {
