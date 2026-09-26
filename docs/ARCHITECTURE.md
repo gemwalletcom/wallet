@@ -1767,6 +1767,18 @@ Understand the rationale before changing one of these. Code-style exceptions bel
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
+### iOS has three Gemstone packages, one per layer
+
+Each package is one layer, and Android has the same three:
+
+| Layer | iOS | Android | Depends on |
+|---|---|---|---|
+| Generated UniFFI bindings | `Gemstone` (generated `Gemstone.swift`, pinned to Swift 5 mode by X163) | `:gemstone` | nothing app-side |
+| Core ↔ app mappings, formatters, conveniences on the generated service protocols | `GemstonePrimitives` | `gemcore` | bindings + `Primitives` |
+| Adapters: Core store traits over the native store, keystore and signer, device, push, gateway, stream observers | `GemstoneServices` | `data/services/gemstone` | mappings + `Store`, `Keychain`, `SystemServices`, `NativeProviderService` |
+
+They stay separate. Hand-written code in `Gemstone` would compile in its Swift 5 mode and sit beside a 100,000-line file that is regenerated. Folding the mappings into the adapters would make every screen and `PrimitivesComponents` depend on the keystore, the store and the network, and the keystore stays in its layer (`scripts/check-boundaries.py`). A feature takes the bindings and mappings; from the adapter layer it takes only the observation ports (`ObservablePreferences`, `PerpetualObservable`, `ObservableSupportTyping`, `BiometryAuthenticatable`), and the store adapters are built only in `ServicesFactory`.
+
 ### Generated models + UniFFI for code generation
 
 `just generate-models` writes the Swift and Kotlin models for the primitives types that derive `Model` (`core/bin/generate/src/models.rs`); UniFFI generates FFI bindings. Both run from `just generate`. The models cover pure data the apps store and pass around, while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.

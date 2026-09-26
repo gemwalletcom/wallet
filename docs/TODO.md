@@ -25,11 +25,11 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM352 before NAM353, then NAM354 to NAM371 in any order, one feature per change.
+7. **Names:** NAM352 before NAM353, then NAM354 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD349, BD351 (Android matches iOS).
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Waiting on the owner: BD350, NAM363 (request screen name), NAM372, BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD350, BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -683,7 +683,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **NAM363** **M** **WalletConnect: connections, proposal and request screens follow iOS.**
   - **iOS:** `ConnectionsViewModel`/`ConnectionProposalViewModel` (+ tests) → `…SceneViewModel`; the private `SignMessageNavigationView` follows the destination-host rule.
   - **Android:** `ConnectionsScene`/`ConnectionScene` (bind view models) → `ConnectionsScreen`/`ConnectionScreen`; `ConnectionRowUIModel` → `ConnectionUIModel`; `BridgeConnectionsRoute`/`BridgeConnectionDetailsRoute`/`bridgesScreen` (file `Bridge.kt`) → `ConnectionsRoute`/`ConnectionRoute`/`connectionsScreen` in `Connections.kt`; `ProposalScene`/`ProposalSceneViewModel`/`ProposalSceneState`/`ProposalSceneViewModelTest` → `ConnectionProposalScreen` + `ConnectionProposalScene`/`ConnectionProposalViewModel`/`ConnectionProposalUIState`/`ConnectionProposalViewModelTest`; `AuthRequestScene`/`WCAuthViewModel`/`AuthSceneState` → `AuthRequestScreen`/`AuthRequestViewModel`/`AuthRequestUIState`; `WalletConnectPayloadDetailsSheet`/`WalletConnectFullMessageSheet`/`WalletSelectionSheet` → `SignMessagePayloadDetailsSheet`/`TextMessageSheet`/`SelectWalletSheet`; `WalletConnectRequestRoute`/`WalletConnectRequestContent` → `WalletConnectorRequest…`; package `viewmodels.model` → `viewmodels.models`; `VerifyContext.kt` named after its contents.
-  - **Expected:** needs a decision for the request screen: Android `RequestScene`/`WCRequestViewModel`/`RequestSceneState` handle messages and transactions, iOS `SignMessageScene` handles messages and sends transactions to the confirm screen. `SignMessage…` if Android takes the same split, `WalletConnectorRequest…` if not.
+  - **Request screen, as iOS:** Android `RequestScene`/`WCRequestViewModel`/`RequestSceneState` today handle messages and transactions. A message request becomes `SignMessageScreen` + `SignMessageScene`/`SignMessageViewModel`/`SignMessageUIState`, and the app's `WalletConnectorRequestContent` opens it for a message and `ConfirmTransferScreen` for a transaction, as iOS `WalletConnectorNavigationStack` does, so every transaction passes the one confirmation screen.
 - **NAM364** **M** **Onboarding: import is `ImportWallet`, the phrase check `VerifyPhrase`.**
   - **iOS:** `CreateWalletModel` (+ tests, TestKit) → `CreateWalletViewModel`; `ImportWalletTypeViewModel`/`AcceptTermsViewModel`/`VerifyPhraseViewModel` → `…SceneViewModel`; `VerifyPhraseWalletScene` → `VerifyPhraseScene`; `OnboardingViewModelTests.swift` splits per type; `Types/WalletType.swift` → `ImportWalletType.swift`.
   - **Android:** `OnboardScreen` (no view model) → `OnboardingScene`, `PreviewWelcomeScreen` follows; `ImportScreen`/`ImportScene`/`ImportViewModel`/`ImportUIState`/`ImportViewModelTest` → `ImportWallet…`, `ImportViewModelState` folds into `ImportWalletUIState`; `SelectImportTypeScreen`/`Scene`/`ViewModel`/`ImportSelectTypeRoute` → `ImportWalletType…`; `ImportMulticoinWalletRoute`/`ImportChainWalletRoute` (file `ImportWalletNavigation.kt`) → `ImportWalletRoute` cases; `CreateWalletViewModelState` → `CreateWalletUIState`; private `UI`/`PreviewCreateUI` → `CreateWalletScene`; `PhraseAlertDialog`/`CreateWalletAlertRoute` → `SecurityReminderScene`/`SecurityReminderRoute`; `CheckPhrase` → `VerifyPhraseScene`; the stateless `AcceptTermsScreen` → `AcceptTermsScene`; `AcceptTermRowUIModel` → `TermItemUIModel`.
@@ -707,10 +707,9 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **NAM371** **S** **QR scanner: one base name, `QRScanner`.**
   - **iOS:** `ScanQRCodeNavigationStack` → `QRScannerNavigationStack`.
   - **Android:** `QrCodeScannerModal` → `QRScannerModal`; `QrCodeRequest` → `QRScannerScreen`; the camera composable `QRScanner` → `QRScannerView`; `QRCodeDecoder`(`Test`) → `QRImageDecoder`(`Test`); `ScanQrCodeTitle` → `QRScannerTitle`; `QRScanner.kt` splits into files named after its types; the app's `features/main/views/ScanReceiveModal.kt` leaves its `views` package.
-- **NAM372** **M** **App lock is a feature module on Android too.**
-  - **iOS:** `Features/AppLock` holds `LockWindow`, `LockScreenScene`, `LockSceneViewModel`, `LockSceneState`, `UnlockAttempt`; `LockScreenScene` → `LockScene`, as its view model.
-  - **Android:** the lock lives in `app`: `LockedSplash` in `LockedAppContent.kt`, `LockTimer`, `AuthState` and the lock state inside `MainViewModel`, with `SystemAuthenticator` bound to the activity.
-  - **Expected:** needs a decision: an `android/features/app_lock` module (`LockScreen` + `LockScene`, `LockViewModel`, `LockTimer`, `LockUIState`) with `SystemAuthenticator` staying in `app`, and a `docs/product/app_lock.md` page; or the lock stays in `app` and only `LockedSplash` → `LockScene`.
+- **NAM372** **M** **App lock belongs to Settings on both apps**, as [settings.md](product/settings.md) already describes the lock.
+  - **iOS:** the `AppLock` package folds into `Settings`: `LockWindow`, `LockWindowViewModifier`, `LockSceneViewModel`, `LockSceneState`, `UnlockAttempt`, and `LockScreenScene` → `LockScene`, as its view model; the app keeps wiring the window.
+  - **Android:** the lock leaves `app` for `features/settings`: `LockedSplash` in `LockedAppContent.kt` → `LockScene` (+ `LockScreen` binding a new `LockViewModel`), the lock state and `AuthState` from `MainViewModel` → `LockViewModel`/`LockUIState`, and `LockTimer` with it; `SystemAuthenticator`, bound to the activity, stays in `app`.
 
 ## 12. Cleanup sweeps
 
