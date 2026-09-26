@@ -22,15 +22,7 @@ pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType}
 
 #[uniffi::export]
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
-    GemChartData {
-        value_type: GemChartValueType::Price,
-        base,
-        shows_secondary_value: false,
-        currency: Currency::USD,
-        values: Vec::new(),
-        header: None,
-    }
-    .header_at(value)
+    rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

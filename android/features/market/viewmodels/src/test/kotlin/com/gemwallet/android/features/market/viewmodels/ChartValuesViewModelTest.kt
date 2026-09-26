@@ -81,10 +81,10 @@ class ChartValuesViewModelTest {
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == chart.values.size }.chart.dataOrNull!!
 
-        assertEquals(chart.values.size, uiModel.chart.values.size)
-        assertEquals(14.0, uiModel.chart.header?.value?.value)
+        assertEquals(chart.values.size, uiModel.values.size)
+        assertEquals(14.0, uiModel.header?.value?.value)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
@@ -95,10 +95,10 @@ class ChartValuesViewModelTest {
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == chart.values.size }.chart.dataOrNull!!
 
-        assertEquals(chart.values.size, uiModel.chart.values.size)
-        assertEquals(110.0, uiModel.chart.header?.value?.value)
+        assertEquals(chart.values.size, uiModel.values.size)
+        assertEquals(110.0, uiModel.header?.value?.value)
     }
 
     @Test
@@ -107,12 +107,12 @@ class ChartValuesViewModelTest {
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == chart.values.size }.chart.dataOrNull!!
 
         coVerify(exactly = 1) {
             chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem())
         }
-        assertEquals(chart.values.size, uiModel.chart.values.size)
+        assertEquals(chart.values.size, uiModel.values.size)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
@@ -123,7 +123,7 @@ class ChartValuesViewModelTest {
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns chart
 
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }
+        viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == chart.values.size }
 
         assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {

@@ -54,10 +54,10 @@ pub fn portfolio_currency(portfolio_type: PortfolioType, currency: Currency) -> 
     }
 }
 
-pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, currency: Currency) -> Option<GemChartData> {
+pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
     let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
     let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
-    change_chart_data(chart.values.clone(), shows_value, portfolio_currency(portfolio_type, currency))
+    change_chart_data(chart.values.clone(), shows_value, period, portfolio_currency(portfolio_type, currency))
 }
 
 /// Every statistic finished as a row, so neither app formats a bare f64.
@@ -254,11 +254,11 @@ mod tests {
             available_periods: wallet_periods(),
         };
 
-        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl, Currency::USD).expect("series");
+        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl, ChartPeriod::All, Currency::USD).expect("series");
         assert_eq!(pnl.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![1.0, 3.0]);
         assert!(!pnl.shows_secondary_value);
 
-        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value, Currency::USD).expect("series");
+        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value, ChartPeriod::All, Currency::USD).expect("series");
         assert_eq!(value.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![10.0, 12.0]);
         assert_eq!(value.header.unwrap().secondary_value.map(|value| value.value), Some(12.0));
     }
@@ -270,7 +270,7 @@ mod tests {
             statistics: vec![],
             available_periods: wallet_periods(),
         };
-        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value, Currency::USD), None);
+        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value, ChartPeriod::All, Currency::USD), None);
     }
 
     #[test]

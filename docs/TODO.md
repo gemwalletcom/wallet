@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM232 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM233 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -40,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
-| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM232 |
+| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM284 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM272, VM287 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Stake and perpetuals
 
-- **VM232** **M** **Chart selection and scales are computed in the apps.**
-  - **iOS:** `ChartValuesViewModel` pads the x-scale by 2% and resolves the header at a selection.
-  - **Android:** `ChartUIModel` resolves the header at a selection and picks the date style.
-  - **Expected:** `GemChartSession` answers selection (header and date style) and bounds; both models go.
 - **VM233** **M** **The candle chart is modelled twice.**
   - **iOS:** `CandlestickChartViewModel`, `PerpetualChartViewModel` and `ChartLineViewModel` (label "kind | price") build the chart.
   - **Android:** `PerpetualChartUIModel` computes the header from the first and selected close; `CandlestickChartUIModel` builds lines and labels.

@@ -11,13 +11,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.market.viewmodels.ChartValuesViewModel
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIState
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
 import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
+import java.time.ZoneId
+import java.util.Locale
 
 @Composable
 fun Chart(viewModel: ChartValuesViewModel = hiltViewModel()) {
@@ -27,26 +30,29 @@ fun Chart(viewModel: ChartValuesViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
         val context = LocalContext.current
         val dateFormatter = remember(context) { context.rowDateFormatter() }
 
-        val uiModel = state.chart.dataOrNull
+        val chart = state.chart.dataOrNull
+        val selection = remember(chart, selectedIndex) { selectedIndex?.let { chart?.selection(it.toUInt()) } }
+        val date = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), Locale.getDefault()) } }
 
         ChartStateView(
             state = state.chart,
-            header = uiModel?.header(selectedIndex),
-            date = uiModel?.dateText(selectedIndex, state.period, dateFormatter),
+            header = selection?.header ?: chart?.header,
+            date = date,
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,
         ) { model ->
             val minLabel = remember(model) { model.bounds.low.text() }
             val maxLabel = remember(model) { model.bounds.high.text() }
+            val points = remember(model) { model.values.mapIndexed { index, value -> ChartPoint(x = index.toFloat(), y = value.value.toFloat()) } }
             GemLineChart(
-                points = model.renderPoints,
+                points = points,
                 bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
                 selectedIndex = selectedIndex,

@@ -2,11 +2,12 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemChartData
 import Primitives
 
 @MainActor
 public protocol ChartListViewable: AnyObject, Observable {
-    var chartState: StateViewType<ChartValuesViewModel> { get }
+    var chartState: StateViewType<GemChartData> { get }
     var selectedPeriod: ChartPeriod { get set }
     var periods: [ChartPeriod] { get }
     func load() async

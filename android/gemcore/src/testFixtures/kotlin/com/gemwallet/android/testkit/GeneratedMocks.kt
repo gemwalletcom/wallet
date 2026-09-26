@@ -1303,6 +1303,22 @@ fun mockGemChart(
     current = current,
 )
 
+fun mockGemChartBounds(
+    lowerIndex: UInt = 0u,
+    upperIndex: UInt = 0u,
+    yMin: Double = 0.0,
+    yMax: Double = 0.0,
+    low: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    high: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+) = uniffi.gemstone.GemChartBounds(
+    lowerIndex = lowerIndex,
+    upperIndex = upperIndex,
+    yMin = yMin,
+    yMax = yMax,
+    low = low,
+    high = high,
+)
+
 fun mockGemChartData(
     valueType: uniffi.gemstone.GemChartValueType = uniffi.gemstone.GemChartValueType.PRICE,
     base: Double = 0.0,
@@ -1310,6 +1326,8 @@ fun mockGemChartData(
     currency: uniffi.gemstone.Currency = uniffi.gemstone.Currency.MXN,
     values: List<uniffi.gemstone.ChartDateValue> = emptyList(),
     header: uniffi.gemstone.GemChartHeader? = null,
+    bounds: uniffi.gemstone.GemChartBounds = mockGemChartBounds(),
+    dateStyle: uniffi.gemstone.GemChartDateStyle = uniffi.gemstone.GemChartDateStyle.RELATIVE,
 ) = uniffi.gemstone.GemChartData(
     valueType = valueType,
     base = base,
@@ -1317,6 +1335,8 @@ fun mockGemChartData(
     currency = currency,
     values = values,
     header = header,
+    bounds = bounds,
+    dateStyle = dateStyle,
 )
 
 fun mockGemChartHeader(

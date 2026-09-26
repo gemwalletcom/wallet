@@ -5,6 +5,7 @@ import Formatters
 import Foundation
 import struct Gemstone.AssetPrice
 import struct Gemstone.GemChart
+import struct Gemstone.GemChartData
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
@@ -55,11 +56,10 @@ public final class ChartSceneViewModel: ChartListViewable {
         asset.name
     }
 
-    public var chartState: StateViewType<ChartValuesViewModel> {
+    public var chartState: StateViewType<GemChartData> {
         switch session.viewState(price: currentPrice).phase {
         case .loading: .loading
-        case let .data(data):
-            .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
+        case let .data(data): .data(data)
         case .noData: .noData
         case let .failed(error): .error(error)
         }

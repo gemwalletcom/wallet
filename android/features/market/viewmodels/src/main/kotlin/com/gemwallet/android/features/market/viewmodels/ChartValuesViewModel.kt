@@ -14,7 +14,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIState
 import com.gemwallet.android.features.market.viewmodels.models.StopTimeoutMillis
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
@@ -90,17 +90,17 @@ class ChartValuesViewModel internal constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
 
     val chartUIState = viewState.map { state ->
-        ChartUIModel.State(
+        ChartUIState(
             period = state.period.toPrimitives(),
             chart = when (val phase = state.phase) {
                 GemChartPhase.Loading -> StateViewType.Loading
-                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
+                is GemChartPhase.Data -> StateViewType.Data(phase.data)
                 GemChartPhase.NoData -> StateViewType.NoData
                 is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
             },
         )
     }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIState())
 
     fun setPeriod(period: ChartPeriod) {
         if (period.toGem() == session.value.period) {

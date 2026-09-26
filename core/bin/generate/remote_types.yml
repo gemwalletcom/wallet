@@ -272,6 +272,7 @@ mocks:
   - GemAssetRowStyle
   - GemChainRow
   - GemChart
+  - GemChartBounds
   - GemChartData
   - GemChartHeader
   - GemConfirmFee

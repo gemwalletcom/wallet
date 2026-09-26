@@ -11,7 +11,7 @@ import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIState
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.ChartPeriod
@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemChartData
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPortfolioPhase
 import uniffi.gemstone.GemPortfolioServiceInterface
@@ -85,9 +86,9 @@ class PortfolioViewModel internal constructor(
         .map { it.isRefreshing }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val chartUIState: StateFlow<ChartUIModel.State> = viewState
-        .map { state -> ChartUIModel.State(period = state.period.toPrimitives(), chart = state.phase.chartState()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
+    val chartUIState: StateFlow<ChartUIState> = viewState
+        .map { state -> ChartUIState(period = state.period.toPrimitives(), chart = state.phase.chartState()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIState())
 
     val showSegmentedControl: StateFlow<Boolean> = wallet
         .map { wallet -> wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false }
@@ -129,9 +130,9 @@ class PortfolioViewModel internal constructor(
         session.update { it.onResult(result) }
     }
 
-    private fun GemPortfolioPhase.chartState(): StateViewType<ChartUIModel> = when (this) {
+    private fun GemPortfolioPhase.chartState(): StateViewType<GemChartData> = when (this) {
         GemPortfolioPhase.Loading -> StateViewType.Loading
-        is GemPortfolioPhase.Data -> StateViewType.Data(ChartUIModel(chart = chart))
+        is GemPortfolioPhase.Data -> StateViewType.Data(chart)
         GemPortfolioPhase.NoData -> StateViewType.NoData
         is GemPortfolioPhase.Failed -> StateViewType.Error(error.errorText().text(context))
     }

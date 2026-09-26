@@ -714,10 +714,10 @@ impl GemChartSession {
 ```
 
 ```swift
-var chartState: StateViewType<ChartValuesViewModel> {
+var chartState: StateViewType<GemChartData> {
     switch session.viewState(price: currentPrice).phase {
     case .loading: .loading
-    case let .data(data): .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
+    case let .data(data): .data(data)
     case .noData: .noData
     case let .failed(error): .error(error)
     }
@@ -726,19 +726,19 @@ var chartState: StateViewType<ChartValuesViewModel> {
 
 ```kotlin
 val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
-    ChartUIModel.State(
+    ChartUIState(
         period = state.period.toPrimitives(),
         chart = when (val phase = state.phase) {
             GemChartPhase.Loading -> StateViewType.Loading
-            is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
+            is GemChartPhase.Data -> StateViewType.Data(phase.data)
             GemChartPhase.NoData -> StateViewType.NoData
-            is GemChartPhase.Failed -> StateViewType.Error
+            is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
         },
     )
 }
 ```
 
-The Android excerpt shows the current phase mapping; its payload-free `StateViewType.Error` loses the error detail. VM141 carries the mapped error to the Android chart error UI. Preserve the error when implementing a new screen rather than copying that omission.
+The chart data carries its bounds and date style, and `GemChartData.selection(index)` answers the header and date under a finger, so neither view keeps a chart model of its own.
 
 Four rules keep the collapse honest:
 

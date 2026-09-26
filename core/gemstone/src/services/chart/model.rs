@@ -1,5 +1,6 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
+use chrono::{DateTime, Utc};
 use primitives::{ChartDateValue, ChartPeriod, Currency};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -35,6 +36,14 @@ pub struct GemChartData {
     pub currency: Currency,
     pub values: Vec<ChartDateValue>,
     pub header: Option<GemChartHeader>,
+    pub bounds: GemChartBounds,
+    pub date_style: GemChartDateStyle,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartSelection {
+    pub header: GemChartHeader,
+    pub date: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -49,15 +58,11 @@ pub struct GemChartBounds {
 
 #[uniffi::export]
 impl GemChartData {
-    pub fn header_at(&self, value: f64) -> GemChartHeader {
-        rules::header(self, value, None)
-    }
-
-    pub fn headers(&self) -> Vec<GemChartHeader> {
-        self.values.iter().map(|point| rules::header(self, point.value, None)).collect()
-    }
-
-    pub fn bounds(&self) -> GemChartBounds {
-        rules::chart_bounds(&self.values, self.currency.clone())
+    pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
+        let point = self.values.get(index as usize)?;
+        Some(GemChartSelection {
+            header: rules::header(self, point.value, None),
+            date: point.date,
+        })
     }
 }

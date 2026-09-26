@@ -310,6 +310,26 @@ public extension Gemstone.GemChart {
     }
 }
 
+public extension Gemstone.GemChartBounds {
+    static func mock(
+        lowerIndex: UInt32 = 0,
+        upperIndex: UInt32 = 0,
+        yMin: Double = 0,
+        yMax: Double = 0,
+        low: Gemstone.GemFormattedNumber = .mock(),
+        high: Gemstone.GemFormattedNumber = .mock(),
+    ) -> Gemstone.GemChartBounds {
+        Gemstone.GemChartBounds(
+            lowerIndex: lowerIndex,
+            upperIndex: upperIndex,
+            yMin: yMin,
+            yMax: yMax,
+            low: low,
+            high: high,
+        )
+    }
+}
+
 public extension Gemstone.GemChartData {
     static func mock(
         valueType: Gemstone.GemChartValueType = .price,
@@ -318,6 +338,8 @@ public extension Gemstone.GemChartData {
         currency: Gemstone.Currency = .mxn,
         values: [Gemstone.ChartDateValue] = [],
         header: Gemstone.GemChartHeader? = nil,
+        bounds: Gemstone.GemChartBounds = .mock(),
+        dateStyle: Gemstone.GemChartDateStyle = .relative,
     ) -> Gemstone.GemChartData {
         Gemstone.GemChartData(
             valueType: valueType,
@@ -326,6 +348,8 @@ public extension Gemstone.GemChartData {
             currency: currency,
             values: values,
             header: header,
+            bounds: bounds,
+            dateStyle: dateStyle,
         )
     }
 }
