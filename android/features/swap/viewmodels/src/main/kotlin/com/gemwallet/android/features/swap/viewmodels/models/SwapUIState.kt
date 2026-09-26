@@ -15,7 +15,7 @@ import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.GemSwapSideInteraction
 import uniffi.gemstone.GemSwapViewState
 
-data class SwapUiState(
+data class SwapUIState(
     @StringRes val actionTitle: Int = R.string.wallet_swap,
     val buttonState: ButtonState = ButtonState.Disabled,
     val errorText: String? = null,
@@ -35,7 +35,7 @@ data class SwapUiState(
         get() = !isTransferLoading
 }
 
-internal fun createSwapUiState(state: GemSwapViewState, context: Context) = SwapUiState(
+internal fun createSwapUIState(state: GemSwapViewState, context: Context) = SwapUIState(
     actionTitle = state.buttonAction.stringRes(),
     buttonState = state.buttonState.buttonState(),
     errorText = state.error?.text(context),

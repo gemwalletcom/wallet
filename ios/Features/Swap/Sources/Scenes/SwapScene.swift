@@ -65,7 +65,7 @@ public struct SwapScene: View {
             }
         }
         .sheet(isPresented: $isPresentingSlippage) {
-            if let slippageModel = model.swapSlippageViewModel {
+            if let slippageModel = model.swapSlippageSceneViewModel {
                 SwapSlippageScene(model: slippageModel)
                     .sheetPresentation([.medium])
             }

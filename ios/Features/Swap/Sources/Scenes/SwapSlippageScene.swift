@@ -13,10 +13,10 @@ public struct SwapSlippageScene: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: SwapSlippageViewModel
+    @State private var model: SwapSlippageSceneViewModel
     @FocusState private var focusedField: Field?
 
-    public init(model: SwapSlippageViewModel) {
+    public init(model: SwapSlippageSceneViewModel) {
         _model = State(initialValue: model)
     }
 

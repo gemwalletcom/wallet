@@ -5,8 +5,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.features.swap.views.SwapScreen
-import com.gemwallet.android.features.swap.views.SwapSelectScreen
+import com.gemwallet.android.features.swap.presents.SwapScreen
+import com.gemwallet.android.features.swap.presents.SwapSelectScreen
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.fromAssetIdArgument

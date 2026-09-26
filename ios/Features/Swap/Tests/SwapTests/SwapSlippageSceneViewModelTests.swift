@@ -8,10 +8,10 @@ import SwapTestKit
 import Testing
 
 @MainActor
-struct SwapSlippageViewModelTests {
+struct SwapSlippageSceneViewModelTests {
     @Test
     func initAuto() {
-        let model = SwapSlippageViewModel.mock()
+        let model = SwapSlippageSceneViewModel.mock()
 
         #expect(model.isAuto)
         #expect(model.input.isEmpty)
@@ -27,7 +27,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func initManual() {
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 50))
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 50))
 
         #expect(model.isAuto == false)
         #expect(model.viewState.selection == .manual(bps: 50))
@@ -37,7 +37,7 @@ struct SwapSlippageViewModelTests {
     @Test
     func confirmAuto() {
         var applied: GemSlippageSelection?
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 50)) { applied = $0 }
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 50)) { applied = $0 }
         model.isAuto = true
         model.confirm()
 
@@ -51,7 +51,7 @@ struct SwapSlippageViewModelTests {
     ] as [(String, UInt32)])
     func confirmAppliesManualValue(input: String, expected: UInt32) {
         var applied: GemSlippageSelection?
-        let model = SwapSlippageViewModel.mock { applied = $0 }
+        let model = SwapSlippageSceneViewModel.mock { applied = $0 }
         model.isAuto = false
         model.input = input
         model.confirm()
@@ -62,7 +62,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["25", "0.05"])
     func rejectedInputShowsErrorAndDisablesConfirm(input: String) {
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 100))
         model.isAuto = false
         model.input = input
 
@@ -73,7 +73,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 100))
         model.isAuto = false
         model.input = input
 
@@ -83,7 +83,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func confirmEnabledState() {
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 100))
         #expect(model.isConfirmEnabled)
 
         model.input = "5"
@@ -96,7 +96,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func suggestionsProvideExpectedValues() {
-        let model = SwapSlippageViewModel.mock()
+        let model = SwapSlippageSceneViewModel.mock()
 
         #expect(model.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
         #expect(model.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
@@ -104,7 +104,7 @@ struct SwapSlippageViewModelTests {
 
     @Test
     func onSelectSuggestionUpdatesInput() {
-        let model = SwapSlippageViewModel.mock()
+        let model = SwapSlippageSceneViewModel.mock()
         model.isAuto = false
         model.onSelect(suggestion: model.suggestions[2])
 
@@ -117,7 +117,7 @@ struct SwapSlippageViewModelTests {
         (UInt32(300), true),
     ] as [(UInt32, Bool)])
     func highSlippageWarnsButKeepsConfirmEnabled(bps: UInt32, expected: Bool) {
-        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: bps))
+        let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: bps))
 
         #expect((model.viewState.footer == .warning) == expected)
         #expect(model.isConfirmEnabled)

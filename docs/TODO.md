@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM358 to NAM372 in any order, one feature per change.
+6. **Names:** NAM359 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -259,10 +259,10 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the view state is used directly; the twins go.
 - **VM227** **S** **Swap side and button models decide small rules.**
   - **iOS:** `SwapTokenViewModel` picks "Select asset" or the symbol and an empty or zero placeholder; `SwapButtonViewModel` hides the button while the input is empty.
-  - **Android:** `SwapUiState` copies `GemSwapViewState` field by field and `SwapItem` makes the same choices.
+  - **Android:** `SwapUIState` copies `GemSwapViewState` field by field and `SwapToken` makes the same choices.
   - **Expected:** `GemSwapSideState` and `GemSwapViewState` carry those answers; the models go.
 - **VM228** **S** **Swap details and slippage state are wrapped.**
-  - **iOS:** `SwapDetailsViewModel` reads rate text, price-impact rows and the provider; `SwapSlippageViewModel` mirrors `GemSlippageViewState`.
+  - **iOS:** `SwapDetailsViewModel` reads rate text, price-impact rows and the provider; `SwapSlippageSceneViewModel` mirrors `GemSlippageViewState`.
   - **Android:** `SwapViewModel.swapDetails` (`details.uiModel(providers, allowsProviderSelection)`) and `SlippageStateUIModel` do the same.
   - **Expected:** the views read `GemSwapDetails` rows and the slippage view state directly; the wrappers go.
 
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM358** **S** **Swap: the package is `presents`, and the button and token rows follow iOS.**
-  - **iOS:** `SwapSlippageViewModel` → `SwapSlippageSceneViewModel`, and `SwapSlippageScene` moves to `Scenes/`; `SwapNavigationView` follows the destination-host rule.
-  - **Android:** package `features.swap.views` → `features.swap.presents`; first the composable `SwapAction` → `SwapButton`, then `SwapSceneAction` → `SwapAction`; `SwapItem` → `SwapToken`; `SwapUiState` → `SwapUIState`.
 - **NAM359** **S** **Stake: the validator screen is `ValidatorSelect`.**
   - **iOS:** `StakeNavigationView`, `EarnNavigationView` follow the destination-host rule; `StakeActionViewModel.swift` (only `Identifiable` extensions) → `GemStakeSection+Identifiable.swift`.
   - **Android:** `ValidatorsScene`/`PreviewValidatorsScene` → `ValidatorSelectScene`; `DelegationScene` (binds a view model) → `DelegationScreen`; `DelegationRowUIModel` → `DelegationUIModel`; `DelegationProperties` → `DelegationUIState` in its own file; `StakeSceneAction` → `StakeAction`; `StakeRowUIModel.kt` → `StakeActionUIModel.kt`; `DelegationDestination.kt` named as iOS `GemDelegationDestination+Navigation.swift`.

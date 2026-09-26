@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.swap.views
+package com.gemwallet.android.features.swap.presents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,11 +20,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.features.swap.presents.components.SwapButton
+import com.gemwallet.android.features.swap.presents.components.SwapError
+import com.gemwallet.android.features.swap.presents.components.SwapToken
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
-import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
-import com.gemwallet.android.features.swap.views.components.SwapAction
-import com.gemwallet.android.features.swap.views.components.SwapError
-import com.gemwallet.android.features.swap.views.components.SwapItem
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
@@ -45,7 +45,7 @@ import uniffi.gemstone.GemLocalizedText
 
 @Composable
 internal fun SwapScene(
-    swapState: SwapUiState,
+    swapState: SwapUIState,
     pay: AssetInfo?,
     receive: AssetInfo?,
     payEquivalent: String,
@@ -56,7 +56,7 @@ internal fun SwapScene(
     payValue: TextFieldState,
     receiveValue: TextFieldState,
     showsSlippageIndicator: Boolean,
-    onAction: (SwapSceneAction) -> Unit,
+    onAction: (SwapAction) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     fun clearAmountFocus() {
@@ -71,7 +71,7 @@ internal fun SwapScene(
             IndicatorButton(
                 imageVector = AppIcons.Tune,
                 showsIndicator = showsSlippageIndicator,
-                onClick = { onAction(SwapSceneAction.Slippage) },
+                onClick = { onAction(SwapAction.Slippage) },
             )
         },
         mainActionWidth = if (isPercentBarVisible) MainActionWidth.FillWidth else MainActionWidth.Constrained,
@@ -85,21 +85,21 @@ internal fun SwapScene(
                     suggestions = SwapViewModel.percentSuggestions,
                     onPercentSelected = {
                         clearAmountFocus()
-                        onAction(SwapSceneAction.SelectPercent(it))
+                        onAction(SwapAction.SelectPercent(it))
                     },
                 )
             } else {
-                SwapAction(
+                SwapButton(
                     swapState = swapState,
                     pay = pay,
                     onSwap = {
                         clearAmountFocus()
-                        onAction(SwapSceneAction.Swap)
+                        onAction(SwapAction.Swap)
                     },
                 )
             }
         },
-        onClose = { onAction(SwapSceneAction.Cancel) },
+        onClose = { onAction(SwapAction.Cancel) },
     ) {
         LaunchedEffect(pay) {
             if (pay == null) {
@@ -111,7 +111,7 @@ internal fun SwapScene(
                 SwapSectionHeader(R.string.swap_you_pay)
             }
             item {
-                SwapItem(
+                SwapToken(
                     item = pay,
                     balance = payBalance,
                     equivalent = payEquivalent,
@@ -119,22 +119,22 @@ internal fun SwapScene(
                     interaction = swapState.payItemInteraction,
                     onBalanceClick = {
                         clearAmountFocus()
-                        onAction(SwapSceneAction.SelectPercent(100))
+                        onAction(SwapAction.SelectPercent(100))
                     },
                     onAssetSelect = {
                         clearAmountFocus()
-                        onAction(SwapSceneAction.SelectAsset(SwapItemType.Pay))
+                        onAction(SwapAction.SelectAsset(SwapItemType.Pay))
                     },
                 )
             }
             item {
                 SwapReceiveHeader(
                     enabled = swapState.isQuoteInteractionEnabled,
-                    onSwitch = { onAction(SwapSceneAction.SwitchAssets) },
+                    onSwitch = { onAction(SwapAction.SwitchAssets) },
                 )
             }
             item {
-                SwapItem(
+                SwapToken(
                     item = receive,
                     balance = receiveBalance,
                     equivalent = receiveEquivalent,
@@ -144,14 +144,14 @@ internal fun SwapScene(
                     onBalanceClick = {},
                     onAssetSelect = {
                         clearAmountFocus()
-                        onAction(SwapSceneAction.SelectAsset(SwapItemType.Receive))
+                        onAction(SwapAction.SelectAsset(SwapItemType.Receive))
                     },
 
                 )
             }
             item {
                 swapDetails?.let {
-                    SwapDetailsSummaryItem(model = it, onClick = { onAction(SwapSceneAction.ShowDetails) })
+                    SwapDetailsSummaryItem(model = it, onClick = { onAction(SwapAction.ShowDetails) })
                 }
             }
 

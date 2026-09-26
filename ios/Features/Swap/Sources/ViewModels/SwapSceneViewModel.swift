@@ -132,9 +132,9 @@ public final class SwapSceneViewModel {
         selectedSlippage.isCustom
     }
 
-    var swapSlippageViewModel: SwapSlippageViewModel? {
+    var swapSlippageSceneViewModel: SwapSlippageSceneViewModel? {
         guard let fromAsset else { return nil }
-        return SwapSlippageViewModel(
+        return SwapSlippageSceneViewModel(
             chain: fromAsset.asset.chain,
             slippage: selectedSlippage,
             onSelect: { [weak self] slippage in

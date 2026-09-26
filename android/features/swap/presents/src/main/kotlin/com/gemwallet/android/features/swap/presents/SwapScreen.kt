@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.swap.views
+package com.gemwallet.android.features.swap.presents
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,8 +11,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.features.swap.presents.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
-import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -63,25 +63,25 @@ fun SwapScreen(
         showsSlippageIndicator = selectedSlippage != null,
         onAction = { action ->
             when (action) {
-                is SwapSceneAction.SelectAsset -> onSelect(action.type, pay?.id(), receive?.id())
+                is SwapAction.SelectAsset -> onSelect(action.type, pay?.id(), receive?.id())
 
-                is SwapSceneAction.SelectPercent -> viewModel.onSelectPercent(action.percent)
+                is SwapAction.SelectPercent -> viewModel.onSelectPercent(action.percent)
 
-                SwapSceneAction.SwitchAssets -> viewModel.switchSwap()
+                SwapAction.SwitchAssets -> viewModel.switchSwap()
 
-                SwapSceneAction.ShowDetails -> isShowDetails = true
+                SwapAction.ShowDetails -> isShowDetails = true
 
-                SwapSceneAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
+                SwapAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
                     viewModel.openSlippage()
                 }
 
-                SwapSceneAction.Swap -> viewModel.onPrimaryAction(
+                SwapAction.Swap -> viewModel.onPrimaryAction(
                     onConfirm = onConfirm,
                     onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
                     authorize = { action -> context.requestAuth(AuthRequest.Confirmation, action) },
                 )
 
-                SwapSceneAction.Cancel -> onCancel()
+                SwapAction.Cancel -> onCancel()
             }
         },
     )

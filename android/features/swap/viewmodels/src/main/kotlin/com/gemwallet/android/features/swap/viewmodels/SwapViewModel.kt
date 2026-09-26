@@ -22,8 +22,8 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteRequestParams
-import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
-import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
+import com.gemwallet.android.features.swap.viewmodels.models.createSwapUIState
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
@@ -183,8 +183,8 @@ class SwapViewModel @Inject constructor(
     val swapDetails = viewState.map { state -> state?.details?.uiModel(state.providers, state.allowsProviderSelection) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState = viewState.map { state -> state?.let { createSwapUiState(it, context) } ?: SwapUiState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
+    val uiState = viewState.map { state -> state?.let { createSwapUIState(it, context) } ?: SwapUIState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUIState())
 
     init {
         viewModelScope.launch {

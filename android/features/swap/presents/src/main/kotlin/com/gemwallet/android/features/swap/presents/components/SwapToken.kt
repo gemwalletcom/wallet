@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.swap.views.components
+package com.gemwallet.android.features.swap.presents.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,7 +48,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSideInteraction
 
 @Composable
-internal fun SwapItem(
+internal fun SwapToken(
     item: AssetInfo?,
     balance: GemLocalizedText?,
     equivalent: String,

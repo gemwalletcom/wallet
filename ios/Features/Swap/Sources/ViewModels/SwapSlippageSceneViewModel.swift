@@ -16,7 +16,7 @@ import PrimitivesComponents
 
 @MainActor
 @Observable
-public final class SwapSlippageViewModel {
+public final class SwapSlippageSceneViewModel {
     private let onSelect: (GemSlippageSelection) -> Void
     private var session: GemSlippageSession
     private(set) var viewState: GemSlippageViewState
@@ -83,7 +83,7 @@ public final class SwapSlippageViewModel {
 
 // MARK: - Private
 
-extension SwapSlippageViewModel {
+extension SwapSlippageSceneViewModel {
     private func update(_ session: GemSlippageSession) {
         self.session = session
         viewState = session.viewState()
