@@ -48,8 +48,8 @@ public struct SwapDetailsViewModel {
         details.provider
     }
 
-    var swapProvidersViewModel: SwapProvidersViewModel {
-        SwapProvidersViewModel(state: state.map { .plain($0) })
+    var swapProvidersViewModel: ProvidersViewModel {
+        ProvidersViewModel(state: state.map { .plain($0) })
     }
 
     // MARK: - Rate

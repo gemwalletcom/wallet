@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -44,9 +43,12 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.quotesMessage
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.iconSize
@@ -57,8 +59,11 @@ import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
+import uniffi.gemstone.GemFiatButtonAction
+import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuoteRow
 import uniffi.gemstone.GemFiatSuggestedAmount
+import uniffi.gemstone.GemFiatViewState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemProviderRow
 
@@ -70,7 +75,7 @@ private val quotesMessagePadding = 20.dp
 fun FiatScene(
     asset: Asset,
     assetInfo: AssetInfoDataAggregate?,
-    uiState: FiatUIState,
+    viewState: GemFiatViewState,
     type: FiatQuoteType,
     providers: List<GemProviderRow>,
     selectedProvider: GemFiatQuoteRow?,
@@ -109,9 +114,12 @@ fun FiatScene(
         },
         mainAction = {
             MainActionButton(
-                title = stringResource(uiState.actionTitle),
-                state = uiState.buttonState,
-                onClick = if (uiState.retries) onRetry else onBuy,
+                title = stringResource(viewState.buttonAction.stringRes()),
+                state = viewState.buttonState.buttonState(),
+                onClick = when (viewState.buttonAction) {
+                    GemFiatButtonAction.RETRY_QUOTE -> onRetry
+                    GemFiatButtonAction.CONTINUE -> onBuy
+                },
             )
         },
     ) {
@@ -120,7 +128,7 @@ fun FiatScene(
             amount = fiatAmount,
             symbol = AmountSymbolUIModel(symbol = "$", placement = AmountSymbolPlacement.Trailing),
             equivalent = selectedProvider?.let { it.cryptoEstimateText(it.cryptoAmount.text()) } ?: " ",
-            error = uiState.amountError ?: "",
+            error = viewState.amountError?.string(LocalContext.current).orEmpty(),
             onValueChange = onAmount,
             keyboardType = KeyboardType.Number,
             maximumFractionDigits = 0u,
@@ -142,9 +150,9 @@ fun FiatScene(
             },
         )
 
-        val quotesMessage = uiState.quotesMessage
+        val quotesMessage = viewState.quotesMessage(LocalContext.current)
         when {
-            uiState.isLoading -> {
+            viewState.phase is GemFiatQuotePhase.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -176,11 +184,11 @@ fun FiatScene(
                     ListItem(
                         model = it,
                         listPosition = ListPosition.First,
-                        modifier = Modifier.clickable(enabled = uiState.canSelectProvider) { isShowProviders.value = true },
+                        modifier = Modifier.clickable(enabled = viewState.canSelectProvider) { isShowProviders.value = true },
                         accessory = {
                             DataBadgeChevron(
                                 icon = selectedProvider.provider.toPrimitives().iconModel(),
-                                isShowChevron = uiState.canSelectProvider,
+                                isShowChevron = viewState.canSelectProvider,
                             )
                         },
                     )

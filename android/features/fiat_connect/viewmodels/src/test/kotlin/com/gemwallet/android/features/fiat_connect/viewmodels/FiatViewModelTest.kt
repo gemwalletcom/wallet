@@ -25,7 +25,10 @@ import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.quotesMessage
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Chain
@@ -58,6 +61,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
@@ -243,14 +247,14 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertTrue(viewModel.providers.value.isNotEmpty())
-            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+            assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
 
             viewModel.updateAmount("75")
             runCurrent()
 
             assertTrue(viewModel.providers.value.isEmpty())
-            assertTrue(viewModel.uiState.value.isLoading)
-            assertEquals(ButtonState.Loading, viewModel.uiState.value.buttonState)
+            assertTrue((viewModel.viewState.value.phase is GemFiatQuotePhase.Loading))
+            assertEquals(ButtonState.Loading, viewModel.viewState.value.buttonState.buttonState())
             assertNull(viewModel.selectedProvider.value)
         } finally {
             viewModel.viewModelScope.cancel()
@@ -266,9 +270,9 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("offline", viewModel.uiState.value.quotesMessage)
-            assertTrue(viewModel.uiState.value.retries)
-            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+            assertEquals("offline", viewModel.viewState.value.quotesMessage(context))
+            assertTrue((viewModel.viewState.value.buttonAction == GemFiatButtonAction.RETRY_QUOTE))
+            assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
 
             coEvery { service.quotes(any(), any(), any()) } returns
                 listOf(
@@ -285,8 +289,8 @@ class FiatViewModelTest {
             viewModel.retry()
             runCurrent()
 
-            assertNull(viewModel.uiState.value.quotesMessage)
-            assertFalse(viewModel.uiState.value.retries)
+            assertNull(viewModel.viewState.value.quotesMessage(context))
+            assertFalse((viewModel.viewState.value.buttonAction == GemFiatButtonAction.RETRY_QUOTE))
             assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
                 service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
@@ -304,7 +308,7 @@ class FiatViewModelTest {
             viewModel.updateAmount("")
             runCurrent()
 
-            assertEquals("string:${R.string.input_enter_amount_to}", viewModel.uiState.value.quotesMessage)
+            assertEquals("string:${R.string.input_enter_amount_to}", viewModel.viewState.value.quotesMessage(context))
             verify { context.getString(R.string.input_enter_amount_to, "string:${R.string.wallet_buy}") }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -320,8 +324,8 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("string:${R.string.buy_no_results}", viewModel.uiState.value.quotesMessage)
-            assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+            assertEquals("string:${R.string.buy_no_results}", viewModel.viewState.value.quotesMessage(context))
+            assertEquals(ButtonState.Disabled, viewModel.viewState.value.buttonState.buttonState())
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -349,9 +353,9 @@ class FiatViewModelTest {
             runCurrent()
 
             assertTrue(viewModel.providers.value.isNotEmpty())
-            assertNull(viewModel.uiState.value.quotesMessage)
-            assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.amountError)
-            assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+            assertNull(viewModel.viewState.value.quotesMessage(context))
+            assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.viewState.value.amountError?.string(context))
+            assertEquals(ButtonState.Disabled, viewModel.viewState.value.buttonState.buttonState())
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -401,7 +405,7 @@ class FiatViewModelTest {
             runCurrent()
 
             assertTrue(result.isFailure)
-            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+            assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
         } finally {
             viewModel.viewModelScope.cancel()
         }

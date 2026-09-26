@@ -24,7 +24,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.fiat_connect.viewmodels.FiatViewModel
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
@@ -47,7 +46,7 @@ import uniffi.gemstone.GemFiatSuggestedAmount
 @Composable
 fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
     val type by viewModel.type.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val asset by viewModel.assetInfoUIModel.collectAsStateWithLifecycle()
     val amount by viewModel.amount.collectAsStateWithLifecycle()
     val providers by viewModel.providers.collectAsStateWithLifecycle()
@@ -70,7 +69,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         asset = currentAsset,
         assetInfo = currentAssetInfo,
         snackbar = snackbar,
-        uiState = uiState,
+        viewState = viewState,
         type = type,
         providers = providers,
         selectedProvider = selectedProvider,

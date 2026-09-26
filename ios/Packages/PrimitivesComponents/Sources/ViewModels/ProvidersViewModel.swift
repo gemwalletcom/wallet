@@ -4,16 +4,15 @@ import Components
 import Foundation
 import struct Gemstone.GemProviderRow
 import Localization
-import Primitives
 
-struct SwapProvidersViewModel: SelectableListAdoptable {
-    typealias Item = GemProviderRow
+public struct ProvidersViewModel: SelectableListAdoptable {
+    public typealias Item = GemProviderRow
 
-    var state: StateViewType<SelectableListType<GemProviderRow>>
-    var selectedItems: Set<GemProviderRow>
-    var selectionType: SelectionType
+    public var state: StateViewType<SelectableListType<GemProviderRow>>
+    public var selectedItems: Set<GemProviderRow>
+    public var selectionType: SelectionType
 
-    init(
+    public init(
         state: StateViewType<SelectableListType<Item>>,
         selectedItems: [GemProviderRow] = [],
         selectionType: SelectionType = .navigationLink,
@@ -23,17 +22,17 @@ struct SwapProvidersViewModel: SelectableListAdoptable {
         self.selectionType = selectionType
     }
 
-    var emptyStateTitle: String? {
+    public var emptyStateTitle: String? {
         Localized.Common.notAvailable
     }
 
-    var errorTitle: String? {
+    public var errorTitle: String? {
         Localized.Errors.errorOccurred
     }
 }
 
-extension SwapProvidersViewModel: SelectableListNavigationAdoptable {
-    var title: String {
+extension ProvidersViewModel: SelectableListNavigationAdoptable {
+    public var title: String {
         Localized.Buy.Providers.title
     }
 }
