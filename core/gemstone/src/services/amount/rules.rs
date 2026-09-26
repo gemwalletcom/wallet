@@ -33,7 +33,9 @@ impl GemAmountType {
     pub fn can_switch_input_type(&self) -> bool {
         matches!(self, Self::Transfer)
     }
+}
 
+impl GemAmountType {
     pub fn entry(&self, asset: &Asset, input: &GemAmountInput, price: Option<f64>, input_type: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
         let decimals = asset.decimals as u32;
         let (value, error) = match entry_value(&text, decimals, price, input_type) {
@@ -53,9 +55,7 @@ impl GemAmountType {
             error,
         }
     }
-}
 
-impl GemAmountType {
     pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
         let available = self.available_value(asset, balance);
         let reserve = reserve_for_fee(self, asset);

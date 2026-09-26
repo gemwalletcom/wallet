@@ -294,10 +294,6 @@ impl GemNumberFormat {
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
     }
-
-    pub fn value(&self, input: String, decimals: u32) -> Result<GemBigInt, GemAmountError> {
-        super::rules::value_from_input(&self.decimal_separator, &input, decimals)
-    }
 }
 
 impl GemNumberFormat {

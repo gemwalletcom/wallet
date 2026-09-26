@@ -37,14 +37,14 @@ use crate::config::docs::DocsUrl;
 use crate::config::stake::{StakeChainConfig, get_stake_config};
 use crate::config::validators::get_validators;
 
-pub fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
+fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
     if wallet_type == WalletType::View || delegation.base.state != DelegationState::AwaitingWithdrawal {
         return GemDelegationDestination::Details;
     }
     delegation_action_destination(asset, delegation, GemDelegationAction::Withdraw, &[]).unwrap_or(GemDelegationDestination::Details)
 }
 
-pub fn delegation_action_destination(asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: &[DelegationValidator]) -> Option<GemDelegationDestination> {
+fn delegation_action_destination(asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: &[DelegationValidator]) -> Option<GemDelegationDestination> {
     let value = BigInt::from(delegation.base.balance.clone());
     let stake = |asset, input| GemDelegationDestination::Amount {
         asset,
@@ -74,7 +74,7 @@ pub fn delegation_action_destination(asset: Asset, delegation: Delegation, actio
     Some(destination)
 }
 
-pub fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<GemDelegationAction> {
+fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<GemDelegationAction> {
     if wallet_type == WalletType::View {
         return vec![];
     }
@@ -164,7 +164,7 @@ pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<Str
     }
 }
 
-pub fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
+fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
     let state = match delegation.base.state {
         DelegationState::Active if !delegation.validator.is_active => DelegationState::Inactive,
         state => state,
@@ -260,7 +260,7 @@ pub fn shows_rewards(delegation: &DelegationBase) -> bool {
     delegation.state == DelegationState::Active && delegation.rewards > BigUint::ZERO
 }
 
-pub fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
+fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
     uses_freeze(chain) && *frozen_value == BigUint::ZERO
 }
 
@@ -308,7 +308,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeVie
     }
 }
 
-pub fn stake_sections(uses_freeze: bool, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
+fn stake_sections(uses_freeze: bool, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
     [
         has_actions.then_some(GemStakeSection::Manage),
         uses_freeze.then_some(GemStakeSection::Resources),
@@ -319,7 +319,7 @@ pub fn stake_sections(uses_freeze: bool, has_actions: bool, has_delegations: boo
     .collect()
 }
 
-pub fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
+fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
     let chain = asset.chain();
     let minimum = min_stake_amount(chain);
     [
@@ -386,7 +386,7 @@ fn provider_row(validator: &DelegationValidator) -> GemListRow {
     }
 }
 
-pub fn sorted_delegations(mut delegations: Vec<Delegation>) -> Vec<Delegation> {
+fn sorted_delegations(mut delegations: Vec<Delegation>) -> Vec<Delegation> {
     delegations.sort_by(|a, b| b.base.balance.cmp(&a.base.balance));
     delegations
 }
@@ -424,11 +424,11 @@ pub fn uses_whole_amounts(chain: Chain) -> bool {
     stake_config(chain).is_some_and(|config| config.uses_whole_amounts)
 }
 
-pub fn rewards_value(delegations: &[Delegation]) -> BigUint {
+fn rewards_value(delegations: &[Delegation]) -> BigUint {
     delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum()
 }
 
-pub fn resource_options(chain: Chain) -> Vec<Resource> {
+fn resource_options(chain: Chain) -> Vec<Resource> {
     match stake_config(chain).is_some_and(|config| config.uses_freeze) {
         true => vec![Resource::Bandwidth, Resource::Energy],
         false => Vec::new(),
@@ -439,7 +439,7 @@ fn default_resource(chain: Chain) -> Resource {
     resource_options(chain).first().copied().unwrap_or(Resource::Bandwidth)
 }
 
-pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
+fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
     let Some(config) = stake_config(chain).filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
@@ -496,7 +496,7 @@ fn rewards_amount(chain: Chain, rewards: &BigUint) -> Option<GemFormattedNumber>
     Some(GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals as u32), Some(asset.symbol), GemValueStyle::Auto))
 }
 
-pub fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> Option<GemStakeDestination> {
+fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> Option<GemStakeDestination> {
     let with_rewards: Vec<Delegation> = delegations.into_iter().filter(|delegation| delegation.base.rewards > BigUint::ZERO).collect();
     let validator = with_rewards.first()?.validator.clone();
     let value = BigInt::from(rewards_value(&with_rewards));
@@ -576,7 +576,7 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
     }
 }
 
-pub fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
     let mut selectable: Vec<DelegationValidator> = validators
         .into_iter()
         .filter(|validator| validator.is_active && !validator.name.trim().is_empty() && !DelegationValidator::is_system_id(&validator.id))

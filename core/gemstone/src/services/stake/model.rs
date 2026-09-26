@@ -155,10 +155,6 @@ pub enum GemStakeAmountInput {
 
 #[uniffi::export]
 impl GemStakeAmountInput {
-    pub fn amount_type(&self) -> GemAmountType {
-        amount_rules::stake_amount_type(self)
-    }
-
     pub fn with_validator(&self, validator: DelegationValidator) -> GemStakeAmountInput {
         rules::with_validator(self, validator)
     }
@@ -169,6 +165,10 @@ impl GemStakeAmountInput {
 }
 
 impl GemStakeAmountInput {
+    pub fn amount_type(&self) -> GemAmountType {
+        amount_rules::stake_amount_type(self)
+    }
+
     pub fn stake_type(&self) -> StakeType {
         rules::stake_type(self)
     }

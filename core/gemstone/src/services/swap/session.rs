@@ -424,16 +424,22 @@ impl GemSwapSession {
         self.current_quote().cloned()
     }
 
-    fn error(&self) -> Option<SwapperError> {
-        self.transfer_error().or_else(|| self.quote_error())
-    }
-
     pub fn is_transfer_loading(&self) -> bool {
         matches!(self.transfer_phase, GemSwapTransferPhase::Loading { .. })
     }
 
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
         is_screen_active && !self.refresh_paused_until_restart && !self.is_transfer_loading() && !self.quote_phase.is_failed()
+    }
+}
+
+fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals), None, GemValueStyle::Auto)
+}
+
+impl GemSwapSession {
+    fn error(&self) -> Option<SwapperError> {
+        self.transfer_error().or_else(|| self.quote_error())
     }
 
     fn action(&self) -> GemSwapSessionAction {
@@ -460,13 +466,7 @@ impl GemSwapSession {
             GemSwapButtonAction::Swap | GemSwapButtonAction::RetryQuote | GemSwapButtonAction::RetryTransfer | GemSwapButtonAction::UseMinimumAmount { .. } => GemButtonState::Enabled,
         }
     }
-}
 
-fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals), None, GemValueStyle::Auto)
-}
-
-impl GemSwapSession {
     fn provider_rows(&self, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency) -> Vec<GemProviderRow> {
         let selected = self.current_quote().map(|quote| quote.data.provider.id);
         self.quotes

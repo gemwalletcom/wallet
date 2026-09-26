@@ -36,10 +36,6 @@ impl GemPortfolioService {
         Self { api, store, price, perpetual, preferences }
     }
 
-    pub fn currency(&self, portfolio_type: PortfolioType) -> Currency {
-        rules::portfolio_currency(portfolio_type, self.preferences.get_currency())
-    }
-
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         self.preferences.show_perpetuals(wallet_type, chains)
     }

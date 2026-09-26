@@ -118,7 +118,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
     }
 }
 
-pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
+fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
     BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
 }

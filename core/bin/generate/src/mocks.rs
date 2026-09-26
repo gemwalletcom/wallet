@@ -564,18 +564,8 @@ fn map_types(type_name: &str) -> Option<(&str, &str)> {
 mod tests {
     use super::*;
     use crate::remote_mappers::Config;
-    use std::fs;
+    use crate::testkit::expect_generated;
     use std::path::Path;
-
-    fn expect_generated(name: &str, actual: String) {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata").join("expected").join(name);
-        if std::env::var_os("UPDATE_GOLDEN").is_some() {
-            fs::write(&path, &actual).unwrap();
-            return;
-        }
-        let expected = fs::read_to_string(&path).unwrap_or_else(|_| panic!("{} is missing; run the tests once with UPDATE_GOLDEN=1", path.display()));
-        assert_eq!(actual, expected, "{name} no longer matches testdata/expected/{name}; rerun with UPDATE_GOLDEN=1 once the diff is intended");
-    }
 
     fn generator(mocks: &str) -> Generator {
         let testdata = Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata");

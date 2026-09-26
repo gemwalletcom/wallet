@@ -72,5 +72,3 @@ notification_perpetual_open_description = Entered at {$price} 🚀
 notification_perpetual_short_title = 📉 Short {$coin}
 notification_perpetual_close_positive_description = You made {$pnl} 💰
 notification_perpetual_close_negative_description = You lost {$pnl} 😕
-notification_stake_to_description = To {$validator}
-notification_stake_from_description = From {$validator}

@@ -731,7 +731,7 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
     position_line(perpetual, asset, position).into()
 }
 
-pub fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
+fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
     let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
     PerpetualPositionLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),

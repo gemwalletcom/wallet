@@ -235,10 +235,6 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
         }
     }
 
-    public func currency(portfolioType _: Gemstone.PortfolioType) -> Gemstone.Currency {
-        Primitives.Currency.usd.toGem()
-    }
-
     public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         perpetualsShown
     }

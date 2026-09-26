@@ -129,7 +129,6 @@ impl GemNodeRowTitle {
     }
 }
 
-#[uniffi::export]
 impl GemNodeSelection {
     pub fn title(&self) -> GemNodeRowTitle {
         match &self.gem_node_flag {

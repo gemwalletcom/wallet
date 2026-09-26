@@ -275,7 +275,7 @@ impl GemSwapButtonInput {
     }
 }
 
-pub fn is_retryable(error: Option<&SwapperError>) -> bool {
+fn is_retryable(error: Option<&SwapperError>) -> bool {
     match error {
         Some(SwapperError::NoQuoteAvailable | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_) | SwapperError::Offline) => true,
         Some(SwapperError::NotSupportedChain | SwapperError::NotSupportedAsset | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::InputAmountError { .. }) | None => false,

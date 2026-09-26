@@ -34,7 +34,7 @@ pub fn can_retry(message: &SupportMessage) -> bool {
     message.sender.is_user() && message.images.is_empty()
 }
 
-pub fn message_outcome(message: &SupportMessage) -> GemSupportMessageOutcome {
+fn message_outcome(message: &SupportMessage) -> GemSupportMessageOutcome {
     match message.status {
         SupportMessageStatus::Sending => GemSupportMessageOutcome::Sending,
         SupportMessageStatus::Sent => GemSupportMessageOutcome::Sent,

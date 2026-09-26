@@ -50,7 +50,7 @@ fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilte
     }
 }
 
-pub fn filter_transaction_types(filter: GemTransactionFilter) -> Vec<TransactionType> {
+fn filter_transaction_types(filter: GemTransactionFilter) -> Vec<TransactionType> {
     TransactionType::all().into_iter().filter(|transaction_type| transaction_filter(transaction_type) == filter).collect()
 }
 

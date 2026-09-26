@@ -211,7 +211,7 @@ pub fn asset_text(asset: &Asset) -> GemAssetText {
     }
 }
 
-pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText {
+fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText {
     let chain_asset = ChainAsset::from_chain(asset.chain());
     let title = match style.title {
         GemAssetTitleStyle::Asset => asset.name.clone(),

@@ -139,7 +139,7 @@ pub fn nft_chains() -> Vec<Chain> {
     Chain::all().into_iter().filter(Chain::is_nft_supported).collect()
 }
 
-pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
+fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
     *wallet_type != WalletType::View && supports_nft_transfer(chain) && is_owned
 }
 

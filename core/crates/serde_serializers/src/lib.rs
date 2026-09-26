@@ -19,5 +19,3 @@ pub mod hex_bytes;
 pub mod size;
 pub mod u64;
 pub use u64::{deserialize_option_u64_from_str, deserialize_option_u64_from_str_or_int, deserialize_u64_from_str, deserialize_u64_from_str_or_int, u64_from_str};
-pub mod u128;
-pub use u128::deserialize_option_u128_from_str;

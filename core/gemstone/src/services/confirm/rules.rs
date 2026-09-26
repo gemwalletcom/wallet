@@ -404,14 +404,14 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
     }
 }
 
-pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
+fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     match chain {
         Chain::Tron => GemAcquireAssetFlow::Options,
         _ => GemAcquireAssetFlow::Fiat,
     }
 }
 
-pub fn acquire_swap_pair(input_asset_id: &AssetId, fee_asset_id: &AssetId, asset_id: AssetId) -> GemSwapPairSelection {
+fn acquire_swap_pair(input_asset_id: &AssetId, fee_asset_id: &AssetId, asset_id: AssetId) -> GemSwapPairSelection {
     let pay_asset_id = if *input_asset_id == asset_id { fee_asset_id } else { input_asset_id };
     GemSwapPairSelection {
         pay_asset_id: Some(pay_asset_id.clone()).filter(|pay| *pay != asset_id),

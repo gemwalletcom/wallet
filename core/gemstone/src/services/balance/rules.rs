@@ -65,7 +65,7 @@ pub fn total_header(total: &TotalFiatValue, currency: Currency) -> GemTotalHeade
     }
 }
 
-pub fn shows_pnl(total: &TotalFiatValue) -> bool {
+fn shows_pnl(total: &TotalFiatValue) -> bool {
     total.value > 0.0 && total.pnl_amount != 0.0
 }
 

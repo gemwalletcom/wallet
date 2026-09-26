@@ -210,7 +210,9 @@ impl GemBalanceRow {
             Self::Reserved { .. } => GemListRowTitle::Reserved,
         }
     }
+}
 
+impl GemBalanceRow {
     pub fn value(&self) -> GemBigUint {
         match self {
             Self::Available { value } | Self::Staked { value } | Self::Earn { value } | Self::PendingUnconfirmed { value } | Self::Reserved { value, .. } => value.clone(),
