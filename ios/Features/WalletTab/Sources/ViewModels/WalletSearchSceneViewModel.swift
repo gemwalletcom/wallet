@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import Foundation
 import func Gemstone.addressCopy
@@ -16,7 +17,6 @@ import Localization
 import NFT
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI

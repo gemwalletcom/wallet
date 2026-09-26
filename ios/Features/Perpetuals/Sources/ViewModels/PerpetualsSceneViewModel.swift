@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import Foundation
 import enum Gemstone.GemHeaderButtonKind
@@ -17,7 +18,6 @@ import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI

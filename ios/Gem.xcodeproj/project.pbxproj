@@ -66,7 +66,7 @@
 		D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */; };
 		D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004D2BBB283400ED770B /* WalletNavigationView.swift */; };
 		D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF2C2CBDBC5300DEB2E8 /* Localization */; };
-		D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF412CBDD65A00DEB2E8 /* MarketInsight */; };
+		D829BF422CBDD65A00DEB2E8 /* Market in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF412CBDD65A00DEB2E8 /* Market */; };
 		D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF442CBDD9F700DEB2E8 /* FiatConnect */; };
 		D838194A2E256A5A0076CDB3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D832C80A2E246E6700871ED9 /* WidgetKit.framework */; };
 		D838194B2E256A5A0076CDB3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D832C80C2E246E6700871ED9 /* SwiftUI.framework */; };
@@ -178,7 +178,6 @@
 		837A1E6C2D0B096600733AC1 /* WalletConnectorNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectorNavigationStack.swift; sourceTree = "<group>"; };
 		837D7DE62E005D2800BBBDDA /* Formatters */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Formatters; sourceTree = "<group>"; };
 		838383112D5E677A00D1CAF2 /* WalletTab */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletTab; sourceTree = "<group>"; };
-		838B9B9C2F0C120100380F29 /* Recents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Recents; sourceTree = "<group>"; };
 		8393897A2CCA8F0000735088 /* InfoSheet */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = InfoSheet; sourceTree = "<group>"; };
 		83A4F8042D30434E000E09BB /* Onboarding */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Onboarding; sourceTree = "<group>"; };
 		83B08BDA2D0B4AE200CA1B33 /* AppResolver+Storages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppResolver+Storages.swift"; sourceTree = "<group>"; };
@@ -222,7 +221,7 @@
 		D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsNavigationView.swift; sourceTree = "<group>"; };
 		D807004D2BBB283400ED770B /* WalletNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletNavigationView.swift; sourceTree = "<group>"; };
 		D829BF2B2CBDB82600DEB2E8 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Localization; sourceTree = "<group>"; };
-		D829BF402CBDD64D00DEB2E8 /* MarketInsight */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MarketInsight; sourceTree = "<group>"; };
+		D829BF402CBDD64D00DEB2E8 /* Market */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Market; sourceTree = "<group>"; };
 		D829BF432CBDD9D200DEB2E8 /* FiatConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FiatConnect; sourceTree = "<group>"; };
 		D83096AC2D5D4F1E00FFEE3E /* GemUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D832C80A2E246E6700871ED9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -308,7 +307,7 @@
 				C366791D2A18623800F1D74D /* QRScanner in Frameworks */,
 				0741683A2D3AFDBB00AC26A4 /* NFT in Frameworks */,
 				C3A7CB7C29CA5F7000431341 /* Store in Frameworks */,
-				D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */,
+				D829BF422CBDD65A00DEB2E8 /* Market in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
 				C3CF3B7B29A98C7B00E96586 /* Primitives in Frameworks */,
 				C3CF3BDB29BBE45D00E96586 /* Style in Frameworks */,
@@ -625,7 +624,6 @@
 			isa = PBXGroup;
 			children = (
 				B604C2E72F3F537800CBAFDC /* Contacts */,
-				838B9B9C2F0C120100380F29 /* Recents */,
 				B6EA21D42E27E21700F1C849 /* Support */,
 				836281AD2DEF32F600CA5C75 /* Assets */,
 				838383112D5E677A00D1CAF2 /* WalletTab */,
@@ -642,7 +640,7 @@
 				E1B4C7082E85B00000EARN01 /* Stake */,
 				D8CF19E12CC745ED0025D6B4 /* Transfer */,
 				D829BF432CBDD9D200DEB2E8 /* FiatConnect */,
-				D829BF402CBDD64D00DEB2E8 /* MarketInsight */,
+				D829BF402CBDD64D00DEB2E8 /* Market */,
 				C366791B2A1860E500F1D74D /* QRScanner */,
 				834B38182D1D858D009D58D4 /* AppLock */,
 				C370289B2A9C3B0E009AE123 /* Settings */,
@@ -740,7 +738,7 @@
 				DF8421ED2C1526ED003F558C /* GemstonePrimitives */,
 				DF93C4ED2C969F4F00204ABD /* Gemstone */,
 				D829BF2C2CBDBC5300DEB2E8 /* Localization */,
-				D829BF412CBDD65A00DEB2E8 /* MarketInsight */,
+				D829BF412CBDD65A00DEB2E8 /* Market */,
 				D829BF442CBDD9F700DEB2E8 /* FiatConnect */,
 				D8CF19E22CC747370025D6B4 /* Transfer */,
 				83D6808A2CCA90D900B45089 /* InfoSheet */,
@@ -1641,9 +1639,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Localization;
 		};
-		D829BF412CBDD65A00DEB2E8 /* MarketInsight */ = {
+		D829BF412CBDD65A00DEB2E8 /* Market */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = MarketInsight;
+			productName = Market;
 		};
 		D829BF442CBDD9F700DEB2E8 /* FiatConnect */ = {
 			isa = XCSwiftPackageProductDependency;

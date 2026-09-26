@@ -17,7 +17,6 @@ import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI

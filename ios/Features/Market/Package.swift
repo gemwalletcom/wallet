@@ -3,15 +3,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "MarketInsight",
+    name: "Market",
     platforms: [
         .iOS(.v17),
         .macOS(.v15),
     ],
     products: [
         .library(
-            name: "MarketInsight",
-            targets: ["MarketInsight"],
+            name: "Market",
+            targets: ["Market"],
         ),
     ],
     dependencies: [
@@ -29,7 +29,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "MarketInsight",
+            name: "Market",
             dependencies: [
                 "Gemstone",
                 "Primitives",

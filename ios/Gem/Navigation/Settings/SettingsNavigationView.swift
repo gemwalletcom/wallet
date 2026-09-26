@@ -3,7 +3,7 @@
 import Contacts
 import GemstoneServices
 import InAppNotifications
-import MarketInsight
+import Market
 import PriceAlerts
 import Primitives
 import PrimitivesComponents

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.assets.presents.chart
+package com.gemwallet.android.features.market.presents
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -10,8 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.assets.viewmodels.chart.models.ChartUIModel
-import com.gemwallet.android.features.assets.viewmodels.chart.viewmodels.ChartViewModel
+import com.gemwallet.android.features.market.viewmodels.ChartViewModel
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart

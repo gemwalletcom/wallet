@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.assets.viewmodels.chart.viewmodels
+package com.gemwallet.android.features.market.viewmodels
 
 import android.content.Context
 import android.util.Log
@@ -14,8 +14,8 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.assets.viewmodels.chart.models.ChartUIModel
-import com.gemwallet.android.features.assets.viewmodels.chart.models.StopTimeoutMillis
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
+import com.gemwallet.android.features.market.viewmodels.models.StopTimeoutMillis
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId

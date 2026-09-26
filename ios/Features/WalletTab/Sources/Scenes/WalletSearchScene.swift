@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemWalletSearchState
@@ -11,7 +12,6 @@ import NFT
 import Perpetuals
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI

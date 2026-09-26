@@ -4,7 +4,7 @@ import Components
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import MarketInsight
+import Market
 import NFT
 import Perpetuals
 import PriceAlerts

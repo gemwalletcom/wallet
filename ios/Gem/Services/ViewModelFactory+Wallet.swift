@@ -9,11 +9,10 @@ import class Gemstone.GemChartService
 import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
 import GemstoneServices
-import MarketInsight
+import Market
 import NFT
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import SwiftUI
 import WalletTab

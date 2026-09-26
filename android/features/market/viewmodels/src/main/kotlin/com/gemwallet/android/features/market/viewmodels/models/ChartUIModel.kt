@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.assets.viewmodels.chart.models
+package com.gemwallet.android.features.market.viewmodels.models
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.components.chart.ChartPoint

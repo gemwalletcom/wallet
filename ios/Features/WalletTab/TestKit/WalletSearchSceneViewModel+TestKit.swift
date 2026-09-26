@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
-import Recents
 import StoreTestKit
 import WalletTab
 

@@ -11,7 +11,7 @@ import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.assets.viewmodels.chart.models.ChartUIModel
+import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.ChartPeriod

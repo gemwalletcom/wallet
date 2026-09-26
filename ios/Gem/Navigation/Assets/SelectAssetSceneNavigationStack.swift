@@ -7,7 +7,6 @@ import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import Recents
 import Style
 import SwiftUI
 import Transfer
