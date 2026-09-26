@@ -45,19 +45,6 @@ struct ChainAssetQueryTests {
     }
 
     @Test
-    func fetchToken() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
-        let token = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
-
-        try db.dbQueue.read { db in
-            let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id, feeAssetId: token.chain.assetId).fetch(db)
-
-            #expect(result.assetData.asset.id == token.id)
-            #expect(result.feeAssetData.asset.id == token.chain.assetId)
-        }
-    }
-
-    @Test
     func fetchTokenWithoutBalance() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let token = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)

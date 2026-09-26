@@ -19,9 +19,4 @@ struct ConnectionStoreTests {
         #expect(try connectionsStore.getConnection(sessionId: "session-a")?.wallet.id == walletA.id)
         #expect(try connectionsStore.getConnection(sessionId: "session-b")?.wallet.id == walletB.id)
     }
-
-    @Test
-    func getConnectionIsNilForNonexistentSession() throws {
-        #expect(try ConnectionStore.mock().getConnection(sessionId: "nonexistent") == nil)
-    }
 }

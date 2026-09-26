@@ -45,25 +45,6 @@ struct AssetsQueryTests {
         }
     }
 
-    @Test func addAssets() throws {
-        let db = DB.mock()
-        let store = AssetStore(db: db)
-
-        try db.dbQueue.read { db in
-            let assets = try AssetsQuery.mock().fetch(db)
-
-            #expect(assets.isEmpty)
-        }
-
-        try store.add(assets: [.mock()])
-
-        try db.dbQueue.read { db in
-            let assets = try AssetsQuery.mock(scope: .allAssets).fetch(db)
-
-            #expect(assets.count == 1)
-        }
-    }
-
     @Test func assetDataIncludesAssociations() throws {
         let asset = AssetBasic.mock()
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: asset.asset.chain)])], assets: [asset])

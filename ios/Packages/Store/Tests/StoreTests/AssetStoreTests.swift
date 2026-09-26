@@ -39,11 +39,10 @@ struct AssetStoreTests {
         let store = AssetStore(db: db)
         let assetIds = [Chain.ethereum.assetId.identifier, Chain.bitcoin.assetId.identifier]
 
-        let first = try store.setAssetIsSwappable(for: assetIds, value: true)
-        let second = try store.setAssetIsSwappable(for: assetIds, value: true)
+        _ = try store.setAssetIsSwappable(for: assetIds, value: false)
 
-        #expect(first + second == first)
-        #expect(second == 0)
+        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 2)
+        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 0)
     }
 
     @Test

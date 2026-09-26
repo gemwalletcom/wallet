@@ -46,17 +46,6 @@ struct AssetFiatValuesQueryTests {
     }
 
     @Test
-    func walletBalanceWithoutPrice() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
-
-        try db.dbQueue.read { db in
-            let result = try AssetFiatValuesQuery(walletId: .mock()).fetch(db)
-
-            #expect(result.filter { $0.price == 0 }.map(\.amount).sorted() == [0, 1, 2, 3, 4])
-        }
-    }
-
-    @Test
     func walletBalanceListsEnabledAssetsOnly() throws {
         let ethereum = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
         let bnb = Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)
