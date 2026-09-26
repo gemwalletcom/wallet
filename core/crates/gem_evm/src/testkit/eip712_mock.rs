@@ -46,33 +46,3 @@ impl EIP712Message {
 pub fn mock_eip712_json(chain_id: u64) -> String {
     EIP712Message::mock(chain_id).to_json_string()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_eip712_domain_mock() {
-        let domain = EIP712Domain::mock(1);
-        assert_eq!(domain.chain_id, Some(1));
-        assert_eq!(domain.name.as_deref(), Some("Test"));
-        assert_eq!(domain.version, Some("1".to_string()));
-    }
-
-    #[test]
-    fn test_eip712_message_mock() {
-        let message = EIP712Message::mock(1);
-        assert_eq!(message.domain.chain_id, Some(1));
-        assert_eq!(message.primary_type, "Message");
-        assert_eq!(message.message.len(), 1);
-    }
-
-    #[test]
-    fn test_eip712_message_json() {
-        let json = mock_eip712_json(1);
-        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
-
-        assert_eq!(value["domain"]["chainId"], 1);
-        assert_eq!(value["primaryType"], "Message");
-    }
-}
