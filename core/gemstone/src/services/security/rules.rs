@@ -26,13 +26,6 @@ impl GemLockPeriod {
 
 #[uniffi::export]
 impl GemAuthPromptOutcome {
-    pub fn is_cancelled(self) -> bool {
-        match self {
-            Self::CancelledByUser | Self::CancelledBySystem => true,
-            Self::Unavailable | Self::LockedOut | Self::Transient | Self::Failed => false,
-        }
-    }
-
     pub fn error_text(self) -> Option<GemErrorText> {
         match self {
             Self::CancelledByUser | Self::CancelledBySystem => None,
@@ -83,14 +76,6 @@ mod tests {
         assert_eq!(GemAuthPromptOutcome::LockedOut.error_text(), Some(GemErrorText::AuthenticationLockedOut));
         assert_eq!(GemAuthPromptOutcome::Transient.error_text(), Some(GemErrorText::AuthenticationFailed));
         assert_eq!(GemAuthPromptOutcome::Failed.error_text(), Some(GemErrorText::AuthenticationFailed));
-    }
-
-    #[test]
-    fn test_cancellation_covers_both_the_user_and_the_system() {
-        assert!(GemAuthPromptOutcome::CancelledByUser.is_cancelled());
-        assert!(GemAuthPromptOutcome::CancelledBySystem.is_cancelled());
-        assert!(!GemAuthPromptOutcome::LockedOut.is_cancelled());
-        assert!(!GemAuthPromptOutcome::Failed.is_cancelled());
     }
 
     #[test]

@@ -31,6 +31,7 @@ ALLOWED = {
     "GemKeystore.create_store": "VM181",
     "GemKeystore.export_private_key": "VM181",
     "GemKeystore.export_recovery_phrase": "VM181",
+    "GemKeystore.keystore_id": "VM181",
     "GemConfirmation.row_contents": DOUBLE,
     "GemConfirmScreen.fee_value": DOUBLE,
     "confirm_error_info": DOUBLE,
