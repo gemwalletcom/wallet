@@ -10,7 +10,7 @@ import enum Gemstone.GemConfirmFeeRow
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoadOptions
 import enum Gemstone.GemConfirmRowContent
-import struct Gemstone.GemConfirmSimulationState
+import enum Gemstone.GemConfirmSection
 import struct Gemstone.GemConfirmViewState
 import struct Gemstone.GemFeeRateRows
 import enum Gemstone.GemInfoAction
@@ -68,7 +68,6 @@ public final class ConfirmTransferSceneViewModel {
         let loadOptions = confirmation.loadOptions()
         let state = ConfirmTransferState(
             transfer: request.data,
-            simulation: ConfirmSimulationState(),
             screen: confirmation.screen(),
         )
         self.loadOptions = loadOptions
@@ -93,11 +92,42 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var simulationWarnings: [GemListRow] {
-        viewState.simulationWarnings
+        viewState.sections.lazy.compactMap { section -> [GemListRow]? in
+            guard case let .warnings(rows) = section else { return nil }
+            return rows
+        }.first ?? []
     }
 
-    public var primaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.primaryFields }
-    public var secondaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.secondaryFields }
+    public var primaryPayloadFields: [GemSimulationPayloadRow] { payload.primary }
+    public var secondaryPayloadFields: [GemSimulationPayloadRow] { payload.secondary }
+
+    private var payload: (primary: [GemSimulationPayloadRow], secondary: [GemSimulationPayloadRow]) {
+        viewState.sections.lazy.compactMap { section -> ([GemSimulationPayloadRow], [GemSimulationPayloadRow])? in
+            guard case let .payload(primary, secondary) = section else { return nil }
+            return (primary, secondary)
+        }.first ?? ([], [])
+    }
+
+    private var rowContents: [GemConfirmRowContent] {
+        viewState.sections.lazy.compactMap { section -> [GemConfirmRowContent]? in
+            guard case let .details(rows) = section else { return nil }
+            return rows
+        }.first ?? []
+    }
+
+    private var notice: GemListRow? {
+        viewState.sections.lazy.compactMap { section -> GemListRow? in
+            guard case let .notice(row) = section else { return nil }
+            return row
+        }.first
+    }
+
+    private var loadError: GemConfirmError? {
+        viewState.sections.lazy.compactMap { section -> GemConfirmError? in
+            guard case let .error(error) = section else { return nil }
+            return error
+        }.first
+    }
 
     var transfer: GemTransferData { state.transfer }
 
@@ -118,7 +148,10 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
-        state.simulation.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
+        viewState.sections.lazy.compactMap { section -> [ConfirmBalanceChangeViewModel]? in
+            guard case let .balanceChanges(changes) = section else { return nil }
+            return changes.map(ConfirmBalanceChangeViewModel.init)
+        }.first ?? []
     }
 
     public var feeModel: NetworkFeeSceneViewModel {
@@ -144,20 +177,19 @@ public final class ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     public var sections: [ListSection<ConfirmTransferItem>] {
-        [
-            ListSection(type: .header, [.header]),
-            viewState.notice == nil ? nil : ListSection(type: .notice, [.notice]),
-            ListSection(type: .details, detailItems),
-            simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
-            balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [viewState.verification == nil ? .networkFee : .verification]),
-            ListSection(type: .error, [.error]),
-        ].compactMap(\.self)
-    }
-
-    private var detailItems: [ConfirmTransferItem] {
-        viewState.rowContents.indices.map { viewState.rowContents[$0].item(at: $0) }
+        viewState.sections.map { section in
+            switch section {
+            case .header: ListSection(type: .header, [.header])
+            case .notice: ListSection(type: .notice, [.notice])
+            case let .details(rows): ListSection(type: .details, rows.indices.map { rows[$0].item(at: $0) })
+            case .warnings: ListSection(type: .warnings, [.warnings])
+            case .payload: ListSection(type: .payload, [.payload])
+            case let .balanceChanges(changes): ListSection(type: .balanceChanges, changes.indices.map(ConfirmTransferItem.balanceChange))
+            case .networkFee: ListSection(type: .fee, [.networkFee])
+            case .verification: ListSection(type: .fee, [.verification])
+            case .error: ListSection(type: .error, [.error])
+            }
+        }
     }
 
     public func itemModel(for item: ConfirmTransferItem) -> ConfirmTransferItemModel {
@@ -165,12 +197,12 @@ extension ConfirmTransferSceneViewModel {
         case .header:
             confirmation.header(screen: state.screen).itemModel
         case .notice:
-            viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
+            notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:
             .warnings(simulationWarnings)
         case let .row(index):
             ConfirmRowViewModel(
-                content: viewState.rowContents[index],
+                content: rowContents[index],
                 onSelectAddress: { [weak self] in self?.onSelectAddress($0) },
             ).itemModel
         case .verification:
@@ -188,7 +220,7 @@ extension ConfirmTransferSceneViewModel {
                 infoAction: onSelectNetworkFeeInfo,
             ).itemModel
         case .error:
-            errorItem(viewState.notice == nil ? state.loadError : nil)
+            errorItem(loadError)
         }
     }
 
@@ -250,7 +282,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectPaymentAsset() {
-        let assetIds = viewState.rowContents.lazy.compactMap { content -> [String]? in
+        let assetIds = rowContents.lazy.compactMap { content -> [String]? in
             guard case let .paymentAsset(_, selectable, assetIds) = content, selectable else { return nil }
             return assetIds
         }.first
@@ -313,7 +345,9 @@ extension ConfirmTransferSceneViewModel {
             let load = try await confirmation.load(options: loadOptions)
             state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch let error as GemConfirmError {
-            if case .Cancelled = error { return }
+            if case .Cancelled = error {
+                return
+            }
             guard !Task.isCancelled else { return }
             state.transfer = confirmation.transfer()
             state.screen = state.screen.onLoadFailed(error: error)

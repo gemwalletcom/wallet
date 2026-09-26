@@ -1,4 +1,4 @@
-use super::model::GemConfirmRowContent;
+use super::model::{GemConfirmRowContent, GemConfirmSection, GemConfirmSimulation};
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
@@ -674,9 +674,87 @@ pub fn submit_message(input_type: &TransactionInputType, warning: Option<GemErro
     })
 }
 
+/// The confirm screen's blocks in order: a notice replaces the load error, and a payment to verify
+/// shows its verification instead of the network fee.
+pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
+    let notice = load_error.as_ref().and_then(GemConfirmError::notice);
+    let (primary, secondary, changes) = simulation.map(|simulation| (simulation.primary_fields, simulation.secondary_fields, simulation.balance_changes)).unwrap_or_default();
+    [
+        Some(GemConfirmSection::Header),
+        notice.clone().map(|row| GemConfirmSection::Notice { row }),
+        Some(GemConfirmSection::Details { rows }),
+        (!warnings.is_empty()).then_some(GemConfirmSection::Warnings { rows: warnings }),
+        (!primary.is_empty()).then_some(GemConfirmSection::Payload { primary, secondary }),
+        (!changes.is_empty()).then_some(GemConfirmSection::BalanceChanges { changes }),
+        Some(match verifies {
+            true => GemConfirmSection::Verification,
+            false => GemConfirmSection::NetworkFee,
+        }),
+        load_error.filter(|_| notice.is_none()).map(|error| GemConfirmSection::Error { error }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_confirm_screen_lists_its_blocks_in_one_order() {
+        let text = |value: &str| crate::services::simulation::GemSimulationPayloadRow {
+            title: crate::services::simulation::GemSimulationPayloadTitle::Method,
+            value: crate::services::simulation::GemSimulationPayloadValue::Text { text: value.to_string() },
+        };
+        let asset = Asset::mock_eth();
+        let change = super::super::model::GemSimulationBalanceChange {
+            icon: crate::services::assets::icon::asset_icon(&asset.id),
+            amount: GemFormattedNumber::amount(1.0, Some("ETH".to_string()), GemValueStyle::Auto),
+            asset,
+        };
+        let simulation = GemConfirmSimulation {
+            primary_fields: vec![text("approve")],
+            secondary_fields: vec![text("nonce")],
+            header: None,
+            balance_changes: vec![change.clone()],
+            has_critical_warning: false,
+        };
+        let warning = GemListRow::Text {
+            title: GemListRowTitle::Warning,
+            value: "careful".to_string(),
+        };
+
+        assert_eq!(
+            confirm_sections(vec![], vec![warning.clone()], Some(simulation), false, None),
+            vec![
+                GemConfirmSection::Header,
+                GemConfirmSection::Details { rows: vec![] },
+                GemConfirmSection::Warnings { rows: vec![warning] },
+                GemConfirmSection::Payload {
+                    primary: vec![text("approve")],
+                    secondary: vec![text("nonce")],
+                },
+                GemConfirmSection::BalanceChanges { changes: vec![change] },
+                GemConfirmSection::NetworkFee,
+            ]
+        );
+        assert_eq!(
+            confirm_sections(vec![], vec![], None, true, None),
+            vec![GemConfirmSection::Header, GemConfirmSection::Details { rows: vec![] }, GemConfirmSection::Verification],
+            "a payment to verify shows its verification instead of the fee, and empty simulation blocks are left out"
+        );
+    }
+
+    #[test]
+    fn test_a_notice_replaces_the_load_error_it_explains() {
+        let malicious = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::ScanMalicious));
+        let offline = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::Offline));
+
+        assert!(matches!(malicious[1], GemConfirmSection::Notice { .. }));
+        assert!(!malicious.iter().any(|section| matches!(section, GemConfirmSection::Error { .. })));
+        assert_eq!(offline.last(), Some(&GemConfirmSection::Error { error: GemConfirmError::Offline }));
+        assert!(!offline.iter().any(|section| matches!(section, GemConfirmSection::Notice { .. })));
+    }
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
     use crate::models::transaction::GemFeeOptions;

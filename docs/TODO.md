@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Screens:** VM190, VM192 with VM193.
+1. **Screens:** VM192 with VM193.
 2. **Models:** VM195.
 3. **Sessions:** VM185.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
@@ -48,7 +48,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185, VM284 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228, VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
@@ -88,10 +88,6 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
 
 A screen whose state changes is a session, and a screen that reads gets one record ([a screen whose state changes is a session](ARCHITECTURE.md#a-screen-whose-state-changes-is-a-session), [one phase enum](ARCHITECTURE.md#a-screens-state-is-one-phase-enum-never-a-bag-of-flags), [sections, actions and destinations are records](ARCHITECTURE.md#sections-actions-and-destinations-are-records-too)). Each item below is a screen that still makes several Core calls per render or emission, or rebuilds a phase from flags Core hands back separately.
 
-- **VM190** **M** **The confirm screen's sections are assembled by each app.** Core hands back the pieces (`GemConfirmViewState`: notice, row contents, fee row, verification, simulation); the order and visibility are written twice.
-  - **iOS:** `ConfirmTransferSceneViewModel.sections` orders header, notice, details, warnings, payload, balance changes, fee or verification, and error; it hides the load error while a notice shows. `ConfirmSimulationState` copies Core's simulation into default arrays.
-  - **Android:** `ConfirmScreen` composes the same blocks in the same order; `ConfirmViewModel` hides the load error while a notice shows (`if (notice != null) return@combine null`) and picks verification over fee. `Simulation.kt` is the same twin as the iOS one.
-  - **Expected:** the view state carries the ordered sections with their content; both apps render them, and both simulation twins go.
 - **VM192** **M** **The amount entry is driven by each app around Core's entry calls.** Core computes the entry (`GemAmountType.entry`, `GemAmountInput.max_entry`, `prefill`); the input handling around it is written twice.
   - **iOS:** `AmountSceneViewModel` keeps the text and input type, clears the text when the input type is toggled, applies `prefill` and `maxEntry` by setting the input type and converting the value with `NumberInput.format().inputText`, and rebuilds the entry on every change. It also builds the `GemAmountRequest` from its route input (`switch input.type`).
   - **Android:** `AmountViewModel` does the same (`switchInputType`, `prefillAmount`, `onMaxAmount`, `maxAmountText`) and builds the request from its route parameters (`when (params)`).

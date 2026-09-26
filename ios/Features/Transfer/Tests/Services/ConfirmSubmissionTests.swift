@@ -67,11 +67,9 @@ struct ConfirmSubmissionTests {
         )))
         await model.load()
 
-        let state = model.state.simulation
-
-        #expect(state.primaryFields.count == 1)
-        #expect(state.primaryFields.first?.title == .contract)
-        #expect(state.secondaryFields.isEmpty)
+        #expect(model.primaryPayloadFields.count == 1)
+        #expect(model.primaryPayloadFields.first?.title == .contract)
+        #expect(model.secondaryPayloadFields.isEmpty)
     }
 
     @Test
@@ -86,11 +84,11 @@ struct ConfirmSubmissionTests {
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(
+        #expect(model.viewState.sections.contains(.balanceChanges(changes: [GemSimulationBalanceChange(
             asset: usdt.toGem(),
             icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier),
             amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
-        )])
+        )])))
     }
 }
 

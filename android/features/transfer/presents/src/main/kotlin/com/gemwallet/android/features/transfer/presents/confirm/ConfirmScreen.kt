@@ -74,6 +74,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
 
@@ -105,7 +106,8 @@ fun ConfirmScreen(
     val feeItems by viewModel.feeItems.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
-    val notice by viewModel.notice.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val payloadChain by viewModel.payloadChain.collectAsStateWithLifecycle()
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeInfo by viewModel.feeInfo.collectAsStateWithLifecycle()
     val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
@@ -117,8 +119,6 @@ fun ConfirmScreen(
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val showsFeeAssets by viewModel.showsFeeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
-    val simulation by viewModel.simulation.collectAsStateWithLifecycle()
-    val simulationWarnings by viewModel.simulationWarnings.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
@@ -129,7 +129,8 @@ fun ConfirmScreen(
     var showSimulationDetails by remember { mutableStateOf(false) }
     var isVerificationInfoVisible by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    val openPayloadAddress = simulation.chain?.let { chain ->
+    val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
+    val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
             showSimulationDetails = false
             onOpenAddress(ChainAddress(chain, address))
@@ -180,115 +181,131 @@ fun ConfirmScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
         ) {
-            item {
-                when (val model = header) {
-                    is ConfirmHeaderUIModel.Placeholder -> AmountListHead(amount = "", icon = model.icon)
+            sections.forEach { section ->
+                when (section) {
+                    GemConfirmSection.Header -> {
+                        item {
+                            when (val model = header) {
+                                is ConfirmHeaderUIModel.Placeholder -> AmountListHead(amount = "", icon = model.icon)
 
-                    is ConfirmHeaderUIModel.ReservedSpace -> Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(0f)
-                            .clearAndSetSemantics { },
-                    ) {
-                        AmountListHead(amount = "", icon = model.icon)
-                    }
+                                is ConfirmHeaderUIModel.ReservedSpace -> Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .alpha(0f)
+                                        .clearAndSetSemantics { },
+                                ) {
+                                    AmountListHead(amount = "", icon = model.icon)
+                                }
 
-                    is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
+                                is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
 
-                    is ConfirmHeaderUIModel.Swap -> SwapListHead(
-                        fromAsset = model.fromAsset,
-                        fromValueText = model.fromValueText,
-                        fromEquivalentText = model.fromEquivalentText,
-                        toAsset = model.toAsset,
-                        toValueText = model.toValueText,
-                        toEquivalentText = model.toEquivalentText,
-                    )
+                                is ConfirmHeaderUIModel.Swap -> SwapListHead(
+                                    fromAsset = model.fromAsset,
+                                    fromValueText = model.fromValueText,
+                                    fromEquivalentText = model.fromEquivalentText,
+                                    toAsset = model.toAsset,
+                                    toValueText = model.toValueText,
+                                    toEquivalentText = model.toEquivalentText,
+                                )
 
-                    is ConfirmHeaderUIModel.Nft -> NftHead(model.source)
+                                is ConfirmHeaderUIModel.Nft -> NftHead(model.source)
 
-                    is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
+                                is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
 
-                    is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.asset)
+                                is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.asset)
 
-                    null -> Unit
-                }
-            }
-            notice?.let { row ->
-                item { GemListRowView(row = row, listPosition = ListPosition.Single) }
-            }
-            val sectionSize = transactionRows.size + detailElements.size
-            itemsIndexed(transactionRows) { index, row ->
-                val listPosition = ListPosition.getPosition(index, sectionSize)
-                when (row) {
-                    is ConfirmRowUIModel.Row -> GemListRowView(row = row.row, listPosition = listPosition)
-
-                    is ConfirmRowUIModel.Item -> ListItem(model = row.model, listPosition = listPosition)
-
-                    is ConfirmRowUIModel.Address -> AddressRow(
-                        row = row,
-                        listPosition = listPosition,
-                        onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
-                    )
-
-                    is ConfirmRowUIModel.Validator -> AddressPropertyItem(
-                        title = row.title,
-                        displayText = row.name,
-                        copyValue = row.address,
-                        explorerLink = row.explorerLink,
-                        listPosition = listPosition,
-                        onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
-                    )
-
-                    is ConfirmRowUIModel.PaymentAsset -> ListItem(
-                        model = row.model,
-                        listPosition = listPosition,
-                        modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds) } else Modifier,
-                        accessory = if (row.selectable) {
-                            { DataBadgeChevron() }
-                        } else {
-                            null
-                        },
-                    )
-                }
-            }
-            itemsIndexed(detailElements) { index, item ->
-                val listPosition = ListPosition.getPosition(transactionRows.size + index, sectionSize)
-                ConfirmDetailElementRow(
-                    item = item,
-                    listPosition = listPosition,
-                    onClick = { selectedDetailElement = item },
-                )
-            }
-            itemsPositioned(simulationWarnings) { position, row -> GemListRowView(row = row, listPosition = position) }
-            simulationPayloadFieldsContent(
-                fields = simulation.primaryPayloadFields,
-                onAddressClick = openPayloadAddress,
-                onDetailsClick = simulation.secondaryPayloadFields
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { { showSimulationDetails = true } },
-            )
-            confirmBalanceChangesContent(balanceChangeRows)
-            item {
-                feeListItem?.let {
-                    val onSelect: (() -> Unit)? = when {
-                        verification != null -> viewModel::showVerification
-
-                        feeInfo != null && feeModel !is FeeUIModel.Unavailable -> {
-                            { showSelectTxSpeed = true }
+                                null -> Unit
+                            }
                         }
-
-                        else -> null
                     }
-                    ListItem(
-                        model = it,
-                        listPosition = ListPosition.Single,
-                        modifier = if (onSelect != null) Modifier.clickable(onClick = onSelect) else Modifier,
-                        accessory = if (onSelect != null) {
-                            { DataBadgeChevron() }
-                        } else {
-                            null
-                        },
+
+                    is GemConfirmSection.Notice -> item { GemListRowView(row = section.row, listPosition = ListPosition.Single) }
+
+                    is GemConfirmSection.Details -> {
+                        val sectionSize = transactionRows.size + detailElements.size
+                        itemsIndexed(transactionRows) { index, row ->
+                            val listPosition = ListPosition.getPosition(index, sectionSize)
+                            when (row) {
+                                is ConfirmRowUIModel.Row -> GemListRowView(row = row.row, listPosition = listPosition)
+
+                                is ConfirmRowUIModel.Item -> ListItem(model = row.model, listPosition = listPosition)
+
+                                is ConfirmRowUIModel.Address -> AddressRow(
+                                    row = row,
+                                    listPosition = listPosition,
+                                    onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
+                                )
+
+                                is ConfirmRowUIModel.Validator -> AddressPropertyItem(
+                                    title = row.title,
+                                    displayText = row.name,
+                                    copyValue = row.address,
+                                    explorerLink = row.explorerLink,
+                                    listPosition = listPosition,
+                                    onClick = { onOpenAddress(ChainAddress(row.chain, row.address)) },
+                                )
+
+                                is ConfirmRowUIModel.PaymentAsset -> ListItem(
+                                    model = row.model,
+                                    listPosition = listPosition,
+                                    modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds) } else Modifier,
+                                    accessory = if (row.selectable) {
+                                        { DataBadgeChevron() }
+                                    } else {
+                                        null
+                                    },
+                                )
+                            }
+                        }
+                        itemsIndexed(detailElements) { index, item ->
+                            val listPosition = ListPosition.getPosition(transactionRows.size + index, sectionSize)
+                            ConfirmDetailElementRow(
+                                item = item,
+                                listPosition = listPosition,
+                                onClick = { selectedDetailElement = item },
+                            )
+                        }
+                    }
+
+                    is GemConfirmSection.Warnings -> itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position) }
+
+                    is GemConfirmSection.Payload -> simulationPayloadFieldsContent(
+                        fields = section.primary,
+                        onAddressClick = openPayloadAddress,
+                        onDetailsClick = section.secondary
+                            .takeIf { it.isNotEmpty() }
+                            ?.let { { showSimulationDetails = true } },
                     )
+
+                    is GemConfirmSection.BalanceChanges -> confirmBalanceChangesContent(balanceChangeRows)
+
+                    GemConfirmSection.NetworkFee, GemConfirmSection.Verification -> {
+                        item {
+                            feeListItem?.let {
+                                val onSelect: (() -> Unit)? = when {
+                                    verification != null -> viewModel::showVerification
+
+                                    feeInfo != null && feeModel !is FeeUIModel.Unavailable -> {
+                                        { showSelectTxSpeed = true }
+                                    }
+
+                                    else -> null
+                                }
+                                ListItem(
+                                    model = it,
+                                    listPosition = ListPosition.Single,
+                                    modifier = if (onSelect != null) Modifier.clickable(onClick = onSelect) else Modifier,
+                                    accessory = if (onSelect != null) {
+                                        { DataBadgeChevron() }
+                                    } else {
+                                        null
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    is GemConfirmSection.Error -> Unit
                 }
             }
             item {
@@ -328,8 +345,8 @@ fun ConfirmScreen(
         ) {
             LazyColumn {
                 simulationPayloadDetailsContent(
-                    primaryFields = simulation.primaryPayloadFields,
-                    secondaryFields = simulation.secondaryPayloadFields,
+                    primaryFields = payload?.primary.orEmpty(),
+                    secondaryFields = payload?.secondary.orEmpty(),
                     onAddressClick = openPayloadAddress,
                 )
             }

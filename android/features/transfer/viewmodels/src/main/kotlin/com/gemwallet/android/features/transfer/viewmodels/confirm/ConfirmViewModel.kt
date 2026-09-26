@@ -90,6 +90,7 @@ import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmScreen
+import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemConfirmation
@@ -196,6 +197,12 @@ class ConfirmViewModel @Inject constructor(
     private val transfer = combine(request, load) { request, load -> load?.transfer ?: request }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val sections = viewState.map { it?.sections ?: listOf(GemConfirmSection.Header) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(GemConfirmSection.Header))
+
+    val payloadChain = transfer.map { it?.inputAsset()?.toPrimitives()?.id?.chain }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val title = viewState.map { it?.title }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -204,14 +211,6 @@ class ConfirmViewModel @Inject constructor(
 
     val verification = viewState.map { it?.verification }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val simulation = content
-        .map { it?.load?.simulation?.toSimulation(context) ?: Simulation() }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
-
-    val simulationWarnings = viewState.map { it?.simulationWarnings.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val button = viewState.map { it?.button ?: GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING))
@@ -232,7 +231,7 @@ class ConfirmViewModel @Inject constructor(
 
     val transactionRows: StateFlow<List<ConfirmRowUIModel>> = combine(content, viewState) { content, viewState ->
         content ?: return@combine emptyList()
-        viewState?.rowContents.orEmpty().mapNotNull { it.uiModel(context) }
+        viewState?.sections.orEmpty().filterIsInstance<GemConfirmSection.Details>().firstOrNull()?.rows.orEmpty().mapNotNull { it.uiModel(context) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -263,11 +262,8 @@ class ConfirmViewModel @Inject constructor(
     private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
     val acquireRequest = acquireRequestState.asStateFlow()
 
-    val notice = viewState.map { it?.notice }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val loadError = combine(screen, confirmation, notice) { screen, confirmation, notice ->
-        if (notice != null) return@combine null
-        val error = screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return@combine null
+    val loadError = combine(sections, confirmation) { sections, confirmation ->
+        val error = sections.filterIsInstance<GemConfirmSection.Error>().firstOrNull()?.error ?: return@combine null
         ConfirmErrorUIModel(
             text = error.display().text(context),
             info = confirmation?.errorInfo(error)?.infoSheet { action -> (action as? GemInfoAction.Acquire)?.let { acquire(it.asset.toPrimitives(), it.acquire) } },
@@ -332,7 +328,7 @@ class ConfirmViewModel @Inject constructor(
     val feeItems: StateFlow<List<ListItemModel>> = feeInfo.map { it?.feeItems(context).orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val balanceChangeRows: StateFlow<List<ListItemModel>> = simulation.map { it.balanceChanges.map { change -> change.listItem() } }
+    val balanceChangeRows: StateFlow<List<ListItemModel>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.changes.orEmpty().map { change -> change.listItem() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val acquireOptions: StateFlow<List<AcquireOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it) }.orEmpty() }

@@ -274,7 +274,7 @@ impl GemSimulationValue {
     }
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub icon: crate::services::assets::icon::GemAssetIcon,
@@ -359,17 +359,30 @@ pub enum GemConfirmFeeRow {
     Unavailable { text: String },
 }
 
+/// One block of the confirm screen, in the order the screen shows them.
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemConfirmSection {
+    Header,
+    Notice { row: GemListRow },
+    Details { rows: Vec<GemConfirmRowContent> },
+    Warnings { rows: Vec<GemListRow> },
+    Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
+    BalanceChanges { changes: Vec<GemSimulationBalanceChange> },
+    NetworkFee,
+    Verification,
+    Error { error: GemConfirmError },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmViewState {
     pub button: GemConfirmButton,
     pub fee_row: GemConfirmFeeRow,
     pub fee_rates: Option<GemFeeRateRows>,
-    pub row_contents: Vec<GemConfirmRowContent>,
-    pub simulation_warnings: Vec<GemListRow>,
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
     pub authentication: GemKeystoreAuthentication,
-    pub notice: Option<GemListRow>,
+    pub sections: Vec<GemConfirmSection>,
 }
 
 #[cfg(test)]

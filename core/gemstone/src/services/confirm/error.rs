@@ -11,7 +11,7 @@ use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
 
-#[derive(Debug, Clone, uniffi::Error)]
+#[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired {

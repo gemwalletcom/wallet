@@ -11,6 +11,7 @@ public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
 public import enum Gemstone.GemConfirmRowContent
 public import struct Gemstone.GemConfirmScreen
+public import enum Gemstone.GemConfirmSection
 public import struct Gemstone.GemConfirmViewState
 public import struct Gemstone.GemFeeRateRows
 public import enum Gemstone.GemKeystoreAuthentication
@@ -71,16 +72,25 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func viewState(screen: GemConfirmScreen) -> GemConfirmViewState {
-        GemConfirmViewState(
+        let simulation = loaded?.simulation.simulation
+        let warnings = loaded?.simulation.warnings ?? warnings
+        let sections: [GemConfirmSection?] = [
+            .header,
+            .details(rows: rowContents(addressName: loaded?.addressName)),
+            warnings.isEmpty ? nil : .warnings(rows: warnings),
+            simulation.flatMap { $0.primaryFields.isEmpty ? nil : .payload(primary: $0.primaryFields, secondary: $0.secondaryFields) },
+            simulation.flatMap { $0.balanceChanges.isEmpty ? nil : .balanceChanges(changes: $0.balanceChanges) },
+            transfer().verification() == nil ? .networkFee : .verification,
+            screen.failure.flatMap { $0.stage == .load ? .error(error: $0.error) : nil },
+        ]
+        return GemConfirmViewState(
             button: screen.button(),
             feeRow: screen.feeRow(),
             feeRates: feeRateRows(),
-            rowContents: rowContents(addressName: loaded?.addressName),
-            simulationWarnings: loaded?.simulation.warnings ?? warnings,
             title: transfer().title(),
             verification: transfer().verification(),
             authentication: authenticationValue,
-            notice: nil,
+            sections: sections.compactMap(\.self),
         )
     }
 

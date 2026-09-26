@@ -111,28 +111,30 @@ impl GemConfirmation {
 
     pub fn view_state(&self, screen: GemConfirmScreen) -> GemConfirmViewState {
         let address_name = self.stored().as_ref().and_then(|state| state.load.address_name.clone());
+        let simulation = self.stored().as_ref().and_then(|state| state.load.simulation.simulation.clone());
         let transfer = self.transfer();
+        let rows = self
+            .row_contents(address_name)
+            .into_iter()
+            .map(|content| match content {
+                GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
+                    symbol,
+                    asset_ids,
+                },
+                content => content,
+            })
+            .collect();
+        let load_error = screen.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).map(|failure| failure.error.clone());
+        let verification = transfer.verification();
         GemConfirmViewState {
             button: screen.button(),
             fee_row: screen.fee_row(),
             fee_rates: self.fee_rate_rows(),
-            row_contents: self
-                .row_contents(address_name)
-                .into_iter()
-                .map(|content| match content {
-                    GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
-                        selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
-                        symbol,
-                        asset_ids,
-                    },
-                    content => content,
-                })
-                .collect(),
-            simulation_warnings: self.simulation_warnings(),
             title: transfer.title(),
-            verification: transfer.verification(),
+            sections: super::rules::confirm_sections(rows, self.simulation_warnings(), simulation, verification.is_some(), load_error),
+            verification,
             authentication: self.authentication(),
-            notice: screen.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.notice()),
         }
     }
 
@@ -251,7 +253,7 @@ mod tests {
     use primitives::{AddressName, AddressType, VerificationStatus};
 
     use super::super::testkit::ConfirmTestkit;
-    use crate::services::confirm::{ConfirmState, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions};
+    use crate::services::confirm::{ConfirmState, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmSection, GemConfirmViewState};
     use crate::services::simulation::warning_rows;
     use crate::services::transfer::{GemRecipient, GemTransferData};
 
@@ -307,7 +309,7 @@ mod tests {
         assert_eq!(state.button, screen.button());
         assert_eq!(state.fee_row, screen.fee_row());
         assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
-        assert_eq!(state.row_contents, confirmation.row_contents(None));
+        assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());
         assert_eq!(state.verification, None);
         assert_eq!(state.authentication, confirmation.authentication());
@@ -332,12 +334,12 @@ mod tests {
             let load = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
             assert!(confirmation.store_latest(load, Ok(ConfirmState { load: named, confirm_data: None })).is_ok());
 
-            assert_eq!(confirmation.view_state(confirmation.screen()).row_contents, confirmation.row_contents(Some(name.clone())));
+            assert_eq!(details(&confirmation.view_state(confirmation.screen())), confirmation.row_contents(Some(name.clone())));
 
             let failed = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
             assert!(confirmation.store_latest(failed, Err(GemConfirmError::Offline)).is_err());
             assert_eq!(
-                confirmation.view_state(confirmation.screen()).row_contents,
+                details(&confirmation.view_state(confirmation.screen())),
                 confirmation.row_contents(Some(name)),
                 "a failed reload keeps the name the screen already shows"
             );
@@ -361,8 +363,19 @@ mod tests {
 
         let state = confirmation.view_state(confirmation.screen());
 
-        assert_eq!(state.simulation_warnings, warning_rows(&warnings));
-        assert!(!state.simulation_warnings.is_empty());
+        assert!(!warning_rows(&warnings).is_empty());
+        assert!(state.sections.contains(&GemConfirmSection::Warnings { rows: warning_rows(&warnings) }));
+    }
+
+    fn details(state: &GemConfirmViewState) -> Vec<GemConfirmRowContent> {
+        state
+            .sections
+            .iter()
+            .find_map(|section| match section {
+                GemConfirmSection::Details { rows } => Some(rows.clone()),
+                _ => None,
+            })
+            .unwrap_or_default()
     }
 
     #[test]

@@ -16,7 +16,6 @@ struct ConfirmTransferState {
     var transfer: GemTransferData
     var feeAsset: Asset
     var load: GemConfirmLoad?
-    var simulation: ConfirmSimulationState
     var screen: GemConfirmScreen
 
     var metadata: GemConfirmMetadata? { load?.metadata }
@@ -25,12 +24,11 @@ struct ConfirmTransferState {
 }
 
 extension ConfirmTransferState {
-    init(transfer: GemTransferData, simulation: ConfirmSimulationState, screen: GemConfirmScreen) {
+    init(transfer: GemTransferData, screen: GemConfirmScreen) {
         self.init(
             transfer: transfer,
             feeAsset: transfer.feeAsset().toPrimitives(),
             load: nil,
-            simulation: simulation,
             screen: screen,
         )
     }
@@ -40,7 +38,6 @@ extension ConfirmTransferState {
             transfer: load.transfer,
             feeAsset: load.feeAsset.toPrimitives(),
             load: load,
-            simulation: ConfirmSimulationState(load.simulation),
             screen: screen,
         )
     }

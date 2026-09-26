@@ -622,16 +622,11 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock()
         let sections = model.sections
 
-        #expect(sections.count == 4)
-        #expect(sections[0].id == "header")
-        #expect(sections[1].id == "details")
-        #expect(sections[2].id == "fee")
-        #expect(sections[3].id == "error")
+        #expect(sections.map(\.id) == ["header", "details", "fee"], "no error section until a load fails")
 
         #expect(sections[0].values == [.header])
         #expect(sections[1].values == [.row(0), .row(1), .row(2), .details], "a send on a chain without memos has no app or memo row")
         #expect(sections[2].values == [.networkFee])
-        #expect(sections[3].values == [.error])
     }
 
     @Test
@@ -678,13 +673,7 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
         let sections = model.sections
 
-        #expect(sections.count == 6)
-        #expect(sections[0].id == "header")
-        #expect(sections[1].id == "details")
-        #expect(sections[2].id == "warnings")
-        #expect(sections[3].id == "payload")
-        #expect(sections[4].id == "fee")
-        #expect(sections[5].id == "error")
+        #expect(sections.map(\.id) == ["header", "details", "warnings", "payload", "fee"])
 
         #expect(sections[1].values == [.row(0), .row(1), .row(2)])
         #expect(sections[2].values == [.warnings])
