@@ -245,10 +245,10 @@ interface AssetsDao {
         selectedChains = filters.chains(),
     )
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND address IS NOT NULL AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible = 0 AND assetRank >= 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND address IS NOT NULL AND visible = 0 AND assetRank >= 0 AND balanceTotalAmount > 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
     @Query(

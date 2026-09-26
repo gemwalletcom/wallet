@@ -28,9 +28,3 @@ flowchart LR
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
-
-## Platform differences
-
-| When | iOS | Android | Expected |
-|---|---|---|---|
-| A network's asset list opens | lists only assets on networks the wallet has an address for | also lists assets on networks without an address | Android matches iOS (BD373) |

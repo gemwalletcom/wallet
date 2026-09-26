@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 2. **Generated mappers:** GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD373 to BD376.
+4. **Parity:** BD374 to BD376.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -183,10 +183,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
-- **BD373** **S** **A network's asset list shows assets without an account on Android.**
-  - **iOS:** the per-network asset screen requires an account on the chain, like the wallet list.
-  - **Android:** the wallet list does since BD349, but the per-network screen (`NetworkAssetsViewModel`) still lists account-less assets.
-  - **Expected:** Android matches iOS.
 - **BD374** **S** **Swap's percentage buttons fetch on a different schedule.**
   - **iOS:** 25/50/100% and "Use minimum amount" fetch at once.
   - **Android:** they set the amount field like typing, so they wait the 250 ms debounce (`SwapViewModel`).

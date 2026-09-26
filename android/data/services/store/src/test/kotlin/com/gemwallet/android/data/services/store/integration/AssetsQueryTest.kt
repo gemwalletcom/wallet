@@ -164,6 +164,14 @@ class AssetsQueryTest {
     @Test
     fun aChainListsTheWalletVisibleRankedAssetsOfThatChain() = runBlocking(Dispatchers.IO) {
         assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), Chain.Ethereum).first().map { it.asset.id })
+    }
+
+    @Test
+    fun aChainWithoutAnAccountInTheWalletListsNothing() = runBlocking(Dispatchers.IO) {
+        assertEquals(emptyList<AssetId>(), query(WalletId("wallet-1"), Chain.Bitcoin).first().map { it.asset.id })
+
+        database.accountsDao().insert(listOf(DbAccount(walletId = "wallet-1", derivationPath = "", address = "bc1", chain = Chain.Bitcoin, extendedPublicKey = null)))
+
         assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), Chain.Bitcoin).first().map { it.asset.id })
     }
 
