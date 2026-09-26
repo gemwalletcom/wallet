@@ -286,3 +286,9 @@ fun GemValueTone.buttonColor(): Color = when (this) {
     GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
     GemValueTone.PLAIN, GemValueTone.NEUTRAL, GemValueTone.WARNING -> MaterialTheme.colorScheme.primary
 }
+
+fun VerificationStatus.badgeIconRes(): Int? = when (this) {
+    VerificationStatus.Verified -> null
+    VerificationStatus.Unverified -> R.drawable.unverified
+    VerificationStatus.Suspicious -> R.drawable.suspicious
+}

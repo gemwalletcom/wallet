@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.list_item.property
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,13 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.labelRes
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.badgeIconRes
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -40,27 +41,29 @@ fun LazyListScope.verificationStatusItem(status: VerificationStatus, listPositio
 
 @Composable
 private fun VerificationStatusItem(status: VerificationStatus, listPosition: ListPosition) {
-    val display = status.display() ?: return
+    val labelRes = status.labelRes() ?: return
+    val badgeIconRes = status.badgeIconRes() ?: return
+    val infoSheetEntity = GemInfoTopic.AssetStatus(status.toGem()).infoSheet()
     var showInfoSheet by remember { mutableStateOf(false) }
 
     ListItem(
         model = ListItemModel(
             title = stringResource(R.string.transaction_status),
-            subtitle = stringResource(display.labelRes),
+            subtitle = stringResource(labelRes),
             subtitleStyle = status.textStyle(),
-            info = display.infoSheetEntity,
+            info = infoSheetEntity,
         ),
         listPosition = listPosition,
         modifier = Modifier.clickable { showInfoSheet = true },
         accessory = {
             DataBadgeChevron {
-                VerificationBadgeIcon(display.badgeIconRes)
+                VerificationBadgeIcon(badgeIconRes)
             }
         },
     )
 
     if (showInfoSheet) {
-        InfoBottomSheet(item = display.infoSheetEntity) {
+        InfoBottomSheet(item = infoSheetEntity) {
             showInfoSheet = false
         }
     }
@@ -78,22 +81,4 @@ private fun VerificationBadgeIcon(@DrawableRes icon: Int) {
             modifier = Modifier.size(compactIconSize),
         )
     }
-}
-
-private class VerificationStatusDisplay(@param:StringRes val labelRes: Int, @param:DrawableRes val badgeIconRes: Int, val infoSheetEntity: InfoSheetEntity)
-
-private fun VerificationStatus.display(): VerificationStatusDisplay? = when (this) {
-    VerificationStatus.Verified -> null
-
-    VerificationStatus.Unverified -> VerificationStatusDisplay(
-        labelRes = R.string.asset_verification_unverified,
-        badgeIconRes = R.drawable.unverified,
-        infoSheetEntity = GemInfoTopic.AssetStatus(uniffi.gemstone.VerificationStatus.UNVERIFIED).infoSheet(),
-    )
-
-    VerificationStatus.Suspicious -> VerificationStatusDisplay(
-        labelRes = R.string.asset_verification_suspicious,
-        badgeIconRes = R.drawable.suspicious,
-        infoSheetEntity = GemInfoTopic.AssetStatus(uniffi.gemstone.VerificationStatus.SUSPICIOUS).infoSheet(),
-    )
 }

@@ -17,11 +17,7 @@ public struct ChainsFilterTypeViewModel: FilterTypeRepresentable {
     }
 
     public var value: String {
-        switch summary {
-        case .all: Localized.Common.all
-        case let .chain(chain): Primitives.Chain(core: chain).networkName
-        case let .count(count): "\(count)"
-        }
+        summary.text
     }
 
     public var title: String {

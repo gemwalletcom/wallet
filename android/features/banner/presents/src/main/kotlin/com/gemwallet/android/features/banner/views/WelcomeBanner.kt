@@ -17,12 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.banner.BannerItemUIModel
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemBannerButton
@@ -69,14 +69,7 @@ internal fun WelcomeBanner(model: BannerItemUIModel, onBuy: () -> Unit, onReceiv
                         },
                         colors = if (index == 0) ButtonDefaults.buttonColors() else secondaryActionButtonColors(),
                     ) {
-                        Text(
-                            stringResource(
-                                when (button) {
-                                    GemBannerButton.BUY -> R.string.wallet_buy
-                                    GemBannerButton.RECEIVE -> R.string.wallet_receive
-                                },
-                            ),
-                        )
+                        Text(stringResource(button.stringRes()))
                     }
                 }
             }

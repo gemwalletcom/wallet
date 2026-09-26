@@ -32,6 +32,7 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.ScanReceiveMode
 import com.wallet.core.primitives.TpslType
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletSource
 import uniffi.gemstone.AddressType
 import uniffi.gemstone.AutocloseValidation
@@ -44,9 +45,11 @@ import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemBalanceRowValue
+import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
+import uniffi.gemstone.GemChainsFilterSummary
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
@@ -55,6 +58,7 @@ import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemCurrencySectionKind
+import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationStatus
 import uniffi.gemstone.GemEmptyStateAction
@@ -109,6 +113,7 @@ import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemVerificationLevel
@@ -1406,3 +1411,32 @@ fun GemAmountErrorDisplay.text(context: Context): String = when (this) {
 }
 
 fun GemRowText.string(context: Context): String = text.string(context)
+
+fun GemCustomFeeCheck.errorText(context: Context): String? = when (this) {
+    is GemCustomFeeCheck.BelowMinimum -> context.getString(R.string.common_minimum_value, rate.string(context))
+    is GemCustomFeeCheck.OverMaximum -> context.getString(R.string.common_maximum_value, rate.string(context))
+    GemCustomFeeCheck.Valid -> null
+}
+
+fun GemBannerButton.stringRes(): Int = when (this) {
+    GemBannerButton.BUY -> R.string.wallet_buy
+    GemBannerButton.RECEIVE -> R.string.wallet_receive
+}
+
+fun GemChainsFilterSummary.text(context: Context): String = when (this) {
+    GemChainsFilterSummary.All -> context.getString(R.string.common_all)
+    is GemChainsFilterSummary.Chain -> chain.requireChain().networkName()
+    is GemChainsFilterSummary.Count -> count.toString()
+}
+
+fun GemTransactionsFilterSummary.text(context: Context): String = when (this) {
+    GemTransactionsFilterSummary.All -> context.getString(R.string.common_all)
+    is GemTransactionsFilterSummary.Filter -> context.getString(filter.getLabel())
+    is GemTransactionsFilterSummary.Count -> count.toString()
+}
+
+fun VerificationStatus.labelRes(): Int? = when (this) {
+    VerificationStatus.Verified -> null
+    VerificationStatus.Unverified -> R.string.asset_verification_unverified
+    VerificationStatus.Suspicious -> R.string.asset_verification_suspicious
+}

@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM196, VM194.
+1. **Small shared rules:** VM194.
 2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 3. **Models:** VM195.
 4. **Sessions:** VM185.
@@ -40,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM185, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM237, VM238, VM239, VM240, VM294 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204, VM264, VM269 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM200, VM202, VM204, VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
@@ -48,14 +48,14 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185, VM284 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM194, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230, VM278, VM279; preserve exact atomic values |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM196, VM255, VM256 |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193, VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
@@ -124,10 +124,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
-- **VM196** **M** **Core values are turned into text, icons and styles outside the two mapper files, in both apps.** The parity check reads only the mapper files, so these escape it.
-  - **iOS:** text in `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `BannerButtonViewModel` (`GemBannerButton`), `CollectibleViewModel` (`GemCollectibleAction` labels), `ChainsFilterTypeViewModel` and `TransactionsFilterTypeViewModel` (filter summaries); icons and styles in `SwapProviderType+Gemstone`, `FiatProviderName+`, `GemSocialLink+`, `GemLatencyStatus+`, `GemButtonState+`, `GemTransactionHeader+`, `GemHeaderActions+`, `GemAvatar+` and `GemLoadState+StateViewType` (`PrimitivesComponents/Sources/Extensions`).
-  - **Android:** text in `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `WelcomeBanner` (`GemBannerButton`), `TransactionsViewModel` (`GemChainsFilterSummary`, `GemTransactionsFilterSummary`); icons and labels in `VerificationStatusItem.kt` and `PinnedAssetsHeaderItem.kt`.
-  - **Expected:** each mapping moves into `Gemstone+Localized.swift`/`Gemstone+Style.swift` and `GemstoneText.kt`/`GemstoneStyle.kt`. `GemCopy+`, `GemWalletRow+` and `GemSecretPhraseRow+` go with VM206, VM237 and VM294; Android `ChainIcon.kt` stays where `android/scripts/convert-icons.sh` generates it.
 - **VM193** **S** **Values Core hands back are turned into input text by the apps.** Swap's "use minimum amount" (iOS `SwapSceneViewModel.setFromValue(minimum:)`, Android `SwapViewModel.setPayValue`) and the price-alert suggestions (iOS `PriceSuggestion.inputValue`, Android `PriceAlertTargetViewModel.suggestion`) each convert the value with `NumberInput`/`numberFormat().inputText` or `valueText`. The owning session returns the text (the swap session for its minimum, the alert session for its suggestions). Land with VM192, which does the same for amount prefill and max.
 
 

@@ -8,13 +8,11 @@ import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.transactionFilterOptions
-import com.gemwallet.android.ui.localization.getLabel
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,13 +33,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemChainsFilterSummary
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
-import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTransactionsServiceInterface
 import uniffi.gemstone.chainsFilterSummary
 import uniffi.gemstone.loadError
@@ -188,15 +184,3 @@ class TransactionsViewModel @Inject constructor(
 }
 
 data class TransactionsFilterSummaryUIModel(val chains: String, val types: String)
-
-private fun GemChainsFilterSummary.text(context: Context): String = when (this) {
-    GemChainsFilterSummary.All -> context.getString(R.string.common_all)
-    is GemChainsFilterSummary.Chain -> chain.requireChain().networkName()
-    is GemChainsFilterSummary.Count -> count.toString()
-}
-
-private fun GemTransactionsFilterSummary.text(context: Context): String = when (this) {
-    GemTransactionsFilterSummary.All -> context.getString(R.string.common_all)
-    is GemTransactionsFilterSummary.Filter -> context.getString(filter.getLabel())
-    is GemTransactionsFilterSummary.Count -> count.toString()
-}

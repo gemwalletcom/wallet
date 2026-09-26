@@ -14,9 +14,12 @@ import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemBalanceRowValue
+import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDescription
 import enum Gemstone.GemBannerTitle
 import enum Gemstone.GemCandleTooltipRow
+import enum Gemstone.GemChainsFilterSummary
+import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemConfirmButtonKind
 import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmError
@@ -25,6 +28,7 @@ import enum Gemstone.GemConfirmTitle
 import enum Gemstone.GemContactAddressField
 import enum Gemstone.GemCopyKind
 import enum Gemstone.GemCurrencySectionKind
+import enum Gemstone.GemCustomFeeCheck
 import enum Gemstone.GemDayLabel
 import enum Gemstone.GemDelegationAction
 import enum Gemstone.GemEmptyStateAction
@@ -70,6 +74,7 @@ import enum Gemstone.GemSwapProgressStep
 import enum Gemstone.GemTransactionFilter
 import enum Gemstone.GemTransactionParticipantRole
 import enum Gemstone.GemTransactionRowSubtitle
+import enum Gemstone.GemTransactionsFilterSummary
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
@@ -1558,6 +1563,56 @@ public extension PortfolioChartType {
         switch self {
         case .value: Localized.Perpetual.value
         case .pnl: Localized.Perpetual.pnl
+        }
+    }
+}
+
+public extension GemCustomFeeCheck {
+    var errorText: String? {
+        switch self {
+        case let .belowMinimum(rate): Localized.Common.minimumValue(rate.text)
+        case let .overMaximum(rate): Localized.Common.maximumValue(rate.text)
+        case .valid: nil
+        }
+    }
+}
+
+public extension GemBannerButton {
+    var title: String {
+        switch self {
+        case .buy: Localized.Wallet.buy
+        case .receive: Localized.Wallet.receive
+        }
+    }
+}
+
+public extension GemCollectibleAction {
+    var title: String {
+        switch self {
+        case .saveImage: Localized.Nft.saveToPhotos
+        case .setAvatar: Localized.Nft.setAsAvatar
+        case .refresh: Localized.Common.refresh
+        case .report: Localized.Nft.Report.reportButtonTitle
+        }
+    }
+}
+
+public extension GemChainsFilterSummary {
+    var text: String {
+        switch self {
+        case .all: Localized.Common.all
+        case let .chain(chain): Primitives.Chain(core: chain).networkName
+        case let .count(count): "\(count)"
+        }
+    }
+}
+
+public extension GemTransactionsFilterSummary {
+    var text: String {
+        switch self {
+        case .all: Localized.Common.all
+        case let .filter(filter): filter.title
+        case let .count(count): "\(count)"
         }
     }
 }

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Compare the English string each app maps a Core enum variant to.
+"""Compare the English strings each app maps a Core enum variant to.
 
 Core names a row or a state; each app maps that name to its own localized
 string in one mapper file. When the two mappers reach for different keys the
 apps show different words for the same Core decision, which is invisible in
-either app on its own.
+either app on its own. A type can map a variant more than once (a title and a
+description); a variant diverges when the two apps share none of its words.
 """
 
 import pathlib
@@ -84,7 +85,7 @@ def swift_mappings(paths):
                 for case in arm.group(1).split(","):
                     name = re.match(r"\s*\.(\w+)", case)
                     if name:
-                        found[(current, variant(name.group(1)))] = key
+                        found.setdefault((current, variant(name.group(1))), set()).add(key)
     return found
 
 
@@ -98,7 +99,7 @@ def kotlin_mappings():
                 current = opened.group(1)
             arm = re.match(r"(?:is )?(\w+)\.(\w+)\s*->.*?R\.string\.(\w+)", line.strip())
             if current and arm and arm.group(1) == current:
-                found[(current, variant(arm.group(2)))] = arm.group(3)
+                found.setdefault((current, variant(arm.group(2))), set()).add(arm.group(3))
     return found
 
 
@@ -113,13 +114,15 @@ def main():
     divergent = [
         (core_type, case, swift[(core_type, case)], kotlin[(core_type, case)])
         for core_type, case in shared
-        if english.get(swift[(core_type, case)]) != english.get(kotlin[(core_type, case)])
+        if not {english.get(key) for key in swift[(core_type, case)]} & {english.get(key) for key in kotlin[(core_type, case)]}
     ]
     print(f"compared {len(shared)} variants mapped by both apps")
-    for core_type, case, ios_key, android_key in divergent:
+    for core_type, case, ios_keys, android_keys in divergent:
         print(f"  {core_type}.{case}")
-        print(f"    iOS     {ios_key} = {english.get(ios_key)!r}")
-        print(f"    Android {android_key} = {english.get(android_key)!r}")
+        for key in sorted(ios_keys):
+            print(f"    iOS     {key} = {english.get(key)!r}")
+        for key in sorted(android_keys):
+            print(f"    Android {key} = {english.get(key)!r}")
     if len(shared) < MINIMUM_COMPARED:
         print(f"  the comparison covers {len(shared)} variants, below the {MINIMUM_COMPARED} it reached before")
         print("  a mapper the checker used to read stopped matching, or a variant was removed on purpose")

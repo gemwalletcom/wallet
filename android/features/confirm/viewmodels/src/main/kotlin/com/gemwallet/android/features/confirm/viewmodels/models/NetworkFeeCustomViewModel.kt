@@ -8,9 +8,8 @@ import androidx.compose.runtime.setValue
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.errorText
 import uniffi.gemstone.GemCustomFeeCheck
 import java.math.BigInteger
 
@@ -29,11 +28,7 @@ class NetworkFeeCustomViewModel(private val model: FeeDetailsModel, initialRate:
 
     fun networkFeeItem(context: Context): ListItemModel = custom.fee.networkFeeListItem(context, model.networkFeeAsset)
 
-    fun errorText(context: Context): String? = when (val check = check) {
-        is GemCustomFeeCheck.BelowMinimum -> context.getString(R.string.common_minimum_value, check.rate.string(context))
-        is GemCustomFeeCheck.OverMaximum -> context.getString(R.string.common_maximum_value, check.rate.string(context))
-        GemCustomFeeCheck.Valid -> null
-    }
+    fun errorText(context: Context): String? = check.errorText(context)
 
     fun onInputChange(value: String) {
         input = numberFormat().sanitize(value, decimals.toUInt(), null)

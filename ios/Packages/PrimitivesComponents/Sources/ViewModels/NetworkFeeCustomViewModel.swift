@@ -73,11 +73,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        switch estimate.check {
-        case let .belowMinimum(rate): Localized.Common.minimumValue(rate.text)
-        case let .overMaximum(rate): Localized.Common.maximumValue(rate.text)
-        case .valid: nil
-        }
+        estimate.check.errorText
     }
 
     public var isConfirmEnabled: Bool {

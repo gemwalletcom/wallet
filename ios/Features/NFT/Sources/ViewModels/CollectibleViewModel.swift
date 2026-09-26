@@ -88,18 +88,18 @@ public final class CollectibleViewModel {
 
     private func contextMenuItem(_ action: GemCollectibleAction) -> ContextMenuItemType? {
         switch action {
-        case .saveImage: .custom(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery)
-        case .setAvatar: .custom(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar)
+        case .saveImage: .custom(title: action.title, systemImage: action.systemImage, action: onSelectSaveToGallery)
+        case .setAvatar: .custom(title: action.title, systemImage: action.systemImage, action: onSelectSetAsAvatar)
         case .refresh, .report: nil
         }
     }
 
     private func menuItem(_ action: GemCollectibleAction) -> ActionMenuItemType {
         switch action {
-        case .saveImage: .button(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery)
-        case .setAvatar: .button(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar)
-        case .refresh: .button(title: Localized.Common.refresh, systemImage: SystemImage.refresh, action: onSelectRefresh)
-        case .report: .button(title: Localized.Nft.Report.reportButtonTitle, role: .destructive, action: onSelectReport)
+        case .saveImage: .button(title: action.title, systemImage: action.systemImage, action: onSelectSaveToGallery)
+        case .setAvatar: .button(title: action.title, systemImage: action.systemImage, action: onSelectSetAsAvatar)
+        case .refresh: .button(title: action.title, systemImage: action.systemImage, action: onSelectRefresh)
+        case .report: .button(title: action.title, systemImage: action.systemImage, role: .destructive, action: onSelectReport)
         }
     }
 

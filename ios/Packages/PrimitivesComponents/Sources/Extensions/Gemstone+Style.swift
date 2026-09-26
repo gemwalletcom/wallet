@@ -1,26 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
+import struct Gemstone.GemAvatar
+import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerIcon
+import enum Gemstone.GemButtonState
+import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemContactAvatarImage
 import enum Gemstone.GemEmptyStateImage
 import enum Gemstone.GemFiatTransactionBadge
+import enum Gemstone.GemHeaderActions
+import struct Gemstone.GemHeaderAmount
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemInfoImage
+import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowIcon
+import enum Gemstone.GemLoadState
 import enum Gemstone.GemNodeSyncState
 import enum Gemstone.GemNoticeKind
 import enum Gemstone.GemPerpetualChartLineKind
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemRecipientSectionKind
+import struct Gemstone.GemSocialLink
 import enum Gemstone.GemSwapProgressMarker
 import struct Gemstone.GemSwapProgressState
 import enum Gemstone.GemSwapProgressStep
+import enum Gemstone.GemTransactionHeader
+import enum Gemstone.GemTransactionRowValue
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
 import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletPlaceholder
 import enum Gemstone.LinkType
+import GemstonePrimitives
+import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -370,6 +384,200 @@ public extension GemWalletPlaceholder {
         switch self {
         case .multicoin: Images.Logo.logo
         case let .chain(chain): ChainImage(chain: Primitives.Chain(core: chain)).image
+        }
+    }
+}
+
+public extension FiatProviderName {
+    var image: Image {
+        switch self {
+        case .moonPay: Images.Fiat.moonpay
+        case .transak: Images.Fiat.transak
+        case .banxa: Images.Fiat.banxa
+        case .mercuryo: Images.Fiat.mercuryo
+        case .paybis: Images.Fiat.paybis
+        case .flashnet: Images.Fiat.cashapp
+        }
+    }
+}
+
+public extension GemAvatar {
+    var assetImage: AssetImage {
+        AssetImage(type: .text(initials), imageURL: imageUrl.map { ImageSource($0).url })
+    }
+}
+
+public extension GemButtonState {
+    var state: ButtonState {
+        switch self {
+        case .disabled: .disabled
+        case .loading: .loading(showProgress: true)
+        case .enabled: .normal
+        }
+    }
+}
+
+public extension GemHeaderActions {
+    var isWatchOnly: Bool {
+        self == .watchOnly
+    }
+
+    var headerButtons: [HeaderButton] {
+        switch self {
+        case .watchOnly: []
+        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
+        }
+    }
+}
+
+public extension GemLatencyStatus {
+    func listItem(title: String, titleExtra: String?) -> ListItemModel {
+        let color = tone().color
+        let badge: (text: String, type: TitleTagType, background: Color) = switch self {
+        case let .result(latency): (Localized.Common.latencyInMs(Int(latency.value)), .none, color.opacity(.light))
+        case .error: (Localized.Errors.error, .none, color.opacity(.light))
+        case .loading: ("", .progressView(scale: 1.24), .clear)
+        }
+        return ListItemModel(
+            title: title,
+            titleTag: badge.text,
+            titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: color, background: badge.background),
+            titleTagType: badge.type,
+            titleExtra: titleExtra,
+        )
+    }
+}
+
+public extension GemLoadState {
+    func stateViewType<T>(_ value: T?) -> StateViewType<T> {
+        switch self {
+        case .noData: .noData
+        case .loading: value.map { .data($0) } ?? .loading
+        case .data: value.map { .data($0) } ?? .noData
+        case let .error(error): .error(error)
+        }
+    }
+
+    func stateViewType<T>(_ values: [T]) -> StateViewType<[T]> {
+        stateViewType(values.isEmpty ? nil : values)
+    }
+}
+
+extension GemSocialLink {
+    var listItem: ListItemModel {
+        ListItemModel(title: linkType.title, subtitle: host, imageStyle: .settings(assetImage: .image(linkType.image)))
+    }
+
+    var deepLink: URL? {
+        guard let path = url.asURL?.path().trimmingPrefix("/") else { return nil }
+
+        return switch linkType {
+        case .telegram: URL(string: "tg://resolve?domain=\(path)")
+        case .x: URL(string: "twitter://user?screen_name=\(path)")
+        case .youTube: URL(string: "youtube://www.youtube.com/\(path)")
+        case .discord: URL(string: "https://discord.gg/\(path)")
+        case .gitHub: URL(string: "https://github.com/\(path)")
+        case .reddit, .facebook, .website, .coingecko, .openSea, .instagram, .magicEden, .coinMarketCap, .tikTok:
+            nil
+        }
+    }
+}
+
+public extension GemHeaderAmount {
+    var swapAmountField: SwapAmountField {
+        let assetId = asset.toPrimitives().id
+        return SwapAmountField(
+            assetId: assetId,
+            assetImage: AssetIdViewModel(assetId: assetId).assetImage,
+            amount: amount.text(),
+            fiatAmount: fiat?.text(),
+        )
+    }
+}
+
+public extension GemTransactionRowValue {
+    func textValue(textStyle: TextStyle) -> TextValue? {
+        switch self {
+        case .none:
+            nil
+        case let .assetSymbol(asset):
+            AmountDisplay.symbol(asset: asset.toPrimitives()).amount
+        case let .number(number):
+            TextValue(text: number.text(), style: textStyle)
+        }
+    }
+}
+
+public extension GemTransactionHeader {
+    var headerType: TransactionHeaderType {
+        switch self {
+        case let .amount(amount):
+            .amount(.numeric(NumericViewModel(header: amount)))
+        case let .swap(from, to):
+            .swap(from: from.swapAmountField, to: to.swapAmountField)
+        case let .nft(_, name, imageUrl):
+            .nft(
+                name: name,
+                image: AssetImage(
+                    type: .text("NFT"),
+                    imageURL: URL(string: imageUrl),
+                    placeholder: .none,
+                    chainPlaceholder: .none,
+                ),
+            )
+        case let .symbol(asset):
+            .amount(.symbol(asset: asset.toPrimitives()))
+        case let .assetImage(asset):
+            .asset(image: AssetViewModel(asset: asset.toPrimitives()).assetImage)
+        }
+    }
+}
+
+public extension SwapProvider {
+    var image: Image {
+        switch self {
+        case .uniswapV3, .uniswapV4: Images.SwapProviders.uniswap
+        case .jupiter: Images.SwapProviders.jupiter
+        case .pancakeswapV3: Images.SwapProviders.pancakeswap
+        case .thorchain: Images.SwapProviders.thorchain
+        case .mayachain: Images.SwapProviders.mayachain
+        case .across: Images.SwapProviders.across
+        case .oku: Images.SwapProviders.oku
+        case .wagmi: Images.SwapProviders.wagmi
+        case .cetusClmm: Images.SwapProviders.cetus
+        case .stonfiV2: Images.SwapProviders.stonfi
+        case .mayan: Images.SwapProviders.mayan
+        case .chainflip: Images.SwapProviders.chainflip
+        case .relay: Images.SwapProviders.relay
+        case .aerodrome: Images.SwapProviders.aerodrome
+        case .hyperliquid: Images.SwapProviders.hyperliquid
+        case .nearIntents: Images.SwapProviders.nearIntents
+        case .orca: Images.SwapProviders.orca
+        case .panora: Images.SwapProviders.panora
+        case .okx: Images.SwapProviders.okx
+        case .squid: Images.SwapProviders.squid
+        case .swapsXyz: Images.SwapProviders.swapsXyz
+        }
+    }
+}
+
+public extension GemBannerButton {
+    @MainActor
+    var style: ColorButtonStyle {
+        switch self {
+        case .buy: .blue(paddingVertical: .small)
+        case .receive: .empty(paddingVertical: .small)
+        }
+    }
+}
+
+public extension GemCollectibleAction {
+    var systemImage: String? {
+        switch self {
+        case .saveImage: SystemImage.gallery
+        case .setAvatar: SystemImage.emoji
+        case .refresh: SystemImage.refresh
+        case .report: nil
         }
     }
 }
