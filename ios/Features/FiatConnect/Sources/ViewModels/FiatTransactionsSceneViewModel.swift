@@ -43,8 +43,8 @@ public final class FiatTransactionsSceneViewModel {
         Gemstone.loadError(state: loadState, hasRows: !sections.isEmpty)
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.activity))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .activity)
     }
 
     func load() async {

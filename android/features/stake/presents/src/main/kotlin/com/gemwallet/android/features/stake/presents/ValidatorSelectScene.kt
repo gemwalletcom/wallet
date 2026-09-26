@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ValidatorItem
@@ -29,7 +28,7 @@ fun ValidatorSelectScene(selection: GemStakeValidatorOptions, selectedValidatorI
         LazyColumn {
             if (selection.recommended.isEmpty() && selection.options.isEmpty()) {
                 item {
-                    EmptyContentView(type = EmptyContentType(GemEmptyStateKind.VALIDATORS), modifier = Modifier.fillParentMaxSize())
+                    EmptyContentView(kind = GemEmptyStateKind.VALIDATORS, modifier = Modifier.fillParentMaxSize())
                 }
             }
             if (selection.recommended.isNotEmpty()) {

@@ -36,7 +36,6 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
@@ -190,7 +189,7 @@ internal fun PerpetualsScene(
 
                         GemPerpetualMarketSection.EMPTY -> item {
                             EmptyContentView(
-                                type = EmptyContentType(GemEmptyStateKind.SEARCH_PERPETUALS),
+                                kind = GemEmptyStateKind.SEARCH_PERPETUALS,
                                 modifier = Modifier
                                     .animateItem()
                                     .fillParentMaxSize(),

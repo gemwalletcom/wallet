@@ -26,7 +26,6 @@ class AssetUIStateFactory @Inject constructor(@ApplicationContext private val co
             assetInfo = assetInfo,
             details = details,
             priceAlertMenu = details.state.priceAlert.menu(),
-            emptyTransactions = details.state.emptyTransactionsAction.emptyTransactions(),
             banner = details.banner?.uiModel(context),
             sections = details.sections.map { section ->
                 AssetDetailSectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id, details.networkDestination.navigation()) })

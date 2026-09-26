@@ -36,7 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertItemUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -159,7 +158,7 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
     }
     item {
         EmptyContentView(
-            type = EmptyContentType(GemEmptyStateKind.PRICE_ALERTS),
+            kind = GemEmptyStateKind.PRICE_ALERTS,
             modifier = Modifier.fillParentMaxHeight(0.5f),
         )
     }

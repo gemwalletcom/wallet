@@ -41,8 +41,8 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
-    public var emptyContent: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.validators))
+    public var emptyContent: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .validators)
     }
 
     public var list: [ListItemValueSection<GemValidatorRow>] {

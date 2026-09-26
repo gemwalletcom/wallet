@@ -66,9 +66,12 @@ import uniffi.gemstone.GemAssetSearchStep
 import uniffi.gemstone.GemAssetSectionCounts
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemEmptyState
+import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.addressCopy
+import uniffi.gemstone.emptyState
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseSelectAssetViewModel(
@@ -220,6 +223,10 @@ open class BaseSelectAssetViewModel(
     val isAddAssetAvailable = walletFlow
         .map { it?.showsAddToken == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val searchEmptyState: StateFlow<GemEmptyState> = walletFlow
+        .map { it?.emptyState ?: emptyState(GemEmptyStateKind.SEARCH_ASSETS) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyState(GemEmptyStateKind.SEARCH_ASSETS))
 
     fun onSelected(asset: Asset) {
         flow.action?.let { updateRecent(asset, it) }

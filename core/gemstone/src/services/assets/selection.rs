@@ -87,8 +87,10 @@ impl GemAssetSelectionService {
         let flow = self.flow(select_type);
         let chains = chain_rules::wallet_chains_by_rank(&wallet);
         let has_chains = !chains.is_empty();
+        let shows_add_token = flow.shows_add_token(!rules::token_chains(&wallet).is_empty(), has_chains);
         GemSelectAssetWalletFlow {
-            shows_add_token: flow.shows_add_token(!rules::token_chains(&wallet).is_empty(), has_chains),
+            empty_state: rules::search_assets_empty_state(shows_add_token),
+            shows_add_token,
             shows_chain_filter: flow.shows_chain_filter(wallet.wallet_type == WalletType::Multicoin, has_chains),
             chains,
             flow,

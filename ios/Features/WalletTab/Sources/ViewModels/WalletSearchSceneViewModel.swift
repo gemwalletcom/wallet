@@ -117,10 +117,12 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         case .loading:
             .loading
         case .empty:
-            .empty(EmptyContentType(
-                .searchAssets,
-                actions: [.addCustomToken: derived.view.showsAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil],
-            ))
+            .empty(EmptyStateViewModel(state: derived.view.emptyState) { [weak self] action in
+                switch action {
+                case .addCustomToken: self?.onSelectAddCustomToken()
+                case .buy, .swap, .receive, .manageTokenList, .clearFilters: break
+                }
+            })
         }
     }
 

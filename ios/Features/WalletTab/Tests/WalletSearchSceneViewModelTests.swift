@@ -123,13 +123,13 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        #expect(model.derived.view.showsAddToken == false, "there is no chain to add a token to")
+        #expect(model.derived.view.emptyState.actions.isEmpty, "there is no chain to add a token to")
 
         service.filterChainsResult = [Primitives.Chain.ethereum.toGem()]
-        #expect(model.derived.view.showsAddToken)
+        #expect(model.derived.view.emptyState.actions == [.addCustomToken])
 
         service.tokensSupported = false
-        #expect(model.derived.view.showsAddToken == false)
+        #expect(model.derived.view.emptyState.actions.isEmpty)
     }
 
     @Test

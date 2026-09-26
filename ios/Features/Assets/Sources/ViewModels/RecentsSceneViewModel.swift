@@ -66,7 +66,7 @@ public final class RecentsSceneViewModel {
     }
 
     func emptyModel(_ sections: GemRecentsSections) -> any EmptyContentViewable {
-        EmptyContentTypeViewModel(type: EmptyContentType(sections.empty ?? .recents))
+        EmptyStateViewModel(kind: sections.empty ?? .recents)
     }
 }
 

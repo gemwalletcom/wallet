@@ -34,14 +34,7 @@ public struct SelectAssetScene: View {
                 if listState == .loading {
                     LoadingView()
                 } else if listState != .idle {
-                    EmptyContentView(
-                        model: EmptyContentTypeViewModel(
-                            type: EmptyContentType(
-                                .searchAssets,
-                                actions: [.addCustomToken: model.showAddToken ? { model.onSelectAddCustomToken() } : nil],
-                            ),
-                        ),
-                    )
+                    EmptyContentView(model: model.emptyModel)
                 }
             }
             .bindQuery(model.assetsQuery, model.recentModel.query)

@@ -1207,12 +1207,12 @@ fun mockGemAssetDetailsState(
     isViewOnly: Boolean = false,
     showsBanners: Boolean = false,
     priceAlert: uniffi.gemstone.GemPriceAlertToggle = uniffi.gemstone.GemPriceAlertToggle.ENABLED,
-    emptyTransactionsAction: uniffi.gemstone.GemAssetEmptyAction? = null,
+    emptyState: uniffi.gemstone.GemEmptyState = mockGemEmptyState(),
 ) = uniffi.gemstone.GemAssetDetailsState(
     isViewOnly = isViewOnly,
     showsBanners = showsBanners,
     priceAlert = priceAlert,
-    emptyTransactionsAction = emptyTransactionsAction,
+    emptyState = emptyState,
 )
 
 fun mockGemAssetIcon(
@@ -1419,6 +1419,18 @@ fun mockGemConnectionRow(
     host = host,
     initial = initial,
     iconUrl = iconUrl,
+)
+
+fun mockGemEmptyState(
+    title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
+    description: uniffi.gemstone.GemEmptyStateText? = null,
+    image: uniffi.gemstone.GemEmptyStateImage = uniffi.gemstone.GemEmptyStateImage.NFTS,
+    actions: List<uniffi.gemstone.GemEmptyStateAction> = emptyList(),
+) = uniffi.gemstone.GemEmptyState(
+    title = title,
+    description = description,
+    image = image,
+    actions = actions,
 )
 
 fun mockGemFeeAmount(

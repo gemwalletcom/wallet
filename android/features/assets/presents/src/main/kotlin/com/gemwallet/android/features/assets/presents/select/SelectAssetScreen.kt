@@ -40,7 +40,7 @@ fun SelectAssetScreen(
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val showsRecents by viewModel.showsRecents.collectAsStateWithLifecycle()
     val showRecents = showsRecents && onSelectRecent != null
-    val isAddAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
+    val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val isChainFilterAvailable by viewModel.isChainFilterAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
@@ -62,7 +62,7 @@ fun SelectAssetScreen(
         unpinned = unpinned,
         recent = if (showRecents) recent else emptyList<Asset>().toImmutableList(),
         state = uiStates,
-        isAddAvailable = isAddAvailable && onAddAsset != null,
+        empty = searchEmptyState,
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,

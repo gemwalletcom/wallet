@@ -89,7 +89,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         switch state.phase {
         case .idle: .results
         case .loading: .loading
-        case .empty: .empty(EmptyContentType(.searchAssets))
+        case .empty: .empty(EmptyStateViewModel(kind: .searchAssets))
         }
     }
 

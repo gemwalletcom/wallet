@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.components.filters.transactionFilterOptions
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,7 +36,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
@@ -71,10 +72,6 @@ class TransactionsViewModel @Inject constructor(
 
     val typeFilterOptions: List<TransactionFilterUIModel> = transactionFilterOptions(context)
 
-    val emptyStateKind: StateFlow<GemEmptyStateKind> = combine(chainsFilter, typeFilter) { chains, types ->
-        transactionsEmptyState(chains.map { it.string }, types)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemEmptyStateKind.ACTIVITY)
-
     val filterSummary: StateFlow<TransactionsFilterSummaryUIModel> = combine(chainsFilter, typeFilter) { chains, types ->
         TransactionsFilterSummaryUIModel(
             chains = chainsFilterSummary(chains.map { it.string }).text(context),
@@ -88,6 +85,10 @@ class TransactionsViewModel @Inject constructor(
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
+
+    val emptyState: StateFlow<GemEmptyState> = combine(chainsFilter, typeFilter, session.map { it?.wallet?.type ?: WalletType.Multicoin }) { chains, types, walletType ->
+        transactionsEmptyState(chains.map { it.string }, types, walletType.toGem())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, transactionsEmptyState(emptyList(), emptyList(), WalletType.Multicoin.toGem()))
 
     val walletId: StateFlow<WalletId?> = session
         .map { it?.wallet?.id }

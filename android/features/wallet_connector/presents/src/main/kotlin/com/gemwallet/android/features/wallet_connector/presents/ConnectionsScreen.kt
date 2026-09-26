@@ -26,7 +26,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -88,7 +87,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
             }
             if (sections.isEmpty()) {
                 item {
-                    EmptyContentView(type = EmptyContentType(GemEmptyStateKind.WALLET_CONNECT), modifier = Modifier.fillParentMaxHeight(0.7f))
+                    EmptyContentView(kind = GemEmptyStateKind.WALLET_CONNECT, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
             } else {
                 listSections(sections) { position, item ->

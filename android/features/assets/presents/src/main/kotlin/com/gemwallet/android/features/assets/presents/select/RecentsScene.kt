@@ -22,7 +22,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.models.RecentsUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
@@ -102,5 +101,5 @@ fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldSt
 
 @Composable
 private fun RecentsEmptyStateView(kind: GemEmptyStateKind) {
-    EmptyContentView(type = EmptyContentType(kind), modifier = Modifier.fillMaxSize())
+    EmptyContentView(kind = kind, modifier = Modifier.fillMaxSize())
 }

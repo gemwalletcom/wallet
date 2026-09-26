@@ -12,6 +12,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemEmptyState
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
@@ -96,7 +97,7 @@ class BaseSelectAssetViewModelTest {
         },
         service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
+            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false, emptyState = mockGemEmptyState()) }
         },
     ): BaseSelectAssetViewModel {
         val session: GetSession = mockk {
@@ -172,7 +173,7 @@ class BaseSelectAssetViewModelTest {
     fun `pinning an asset tells Core and names it in the toast`() = runTest(dispatcher) {
         val service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
+            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false, emptyState = mockGemEmptyState()) }
         }
         val model = viewModel(listOf(mockAssetData(asset = ethereum)), service = service)
         model.unpinned.first { it.isNotEmpty() }

@@ -9,7 +9,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
@@ -37,7 +36,7 @@ fun FiatTransactionsScene(transactions: List<FiatTransactionUIModel>, errorRow: 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         if (errorRow == null) {
-                            EmptyContentView(type = EmptyContentType(GemEmptyStateKind.ACTIVITY), modifier = Modifier.fillParentMaxSize())
+                            EmptyContentView(kind = GemEmptyStateKind.ACTIVITY, modifier = Modifier.fillParentMaxSize())
                         } else {
                             GemListRowView(row = errorRow, listPosition = ListPosition.Single)
                         }

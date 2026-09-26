@@ -72,8 +72,13 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         return NetworkAssetGroups(pinned: assets(ids.pinned), unpinned: assets(ids.unpinned), hidden: assets(ids.hidden), sections: ids.sections)
     }
 
-    var emptyModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.networkAssets, actions: [.manageTokenList: onManageAssetsAction]))
+    var emptyModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .networkAssets) { [onManageAssetsAction] action in
+            switch action {
+            case .manageTokenList: onManageAssetsAction()
+            case .buy, .swap, .receive, .addCustomToken, .clearFilters: break
+            }
+        }
     }
 
     var assetIds: [AssetId] {

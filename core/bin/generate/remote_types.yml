@@ -283,6 +283,7 @@ mocks:
   - GemConfirmSimulation
   - GemConfirmSimulationState
   - GemConnectionRow
+  - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset
   - GemFeeRateRows

@@ -78,8 +78,8 @@ public final class StakeSceneViewModel {
         !state.sections.contains(.delegations)
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: asset.symbol))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .stake, symbol: asset.symbol)
     }
 
     func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {

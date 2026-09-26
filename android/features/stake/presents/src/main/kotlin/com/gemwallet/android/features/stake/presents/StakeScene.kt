@@ -20,7 +20,6 @@ import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -114,7 +113,7 @@ internal fun StakeScene(
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
                         when (loadError) {
-                            null -> EmptyContentView(type = EmptyContentType(GemEmptyStateKind.STAKE, symbol = assetInfo.asset.symbol))
+                            null -> EmptyContentView(kind = GemEmptyStateKind.STAKE, symbol = assetInfo.asset.symbol)
                             else -> GemListRowView(row = GemListRow.Error(loadError), listPosition = ListPosition.Single)
                         }
                     }

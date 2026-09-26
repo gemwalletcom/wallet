@@ -92,8 +92,8 @@ public final class PerpetualsSceneViewModel {
         Localized.Perpetuals.title
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.searchPerpetuals))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .searchPerpetuals)
     }
 
     var pinImage: Image {

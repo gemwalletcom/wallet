@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
 
@@ -109,13 +110,14 @@ internal fun AssetScene(
                     transactionsErrorRow?.let { GemListRowView(row = it, listPosition = ListPosition.Single) } ?: EmptyTransactionsItem(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
-                        isViewOnly = detailsState.isViewOnly,
-                        onBuy = if (uiState.emptyTransactions.showsBuy) {
-                            { onAction(AssetAction.Buy(uiState.asset.id)) }
-                        } else {
-                            null
+                        state = detailsState.emptyState,
+                        onAction = { action ->
+                            when (action) {
+                                GemEmptyStateAction.BUY -> onAction(AssetAction.Buy(uiState.asset.id))
+                                GemEmptyStateAction.SWAP -> swapAction()
+                                GemEmptyStateAction.RECEIVE, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                            }
                         },
-                        onSwap = if (uiState.emptyTransactions.showsSwap) swapAction else null,
                     )
                 }
                 transactionsList(transactionSections) { onAction(AssetAction.OpenTransaction(it)) }

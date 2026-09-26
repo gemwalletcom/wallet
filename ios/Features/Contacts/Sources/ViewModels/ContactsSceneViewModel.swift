@@ -94,8 +94,8 @@ public final class ContactsSceneViewModel {
         }
     }
 
-    var emptyContent: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.contacts))
+    var emptyContent: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .contacts)
     }
 
     var items: [(contact: ContactData, listItem: ListItemModel)] {

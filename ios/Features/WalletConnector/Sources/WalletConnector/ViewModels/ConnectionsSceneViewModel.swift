@@ -61,8 +61,8 @@ public final class ConnectionsSceneViewModel {
         service.connectionsView(connections: connections.map { $0.toGem() })
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.walletConnect))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .walletConnect)
     }
 
     func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {

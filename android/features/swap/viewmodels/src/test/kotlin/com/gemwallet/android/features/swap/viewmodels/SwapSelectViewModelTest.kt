@@ -7,6 +7,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.testkit.mockGemEmptyState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -46,7 +47,7 @@ class SwapSelectViewModelTest {
         every { assetsQuery(any(), any(), any(), any(), any()) } returns flowOf(emptyList())
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
-        every { service.walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
+        every { service.walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false, emptyState = mockGemEmptyState()) }
     }
 
     @After

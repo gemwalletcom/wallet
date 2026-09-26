@@ -52,8 +52,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Gemstone.loadError(state: loadState, hasRows: !priceAlerts.isEmpty)
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.priceAlerts))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .priceAlerts)
     }
 
     var sections: [ListItemValueSection<PriceAlertItemViewModel>] {

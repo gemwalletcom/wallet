@@ -8,10 +8,10 @@ use primitives::{
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput,
-    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonTap,
-    GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction,
-    GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput, GemAssetNetworkDestination,
+    GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonTap, GemNetworkAssetIds,
+    GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
+    GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -24,6 +24,7 @@ use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::rules::{balance_amount, balance_resource_rows};
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRow, GemBalanceRowValue};
+use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
 use crate::services::localization::GemLocalizedText;
 use crate::services::nft::rules::nft_chains;
 use crate::services::price::rules::has_price;
@@ -510,9 +511,13 @@ pub fn wallet_search_view(counts: &GemWalletSearchCounts, query: &str, is_loadin
         has_more_assets: limits.has_more_assets(counts.assets),
         has_more_perpetuals: limits.has_more_perpetuals(counts.perpetuals),
         has_more_nfts: limits.has_more_nfts(counts.nfts),
-        shows_add_token,
+        empty_state: search_assets_empty_state(shows_add_token),
         limits,
     }
+}
+
+pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
+    screen_empty_state(GemEmptyStateKind::SearchAssets, false, if shows_add_token { &[GemEmptyStateAction::AddCustomToken] } else { &[] })
 }
 
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
@@ -719,15 +724,15 @@ pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_e
         is_view_only,
         shows_banners: !banner_events.is_empty(),
         price_alert: price_alert_toggle(price_alerts),
-        empty_transactions_action: if is_view_only {
-            None
-        } else if metadata.is_buy_enabled {
-            Some(GemAssetEmptyAction::Buy)
-        } else if metadata.is_swap_enabled {
-            Some(GemAssetEmptyAction::Swap)
-        } else {
-            None
-        },
+        empty_state: screen_empty_state(
+            GemEmptyStateKind::Asset,
+            is_view_only,
+            match (metadata.is_buy_enabled, metadata.is_swap_enabled) {
+                (true, _) => &[GemEmptyStateAction::Buy],
+                (false, true) => &[GemEmptyStateAction::Swap],
+                (false, false) => &[],
+            },
+        ),
     }
 }
 
@@ -1204,10 +1209,11 @@ mod tests {
         assert!(!view.state.shows_perpetuals && !view.state.shows_pinned_perpetuals);
         assert!(view.state.shows_assets);
         assert!(view.has_more_assets, "more assets than the preview shows");
-        assert!(view.shows_add_token);
+        assert_eq!(view.empty_state.actions, vec![GemEmptyStateAction::AddCustomToken]);
 
         let shown = wallet_search_view(&counts, "", false, true, true, false);
         assert!(shown.state.shows_recents && shown.state.shows_perpetuals);
+        assert!(shown.empty_state.actions.is_empty(), "a wallet that cannot add a token is not offered one");
     }
 
     #[test]
@@ -1524,7 +1530,7 @@ mod tests {
         assert!(state.is_view_only);
         assert_eq!(actions(WalletType::View, &metadata, &[]), GemHeaderActions::WatchOnly);
         assert!(!state.shows_banners);
-        assert_eq!(state.empty_transactions_action, None);
+        assert!(state.empty_state.actions.is_empty());
     }
 
     #[test]
@@ -1867,8 +1873,10 @@ mod tests {
             ..AssetMetaData::mock()
         };
         let tradable = AssetMetaData { is_buy_enabled: true, ..swappable.clone() };
-        assert_eq!(state(WalletType::Multicoin, &tradable, &[]).empty_transactions_action, Some(GemAssetEmptyAction::Buy));
-        assert_eq!(state(WalletType::Multicoin, &swappable, &[]).empty_transactions_action, Some(GemAssetEmptyAction::Swap));
-        assert_eq!(state(WalletType::Multicoin, &AssetMetaData::mock(), &[]).empty_transactions_action, None);
+        let actions = |wallet_type, metadata: &AssetMetaData| state(wallet_type, metadata, &[]).empty_state.actions;
+        assert_eq!(actions(WalletType::Multicoin, &tradable), vec![GemEmptyStateAction::Buy]);
+        assert_eq!(actions(WalletType::Multicoin, &swappable), vec![GemEmptyStateAction::Swap]);
+        assert_eq!(actions(WalletType::Multicoin, &AssetMetaData::mock()), vec![]);
+        assert_eq!(actions(WalletType::View, &tradable), vec![], "a watch-only wallet is offered nothing");
     }
 }

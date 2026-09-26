@@ -19,8 +19,8 @@ public final class ChainListSettingsSceneViewModel {
         self.service = service
     }
 
-    var emptyContent: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.searchNetworks))
+    var emptyContent: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .searchNetworks)
     }
 
     func filterChains(for query: String) -> [Chain] {

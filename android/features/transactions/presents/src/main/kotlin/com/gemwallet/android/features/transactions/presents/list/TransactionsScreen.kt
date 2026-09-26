@@ -18,7 +18,7 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
     val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
     val typeFilter by viewModel.typeFilterRows.collectAsStateWithLifecycle()
     val filterSummary by viewModel.filterSummary.collectAsStateWithLifecycle()
-    val emptyStateKind by viewModel.emptyStateKind.collectAsStateWithLifecycle()
+    val emptyState by viewModel.emptyState.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
@@ -39,10 +39,8 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
         typeFilter = typeFilter,
         typeFilterOptions = viewModel.typeFilterOptions,
         filterSummary = filterSummary,
-        emptyStateKind = emptyStateKind,
+        emptyState = emptyState,
         listState = listState,
-        showBuyAction = onBuy != null,
-        showReceiveAction = onReceive != null,
         onAction = { action ->
             when (action) {
                 TransactionsAction.Refresh -> viewModel.refresh()

@@ -110,6 +110,15 @@ public final class SelectAssetSceneViewModel {
         walletFlow.showsAddToken
     }
 
+    public var emptyModel: EmptyStateViewModel {
+        EmptyStateViewModel(state: walletFlow.emptyState) { [weak self] action in
+            switch action {
+            case .addCustomToken: self?.onSelectAddCustomToken()
+            case .buy, .swap, .receive, .manageTokenList, .clearFilters: break
+            }
+        }
+    }
+
     public var showFilter: Bool {
         walletFlow.showsChainFilter
     }

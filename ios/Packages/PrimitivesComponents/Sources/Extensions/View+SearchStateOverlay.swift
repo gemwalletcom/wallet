@@ -6,7 +6,7 @@ import SwiftUI
 
 public enum SearchContentState {
     case loading
-    case empty(EmptyContentType)
+    case empty(EmptyStateViewModel)
     case results
 }
 
@@ -18,9 +18,9 @@ public extension View {
                 searchStateContent(background: background) {
                     LoadingView()
                 }
-            case let .empty(type):
+            case let .empty(model):
                 searchStateContent(background: background) {
-                    EmptyContentView(model: EmptyContentTypeViewModel(type: type))
+                    EmptyContentView(model: model)
                 }
             case .results:
                 EmptyView()

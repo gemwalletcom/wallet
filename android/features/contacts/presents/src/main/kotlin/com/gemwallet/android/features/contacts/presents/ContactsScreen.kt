@@ -17,7 +17,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.contacts.viewmodels.ContactsViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -49,7 +48,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
     ) {
         if (contacts.isEmpty()) {
             EmptyContentView(
-                type = EmptyContentType(GemEmptyStateKind.CONTACTS),
+                kind = GemEmptyStateKind.CONTACTS,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {

@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.in_app_notifications.viewmodels.models.InAppNotificationListItemUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -32,7 +31,7 @@ fun InAppNotificationsScene(notifications: List<InAppNotificationListItemUIModel
         if (notifications.isEmpty()) {
             when (val row = errorRow) {
                 null -> EmptyContentView(
-                    type = EmptyContentType(GemEmptyStateKind.NOTIFICATIONS),
+                    kind = GemEmptyStateKind.NOTIFICATIONS,
                     modifier = Modifier.fillMaxSize(),
                 )
 

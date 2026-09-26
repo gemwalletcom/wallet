@@ -19,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.stake.viewmodels.EarnViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
@@ -91,7 +90,7 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
                         item {
                             Spacer(modifier = Modifier.height(paddingLarge))
                             when (val error = loadError) {
-                                null -> EmptyContentView(type = EmptyContentType(GemEmptyStateKind.EARN, symbol = earnAssetInfo.asset.symbol))
+                                null -> EmptyContentView(kind = GemEmptyStateKind.EARN, symbol = earnAssetInfo.asset.symbol)
                                 else -> GemListRowView(row = GemListRow.Error(error), listPosition = ListPosition.Single)
                             }
                         }

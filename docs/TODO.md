@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM203 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM204 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD375.
@@ -60,7 +60,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM247, VM259 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM203, VM205, VM206, VM266 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Shared components
 
-- **VM203** **S** **Empty states are assembled from app callbacks.**
-  - **iOS:** `EmptyContentType` and `EmptyContentTypeViewModel` build `GemEmptyStateInput` from the keys of an app callback map, then join Core's actions back to the callbacks.
-  - **Android:** `EmptyStateUIModel` does the same and styles the first action as primary.
-  - **Expected:** Core returns the empty state with its actions and their styles for the screen; the apps bind taps; both builders go.
 - **VM204** **S** **Banner rows are wrapped and styled outside the mappers.**
   - **iOS:** `BannerViewModel`, `BannerButtonViewModel` and `BannerAction` wrap `GemBannerRow`; icon size and corner radius are chosen per icon, button titles and styles per button.
   - **Android:** `BannerRowUIModel` and `BannerItemUIModel` copy the same fields; `WelcomeBanner` picks button titles.

@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.models.ListPosition
@@ -42,7 +41,7 @@ fun SelectChain(
             if (chains.isEmpty()) {
                 item {
                     EmptyContentView(
-                        type = EmptyContentType(GemEmptyStateKind.SEARCH_NETWORKS),
+                        kind = GemEmptyStateKind.SEARCH_NETWORKS,
                         modifier = Modifier.fillParentMaxSize(),
                     )
                 }

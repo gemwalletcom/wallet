@@ -55,7 +55,7 @@ struct CollectionsSceneViewModelTests {
         model.query.value = [.mock(collection: .mock(name: "Punks"), assets: [.mock()])]
 
         #expect(model.screen.title.text == "Punks")
-        #expect(model.screen.offersReceive)
+        #expect(model.screen.emptyState.actions == [.receive])
     }
 
     @Test
@@ -63,6 +63,6 @@ struct CollectionsSceneViewModelTests {
         let model = CollectionsSceneViewModel.mock(list: .unverified)
 
         #expect(model.screen.title.text == Localized.Asset.Verification.unverified)
-        #expect(model.screen.offersReceive == false)
+        #expect(model.screen.emptyState.actions.isEmpty)
     }
 }

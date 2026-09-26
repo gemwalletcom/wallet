@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
@@ -88,6 +89,10 @@ class CollectionsViewModel @Inject constructor(
     val title: StateFlow<String> = screen
         .map { it.title.string(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val emptyState: StateFlow<GemEmptyState> = screen
+        .map { it.emptyState }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, screen.value.emptyState)
 
     val showReceiveAction: StateFlow<Boolean> = screen
         .map { it.offersReceive }

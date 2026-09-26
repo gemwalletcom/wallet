@@ -10,8 +10,8 @@ use chrono::{DateTime, Utc};
 use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
-use crate::services::empty_state::GemEmptyStateKind;
-use primitives::BlockExplorerLink;
+use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
+use primitives::{BlockExplorerLink, WalletType};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
 pub enum GemTransactionFilter {
@@ -251,11 +251,12 @@ pub enum GemTransactionBadge {
 }
 
 #[uniffi::export]
-pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemEmptyStateKind {
-    match chains.is_empty() && filters.is_empty() {
+pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>, wallet_type: WalletType) -> GemEmptyState {
+    let kind = match chains.is_empty() && filters.is_empty() {
         true => GemEmptyStateKind::Activity,
         false => GemEmptyStateKind::SearchActivity,
-    }
+    };
+    screen_empty_state(kind, wallet_type == WalletType::View, &[GemEmptyStateAction::Buy, GemEmptyStateAction::Receive, GemEmptyStateAction::ClearFilters])
 }
 
 #[uniffi::export]

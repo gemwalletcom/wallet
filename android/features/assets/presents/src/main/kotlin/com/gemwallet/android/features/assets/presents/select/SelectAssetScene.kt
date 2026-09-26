@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
@@ -69,9 +68,11 @@ import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.drop
+import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemSelectAssetState
+import uniffi.gemstone.emptyState
 
 @Composable
 fun SelectAssetScene(
@@ -82,7 +83,7 @@ fun SelectAssetScene(
     recent: ImmutableList<Asset>,
     state: GemSelectAssetState,
     query: TextFieldState,
-    isAddAvailable: Boolean = false,
+    empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
     balanceFilter: Boolean = false,
@@ -111,7 +112,7 @@ fun SelectAssetScene(
         recent = recent,
         state = state,
         query = query,
-        isAddAvailable = isAddAvailable,
+        empty = empty,
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
@@ -136,7 +137,7 @@ fun SelectAssetScene(
     recent: ImmutableList<Asset>,
     state: GemSelectAssetState,
     query: TextFieldState,
-    isAddAvailable: Boolean = false,
+    empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
     balanceFilter: Boolean = false,
@@ -248,7 +249,7 @@ fun SelectAssetScene(
             assets(unpinned, AssetsGroupType.None, onSelect, onItemAction, longPressedAsset, contextActions)
             searchState(
                 state = state,
-                isAddAvailable = isAddAvailable,
+                empty = empty,
                 topOffset = 0,
                 onAddAsset = { onAction(SelectAssetAction.AddAsset) },
             )
@@ -331,7 +332,7 @@ fun SelectAssetRow(
     }
 }
 
-fun LazyListScope.searchState(state: GemSelectAssetState, isAddAvailable: Boolean = false, topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
+fun LazyListScope.searchState(state: GemSelectAssetState, empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS), topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
     when (state) {
         GemSelectAssetState.LOADING -> item {
             Box(
@@ -346,10 +347,13 @@ fun LazyListScope.searchState(state: GemSelectAssetState, isAddAvailable: Boolea
 
         GemSelectAssetState.EMPTY -> item {
             EmptyContentView(
-                type = EmptyContentType(
-                    GemEmptyStateKind.SEARCH_ASSETS,
-                    actions = mapOf(GemEmptyStateAction.ADD_CUSTOM_TOKEN to if (isAddAvailable) onAddAsset else null),
-                ),
+                state = empty,
+                onAction = { action ->
+                    when (action) {
+                        GemEmptyStateAction.ADD_CUSTOM_TOKEN -> onAddAsset?.invoke()
+                        GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.RECEIVE, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                    }
+                },
                 modifier = Modifier
                     .animateItem()
                     .fillParentMaxSize()

@@ -18,7 +18,6 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.assets.presents.select.assetRows
 import com.gemwallet.android.features.wallet_tab.viewmodels.NetworkAssetsViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
@@ -71,7 +70,13 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
             if (sections.showsEmpty) {
                 item {
                     EmptyContentView(
-                        type = EmptyContentType(GemEmptyStateKind.NETWORK_ASSETS, actions = mapOf(GemEmptyStateAction.MANAGE_TOKEN_LIST to onManageAssets)),
+                        kind = GemEmptyStateKind.NETWORK_ASSETS,
+                        onAction = { action ->
+                            when (action) {
+                                GemEmptyStateAction.MANAGE_TOKEN_LIST -> onManageAssets()
+                                GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.RECEIVE, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                            }
+                        },
                         modifier = Modifier.fillParentMaxSize(),
                     )
                 }

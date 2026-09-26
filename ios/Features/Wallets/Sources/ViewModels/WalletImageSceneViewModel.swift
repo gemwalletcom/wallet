@@ -51,8 +51,8 @@ public final class WalletImageSceneViewModel: Sendable {
         Localized.Common.avatar
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.nfts))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .nfts)
     }
 
     var row: GemWalletRow {

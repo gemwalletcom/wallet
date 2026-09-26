@@ -81,8 +81,8 @@ public final class EarnSceneViewModel {
         view.depositProvider.map { .transfer(.amount(AmountInput(type: .earn(.deposit($0)), asset: asset))) }
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.earn, symbol: asset.symbol))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .earn, symbol: asset.symbol)
     }
 
     func showsEmptyState(_ view: GemEarnView) -> Bool {

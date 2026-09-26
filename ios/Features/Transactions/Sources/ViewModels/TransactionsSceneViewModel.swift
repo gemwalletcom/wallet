@@ -59,12 +59,20 @@ public final class TransactionsSceneViewModel {
         Gemstone.loadError(state: transactionsState, hasRows: !sections.isEmpty)
     }
 
-    public var emptyContentModel: EmptyContentTypeViewModel {
-        let kind = transactionsEmptyState(
+    public var emptyContentModel: EmptyStateViewModel {
+        let state = transactionsEmptyState(
             chains: filterModel.chainsFilter.selectedChains.map(\.rawValue),
             filters: filterModel.transactionTypesFilter.selectedTypes,
+            walletType: wallet.type.toGem(),
         )
-        return EmptyContentTypeViewModel(type: EmptyContentType(kind, isViewOnly: wallet.isViewOnly, actions: [.buy: onSelectBuy, .receive: onSelectReceive, .clearFilters: onSelectCleanFilters]))
+        return EmptyStateViewModel(state: state) { [weak self] action in
+            switch action {
+            case .buy: self?.onSelectBuy()
+            case .receive: self?.onSelectReceive()
+            case .clearFilters: self?.onSelectCleanFilters()
+            case .swap, .addCustomToken, .manageTokenList: break
+            }
+        }
     }
 }
 

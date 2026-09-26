@@ -37,7 +37,7 @@ import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsViewModel = hiltViewModel()) {
-    val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
+    val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val previewAssets by viewModel.previewAssets.collectAsStateWithLifecycle()
@@ -171,7 +171,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         unpinned = previewAssets.toImmutableList(),
         recent = recent,
         state = state,
-        isAddAvailable = isAddAssetAvailable,
+        empty = searchEmptyState,
         searchable = false,
         onAction = { action ->
             when (action) {

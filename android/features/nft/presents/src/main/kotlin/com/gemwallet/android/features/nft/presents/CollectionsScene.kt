@@ -21,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.nft.presents.components.NftItem
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -35,8 +34,8 @@ import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
-import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 
 private val collectibleCellMinSize = 150.dp
@@ -49,6 +48,7 @@ internal fun CollectionsScene(
     unverifiedListItem: ListItemModel?,
     title: String,
     showReceiveAction: Boolean,
+    emptyState: GemEmptyState,
     listState: LazyGridState = rememberLazyGridState(),
     snackbar: SnackbarHostState? = null,
     onAction: (CollectionsAction) -> Unit,
@@ -78,10 +78,13 @@ internal fun CollectionsScene(
                     item {
                         if (errorRow == null) {
                             EmptyContentView(
-                                type = nftEmptyContentType(
-                                    showReceiveAction = showReceiveAction,
-                                    onAction = onAction,
-                                ),
+                                state = emptyState,
+                                onAction = { action ->
+                                    when (action) {
+                                        GemEmptyStateAction.RECEIVE -> onAction(CollectionsAction.Receive)
+                                        GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                                    }
+                                },
                                 modifier = Modifier.fillParentMaxSize(),
                             )
                         } else {
@@ -130,14 +133,4 @@ internal fun CollectionsScene(
             }
         }
     }
-}
-
-private fun nftEmptyContentType(showReceiveAction: Boolean, onAction: (CollectionsAction) -> Unit): EmptyContentType {
-    val onReceive: (() -> Unit)? = if (showReceiveAction) {
-        { onAction(CollectionsAction.Receive) }
-    } else {
-        null
-    }
-
-    return EmptyContentType(GemEmptyStateKind.NFTS, actions = mapOf(GemEmptyStateAction.RECEIVE to onReceive))
 }

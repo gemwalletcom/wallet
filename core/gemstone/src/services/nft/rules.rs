@@ -12,6 +12,7 @@ use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSectionTitle};
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonTap};
 use crate::services::assets::rules::asset_text;
+use crate::services::empty_state::{GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
 use crate::services::localization::GemLocalizedText;
 
 const TOKEN_ID_ADDRESS_LENGTH: usize = 16;
@@ -29,11 +30,13 @@ pub fn list_screen(data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
         GemNftList::Unverified => GemLocalizedText::NftUnverified,
         GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
     };
+    let offers_receive = !matches!(list, GemNftList::Unverified);
     let unverified_row = unverified_row(data.clone(), list);
     let items = entries(list_items(data, list));
     GemNftListScreen {
         title,
-        offers_receive: !matches!(list, GemNftList::Unverified),
+        offers_receive,
+        empty_state: screen_empty_state(GemEmptyStateKind::Nfts, false, if offers_receive { &[GemEmptyStateAction::Receive] } else { &[] }),
         syncs_on_appear: matches!(list, GemNftList::Collections | GemNftList::Avatar),
         has_content: !items.is_empty() || unverified_row.is_some(),
         unverified_row,
@@ -268,9 +271,10 @@ mod tests {
         assert_eq!(list_screen(data.clone(), GemNftList::Collections).title, GemLocalizedText::NftCollections);
         assert_eq!(list_screen(data.clone(), GemNftList::Unverified).title, GemLocalizedText::NftUnverified);
 
-        assert!(list_screen(data.clone(), GemNftList::Collections).offers_receive);
-        assert!(list_screen(data.clone(), GemNftList::Collection).offers_receive);
-        assert!(!list_screen(data.clone(), GemNftList::Unverified).offers_receive, "nothing unverified is worth asking for");
+        let receives = |list| list_screen(data.clone(), list).empty_state.actions == vec![GemEmptyStateAction::Receive];
+        assert!(receives(GemNftList::Collections));
+        assert!(receives(GemNftList::Collection));
+        assert!(!receives(GemNftList::Unverified), "nothing unverified is worth asking for");
 
         assert!(list_screen(data.clone(), GemNftList::Collections).syncs_on_appear);
         assert!(

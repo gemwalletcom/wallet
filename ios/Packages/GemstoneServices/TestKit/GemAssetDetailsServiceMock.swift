@@ -43,7 +43,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 isViewOnly: input.wallet.walletType == .view,
                 showsBanners: input.wallet.walletType != .view,
                 priceAlert: .disabled,
-                emptyTransactionsAction: nil,
+                emptyState: .mock(),
             ),
             header: GemValueHeader(
                 icon: .asset(icon: .mock()),

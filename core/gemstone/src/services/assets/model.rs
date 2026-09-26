@@ -5,6 +5,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowTap};
 use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
+use crate::services::empty_state::GemEmptyState;
 use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
@@ -279,6 +280,7 @@ pub struct GemSelectAssetWalletFlow {
     pub chains: Vec<Chain>,
     pub shows_add_token: bool,
     pub shows_chain_filter: bool,
+    pub empty_state: GemEmptyState,
 }
 
 #[uniffi::export]
@@ -546,7 +548,7 @@ pub struct GemWalletSearchView {
     pub has_more_assets: bool,
     pub has_more_perpetuals: bool,
     pub has_more_nfts: bool,
-    pub shows_add_token: bool,
+    pub empty_state: GemEmptyState,
 }
 
 #[uniffi::export]
@@ -654,18 +656,12 @@ impl GemValueHeader {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetEmptyAction {
-    Buy,
-    Swap,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
     pub shows_banners: bool,
     pub price_alert: GemPriceAlertToggle,
-    pub empty_transactions_action: Option<GemAssetEmptyAction>,
+    pub empty_state: GemEmptyState,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

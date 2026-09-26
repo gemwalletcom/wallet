@@ -70,8 +70,8 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
         assetAlerts.showsEmpty && loadError == nil
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.priceAlerts))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .priceAlerts)
     }
 
     var assetAlerts: GemAssetPriceAlerts {

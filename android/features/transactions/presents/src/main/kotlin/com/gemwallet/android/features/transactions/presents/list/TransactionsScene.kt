@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionsFilterSummaryUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
@@ -32,8 +31,8 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
-import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
 
@@ -48,10 +47,8 @@ internal fun TransactionsScene(
     typeFilter: List<TransactionFilterUIModel>,
     typeFilterOptions: List<TransactionFilterUIModel>,
     filterSummary: TransactionsFilterSummaryUIModel,
-    emptyStateKind: GemEmptyStateKind,
+    emptyState: GemEmptyState,
     listState: LazyListState = rememberLazyListState(),
-    showBuyAction: Boolean,
-    showReceiveAction: Boolean,
     onAction: (TransactionsAction) -> Unit,
 ) {
     var showFilters by remember { mutableStateOf(false) }
@@ -88,12 +85,21 @@ internal fun TransactionsScene(
                 transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
-                            type = transactionsEmptyContentType(
-                                kind = emptyStateKind,
-                                showBuyAction = showBuyAction,
-                                showReceiveAction = showReceiveAction,
-                                onAction = onAction,
-                            ),
+                            state = emptyState,
+                            onAction = { action ->
+                                when (action) {
+                                    GemEmptyStateAction.BUY -> onAction(TransactionsAction.Buy)
+
+                                    GemEmptyStateAction.RECEIVE -> onAction(TransactionsAction.Receive)
+
+                                    GemEmptyStateAction.CLEAR_FILTERS -> {
+                                        onAction(TransactionsAction.ClearChainsFilter)
+                                        onAction(TransactionsAction.ClearTypesFilter)
+                                    }
+
+                                    GemEmptyStateAction.SWAP, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST -> Unit
+                                }
+                            },
                             modifier = Modifier.fillParentMaxSize(),
                         )
                     }
@@ -125,23 +131,4 @@ internal fun TransactionsScene(
         onClearChainsFilter = { onAction(TransactionsAction.ClearChainsFilter) },
         onClearTypesFilter = { onAction(TransactionsAction.ClearTypesFilter) },
     )
-}
-
-private fun transactionsEmptyContentType(kind: GemEmptyStateKind, showBuyAction: Boolean, showReceiveAction: Boolean, onAction: (TransactionsAction) -> Unit): EmptyContentType {
-    val onBuy: (() -> Unit)? = if (showBuyAction) {
-        { onAction(TransactionsAction.Buy) }
-    } else {
-        null
-    }
-    val onReceive: (() -> Unit)? = if (showReceiveAction) {
-        { onAction(TransactionsAction.Receive) }
-    } else {
-        null
-    }
-
-    val onClearFilters = {
-        onAction(TransactionsAction.ClearChainsFilter)
-        onAction(TransactionsAction.ClearTypesFilter)
-    }
-    return EmptyContentType(kind, actions = mapOf(GemEmptyStateAction.BUY to onBuy, GemEmptyStateAction.RECEIVE to onReceive, GemEmptyStateAction.CLEAR_FILTERS to onClearFilters))
 }

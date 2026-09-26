@@ -47,8 +47,8 @@ public final class InAppNotificationsSceneViewModel {
         Gemstone.loadError(state: loadState, hasRows: !notifications.isEmpty)
     }
 
-    public var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.notifications))
+    public var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .notifications)
     }
 
     public var sections: [ListSection<InAppNotificationListItemViewModel>] {

@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockGemEmptyState
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
@@ -57,6 +58,7 @@ class CollectionsViewModelTest {
     private val onlyUnverified = GemNftListScreen(
         title = GemLocalizedText.NftCollections,
         offersReceive = true,
+        emptyState = mockGemEmptyState(),
         syncsOnAppear = true,
         items = emptyList(),
         unverifiedRow = GemNftUnverifiedRow(countText = "1"),

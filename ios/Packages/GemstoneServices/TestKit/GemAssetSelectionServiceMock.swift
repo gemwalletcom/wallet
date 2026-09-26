@@ -71,7 +71,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
             hasMoreAssets: counts.assets > limits.assets,
             hasMorePerpetuals: counts.perpetuals > limits.perpetuals,
             hasMoreNfts: counts.nfts > limits.nfts,
-            showsAddToken: walletFlow(selectType: .walletSearch, wallet: input.wallet).showsAddToken,
+            emptyState: walletFlow(selectType: .walletSearch, wallet: input.wallet).emptyState,
         )
     }
 
@@ -92,11 +92,13 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public func walletFlow(selectType: GemSelectAssetType, wallet: Gemstone.Wallet) -> GemSelectAssetWalletFlow {
         let flow = selectType.flow()
         let hasChains = filterChainsResult.isNotEmpty
+        let showsAddToken = flow.addCustomToken && tokensSupported && hasChains
         return GemSelectAssetWalletFlow(
             flow: flow,
             chains: filterChainsResult,
-            showsAddToken: flow.addCustomToken && tokensSupported && hasChains,
+            showsAddToken: showsAddToken,
             showsChainFilter: flow.chainFilter && wallet.walletType == .multicoin && hasChains,
+            emptyState: .mock(actions: showsAddToken ? [.addCustomToken] : []),
         )
     }
 

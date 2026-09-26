@@ -49,8 +49,13 @@ public final class CollectionsSceneViewModel: Sendable {
         Array(repeating: GridItem(spacing: .medium), count: 2)
     }
 
-    public var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.nfts, actions: [.receive: onSelectReceive]))
+    public var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(state: screen.emptyState) { [weak self] action in
+            switch action {
+            case .receive: self?.onSelectReceive()
+            case .buy, .swap, .addCustomToken, .manageTokenList, .clearFilters: break
+            }
+        }
     }
 
     public func loadError(_ screen: GemNftListScreen) -> Error? {

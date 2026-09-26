@@ -179,13 +179,13 @@ public extension Gemstone.GemAssetDetailsState {
         isViewOnly: Bool = false,
         showsBanners: Bool = false,
         priceAlert: Gemstone.GemPriceAlertToggle = .enabled,
-        emptyTransactionsAction: Gemstone.GemAssetEmptyAction? = nil,
+        emptyState: Gemstone.GemEmptyState = .mock(),
     ) -> Gemstone.GemAssetDetailsState {
         Gemstone.GemAssetDetailsState(
             isViewOnly: isViewOnly,
             showsBanners: showsBanners,
             priceAlert: priceAlert,
-            emptyTransactionsAction: emptyTransactionsAction,
+            emptyState: emptyState,
         )
     }
 }
@@ -468,6 +468,22 @@ public extension Gemstone.GemConnectionRow {
             host: host,
             initial: initial,
             iconUrl: iconUrl,
+        )
+    }
+}
+
+public extension Gemstone.GemEmptyState {
+    static func mock(
+        title: Gemstone.GemEmptyStateText = .nftsTitle,
+        description: Gemstone.GemEmptyStateText? = nil,
+        image: Gemstone.GemEmptyStateImage = .nfts,
+        actions: [Gemstone.GemEmptyStateAction] = [],
+    ) -> Gemstone.GemEmptyState {
+        Gemstone.GemEmptyState(
+            title: title,
+            description: description,
+            image: image,
+            actions: actions,
         )
     }
 }

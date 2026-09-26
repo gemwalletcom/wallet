@@ -188,13 +188,14 @@ public final class AssetSceneViewModel: Sendable {
         transactionSections.isNotEmpty
     }
 
-    func emptyContentModel(_ details: GemAssetDetails) -> EmptyContentTypeViewModel {
-        let state = details.state
-        let buy: (() -> Void)? = state.emptyTransactionsAction == .buy ? { self.onSelectBuy() } : nil
-        let swap: (() -> Void)? = state.emptyTransactionsAction == .swap ? { self.onSelectSwap() } : nil
-        return EmptyContentTypeViewModel(
-            type: EmptyContentType(.asset, symbol: asset.symbol, isViewOnly: state.isViewOnly, actions: [.buy: buy, .swap: swap]),
-        )
+    func emptyContentModel(_ details: GemAssetDetails) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: details.state.emptyState, symbol: asset.symbol) { [weak self] action in
+            switch action {
+            case .buy: self?.onSelectBuy()
+            case .swap: self?.onSelectSwap()
+            case .receive, .addCustomToken, .manageTokenList, .clearFilters: break
+            }
+        }
     }
 
     func assetHeader(_ details: GemAssetDetails) -> ValueHeader {
