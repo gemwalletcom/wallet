@@ -104,10 +104,8 @@ mod tests {
             shows_options: true,
             unit_type: FeeUnitType::SatVb,
             unit_decimals: 1,
-            supports_custom_fee: true,
             selected_total: selected_total.map(BigInt::from),
             normal_total: None,
-            custom_rate: None,
         }
     }
 

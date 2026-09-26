@@ -98,7 +98,7 @@ fun mockBuildInfo(platformStore: PlatformStore = PlatformStore.GooglePlay) = Bui
 
 fun mockFeeDetailsModel(
     currentFee: FeeUIModel.FeeInfo = mockFeeInfo(),
-    rows: GemFeeRateRows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 0u, supportsCustomFee = true, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2")),
+    rows: GemFeeRateRows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 0u, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2")),
 ): FeeDetailsModel = FeeDetailsModel(
     currentFee = currentFee,
     rows = rows,

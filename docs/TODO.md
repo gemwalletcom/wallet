@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM214 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM215 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -44,7 +44,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM284 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM222, VM223, VM272, VM287 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM224, VM227, VM228, VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Transfer and confirm
 
-- **VM214** **S** **Fee rate rows are rebuilt with app emojis.**
-  - **iOS:** `FeeRateViewModel` wraps priority, value and fee, and picks the emoji per priority.
-  - **Android:** `FeeRateUIModel` hardcodes the emojis, `FeeRateRowUIModel` builds the list item and `customFeeRowUIModel` adds the custom row with its own emoji.
-  - **Expected:** `GemFeeRateRows` returns every row including custom, with title, emoji, value, fiat and selection; the three models go.
 - **VM215** **M** **The network fee screen is modelled twice.**
   - **iOS:** `NetworkFeeSceneViewModel` and `NetworkFeeCustomViewModel` hold fee, rates, assets and custom checks.
   - **Android:** `FeeDetailsModel`, `FeeUIModel` (a twin of the fee amount record) and `NetworkFeeCustomUIModel` do the same.

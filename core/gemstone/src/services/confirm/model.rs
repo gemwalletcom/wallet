@@ -4,7 +4,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::list::{GemAddressRow, GemListRow};
+use crate::models::list::{GemAddressRow, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
@@ -159,13 +159,40 @@ impl GemConfirmMetadata {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemFeeRateKind {
+    Priority { priority: FeePriority },
+    Custom,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRow {
-    pub priority: FeePriority,
+    pub kind: GemFeeRateKind,
+    pub title: GemListRowTitle,
+    pub emoji: String,
     pub fee: Option<GemBigInt>,
     pub amount: Option<GemFeeAmount>,
-    pub value: GemLocalizedText,
+    pub value: Option<GemLocalizedText>,
     pub is_selected: bool,
+}
+
+impl GemFeeRateRow {
+    pub(super) fn new(kind: GemFeeRateKind, fee: Option<GemBigInt>, value: Option<GemLocalizedText>, is_selected: bool) -> Self {
+        let (title, emoji) = match kind {
+            GemFeeRateKind::Priority { priority: FeePriority::Normal } => (GemListRowTitle::NormalFee, "💎"),
+            GemFeeRateKind::Priority { priority: FeePriority::Fast } => (GemListRowTitle::FastFee, "⚡️"),
+            GemFeeRateKind::Custom => (GemListRowTitle::CustomFee, "⚙️"),
+        };
+        Self {
+            kind,
+            title,
+            emoji: emoji.to_string(),
+            fee,
+            amount: None,
+            value,
+            is_selected,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -174,10 +201,8 @@ pub struct GemFeeRateRows {
     pub shows_options: bool,
     pub unit_type: FeeUnitType,
     pub unit_decimals: u32,
-    pub supports_custom_fee: bool,
     pub selected_total: Option<GemBigInt>,
     pub normal_total: Option<GemBigInt>,
-    pub custom_rate: Option<GemLocalizedText>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

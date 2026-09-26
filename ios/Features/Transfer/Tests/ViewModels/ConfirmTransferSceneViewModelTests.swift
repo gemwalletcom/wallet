@@ -7,14 +7,13 @@ import func Gemstone.addressCopy
 import struct Gemstone.AssetPrice
 import func Gemstone.confirmErrorInfo
 import func Gemstone.feeAmount
-import enum Gemstone.FeePriority
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmFailure
 import struct Gemstone.GemConfirmFee
 import enum Gemstone.GemConfirmRowContent
-import struct Gemstone.GemFeeRateRow
+import enum Gemstone.GemFeeRateKind
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemRowMenuItem
@@ -311,20 +310,12 @@ struct ConfirmTransferSceneViewModelTests {
             amount: .amount(amount: .mock(value: 1, networkFee: 1)),
         )
         let confirmation = GemConfirmationMock(state: .mock(fee: fee), feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            )],
+            rows: [.mock(kind: .priority(priority: .normal), isSelected: true)],
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 20,
             normalTotal: 20,
-            customRate: nil,
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
 
@@ -354,26 +345,12 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func networkFeeStaysSelectableWhileReloading() {
         let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            ), GemFeeRateRow(
-                priority: .fast,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: false,
-            )],
+            rows: [.mock(kind: .priority(priority: .normal), isSelected: true), .mock(kind: .priority(priority: .fast), isSelected: false)],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 20,
             normalTotal: 20,
-            customRate: nil,
         )))
 
         model.state = .mock(load: .mock())
@@ -391,26 +368,12 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func aFeeChangeAndARefreshEachLeaveOneConsistentViewState() async {
         let confirmation = GemConfirmationMock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            ), GemFeeRateRow(
-                priority: .fast,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: false,
-            )],
+            rows: [.mock(kind: .priority(priority: .normal), isSelected: true), .mock(kind: .priority(priority: .fast), isSelected: false)],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 20,
             normalTotal: 20,
-            customRate: nil,
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
         let expected = { confirmation.viewState(screen: model.state.screen) }
@@ -424,35 +387,26 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
-        let priorities: [Gemstone.FeePriority] = [.normal, .fast]
+        let kinds: [GemFeeRateKind] = [.priority(priority: .normal), .priority(priority: .fast)]
         let warning: GemListRow = .notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)
         let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(
             feeRates: .mock(rows: [
-                GemFeeRateRow(priority: .normal, fee: nil, amount: nil, value: .feeRate(
-                    rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
-                    unit: .gwei,
-                ), isSelected: true),
-                GemFeeRateRow(
-                    priority: .fast,
-                    fee: nil,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: false,
-                ),
-            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: 20, normalTotal: 20, customRate: nil),
+                .mock(kind: .priority(priority: .normal), isSelected: true),
+                .mock(kind: .priority(priority: .fast), isSelected: false),
+            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, selectedTotal: 20, normalTotal: 20),
             warnings: [warning],
         ))
 
         #expect(model.simulationWarnings == [warning], "the request's warnings show before the load")
 
         await model.load()
-        #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
+        #expect(model.viewState.feeRates?.rows.map(\.kind) == kinds)
 
         model.changeFeeSelection(.priority(priority: .fast))
         await model.load()
 
         #expect(model.simulationWarnings.isEmpty)
-        #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
+        #expect(model.viewState.feeRates?.rows.map(\.kind) == kinds)
     }
 
     @Test
@@ -461,26 +415,12 @@ struct ConfirmTransferSceneViewModelTests {
             state: .mock(fee: nil),
             load: .success(.mock(fee: .mock())),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: nil,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                ), GemFeeRateRow(
-                    priority: .fast,
-                    fee: nil,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: false,
-                )],
+                rows: [.mock(kind: .priority(priority: .normal), isSelected: true), .mock(kind: .priority(priority: .fast), isSelected: false)],
                 showsOptions: true,
                 unitType: .gwei,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 20,
                 normalTotal: 20,
-                customRate: nil,
             ),
         )
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmationMock)

@@ -26,13 +26,13 @@ class FeeDetailsModelTest {
         assertNotNull(valid.fee)
         assertTrue(valid.isValid)
 
-        val fractional = mockFeeDetailsModel(rows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 1u, supportsCustomFee = true, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2"))).customFee("0.1")
+        val fractional = mockFeeDetailsModel(rows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 1u, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2"))).customFee("0.1")
         assertEquals(BigInteger("1"), fractional.rate)
         assertTrue(fractional.isValid)
 
         val belowMinimum = mockFeeDetailsModel(
             mockFeeInfo(feeAsset = mockAsset(id = mockAssetId(chain = Chain.Litecoin))),
-            mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 1u, supportsCustomFee = true, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2")),
+            mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 1u, selectedTotal = BigInteger("2"), normalTotal = BigInteger("2")),
         ).customFee("0.5")
         val minimum = (belowMinimum.check as GemCustomFeeCheck.BelowMinimum).rate as GemLocalizedText.FeeRate
         assertEquals(5.0, minimum.rate.value, 0.0)
@@ -42,7 +42,7 @@ class FeeDetailsModelTest {
         assertTrue(overMax.check is GemCustomFeeCheck.OverMaximum)
         assertFalse(overMax.isValid)
 
-        val anchoredToNormal = mockFeeDetailsModel(rows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 0u, supportsCustomFee = true, selectedTotal = BigInteger("20"), normalTotal = BigInteger("2"))).customFee("21")
+        val anchoredToNormal = mockFeeDetailsModel(rows = mockGemFeeRateRows(unitType = FeeUnitType.GWEI, unitDecimals = 0u, selectedTotal = BigInteger("20"), normalTotal = BigInteger("2"))).customFee("21")
         assertTrue(anchoredToNormal.check is GemCustomFeeCheck.OverMaximum)
     }
 }

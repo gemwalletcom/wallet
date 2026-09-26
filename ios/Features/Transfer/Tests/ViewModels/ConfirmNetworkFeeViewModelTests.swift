@@ -15,7 +15,7 @@ struct ConfirmNetworkFeeViewModelTests {
         let text = GemFeeText.mock(value: .mock(value: 0.0001446, unit: .symbol(symbol: "BNB")), extra: .text(text: "$0.11"))
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready(text: text),
-            feeModel: .mock(feeRates: .mock(rows: [], showsOptions: false, unitType: .gwei, unitDecimals: 9, supportsCustomFee: false, selectedTotal: nil, normalTotal: nil, customRate: nil)),
+            feeModel: .mock(feeRates: .mock(rows: [], showsOptions: false, unitType: .gwei, unitDecimals: 9, selectedTotal: nil, normalTotal: nil)),
             infoAction: {},
         )
 

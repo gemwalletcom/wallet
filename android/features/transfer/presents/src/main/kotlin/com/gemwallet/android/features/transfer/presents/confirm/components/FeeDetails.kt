@@ -35,11 +35,10 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeRateRowUIModel
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.NetworkFeeCustomUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.customFeeRowUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.rowUIModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -60,7 +59,9 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.suffix
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -72,6 +73,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemAssetItemTrailing
+import uniffi.gemstone.GemFeeRateKind
+import uniffi.gemstone.GemFeeRateRow
 import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,7 +96,6 @@ fun FeeDetails(
 ) {
     currentFee ?: return
     feeAsset ?: return
-    val context = LocalContext.current
     val model = remember(currentFee, feeAsset, selection) {
         feeDetailsModel(currentFee)
     } ?: return
@@ -147,12 +149,7 @@ fun FeeDetails(
             FeeDetailsPage.Details -> FeeRates(
                 feeItems = feeItems,
                 feeListItem = feeListItem,
-                feeRateRows = model.feeRateModels().map { it.rowUIModel(context) },
-                customRow = if (model.supportsCustomFee) {
-                    customFeeRowUIModel(context, model.customRate, selectedCustomRate?.let { currentFee.fiatAmount })
-                } else {
-                    null
-                },
+                feeRateRows = model.feeRateRows,
                 showsOptions = model.showsOptions,
                 feeAsset = feeAsset,
                 showFeeAssets = showFeeAssets,
@@ -185,8 +182,7 @@ fun FeeDetails(
 private fun FeeRates(
     feeItems: List<ListItemModel>,
     feeListItem: ListItemModel?,
-    feeRateRows: List<FeeRateRowUIModel>,
-    customRow: FeeRateRowUIModel?,
+    feeRateRows: List<GemFeeRateRow>,
     showsOptions: Boolean,
     feeAsset: FeeAssetUIModel,
     showFeeAssets: Boolean,
@@ -207,22 +203,17 @@ private fun FeeRates(
             }
         }
         if (showsOptions) {
-            val totalCount = feeRateRows.size + if (customRow != null) 1 else 0
-            itemsPositioned(feeRateRows, totalCount = totalCount) { position, row ->
+            itemsPositioned(feeRateRows) { position, row ->
                 FeeRow(
                     row = row,
                     position = position,
-                    onClick = { row.priority?.let { onSelectPriority(it) } },
+                    onClick = {
+                        when (val kind = row.kind) {
+                            is GemFeeRateKind.Priority -> onSelectPriority(kind.priority.toPrimitives())
+                            GemFeeRateKind.Custom -> onCustom()
+                        }
+                    },
                 )
-            }
-            if (customRow != null) {
-                item {
-                    FeeRow(
-                        row = customRow,
-                        position = ListPosition.getPosition(feeRateRows.size, totalCount),
-                        onClick = onCustom,
-                    )
-                }
             }
             item {
                 Text(
@@ -346,20 +337,21 @@ private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() 
 }
 
 @Composable
-private fun FeeRow(row: FeeRateRowUIModel, position: ListPosition, onClick: () -> Unit) {
+private fun FeeRow(row: GemFeeRateRow, position: ListPosition, onClick: () -> Unit) {
+    val context = LocalContext.current
     ListItem(
         modifier = Modifier.clickable { onClick() },
         leading = {
             EmojiCircle(row.emoji, listItemIconSize, row.isSelected)
         },
         title = {
-            ListItemTitleText(row.model.title)
+            ListItemTitleText(row.title.text(context))
         },
         trailing = {
             DataBadgeChevron(isShowChevron = true) {
                 Column(horizontalAlignment = Alignment.End) {
-                    row.model.subtitle?.let { ListItemTitleText(it) }
-                    row.model.subtitleExtra?.let { ListItemSupportText(it) }
+                    row.value?.let { ListItemTitleText(it.string(context)) }
+                    row.amount?.fiat?.let { ListItemSupportText(it.text()) }
                 }
             }
         },

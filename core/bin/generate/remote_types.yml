@@ -288,6 +288,8 @@ mocks:
   - GemFeeAmount
   - GemFeeAsset
   - GemFeeText
+  - GemFeeRateKind
+  - GemFeeRateRow
   - GemFeeRateRows
   - GemFiatOperation
   - GemFiatQuoteRequest

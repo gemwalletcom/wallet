@@ -22,7 +22,7 @@ use primitives::{
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
     ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState,
-    GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
+    GemFeeAsset, GemFeeRateKind, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::config::fiat_config::get_fiat_config;
@@ -497,38 +497,36 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
         FeeUnitType::Native => fee_asset.decimals as u32,
         FeeUnitType::SatVb | FeeUnitType::Gwei => unit_type.decimals(),
     };
+    let custom_rate = match selection {
+        GemConfirmFeeSelection::Custom { gas_price } => Some(gas_price),
+        GemConfirmFeeSelection::Priority { .. } => None,
+    };
+    let rows = rates.iter().map(|rate| {
+        let unit_value = unit_value(rate);
+        let fee = base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee);
+        let display_value = match unit_type {
+            FeeUnitType::Native => fee.clone().unwrap_or_else(|| unit_value.clone()),
+            FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value.clone(),
+        };
+        let is_selected = matches!(selection, GemConfirmFeeSelection::Priority { priority } if *priority == rate.priority);
+        let value = fee_rate_text(unit_type, &display_value, unit_decimals, &fee_asset.symbol);
+        GemFeeRateRow::new(GemFeeRateKind::Priority { priority: rate.priority }, fee, Some(value), is_selected)
+    });
+    let custom = (custom_fee_enabled(chain) && rates.len() > 1).then(|| {
+        GemFeeRateRow::new(
+            GemFeeRateKind::Custom,
+            custom_rate.map(|_| loaded_fee.fee.clone()),
+            custom_rate.map(|rate| fee_rate_text(unit_type, rate, unit_decimals, &fee_asset.symbol)),
+            custom_rate.is_some(),
+        )
+    });
     GemFeeRateRows {
-        rows: rates
-            .iter()
-            .map(|rate| {
-                let unit_value = unit_value(rate);
-                let fee = base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee);
-                let display_value = match unit_type {
-                    FeeUnitType::Native => fee.clone().unwrap_or_else(|| unit_value.clone()),
-                    FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value.clone(),
-                };
-                GemFeeRateRow {
-                    priority: rate.priority,
-                    fee,
-                    amount: None,
-                    value: fee_rate_text(unit_type, &display_value, unit_decimals, &fee_asset.symbol),
-                    is_selected: match selection {
-                        GemConfirmFeeSelection::Priority { priority } => *priority == rate.priority,
-                        GemConfirmFeeSelection::Custom { .. } => false,
-                    },
-                }
-            })
-            .collect(),
+        rows: rows.chain(custom).collect(),
         unit_type,
         unit_decimals,
         shows_options: rates.len() > 1,
-        supports_custom_fee: custom_fee_enabled(chain) && rates.len() > 1,
         selected_total,
         normal_total: rate_total(FeePriority::Normal).or_else(|| rates.first().map(unit_value)),
-        custom_rate: match selection {
-            GemConfirmFeeSelection::Custom { gas_price } => Some(fee_rate_text(unit_type, gas_price, unit_decimals, &fee_asset.symbol)),
-            GemConfirmFeeSelection::Priority { .. } => None,
-        },
     }
 }
 
@@ -887,6 +885,10 @@ mod tests {
         assert_eq!(generic.output().output_action, TransferDataOutputAction::Sign);
         assert_eq!((TransactionInputType::Transfer { asset: Asset::mock_sol() }).output().output_action, TransferDataOutputAction::Send);
     }
+    fn custom_row(rows: &GemFeeRateRows) -> Option<&GemFeeRateRow> {
+        rows.rows.iter().find(|row| row.kind == GemFeeRateKind::Custom)
+    }
+
     #[test]
     fn test_fee_rate_rows_scale_the_loaded_fee_by_each_rate() {
         let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)];
@@ -897,7 +899,7 @@ mod tests {
         assert_eq!(rows.rows[0].fee, Some(BigInt::from(1_000)), "the selected rate shows the fee that was loaded");
         assert_eq!(rows.rows[1].fee, Some(BigInt::from(2_500)), "another rate scales the loaded fee by its unit value");
         assert_eq!((rows.unit_type, rows.unit_decimals), (FeeUnitType::Gwei, 9));
-        assert!(!rows.supports_custom_fee, "only bitcoin chains take a custom rate");
+        assert!(custom_row(&rows).is_none(), "only bitcoin chains take a custom rate");
         assert_eq!(rows.selected_total, Some(BigInt::from(10)));
         assert_eq!(rows.normal_total, Some(BigInt::from(10)));
         assert_eq!(rows.rows.iter().map(|row| row.is_selected).collect::<Vec<_>>(), vec![true, false], "only the selected priority is highlighted");
@@ -911,9 +913,21 @@ mod tests {
         assert!(zero.rows.iter().all(|row| row.fee.is_none()), "nothing scales against a zero base");
 
         let bitcoin = Asset::from_chain(Chain::Bitcoin);
-        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &GemTransactionLoadFee::mock(5_000)).supports_custom_fee);
+        let offered = fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &GemTransactionLoadFee::mock(5_000));
+        assert_eq!(
+            offered.rows.iter().map(|row| (row.title, row.emoji.as_str())).collect::<Vec<_>>(),
+            vec![(GemListRowTitle::NormalFee, "💎"), (GemListRowTitle::FastFee, "⚡️"), (GemListRowTitle::CustomFee, "⚙️")],
+            "the custom row comes last, after the priorities"
+        );
+        let unpicked = custom_row(&offered).unwrap();
+        assert_eq!((unpicked.fee.clone(), unpicked.value.clone(), unpicked.is_selected), (None, None, false), "an unpicked custom row shows no rate");
+        let picked = fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(20) }, &GemTransactionLoadFee::mock(5_000));
+        let picked = custom_row(&picked).unwrap();
+        assert_eq!(picked.fee, Some(BigInt::from(5_000)), "a picked custom row shows the fee that was loaded");
+        assert_eq!(picked.value, Some(fee_rate_text(FeeUnitType::SatVb, &BigInt::from(20), 1, "BTC")), "a custom selection reads back its rate");
+        assert!(picked.is_selected);
         assert!(
-            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &GemTransactionLoadFee::mock(5_000)).supports_custom_fee,
+            custom_row(&fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &GemTransactionLoadFee::mock(5_000))).is_none(),
             "one rate is nothing to pick a custom value against"
         );
 
@@ -928,10 +942,14 @@ mod tests {
         let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
 
         let gwei = fee_rate_rows(Chain::Ethereum, &Asset::from_chain(Chain::Ethereum), &rates, &normal, &GemTransactionLoadFee::mock(1_000));
-        assert_eq!(gwei.rows[1].value, fee_rate_text(FeeUnitType::Gwei, &BigInt::from(25), 9, "ETH"), "a gwei row shows the rate the user picks");
+        assert_eq!(gwei.rows[1].value, Some(fee_rate_text(FeeUnitType::Gwei, &BigInt::from(25), 9, "ETH")), "a gwei row shows the rate the user picks");
 
         let native = fee_rate_rows(Chain::Solana, &Asset::from_chain(Chain::Solana), &rates, &normal, &GemTransactionLoadFee::mock(1_000));
-        assert_eq!(native.rows[1].value, fee_rate_text(FeeUnitType::Native, &BigInt::from(2_500), 9, "SOL"), "a native-unit row shows what the transfer costs");
+        assert_eq!(
+            native.rows[1].value,
+            Some(fee_rate_text(FeeUnitType::Native, &BigInt::from(2_500), 9, "SOL")),
+            "a native-unit row shows what the transfer costs"
+        );
 
         let unscaled = fee_rate_rows(
             Chain::Solana,
@@ -940,9 +958,7 @@ mod tests {
             &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
             &GemTransactionLoadFee::mock(1_000),
         );
-        assert_eq!(unscaled.rows[1].value, fee_rate_text(FeeUnitType::Native, &BigInt::from(25), 9, "SOL"), "with no fee to scale, the rate stands in");
-        assert_eq!(unscaled.custom_rate, Some(fee_rate_text(FeeUnitType::Native, &BigInt::ZERO, 9, "SOL")), "a custom selection reads back its rate");
-        assert_eq!(native.custom_rate, None);
+        assert_eq!(unscaled.rows[1].value, Some(fee_rate_text(FeeUnitType::Native, &BigInt::from(25), 9, "SOL")), "with no fee to scale, the rate stands in");
     }
 
     #[test]
@@ -990,7 +1006,10 @@ mod tests {
         let rows = confirm.fee_rate_rows(&Asset::mock(), Some(2.0), Currency::USD);
 
         assert_eq!(rows.selected_total, Some(BigInt::from(10)));
-        assert_eq!(rows.rows.iter().map(|row| (row.priority, row.is_selected)).collect::<Vec<_>>(), vec![(FeePriority::Normal, true)]);
+        assert_eq!(
+            rows.rows.iter().map(|row| (row.kind, row.is_selected)).collect::<Vec<_>>(),
+            vec![(GemFeeRateKind::Priority { priority: FeePriority::Normal }, true)]
+        );
         assert!(
             rows.rows.iter().all(|row| row.amount == row.fee.as_ref().map(|fee| fee_amount(&Asset::mock(), fee, Some(2.0), Currency::USD))),
             "each rate row carries its fee in the fee asset and the currency"

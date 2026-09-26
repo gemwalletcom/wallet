@@ -1475,24 +1475,40 @@ fun mockGemFeeAsset(
     row = row,
 )
 
+fun mockGemFeeRateKind(): uniffi.gemstone.GemFeeRateKind = uniffi.gemstone.GemFeeRateKind.Priority(priority = uniffi.gemstone.FeePriority.NORMAL)
+
+fun mockGemFeeRateRow(
+    kind: uniffi.gemstone.GemFeeRateKind = mockGemFeeRateKind(),
+    title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
+    emoji: String = "",
+    fee: java.math.BigInteger? = null,
+    amount: uniffi.gemstone.GemFeeAmount? = null,
+    value: uniffi.gemstone.GemLocalizedText? = null,
+    isSelected: Boolean = false,
+) = uniffi.gemstone.GemFeeRateRow(
+    kind = kind,
+    title = title,
+    emoji = emoji,
+    fee = fee,
+    amount = amount,
+    value = value,
+    isSelected = isSelected,
+)
+
 fun mockGemFeeRateRows(
     rows: List<uniffi.gemstone.GemFeeRateRow> = emptyList(),
     showsOptions: Boolean = false,
     unitType: uniffi.gemstone.FeeUnitType = uniffi.gemstone.FeeUnitType.SAT_VB,
     unitDecimals: UInt = 0u,
-    supportsCustomFee: Boolean = false,
     selectedTotal: java.math.BigInteger? = null,
     normalTotal: java.math.BigInteger? = null,
-    customRate: uniffi.gemstone.GemLocalizedText? = null,
 ) = uniffi.gemstone.GemFeeRateRows(
     rows = rows,
     showsOptions = showsOptions,
     unitType = unitType,
     unitDecimals = unitDecimals,
-    supportsCustomFee = supportsCustomFee,
     selectedTotal = selectedTotal,
     normalTotal = normalTotal,
-    customRate = customRate,
 )
 
 fun mockGemFeeText(

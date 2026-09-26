@@ -93,23 +93,21 @@ public struct NetworkFeeSceneViewModel {
 
     // MARK: - Fee Rates
 
-    public var feeRatesViewModels: [FeeRateViewModel] {
-        rows.map { FeeRateViewModel(priority: $0.priority.toPrimitives(), value: $0.value, fee: $0.amount, isSelected: $0.isSelected) }
+    public var feeRateRows: [GemFeeRateRow] {
+        feeRates?.rows ?? []
     }
 
-    public func rowItem(for rate: FeeRateViewModel) -> ListItemModel {
-        rowItem(title: rate.title, rate: rate)
-    }
-
-    public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
-        rate.fee?.fiat?.text()
+    public func rowItem(for row: GemFeeRateRow) -> ListItemModel {
+        ListItemModel(
+            title: row.title.text,
+            subtitle: row.value?.text,
+            subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
+            subtitleExtra: row.amount?.fiat?.text(),
+            subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
+        )
     }
 
     // MARK: - Custom Fee
-
-    public var supportsCustomFee: Bool { onSelect != nil && feeRates?.supportsCustomFee == true }
-    public var isCustomSelected: Bool { feeRates?.customRate != nil }
-    public var customRowItem: ListItemModel { rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel) }
 
     @MainActor
     public func customFeeModel() -> NetworkFeeCustomViewModel? {
@@ -134,25 +132,5 @@ public struct NetworkFeeSceneViewModel {
     @MainActor
     func selectFeeAsset(_ item: FeeAssetItem) {
         onSelectFeeAsset?(item.id)
-    }
-}
-
-// MARK: - Private
-
-private extension NetworkFeeSceneViewModel {
-    var rows: [GemFeeRateRow] { feeRates?.rows ?? [] }
-
-    var customFeeRateViewModel: FeeRateViewModel? {
-        feeRates?.customRate.map { FeeRateViewModel(priority: .normal, value: $0, fee: fee, isSelected: isCustomSelected) }
-    }
-
-    func rowItem(title: String, rate: FeeRateViewModel?) -> ListItemModel {
-        ListItemModel(
-            title: title,
-            subtitle: rate.map(\.valueText),
-            subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
-            subtitleExtra: rate.flatMap { fiatValueForRate($0) },
-            subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
-        )
     }
 }

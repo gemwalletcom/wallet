@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import Components
 import Foundation
+import enum Gemstone.FeePriority
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
@@ -9,12 +11,24 @@ import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemLocalizedText
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import Localization
 import Primitives
 @testable import PrimitivesComponents
 
 extension NetworkFeeSceneViewModel {
-    var selectedFeeRate: FeeRateViewModel? {
-        feeRatesViewModels.first(where: \.isSelected)
+    var selectedRowItem: ListItemModel? {
+        feeRateRows.first(where: \.isSelected).map(rowItem(for:))
+    }
+}
+
+private extension GemFeeRateRow {
+    static func rate(_ priority: Gemstone.FeePriority = .normal, fee: BigInt? = nil, isSelected: Bool = true) -> GemFeeRateRow {
+        .mock(
+            kind: .priority(priority: priority),
+            fee: fee,
+            value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
+            isSelected: isSelected,
+        )
     }
 }
 
@@ -41,42 +55,20 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeRatesSelector() {
         #expect(NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            )],
+            rows: [.rate()],
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 1,
             normalTotal: 1,
-            customRate: nil,
         )).showFeeRates == false)
         #expect(NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            ), GemFeeRateRow(
-                priority: .fast,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: false,
-            )],
+            rows: [.rate(), .rate(.fast, isSelected: false)],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 1,
             normalTotal: 1,
-            customRate: nil,
         )).showFeeRates)
     }
 
@@ -115,20 +107,12 @@ struct NetworkFeeSceneViewModelTests {
     func showFeeDetailsForLoadedSingleRate() {
         let model = NetworkFeeSceneViewModel.mock(
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: nil,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate()],
                 showsOptions: false,
                 unitType: .gwei,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 1,
                 normalTotal: 1,
-                customRate: nil,
             ),
             feeAmount: BigInt(1_000_000_000_000_000),
         )
@@ -140,26 +124,12 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeDetailsForMultipleRates() {
         let model = NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            ), GemFeeRateRow(
-                priority: .fast,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: false,
-            )],
+            rows: [.rate(), .rate(.fast, isSelected: false)],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 1,
             normalTotal: 1,
-            customRate: nil,
         ))
 
         #expect(model.showFeeRates)
@@ -169,20 +139,12 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeDetailsForSingleRateWhileReloading() {
         let model = NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            )],
+            rows: [.rate()],
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            supportsCustomFee: false,
             selectedTotal: 1,
             normalTotal: 1,
-            customRate: nil,
         ))
 
         #expect(model.showFeeRates == false)
@@ -200,15 +162,13 @@ struct NetworkFeeSceneViewModelTests {
         let solRate = GemFormattedNumber.mock(value: 2.5, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 1)), notation: .plain, tone: .plain, rounding: .toNearest)
         let valueText = { (value: GemLocalizedText) in
             NetworkFeeSceneViewModel.mock(feeRates: .mock(
-                rows: [GemFeeRateRow(priority: .normal, fee: nil, amount: nil, value: value, isSelected: true)],
+                rows: [.mock(value: value, isSelected: true)],
                 showsOptions: false,
                 unitType: .gwei,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 1,
                 normalTotal: 1,
-                customRate: nil,
-            )).selectedFeeRate?.valueText
+            )).selectedRowItem?.subtitle
         }
 
         #expect(valueText(.feeRate(rate: rate, unit: .gwei)) == "2.5 gwei")
@@ -221,54 +181,38 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 5000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 5000)],
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 5000,
                 normalTotal: 5000,
-                customRate: nil,
             ),
             feeAssetPrice: .mock(price: 150.0),
             feeAmount: BigInt(5000),
         )
-        let feeRateVM = try #require(model.feeRatesViewModels.first)
+        let row = try #require(model.feeRateRows.first)
 
-        #expect(model.fiatValueForRate(feeRateVM) != nil)
+        #expect(model.rowItem(for: row).subtitleExtra != nil)
     }
 
     @Test
     func fiatValueForNonNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 21_000_000_000_000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 21_000_000_000_000)],
                 showsOptions: false,
                 unitType: .gwei,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 1,
                 normalTotal: 1,
-                customRate: nil,
             ),
             feeAssetPrice: .mock(price: 3000.0),
             feeAmount: BigInt(21_000_000_000_000),
         )
-        let feeRateVM = try #require(model.feeRatesViewModels.first)
+        let row = try #require(model.feeRateRows.first)
 
-        #expect(model.fiatValueForRate(feeRateVM) != nil)
+        #expect(model.rowItem(for: row).subtitleExtra != nil)
     }
 
     @Test
@@ -276,26 +220,18 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 5000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 5000)],
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
-                supportsCustomFee: false,
                 selectedTotal: 5000,
                 normalTotal: 5000,
-                customRate: nil,
             ),
             feeAmount: BigInt(5000),
         )
-        let feeRateVM = try #require(model.feeRatesViewModels.first)
+        let row = try #require(model.feeRateRows.first)
 
-        #expect(model.fiatValueForRate(feeRateVM) == nil)
+        #expect(model.rowItem(for: row).subtitleExtra == nil)
     }
 
     @Test
@@ -310,54 +246,16 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func supportsCustomFeeOnlyWhenSelectable() {
-        let rates = GemFeeRateRows.mock(
-            rows: [GemFeeRateRow(
-                priority: .normal,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: true,
-            ), GemFeeRateRow(
-                priority: .fast,
-                fee: nil,
-                amount: nil,
-                value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                isSelected: false,
-            )],
-            showsOptions: true,
-            unitType: .satVb,
-            unitDecimals: 1,
-            supportsCustomFee: true,
-            selectedTotal: 1,
-            normalTotal: 1,
-            customRate: nil,
-        )
-        let onSelect: @MainActor (GemConfirmFeeSelection) -> Void = { _ in }
-
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates, onSelect: onSelect).supportsCustomFee)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates).supportsCustomFee == false)
-    }
-
-    @Test
     func customFeeInputConfirmsEnteredRate() throws {
         let custom = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 1000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 1000)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,
-                supportsCustomFee: true,
                 selectedTotal: 20,
                 normalTotal: 20,
-                customRate: nil,
             ),
             feeAmount: 1000,
         ).customFeeModel())
@@ -372,20 +270,12 @@ struct NetworkFeeSceneViewModelTests {
         let custom = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 1000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 1000)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,
-                supportsCustomFee: true,
                 selectedTotal: 20,
                 normalTotal: 20,
-                customRate: nil,
             ),
             feeAmount: 1000,
         ).customFeeModel())
@@ -401,20 +291,12 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [GemFeeRateRow(
-                        priority: .normal,
-                        fee: 1000,
-                        amount: nil,
-                        value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                        isSelected: true,
-                    )],
+                    rows: [.rate(fee: 1000)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
-                    supportsCustomFee: true,
                     selectedTotal: 20,
                     normalTotal: 20,
-                    customRate: nil,
                 ),
                 feeAmount: 1000,
                 onSelect: {
@@ -433,20 +315,12 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [GemFeeRateRow(
-                        priority: .normal,
-                        fee: 1000,
-                        amount: nil,
-                        value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                        isSelected: true,
-                    )],
+                    rows: [.rate(fee: 1000)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
-                    supportsCustomFee: true,
                     selectedTotal: 20,
                     normalTotal: 20,
-                    customRate: nil,
                 ),
                 feeAmount: 1000,
                 onSelect: { _ in selected() },
@@ -462,20 +336,12 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [GemFeeRateRow(
-                        priority: .normal,
-                        fee: 1000,
-                        amount: nil,
-                        value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                        isSelected: true,
-                    )],
+                    rows: [.rate(fee: 1000)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
-                    supportsCustomFee: true,
                     selectedTotal: 20,
                     normalTotal: 20,
-                    customRate: nil,
                 ),
                 feeAmount: 1000,
                 onSelect: {
@@ -491,20 +357,12 @@ struct NetworkFeeSceneViewModelTests {
             feeAsset: .mock(),
             selection: .custom(gasPrice: 200),
             feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 1000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
+                rows: [.rate(fee: 1000)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,
-                supportsCustomFee: true,
                 selectedTotal: 200,
                 normalTotal: 20,
-                customRate: nil,
             ),
             feeAmount: 1000,
         ).customFeeModel())
@@ -514,54 +372,16 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func customRowShowsValueOnlyWhenSelected() {
+    func customRowDrawsTheCoreRate() {
         let customRate = GemFormattedNumber.mock(value: 20, unit: .plain, display: .number(precision: .fraction(min: 0, max: 1)), notation: .plain, tone: .plain, rounding: .toNearest)
-        let selected = NetworkFeeSceneViewModel.mock(
-            feeAsset: .mock(),
-            selection: .custom(gasPrice: 200),
-            feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 1000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: false,
-                )],
-                showsOptions: false,
-                unitType: .satVb,
-                unitDecimals: 1,
-                supportsCustomFee: true,
-                selectedTotal: 200,
-                normalTotal: 20,
-                customRate: .feeRate(rate: customRate, unit: .satVb),
-            ),
-            feeAmount: 1000,
-        )
-        #expect(selected.isCustomSelected)
-        #expect(selected.customRowItem.subtitle == "20 sat/vB")
+        let row = { (value: GemLocalizedText?) in
+            GemFeeRateRow.mock(kind: .custom, title: .customFee, value: value, isSelected: value != nil)
+        }
+        let model = NetworkFeeSceneViewModel.mock(feeAsset: .mock())
 
-        let preset = NetworkFeeSceneViewModel.mock(
-            feeAsset: .mock(),
-            feeRates: .mock(
-                rows: [GemFeeRateRow(
-                    priority: .normal,
-                    fee: 1000,
-                    amount: nil,
-                    value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-                    isSelected: true,
-                )],
-                showsOptions: false,
-                unitType: .satVb,
-                unitDecimals: 1,
-                supportsCustomFee: true,
-                selectedTotal: 20,
-                normalTotal: 20,
-                customRate: nil,
-            ),
-            feeAmount: 1000,
-        )
-        #expect(preset.isCustomSelected == false)
-        #expect(preset.customRowItem.subtitle == nil)
+        #expect(model.rowItem(for: row(.feeRate(rate: customRate, unit: .satVb))).subtitle == "20 sat/vB")
+        #expect(model.rowItem(for: row(nil)).subtitle == nil)
+        #expect(model.rowItem(for: row(nil)).title == Localized.FeeRate.custom)
     }
 
     @Test

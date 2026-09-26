@@ -432,15 +432,6 @@ public extension Primitives.PerpetualDirection {
     }
 }
 
-public extension Primitives.FeePriority {
-    var title: String {
-        switch self {
-        case .normal: Localized.FeeRates.normal
-        case .fast: Localized.FeeRates.fast
-        }
-    }
-}
-
 public extension ConnectionStatus {
     var bannerTitle: String? {
         switch self {
@@ -796,6 +787,9 @@ public extension GemListRowTitle {
         case .lockTime: Localized.Stake.lockTime
         case .minimumAmount: Localized.Stake.minimumAmount
         case .networkFee: Localized.Transfer.networkFee
+        case .normalFee: Localized.FeeRates.normal
+        case .fastFee: Localized.FeeRates.fast
+        case .customFee: Localized.FeeRate.custom
         case .validator: Localized.Stake.validator
         case .provider: Localized.Common.provider
         case .status: Localized.Transaction.status

@@ -22,13 +22,6 @@ public enum Emoji {
         case firework = "🎆"
         case gift = "🎁"
     }
-
-    public enum FeeRate: String {
-        case slow = "⏱️"
-        case normal = "💎"
-        case fast = "⚡️"
-        case custom = "⚙️"
-    }
 }
 
 // MARK: - Previews

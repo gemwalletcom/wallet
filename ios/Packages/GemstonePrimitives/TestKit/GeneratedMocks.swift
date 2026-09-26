@@ -542,26 +542,50 @@ public extension Gemstone.GemFeeAsset {
     }
 }
 
+public extension Gemstone.GemFeeRateKind {
+    static func mock() -> Gemstone.GemFeeRateKind {
+        .priority(priority: .normal)
+    }
+}
+
+public extension Gemstone.GemFeeRateRow {
+    static func mock(
+        kind: Gemstone.GemFeeRateKind = .mock(),
+        title: Gemstone.GemListRowTitle = .api,
+        emoji: String = "",
+        fee: BigInt? = nil,
+        amount: Gemstone.GemFeeAmount? = nil,
+        value: Gemstone.GemLocalizedText? = nil,
+        isSelected: Bool = false,
+    ) -> Gemstone.GemFeeRateRow {
+        Gemstone.GemFeeRateRow(
+            kind: kind,
+            title: title,
+            emoji: emoji,
+            fee: fee,
+            amount: amount,
+            value: value,
+            isSelected: isSelected,
+        )
+    }
+}
+
 public extension Gemstone.GemFeeRateRows {
     static func mock(
         rows: [Gemstone.GemFeeRateRow] = [],
         showsOptions: Bool = false,
         unitType: Gemstone.FeeUnitType = .satVb,
         unitDecimals: UInt32 = 0,
-        supportsCustomFee: Bool = false,
         selectedTotal: BigInt? = nil,
         normalTotal: BigInt? = nil,
-        customRate: Gemstone.GemLocalizedText? = nil,
     ) -> Gemstone.GemFeeRateRows {
         Gemstone.GemFeeRateRows(
             rows: rows,
             showsOptions: showsOptions,
             unitType: unitType,
             unitDecimals: unitDecimals,
-            supportsCustomFee: supportsCustomFee,
             selectedTotal: selectedTotal,
             normalTotal: normalTotal,
-            customRate: customRate,
         )
     }
 }

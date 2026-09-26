@@ -19,7 +19,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ConnectionStatus
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.PerpetualDirection
@@ -418,12 +417,6 @@ fun PerpetualDirection.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun FeePriority.stringRes(): Int = when (this) {
-    FeePriority.Normal -> R.string.fee_rates_normal
-    FeePriority.Fast -> R.string.fee_rates_fast
-}
-
-@StringRes
 fun GemVerificationLevel.stringRes(): Int = when (this) {
     GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
     GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
@@ -703,6 +696,9 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.LOCK_TIME -> context.getString(R.string.stake_lock_time)
     GemListRowTitle.MINIMUM_AMOUNT -> context.getString(R.string.stake_minimum_amount)
     GemListRowTitle.NETWORK_FEE -> context.getString(R.string.transfer_network_fee)
+    GemListRowTitle.NORMAL_FEE -> context.getString(R.string.fee_rates_normal)
+    GemListRowTitle.FAST_FEE -> context.getString(R.string.fee_rates_fast)
+    GemListRowTitle.CUSTOM_FEE -> context.getString(R.string.fee_rate_custom)
     GemListRowTitle.VALIDATOR -> context.getString(R.string.stake_validator)
     GemListRowTitle.PROVIDER -> context.getString(R.string.common_provider)
     GemListRowTitle.STATUS -> context.getString(R.string.transaction_status)
