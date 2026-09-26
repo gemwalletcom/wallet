@@ -3,13 +3,11 @@ package com.gemwallet.android.features.in_app_notifications.presents
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.in_app_notifications.viewmodels.InAppNotificationsViewModel
+import com.gemwallet.android.features.in_app_notifications.viewmodels.models.InAppNotificationListItemUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -19,17 +17,12 @@ import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.navigation.RouteMessage
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListRow
 
 @Composable
-fun InAppNotificationsScene(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (InAppNotificationsAction) -> Unit, viewModel: InAppNotificationsViewModel = hiltViewModel()) {
-    val notifications by viewModel.notifications.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
-
+fun InAppNotificationsScene(notifications: List<InAppNotificationListItemUIModel>, errorRow: GemListRow?, snackbar: SnackbarHostState, onAction: (InAppNotificationsAction) -> Unit) {
     Scene(
         title = stringResource(R.string.settings_notifications_title),
         onClose = { onAction(InAppNotificationsAction.Cancel) },

@@ -16,7 +16,7 @@ import UIKit
 
 @Observable
 @MainActor
-public final class InAppNotificationsViewModel {
+public final class InAppNotificationsSceneViewModel {
     private let service: any GemNotificationServiceProtocol
     private let wallet: Wallet
     private let onOpenAction: ((UrlAction) -> Void)?
@@ -62,7 +62,7 @@ public final class InAppNotificationsViewModel {
 
 // MARK: - Actions
 
-public extension InAppNotificationsViewModel {
+public extension InAppNotificationsSceneViewModel {
     func load() async {
         loadState = await service.refresh(hasNotifications: notifications.isNotEmpty)
     }

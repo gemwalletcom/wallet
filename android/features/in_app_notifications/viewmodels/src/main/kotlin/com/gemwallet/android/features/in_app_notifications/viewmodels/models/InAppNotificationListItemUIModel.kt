@@ -13,13 +13,13 @@ import uniffi.gemstone.GemNotificationIcon
 import uniffi.gemstone.GemNotificationRow
 import uniffi.gemstone.notificationRows
 
-data class NotificationRowUIModel(val id: String, val createdAt: Long, val destination: GemNotificationDestination?, val model: ListItemModel)
+data class InAppNotificationListItemUIModel(val id: String, val createdAt: Long, val destination: GemNotificationDestination?, val model: ListItemModel)
 
-internal fun List<InAppNotification>.uiModels(context: Context): List<NotificationRowUIModel> = zip(notificationRows(map { it.toGem() })) { notification, row ->
+internal fun List<InAppNotification>.uiModels(context: Context): List<InAppNotificationListItemUIModel> = zip(notificationRows(map { it.toGem() })) { notification, row ->
     notification.uiModel(row, context)
 }
 
-private fun InAppNotification.uiModel(row: GemNotificationRow, context: Context): NotificationRowUIModel = NotificationRowUIModel(
+private fun InAppNotification.uiModel(row: GemNotificationRow, context: Context): InAppNotificationListItemUIModel = InAppNotificationListItemUIModel(
     id = item.id,
     createdAt = createdAt,
     destination = row.destination,

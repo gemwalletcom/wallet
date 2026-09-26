@@ -7,9 +7,9 @@ import Store
 import SwiftUI
 
 public struct InAppNotificationsScene: View {
-    @State private var model: InAppNotificationsViewModel
+    @State private var model: InAppNotificationsSceneViewModel
 
-    public init(model: InAppNotificationsViewModel) {
+    public init(model: InAppNotificationsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

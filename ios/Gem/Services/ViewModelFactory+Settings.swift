@@ -89,9 +89,9 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func inAppNotificationsScene() -> InAppNotificationsViewModel? {
+    func inAppNotificationsScene() -> InAppNotificationsSceneViewModel? {
         currentWallet(in: currentWallets()).map {
-            InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) { action in
+            InAppNotificationsSceneViewModel(wallet: $0, service: inAppNotificationService) { action in
                 Task { await AppResolver.main.services.navigationRouter.open(action: action) }
             }
         }

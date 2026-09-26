@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Names:** NAM368 to NAM372 in any order, one feature per change.
+4. **Names:** NAM369 to NAM372 in any order, one feature per change.
 5. **Parity:** BD342, BD343, BD345 to BD351.
 6. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -338,7 +338,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the contact session returns address rows; both builders go.
 - **VM247** **S** **Notification rows decide their tag and icon.**
   - **iOS:** `InAppNotificationListItemViewModel` shows "New" when unread and maps the icon.
-  - **Android:** `NotificationRowUIModel` does the same.
+  - **Android:** `InAppNotificationListItemUIModel` does the same.
   - **Expected:** the shared renderer draws `GemNotificationRow`; both models go.
 - **VM248** **S** **Price alert items are twinned.**
   - **iOS:** `PriceAlertItemViewModel` copies `GemPriceAlertItem` fields.
@@ -627,9 +627,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM368** **S** **In-app notifications: the screen binds its view model as `Screen`.**
-  - **iOS:** `InAppNotificationsViewModel` → `InAppNotificationsSceneViewModel`.
-  - **Android:** `InAppNotificationsScene` (binds a view model) → `InAppNotificationsScreen` + stateless `InAppNotificationsScene`; `NotificationRowUIModel` → `InAppNotificationListItemUIModel`.
 - **NAM369** **S** **Rewards: Android types are `Rewards`, not `Referral`.**
   - **iOS:** `RewardsViewModel` (+ tests, TestKit) → `RewardsSceneViewModel`; route `Scenes.Referral` → `Scenes.Rewards`.
   - **Android:** `ReferralScreen`/`ReferralScene`/`ReferralViewModel`(`Test`)/`ReferralRoute`/`referral()` (file `routes/Referral.kt`) → `Rewards…`/`rewards()` in `Rewards.kt`; `RewardRedemptionUIModel` → `RewardRedemptionOptionUIModel`; `RewardsRowUIModel.kt` splits into files named after its types; `GetStartedDialog` → `CreateRewardsCodeDialog`; `ReferralCodeDialog` → `RedeemRewardsCodeDialog`; `ReferralHead`/`ReferralInfo` → `RewardsHead`/`RewardsInfo`.

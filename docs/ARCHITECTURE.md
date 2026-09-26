@@ -1839,7 +1839,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemContactEditorService` | — | `ContactEditorSceneViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
 | `GemNftService` | — | `CollectionsSceneViewModel` | `CollectionsViewModel` (+ `NFTQuery`) |
-| `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
+| `GemNotificationService` | — | `InAppNotificationsSceneViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsSceneViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |

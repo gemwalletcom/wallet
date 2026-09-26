@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
-import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScene
+import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScreen
 import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
 import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
 import com.gemwallet.android.features.settings.presents.NotificationsScreen
@@ -102,7 +102,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
     entry<InAppNotificationsRoute> { key ->
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
-        InAppNotificationsScene(
+        InAppNotificationsScreen(
             message = routeMessage(key),
             onMessageShown = { onRouteMessageShown(key) },
             onAction = { action ->
