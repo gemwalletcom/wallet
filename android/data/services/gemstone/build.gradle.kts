@@ -64,6 +64,7 @@ dependencies {
 
     implementation(libs.datastore)
 
+    implementation(libs.androidx.biometric)
     implementation(libs.ktx.core)
     testImplementation(testFixtures(project(":data:services:store")))
     testImplementation(testFixtures(project(":gemcore")))

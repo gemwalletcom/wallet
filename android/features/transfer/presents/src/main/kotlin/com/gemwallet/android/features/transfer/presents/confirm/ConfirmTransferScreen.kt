@@ -66,6 +66,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
@@ -109,6 +110,7 @@ fun ConfirmTransferScreen(
     val isVerificationFailed by viewModel.isVerificationFailed.collectAsStateWithLifecycle()
     val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val button by viewModel.button.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
     val feeScreen by viewModel.feeScreen.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
@@ -157,6 +159,7 @@ fun ConfirmTransferScreen(
             MainActionButton(
                 title = buttonLabel,
                 state = buttonState,
+                icon = button.icon.icon(),
                 onClick = {
                     when (viewModel.action()) {
                         GemConfirmAction.EXECUTE -> context.requestAuth(AuthRequest.Confirmation) {

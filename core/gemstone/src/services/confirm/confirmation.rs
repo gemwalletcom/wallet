@@ -154,7 +154,7 @@ impl GemConfirmation {
         let verification = transfer.verification();
         let details = self.details(&transfer, load);
         GemConfirmViewState {
-            button: screen.button(),
+            button: screen.button().authenticated(self.authentication()),
             details,
             fee_row: GemConfirmFeeRow::new(
                 screen.fee_value(load.cloned()),
@@ -164,7 +164,6 @@ impl GemConfirmation {
             title: transfer.title(),
             sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
             verification,
-            authentication: self.authentication(),
         }
     }
 
@@ -328,7 +327,7 @@ mod tests {
 
         let state = confirmation.view_state(screen.clone());
 
-        assert_eq!(state.button, screen.button());
+        assert_eq!(state.button, screen.button().authenticated(confirmation.authentication()));
         assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), false));
         assert_eq!(
             confirmation.network_fee_screen(crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }),
@@ -338,7 +337,6 @@ mod tests {
         assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());
         assert_eq!(state.verification, None);
-        assert_eq!(state.authentication, confirmation.authentication());
     }
 
     #[test]

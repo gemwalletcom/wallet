@@ -430,6 +430,17 @@ pub enum GemConfirmButtonKind {
 pub struct GemConfirmButton {
     pub kind: GemConfirmButtonKind,
     pub state: GemButtonState,
+    pub icon: GemKeystoreAuthentication,
+}
+
+impl GemConfirmButton {
+    pub(super) fn authenticated(self, authentication: GemKeystoreAuthentication) -> Self {
+        let icon = match (self.kind, self.state) {
+            (GemConfirmButtonKind::Confirm, GemButtonState::Enabled) => authentication,
+            _ => GemKeystoreAuthentication::None,
+        };
+        Self { icon, ..self }
+    }
 }
 
 impl GemConfirmLoad {
@@ -500,13 +511,29 @@ pub struct GemConfirmViewState {
     pub details: Option<GemConfirmDetails>,
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
-    pub authentication: GemKeystoreAuthentication,
     pub sections: Vec<GemConfirmSection>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_only_an_enabled_confirm_button_shows_how_it_authenticates() {
+        let icon = |kind, state| {
+            GemConfirmButton {
+                kind,
+                state,
+                icon: GemKeystoreAuthentication::None,
+            }
+            .authenticated(GemKeystoreAuthentication::Biometrics)
+            .icon
+        };
+
+        assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Enabled), GemKeystoreAuthentication::Biometrics);
+        assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Loading), GemKeystoreAuthentication::None);
+        assert_eq!(icon(GemConfirmButtonKind::Retry, GemButtonState::Enabled), GemKeystoreAuthentication::None);
+    }
 
     #[test]
     fn test_the_fee_row_opens_details_only_while_it_has_a_fee_to_show() {

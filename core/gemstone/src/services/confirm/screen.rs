@@ -1,5 +1,6 @@
 use crate::models::button::GemButtonState;
 use crate::services::assets::model::GemFeeText;
+use crate::services::wallet::GemKeystoreAuthentication;
 use primitives::SimulationResult;
 
 use super::error::{GemConfirmError, GemConfirmErrorSheet};
@@ -54,7 +55,11 @@ impl GemConfirmScreen {
     }
 
     pub fn button(&self) -> GemConfirmButton {
-        let button = |kind, state| GemConfirmButton { kind, state };
+        let button = |kind, state| GemConfirmButton {
+            kind,
+            state,
+            icon: GemKeystoreAuthentication::None,
+        };
         match self.phase {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemButtonState::Loading),
             GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemButtonState::Disabled),
@@ -236,7 +241,8 @@ mod tests {
             missing.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::AccountMissing,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(missing.action(), None);
@@ -254,7 +260,8 @@ mod tests {
             GemConfirmScreen::initial(None).button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Loading
+                state: GemButtonState::Loading,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -265,7 +272,8 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Loading
+                state: GemButtonState::Loading,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -277,7 +285,8 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Retry,
-                state: GemButtonState::Enabled
+                state: GemButtonState::Enabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -291,21 +300,24 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
             GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
             ready.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Enabled
+                state: GemButtonState::Enabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
     }
@@ -323,7 +335,8 @@ mod tests {
             waiting.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(waiting.action(), None);
@@ -448,6 +461,7 @@ mod tests {
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
                 state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(amount_failed.action(), None, "an amount the wallet cannot cover is not retried by pressing the button");

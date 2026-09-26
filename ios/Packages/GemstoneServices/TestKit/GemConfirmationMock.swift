@@ -22,6 +22,7 @@ public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
+import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmDetails
 import struct Gemstone.GemConfirmFeeRow
 import func Gemstone.perpetualConfirmDetails
@@ -90,14 +91,21 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
             screen.failure.flatMap { $0.stage == .load ? .error(error: $0.error) : nil },
         ]
         return GemConfirmViewState(
-            button: screen.button(),
+            button: button(screen: screen),
             feeRow: feeRow(screen: screen),
             details: details(),
             title: transfer().title(),
             verification: transfer().verification(),
-            authentication: authenticationValue,
             sections: sections.compactMap(\.self),
         )
+    }
+
+    private func button(screen: GemConfirmScreen) -> GemConfirmButton {
+        var button = screen.button()
+        if button.kind == .confirm, button.state == .enabled {
+            button.icon = authenticationValue
+        }
+        return button
     }
 
     private func details() -> GemConfirmDetails? {

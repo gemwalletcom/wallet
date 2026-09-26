@@ -80,6 +80,7 @@ import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemInfoAction
+import uniffi.gemstone.GemKeystoreAuthentication
 import uniffi.gemstone.GemNetworkFeeScreen
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
@@ -185,8 +186,8 @@ class ConfirmTransferViewModel @Inject constructor(
     val verification = viewState.map { it?.verification }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val button = viewState.map { it?.button ?: GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING))
+    val button = viewState.map { it?.button ?: loadingButton }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, loadingButton)
 
     val feeRow = viewState.map { it?.feeRow }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -340,6 +341,8 @@ class ConfirmTransferViewModel @Inject constructor(
         }
     }
 }
+
+private val loadingButton = GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING, GemKeystoreAuthentication.NONE)
 
 private fun GemConfirmDetails.uiModel(): ConfirmDetailsUIModel? = when (this) {
     is GemConfirmDetails.Swap -> details.uiModel()?.let(ConfirmDetailsUIModel::SwapDetails)

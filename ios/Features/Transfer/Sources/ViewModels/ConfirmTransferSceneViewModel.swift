@@ -133,7 +133,6 @@ public final class ConfirmTransferSceneViewModel {
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             button: viewState.button,
-            authentication: viewState.authentication,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }

@@ -18,6 +18,7 @@ import struct Gemstone.GemHeaderAmount
 import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemInfoImage
+import enum Gemstone.GemKeystoreAuthentication
 import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemLoadState
@@ -445,6 +446,16 @@ public extension GemButtonState {
         case .disabled: .disabled
         case .loading: .loading(showProgress: true)
         case .enabled: .normal
+        }
+    }
+}
+
+public extension GemKeystoreAuthentication {
+    var image: Image? {
+        switch self {
+        case .biometrics: Image(systemName: SystemImage.faceid)
+        case .passcode: Image(systemName: SystemImage.lock)
+        case .none: nil
         }
     }
 }

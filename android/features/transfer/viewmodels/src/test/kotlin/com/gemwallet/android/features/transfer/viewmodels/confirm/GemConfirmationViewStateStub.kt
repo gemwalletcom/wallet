@@ -13,7 +13,6 @@ import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConfirmViewState
 import uniffi.gemstone.GemConfirmation
-import uniffi.gemstone.GemKeystoreAuthentication
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemTransactionHeader
 
@@ -26,7 +25,6 @@ internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
             null,
             GemConfirmTitle.Send,
             null,
-            GemKeystoreAuthentication.NONE,
             listOfNotNull(
                 GemConfirmSection.Header,
                 GemConfirmSection.Details(rowContents(null)),

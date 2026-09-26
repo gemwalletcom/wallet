@@ -35,6 +35,7 @@ import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoImage
+import uniffi.gemstone.GemKeystoreAuthentication
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemPerpetualChartLineKind
@@ -94,6 +95,13 @@ fun GemValueTone.textStyle(): ListItemTextStyle = when (this) {
 fun GemNoticeKind.color(): Color = when (this) {
     GemNoticeKind.ERROR -> MaterialTheme.colorScheme.error
     GemNoticeKind.WARNING, GemNoticeKind.INFO -> pendingColor
+}
+
+@Composable
+fun GemKeystoreAuthentication.icon(): ImageVector? = when (this) {
+    GemKeystoreAuthentication.BIOMETRICS -> AppIcons.Fingerprint
+    GemKeystoreAuthentication.PASSCODE -> AppIcons.Lock
+    GemKeystoreAuthentication.NONE -> null
 }
 
 @Composable

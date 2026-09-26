@@ -1,6 +1,7 @@
 package com.gemwallet.android.di
 
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
@@ -92,6 +93,7 @@ object DataModule {
         nameService: GemNameService,
         signer: GemTransactionSigner,
         passwordStore: PasswordStore,
+        deviceAuthentication: DeviceAuthentication,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
         paymentService: GemPaymentService,
@@ -100,7 +102,7 @@ object DataModule {
         explorerService,
         nameService,
         signer,
-        GemstoneKeystorePassword(passwordStore),
+        GemstoneKeystorePassword(passwordStore, deviceAuthentication),
         recentActivity,
         preferencesService,
         paymentService,
