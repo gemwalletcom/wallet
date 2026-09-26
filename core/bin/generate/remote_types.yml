@@ -269,6 +269,7 @@ mocks:
   - GemAssetItemRow
   - GemAssetItemTrailing
   - GemAssetRowStyle
+  - GemChainRow
   - GemChart
   - GemChartData
   - GemChartHeader

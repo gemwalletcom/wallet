@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -68,10 +69,10 @@ extension AddAssetScene {
                 Section(model.networkTitle) {
                     if model.input.showsChainPicker {
                         NavigationLink(value: Scenes.NetworksSelector()) {
-                            ChainView(model: ChainViewModel(chain: chain))
+                            ChainView(model: chainRow(chain: chain.rawValue))
                         }
                     } else {
-                        ChainView(model: ChainViewModel(chain: chain))
+                        ChainView(model: chainRow(chain: chain.rawValue))
                     }
                 }
             }

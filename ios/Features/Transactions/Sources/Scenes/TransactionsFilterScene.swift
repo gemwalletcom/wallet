@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -49,7 +50,7 @@ public struct TransactionsFilterScene: View {
                         dismiss()
                     }
                 },
-                listContent: { ChainView(model: ChainViewModel(chain: $0)) },
+                listContent: { ChainView(model: chainRow(chain: $0.rawValue)) },
             )
         }
         .sheet(isPresented: $model.isPresentingTypes) {

@@ -9,7 +9,6 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -18,6 +17,7 @@ import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.chainRow
 
 @Composable
 fun SelectChain(
@@ -50,8 +50,7 @@ fun SelectChain(
                 val size = chains.size
                 itemsIndexed(chains) { index, item ->
                     ChainItem(
-                        title = item.networkName(),
-                        icon = item,
+                        row = chainRow(item.string),
                         listPosition = ListPosition.getPosition(index, size),
                         trailing = trailing?.let { t -> @Composable { t(item) } },
                         onClick = { onSelect(item) },

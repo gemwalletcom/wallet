@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import Primitives
 import SwiftUI
 
@@ -26,7 +27,7 @@ public struct NetworkSelectorScene: View {
                 onFinishSelection?(chains)
                 dismiss()
             },
-            listContent: { ChainView(model: ChainViewModel(chain: $0)) },
+            listContent: { ChainView(model: chainRow(chain: $0.rawValue)) },
         )
         .navigationTitle(model.title)
     }

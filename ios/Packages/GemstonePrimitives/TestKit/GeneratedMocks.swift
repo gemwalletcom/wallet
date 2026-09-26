@@ -260,6 +260,22 @@ public extension Gemstone.GemAssetRowStyle {
     }
 }
 
+public extension Gemstone.GemChainRow {
+    static func mock(
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        title: String = "",
+        standard: Gemstone.GemLocalizedText? = nil,
+        icon: Gemstone.GemAssetIcon = .mock(),
+    ) -> Gemstone.GemChainRow {
+        Gemstone.GemChainRow(
+            chain: chain,
+            title: title,
+            standard: standard,
+            icon: icon,
+        )
+    }
+}
+
 public extension Gemstone.GemChart {
     static func mock(
         values: [Gemstone.ChartDateValue] = [],

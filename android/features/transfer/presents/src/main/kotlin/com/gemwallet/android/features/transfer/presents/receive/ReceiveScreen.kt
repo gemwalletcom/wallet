@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.transfer.presents.receive.components.rememberQRCodePainter
 import com.gemwallet.android.features.transfer.viewmodels.receive.ReceiveViewModel
@@ -66,8 +65,9 @@ import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetText
+import uniffi.gemstone.GemChainRow
 import uniffi.gemstone.GemCopy
-import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.chainRow
 
 private val qrCardElevation = 3.dp
 
@@ -97,7 +97,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
             warning = remember(assetState) { viewModel.warningText(assetState) },
             shareText = viewModel.shareAddress(),
             copyText = viewModel.copyAddress(),
-            standard = networks.networks.firstOrNull { it.assetId == info.asset.id.toIdentifier() }?.standard,
+            chainRow = networks.networks.firstOrNull { it.assetId == info.asset.id.toIdentifier() }?.row ?: chainRow(info.asset.id.chain.string),
             onSelectNetwork = if (networks.showsSelector) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -117,7 +117,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 }
 
 @Composable
-private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAssetText, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
+private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAssetText, warning: String, shareText: String?, copyText: GemCopy?, chainRow: GemChainRow, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -146,9 +146,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
             Column {
                 onSelectNetwork?.let {
                     ChainItem(
-                        title = assetInfo.asset.id.chain.networkName(),
-                        icon = assetInfo.asset.id.chain,
-                        subtitle = standard?.string(context),
+                        row = chainRow,
                         listPosition = ListPosition.Single,
                         paddingHorizontal = space0,
                         trailing = { DataBadgeChevron() },

@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.R
@@ -16,6 +15,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.chainRow
 
 @Composable
 fun rememberMatchingChains(availableChains: List<Chain>, query: String): List<Chain> {
@@ -38,8 +38,7 @@ fun LazyListScope.selectFilterChain(matchingChains: List<Chain>, chainFilter: Li
         val chain = item.id.chain
         item {
             ChainItem(
-                title = chain.networkName(),
-                icon = chain,
+                row = chainRow(chain.string),
                 listPosition = ListPosition.getPosition(index, size),
                 trailing = {
                     if (chainFilter.contains(chain)) {

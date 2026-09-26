@@ -25,12 +25,15 @@ pub fn asset_state(asset: &Asset) -> GemReceiveAssetState {
 pub fn networks(asset: &Asset, associations: Vec<AssetId>, wallet: &Wallet) -> GemReceiveNetworks {
     let networks: Vec<GemReceiveNetwork> = network_asset_ids(asset.id.clone(), associations, wallet)
         .into_iter()
-        .map(|asset_id| GemReceiveNetwork {
-            standard: match asset_id == asset.id {
+        .map(|asset_id| {
+            let standard = match asset_id == asset.id {
                 true => standard(&asset.asset_type),
                 false => asset_id.token_id.as_ref().and(asset_id.chain.default_asset_type()).as_ref().and_then(standard),
-            },
-            asset_id,
+            };
+            GemReceiveNetwork {
+                row: crate::services::chain::chain_row_with_standard(asset_id.chain, standard),
+                asset_id,
+            }
         })
         .collect();
     GemReceiveNetworks {
@@ -90,7 +93,7 @@ mod tests {
     fn test_a_network_names_a_known_token_standard_and_nothing_for_a_coin_or_a_generic_token() {
         let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::Solana, Chain::Arbitrum, Chain::Sui], "address"));
         let label = |text: &str| Some(GemLocalizedText::Text { text: text.to_string() });
-        let standards = |asset: Asset, associations: Vec<AssetId>| networks(&asset, associations, &wallet).networks.into_iter().map(|network| network.standard).collect::<Vec<_>>();
+        let standards = |asset: Asset, associations: Vec<AssetId>| networks(&asset, associations, &wallet).networks.into_iter().map(|network| network.row.standard).collect::<Vec<_>>();
 
         assert_eq!(
             standards(

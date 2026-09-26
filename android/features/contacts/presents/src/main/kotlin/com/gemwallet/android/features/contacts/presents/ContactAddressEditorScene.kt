@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.ui.R
@@ -21,6 +20,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.QRScanType
+import uniffi.gemstone.chainRow
 
 @Composable
 fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (String) -> Unit, onMemoChange: (String) -> Unit, onScan: (String) -> Unit, onPaste: (String) -> Unit, onAction: (ContactAddressEditorAction) -> Unit) {
@@ -37,8 +37,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
     ) {
         SubheaderItem(title = stringResource(R.string.transfer_network))
         ChainItem(
-            title = input.chain.networkName(),
-            icon = input.chain,
+            row = chainRow(input.chain.string),
             listPosition = ListPosition.Single,
             trailing = { DataBadgeChevron() },
             onClick = { onAction(ContactAddressEditorAction.SelectChain) },

@@ -316,7 +316,7 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     }
 
     public func networks(asset: Gemstone.Asset, associations _: [Gemstone.AssetId], wallet _: Gemstone.Wallet) -> GemReceiveNetworks {
-        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, standard: nil)], showsSelector: false)
+        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, row: .mock())], showsSelector: false)
     }
 
     public func assetState(asset: Gemstone.Asset) -> GemReceiveAssetState {

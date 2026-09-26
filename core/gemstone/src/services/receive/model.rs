@@ -1,7 +1,6 @@
 use primitives::AssetId;
 
 use crate::services::assets::model::GemAssetText;
-use crate::services::localization::GemLocalizedText;
 
 #[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum GemReceiveWarning {
@@ -26,5 +25,5 @@ pub struct GemReceiveNetworks {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemReceiveNetwork {
     pub asset_id: AssetId,
-    pub standard: Option<GemLocalizedText>,
+    pub row: crate::services::chain::GemChainRow,
 }

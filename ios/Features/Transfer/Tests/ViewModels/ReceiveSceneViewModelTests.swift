@@ -23,8 +23,8 @@ struct ReceiveSceneViewModelTests {
         let service = GemReceiveServiceMock()
         service.networksValue = GemReceiveNetworks(
             networks: [
-                GemReceiveNetwork(assetId: bitcoin.id.identifier, standard: nil),
-                GemReceiveNetwork(assetId: ethereum.id.identifier, standard: .text(text: "ERC20")),
+                GemReceiveNetwork(assetId: bitcoin.id.identifier, row: .mock(chain: bitcoin.chain.rawValue)),
+                GemReceiveNetwork(assetId: ethereum.id.identifier, row: .mock(chain: ethereum.chain.rawValue, standard: .text(text: "ERC20"))),
             ],
             showsSelector: true,
         )

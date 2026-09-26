@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -26,7 +27,7 @@ public struct ChainListSettingsScene: View {
             Section(Localized.Settings.Networks.title) {
                 ForEach(filteredChains) { chain in
                     NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
-                        ChainView(model: ChainViewModel(chain: chain))
+                        ChainView(model: chainRow(chain: chain.rawValue))
                     }
                 }
             }

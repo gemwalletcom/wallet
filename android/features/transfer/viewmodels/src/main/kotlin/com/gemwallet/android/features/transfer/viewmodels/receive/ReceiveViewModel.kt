@@ -40,6 +40,7 @@ import uniffi.gemstone.GemReceiveNetwork
 import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.addressCopy
+import uniffi.gemstone.chainRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
@@ -80,7 +81,7 @@ class ReceiveViewModel @AssistedInject constructor(
             session.wallet.toGem(),
         )
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(networks = listOf(GemReceiveNetwork(sourceAssetId.toIdentifier(), standard = null)), showsSelector = false))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(networks = listOf(GemReceiveNetwork(sourceAssetId.toIdentifier(), row = chainRow(sourceAssetId.chain.string))), showsSelector = false))
 
     fun assetState(asset: Asset): GemReceiveAssetState = service.assetState(asset.toGem())
 

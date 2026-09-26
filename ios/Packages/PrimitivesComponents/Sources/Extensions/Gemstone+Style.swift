@@ -8,6 +8,7 @@ import struct Gemstone.GemAvatar
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerIcon
 import enum Gemstone.GemButtonState
+import struct Gemstone.GemChainRow
 import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemContactAvatarImage
 import enum Gemstone.GemEmptyStateImage
@@ -606,5 +607,18 @@ extension GemAssetText: AssetPreviewable {
 
     public var assetImage: AssetImage {
         AssetImage(icon: icon)
+    }
+}
+
+public extension GemChainRow {
+    var listItem: ListItemModel {
+        let standard = standard?.text
+        return ListItemModel(
+            title: title,
+            titleStyle: standard == nil ? .body : .body.weight(.medium),
+            titleExtra: standard,
+            titleStyleExtra: .calloutSecondary,
+            imageStyle: .asset(assetImage: AssetImage(icon: icon)),
+        )
     }
 }

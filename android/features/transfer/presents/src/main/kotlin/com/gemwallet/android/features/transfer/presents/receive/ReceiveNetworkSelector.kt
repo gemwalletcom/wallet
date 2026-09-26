@@ -6,9 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -23,7 +21,6 @@ import uniffi.gemstone.GemReceiveNetwork
 
 @Composable
 internal fun ReceiveNetworkSelector(isVisible: Boolean, networks: List<GemReceiveNetwork>, onSelect: (AssetId) -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
@@ -38,9 +35,7 @@ internal fun ReceiveNetworkSelector(isVisible: Boolean, networks: List<GemReceiv
             itemsIndexed(networks) { index, network ->
                 val assetId = network.assetId.toAssetId()!!
                 ChainItem(
-                    title = assetId.chain.networkName(),
-                    icon = assetId.chain,
-                    subtitle = network.standard?.string(context),
+                    row = network.row,
                     listPosition = ListPosition.getPosition(index, networks.size),
                     trailing = { DataBadgeChevron() },
                     onClick = {

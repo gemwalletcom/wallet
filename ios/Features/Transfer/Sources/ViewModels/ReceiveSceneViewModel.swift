@@ -1,6 +1,8 @@
 import Components
 import Foundation
 import func Gemstone.addressCopy
+import func Gemstone.chainRow
+import struct Gemstone.GemChainRow
 import struct Gemstone.GemReceiveAssetState
 import struct Gemstone.GemReceiveNetworks
 import protocol Gemstone.GemReceiveServiceProtocol
@@ -100,11 +102,8 @@ public final class ReceiveSceneViewModel: Sendable {
         )
     }
 
-    func chainModel(for assetId: AssetId) -> ChainViewModel {
-        ChainViewModel(
-            chain: assetId.chain,
-            standard: networks.networks.first { $0.assetId == assetId.identifier }?.standard?.text,
-        )
+    func chainModel(for assetId: AssetId) -> GemChainRow {
+        networks.networks.first { $0.assetId == assetId.identifier }?.row ?? chainRow(chain: assetId.chain.rawValue)
     }
 
     var isPresentingSheet: ReceivePresentationType? {

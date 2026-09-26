@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import enum Gemstone.GemContactAddressField
 import Primitives
 import PrimitivesComponents
@@ -69,7 +70,7 @@ extension ContactAddressEditorScene {
     private var chainSection: some View {
         Section(model.networkTitle) {
             NavigationLink(value: Scenes.NetworksSelector()) {
-                ChainView(model: ChainViewModel(chain: model.chain))
+                ChainView(model: chainRow(chain: model.chain.rawValue))
             }
         }
     }

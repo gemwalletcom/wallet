@@ -1265,6 +1265,18 @@ fun mockGemAssetRowStyle(
     trailing = trailing,
 )
 
+fun mockGemChainRow(
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    title: String = "",
+    standard: uniffi.gemstone.GemLocalizedText? = null,
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
+) = uniffi.gemstone.GemChainRow(
+    chain = chain,
+    title = title,
+    standard = standard,
+    icon = icon,
+)
+
 fun mockGemChart(
     values: List<uniffi.gemstone.ChartDateValue> = emptyList(),
     baseValue: Double = 0.0,

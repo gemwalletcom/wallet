@@ -18,8 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.AddNodeUIState
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.NodeCheckRowUIModel
@@ -29,7 +27,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
-import com.gemwallet.android.ui.components.list_item.AssetListItem
+import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -37,6 +35,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.QRScanType
+import uniffi.gemstone.chainRow
 
 @Composable
 fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
@@ -58,11 +57,10 @@ fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String
         },
         onClose = onCancel,
     ) {
-        val asset = chain.asset()
-        AssetListItem(
-            asset = asset,
+        ChainItem(
+            row = chainRow(chain.string),
             listPosition = ListPosition.Single,
-            title = chain.networkName(),
+            onClick = null,
         )
         UrlField(
             value = url,
