@@ -27,10 +27,14 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.features.onboarding.presents.OnboardingScene
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.flavors.ReviewManager
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
+import uniffi.gemstone.GemAppUpdateAction
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemNavigationTab
 
 @Composable
@@ -117,8 +121,7 @@ fun WalletApp(
 
     state.update?.let { update ->
         ShowUpdateDialog(
-            version = update.version,
-            isRequired = !update.canSkip,
+            update = update,
             onSkip = viewModel::onSkip,
             onUpdateOpened = viewModel::onUpdateOpened,
         )
@@ -134,9 +137,10 @@ fun WalletApp(
 }
 
 @Composable
-private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () -> Unit, onUpdateOpened: () -> Unit) {
+private fun ShowUpdateDialog(update: GemAppUpdateOffer, onSkip: () -> Unit, onUpdateOpened: () -> Unit) {
     val context = LocalContext.current
     val isPlayStoreInstall = fromGooglePlay(context)
+    val isRequired = !update.canSkip()
 
     if (isPlayStoreInstall && !isRequired) {
         return
@@ -153,7 +157,7 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
                 openUpdateDestination(context = context, isPlayStoreInstall = isPlayStoreInstall)
                 onUpdateOpened()
             }) {
-                Text(text = stringResource(id = R.string.update_app_action))
+                Text(text = stringResource(id = GemAppUpdateAction.UPDATE.stringRes()))
             }
         },
         dismissButton = if (isRequired) {
@@ -161,15 +165,15 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
         } else {
             {
                 TextButton(onClick = onSkip) {
-                    Text(text = stringResource(R.string.common_skip))
+                    Text(text = stringResource(GemAppUpdateAction.SKIP.stringRes()))
                 }
             }
         },
         title = {
-            Text(text = stringResource(id = R.string.update_app_title))
+            Text(text = update.title.string(context))
         },
         text = {
-            Text(text = stringResource(id = R.string.update_app_description, version))
+            Text(text = update.description.string(context))
         },
     )
 }

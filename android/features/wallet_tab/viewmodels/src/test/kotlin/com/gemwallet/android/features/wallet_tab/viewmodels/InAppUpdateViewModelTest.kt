@@ -19,6 +19,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAppUpdateOffer
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,12 +52,12 @@ class InAppUpdateViewModelTest {
         val update = viewModel.updateAvailable.value
         assertNotNull(update)
         assertEquals("2.0.0", update?.version)
-        assertTrue(update?.canSkip == false)
+        assertTrue(update?.canSkip() == false)
     }
 
     @Test
     fun `store offer is not shown as an in app update`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE))
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -66,7 +67,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip stores the optional update version`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -79,7 +80,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()

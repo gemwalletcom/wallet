@@ -40,6 +40,7 @@ import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemAssetOption
 import uniffi.gemstone.GemAssetSectionKind
@@ -310,6 +311,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.RewardsShareText -> context.getString(R.string.rewards_share_text, link)
 
+    GemLocalizedText.AppUpdateTitle -> context.getString(R.string.update_app_title)
+
+    is GemLocalizedText.AppUpdateDescription -> context.getString(R.string.update_app_description, version)
+
     is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"
 
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
@@ -490,6 +495,12 @@ fun GemAssetOption.text(context: Context): String = when (this) {
     is GemAssetOption.ViewAddress -> context.getString(R.string.asset_view_address_on, link.name)
     is GemAssetOption.ViewToken -> context.getString(R.string.asset_view_token_on, link.name)
     GemAssetOption.Share -> context.getString(R.string.common_share)
+}
+
+@StringRes
+fun GemAppUpdateAction.stringRes(): Int = when (this) {
+    GemAppUpdateAction.SKIP -> R.string.common_skip
+    GemAppUpdateAction.UPDATE -> R.string.update_app_action
 }
 
 @StringRes

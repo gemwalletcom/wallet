@@ -406,7 +406,15 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
         if let newestError {
             throw newestError
         }
-        return newestValue.map { GemAppUpdateOffer(version: $0.version, canSkip: !$0.upgradeRequired, apkUrl: nil) }
+        return newestValue.map {
+            GemAppUpdateOffer(
+                version: $0.version,
+                title: .appUpdateTitle,
+                description: .appUpdateDescription(version: $0.version),
+                actions: $0.upgradeRequired ? [.update] : [.skip, .update],
+                apkUrl: nil,
+            )
+        }
     }
 
     public func isVersionHigher(new: String, current: String) -> Bool {

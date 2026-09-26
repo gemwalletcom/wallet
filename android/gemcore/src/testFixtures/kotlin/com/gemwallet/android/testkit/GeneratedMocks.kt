@@ -1159,11 +1159,15 @@ fun mockGemAddressRow(
 
 fun mockGemAppUpdateOffer(
     version: String = "",
-    canSkip: Boolean = false,
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    description: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    actions: List<uniffi.gemstone.GemAppUpdateAction> = emptyList(),
     apkUrl: String? = null,
 ) = uniffi.gemstone.GemAppUpdateOffer(
     version = version,
-    canSkip = canSkip,
+    title = title,
+    description = description,
+    actions = actions,
     apkUrl = apkUrl,
 )
 

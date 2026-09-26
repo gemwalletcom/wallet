@@ -33,7 +33,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
-| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM275 |
+| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Texts composed in the apps
 
-- **VM275** **S** **The app update prompt is composed in the apps.**
-  - **iOS:** `RootSceneViewModel` builds the alert title, the version description and skip/update actions.
-  - **Android:** `WalletApp` and `InAppUpdateBanner` compose the description and "version · …"; `AppViewModel` decides dismissal from `canSkip`.
-  - **Expected:** `GemAppUpdateService` returns the prompt record (texts and which actions exist).
 - **VM276** **S** **The "Today, 10:30" row date is composed in both formatters.**
   - **iOS:** `TransactionDateFormatter.row` joins the day label and the time with ", ".
   - **Android:** `SectionDateFormatter.row` does the same.

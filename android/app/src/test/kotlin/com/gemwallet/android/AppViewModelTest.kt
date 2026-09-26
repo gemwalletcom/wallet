@@ -34,6 +34,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -99,7 +100,7 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true, apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
 
         model.startDestinationState.first { it != null }
 
@@ -124,7 +125,7 @@ class AppViewModelTest {
     @Test
     fun `an optional update is remembered as skipped`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true), skip = skip)
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE)), skip = skip)
         model.uiState.first { it.update != null }
 
         model.onSkip().join()
@@ -136,7 +137,7 @@ class AppViewModelTest {
     @Test
     fun `opening the store for an optional update hides it without skipping`() = runTest(dispatcher) {
         val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true), skip = skip)
+        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE)), skip = skip)
         model.uiState.first { it.update != null }
 
         model.onUpdateOpened()

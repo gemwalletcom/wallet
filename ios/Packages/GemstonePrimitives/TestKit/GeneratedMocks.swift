@@ -123,12 +123,16 @@ public extension Gemstone.GemAddressRow {
 public extension Gemstone.GemAppUpdateOffer {
     static func mock(
         version: String = "",
-        canSkip: Bool = false,
+        title: Gemstone.GemLocalizedText = .mock(),
+        description: Gemstone.GemLocalizedText = .mock(),
+        actions: [Gemstone.GemAppUpdateAction] = [],
         apkUrl: String? = nil,
     ) -> Gemstone.GemAppUpdateOffer {
         Gemstone.GemAppUpdateOffer(
             version: version,
-            canSkip: canSkip,
+            title: title,
+            description: description,
+            actions: actions,
             apkUrl: apkUrl,
         )
     }

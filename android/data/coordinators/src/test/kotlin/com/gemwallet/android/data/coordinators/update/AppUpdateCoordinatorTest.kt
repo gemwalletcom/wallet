@@ -12,13 +12,14 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAppUpdateService
 
 class AppUpdateCoordinatorTest {
 
     @Test
     fun `sync offers the release core returned`() = runTest {
-        val update = mockGemAppUpdateOffer(canSkip = true, apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk")
+        val update = mockGemAppUpdateOffer(actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk")
         val appUpdateService = mockk<GemAppUpdateService> {
             coEvery { check(any(), any()) } returns update
         }
@@ -30,7 +31,7 @@ class AppUpdateCoordinatorTest {
 
     @Test
     fun `skip saves the version and clears the offer without checking again`() = runTest {
-        val update = mockGemAppUpdateOffer(version = "2.0.0", canSkip = true)
+        val update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE))
         val appUpdateService = mockk<GemAppUpdateService> {
             coEvery { check(any(), any()) } returns update
             every { skip(any()) } returns Unit

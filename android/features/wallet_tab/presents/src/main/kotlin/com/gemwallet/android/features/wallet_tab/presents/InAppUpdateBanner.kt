@@ -37,6 +37,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -44,6 +46,7 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.mainActionHeight
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAppUpdateOffer
 import kotlin.math.roundToInt
 
@@ -59,7 +62,7 @@ fun InAppUpdateBanner() {
 
     val update = updateAvailable ?: return
     if (state == DownloadState.Success) return
-    val canDismiss = update.canSkip
+    val canDismiss = update.canSkip()
 
     val action = {
         when (state) {
@@ -99,7 +102,7 @@ fun InAppUpdateBanner() {
                 DownloadState.Success,
                 -> {
                     DropdownMenuItem(
-                        text = { Text(text = stringResource(id = R.string.update_app_action)) },
+                        text = { Text(text = stringResource(id = GemAppUpdateAction.UPDATE.stringRes())) },
                         onClick = {
                             isShowContextMenu = false
                             viewModel.update()
@@ -107,7 +110,7 @@ fun InAppUpdateBanner() {
                     )
                     if (canDismiss) {
                         DropdownMenuItem(
-                            text = { Text(text = stringResource(R.string.common_skip)) },
+                            text = { Text(text = stringResource(GemAppUpdateAction.SKIP.stringRes())) },
                             onClick = {
                                 isShowContextMenu = false
                                 viewModel.skip()
@@ -149,7 +152,7 @@ private fun UpdateInfo(modifier: Modifier = Modifier, state: DownloadState, upda
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = stringResource(R.string.update_app_title))
+            Text(text = updateAvailable.title.string(LocalContext.current))
             Text(
                 text = if (state is DownloadState.Error) {
                     "${updateAvailable.version} · ${stringResource(R.string.common_try_again)}"

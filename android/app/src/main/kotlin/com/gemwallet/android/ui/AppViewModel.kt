@@ -106,7 +106,7 @@ class AppViewModel @Inject constructor(
     }
 
     fun onUpdateOpened() {
-        if (state.value.update?.canSkip == false) {
+        if (state.value.update?.canSkip() == false) {
             return
         }
         state.update { it.copy(update = null) }

@@ -12,6 +12,7 @@ import enum Gemstone.GemAcquireOption
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountSymbol
 import enum Gemstone.GemAmountTitle
+import enum Gemstone.GemAppUpdateAction
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemAssetOption
 import enum Gemstone.GemAssetSectionKind
@@ -198,6 +199,10 @@ public extension GemLocalizedText {
             Localized.Rewards.InviteFriends.description(points.text().boldMarkdown())
         case let .rewardsShareText(link):
             Localized.Rewards.shareText(link)
+        case .appUpdateTitle:
+            Localized.UpdateApp.title
+        case let .appUpdateDescription(version):
+            Localized.UpdateApp.description(version)
         case let .currentPrice(price):
             [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):
@@ -488,6 +493,15 @@ public extension FeeUnitType {
         case .satVb: Localized.FeeRate.satvB
         case .gwei: Localized.FeeRate.gwei
         case .native: symbol
+        }
+    }
+}
+
+public extension GemAppUpdateAction {
+    var title: String {
+        switch self {
+        case .skip: Localized.Common.skip
+        case .update: Localized.UpdateApp.action
         }
     }
 }

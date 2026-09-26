@@ -50,6 +50,8 @@ pub enum GemLocalizedText {
     ReservedFees { fee: GemFormattedNumber },
     RewardsInviteDescription { points: GemFormattedNumber },
     RewardsShareText { link: String },
+    AppUpdateTitle,
+    AppUpdateDescription { version: String },
     CurrentPrice { price: GemFormattedNumber },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
