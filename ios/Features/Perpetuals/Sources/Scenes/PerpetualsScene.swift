@@ -61,25 +61,11 @@ struct PerpetualsScene: View {
     var list: some View {
         let marketSections = model.marketSectionList
         return List {
-            if !model.isSearching {
-                Section {} header: {
-                    ValueHeaderView(
-                        header: model.header,
-                        isPrivacyEnabled: .constant(false),
-                        titleActionType: .action(model.onSelectBalance),
-                        onHeaderAction: model.onSelectHeaderAction,
-                        onInfoAction: .none,
-                    )
-                    .padding(.top, Spacing.small)
-                }
-                .cleanListRow()
-            }
-
             ForEach(marketSections, id: \.self) { section in
                 marketSection(section)
             }
         }
-        .if(!model.isSearching) {
+        .if(marketSections.contains(.header)) {
             $0.contentMargins([.top], .space12, for: .scrollContent)
         }
         .overlay {
@@ -96,6 +82,18 @@ extension PerpetualsScene {
     @ViewBuilder
     private func marketSection(_ section: GemPerpetualMarketSection) -> some View {
         switch section {
+        case .header:
+            Section {} header: {
+                ValueHeaderView(
+                    header: model.header,
+                    isPrivacyEnabled: .constant(false),
+                    titleActionType: .action(model.onSelectBalance),
+                    onHeaderAction: model.onSelectHeaderAction,
+                    onInfoAction: .none,
+                )
+                .padding(.top, Spacing.small)
+            }
+            .cleanListRow()
         case .recents:
             RecentAssetsSectionView(
                 model: model.recentModel,

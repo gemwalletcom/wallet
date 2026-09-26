@@ -119,28 +119,29 @@ internal fun PerpetualsScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                if (!isSearching && balanceHeader != null) {
-                    item {
-                        ValueListHead(
-                            header = balanceHeader,
-                            onClick = { onAction(PerpetualsAction.OpenPortfolio) },
-                        ) {
-                            AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
-                                when (action) {
-                                    is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
+                sections.forEach { section ->
+                    when (section) {
+                        GemPerpetualMarketSection.HEADER -> if (balanceHeader != null) {
+                            item {
+                                ValueListHead(
+                                    header = balanceHeader,
+                                    onClick = { onAction(PerpetualsAction.OpenPortfolio) },
+                                ) {
+                                    AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
+                                        when (action) {
+                                            is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
 
-                                    is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
+                                            is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 
-                                    is GemHeaderButtonAction.Send, is GemHeaderButtonAction.Receive, is GemHeaderButtonAction.Buy, is GemHeaderButtonAction.Swap,
-                                    GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu,
-                                    -> Unit
+                                            is GemHeaderButtonAction.Send, is GemHeaderButtonAction.Receive, is GemHeaderButtonAction.Buy, is GemHeaderButtonAction.Swap,
+                                            GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu,
+                                            -> Unit
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-                sections.forEach { section ->
-                    when (section) {
+
                         GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
                             items = recent,
                             onSeeAll = { onAction(PerpetualsAction.OpenRecentsSheet) },

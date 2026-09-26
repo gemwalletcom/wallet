@@ -686,6 +686,7 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     let shows_pinned = counts.pinned > 0;
     let shows_markets = counts.markets > 0;
     [
+        (!is_searching, GemPerpetualMarketSection::Header),
         (is_searching && is_query_empty && counts.recents > 0, GemPerpetualMarketSection::Recents),
         (shows_positions, GemPerpetualMarketSection::Positions),
         (shows_pinned, GemPerpetualMarketSection::Pinned),
@@ -1046,7 +1047,7 @@ mod tests {
 
         assert_eq!(market_sections(&counts, true, true), vec![GemPerpetualMarketSection::Recents, GemPerpetualMarketSection::Empty]);
         assert_eq!(market_sections(&counts, true, false), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(market_sections(&counts, false, true), vec![]);
+        assert_eq!(market_sections(&counts, false, true), vec![GemPerpetualMarketSection::Header], "the balance header shows only outside a search");
 
         let listed = GemPerpetualMarketCounts {
             positions: 1,
@@ -1074,7 +1075,7 @@ mod tests {
         assert_eq!(searching.on_query_changed("  ".to_string()).sections(counts), searching.sections(counts));
         assert_eq!(searching.on_query_changed(" btc ".to_string()).search_query(), "btc");
         assert_eq!(searching.on_query_changed(" btc ".to_string()).sections(counts), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(GemPerpetualMarketSession::default().sections(counts), vec![]);
+        assert_eq!(GemPerpetualMarketSession::default().sections(counts), vec![GemPerpetualMarketSection::Header]);
     }
 
     #[test]
@@ -2028,7 +2029,7 @@ mod tests {
 
         assert_eq!(
             market_sections(&counts, false, true),
-            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
+            vec![GemPerpetualMarketSection::Header, GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
         );
         assert_eq!(
             market_sections(&counts, true, true),

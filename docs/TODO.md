@@ -48,7 +48,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
-| Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
+| Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
@@ -141,10 +141,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Screen composition
 
-- **VM282** **S** **The perpetual market hides its header while searching in the views.**
-  - **iOS:** `PerpetualsScene` gates the balance header on `!model.isSearching`.
-  - **Android:** `PerpetualsScene` gates the header and sections on `isSearching`.
-  - **Expected:** `GemPerpetualMarketSession` sections include or omit the header.
 - **VM283** **S** **Settings screens hand Core the values its preference store holds.**
   - **iOS:** `PreferencesSceneViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecuritySceneViewModel` builds `GemSecurityInput`.
   - **Android:** `PreferencesViewModel` and `SecurityViewModel` build the same inputs.

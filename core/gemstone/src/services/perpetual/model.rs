@@ -422,6 +422,7 @@ impl GemPerpetualPositionAction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualMarketSection {
+    Header,
     Positions,
     Recents,
     Pinned,
