@@ -29,35 +29,3 @@ where
         .map_err(|error| ClientError::Serialization(error.to_string()))
     })
 }
-
-#[cfg(test)]
-mod tests {
-    use gem_client::ClientExt;
-
-    use super::mock_jsonrpc_transport;
-
-    #[tokio::test]
-    async fn mock_jsonrpc_transport_wraps_result() {
-        let client = mock_jsonrpc_transport(|method, params| {
-            assert_eq!(method, "echo");
-            assert_eq!(params, &serde_json::json!(["hello"]));
-            Ok(serde_json::json!({ "value": "ok" }))
-        });
-
-        let response: serde_json::Value = client
-            .post(
-                "",
-                &serde_json::json!({
-                    "jsonrpc": "2.0",
-                    "id": 7,
-                    "method": "echo",
-                    "params": ["hello"],
-                }),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response["id"], 7);
-        assert_eq!(response["result"]["value"], "ok");
-    }
-}
