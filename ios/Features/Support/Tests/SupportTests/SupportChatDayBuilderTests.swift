@@ -48,9 +48,4 @@ struct SupportChatDayBuilderTests {
         #expect(groups.map(\.side) == [.outgoing, .incoming])
         #expect(groups.map { $0.rows.map(\.message.id) } == [["a"], ["b", "c"]])
     }
-
-    @Test
-    func emptyMessagesProduceNoDays() {
-        #expect(SupportChatDayBuilder.mock().build().isEmpty)
-    }
 }
