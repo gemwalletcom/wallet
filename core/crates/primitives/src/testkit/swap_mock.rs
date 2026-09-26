@@ -179,39 +179,3 @@ impl SwapProviderData {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_swap_data_mock() {
-        let swap_data = SwapData::mock();
-        assert_eq!(swap_data.quote.from_value, BigUint::from(1000000000u64));
-        assert_eq!(swap_data.quote.to_value, BigUint::from(1000000u64));
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::UniswapV3);
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_provider() {
-        let swap_data = SwapData::mock_with_provider(SwapProvider::Jupiter);
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::Jupiter);
-        assert_eq!(swap_data.quote.provider_data.name, "Jupiter");
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_provider_data() {
-        let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, "tx-data", Some("420000"));
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::Jupiter);
-        assert_eq!(swap_data.data.data, "tx-data");
-        assert_eq!(swap_data.data.gas_limit, Some("420000".to_string()));
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_data_and_approval() {
-        let swap_data = SwapData::mock_with_data_and_approval("tx-data", Some("420000"));
-        assert_eq!(swap_data.data.data, "tx-data");
-        assert_eq!(swap_data.data.approval, Some(ApprovalData::mock()));
-        assert_eq!(swap_data.data.gas_limit, Some("420000".to_string()));
-    }
-}

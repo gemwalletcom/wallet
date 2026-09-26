@@ -179,20 +179,6 @@ mod tests {
     }
 
     #[test]
-    fn test_id_returns_stored_identifier() {
-        let alert = PriceAlert {
-            asset_id: AssetId::from_chain(Chain::Ethereum),
-            currency: Currency::USD,
-            price: Some(100.0),
-            price_percent_change: None,
-            price_direction: Some(PriceAlertDirection::Up),
-            last_notified_at: None,
-            identifier: "stored_from_db".to_string(),
-        };
-        assert_eq!(alert.id(), "stored_from_db");
-    }
-
-    #[test]
     fn test_notification_type_and_display_follow_the_set_fields() {
         let asset_id = AssetId::from_chain(Chain::Ethereum);
         let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);

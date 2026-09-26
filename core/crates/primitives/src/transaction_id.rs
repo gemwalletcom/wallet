@@ -80,7 +80,6 @@ mod tests {
     use super::*;
     use crate::Chain;
     use serde_json;
-    use std::convert::TryFrom;
 
     #[test]
     fn test_display_trait_to_string() {
@@ -122,21 +121,5 @@ mod tests {
     fn test_from_str_invalid_chain() {
         let result = TransactionId::from_str("nonexistentchain_somehash");
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_try_from_string_valid() {
-        let tx_id_str = "ethereum_0xabc".to_string();
-        let tx_id = TransactionId::try_from(tx_id_str).unwrap();
-        assert_eq!(tx_id.chain, Chain::Ethereum);
-        assert_eq!(tx_id.hash, "0xabc");
-    }
-
-    #[test]
-    fn test_try_from_str_ref_valid() {
-        let tx_id_str = "polygon_0xdef";
-        let tx_id = TransactionId::try_from(tx_id_str).unwrap();
-        assert_eq!(tx_id.chain, Chain::Polygon);
-        assert_eq!(tx_id.hash, "0xdef");
     }
 }

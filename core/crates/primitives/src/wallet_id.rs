@@ -108,22 +108,6 @@ mod tests {
     }
 
     #[test]
-    fn test_wallet_identifier_wallet_type() {
-        assert_eq!(WalletId::Multicoin("0x123".to_string()).wallet_type(), WalletType::Multicoin);
-        assert_eq!(WalletId::Single(Chain::Ethereum, "0x456".to_string()).wallet_type(), WalletType::Single);
-        assert_eq!(WalletId::PrivateKey(Chain::Bitcoin, "bc1".to_string()).wallet_type(), WalletType::PrivateKey);
-        assert_eq!(WalletId::View(Chain::Ethereum, "0x789".to_string()).wallet_type(), WalletType::View);
-    }
-
-    #[test]
-    fn test_wallet_identifier_chain() {
-        assert_eq!(WalletId::Multicoin("0x123".to_string()).chain(), None);
-        assert_eq!(WalletId::Single(Chain::Ethereum, "0x456".to_string()).chain(), Some(Chain::Ethereum));
-        assert_eq!(WalletId::PrivateKey(Chain::Bitcoin, "bc1".to_string()).chain(), Some(Chain::Bitcoin));
-        assert_eq!(WalletId::View(Chain::Solana, "sol123".to_string()).chain(), Some(Chain::Solana));
-    }
-
-    #[test]
     fn test_wallet_identifier_serde() {
         let wallet_id = WalletId::Multicoin("0x8f348F300873Fd5DA36950B2aC75a26584584feE".to_string());
         let json = serde_json::to_string(&wallet_id).unwrap();

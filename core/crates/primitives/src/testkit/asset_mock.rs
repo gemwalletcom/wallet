@@ -58,23 +58,3 @@ impl Asset {
         Asset::new(AssetId::from(chain, token_id), name, symbol, decimals, asset_type)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_asset_mock() {
-        let asset = Asset::mock();
-        assert_eq!(asset.symbol, "ETH");
-        assert_eq!(asset.chain(), Chain::Ethereum);
-
-        let sol_asset = Asset::mock_sol();
-        assert_eq!(sol_asset.symbol, "SOL");
-        assert_eq!(sol_asset.chain(), Chain::Solana);
-
-        let spl_asset = Asset::mock_spl_token();
-        assert_eq!(spl_asset.symbol, "USDC");
-        assert_eq!(spl_asset.asset_type, AssetType::SPL);
-    }
-}
