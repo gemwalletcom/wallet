@@ -11,7 +11,7 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.wallet.core.primitives.WalletId
 
 @Composable
-fun WalletNavScreen(onPhraseShow: (WalletSecretInput) -> Unit, onSelectImage: (WalletId) -> Unit, onBoard: () -> Unit, onCancel: () -> Unit, viewModel: WalletViewModel = hiltViewModel()) {
+fun WalletScreen(onPhraseShow: (WalletSecretInput) -> Unit, onSelectImage: (WalletId) -> Unit, onBoard: () -> Unit, onCancel: () -> Unit, viewModel: WalletViewModel = hiltViewModel()) {
     val wallet by viewModel.details.collectAsStateWithLifecycle()
     val secret by viewModel.secret.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()

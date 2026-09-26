@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **Sessions:** VM185.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
-6. **Module layout:** MOD313, then MOD315 to MOD317.
+6. **Module layout:** MOD315 to MOD317.
 7. **Unused code:** CLN318.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -458,7 +458,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** Core returns the prompt as a `GemLocalizedText` with the name; the mapper renders it.
 - **VM271** **S** **Toast texts are composed in the apps.**
   - **iOS:** `ToastMessage+PrimitivesComponents` composes pinned/unpinned asset, price alerts enabled/disabled for an asset, and copied value.
-  - **Android:** `AssetToasts` composes pinned/unpinned; `PriceAlertsNavScreen` composes "Price alerts enabled for X".
+  - **Android:** `AssetToasts` composes pinned/unpinned; `PriceAlertsScreen` composes "Price alerts enabled for X".
   - **Expected:** the Core call that changes the state returns its toast as `GemLocalizedText`; both builders go.
 - **VM272** **S** **Amount screen texts are composed in the apps.**
   - **iOS:** `AmountSceneViewModel` composes "Balance: X" and "Reserved fees X".
@@ -539,11 +539,11 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsNavScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualMarketScene`, `ValidatorsScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScene`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `NftListScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualMarketScene`, `ValidatorsScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
-  - **Android:** `ReferralNavScreen` checks `availableWallets.size > 1`; `AuthRequestScene` does the same for WalletConnect authentication.
+  - **Android:** `ReferralScreen` checks `availableWallets.size > 1`; `AuthRequestScene` does the same for WalletConnect authentication.
   - **Expected:** the rewards state and the WalletConnect request say whether a wallet can be chosen; the counts go.
 - **VM292** **S** **The rewards screen's intro and action placement are written in the apps.**
   - **iOS:** `RewardsScene` lists the three intro features with their emojis and titles and places share or create-code, use-code and the pending referral.
@@ -652,10 +652,9 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
-- **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
   - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `Wallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
-  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallets`; create-wallet draws the phrase with its own `WordChip` view.
+  - **Android:** `WalletSecretDataScreen` and `WalletImageScene` are in `wallets`; create-wallet draws the phrase with its own `WordChip` view.
   - **Expected:** iOS moves the export flow and `WalletAvatar` to `Wallets` and drops its `Onboarding` dependency. The grid of phrase words becomes one shared component (`PrimitivesComponents`, `ui`) that create-wallet and export use on both apps.
 - **MOD316** **S** **Recents belong to Assets, and the chart is a `Market` module on both apps.**
   - **iOS:** recents are the `Recents` package, used by `Assets`, `Perpetuals` and `WalletTab`; the chart is `ChartScene` in `MarketInsight`.

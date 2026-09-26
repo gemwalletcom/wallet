@@ -16,7 +16,7 @@ import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.shareText
 
 @Composable
-fun TransactionDetailsNavScreen(onAction: (TransactionDetailsAction.Navigation) -> Unit, viewModel: TransactionDetailsViewModel = hiltViewModel()) {
+fun TransactionDetailsScreen(onAction: (TransactionDetailsAction.Navigation) -> Unit, viewModel: TransactionDetailsViewModel = hiltViewModel()) {
     val transaction by viewModel.data.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()

@@ -47,7 +47,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun SupportChatNavScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
+fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
     val days by viewModel.days.collectAsStateWithLifecycle()
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()

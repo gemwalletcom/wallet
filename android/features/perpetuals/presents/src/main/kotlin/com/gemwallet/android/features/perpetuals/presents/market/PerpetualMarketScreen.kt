@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
 
 @Composable
-fun PerpetualMarketNavScreen(
+fun PerpetualMarketScreen(
     onCancel: () -> Unit,
     onOpenPerpetualDetails: AssetIdAction,
     onOpenPortfolio: () -> Unit,

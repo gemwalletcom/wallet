@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatSuggestedAmount
 
 @Composable
-fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
+fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
     val type by viewModel.type.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val asset by viewModel.assetInfoUIModel.collectAsStateWithLifecycle()

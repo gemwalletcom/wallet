@@ -43,7 +43,7 @@ import com.gemwallet.android.MessageToast
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.presents.SettingsScene
-import com.gemwallet.android.features.transactions.presents.list.TransactionsNavScreen
+import com.gemwallet.android.features.transactions.presents.list.TransactionsScreen
 import com.gemwallet.android.features.wallet_tab.presents.AssetsAction
 import com.gemwallet.android.features.wallet_tab.presents.AssetsScreen
 import com.gemwallet.android.features.wallet_tab.viewmodels.AssetsViewModel
@@ -228,7 +228,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                 viewModel = assetsViewModel,
                             )
 
-                            transactionsRoute -> TransactionsNavScreen(
+                            transactionsRoute -> TransactionsScreen(
                                 listState = activitiesListState,
                                 onTransaction = navigator::openTransaction,
                                 onBuy = navigator::openBuy,

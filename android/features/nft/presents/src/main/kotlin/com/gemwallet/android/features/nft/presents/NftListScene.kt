@@ -52,7 +52,7 @@ import uniffi.gemstone.GemListRow
 private val collectibleCellMinSize = 150.dp
 
 @Composable
-fun NftListNavScreen(
+fun NftListScreen(
     cancelAction: CancelAction,
     collectionAction: NftCollectionIdAction,
     assetAction: NftAssetIdAction,

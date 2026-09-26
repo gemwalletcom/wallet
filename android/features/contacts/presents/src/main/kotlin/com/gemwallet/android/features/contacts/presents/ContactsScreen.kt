@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import uniffi.gemstone.GemEmptyStateKind
 
 @Composable
-fun ContactsNavScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewModel = hiltViewModel()) {
+fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewModel = hiltViewModel()) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }

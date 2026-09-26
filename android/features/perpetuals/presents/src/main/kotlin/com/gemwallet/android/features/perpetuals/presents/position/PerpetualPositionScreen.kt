@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.TransactionId
 
 @Composable
-fun PerpetualPositionNavScreen(
+fun PerpetualPositionScreen(
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,

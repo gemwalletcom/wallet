@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsAction
-import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsNavScreen
+import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsScreen
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.TransactionId
@@ -20,6 +20,6 @@ fun EntryProviderScope<NavKey>.transactionDetailsScreen(onAction: (TransactionDe
             routeArguments(RouteArgument.TransactionId to key.transactionId.identifier)
         },
     ) {
-        TransactionDetailsNavScreen(onAction = onAction)
+        TransactionDetailsScreen(onAction = onAction)
     }
 }

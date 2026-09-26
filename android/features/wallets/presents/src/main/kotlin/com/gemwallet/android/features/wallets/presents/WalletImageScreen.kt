@@ -9,7 +9,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
-fun WalletImageNavScreen(onCancel: () -> Unit, viewModel: WalletImageViewModel = hiltViewModel()) {
+fun WalletImageScreen(onCancel: () -> Unit, viewModel: WalletImageViewModel = hiltViewModel()) {
     val wallet by viewModel.details.collectAsStateWithLifecycle()
     val nftImages by viewModel.nftImages.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()

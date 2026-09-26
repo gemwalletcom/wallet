@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun WalletSecretDataNavScreen(onCancel: () -> Unit, viewModel: WalletSecretDataViewModel = hiltViewModel()) {
+fun WalletSecretDataScreen(onCancel: () -> Unit, viewModel: WalletSecretDataViewModel = hiltViewModel()) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 

@@ -20,7 +20,7 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 
 @Composable
-fun PriceAlertsNavScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onAddPriceAlertTarget: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertViewModel = hiltViewModel()) {
+fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onAddPriceAlertTarget: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertViewModel = hiltViewModel()) {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)

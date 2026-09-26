@@ -30,7 +30,7 @@ import com.gemwallet.android.ui.localization.text
 import kotlinx.coroutines.launch
 
 @Composable
-fun ReferralNavScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltViewModel()) {
+fun ReferralScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltViewModel()) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val loadingMessage = stringResource(R.string.common_loading)

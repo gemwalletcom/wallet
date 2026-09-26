@@ -3,8 +3,8 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.assets.presents.select.SelectBuyScreen
-import com.gemwallet.android.features.fiat_connect.presents.FiatNavScreen
-import com.gemwallet.android.features.fiat_connect.presents.FiatTransactionsNavScreen
+import com.gemwallet.android.features.fiat_connect.presents.FiatScreen
+import com.gemwallet.android.features.fiat_connect.presents.FiatTransactionsScreen
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -33,7 +33,7 @@ fun EntryProviderScope<NavKey>.fiatScreen(cancelAction: CancelAction, onBuy: (As
             )
         },
     ) {
-        FiatNavScreen(
+        FiatScreen(
             cancelAction = cancelAction,
             onFiatTransactions = onFiatTransactions,
         )
@@ -47,7 +47,7 @@ fun EntryProviderScope<NavKey>.fiatScreen(cancelAction: CancelAction, onBuy: (As
     }
 
     entry<FiatTransactionsRoute> {
-        FiatTransactionsNavScreen(
+        FiatTransactionsScreen(
             onClose = cancelAction,
         )
     }

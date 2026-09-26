@@ -6,9 +6,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.onboarding.presents.create_wallet.PhraseAlertDialog
-import com.gemwallet.android.features.wallets.presents.WalletImageNavScreen
-import com.gemwallet.android.features.wallets.presents.WalletNavScreen
-import com.gemwallet.android.features.wallets.presents.WalletSecretDataNavScreen
+import com.gemwallet.android.features.wallets.presents.WalletImageScreen
+import com.gemwallet.android.features.wallets.presents.WalletScreen
+import com.gemwallet.android.features.wallets.presents.WalletSecretDataScreen
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -35,7 +35,7 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
     ) {
         val context = LocalContext.current
 
-        WalletNavScreen(
+        WalletScreen(
             onPhraseShow = { input ->
                 context.requestAuth(AuthRequest.Default) { onSecurityReminder(input) }
             },
@@ -48,7 +48,7 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
     entry<WalletImageRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
     ) {
-        WalletImageNavScreen(onCancel = onCancel)
+        WalletImageScreen(onCancel = onCancel)
     }
 
     entry<WalletSecurityReminderRoute> { key ->
@@ -67,6 +67,6 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
             )
         },
     ) {
-        WalletSecretDataNavScreen(onCancel = onCancel)
+        WalletSecretDataScreen(onCancel = onCancel)
     }
 }

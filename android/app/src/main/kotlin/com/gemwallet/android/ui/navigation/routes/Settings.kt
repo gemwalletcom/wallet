@@ -12,8 +12,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScene
-import com.gemwallet.android.features.price_alerts.presents.PriceAlertTargetNavScreen
-import com.gemwallet.android.features.price_alerts.presents.PriceAlertsNavScreen
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertTargetScreen
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
 import com.gemwallet.android.features.settings.presents.NotificationsScene
 import com.gemwallet.android.features.settings.presents.PreferencesScene
 import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
@@ -22,7 +22,7 @@ import com.gemwallet.android.features.settings.presents.developer.DevelopScene
 import com.gemwallet.android.features.settings.presents.developer.PaymentsScene
 import com.gemwallet.android.features.settings.presents.networks.NetworksScreen
 import com.gemwallet.android.features.settings.presents.security.SecurityScene
-import com.gemwallet.android.features.support.presents.SupportChatNavScreen
+import com.gemwallet.android.features.support.presents.SupportChatScreen
 import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -147,7 +147,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
     entry<AddPriceAlertTargetRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        PriceAlertTargetNavScreen(
+        PriceAlertTargetScreen(
             onCancel = onCancel,
             onComplete = { onAction(SettingsAction.PriceAlertTargetComplete(it)) },
         )
@@ -187,7 +187,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
             }
         }
         CompositionLocalProvider(LocalUriHandler provides uriHandler) {
-            SupportChatNavScreen(
+            SupportChatScreen(
                 message = routeMessage(key),
                 onMessageShown = { onRouteMessageShown(key) },
                 onCancel = onCancel,
@@ -198,7 +198,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
 
 @Composable
 private fun priceAlertsScreenContent(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
-    PriceAlertsNavScreen(
+    PriceAlertsScreen(
         message = message,
         onMessageShown = onMessageShown,
         onChart = { onAction(SettingsAction.Chart(it)) },
