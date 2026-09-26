@@ -18,6 +18,7 @@ Read the contract and the named implementation, then the actual owner and caller
 | Tests and fixtures | [§ 10](#10-tests) and the platform testing guide | The owner's existing tests, [`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) for fixtures, [`gem_client/testkit.rs`](../core/crates/gem_client/src/testkit.rs) for wire behavior |
 | Async result freshness | [Session contract](#a-screen-whose-state-changes-is-a-session), [Performance](PERFORMANCE.md) | [Fiat session](../core/gemstone/src/services/fiat/session.rs), [retained confirmation](../core/gemstone/src/services/confirm/confirmation.rs) |
 | Atomic writes and retries | [Store contract](#atomic-changes-concurrent-publication-and-query-contracts), [command outcomes](#a-command-names-its-commit-and-recovery-behavior) | [Native balance update](../ios/Packages/Store/Sources/Stores/BalanceStore.swift), [Android transaction runner](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/PerpetualStore.kt); `BalanceStoreTests` and `BalancesDaoTest` are the paired adapter tests (MIG6) |
+| Name a screen, view model, query or port | [Names](#names) | The same kind in the sibling app |
 | Choose and complete a migration item | [Working one item](TODO.md#working-one-item), [screen coverage](TODO.md#screen-coverage-and-existing-infrastructure) | [Service map](#screen-services), [closing checks](../skills/quality-checks.md#closing-matrix) |
 
 For a service change, follow the price-alert example through [Core](#service-example-price-alerts), [store adapters](#store-adapter-example-price-alerts), [construction](#construction-example-price-alerts) and [screen calls](#direct-service-calls-and-observed-reads). Use the [service map](#service-map) to find existing owners and callers. Read [§ 13](#13-shapes-that-were-tried-and-reverted) only for rejected-design rationale; subsystem contracts remain in their own documents.
@@ -46,6 +47,40 @@ core/gemstone/src/services/<feature>/
 ```
 
 Only the files the feature needs. A feature with no persistence has no `store.rs`.
+
+## Names
+
+The same thing has the same base name on both apps; only the platform's suffix or form differs, and each app uses its one form for every instance of a kind. When the base names differ, iOS is the reference. A feature module and its product page share a name ([Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md)).
+
+| Kind | iOS | Android | Example |
+|---|---|---|---|
+| Feature module | `Features/<Name>` | `features/<name>` | `PriceAlerts` / `price_alerts` |
+| Screen | `XScene` | `XScreen` binds the view model, `XScene` is stateless | `SwapScene` / `SwapScreen` + `SwapScene` |
+| Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
+| Screen UI state | — (the view model) | `XUIState` | `WalletsUIState` |
+| User action | a view model method | `XAction` | `SwapAction` |
+| Component or row model | `XViewModel` | `XUIModel` | `SwapProvidersViewModel` / `PriceAlertItemUIModel` |
+| Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
+| Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |
+| Core service held by a view model | `service: any GemXServiceProtocol` | `service: GemXServiceInterface` | `GemPriceAlertServiceProtocol` / `GemPriceAlertServiceInterface` |
+| Platform port | a protocol, implemented in the app | an interface in `gemcore/application/<area>/cases/`, implemented as `XImpl` or `XCoordinator` | `ObservablePreferences` |
+| Test and mock | `XTests`, `X.mock()` in `TestKit` | `XTest`, `mockX()` in `testFixtures` | `SwapSceneViewModelTests` / `SwapViewModelTest` |
+
+```swift
+public struct SwapScene: View {
+    @State private var model: SwapSceneViewModel
+    ...
+}
+```
+
+```kotlin
+@Composable
+fun SwapScreen(..., viewModel: SwapViewModel = hiltViewModel()) {
+    val pay by viewModel.payAsset.collectAsStateWithLifecycle()
+    ...
+    SwapScene(pay = pay, ...)
+}
+```
 
 ## 1. Rules are pure and have a test that flips
 
