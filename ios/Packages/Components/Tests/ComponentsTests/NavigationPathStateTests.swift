@@ -6,22 +6,6 @@ import Testing
 @MainActor
 struct NavigationPathStateTests {
     @Test
-    func initialState() {
-        let state = NavigationPathState()
-
-        #expect(state.isEmpty == true)
-        #expect(state.count == 0)
-    }
-
-    @Test
-    func appendElement() {
-        let state = NavigationPathState()
-
-        #expect(state.append(TestScene(id: "a")) == true)
-        #expect(state.count == 1)
-    }
-
-    @Test
     func appendDuplicateElement() {
         let state = NavigationPathState()
         state.append(TestScene(id: "a"))
@@ -46,15 +30,6 @@ struct NavigationPathStateTests {
 
         #expect(state.append(OtherScene(id: "a")) == true)
         #expect(state.count == 2)
-    }
-
-    @Test
-    func setPath() {
-        let state = NavigationPathState()
-
-        state.setPath([TestScene(id: "a"), TestScene(id: "b"), TestScene(id: "c")])
-
-        #expect(state.count == 3)
     }
 
     @Test

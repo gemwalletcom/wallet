@@ -30,7 +30,7 @@ struct ButtonTypeTests {
     func primaryWithNoDataState() {
         #expect(ButtonType.primary(StateViewType<String>.noData) == .primary(.disabled))
         #expect(ButtonType.primary(StateViewType<String>.noData, isDisabled: true) == .primary(.disabled))
-        #expect(ButtonType.primary(StateViewType<String>.noData, isDisabled: true) == .primary(.disabled))
+        #expect(ButtonType.primary(StateViewType<String>.noData, isDisabled: false) == .primary(.disabled))
     }
 }
 
