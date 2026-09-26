@@ -4,7 +4,7 @@ import Localization
 import Primitives
 import SwiftUI
 
-public struct ScanQRCodeNavigationStack: View {
+public struct QRScannerNavigationStack: View {
     @Environment(\.dismiss) private var dismiss
 
     private let scanType: QRScanType

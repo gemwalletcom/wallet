@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.features.transfer.viewmodels.recipient.RecipientViewModel
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientUIState
@@ -56,7 +56,7 @@ fun RecipientScreen(cancelAction: CancelAction, amountAction: AmountTransactionA
                 },
             )
 
-            QrCodeScannerModal(
+            QRScannerModal(
                 isVisible = scan != QrScanField.None,
                 scanType = when (scan) {
                     QrScanField.Memo -> QRScanType.Memo

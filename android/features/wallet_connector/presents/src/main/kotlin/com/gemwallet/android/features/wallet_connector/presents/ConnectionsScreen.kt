@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
@@ -102,7 +102,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
         }
     }
 
-    QrCodeScannerModal(
+    QRScannerModal(
         isVisible = scannerShowed,
         scanType = QRScanType.WalletConnect,
         onDismissRequest = { scannerShowed = false },

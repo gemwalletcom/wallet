@@ -11,7 +11,7 @@ import com.google.zxing.common.HybridBinarizer
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
-object QRCodeDecoder {
+object QRImageDecoder {
     private const val MAX_IMAGE_PIXELS = 16_000_000.0
     private val hints = mapOf(
         DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),

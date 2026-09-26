@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.main.views
+package com.gemwallet.android.features.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,7 +16,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
 import com.gemwallet.android.features.assets.presents.select.selectAssetViewModel
-import com.gemwallet.android.features.qr_scanner.presents.QrCodeRequest
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerScreen
 import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
@@ -49,7 +49,7 @@ fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (
 
         Box(modifier = Modifier.fillMaxSize()) {
             when (mode) {
-                ScanReceiveMode.Scan -> QrCodeRequest(
+                ScanReceiveMode.Scan -> QRScannerScreen(
                     scanType = QRScanType.Universal,
                     onCancel = onDismissRequest,
                     titleContent = { ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },

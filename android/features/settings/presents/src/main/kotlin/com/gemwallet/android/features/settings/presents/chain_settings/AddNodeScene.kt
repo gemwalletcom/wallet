@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.AddNodeUIState
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
@@ -77,7 +77,7 @@ fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String
         uiState.warning?.let { ListItem(model = it, listPosition = ListPosition.Single) }
     }
 
-    QrCodeScannerModal(
+    QRScannerModal(
         isVisible = isShowQRScan,
         scanType = QRScanType.Url,
         onDismissRequest = { isShowQRScan = false },

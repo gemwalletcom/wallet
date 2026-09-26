@@ -53,7 +53,7 @@ public struct AddAssetScene: View {
                 )
             }
             .sheet(isPresented: $model.isPresentingScanner) {
-                ScanQRCodeNavigationStack(scanType: .tokenContract, action: onHandleScan(_:))
+                QRScannerNavigationStack(scanType: .tokenContract, action: onHandleScan(_:))
             }
             .safariSheet(url: $isPresentingUrl)
     }

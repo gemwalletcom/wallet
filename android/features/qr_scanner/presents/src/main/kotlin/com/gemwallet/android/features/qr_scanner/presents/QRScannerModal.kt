@@ -10,7 +10,7 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.wallet.core.primitives.QRScanType
 
 @Composable
-fun QrCodeScannerModal(isVisible: Boolean, scanType: QRScanType, onDismissRequest: () -> Unit, onResult: (String) -> Unit) {
+fun QRScannerModal(isVisible: Boolean, scanType: QRScanType, onDismissRequest: () -> Unit, onResult: (String) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
@@ -19,7 +19,7 @@ fun QrCodeScannerModal(isVisible: Boolean, scanType: QRScanType, onDismissReques
         dragHandle = null,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            QrCodeRequest(scanType = scanType, onCancel = onDismissRequest, onResult = onResult)
+            QRScannerScreen(scanType = scanType, onCancel = onDismissRequest, onResult = onResult)
         }
     }
 }

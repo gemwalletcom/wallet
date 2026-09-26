@@ -68,7 +68,7 @@ public struct ConnectionsScene: View {
             )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .walletConnect, action: onHandleScan)
+            QRScannerNavigationStack(scanType: .walletConnect, action: onHandleScan)
         }
         .ifLet(view.docsUrl.asURL) { content, url in
             content.toolbarInfoButton(url: url)

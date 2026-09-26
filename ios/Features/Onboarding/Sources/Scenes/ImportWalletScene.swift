@@ -112,7 +112,7 @@ struct ImportWalletScene: View {
             InfoSheetScene(sheet: $0, onAction: { _ in model.onSelectExistingWalletContinue() })
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: scanType, action: model.onHandleScan)
+            QRScannerNavigationStack(scanType: scanType, action: model.onHandleScan)
         }
         .onChange(of: model.input, model.onChangeInput)
         .taskOnce {

@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
-import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.gemwallet.android.ui.components.fields.MemoTextField
@@ -61,7 +61,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         }
     }
 
-    QrCodeScannerModal(
+    QRScannerModal(
         isVisible = scanning,
         scanType = QRScanType.Address,
         onDismissRequest = { scanning = false },

@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class QRCodeDecoderTest {
+class QRImageDecoderTest {
     private val text = "ethereum:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
     private val width = 640
     private val height = 480
@@ -15,19 +15,19 @@ class QRCodeDecoderTest {
     fun decodesFrameWhoseRowStrideExceedsWidth() {
         val rowStride = 1024
 
-        assertEquals(text, QRCodeDecoder.decode(lumaFrame(rowStride), rowStride, width, height))
+        assertEquals(text, QRImageDecoder.decode(lumaFrame(rowStride), rowStride, width, height))
     }
 
     @Test
     fun decodesFrameWithoutPadding() {
-        assertEquals(text, QRCodeDecoder.decode(lumaFrame(width), width, width, height))
+        assertEquals(text, QRImageDecoder.decode(lumaFrame(width), width, width, height))
     }
 
     @Test
     fun decodesLightOnDarkFrame() {
         val frame = lumaFrame(width).also { luma -> luma.indices.forEach { luma[it] = (0xFF - (luma[it].toInt() and 0xFF)).toByte() } }
 
-        assertEquals(text, QRCodeDecoder.decode(frame, width, width, height))
+        assertEquals(text, QRImageDecoder.decode(frame, width, width, height))
     }
 
     @Test
@@ -36,20 +36,20 @@ class QRCodeDecoderTest {
         val luma = lumaFrame(width)
         luma.indices.forEach { pixels[it] = if (luma[it] == BLACK) 0xFF000000.toInt() else 0xFFFFFFFF.toInt() }
 
-        assertEquals(text, QRCodeDecoder.decode(pixels, width, height))
+        assertEquals(text, QRImageDecoder.decode(pixels, width, height))
     }
 
     @Test
     fun keepsFullResolutionUpToSixteenMegapixels() {
-        assertEquals(1, QRCodeDecoder.sampleSize(1080, 2340))
-        assertEquals(1, QRCodeDecoder.sampleSize(1440, 6400))
-        assertEquals(1, QRCodeDecoder.sampleSize(4000, 3000))
-        assertEquals(2, QRCodeDecoder.sampleSize(8160, 6120))
+        assertEquals(1, QRImageDecoder.sampleSize(1080, 2340))
+        assertEquals(1, QRImageDecoder.sampleSize(1440, 6400))
+        assertEquals(1, QRImageDecoder.sampleSize(4000, 3000))
+        assertEquals(2, QRImageDecoder.sampleSize(8160, 6120))
     }
 
     @Test
     fun returnsNullWithoutCode() {
-        assertNull(QRCodeDecoder.decode(ByteArray(width * height) { WHITE }, width, width, height))
+        assertNull(QRImageDecoder.decode(ByteArray(width * height) { WHITE }, width, width, height))
     }
 
     private fun lumaFrame(rowStride: Int): ByteArray {
