@@ -16,9 +16,9 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
 import com.gemwallet.android.features.assets.presents.select.assetSelectViewModel
+import com.gemwallet.android.features.qr_scanner.presents.QrCodeRequest
 import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
-import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion

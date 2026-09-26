@@ -1,4 +1,4 @@
-package com.gemwallet.android.ui.components
+package com.gemwallet.android.features.qr_scanner.presents
 
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap

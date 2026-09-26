@@ -214,7 +214,7 @@ dependencies {
     implementation(project(":features:assets:viewmodels"))
     implementation(project(":features:market:presents"))
     implementation(project(":features:market:viewmodels"))
-    implementation(project(":features:banner:presents"))
+    implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:fiat_connect:presents"))
     implementation(project(":features:fiat_connect:viewmodels"))
     implementation(project(":features:transfer:presents"))

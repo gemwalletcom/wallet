@@ -24,9 +24,8 @@ These need no further answer; work them in this order, one family per change.
 3. **Sessions:** VM185.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
-6. **Module layout:** MOD317.
-7. **Unused code:** CLN318.
-8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+6. **Unused code:** CLN318.
+7. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -643,11 +642,6 @@ Differences between the apps, or between an app and the server, each with its de
 A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen.
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
-
-- **MOD317** **S** **The QR scanner is a feature on both apps; banners belong to Assets and the info sheet is shared UI.**
-  - **iOS:** `QRScanner` and `InfoSheet` are feature packages; `BannerView` is in `PrimitivesComponents`, used by `AssetScene` and `WalletScene`.
-  - **Android:** the QR scanner and the info sheet are in `ui/components`; banners are the `banner` feature, used by `assets` and `wallet_tab`.
-  - **Expected:** Android moves `QRScanner.kt` into a `qr_scanner` feature; `BannerView` moves into iOS `Assets` and the Android `banner` module folds into `assets`, with `wallet_tab` depending on `assets`; iOS `InfoSheet` moves from `Features/` to `Packages/`.
 
 ## 12. Cleanup sweeps
 

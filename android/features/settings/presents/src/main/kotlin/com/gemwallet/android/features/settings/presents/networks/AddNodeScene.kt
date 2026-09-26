@@ -23,11 +23,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
 import com.gemwallet.android.features.settings.viewmodels.networks.AddNodeViewModel
 import com.gemwallet.android.features.settings.viewmodels.networks.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
-import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText

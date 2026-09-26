@@ -20,10 +20,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
 import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
-import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentType

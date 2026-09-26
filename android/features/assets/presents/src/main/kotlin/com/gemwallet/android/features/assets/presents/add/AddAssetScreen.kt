@@ -9,8 +9,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.assets.viewmodels.add.AddAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.add.models.AddAssetUIState
+import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState

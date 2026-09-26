@@ -38,7 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.banner.views.BannerScene
+import com.gemwallet.android.features.assets.presents.banner.BannerScene
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetuals.presents.PerpetualsPreviewSection

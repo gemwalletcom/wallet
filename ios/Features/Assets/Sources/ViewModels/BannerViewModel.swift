@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerRow
 import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 

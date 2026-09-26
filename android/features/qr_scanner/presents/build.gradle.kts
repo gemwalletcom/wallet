@@ -4,11 +4,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
-    id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.gemwallet.android.features.banner.presents"
+    namespace = "com.gemwallet.android.features.qr_scanner.presents"
     compileSdk = 37
 
     defaultConfig {
@@ -37,7 +36,6 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
-
     buildFeatures {
         compose = true
     }
@@ -54,4 +52,14 @@ android {
 
 dependencies {
     implementation(project(":ui"))
+
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.compose.permissions)
+
+    implementation(libs.ktx.core)
+    implementation(libs.lifecycle.runtime)
+
+    testImplementation(libs.junit)
 }

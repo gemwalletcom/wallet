@@ -53,6 +53,7 @@ android {
 
 dependencies {
     implementation(project(":ui"))
+    implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:wallet_connector:viewmodels"))
     implementation(project(":features:assets:presents"))
 

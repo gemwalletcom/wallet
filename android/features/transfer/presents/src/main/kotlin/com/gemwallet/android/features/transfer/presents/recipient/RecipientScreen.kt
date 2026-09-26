@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.qr_scanner.presents.QrCodeScannerModal
 import com.gemwallet.android.features.transfer.presents.recipient.components.RecipientHead
 import com.gemwallet.android.features.transfer.presents.recipient.components.destinationView
 import com.gemwallet.android.features.transfer.viewmodels.recipient.RecipientViewModel
@@ -28,7 +29,6 @@ import com.gemwallet.android.features.transfer.viewmodels.recipient.models.Recip
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.isKeyboardVisible

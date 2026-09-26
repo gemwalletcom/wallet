@@ -55,8 +55,8 @@ android {
 
 dependencies {
     implementation(project(":ui"))
+    implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:banner:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     implementation(libs.navigation3.runtime)

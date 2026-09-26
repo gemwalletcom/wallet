@@ -4,6 +4,7 @@ import Foundation
 import enum Gemstone.GemBannerButton
 import struct Gemstone.GemBannerKey
 import Primitives
+import PrimitivesComponents
 import Style
 
 struct BannerButtonViewModel: Identifiable {

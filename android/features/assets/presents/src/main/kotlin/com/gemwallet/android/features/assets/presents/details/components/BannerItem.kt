@@ -3,7 +3,7 @@ package com.gemwallet.android.features.assets.presents.details.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import com.gemwallet.android.features.banner.views.BannerScene
+import com.gemwallet.android.features.assets.presents.banner.BannerScene
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.open
 import uniffi.gemstone.GemBannerDestination
