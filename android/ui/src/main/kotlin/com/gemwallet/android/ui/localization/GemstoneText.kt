@@ -315,6 +315,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.AppUpdateTitle -> context.getString(R.string.update_app_title)
 
+    GemLocalizedText.SwapAgain -> context.getString(R.string.transaction_swap_again)
+
     is GemLocalizedText.AppUpdateDescription -> context.getString(R.string.update_app_description, version)
 
     is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"

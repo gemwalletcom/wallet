@@ -46,7 +46,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
@@ -141,10 +141,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Screen composition
 
-- **VM280** **M** **Transaction details are composed per row kind in the apps.**
-  - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
-  - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.
-  - **Expected:** the details sections carry finished rows; both item layers go.
 - **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
   - **iOS:** `ConnectionProposalSceneViewModel` builds wallet, connection, status and the two permission rows.
   - **Android:** `ConnectionProposalViewModel` builds the same four.

@@ -203,6 +203,8 @@ public extension GemLocalizedText {
             Localized.Rewards.shareText(link)
         case .appUpdateTitle:
             Localized.UpdateApp.title
+        case .swapAgain:
+            Localized.Transaction.swapAgain
         case let .appUpdateDescription(version):
             Localized.UpdateApp.description(version)
         case let .currentPrice(price):

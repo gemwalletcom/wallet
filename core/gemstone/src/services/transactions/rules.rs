@@ -255,17 +255,25 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
         }),
     ];
     [
-        vec![Header],
-        rows.swap_progress.is_some().then_some(SwapProgress).into_iter().collect(),
-        rows.swap_again.is_some().then_some(SwapAgain).into_iter().collect(),
+        vec![Header { header: rows.header.clone() }],
+        rows.swap_progress.clone().map(|progress| SwapProgress { progress }).into_iter().collect(),
+        rows.swap_again.clone().map(|swap| SwapAgain { title: GemLocalizedText::SwapAgain, swap }).into_iter().collect(),
         details.into_iter().flatten().collect(),
-        vec![Fee],
+        vec![Fee { row: fee_list_row(&rows.fee_row) }],
         vec![list(GemListRow::explorer(&rows.explorer))],
     ]
     .into_iter()
     .filter(|rows| !rows.is_empty())
     .map(|rows| GemTransactionDetailSection { rows })
     .collect()
+}
+
+fn fee_list_row(fee: &GemTransactionFeeRow) -> GemListRow {
+    GemListRow::Lines {
+        title: fee.title,
+        lines: [Some(GemLocalizedText::Number { number: fee.text.value.clone() }), fee.text.extra.clone()].into_iter().flatten().collect(),
+        info: Some(fee.info.clone()),
+    }
 }
 
 fn status_icon(rows: &GemTransactionDetailRows) -> GemAssetIcon {
@@ -1268,7 +1276,27 @@ mod tests {
                 fiat: Some(fiat.clone())
             }
         );
-        assert_eq!(priced_fee.text, crate::services::assets::model::GemFeeText { value: fiat, extra: None }, "a priced fee shows only its fiat value, like confirm");
+        assert_eq!(
+            priced_fee.text,
+            crate::services::assets::model::GemFeeText { value: fiat.clone(), extra: None },
+            "a priced fee shows only its fiat value, like confirm"
+        );
+        let fee_list_row = detail_sections(&detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD))
+            .into_iter()
+            .flat_map(|section| section.rows)
+            .find_map(|row| match row {
+                GemTransactionDetailRow::Fee { row } => Some(row),
+                _ => None,
+            });
+        assert_eq!(
+            fee_list_row,
+            Some(GemListRow::Lines {
+                title: GemListRowTitle::NetworkFee,
+                lines: vec![GemLocalizedText::Number { number: fiat }],
+                info: Some(GemInfoTopic::NetworkFee { asset: transfer.fee_asset.clone() }),
+            }),
+            "the fee row shows the value the fee text picked and explains the fee"
+        );
         assert!(matches!(unnamed.header, GemTransactionHeader::Amount { .. }));
         assert_eq!(
             unnamed.header_action,
@@ -1301,6 +1329,10 @@ mod tests {
     fn test_detail_sections_list_only_the_rows_the_transaction_has_in_one_order() {
         let explorer = BlockExplorerLink::mock_with_address("tx");
         let kind = |row: GemTransactionDetailRow| match row {
+            GemTransactionDetailRow::Header { .. } => "Header".to_string(),
+            GemTransactionDetailRow::SwapProgress { .. } => "SwapProgress".to_string(),
+            GemTransactionDetailRow::SwapAgain { .. } => "SwapAgain".to_string(),
+            GemTransactionDetailRow::Fee { .. } => "Fee".to_string(),
             GemTransactionDetailRow::Participant { .. } => "Participant".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Explorer { .. } } => "Explorer".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Memo { .. } } => "Memo".to_string(),

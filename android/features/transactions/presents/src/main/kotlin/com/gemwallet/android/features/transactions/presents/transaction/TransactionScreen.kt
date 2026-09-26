@@ -9,8 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.transactions.viewmodels.TransactionViewModel
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
-import com.gemwallet.android.features.transactions.viewmodels.models.chain
+import com.gemwallet.android.features.transactions.viewmodels.chain
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.shareText
@@ -52,6 +51,6 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
 
     FeeDetailsDialog(
         isVisible = isShowFeeDetails,
-        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionItemUIModel.Fee)?.details },
+        feeRow = model.feeRow,
     ) { isShowFeeDetails = false }
 }

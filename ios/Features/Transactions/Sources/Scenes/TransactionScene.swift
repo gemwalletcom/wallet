@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemTransactionDetailRow
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -14,8 +15,8 @@ public struct TransactionScene: View {
     }
 
     public var body: some View {
-        ListSectionView(sections: model.sections) { item in
-            content(for: model.itemModel(for: item))
+        ListSectionView(sections: model.sections) { row in
+            content(for: row)
         }
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -24,12 +25,12 @@ public struct TransactionScene: View {
     }
 
     @ViewBuilder
-    private func content(for itemModel: TransactionItemModel) -> some View {
-        switch itemModel {
-        case let .fee(model):
+    private func content(for row: GemTransactionDetailRow) -> some View {
+        switch row {
+        case let .fee(row):
             NavigationCustomLink(
-                with: ListItemView(model: model),
-                action: self.model.onSelectFeeDetails,
+                with: GemListRowView(row: row, onInfo: model.onInfo),
+                action: model.onSelectFeeDetails,
             )
         case let .header(header):
             TransactionHeaderListItemView(
@@ -42,18 +43,16 @@ public struct TransactionScene: View {
             AddressListItemView(row: row, onSelect: model.selectAction(row), onAddContact: model.addContactAction)
         case let .row(row):
             GemListRowView(row: row, onSelectAddress: model.onSelectProviderContract, onInfo: model.onInfo)
-        case let .swapAgain(text):
+        case let .swapAgain(title, swap):
             let button = StateButton(
-                text: text,
+                text: title.text,
                 type: .primary(.normal),
-                action: model.onSelectSwapAgain,
+                action: { model.onSelectSwapAgain(swap) },
             )
             .cleanListRow(topOffset: .zero)
             if #available(iOS 26, *) {
                 button.cornerRadius(.scene.button.height / 2)
             }
-        case .empty:
-            EmptyView()
         }
     }
 }

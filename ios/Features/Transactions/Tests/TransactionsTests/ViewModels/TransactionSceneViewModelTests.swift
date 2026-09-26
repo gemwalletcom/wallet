@@ -2,6 +2,8 @@ import Components
 import Foundation
 import struct Gemstone.GemCopy
 import enum Gemstone.GemListRow
+import struct Gemstone.GemSwapAgain
+import struct Gemstone.GemSwapProgress
 import enum Gemstone.GemTransactionDetailRow
 import enum Gemstone.GemTransactionHeaderAction
 import enum Gemstone.GemTransactionStateTone
@@ -20,26 +22,6 @@ import TransactionsTestKit
 
 @MainActor
 struct TransactionSceneViewModelTests {
-    @Test
-    func itemModelReturnsNonEmpty() {
-        let model = TransactionSceneViewModel.mock()
-
-        for row in model.sections.flatMap(\.values) {
-            verifyNonEmpty(model.itemModel(for: row))
-        }
-    }
-
-    @Test
-    func headerItemModel() {
-        let model = TransactionSceneViewModel.mock(
-            type: TransactionType.transfer,
-            direction: TransactionDirection.outgoing,
-        )
-        let itemModel = model.itemModel(for: GemTransactionDetailRow.header)
-
-        verifyNonEmpty(itemModel)
-    }
-
     @Test
     func nftHeaderAction() {
         let assetId = NFTAssetId(chain: .ethereum, contractAddress: "0xasset", tokenId: "1")
@@ -74,10 +56,7 @@ struct TransactionSceneViewModelTests {
             state: .confirmed,
             swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
         )
-        guard case .swapAgain = swapped.itemModel(for: GemTransactionDetailRow.swapAgain) else {
-            Issue.record("a signing wallet offers to swap again")
-            return
-        }
+        #expect(rows(swapped).map(kind).contains("swapAgain"), "a signing wallet offers to swap again")
 
         let watching = TransactionSceneViewModel.mock(
             type: .swap,
@@ -85,30 +64,26 @@ struct TransactionSceneViewModelTests {
             swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
             wallet: .mock(type: .view),
         )
-        guard case .empty = watching.itemModel(for: GemTransactionDetailRow.swapAgain) else {
-            Issue.record("a watch-only wallet cannot sign a swap")
-            return
-        }
+        #expect(rows(watching).map(kind).contains("swapAgain") == false, "a watch-only wallet cannot sign a swap")
     }
 
     @Test
-    func swapButtonItemModel() {
-        let swapModel = TransactionSceneViewModel.mock(type: TransactionType.swap, state: TransactionState.confirmed)
-        let swapItem = swapModel.itemModel(for: GemTransactionDetailRow.swapAgain)
+    func swapAgainOpensTheSwapOfItsAssets() throws {
+        var selectedAction: GemTransactionHeaderAction?
+        let model = TransactionSceneViewModel.mock(
+            type: .swap,
+            state: .confirmed,
+            swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
+            onHeaderAction: { selectedAction = $0 },
+        )
+        let swap = try #require(rows(model).compactMap { row -> GemSwapAgain? in
+            guard case let .swapAgain(_, swap) = row else { return nil }
+            return swap
+        }.first)
 
-        if case .empty = swapItem {
-        } else if case .swapAgain = swapItem {
-        } else {
-            Issue.record("Unexpected swap button model type")
-        }
+        model.onSelectSwapAgain(swap)
 
-        let transferModel = TransactionSceneViewModel.mock(type: TransactionType.transfer)
-        let transferItem = transferModel.itemModel(for: GemTransactionDetailRow.swapAgain)
-
-        if case .empty = transferItem {
-        } else {
-            Issue.record("Expected empty for non-swap transaction")
-        }
+        #expect(selectedAction == .swap(fromAssetId: swap.fromAssetId, toAssetId: swap.toAssetId))
     }
 
     @Test
@@ -147,7 +122,10 @@ struct TransactionSceneViewModelTests {
             confirmationEtaSeconds: 720,
         )
 
-        if case let .swapProgress(progress) = model.itemModel(for: GemTransactionDetailRow.swapProgress) {
+        if let progress = rows(model).compactMap({ row -> GemSwapProgress? in
+            guard case let .swapProgress(progress) = row else { return nil }
+            return progress
+        }).first {
             #expect(progress.transfer.title.text == Localized.Transfer.title)
             #expect(progress.transfer.subtitle.text == "1 ETH (Ethereum)")
             #expect(progress.transfer.state.step == .completed)
@@ -159,9 +137,7 @@ struct TransactionSceneViewModelTests {
             Issue.record("Expected swap progress for in-transit cross-chain swap")
         }
         #expect(estimatedConfirmation(model) == nil)
-        if case .empty = TransactionSceneViewModel.mock(type: .transfer, state: .pending).itemModel(for: GemTransactionDetailRow.swapProgress) {} else {
-            Issue.record("Expected no swap progress for a transfer")
-        }
+        #expect(rows(TransactionSceneViewModel.mock(type: .transfer, state: .pending)).map(kind).contains("swapProgress") == false, "a transfer has no swap progress")
     }
 
     @Test
@@ -180,7 +156,7 @@ struct TransactionSceneViewModelTests {
                 false
             }
         }
-        if let participant, case let .participant(row) = modelWithAddresses.itemModel(for: participant) {
+        if let participant, case let .participant(row) = participant {
             #expect(row.title.text == Localized.Transaction.sender)
             #expect(row.address == "0xSenderAddress")
         } else {
@@ -220,11 +196,14 @@ struct TransactionSceneViewModelTests {
     func feeItemModel() {
         let model = TransactionSceneViewModel.mock()
 
-        if case let .fee(item) = model.itemModel(for: GemTransactionDetailRow.fee) {
-            #expect(item.title == Localized.Transfer.networkFee)
-            #expect(item.infoAction != nil)
+        if let fee = rows(model).compactMap({ row -> GemListRow? in
+            guard case let .fee(row) = row else { return nil }
+            return row
+        }).first, case let .lines(title, _, info) = fee {
+            #expect(title.text == Localized.Transfer.networkFee)
+            #expect(info != nil)
         } else {
-            Issue.record("Expected listItem for fee")
+            Issue.record("Expected a fee row")
         }
     }
 
@@ -269,8 +248,12 @@ struct TransactionSceneViewModelTests {
         }
     }
 
+    private func rows(_ model: TransactionSceneViewModel) -> [GemTransactionDetailRow] {
+        model.sections.flatMap(\.values)
+    }
+
     private func listRows(_ model: TransactionSceneViewModel) -> [GemListRow] {
-        model.sections.flatMap(\.values).compactMap { row in
+        rows(model).compactMap { row in
             guard case let .row(listRow) = row else { return nil }
             return listRow
         }
@@ -284,7 +267,10 @@ struct TransactionSceneViewModelTests {
         switch row {
         case let .row(listRow): kind(listRow)
         case .participant: "participant"
-        default: "\(row)"
+        case .header: "header"
+        case .swapProgress: "swapProgress"
+        case .swapAgain: "swapAgain"
+        case .fee: "fee"
         }
     }
 
@@ -298,12 +284,6 @@ struct TransactionSceneViewModelTests {
         case .explorer: "explorer"
         case .provider: "provider"
         default: "\(row)"
-        }
-    }
-
-    private func verifyNonEmpty(_ model: TransactionItemModel) {
-        if case .empty = model {
-            Issue.record("Expected non-empty model")
         }
     }
 }

@@ -5,6 +5,7 @@ import Formatters
 import Foundation
 import struct Gemstone.GemAddressRow
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemSwapAgain
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
@@ -12,7 +13,6 @@ import enum Gemstone.GemTransactionHeaderAction
 import func Gemstone.transactionDetailSections
 import GemstonePrimitives
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -73,38 +73,9 @@ public final class TransactionSceneViewModel {
 
 // MARK: - Sections
 
-extension TransactionSceneViewModel {
-    public var sections: [ListSection<GemTransactionDetailRow>] {
+public extension TransactionSceneViewModel {
+    var sections: [ListSection<GemTransactionDetailRow>] {
         transactionDetailSections(rows: rows).map(ListSection.init)
-    }
-
-    public func itemModel(for row: GemTransactionDetailRow) -> TransactionItemModel {
-        switch row {
-        case .header: headerItem
-        case .swapProgress: swapProgressItem
-        case .swapAgain: rows.swapAgain == nil ? .empty : .swapAgain(text: Localized.Transaction.swapAgain)
-        case let .participant(row): .participant(row)
-        case .fee: feeItem
-        case let .row(row): .row(row)
-        }
-    }
-
-    private var headerItem: TransactionItemModel {
-        .header(rows.header)
-    }
-
-    private var swapProgressItem: TransactionItemModel {
-        rows.swapProgress.map(TransactionItemModel.swapProgress) ?? .empty
-    }
-
-    private var feeItem: TransactionItemModel {
-        let fee = rows.feeRow
-        return .fee(ListItemModel(
-            title: fee.title.text,
-            subtitle: fee.text.value.text(),
-            subtitleExtra: fee.text.extra?.text,
-            infoAction: { [weak self] in self?.onInfo(fee.info) },
-        ))
     }
 }
 
@@ -135,11 +106,8 @@ extension TransactionSceneViewModel {
         onSelectAddress?(ChainAddress(chain: transactionExtended.transaction.assetId.chain, address: address))
     }
 
-    func onSelectSwapAgain() {
-        guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = rows.headerAction else {
-            return
-        }
-        onHeaderAction(.swap(fromAssetId: fromAssetId, toAssetId: toAssetId))
+    func onSelectSwapAgain(_ swap: GemSwapAgain) {
+        onHeaderAction?(.swap(fromAssetId: swap.fromAssetId, toAssetId: swap.toAssetId))
     }
 
     func onSelectShare() {

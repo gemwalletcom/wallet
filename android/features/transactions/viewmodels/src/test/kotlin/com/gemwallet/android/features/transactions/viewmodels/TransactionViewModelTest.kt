@@ -56,7 +56,6 @@ class TransactionViewModelTest {
             service,
             SavedStateHandle(mapOf(RouteArgument.WalletId.key to wallet.id.id, RouteArgument.TransactionId.key to transactionId.identifier)),
             dispatcher,
-            mockk(relaxed = true),
         )
     }
 

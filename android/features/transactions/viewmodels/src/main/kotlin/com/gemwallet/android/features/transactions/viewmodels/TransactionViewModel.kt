@@ -1,23 +1,22 @@
 package com.gemwallet.android.features.transactions.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.data.services.store.queries.TransactionQuery
 import com.gemwallet.android.data.services.store.queries.WalletQuery
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
 import com.gemwallet.android.features.transactions.viewmodels.models.target
-import com.gemwallet.android.features.transactions.viewmodels.models.uiModel
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.transactionDetailSections
@@ -38,7 +38,6 @@ class TransactionViewModel @Inject constructor(
     private val service: GemTransactionDetailsServiceInterface,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val walletId = WalletId(savedStateHandle.requireString(RouteArgument.WalletId))
@@ -59,15 +58,15 @@ class TransactionViewModel @Inject constructor(
     val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.headerAction?.target() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<ListSection<TransactionItemUIModel>>> = data.map { details ->
+    val sections: StateFlow<List<ListSection<GemTransactionDetailRow>>> = data.map { details ->
         details?.let { rows ->
-            transactionDetailSections(rows).mapIndexed { index, section ->
-                ListSection(id = index.toString(), items = section.rows.map { row -> rows.uiModel(row, context) })
-            }
+            transactionDetailSections(rows).mapIndexed { index, section -> ListSection(id = index.toString(), items = section.rows) }
         }.orEmpty()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }
+
+fun GemTransactionDetailRows.chain(): Chain = asset.toPrimitives().chain
 
 private fun SavedStateHandle.requireString(argument: RouteArgument): String {
     val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
