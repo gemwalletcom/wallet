@@ -11,15 +11,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.BadgeCircle
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -30,6 +32,9 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator10
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.statusLabelRes
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.Spacer8
@@ -61,7 +66,6 @@ private val badgeStartPadding = 5.dp
 @Composable
 fun TransactionItem(data: GemTransactionRow, listPosition: ListPosition, onClick: () -> Unit) {
     val context = LocalContext.current
-    val row = remember(data) { data.uiModel(context) }
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.iconMinHeight,
@@ -69,19 +73,19 @@ fun TransactionItem(data: GemTransactionRow, listPosition: ListPosition, onClick
         leading = { TransactionIcon(data) },
         title = {
             ListItemTitleText(
-                text = row.title,
-                titleBadge = { TransactionStatusBadge(row) },
+                text = data.title.string(context),
+                titleBadge = { TransactionStatusBadge(data) },
             )
         },
-        subtitle = row.subtitle?.let { { ListItemSupportText(it) } },
+        subtitle = data.subtitle.text(context)?.let { { ListItemSupportText(it) } },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(
-                    text = row.value,
-                    color = row.valueTone.color(),
+                    text = data.value.text().orEmpty(),
+                    color = data.valueTone.color(),
                 )
-                row.equivalentValue?.let {
+                data.equivalentValue.text()?.let {
                     ListItemSupportText(it)
                 }
             }
@@ -112,8 +116,8 @@ private fun DirectionBadgedIcon(data: GemTransactionRow) {
         GemTransactionBadge.OUTGOING, GemTransactionBadge.ASSET -> MaterialTheme.colorScheme.primary
     }
     IconWithBadge(
-        icon = data.nftImageUrl ?: data.icon.iconModel(),
-        placeholder = if (data.nftImageUrl != null) "NFT" else data.icon.placeholder,
+        icon = data.icon.iconModel(),
+        placeholder = data.icon.placeholder,
         size = size,
     ) {
         BadgeCircle(size = size, color = color) {
@@ -128,9 +132,10 @@ private fun DirectionBadgedIcon(data: GemTransactionRow) {
 }
 
 @Composable
-private fun TransactionStatusBadge(row: TransactionRowUIModel) {
-    val text = row.badgeText ?: return
-    val color = row.badgeTone.color()
+private fun TransactionStatusBadge(row: GemTransactionRow) {
+    if (!row.status.showsBadge) return
+    val text = stringResource(row.state.toPrimitives().statusLabelRes())
+    val color = row.status.tone.color()
     Row(
         Modifier
             .padding(start = badgeStartPadding)
@@ -153,7 +158,7 @@ private fun TransactionStatusBadge(row: TransactionRowUIModel) {
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelMedium,
         )
-        if (row.showsProgress) {
+        if (row.status.showsProgress) {
             CircularProgressIndicator10(color = color)
             Spacer8()
         }
@@ -226,7 +231,6 @@ private fun previewRow(
     value = GemTransactionRowValue.Number(value),
     valueTone = valueTone,
     equivalentValue = equivalentValue?.let { GemTransactionRowValue.Number(it) } ?: GemTransactionRowValue.None,
-    nftImageUrl = null,
     badge = badge,
     icon = assetText(asset.toGem()).icon,
 )

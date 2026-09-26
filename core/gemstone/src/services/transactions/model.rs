@@ -228,7 +228,6 @@ pub struct GemTransactionRow {
     pub value: GemTransactionRowValue,
     pub value_tone: GemValueTone,
     pub equivalent_value: GemTransactionRowValue,
-    pub nft_image_url: Option<String>,
     pub badge: GemTransactionBadge,
     pub icon: crate::services::assets::icon::GemAssetIcon,
 }

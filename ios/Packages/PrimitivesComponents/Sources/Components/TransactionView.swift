@@ -1,19 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemTransactionRow
+import func Gemstone.transactionRows
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 
 public struct TransactionView: View {
-    private let model: TransactionViewModel
+    private let row: GemTransactionRow
 
-    public init(model: TransactionViewModel) {
-        self.model = model
+    public init(row: GemTransactionRow) {
+        self.row = row
     }
 
     public var body: some View {
-        ListItemView(model: model.listItem)
+        ListItemView(model: row.listItem)
     }
 }
 
@@ -48,5 +51,5 @@ public struct TransactionView: View {
         toAddress: AddressName(chain: .smartChain, address: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", name: "test2", type: .address, status: .verified, imageUrl: nil),
     )
 
-    TransactionView(model: TransactionViewModel(transaction: pendingTransactionListItemMock))
+    TransactionView(row: transactionRows(items: [pendingTransactionListItemMock.toGem()])[0])
 }

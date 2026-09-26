@@ -66,7 +66,7 @@ pub fn row(item: &TransactionListItem) -> GemTransactionRow {
     let transaction = &item.transaction;
     let value = row_value(item, transaction_value(transaction));
     GemTransactionRow {
-        icon: asset_icon(&item.asset.id),
+        icon: row_icon(item),
         id: transaction.id.clone(),
         asset: item.asset.clone(),
         transaction_type: transaction.transaction_type.clone(),
@@ -79,8 +79,21 @@ pub fn row(item: &TransactionListItem) -> GemTransactionRow {
         value_tone: value_tone(&value),
         value,
         equivalent_value: row_value(item, transaction_equivalent_value(transaction)),
-        nft_image_url: transaction.nft_asset_id().map(|asset_id| GemImage::NftAsset { asset_id: asset_id.to_string() }.url()),
         badge: badge(&transaction.transaction_type, &transaction.direction),
+    }
+}
+
+fn row_icon(item: &TransactionListItem) -> GemAssetIcon {
+    let icon = asset_icon(&item.asset.id);
+    match item.transaction.nft_asset_id() {
+        Some(asset_id) => GemAssetIcon {
+            image: GemAssetIconImage::Remote {
+                url: GemImage::NftAsset { asset_id: asset_id.to_string() }.url(),
+            },
+            badge: None,
+            ..icon
+        },
+        None => icon,
     }
 }
 
@@ -1184,7 +1197,10 @@ mod tests {
         let asset_id = primitives::NFTAssetId::new(Chain::Ethereum, "0xcontract", "7");
         nft.metadata = Some(serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id.clone(), Some("Punk".to_string()))).unwrap());
         let nft_row = row(&TransactionListItem::mock_transaction(nft));
-        assert!(nft_row.nft_image_url.as_deref().is_some_and(|url| url.contains(&asset_id.to_string())));
+        assert!(
+            matches!(&nft_row.icon.image, GemAssetIconImage::Remote { url } if url.contains(&asset_id.to_string())),
+            "an nft row shows the collectible, not its chain"
+        );
         assert_eq!(nft_row.value, GemTransactionRowValue::None);
 
         let mut open = Transaction::mock_with_state(TransactionType::PerpetualOpenPosition, TransactionState::Confirmed, TransactionDirection::Outgoing);

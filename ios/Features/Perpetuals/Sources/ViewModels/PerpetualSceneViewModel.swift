@@ -10,6 +10,7 @@ import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -31,7 +32,7 @@ public final class PerpetualSceneViewModel {
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
     public let perpetualQuery: ObservableQuery<PerpetualQuery>
-    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
+    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -41,7 +42,7 @@ public final class PerpetualSceneViewModel {
         perpetualQuery.value
     }
 
-    public var transactionSections: [ListSection<TransactionViewModel>] {
+    public var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
 
@@ -73,7 +74,7 @@ public final class PerpetualSceneViewModel {
         transactionsQuery = ObservableQuery(
             MappedQuery(
                 TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
-                transform: TransactionViewModel.sections,
+                transform: transactionListSections,
             ),
             initialValue: [],
         )

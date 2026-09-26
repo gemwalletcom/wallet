@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -12,7 +13,7 @@ public struct AssetSceneInput: Sendable {
     public let asset: Asset
 
     public var assetRequest: ChainAssetQuery
-    public var transactionsRequest: MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>
+    public var transactionsRequest: MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>
     public var bannersRequest: BannersQuery
 
     public init(wallet: Wallet, asset: Asset) {
@@ -26,7 +27,7 @@ public struct AssetSceneInput: Sendable {
 
         transactionsRequest = MappedQuery(
             TransactionsQuery.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemConstants.transactionsListLimit),
-            transform: TransactionViewModel.sections,
+            transform: transactionListSections,
         )
 
         bannersRequest = BannersQuery(

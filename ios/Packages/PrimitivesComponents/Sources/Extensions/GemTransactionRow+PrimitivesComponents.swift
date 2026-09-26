@@ -12,44 +12,19 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionViewModel: Sendable, Identifiable, Equatable {
-    private let row: GemTransactionRow
+extension GemTransactionRow: @retroactive Identifiable {}
 
-    public init(transaction: TransactionListItem) {
-        self.init(row: transactionRows(items: [transaction.toGem()])[0])
+public func transactionListSections(_ transactions: [TransactionListItem]) -> [ListSection<GemTransactionRow>] {
+    DateSectionBuilder(items: transactionRows(items: transactions.map { $0.toGem() }), dateKeyPath: \.createdAt).build()
+}
+
+public extension GemTransactionRow {
+    var transactionId: TransactionId {
+        TransactionId(core: id)
     }
 
-    public init(row: GemTransactionRow) {
-        self.row = row
-    }
-
-    public var id: String {
-        row.id
-    }
-
-    public var transactionId: TransactionId {
-        TransactionId(core: row.id)
-    }
-
-    public var createdAt: Date {
-        row.createdAt
-    }
-
-    public static func sections(_ transactions: [TransactionListItem]) -> [ListSection<TransactionViewModel>] {
-        let models = transactionRows(items: transactions.map { $0.toGem() }).map(TransactionViewModel.init(row:))
-        return DateSectionBuilder(items: models, dateKeyPath: \.createdAt).build()
-    }
-
-    public var assetImage: AssetImage {
-        let asset = AssetImage(icon: row.icon)
-        if let nftImageUrl = row.nftImageUrl {
-            return AssetImage(
-                type: .text(""),
-                imageURL: URL(string: nftImageUrl),
-                placeholder: asset.placeholder,
-                chainPlaceholder: overlayImage,
-            )
-        }
+    var assetImage: AssetImage {
+        let asset = AssetImage(icon: icon)
         return AssetImage(
             type: asset.type,
             imageURL: asset.imageURL,
@@ -58,15 +33,15 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         )
     }
 
-    public var overlayImage: Image? {
-        switch row.badge {
+    var overlayImage: Image? {
+        switch badge {
         case .incoming: Images.Transaction.incoming
         case .outgoing: Images.Transaction.outgoing
-        case .asset: AssetImage(icon: row.icon).chainPlaceholder
+        case .asset: AssetImage(icon: icon).chainPlaceholder
         }
     }
 
-    public var listItem: ListItemModel {
+    var listItem: ListItemModel {
         let title = titleTextValue
         let titleExtra = titleExtraTextValue
         let titleTag = titleTagTextValue
@@ -93,20 +68,20 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         )
     }
 
-    public var titleTextValue: TextValue {
+    var titleTextValue: TextValue {
         TextValue(
-            text: row.title.title,
+            text: title.title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
 
-    public var titleTagType: TitleTagType {
-        row.status.showsProgress ? .progressView() : .none
+    var titleTagType: TitleTagType {
+        status.showsProgress ? .progressView() : .none
     }
 
-    public var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: row.state.toPrimitives(), tone: row.status.tone)
-        let title: String? = row.status.showsBadge ? model.title : .none
+    var titleTagTextValue: TextValue? {
+        let model = TransactionStateViewModel(state: state.toPrimitives(), tone: status.tone)
+        let title: String? = status.showsBadge ? model.title : .none
         return title.map {
             TextValue(
                 text: $0,
@@ -119,9 +94,9 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public var titleExtraTextValue: TextValue? {
-        let prefix = row.subtitle.prefix ?? ""
-        let title: String? = switch row.subtitle {
+    var titleExtraTextValue: TextValue? {
+        let prefix = subtitle.prefix ?? ""
+        let title: String? = switch subtitle {
         case let .toAddress(participant), let .fromAddress(participant): participantTitle(prefix: prefix, participant: participant)
         case let .toResource(resource), let .fromResource(resource): resourceTitle(prefix: prefix, resource: resource)
         case let .price(price):
@@ -137,12 +112,12 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public var subtitleTextValue: TextValue? {
-        row.value.textValue(textStyle: TextStyle(font: .body, color: row.valueTone.color, fontWeight: .medium))
+    var subtitleTextValue: TextValue? {
+        value.textValue(textStyle: TextStyle(font: .body, color: valueTone.color, fontWeight: .medium))
     }
 
-    public var subtitleExtraTextValue: TextValue? {
-        row.equivalentValue.textValue(textStyle: .footnote)
+    var subtitleExtraTextValue: TextValue? {
+        equivalentValue.textValue(textStyle: .footnote)
     }
 
     private func participantTitle(prefix: String, participant: String) -> String? {

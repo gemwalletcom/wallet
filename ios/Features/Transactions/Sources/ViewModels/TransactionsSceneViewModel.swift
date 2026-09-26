@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemLoadState
+import struct Gemstone.GemTransactionRow
 import protocol Gemstone.GemTransactionsServiceProtocol
 import func Gemstone.loadError
 import func Gemstone.transactionsEmptyState
@@ -21,7 +22,7 @@ public final class TransactionsSceneViewModel {
 
     public let wallet: Wallet
 
-    public var sections: [ListSection<TransactionViewModel>] {
+    public var sections: [ListSection<GemTransactionRow>] {
         filterModel.query.value
     }
 

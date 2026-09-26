@@ -4,6 +4,7 @@ import Components
 import Foundation
 import func Gemstone.activityFilters
 import enum Gemstone.GemTransactionFilter
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -24,7 +25,7 @@ public final class TransactionsFilterSceneViewModel {
         didSet { query.request.base.filter = requestFilter }
     }
 
-    public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
+    public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
@@ -42,7 +43,7 @@ public final class TransactionsFilterSceneViewModel {
             filter: activityFilters(chains: [], filters: []).toPrimitives(),
             limit: GemConstants.transactionsListLimit,
         )
-        query = ObservableQuery(MappedQuery(request, transform: TransactionViewModel.sections), initialValue: [])
+        query = ObservableQuery(MappedQuery(request, transform: transactionListSections), initialValue: [])
     }
 
     public func onFinishChainsSelection(_ value: SelectionResult<Chain>) -> Bool {

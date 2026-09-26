@@ -18,6 +18,7 @@ import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemRowAction
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemTransactionRow
 import func Gemstone.loadError
 import GemstonePrimitives
 import GemstoneServices
@@ -46,7 +47,7 @@ public final class AssetSceneViewModel: Sendable {
     public var input: AssetSceneInput
     public let assetQuery: ObservableQuery<ChainAssetQuery>
     public let bannersQuery: ObservableQuery<BannersQuery>
-    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
+    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
     public init(
         service: any GemAssetDetailsServiceProtocol,
@@ -80,7 +81,7 @@ public final class AssetSceneViewModel: Sendable {
         bannersQuery.value
     }
 
-    public var transactionSections: [ListSection<TransactionViewModel>] {
+    public var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
 
