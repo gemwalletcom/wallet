@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM186, VM196, VM194.
+1. **Small shared rules:** VM196, VM194.
 2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 3. **Models:** VM195.
 4. **Sessions:** VM185.
@@ -50,7 +50,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM196, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186, VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM194, VM196, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
@@ -129,7 +129,6 @@ The same product rule written in both apps, or in one app while the other reads 
   - **Android:** text in `NetworkFeeCustomViewModel` (`GemCustomFeeCheck`), `WelcomeBanner` (`GemBannerButton`), `TransactionsViewModel` (`GemChainsFilterSummary`, `GemTransactionsFilterSummary`); icons and labels in `VerificationStatusItem.kt` and `PinnedAssetsHeaderItem.kt`.
   - **Expected:** each mapping moves into `Gemstone+Localized.swift`/`Gemstone+Style.swift` and `GemstoneText.kt`/`GemstoneStyle.kt`. `GemCopy+`, `GemWalletRow+` and `GemSecretPhraseRow+` go with VM206, VM237 and VM294; Android `ChainIcon.kt` stays where `android/scripts/convert-icons.sh` generates it.
 - **VM193** **S** **Values Core hands back are turned into input text by the apps.** Swap's "use minimum amount" (iOS `SwapSceneViewModel.setFromValue(minimum:)`, Android `SwapViewModel.setPayValue`) and the price-alert suggestions (iOS `PriceSuggestion.inputValue`, Android `PriceAlertTargetViewModel.suggestion`) each convert the value with `NumberInput`/`numberFormat().inputText` or `valueText`. The owning session returns the text (the swap session for its minimum, the alert session for its suggestions). Land with VM192, which does the same for amount prefill and max.
-- **VM186** **S** **Both apps put "≈" in front of an estimated duration.** iOS `EstimatedConfirmationFormatter` (`GemstonePrimitives/Sources/DurationFormatters.swift`) and Android `formatEstimate` (`gemcore/.../domains/duration/DurationFormatter.kt`, used by `GemListRowUIModel` for estimate rows) each compose `"≈ " + duration`. The fiat quote row already composes its estimate in Core around the platform-formatted value (`GemFiatQuoteRow::crypto_estimate_text`); give the duration estimate the same method and delete both prefixes.
 
 
 ## 5. Twins, adapters, redundant models and dead code

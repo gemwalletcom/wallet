@@ -17,6 +17,14 @@ pub fn estimated_duration_parts(seconds: i64) -> Option<Vec<GemDurationPart>> {
     estimate_parts(seconds)
 }
 
+#[uniffi::export]
+pub fn estimated_duration_text(duration: String) -> String {
+    match duration.is_empty() {
+        true => duration,
+        false => format!("≈ {duration}"),
+    }
+}
+
 const MINUTE_SECONDS: i64 = 60;
 const HOUR_SECONDS: i64 = 60 * MINUTE_SECONDS;
 const DAY_SECONDS: i64 = 24 * HOUR_SECONDS;
@@ -71,6 +79,12 @@ mod tests {
         assert_eq!(countdown_parts(4 * MINUTE_SECONDS), vec![part(4, GemDurationUnit::Minute)], "a leading zero is dropped");
         assert_eq!(countdown_parts(0), vec![part(0, GemDurationUnit::Minute)], "nothing left still reads as zero minutes");
         assert_eq!(countdown_parts(-1), vec![]);
+    }
+
+    #[test]
+    fn test_an_estimated_duration_reads_as_approximate_and_no_duration_stays_empty() {
+        assert_eq!(estimated_duration_text("12 min".to_string()), "≈ 12 min");
+        assert_eq!(estimated_duration_text(String::new()), "");
     }
 
     #[test]
