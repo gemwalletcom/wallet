@@ -16,15 +16,12 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: StakeViewModel = hiltViewModel()) {
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val actions by viewModel.actionRows.collectAsStateWithLifecycle()
-    val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
-    val header by viewModel.header.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
-    if (stakeAssetInfo == null) {
+    val state = viewState
+    if (stakeAssetInfo == null || state == null) {
         LoadingScene(
             title = stringResource(id = R.string.transfer_stake_title),
             onCancel = onCancel,
@@ -33,11 +30,7 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
         StakeScene(
             inSync = inSync,
             assetInfo = stakeAssetInfo,
-            header = header,
-            actions = actions,
-            stakeInfoUrl = stakeInfoUrl,
-            sections = sections,
-            infoRows = infoRows,
+            state = state,
             loadError = loadError,
             amountAction = amountAction,
             onAction = { action ->

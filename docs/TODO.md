@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM230 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM231 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -50,7 +50,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM230, VM278, VM279; preserve exact atomic values |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Stake and perpetuals
 
-- **VM230** **S** **Stake sections are wrapped.**
-  - **iOS:** `StakeSceneViewModel` maps sections and actions.
-  - **Android:** `StakeSectionUIModel` and `StakeActionUIModel` wrap `GemStakeSection` and `GemStakeActionItem`.
-  - **Expected:** the views read the Core sections; the wrappers go.
 - **VM231** **S** **Perpetual details sections and buttons are wrapped.**
   - **iOS:** `PerpetualButtonViewModel` maps tone to a style; `PerpetualSceneViewModel` builds sections.
   - **Android:** `PerpetualUIModel`, `PerpetualButtonUIModel` and `PerpetualPositionDetailUIModel` copy `GemPerpetualDetails` and tag autoclose rows by kind.

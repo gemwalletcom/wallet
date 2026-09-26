@@ -18,8 +18,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.stake.presents.components.stakeActions
-import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
-import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.iconModel
@@ -32,29 +30,20 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.AssetData
-import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemStakeSection
+import uniffi.gemstone.GemStakeViewState
 
 @Composable
-internal fun StakeScene(
-    inSync: Boolean,
-    assetInfo: AssetData,
-    header: GemAssetText?,
-    actions: List<StakeActionUIModel>,
-    stakeInfoUrl: String?,
-    sections: List<StakeSectionUIModel>,
-    infoRows: List<GemListRow>,
-    loadError: GemServiceException?,
-    amountAction: AmountTransactionAction,
-    onAction: (StakeAction) -> Unit,
-) {
+internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeViewState, loadError: GemServiceException?, amountAction: AmountTransactionAction, onAction: (StakeAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -62,7 +51,7 @@ internal fun StakeScene(
         title = stringResource(id = R.string.transfer_stake_title),
         onClose = { onAction(StakeAction.Cancel) },
         actions = {
-            stakeInfoUrl?.let { url ->
+            state.docsUrl?.let { url ->
                 IconButton(onClick = { uriHandler.open(context, url) }) {
                     Icon(imageVector = AppIcons.InfoOutlined, contentDescription = null)
                 }
@@ -74,43 +63,41 @@ internal fun StakeScene(
             onRefresh = { onAction(StakeAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                header?.let { header ->
-                    item {
-                        CenteredListHead(
-                            title = header.asset.name,
-                            subtitle = header.subtitleSymbol,
-                            leading = { HeaderIcon(header.icon) },
-                        )
-                    }
+                item {
+                    CenteredListHead(
+                        title = state.asset.asset.name,
+                        subtitle = state.asset.subtitleSymbol,
+                        leading = { HeaderIcon(state.asset.icon) },
+                    )
                 }
 
-                stakeInfoSection(infoRows)
+                stakeInfoSection(state.infoRows)
 
-                sections.forEach { section ->
-                    item { SubheaderItem(section.title) }
+                state.sections.forEach { section ->
+                    item { SubheaderItem(section.stringRes()) }
                     when (section) {
-                        is StakeSectionUIModel.Manage -> stakeActions(
-                            actions = actions,
+                        GemStakeSection.MANAGE -> stakeActions(
+                            actions = state.actions,
                             assetId = assetInfo.asset.id,
                             amountAction = amountAction,
                             onConfirm = { onAction(StakeAction.Confirm(it)) },
                         )
 
-                        is StakeSectionUIModel.Resources -> itemsIndexed(section.rows) { index, row ->
-                            GemListRowView(row = row, listPosition = ListPosition.getPosition(index, section.rows.size))
+                        GemStakeSection.RESOURCES -> itemsIndexed(state.resourceRows) { index, row ->
+                            GemListRowView(row = row, listPosition = ListPosition.getPosition(index, state.resourceRows.size))
                         }
 
-                        is StakeSectionUIModel.Delegations -> itemsIndexed(section.rows) { index, item ->
+                        GemStakeSection.DELEGATIONS -> itemsIndexed(state.delegations) { index, item ->
                             DelegationItem(
                                 row = item.row,
-                                listPosition = ListPosition.getPosition(index, section.rows.size),
+                                listPosition = ListPosition.getPosition(index, state.delegations.size),
                                 onClick = { onAction(StakeAction.OpenDelegation(item.delegation.toPrimitives())) },
                             )
                         }
                     }
                 }
 
-                if (sections.none { it is StakeSectionUIModel.Delegations }) {
+                if (GemStakeSection.DELEGATIONS !in state.sections) {
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
                         when (loadError) {

@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.stake.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -17,9 +16,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
-import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
-import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -27,7 +23,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,8 +39,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetText
-import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeInput
@@ -65,7 +58,6 @@ class StakeViewModel @Inject constructor(
     getSession: GetSession,
     stateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
         ?: error("Missing assetId")
@@ -94,7 +86,7 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { validatorsQuery(it, StakeProviderType.Stake) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val viewState: StateFlow<GemStakeViewState?> = combine(
+    val viewState: StateFlow<GemStakeViewState?> = combine(
         walletType.filterNotNull(),
         delegations,
         assetInfo.filterNotNull(),
@@ -110,25 +102,6 @@ class StakeViewModel @Inject constructor(
             ),
         )
     }.flowOn(ioDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val header: StateFlow<GemAssetText?> = viewState
-        .map { it?.asset }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val stakeInfoUrl: StateFlow<String?> = viewState
-        .map { it?.docsUrl }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val infoRows: StateFlow<List<GemListRow>> = viewState
-        .map { it?.infoRows.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val sections: StateFlow<List<StakeSectionUIModel>> = viewState
-        .map { state ->
-            state ?: return@map emptyList()
-            state.sections.map { it.uiModel(context, state.delegations, state.resourceRows) }
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
 
@@ -156,11 +129,6 @@ class StakeViewModel @Inject constructor(
         }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
-    val actionRows: StateFlow<List<StakeActionUIModel>> = viewState.filterNotNull().map { state ->
-        state.actions.map { it.uiModel(context) }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onRefresh() {
         sync.update { true }

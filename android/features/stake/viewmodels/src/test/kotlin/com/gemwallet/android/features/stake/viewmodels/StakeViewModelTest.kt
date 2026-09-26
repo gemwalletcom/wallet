@@ -115,7 +115,6 @@ class StakeViewModelTest {
             getSession = getSession,
             stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
             ioDispatcher = testDispatcher,
-            context = mockk(relaxed = true),
         )
 
         assertEquals(listOf(true, false), viewModel.isSync.take(2).toList())
