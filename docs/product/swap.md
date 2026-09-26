@@ -36,6 +36,29 @@ A quote lives `1 minute` when the swap stays on one network and `5 minutes` when
 4. Slippage is Auto (`1%`, `3%` on Solana) or a chosen value between `0.1%` and `20%`.
 5. Swap prepares the trade with the chosen provider and opens the confirmation screen, which asks that provider again once the quote is old and signs the trade with one authentication.
 
+## Swapping the whole balance
+
+Providers take an amount in one of two ways. Some swap whatever arrives at a deposit address, so they can take the full balance and the network fee simply comes off what is sent. Others run a contract call that spends exactly the amount quoted, so the fee has to be set aside before the quote.
+
+```mermaid
+flowchart LR
+    A[100% of a network's coin] --> B{How the provider takes the amount}
+    B -- swaps whatever arrives --> C[Full balance quoted] --> D[Fee comes off at signing] --> E{Still above the provider's minimum?}
+    E -- yes --> F[Nothing left behind]
+    E -- no --> G[The minimum is shown]
+    B -- needs the exact amount --> H[Balance minus a fee reserve quoted] --> I{Ethereum-style network?}
+    I -- yes --> J[Confirm sends everything but the network fee]
+    I -- no --> K[A small reserve stays]
+```
+
+| When the user swaps 100% of a network's coin and | Expected | Why |
+|---|---|---|
+| the provider swaps whatever arrives: Near Intents, Chainflip, Thorchain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted; the network fee comes off when the transaction is signed, so nothing is left behind | a deposit can be any amount |
+| what is left after the fee is under that provider's minimum | the minimum is shown, not a balance error | the provider would reject or refund it |
+| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Squid, Mayan, Across | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
+| that provider is used on Solana, TON, Tron, Sui or Aptos | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy |
+| the provider says it can take any amount but builds a contract call | it is treated as needing the exact amount | otherwise the full balance would be quoted and the fee would not fit |
+
 ## Expected results
 
 | When | Expected | Why |
@@ -62,7 +85,6 @@ A quote lives `1 minute` when the swap stays on one network and `5 minutes` when
 | The provider needs a Permit2 signature | it is signed at Confirm together with the swap, under that same authentication | nothing is signed before the confirmation screen |
 | The quote calls a contract | the confirmation screen shows the Provider with that contract, which opens its address details on the paying network; Swap Details names the provider only | |
 | The quote pays a deposit address | no Provider row on the confirmation screen | |
-| A max swap of a native coin | the network fee, and anything the provider attaches on top, stay out of the quoted amount | the confirmed amount is the one that can be sent |
 | A provider's minimum is then above that amount | the user is told the minimum, not "insufficient balance" | |
 | The user taps 25%, 50% or 100%, or "Use minimum amount" | quotes are asked at once | typing waits a short pause for the amount to settle; a button's amount is already final |
 

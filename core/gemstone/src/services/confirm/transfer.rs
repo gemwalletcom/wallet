@@ -13,8 +13,10 @@ use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
 use crate::services::confirm::error::sign_error;
-use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, submit_message};
-use crate::services::confirm::{ConfirmSwapQuote, GemConfirmData, GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
+use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, max_swap_fit, submit_message};
+use crate::services::confirm::{
+    ConfirmSwapQuote, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput,
+};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -27,6 +29,7 @@ use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
 use primitives::AddressName;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
+use swapper::Quote;
 use zeroize::Zeroizing;
 
 #[derive(uniffi::Object)]
@@ -113,6 +116,19 @@ impl GemConfirmTransferService {
         }
         let GemSwapRequote { quote, transfer } = self.swap.requote(wallet, &transfer).await?;
         Ok((transfer, ConfirmSwapQuote::requoted(quote, now)))
+    }
+
+    pub(super) async fn fitted_max_swap(&self, wallet: &Wallet, fee: GemConfirmFeeLoad) -> Result<(GemConfirmFeeLoad, Option<Quote>), GemConfirmError> {
+        let Some(value) = max_swap_fit(&fee.confirm_data.input.transfer, &fee.metadata, &fee.fee.value) else {
+            return Ok((fee, None));
+        };
+        let GemSwapRequote { quote, transfer } = self.swap.requote_at(wallet, &fee.confirm_data.input.transfer, &value).await?;
+        let confirm_data = GemConfirmData {
+            input: GemConfirmInput { transfer, ..fee.confirm_data.input },
+            ..fee.confirm_data
+        };
+        let fitted = confirm_data.fee_load(fee.metadata, fee.fee_asset, self.get_currency())?;
+        Ok((GemConfirmFeeLoad { simulation: fee.simulation, ..fitted }, Some(quote)))
     }
 
     pub(super) async fn submit(&self, input: SendInput) -> Result<GemSubmitResult, GemConfirmError> {
@@ -240,14 +256,14 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
-    use primitives::{Account, Asset, Chain, SwapProvider, TransactionInputType, Wallet, WalletId};
+    use primitives::{Account, Asset, Chain, Currency, SwapProvider, TransactionInputType, Wallet, WalletId};
     use swapper::testkit::MockSwapper;
     use swapper::{FetchQuoteData, Quote, SwapperProvider};
 
     use super::super::testkit::ConfirmTestkit;
     use crate::keystore::{GemImportType, decode_password};
-    use crate::models::transaction::GemTransactionLoadMetadata;
-    use crate::services::confirm::{ConfirmSwapQuote, GemConfirmData, GemConfirmError, GemConfirmInput, SendInput};
+    use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+    use crate::services::confirm::{ConfirmSwapQuote, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmMetadata, GemTransferAmountResult, SendInput};
     use crate::services::swap::GemSwapService;
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::services::wallet::testkit::TEST_PASSWORD;
@@ -349,6 +365,54 @@ mod tests {
     }
 
     #[test]
+    fn test_a_max_swap_that_needs_the_exact_amount_is_asked_again_for_everything_but_the_fee() {
+        block_on(async {
+            let swapper = MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)));
+            let builds = swapper.builds();
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
+            let testkit = ConfirmTestkit::with_swap(wallet.clone(), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper)])));
+            let max_swap = |swap_data: SwapData, value: u32| {
+                let mut confirm = GemConfirmData::mock(
+                    Chain::Ethereum,
+                    TransactionInputType::Swap {
+                        from_asset: Asset::mock_eth(),
+                        to_asset: Asset::mock_erc20(),
+                        swap_data,
+                    },
+                );
+                confirm.input.transfer.value = value.into();
+                confirm.fee = GemTransactionLoadFee {
+                    fee_asset: Asset::mock_eth().id,
+                    ..GemTransactionLoadFee::mock(10)
+                };
+                confirm.fee_load(GemConfirmMetadata::mock(&Asset::mock_eth().id, 1_000), Asset::mock_eth(), Currency::USD).unwrap()
+            };
+            let sent = |fee: &GemConfirmFeeLoad| match &fee.fee.amount {
+                GemTransferAmountResult::Amount { amount } => Some((amount.value.clone(), amount.network_fee.clone())),
+                GemTransferAmountResult::Error { .. } => None,
+            };
+
+            let reserved = max_swap(SwapData::mock_with_provider(SwapProvider::UniswapV3), 995);
+            assert_eq!(sent(&reserved), None, "the reserve the swap screen kept back is less than the fee, so the amount does not fit yet");
+
+            let (fitted, quote) = testkit.service.fitted_max_swap(&wallet, reserved).await.unwrap();
+
+            assert_eq!(quote.unwrap().request.value, 990u32.into(), "the provider is asked again for everything but the fee");
+            assert_eq!(fitted.confirm_data.input.transfer.value, 990.into());
+            assert_eq!(sent(&fitted), Some((990.into(), 10.into())), "what leaves the wallet plus the fee is the whole balance");
+            assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None]);
+
+            let deposit = max_swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"), 1_000);
+            let (kept, quote) = testkit.service.fitted_max_swap(&wallet, deposit).await.unwrap();
+
+            assert!(quote.is_none(), "a deposit is not asked again; the fee comes off at signing");
+            assert_eq!(kept.confirm_data.input.transfer.value, 1_000.into());
+            assert_eq!(sent(&kept), Some((990.into(), 10.into())));
+            assert_eq!(builds.lock().unwrap().len(), 1);
+        });
+    }
+
+    #[test]
     fn test_a_submit_signs_a_pending_permit_and_rebuilds_with_it_under_the_same_password_read() {
         block_on(async {
             let swapper = MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)));
@@ -356,7 +420,7 @@ mod tests {
             let testkit = ConfirmTestkit::with_swap(Wallet::mock_with_chains(&[Chain::Ethereum]), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper)])));
             let wallet = keystore_wallet(&testkit);
             let transfer = swap_transfer(&wallet.accounts[0].address, Some(Permit2ApprovalData::mock()));
-            let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer).unwrap().1);
+            let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
             let error = testkit.service.submit(send_input(wallet, transfer, Some(quote))).await.unwrap_err();
 
@@ -380,7 +444,7 @@ mod tests {
             let testkit = ConfirmTestkit::with_swap(Wallet::mock_with_chains(&[Chain::Ethereum]), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper)])));
             let wallet = keystore_wallet(&testkit);
             let transfer = swap_transfer(&wallet.accounts[0].address, None);
-            let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer).unwrap().1);
+            let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
             let error = testkit.service.submit(send_input(wallet, transfer, Some(quote))).await.unwrap_err();
 

@@ -58,7 +58,7 @@ fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>,
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match &transfer.input_type {
             TransactionInputType::Swap { from_asset, to_asset, swap_data } => GemTransactionHeader::Swap {
-                from: header_amount(leg(from_asset.clone(), swap_data.quote.from_value.clone(), prices), &currency, true),
+                from: header_amount(leg(from_asset.clone(), sent_value(load).unwrap_or_else(|| swap_data.quote.from_value.clone()), prices), &currency, true),
                 to: header_amount(leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices), &currency, true),
             },
             _ => amount(true),
@@ -101,6 +101,13 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
         };
     }
     leg(asset, value, prices)
+}
+
+fn sent_value(load: Option<&GemConfirmLoad>) -> Option<GemBigUint> {
+    match &load?.fee.as_ref()?.amount {
+        GemTransferAmountResult::Amount { amount } => amount.value.to_biguint(),
+        GemTransferAmountResult::Error { .. } => None,
+    }
 }
 
 fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransactionAmount {
@@ -254,6 +261,37 @@ mod tests {
             },
             "the head is not empty while the fee loads"
         );
+    }
+
+    #[test]
+    fn test_a_swap_shows_what_it_will_send_once_the_fee_is_known() {
+        use super::super::model::GemConfirmFee;
+        use crate::transfer_amount::GemTransferAmount;
+        use primitives::SwapProvider;
+        use primitives::swap::SwapData;
+        let deposit = transfer(TransactionInputType::Swap {
+            from_asset: Asset::mock_eth(),
+            to_asset: Asset::mock_erc20(),
+            swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"),
+        });
+        let sent = GemConfirmLoad {
+            fee: Some(GemConfirmFee::mock(GemTransferAmountResult::Amount {
+                amount: GemTransferAmount {
+                    value: 990.into(),
+                    network_fee: 10.into(),
+                    is_max_amount: true,
+                },
+            })),
+            ..GemConfirmLoad::mock()
+        };
+        let from = |load: Option<&GemConfirmLoad>| match header(&deposit, None, load, Currency::USD, &ready()).header {
+            GemTransactionHeader::Swap { from, .. } => from.amount,
+            other => panic!("expected a swap header, got {other:?}"),
+        };
+        let amount = |value: u32| GemAmountSign::None.amount(&value.into(), &Asset::mock_eth(), GemValueStyle::Auto);
+
+        assert_eq!(from(None), amount(1_000), "the quoted amount until the fee is known");
+        assert_eq!(from(Some(&sent)), amount(990), "then the amount that leaves the wallet");
     }
 
     #[test]

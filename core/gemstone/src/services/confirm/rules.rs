@@ -14,6 +14,7 @@ use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedActio
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::currency::Currency;
+use primitives::swap::SwapQuoteDataType;
 use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
@@ -255,6 +256,18 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             requirement: GemBalanceRequirement::new(minimum, value),
         },
     }
+}
+
+pub(super) fn max_swap_fit(transfer: &GemTransferData, metadata: &GemConfirmMetadata, fee: &GemBigInt) -> Option<GemBigInt> {
+    let TransactionInputType::Swap { from_asset, swap_data, .. } = &transfer.input_type else {
+        return None;
+    };
+    let exact_native = from_asset.id.is_native() && swap_data.data.data_type == SwapQuoteDataType::Contract;
+    if !transfer.use_max_amount || !exact_native || !from_asset.chain().chain_type().network_fee_is_total_cost() {
+        return None;
+    }
+    let target = GemBigInt::from(metadata.asset_balance.available.clone()) - fee;
+    (target > GemBigInt::ZERO && target != transfer.value).then_some(target)
 }
 
 impl ConfirmSwapQuote {
@@ -712,6 +725,45 @@ pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRo
 mod tests {
     use super::*;
     use crate::models::copy::GemCopy;
+
+    #[test]
+    fn test_a_max_swap_of_a_network_coin_is_fitted_to_the_fee_only_where_the_fee_is_the_whole_cost() {
+        use primitives::SwapProvider;
+        use primitives::swap::SwapData;
+        let swap = |from_asset: Asset, swap_data: SwapData, use_max_amount: bool, value: u32| GemTransferData {
+            value: value.into(),
+            use_max_amount,
+            ..GemTransferData::mock(TransactionInputType::Swap {
+                from_asset,
+                to_asset: Asset::mock_erc20(),
+                swap_data,
+            })
+        };
+        let metadata = GemConfirmMetadata::mock(&Asset::mock_eth().id, 1_000);
+        let fee = GemBigInt::from(10);
+        let contract = SwapData::mock_with_provider(SwapProvider::UniswapV3);
+        let deposit = SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit");
+
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 995), &metadata, &fee),
+            Some(990.into()),
+            "the reserve the quote kept back becomes everything but the fee"
+        );
+        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 990), &metadata, &fee), None, "an amount that already fits is left alone");
+        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), false, 500), &metadata, &fee), None, "only a max amount is fitted");
+        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), deposit, true, 1_000), &metadata, &fee), None, "a deposit takes the fee off at signing instead");
+        assert_eq!(max_swap_fit(&swap(Asset::mock_erc20(), contract.clone(), true, 995), &metadata, &fee), None, "a token pays its fee in the coin");
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_sol(), contract.clone(), true, 995), &GemConfirmMetadata::mock(&Asset::mock_sol().id, 1_000), &fee),
+            None,
+            "a network that charges more than its fee keeps its reserve"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_eth(), contract, true, 995), &metadata, &GemBigInt::from(1_000)),
+            None,
+            "a fee that eats the balance is left to the amount check"
+        );
+    }
 
     #[test]
     fn test_a_confirm_swap_quote_is_asked_again_past_its_provider_lifetime_or_once_for_a_pending_permit() {

@@ -145,11 +145,11 @@ pub fn swap_assets(transfer: &GemTransferData) -> Result<(Asset, Asset), Swapper
     }
 }
 
-pub fn requote_request(wallet: &Wallet, transfer: &GemTransferData) -> Result<(SwapperProvider, QuoteRequest), SwapperError> {
+pub fn requote_request(wallet: &Wallet, transfer: &GemTransferData, value: &BigInt) -> Result<(SwapperProvider, QuoteRequest), SwapperError> {
     let TransactionInputType::Swap { from_asset, to_asset, swap_data } = &transfer.input_type else {
         return Err(SwapperError::NotSupportedAsset);
     };
-    let value = transfer.value.to_biguint().ok_or(SwapperError::InputAmountError { min_amount: None })?;
+    let value = value.to_biguint().filter(|value| *value > BigUint::ZERO).ok_or(SwapperError::InputAmountError { min_amount: None })?;
     let request = quote_request(wallet, from_asset, to_asset, value, transfer.use_max_amount, Some(swap_data.quote.slippage_bps))?;
     Ok((swap_data.quote.provider_data.provider, request))
 }
@@ -613,7 +613,7 @@ mod tests {
             })
         };
 
-        let (provider, request) = requote_request(&wallet, &transfer).unwrap();
+        let (provider, request) = requote_request(&wallet, &transfer, &transfer.value).unwrap();
 
         assert_eq!(provider, SwapperProvider::Jupiter);
         assert_eq!(request.value, BigUint::from(100u64), "the amount the user typed is asked again, not the amount a provider trimmed");
@@ -622,9 +622,13 @@ mod tests {
         assert_eq!(request.wallet_address, "ethereum-address");
         assert_eq!(request.destination_address, "solana-address");
         assert!(matches!(
-            requote_request(&wallet, &GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) })),
+            requote_request(&wallet, &GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }), &transfer.value),
             Err(SwapperError::NotSupportedAsset)
         ));
+        assert!(
+            matches!(requote_request(&wallet, &transfer, &BigInt::ZERO), Err(SwapperError::InputAmountError { .. })),
+            "nothing is asked for an amount the fee has eaten"
+        );
     }
 
     #[test]

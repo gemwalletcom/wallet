@@ -446,6 +446,31 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_a_max_native_quote_keeps_a_fee_reserve_only_for_a_provider_that_needs_the_exact_amount() {
+        let max = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
+        let request = QuoteRequest {
+            value: BigUint::from(10u64).pow(18),
+            options: Options { use_max_amount: true, ..max.options },
+            ..max
+        };
+        let gem_swapper = GemSwapper::mock(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |request| Ok(Quote::mock_with_request(request))).with_amount_mode(SwapAmountMode::Flexible)),
+        ]);
+
+        let quotes = gem_swapper.get_quotes(&request).await.unwrap().quotes;
+        let asked = |provider: SwapperProvider| quotes.iter().find(|quote| quote.data.provider.id == provider).unwrap().request.value.clone();
+        let reserve: BigUint = crate::fees::reserved_transaction_fees(Chain::Ethereum).unwrap().parse().unwrap();
+
+        assert_eq!(asked(SwapperProvider::Jupiter), request.value, "a provider that swaps whatever arrives is asked for everything; the fee comes off at signing");
+        assert_eq!(
+            asked(SwapperProvider::UniswapV3),
+            &request.value - reserve,
+            "a contract call spends exactly what it is asked, so the fee reserve comes off first"
+        );
+    }
+
+    #[tokio::test]
     async fn test_get_quote_aggregates_provider_errors() {
         let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
         let known_minimums = GemSwapper::mock(vec![

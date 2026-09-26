@@ -7,7 +7,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use primitives::unix_seconds;
 use std::sync::Arc;
 
@@ -68,7 +68,11 @@ impl GemSwapService {
     }
 
     pub async fn requote(&self, wallet: &Wallet, transfer: &GemTransferData) -> Result<GemSwapRequote, SwapperError> {
-        let (provider, request) = rules::requote_request(wallet, transfer)?;
+        self.requote_at(wallet, transfer, &transfer.value).await
+    }
+
+    pub async fn requote_at(&self, wallet: &Wallet, transfer: &GemTransferData, value: &GemBigInt) -> Result<GemSwapRequote, SwapperError> {
+        let (provider, request) = rules::requote_request(wallet, transfer, value)?;
         let quote = self.swapper.get_quote_by_provider(&provider, &request).await?;
         let transfer = self.build_transfer(wallet, &quote, transfer, FetchQuoteData::None).await?;
         Ok(GemSwapRequote { quote, transfer })

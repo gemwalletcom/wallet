@@ -178,6 +178,7 @@ pub struct MockSwapper {
     provider: ProviderType,
     supported_assets: Vec<SwapperChainAsset>,
     response: MockResponse,
+    amount_mode: SwapAmountMode,
     pending_permit: Option<Permit2ApprovalData>,
     builds: Arc<Mutex<Vec<FetchQuoteData>>>,
 }
@@ -188,9 +189,14 @@ impl MockSwapper {
             provider: ProviderType::new(provider),
             supported_assets: vec![SwapperChainAsset::All(Chain::Ethereum)],
             response,
+            amount_mode: SwapAmountMode::Fixed,
             pending_permit: None,
             builds: Arc::default(),
         }
+    }
+
+    pub fn with_amount_mode(self, amount_mode: SwapAmountMode) -> Self {
+        Self { amount_mode, ..self }
     }
 
     pub fn with_pending_permit(self, permit: Permit2ApprovalData) -> Self {
@@ -213,11 +219,13 @@ impl Swapper for MockSwapper {
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
-        SwapAmountMode::Fixed
+        self.amount_mode
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        (self.response)(request)
+        let mut quote = (self.response)(request)?;
+        quote.data.provider = self.provider.clone();
+        Ok(quote)
     }
 
     async fn get_quote_data(&self, _quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
