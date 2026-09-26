@@ -24,7 +24,7 @@ public struct ExportWalletNavigationStack: View {
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: GemWalletSecret.self) {
-                ShowSecretDataScene(model: SecretDataViewModel(secret: $0))
+                ShowSecretDataScene(secret: $0)
             }
         }
     }

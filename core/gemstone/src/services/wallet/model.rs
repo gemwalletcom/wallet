@@ -126,6 +126,26 @@ pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
     rules::secret_phrase_rows(word_count)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSecretWarning {
+    DoNotShare,
+    SaveSafely,
+}
+
+/// What the secret screen shows around the secret, never the secret itself: the words stay in the app and
+/// fill `rows` by index, so this record is built from the kind and the word count alone.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSecretScreen {
+    pub title: GemLocalizedText,
+    pub warning: GemSecretWarning,
+    pub rows: Vec<GemSecretPhraseRow>,
+}
+
+#[uniffi::export]
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+    rules::secret_screen(kind, word_count, is_new)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletSubtitle {
     Multicoin,

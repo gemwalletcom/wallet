@@ -288,6 +288,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.ShowSecret -> context.getString(R.string.common_show, context.getString(kind.stringRes()))
 
+    is GemLocalizedText.SecretKind -> context.getString(kind.stringRes())
+
+    GemLocalizedText.NewWallet -> context.getString(R.string.wallet_new_title)
+
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"

@@ -21,7 +21,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.wallets.viewmodels.SecretDataViewModel
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretContentUIModel
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
@@ -32,13 +31,19 @@ import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.components.screen.phraseRows
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemSecretWarning
+import uniffi.gemstone.GemWalletSecret
+import uniffi.gemstone.privateKeyCopy
+import uniffi.gemstone.secretPhraseCopy
+import uniffi.gemstone.secretScreen
 
 @Composable
 fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hiltViewModel()) {
@@ -46,12 +51,16 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
     val result by viewModel.secret.collectAsStateWithLifecycle()
-    val title = stringResource(viewModel.secretKind.stringRes())
 
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
 
     val secret = result?.getOrNull()
+    val screen = when (secret) {
+        is GemWalletSecret.Words -> secretScreen(viewModel.secretKind, secret.words.size.toUInt(), false)
+        is GemWalletSecret.PrivateKey, null -> secretScreen(viewModel.secretKind, 0u, false)
+    }
+    val title = screen.title.string(context)
     if (secret == null) {
         if (result == null) {
             LoadingScene(title = title, onCancel)
@@ -89,32 +98,51 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(space8),
             ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.secret_phrase_do_not_share_title),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.secret_phrase_do_not_share_description),
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
-                )
+                when (screen.warning) {
+                    GemSecretWarning.DO_NOT_SHARE -> {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(id = R.string.secret_phrase_do_not_share_title),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(id = R.string.secret_phrase_do_not_share_description),
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+
+                    GemSecretWarning.SAVE_SAFELY -> Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(id = R.string.secret_phrase_save_phrase_safely),
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
 
             when (secret) {
-                is WalletSecretContentUIModel.PrivateKey -> Text(
+                is GemWalletSecret.PrivateKey -> Text(
                     text = secret.key,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
 
-                is WalletSecretContentUIModel.Words -> PhraseLayout(rows = secret.rows)
+                is GemWalletSecret.Words -> PhraseLayout(rows = phraseRows(screen.rows, secret.words))
             }
 
-            CopyButton(onClick = { clipboardManager.setCopy(context, secret.copy()) })
+            CopyButton(
+                onClick = {
+                    val copy = when (secret) {
+                        is GemWalletSecret.PrivateKey -> privateKeyCopy(secret.key)
+                        is GemWalletSecret.Words -> secretPhraseCopy(secret.words)
+                    }
+                    clipboardManager.setCopy(context, copy)
+                },
+            )
         }
     }
 }

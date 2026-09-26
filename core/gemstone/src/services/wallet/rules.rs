@@ -2,7 +2,10 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle};
+use super::model::{
+    GemSecretPhraseRow, GemSecretScreen, GemSecretWarning, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind,
+    GemWalletSubtitle,
+};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::list::{GemAddressRow, GemListRowTitle};
 use crate::services::localization::GemLocalizedText;
@@ -134,6 +137,23 @@ pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
     let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair { left: row, right: row + per_column });
     let odd_last = (word_count % SECRET_PHRASE_COLUMNS == 1).then(|| GemSecretPhraseRow::Single { index: word_count - 1 });
     pairs.chain(odd_last).collect()
+}
+
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+    GemSecretScreen {
+        title: match is_new {
+            true => GemLocalizedText::NewWallet,
+            false => GemLocalizedText::SecretKind { kind },
+        },
+        warning: match is_new {
+            true => GemSecretWarning::SaveSafely,
+            false => GemSecretWarning::DoNotShare,
+        },
+        rows: match kind {
+            GemWalletSecretKind::Phrase => secret_phrase_rows(word_count),
+            GemWalletSecretKind::PrivateKey => Vec::new(),
+        },
+    }
 }
 
 pub fn row(wallet: &Wallet) -> GemWalletRow {
@@ -484,6 +504,20 @@ mod tests {
             vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }, GemSecretPhraseRow::Single { index: 4 },]
         );
         assert_eq!(secret_phrase_rows(0), vec![]);
+    }
+
+    #[test]
+    fn test_the_secret_screen_frames_an_export_and_a_new_phrase_differently() {
+        let export = secret_screen(GemWalletSecretKind::Phrase, 12, false);
+        assert_eq!(export.title, GemLocalizedText::SecretKind { kind: GemWalletSecretKind::Phrase });
+        assert_eq!(export.warning, GemSecretWarning::DoNotShare);
+        assert_eq!(export.rows, secret_phrase_rows(12));
+
+        let new = secret_screen(GemWalletSecretKind::Phrase, 12, true);
+        assert_eq!(new.title, GemLocalizedText::NewWallet);
+        assert_eq!(new.warning, GemSecretWarning::SaveSafely);
+
+        assert!(secret_screen(GemWalletSecretKind::PrivateKey, 0, false).rows.is_empty(), "a key has no word grid");
     }
 
     #[test]

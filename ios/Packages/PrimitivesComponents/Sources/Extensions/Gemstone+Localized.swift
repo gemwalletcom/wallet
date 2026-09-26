@@ -175,6 +175,10 @@ public extension GemLocalizedText {
             Localized.Perpetual.AutoClose.expectedLoss
         case let .showSecret(kind):
             Localized.Common.show(kind.title)
+        case let .secretKind(kind):
+            kind.title
+        case .newWallet:
+            Localized.Wallet.New.title
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):

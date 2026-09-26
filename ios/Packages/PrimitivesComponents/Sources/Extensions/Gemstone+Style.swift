@@ -31,6 +31,7 @@ import enum Gemstone.GemNoticeKind
 import enum Gemstone.GemPerpetualChartLineKind
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemRecipientSectionKind
+import enum Gemstone.GemSecretWarning
 import struct Gemstone.GemSocialLink
 import enum Gemstone.GemSwapProgressMarker
 import struct Gemstone.GemSwapProgressState
@@ -444,6 +445,15 @@ public extension GemWalletRow {
             placeholder: placeholder.image,
             chainPlaceholder: showsWatchBadge ? Images.Wallets.watch : nil,
         )
+    }
+}
+
+public extension GemSecretWarning {
+    var calloutViewStyle: CalloutViewStyle {
+        switch self {
+        case .doNotShare: .secretDataWarning()
+        case .saveSafely: .header(title: Localized.SecretPhrase.savePhraseSafely)
+        }
     }
 }
 
