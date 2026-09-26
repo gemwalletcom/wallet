@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -92,9 +93,9 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
             } else {
                 listSections(sections) { position, item ->
                     ListItem(
-                        model = item.model,
+                        model = item.row.listItem(),
                         listPosition = position,
-                        modifier = Modifier.clickable { onConnection(item.id) },
+                        modifier = Modifier.clickable { onConnection(item.connection.session.id) },
                     )
                 }
             }

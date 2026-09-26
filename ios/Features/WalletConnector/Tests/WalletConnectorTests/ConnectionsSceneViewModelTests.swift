@@ -42,9 +42,9 @@ struct ConnectionsSceneViewModelTests {
         service.connectionDetailRows = [.text(title: .wallet, value: "Main Wallet")]
         let model = ConnectionsSceneViewModel.mock(service: service)
 
-        let details = model.connectionSceneModel(connection: .mock())
+        let details = model.connectionDetails(connection: .mock())
 
-        #expect(details.details.rows == [.text(title: .wallet, value: "Main Wallet")])
+        #expect(details.rows == [.text(title: .wallet, value: "Main Wallet")])
     }
 
     @Test

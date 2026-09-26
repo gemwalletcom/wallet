@@ -17,6 +17,7 @@ import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionView
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
@@ -24,7 +25,7 @@ import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
 fun ConnectionScreen(onCancel: () -> Unit, viewModel: ConnectionViewModel = hiltViewModel()) {
-    val connectionListItem by viewModel.connectionListItem.collectAsStateWithLifecycle()
+    val connectionRow by viewModel.connectionRow.collectAsStateWithLifecycle()
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -44,7 +45,7 @@ fun ConnectionScreen(onCancel: () -> Unit, viewModel: ConnectionViewModel = hilt
         onClose = onCancel,
     ) {
         LazyColumn {
-            connectionListItem?.let { item { ListItem(model = it, listPosition = ListPosition.Single) } }
+            connectionRow?.let { item { ListItem(model = it.listItem(), listPosition = ListPosition.Single) } }
             itemsPositioned(rows) { position, row -> GemListRowView(row = row, listPosition = position) }
         }
     }

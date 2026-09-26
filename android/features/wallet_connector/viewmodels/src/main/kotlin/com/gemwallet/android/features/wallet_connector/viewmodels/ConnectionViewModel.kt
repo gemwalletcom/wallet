@@ -8,8 +8,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
 import com.gemwallet.android.data.services.store.queries.ConnectionQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallet_connector.viewmodels.models.listItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +24,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import javax.inject.Inject
@@ -47,7 +46,7 @@ class ConnectionViewModel @Inject constructor(
         .mapLatest { connection -> connection?.let { service.connectionDetails(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
-    val connectionListItem: StateFlow<ListItemModel?> = details.map { it?.connection?.listItem() }
+    val connectionRow: StateFlow<GemConnectionRow?> = details.map { it?.connection?.row }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
     val rows: StateFlow<List<GemListRow>> = details.map { it?.rows.orEmpty() }

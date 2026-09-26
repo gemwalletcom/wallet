@@ -39,7 +39,7 @@ public struct ConnectionsScene: View {
                     ForEach(section.connections, id: \.connection.session.id) { item in
                         let connection = item.connection.toPrimitives()
                         NavigationLink(value: connection) {
-                            ConnectionView(model: ConnectionViewModel(connection: item))
+                            ConnectionView(connection: item)
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
@@ -63,7 +63,7 @@ public struct ConnectionsScene: View {
         }
         .navigationDestination(for: WalletConnection.self) { connection in
             ConnectionScene(
-                model: model.connectionSceneModel(connection: connection),
+                details: model.connectionDetails(connection: connection),
                 onDisconnect: { onSelectDisconnect(connection) },
             )
         }

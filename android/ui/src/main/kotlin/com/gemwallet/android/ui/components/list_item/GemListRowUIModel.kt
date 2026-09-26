@@ -24,6 +24,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAvatar
+import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
@@ -197,6 +198,12 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
 
     GemListRow.Loading -> GemListRowUIModel.Loading
 }
+
+fun GemConnectionRow.listItem(): ListItemModel = ListItemModel(
+    title = title,
+    titleExtra = host,
+    image = iconUrl?.let { ListItemImage.Url(it, placeholder = initial) } ?: ListItemImage.Initials(initial),
+)
 
 fun GemAvatar.listItemImage(): ListItemImage = imageUrl?.let { ListItemImage.Stored(it, initials) } ?: ListItemImage.Initials(initials)
 

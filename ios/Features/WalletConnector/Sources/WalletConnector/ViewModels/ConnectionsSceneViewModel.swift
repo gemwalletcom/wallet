@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemConnection
+import struct Gemstone.GemConnectionDetails
 import struct Gemstone.GemConnectionsView
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import func Gemstone.walletConnectErrorText
@@ -65,8 +66,8 @@ public final class ConnectionsSceneViewModel {
         EmptyStateViewModel(kind: .walletConnect)
     }
 
-    func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {
-        ConnectionSceneViewModel(details: service.connectionDetails(connection: connection.toGem()))
+    func connectionDetails(connection: WalletConnection) -> GemConnectionDetails {
+        service.connectionDetails(connection: connection.toGem())
     }
 
     func pair(uri: String) async throws {

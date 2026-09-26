@@ -8,7 +8,6 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.services.store.queries.ConnectionsQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallet_connector.viewmodels.models.uiModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -45,7 +44,7 @@ class ConnectionsViewModel @Inject constructor(
     val sections = view
         .map { view ->
             view?.sections.orEmpty().map { section ->
-                ListSection(id = section.title, title = section.title, items = section.connections.map { it.uiModel() })
+                ListSection(id = section.title, title = section.title, items = section.connections)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, emptyList())
