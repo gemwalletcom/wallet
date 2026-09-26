@@ -55,7 +55,6 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:transactions:viewmodels"))
-    implementation(project(":features:assets:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 }

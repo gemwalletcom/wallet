@@ -56,7 +56,6 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:transfer:viewmodels"))
-    implementation(project(":features:assets:presents"))
     implementation(project(":features:stake:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
