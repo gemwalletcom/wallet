@@ -302,8 +302,13 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func networkFeeItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock(
+    func networkFeeItemModel() async throws {
+        let fee = GemConfirmFee.mock(
+            value: 1,
+            formatted: feeAmount(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), value: 1, price: nil, currency: Primitives.Currency.usd.toGem()),
+            amount: .amount(amount: .mock(value: 1, networkFee: 1)),
+        )
+        let confirmation = GemConfirmationMock(state: .mock(fee: fee), feeRates: .mock(
             rows: [GemFeeRateRow(
                 priority: .normal,
                 fee: nil,
@@ -318,7 +323,8 @@ struct ConfirmTransferSceneViewModelTests {
             selectedTotal: 20,
             normalTotal: 20,
             customRate: nil,
-        )))
+        ))
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
 
         model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "test"))))
         let errorFeeItem = model.itemModel(for: .networkFee)
@@ -331,11 +337,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected network fee item model for error state")
         }
 
-        let fee = GemConfirmFee.mock(
-            value: 1,
-            formatted: feeAmount(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), value: 1, price: nil, currency: Primitives.Currency.usd.toGem()),
-            amount: .amount(amount: .mock(value: 1, networkFee: 1)),
-        )
+        _ = try await confirmation.state()
         model.state = .mock(load: .mock(fee: fee), screen: .mock(phase: .ready, hasFee: true))
         let loadedFeeItem = model.itemModel(for: .networkFee)
 

@@ -13,6 +13,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.components.list_item.listItemImage
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.title
 import com.wallet.core.primitives.Asset
@@ -20,6 +21,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmDestination
+import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemFeeAmount
 import uniffi.gemstone.GemInfoTopic
@@ -73,18 +75,18 @@ private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRow
     }
 }
 
-fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol: Boolean = false): ListItemModel {
+fun GemConfirmFeeRow.listItem(context: Context, feeAsset: Asset?): ListItemModel {
     val title = context.getString(R.string.transfer_network_fee)
     val info = networkFeeInfo(feeAsset)
     return when (this) {
-        FeeUIModel.Calculating -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
+        GemConfirmFeeRow.Loading -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
 
-        is FeeUIModel.Unavailable -> ListItemModel(title = title, subtitle = text, info = info)
+        is GemConfirmFeeRow.Unavailable -> ListItemModel(title = title, subtitle = text, info = info)
 
-        is FeeUIModel.FeeInfo -> ListItemModel(
+        is GemConfirmFeeRow.Ready -> ListItemModel(
             title = title,
-            subtitle = fiatAmount.ifEmpty { cryptoAmount },
-            subtitleExtra = feeAsset?.symbol?.takeIf { showsFeeAssetSymbol && fiatAmount.isNotEmpty() },
+            subtitle = text.value.text(),
+            subtitleExtra = text.extra?.string(context),
             info = info,
         )
     }

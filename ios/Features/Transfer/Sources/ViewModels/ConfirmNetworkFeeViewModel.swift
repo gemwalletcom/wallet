@@ -29,7 +29,7 @@ extension ConfirmNetworkFeeViewModel {
             .init(
                 title: feeModel.title,
                 subtitle: networkFeeValue,
-                subtitleExtra: isUnavailable ? nil : feeModel.feeAssetSymbol,
+                subtitleExtra: networkFeeExtra,
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
@@ -53,7 +53,14 @@ extension ConfirmNetworkFeeViewModel {
         switch feeRow {
         case let .unavailable(text): text
         case .loading: nil
-        case .ready: feeModel.fiatValue ?? feeModel.value
+        case let .ready(text): text.value.text()
+        }
+    }
+
+    private var networkFeeExtra: String? {
+        switch feeRow {
+        case .loading, .unavailable: nil
+        case let .ready(text): text.extra?.text
         }
     }
 }

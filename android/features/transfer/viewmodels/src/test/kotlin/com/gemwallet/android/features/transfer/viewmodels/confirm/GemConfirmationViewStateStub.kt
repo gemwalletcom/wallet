@@ -4,6 +4,7 @@ import com.gemwallet.android.testkit.mockGemConfirmHeader
 import com.gemwallet.android.testkit.mockGemValueHeader
 import com.wallet.core.primitives.Asset
 import io.mockk.every
+import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSection
@@ -20,7 +21,7 @@ internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
         val screen = firstArg<GemConfirmScreen>()
         GemConfirmViewState(
             screen.button(),
-            screen.feeRow(),
+            screen.feeRow(runBlocking { state() }),
             feeRateRows(),
             GemConfirmTitle.Send,
             null,

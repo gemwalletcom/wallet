@@ -8,7 +8,7 @@ use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
-use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemValueHeader};
+use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
 use crate::services::balance::GemAssetBalance;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
@@ -253,6 +253,13 @@ pub struct ConfirmState {
     pub confirm_data: Option<GemConfirmData>,
 }
 
+impl ConfirmState {
+    pub(super) fn fee_rate_rows(&self, currency: Currency) -> Option<GemFeeRateRows> {
+        let price = self.load.metadata.fee_price().map(|price| price.price);
+        Some(self.confirm_data.as_ref()?.fee_rate_rows(&self.load.fee_asset, price, currency))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemApprovalValue {
     Exact { value: GemBigUint },
@@ -367,9 +374,10 @@ impl GemConfirmLoad {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemConfirmFeeRow {
     Loading,
-    Ready,
+    Ready { text: GemFeeText },
     Unavailable { text: String },
 }
 

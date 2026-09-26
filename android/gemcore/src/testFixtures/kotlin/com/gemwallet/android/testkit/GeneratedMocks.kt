@@ -1473,6 +1473,14 @@ fun mockGemFeeRateRows(
     customRate = customRate,
 )
 
+fun mockGemFeeText(
+    value: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    extra: uniffi.gemstone.GemLocalizedText? = null,
+) = uniffi.gemstone.GemFeeText(
+    value = value,
+    extra = extra,
+)
+
 fun mockGemFiatOperation(
     quoteType: uniffi.gemstone.FiatQuoteType = uniffi.gemstone.FiatQuoteType.BUY,
     amount: String = "",
@@ -1925,13 +1933,13 @@ fun mockGemTransactionDetailRows(
 
 fun mockGemTransactionFeeRow(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
-    amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    text: uniffi.gemstone.GemFeeText = mockGemFeeText(),
+    fee: uniffi.gemstone.GemFeeAmount = mockGemFeeAmount(),
     info: uniffi.gemstone.GemInfoTopic = mockGemInfoTopic(),
 ) = uniffi.gemstone.GemTransactionFeeRow(
     title = title,
-    amount = amount,
-    fiat = fiat,
+    text = text,
+    fee = fee,
     info = info,
 )
 

@@ -94,29 +94,6 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func feeAssetSymbolShownOnlyWhenSelectable() {
-        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
-        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
-        let onSelect: @MainActor (AssetId) -> Void = { _ in }
-
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset).feeAssetSymbol == nil)
-        #expect(NetworkFeeSceneViewModel.mock(
-            feeAsset: pathUSD.asset,
-            feeAssets: [pathUSD, usdc],
-            showsFeeAssets: true,
-            onSelectFeeAsset: onSelect,
-        ).feeAssetSymbol == nil)
-        #expect(NetworkFeeSceneViewModel.mock(
-            feeAsset: pathUSD.asset,
-            feeAssetPrice: .mock(price: 1),
-            feeAmount: 1,
-            feeAssets: [pathUSD, usdc],
-            showsFeeAssets: true,
-            onSelectFeeAsset: onSelect,
-        ).feeAssetSymbol == pathUSD.asset.symbol)
-    }
-
-    @Test
     func selectFeeAssetForwardsAssetIdToOwner() async {
         let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
         let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))

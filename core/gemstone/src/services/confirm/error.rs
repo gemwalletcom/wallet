@@ -104,6 +104,30 @@ impl GemConfirmError {
         }
     }
 
+    pub(crate) fn includes_network_fee(&self, fee_asset_id: &AssetId) -> bool {
+        match self {
+            Self::InsufficientBalance { asset, .. } | Self::MinimumAccountBalanceTooLow { asset, .. } => &asset.id == fee_asset_id,
+            Self::InsufficientNetworkFee { .. } => true,
+            Self::ScanMalicious
+            | Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
+            | Self::BalanceMissing { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => false,
+        }
+    }
+
     pub(crate) fn notice(&self) -> Option<GemListRow> {
         match self {
             Self::ScanMalicious => Some(suspicious_address_notice(GemNoticeKind::Error)),

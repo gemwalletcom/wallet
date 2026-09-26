@@ -72,8 +72,8 @@ impl GemConfirmation {
         self.service.authentication()
     }
 
-    fn simulation_warnings(&self) -> Vec<GemListRow> {
-        match self.stored().as_ref() {
+    fn simulation_warnings(&self, state: Option<&ConfirmState>) -> Vec<GemListRow> {
+        match state {
             Some(state) => state.load.simulation.warnings.clone(),
             None => warning_rows(self.simulation.as_ref().map(|simulation| simulation.warnings.as_slice()).unwrap_or_default()),
         }
@@ -110,11 +110,11 @@ impl GemConfirmation {
     }
 
     pub fn view_state(&self, screen: GemConfirmScreen) -> GemConfirmViewState {
-        let address_name = self.stored().as_ref().and_then(|state| state.load.address_name.clone());
-        let simulation = self.stored().as_ref().and_then(|state| state.load.simulation.simulation.clone());
+        let state = self.stored().clone();
+        let load = state.as_ref().map(|state| &state.load);
         let transfer = self.transfer();
         let rows = self
-            .row_contents(address_name)
+            .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
             .map(|content| match content {
                 GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
@@ -129,10 +129,10 @@ impl GemConfirmation {
         let verification = transfer.verification();
         GemConfirmViewState {
             button: screen.button(),
-            fee_row: screen.fee_row(),
-            fee_rates: self.fee_rate_rows(),
+            fee_row: screen.fee_row(load.cloned()),
+            fee_rates: state.as_ref().and_then(|state| state.fee_rate_rows(self.service.get_currency())),
             title: transfer.title(),
-            sections: super::rules::confirm_sections(rows, self.simulation_warnings(), simulation, verification.is_some(), load_error),
+            sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
             verification,
             authentication: self.authentication(),
         }
@@ -140,13 +140,7 @@ impl GemConfirmation {
 
     pub fn fee_rate_rows(&self) -> Option<GemFeeRateRows> {
         let stored = self.stored();
-        let state = stored.as_ref()?;
-        Some(
-            state
-                .confirm_data
-                .as_ref()?
-                .fee_rate_rows(&state.load.fee_asset, state.load.metadata.fee_price().map(|price| price.price), self.service.get_currency()),
-        )
+        stored.as_ref()?.fee_rate_rows(self.service.get_currency())
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -307,7 +301,7 @@ mod tests {
         let state = confirmation.view_state(screen.clone());
 
         assert_eq!(state.button, screen.button());
-        assert_eq!(state.fee_row, screen.fee_row());
+        assert_eq!(state.fee_row, screen.fee_row(None));
         assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
         assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());

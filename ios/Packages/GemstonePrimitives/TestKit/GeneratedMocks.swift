@@ -540,6 +540,18 @@ public extension Gemstone.GemFeeRateRows {
     }
 }
 
+public extension Gemstone.GemFeeText {
+    static func mock(
+        value: Gemstone.GemFormattedNumber = .mock(),
+        extra: Gemstone.GemLocalizedText? = nil,
+    ) -> Gemstone.GemFeeText {
+        Gemstone.GemFeeText(
+            value: value,
+            extra: extra,
+        )
+    }
+}
+
 public extension Gemstone.GemFiatOperation {
     static func mock(
         quoteType: Gemstone.FiatQuoteType = .buy,
@@ -1149,14 +1161,14 @@ public extension Gemstone.GemTransactionDetailRows {
 public extension Gemstone.GemTransactionFeeRow {
     static func mock(
         title: Gemstone.GemListRowTitle = .api,
-        amount: Gemstone.GemFormattedNumber = .mock(),
-        fiat: Gemstone.GemFormattedNumber? = nil,
+        text: Gemstone.GemFeeText = .mock(),
+        fee: Gemstone.GemFeeAmount = .mock(),
         info: Gemstone.GemInfoTopic = .mock(),
     ) -> Gemstone.GemTransactionFeeRow {
         Gemstone.GemTransactionFeeRow(
             title: title,
-            amount: amount,
-            fiat: fiat,
+            text: text,
+            fee: fee,
             info: info,
         )
     }

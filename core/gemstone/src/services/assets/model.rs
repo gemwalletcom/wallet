@@ -489,6 +489,35 @@ pub struct GemFeeAmount {
     pub fiat: Option<GemFormattedNumber>,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFeeText {
+    pub value: GemFormattedNumber,
+    pub extra: Option<GemLocalizedText>,
+}
+
+impl GemFeeAmount {
+    pub fn text(&self) -> GemFeeText {
+        GemFeeText {
+            value: self.fiat.clone().unwrap_or_else(|| self.amount.clone()),
+            extra: None,
+        }
+    }
+
+    pub fn text_with_amount(&self) -> GemFeeText {
+        GemFeeText {
+            value: self.amount.clone(),
+            extra: self.fiat.clone().map(|number| GemLocalizedText::Number { number }),
+        }
+    }
+
+    pub fn text_with_symbol(&self, symbol: &str) -> GemFeeText {
+        GemFeeText {
+            extra: self.fiat.is_some().then(|| GemLocalizedText::Text { text: symbol.to_string() }),
+            ..self.text()
+        }
+    }
+}
+
 #[uniffi::export]
 pub fn fee_amount(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
     super::rules::fee_amount(&asset, &value, price, currency)

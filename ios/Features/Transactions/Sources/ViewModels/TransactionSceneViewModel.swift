@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemFeeAmount
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
@@ -112,8 +111,8 @@ extension TransactionSceneViewModel {
         let fee = rows.feeRow
         return .fee(ListItemModel(
             title: fee.title.text,
-            subtitle: fee.amount.text(),
-            subtitleExtra: fee.fiat?.text(),
+            subtitle: fee.text.value.text(),
+            subtitleExtra: fee.text.extra?.text,
             infoAction: { [weak self] in self?.onInfo(fee.info) },
         ))
     }
@@ -168,7 +167,7 @@ extension TransactionSceneViewModel {
             feeAsset: rows.fee.asset.toPrimitives(),
             currency: service.getCurrency().toPrimitives(),
             selection: .priority(priority: .normal),
-            fee: GemFeeAmount(amount: rows.feeRow.amount, fiat: rows.feeRow.fiat),
+            fee: rows.feeRow.fee,
         )
     }
 }

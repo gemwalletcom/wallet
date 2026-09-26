@@ -6,6 +6,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.AssetId
@@ -20,7 +21,7 @@ import uniffi.gemstone.GemTransactionParticipant
 sealed interface TransactionItemUIModel {
     data class Item(val model: ListItemModel, val url: String? = null) : TransactionItemUIModel
     data class Address(val title: String, val address: String, val chain: Chain?, val text: String, val explorerLink: BlockExplorerLink?) : TransactionItemUIModel
-    data class Fee(val model: ListItemModel) : TransactionItemUIModel
+    data class Fee(val model: ListItemModel, val details: ListItemModel) : TransactionItemUIModel
     data class SwapProgress(val model: TransactionSwapProgressUIModel) : TransactionItemUIModel
     data class Row(val row: GemListRow) : TransactionItemUIModel
     data class Head(val header: GemTransactionHeader) : TransactionItemUIModel
@@ -43,11 +44,16 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
         GemTransactionDetailRow.Participant -> requireNotNull(participant).address(context, asset.chain)
 
         GemTransactionDetailRow.Fee -> TransactionItemUIModel.Fee(
-            ListItemModel(
+            model = ListItemModel(
                 title = feeRow.title.text(context),
-                subtitle = feeRow.amount.text(),
-                subtitleExtra = feeRow.fiat?.text(),
+                subtitle = feeRow.text.value.text(),
+                subtitleExtra = feeRow.text.extra?.string(context),
                 info = feeRow.info.infoSheet(),
+            ),
+            details = ListItemModel(
+                title = feeRow.title.text(context),
+                subtitle = feeRow.fee.amount.text(),
+                subtitleExtra = feeRow.fee.fiat?.text(),
             ),
         )
 

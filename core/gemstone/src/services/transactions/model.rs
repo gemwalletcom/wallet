@@ -3,7 +3,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
-use crate::services::assets::model::{GemRowText, GemValueHeader};
+use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
@@ -356,8 +356,8 @@ pub struct GemTransactionDetailRows {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionFeeRow {
     pub title: GemListRowTitle,
-    pub amount: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
+    pub text: GemFeeText,
+    pub fee: GemFeeAmount,
     pub info: GemInfoTopic,
 }
 

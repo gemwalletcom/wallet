@@ -85,7 +85,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         ]
         return GemConfirmViewState(
             button: screen.button(),
-            feeRow: screen.feeRow(),
+            feeRow: screen.feeRow(load: loaded),
             feeRates: feeRateRows(),
             title: transfer().title(),
             verification: transfer().verification(),

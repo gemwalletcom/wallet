@@ -70,7 +70,6 @@ public struct NetworkFeeSceneViewModel {
     public var fiatValue: String? { fee?.fiat?.text() }
     public var showFeeRates: Bool { feeRates?.showsOptions ?? false }
     public var showFeeDetails: Bool { showFeeAssets || feeRates != nil }
-    public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
 
     var feeItems: [ListItemModel] {
         additionalFees.map { item in

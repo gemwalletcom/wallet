@@ -167,8 +167,8 @@ fn fee_row(fee: &GemTransactionAmount, currency: Currency) -> GemTransactionFeeR
     let display = fee_amount(&fee.asset, &value, fee.price.as_ref().map(|price| price.price), currency);
     GemTransactionFeeRow {
         title: GemListRowTitle::NetworkFee,
-        amount: display.amount,
-        fiat: display.fiat,
+        text: display.text(),
+        fee: display,
         info: GemInfoTopic::NetworkFee { asset: fee.asset.clone() },
     }
 }
@@ -1223,17 +1223,24 @@ mod tests {
         assert_eq!(unnamed.memo, None, "an empty memo is not a row");
         assert_eq!((unnamed.fee.asset.id.clone(), unnamed.fee.value.clone(), unnamed.fee.sign), (transfer.fee_asset.id.clone(), 1u32.into(), GemAmountSign::None));
         assert_eq!(unnamed.fee_row.title, GemListRowTitle::NetworkFee);
-        assert_eq!(unnamed.fee_row.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: transfer.fee_asset.symbol.clone() });
+        assert_eq!(unnamed.fee_row.fee.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: transfer.fee_asset.symbol.clone() });
         assert_eq!(unnamed.fee_row.info, GemInfoTopic::NetworkFee { asset: transfer.fee_asset.clone() });
-        assert_eq!(unnamed.fee_row.fiat, None, "a fee with no price names no fiat value");
+        assert_eq!(unnamed.fee_row.fee.fiat, None, "a fee with no price names no fiat value");
+        assert_eq!(unnamed.fee_row.text.value, unnamed.fee_row.fee.amount, "a fee with no price shows its amount");
         let priced = TransactionExtended {
             fee_price: Some(Price::new(4.0, 0.0, Utc::now(), primitives::PriceProvider::Coingecko)),
             ..transfer.clone()
         };
+        let priced_fee = detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row;
+        let fiat = GemFormattedNumber::currency(unnamed.fee_row.fee.amount.value * 4.0, Currency::USD, crate::precision::GemCurrencyStyle::Currency);
         assert_eq!(
-            detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row.fiat,
-            Some(GemFormattedNumber::currency(unnamed.fee_row.amount.value * 4.0, Currency::USD, crate::precision::GemCurrencyStyle::Currency))
+            priced_fee.fee,
+            crate::services::assets::model::GemFeeAmount {
+                amount: unnamed.fee_row.fee.amount.clone(),
+                fiat: Some(fiat.clone())
+            }
         );
+        assert_eq!(priced_fee.text, crate::services::assets::model::GemFeeText { value: fiat, extra: None }, "a priced fee shows only its fiat value, like confirm");
         assert!(matches!(unnamed.header, GemTransactionHeader::Amount { .. }));
         assert_eq!(
             unnamed.header_action,

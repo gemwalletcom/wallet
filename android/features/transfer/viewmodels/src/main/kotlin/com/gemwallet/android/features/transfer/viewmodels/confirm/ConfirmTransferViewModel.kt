@@ -251,7 +251,7 @@ class ConfirmTransferViewModel @Inject constructor(
         when (val feeRow = viewState?.feeRow ?: GemConfirmFeeRow.Loading) {
             GemConfirmFeeRow.Loading -> FeeUIModel.Calculating
             is GemConfirmFeeRow.Unavailable -> FeeUIModel.Unavailable(feeRow.text)
-            GemConfirmFeeRow.Ready -> feeInfo ?: FeeUIModel.Calculating
+            is GemConfirmFeeRow.Ready -> feeInfo ?: FeeUIModel.Calculating
         }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -317,8 +317,8 @@ class ConfirmTransferViewModel @Inject constructor(
         if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
     }
 
-    val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset, showsFeeAssets, verification) { fee, asset, showsFeeAssets, verification ->
-        verification?.let { verificationListItem(context) } ?: fee?.listItem(context, asset?.asset, showsFeeAssetSymbol = showsFeeAssets)
+    val feeListItem: StateFlow<ListItemModel?> = combine(viewState, feeAsset, verification) { viewState, asset, verification ->
+        verification?.let { verificationListItem(context) } ?: (viewState?.feeRow ?: GemConfirmFeeRow.Loading).listItem(context, asset?.asset)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

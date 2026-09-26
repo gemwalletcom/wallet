@@ -286,6 +286,7 @@ mocks:
   - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset
+  - GemFeeText
   - GemFeeRateRows
   - GemFiatOperation
   - GemFiatQuoteRequest

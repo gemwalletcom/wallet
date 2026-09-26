@@ -52,6 +52,6 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
 
     FeeDetailsDialog(
         isVisible = isShowFeeDetails,
-        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionItemUIModel.Fee)?.model },
+        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionItemUIModel.Fee)?.details },
     ) { isShowFeeDetails = false }
 }
