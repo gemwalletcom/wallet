@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.swap.AssetRateFormatter
@@ -30,10 +31,12 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.pendingColor
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
 import uniffi.gemstone.GemProviderRow
 import uniffi.gemstone.GemSwapDetails
@@ -74,11 +77,11 @@ fun SwapDetailsBottomSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     expansion: SheetExpansion = SheetExpansion.Partial,
-    showProviderSectionHeader: Boolean = false,
     providers: List<GemProviderRow> = emptyList(),
     isProviderSelectable: Boolean = false,
     onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
+    val context = LocalContext.current
     ModalBottomSheet(
         item = details.takeIf { isVisible },
         onDismissRequest = onDismiss,
@@ -95,23 +98,14 @@ fun SwapDetailsBottomSheet(
         }
 
         LazyColumn {
-            val inlineProviders = if (onProviderSelect != null && isProviderSelectable) providers else listOf(details.provider)
-            val providerSectionTitle = when {
-                onProviderSelect != null -> R.string.buy_providers_title
-                showProviderSectionHeader -> R.string.common_provider
-                else -> null
+            item {
+                SubheaderItem(GemListRowTitle.PROVIDER.text(context))
             }
-
-            if (providerSectionTitle != null && inlineProviders.isNotEmpty()) {
-                item {
-                    SubheaderItem(providerSectionTitle)
-                }
-            }
-            if (inlineProviders.size > 1 && onProviderSelect != null) {
-                itemsIndexed(inlineProviders) { index, provider ->
+            if (onProviderSelect != null && isProviderSelectable) {
+                itemsIndexed(providers) { index, provider ->
                     ProviderRowView(
                         row = provider,
-                        listPosition = ListPosition.getPosition(index, inlineProviders.size),
+                        listPosition = ListPosition.getPosition(index, providers.size),
                         onClick = (provider.kind as? GemProviderKind.Swap)?.let { kind ->
                             {
                                 onDismiss()
@@ -122,7 +116,7 @@ fun SwapDetailsBottomSheet(
                 }
             } else {
                 item {
-                    ProviderRowView(row = inlineProviders.firstOrNull() ?: details.provider, listPosition = ListPosition.Single)
+                    ProviderRowView(row = details.provider, listPosition = ListPosition.Single)
                 }
             }
             val rate = details.rate

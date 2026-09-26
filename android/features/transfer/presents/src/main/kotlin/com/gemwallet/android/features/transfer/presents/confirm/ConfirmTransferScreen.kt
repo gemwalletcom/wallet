@@ -398,7 +398,6 @@ private fun ConfirmDetailsSheet(item: GemConfirmDetails?, onDismiss: () -> Unit)
         isLoading = false,
         details = (item as? GemConfirmDetails.Swap)?.details,
         onDismiss = onDismiss,
-        showProviderSectionHeader = true,
     )
     PerpetualDetailsBottomSheet(
         isVisible = item is GemConfirmDetails.Perpetual,
