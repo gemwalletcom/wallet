@@ -107,6 +107,6 @@ struct CollectibleSceneViewModelTests {
     }
 
     private func sendEnabled(_ model: CollectibleSceneViewModel) -> Bool {
-        model.headerButtons(model.details).first { $0.type == .send }?.isEnabled == true
+        model.details.header.headerButtons.first { $0.kind == .send }?.isEnabled == true
     }
 }

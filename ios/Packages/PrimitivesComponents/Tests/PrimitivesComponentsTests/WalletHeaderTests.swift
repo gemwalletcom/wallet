@@ -44,7 +44,7 @@ struct WalletHeaderTests {
             title: .number(number: currency(0)),
             subtitle: nil,
             subtitleIcon: nil,
-            actions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
+            actions: .buttons(buttons: [.mock(kind: .send, isEnabled: false), .mock(kind: .swap, isEnabled: false)]),
         ).valueHeader
         #expect(model.buttons.allSatisfy { !$0.isEnabled })
     }

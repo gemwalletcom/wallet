@@ -1,23 +1,24 @@
 package com.gemwallet.android.features.assets.presents.asset.components
 
 import androidx.compose.runtime.Composable
-import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIState
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.components.list_head.ValueListHead
-import com.gemwallet.android.ui.components.list_head.uiModel
-import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemHeaderButtonTap
+import uniffi.gemstone.GemValueHeader
 
 @Composable
-internal fun AssetHeadItem(uiState: AssetUIState, onTransfer: AssetIdAction, onReceive: (AssetId) -> Unit, onBuy: (AssetId) -> Unit, onSwap: (() -> Unit)?) {
-    ValueListHead(header = uiState.details.header) {
-        AssetHeadActions(
-            uiState.details.state.headerActions.uiModel(
-                onTransfer = { onTransfer(uiState.asset.id) },
-                onReceive = { onReceive(uiState.asset.id) },
-                onBuy = { onBuy(uiState.asset.id) },
-                onSwap = onSwap,
-            ),
-        )
+internal fun AssetHeadItem(header: GemValueHeader, onAction: (AssetAction) -> Unit) {
+    ValueListHead(header = header) {
+        AssetHeadActions(header.actions ?: return@ValueListHead) { tap ->
+            when (tap) {
+                is GemHeaderButtonTap.Send -> tap.assetId?.toAssetId()?.let { onAction(AssetAction.Transfer(it)) }
+                is GemHeaderButtonTap.Receive -> tap.assetId?.toAssetId()?.let { onAction(AssetAction.Receive(it)) }
+                is GemHeaderButtonTap.Buy -> tap.assetId?.toAssetId()?.let { onAction(AssetAction.Buy(it)) }
+                is GemHeaderButtonTap.Swap -> tap.payAssetId?.toAssetId()?.let { onAction(AssetAction.Swap(fromAssetId = it, toAssetId = tap.receiveAssetId?.toAssetId())) }
+                is GemHeaderButtonTap.Deposit, is GemHeaderButtonTap.Withdraw, GemHeaderButtonTap.SendCollectible, GemHeaderButtonTap.CollectibleMenu -> Unit
+            }
+        }
     }
 }

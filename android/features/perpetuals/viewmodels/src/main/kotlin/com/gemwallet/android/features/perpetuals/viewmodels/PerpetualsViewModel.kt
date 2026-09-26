@@ -44,13 +44,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualMarketCounts
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemPerpetualMarketSession
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.perpetualBalanceHeader
 import uniffi.gemstone.perpetualMarketQuery
@@ -108,7 +108,7 @@ class PerpetualsViewModel @Inject constructor(
     val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
         .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.row) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val balanceHeader: StateFlow<GemPerpetualBalanceHeader?> = combine(
+    val balanceHeader: StateFlow<GemValueHeader?> = combine(
         getSession()
             .filterNotNull()
             .distinctUntilChangedBy { it.wallet.id }

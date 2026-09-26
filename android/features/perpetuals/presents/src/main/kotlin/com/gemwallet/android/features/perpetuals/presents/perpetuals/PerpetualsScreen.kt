@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualsViewModel
@@ -71,9 +70,9 @@ fun PerpetualsScreen(
 
                 PerpetualsAction.Close -> onCancel()
 
-                PerpetualsAction.Withdraw -> balanceHeader?.let { amountAction(AmountParams.Withdraw(it.withdrawAsset.toPrimitives().id)) }
+                is PerpetualsAction.Withdraw -> amountAction(AmountParams.Withdraw(action.assetId))
 
-                PerpetualsAction.Deposit -> balanceHeader?.let { amountAction(AmountParams.Deposit(it.depositAsset.toPrimitives().id)) }
+                is PerpetualsAction.Deposit -> amountAction(AmountParams.Deposit(action.assetId))
 
                 PerpetualsAction.OpenPortfolio -> onOpenPortfolio()
 

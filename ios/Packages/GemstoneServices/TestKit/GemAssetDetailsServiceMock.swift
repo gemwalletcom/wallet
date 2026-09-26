@@ -41,7 +41,6 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         GemAssetDetails(
             state: GemAssetDetailsState(
                 isViewOnly: input.wallet.walletType == .view,
-                headerActions: input.wallet.walletType == .view ? .watchOnly : .buttons(buttons: []),
                 showsBanners: input.wallet.walletType != .view,
                 priceAlert: .disabled,
                 emptyTransactionsAction: nil,

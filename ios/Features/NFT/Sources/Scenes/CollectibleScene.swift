@@ -87,7 +87,7 @@ extension CollectibleScene {
         } header: {
             Spacer()
         } footer: {
-            HeaderButtonsView(buttons: model.headerButtons(details), action: model.onSelectHeaderButton(type:))
+            HeaderButtonsView(buttons: details.header.headerButtons, menuTitle: model.title, menuItems: model.menuItems(details), action: model.onSelectHeaderButton)
                 .padding(.top, .medium)
                 .padding(.bottom, .small)
         }

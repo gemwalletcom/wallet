@@ -576,13 +576,46 @@ pub fn asset_menu_actions(input: GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
     super::rules::menu_actions(&input)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemHeaderButtonTap {
+    Send { asset_id: Option<AssetId> },
+    Receive { asset_id: Option<AssetId> },
+    Buy { asset_id: Option<AssetId> },
+    Swap { pay_asset_id: Option<AssetId>, receive_asset_id: Option<AssetId> },
+    Deposit { asset: Asset },
+    Withdraw { asset: Asset },
+    SendCollectible,
+    CollectibleMenu,
+}
+
+impl GemHeaderButtonTap {
+    fn kind(&self) -> GemHeaderButtonKind {
+        match self {
+            Self::Send { .. } | Self::SendCollectible => GemHeaderButtonKind::Send,
+            Self::Receive { .. } => GemHeaderButtonKind::Receive,
+            Self::Buy { .. } => GemHeaderButtonKind::Buy,
+            Self::Swap { .. } => GemHeaderButtonKind::Swap,
+            Self::Deposit { .. } => GemHeaderButtonKind::Deposit,
+            Self::Withdraw { .. } => GemHeaderButtonKind::Withdraw,
+            Self::CollectibleMenu => GemHeaderButtonKind::More,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemHeaderButton {
     pub kind: GemHeaderButtonKind,
+    pub tap: GemHeaderButtonTap,
     pub is_enabled: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+impl GemHeaderButton {
+    pub fn new(tap: GemHeaderButtonTap, is_enabled: bool) -> Self {
+        Self { kind: tap.kind(), tap, is_enabled }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemHeaderActions {
     WatchOnly,
     Buttons { buttons: Vec<GemHeaderButton> },
@@ -630,7 +663,6 @@ pub enum GemAssetEmptyAction {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
-    pub header_actions: GemHeaderActions,
     pub shows_banners: bool,
     pub price_alert: GemPriceAlertToggle,
     pub empty_transactions_action: Option<GemAssetEmptyAction>,

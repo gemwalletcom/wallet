@@ -15,6 +15,7 @@ import enum Gemstone.GemEmptyStateImage
 import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.GemHeaderActions
 import struct Gemstone.GemHeaderAmount
+import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemInfoImage
 import enum Gemstone.GemLatencyStatus
@@ -424,10 +425,10 @@ public extension GemHeaderActions {
         self == .watchOnly
     }
 
-    var headerButtons: [HeaderButton] {
+    var headerButtons: [GemHeaderButton] {
         switch self {
         case .watchOnly: []
-        case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
+        case let .buttons(buttons): buttons
         }
     }
 }

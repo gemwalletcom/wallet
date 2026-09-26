@@ -1205,13 +1205,11 @@ fun mockGemAssetDetails(
 
 fun mockGemAssetDetailsState(
     isViewOnly: Boolean = false,
-    headerActions: uniffi.gemstone.GemHeaderActions = uniffi.gemstone.GemHeaderActions.WatchOnly,
     showsBanners: Boolean = false,
     priceAlert: uniffi.gemstone.GemPriceAlertToggle = uniffi.gemstone.GemPriceAlertToggle.ENABLED,
     emptyTransactionsAction: uniffi.gemstone.GemAssetEmptyAction? = null,
 ) = uniffi.gemstone.GemAssetDetailsState(
     isViewOnly = isViewOnly,
-    headerActions = headerActions,
     showsBanners = showsBanners,
     priceAlert = priceAlert,
     emptyTransactionsAction = emptyTransactionsAction,
@@ -1552,6 +1550,18 @@ fun mockGemHeaderAmount(
     fiat = fiat,
     icon = icon,
 )
+
+fun mockGemHeaderButton(
+    kind: uniffi.gemstone.GemHeaderButtonKind = uniffi.gemstone.GemHeaderButtonKind.SEND,
+    tap: uniffi.gemstone.GemHeaderButtonTap = mockGemHeaderButtonTap(),
+    isEnabled: Boolean = false,
+) = uniffi.gemstone.GemHeaderButton(
+    kind = kind,
+    tap = tap,
+    isEnabled = isEnabled,
+)
+
+fun mockGemHeaderButtonTap(): uniffi.gemstone.GemHeaderButtonTap = uniffi.gemstone.GemHeaderButtonTap.Send(assetId = null)
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.NetworkFee(asset = mockAsset().toGem())
 

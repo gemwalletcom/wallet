@@ -3,15 +3,15 @@
 import Assets
 import Components
 import Foundation
-import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemHeaderButtonTap
 import enum Gemstone.GemMarketsRefreshTrigger
-import struct Gemstone.GemPerpetualBalanceHeader
 import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
 import struct Gemstone.GemPerpetualMarketSections
 import struct Gemstone.GemPerpetualMarketSession
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import struct Gemstone.GemValueHeader
 import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
@@ -43,7 +43,7 @@ public final class PerpetualsSceneViewModel {
         perpetualsQuery.value
     }
 
-    var balanceHeader: GemPerpetualBalanceHeader {
+    var balanceHeader: GemValueHeader {
         perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
@@ -114,7 +114,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var header: ValueHeader {
-        balanceHeader.header.valueHeader
+        balanceHeader.valueHeader
     }
 }
 
@@ -143,13 +143,13 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSelectHeaderAction(type: GemHeaderButtonKind) {
-        switch type {
-        case .deposit:
-            onSelectAmount?(AmountInput(type: .deposit, asset: balanceHeader.depositAsset.toPrimitives()))
-        case .withdraw:
-            onSelectAmount?(AmountInput(type: .withdraw, asset: balanceHeader.withdrawAsset.toPrimitives()))
-        default:
+    func onSelectHeaderAction(_ tap: GemHeaderButtonTap) {
+        switch tap {
+        case let .deposit(asset):
+            onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+        case let .withdraw(asset):
+            onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
+        case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
         }
     }

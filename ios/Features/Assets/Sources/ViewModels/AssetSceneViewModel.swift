@@ -8,7 +8,7 @@ import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemFormattedNumber
-import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemHeaderButtonTap
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
@@ -242,16 +242,14 @@ public extension AssetSceneViewModel {
         }
     }
 
-    internal func onSelectHeader(_ buttonType: GemHeaderButtonKind) {
-        let selectType: SelectedAssetType? = switch buttonType {
-        case .buy: .buy(assetData.asset, amount: nil)
-        case .send: .send(.asset(asset: assetData.asset.toGem()))
-        case .swap: swapAssetType
-        case .receive: .receive(.asset)
-        case .deposit, .withdraw, .more: nil
+    internal func onSelectHeader(_ tap: GemHeaderButtonTap) {
+        switch tap {
+        case .buy: onSelectBuy()
+        case .send: onSelect(assetType: .send(.asset(asset: assetData.asset.toGem())))
+        case let .swap(payAssetId?, receiveAssetId): onSelect(assetType: .swap(AssetId(core: payAssetId), receiveAssetId.map { AssetId(core: $0) }))
+        case .receive: onSelectReceive()
+        case .swap, .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
-        guard let selectType else { return }
-        onSelect(assetType: selectType)
     }
 
     internal func onSelect(assetType: SelectedAssetType) {
@@ -281,8 +279,8 @@ public extension AssetSceneViewModel {
             }
         case let .button(bannerButton):
             switch bannerButton {
-            case .buy: onSelectHeader(.buy)
-            case .receive: onSelectHeader(.receive)
+            case .buy: onSelectBuy()
+            case .receive: onSelectReceive()
             }
         case .closeBanner:
             Task {
@@ -306,11 +304,15 @@ public extension AssetSceneViewModel {
     }
 
     private func onSelectBuy() {
-        onSelectHeader(.buy)
+        onSelect(assetType: .buy(assetData.asset, amount: nil))
+    }
+
+    private func onSelectReceive() {
+        onSelect(assetType: .receive(.asset))
     }
 
     private func onSelectSwap() {
-        onSelectHeader(.swap)
+        onSelect(assetType: swapAssetType)
     }
 
     func onSelectShareAsset() {

@@ -47,8 +47,8 @@ import org.junit.Test
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemValueHeader
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -172,8 +172,8 @@ class PerpetualsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(false, requireNotNull(funded.balanceHeader.value).withdrawEnabled())
-        assertEquals(GemHeaderActions.WatchOnly, watching.balanceHeader.value?.header?.actions)
+        assertEquals(GemHeaderActions.WatchOnly, watching.balanceHeader.value?.actions)
     }
 
-    private fun GemPerpetualBalanceHeader.withdrawEnabled(): Boolean? = (header.actions as? GemHeaderActions.Buttons)?.buttons?.first { it.kind == GemHeaderButtonKind.WITHDRAW }?.isEnabled
+    private fun GemValueHeader.withdrawEnabled(): Boolean? = (actions as? GemHeaderActions.Buttons)?.buttons?.first { it.kind == GemHeaderButtonKind.WITHDRAW }?.isEnabled
 }

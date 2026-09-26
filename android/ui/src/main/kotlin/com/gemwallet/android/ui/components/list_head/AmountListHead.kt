@@ -66,8 +66,10 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
+import com.gemwallet.android.ui.style.iconRes
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -88,6 +90,7 @@ import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemHeaderButtonTap
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.assetText
 import kotlin.math.floor
@@ -224,35 +227,36 @@ fun HeaderIcon(icon: GemAssetIcon, iconSize: Dp = headerIconSize) {
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun AssetHeadActions(model: HeadActionsUIModel) {
+fun AssetHeadActions(actions: GemHeaderActions, onTap: (GemHeaderButtonTap) -> Unit) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
-    val items = when (model) {
-        HeadActionsUIModel.WatchOnly -> {
+    val buttons = when (actions) {
+        GemHeaderActions.WatchOnly -> {
             AssetWatchOnly()
             return
         }
 
-        is HeadActionsUIModel.Buttons -> model.items
+        is GemHeaderActions.Buttons -> actions.buttons
     }
     Row(
         modifier = Modifier.width(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        items.forEach { action ->
+        buttons.forEach { button ->
+            val title = stringResource(id = button.kind.stringRes())
             AmountHeadAction(
                 modifier = Modifier
                     .weight(1f)
-                    .then(if (action.testTag != null) Modifier.testTag(action.testTag) else Modifier),
-                title = stringResource(id = action.title),
-                imageVector = ImageVector.vectorResource(action.icon),
-                enabled = action.enabled,
-                contentDescription = stringResource(id = action.title),
+                    .then(if (button.kind == GemHeaderButtonKind.BUY) Modifier.testTag("assetBuy") else Modifier),
+                title = title,
+                imageVector = ImageVector.vectorResource(button.kind.iconRes()),
+                enabled = button.isEnabled,
+                contentDescription = title,
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
                 },
-                onClick = action.onClick,
+                onClick = { onTap(button.tap) },
             )
         }
     }
@@ -463,12 +467,15 @@ private class ActionTextAutoSize(private var minFontSize: TextUnit, private val 
 fun PreviewAssetHeadActions() {
     WalletTheme {
         AssetHeadActions(
-            GemHeaderActions.Buttons(listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) }).uiModel(
-                onTransfer = { },
-                onReceive = { },
-                onBuy = {},
-                onSwap = {},
+            GemHeaderActions.Buttons(
+                listOf(
+                    GemHeaderButton(GemHeaderButtonKind.SEND, GemHeaderButtonTap.Send(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.RECEIVE, GemHeaderButtonTap.Receive(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.BUY, GemHeaderButtonTap.Buy(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.SWAP, GemHeaderButtonTap.Swap(null, null), isEnabled = true),
+                ),
             ),
+            onTap = {},
         )
     }
 }

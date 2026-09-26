@@ -288,7 +288,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
                 title: .number(number: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat)),
                 subtitle: pnl.map { GemRowText(text: $0, tone: pnlTone) },
                 subtitleIcon: pnl == nil ? nil : .chart,
-                actions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+                actions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton.mock(kind: $0, isEnabled: isEnabled) }),
             ),
             showCollections: false,
             showsPerpetuals: false,

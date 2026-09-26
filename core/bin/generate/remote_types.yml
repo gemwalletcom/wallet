@@ -293,6 +293,8 @@ mocks:
   - GemFiatSession
   - GemFormattedNumber
   - GemHeaderAmount
+  - GemHeaderButton
+  - GemHeaderButtonTap
   - GemInfoTopic
   - GemLocalizedText
   - GemNftEntry

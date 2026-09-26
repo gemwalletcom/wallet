@@ -13,7 +13,7 @@ struct PerpetualBalanceHeaderTests {
         perpetualBalanceHeader(
             balance: PerpetualBalance(available: available, reserved: reserved, withdrawable: withdrawable ?? available),
             walletType: walletType.toGem(),
-        ).header.valueHeader
+        ).valueHeader
     }
 
     @Test
@@ -31,11 +31,11 @@ struct PerpetualBalanceHeaderTests {
         let underwater = model(available: 0, reserved: 706, withdrawable: 305)
         let empty = model(available: 0, reserved: 0)
 
-        #expect(funded.buttons.first { $0.type == .withdraw }?.isEnabled == true)
-        #expect(leveraged.buttons.first { $0.type == .withdraw }?.isEnabled == false)
-        #expect(underwater.buttons.first { $0.type == .withdraw }?.isEnabled == true)
-        #expect(empty.buttons.first { $0.type == .withdraw }?.isEnabled == false)
-        #expect(empty.buttons.first { $0.type == .deposit }?.isEnabled == true)
+        #expect(funded.buttons.first { $0.kind == .withdraw }?.isEnabled == true)
+        #expect(leveraged.buttons.first { $0.kind == .withdraw }?.isEnabled == false)
+        #expect(underwater.buttons.first { $0.kind == .withdraw }?.isEnabled == true)
+        #expect(empty.buttons.first { $0.kind == .withdraw }?.isEnabled == false)
+        #expect(empty.buttons.first { $0.kind == .deposit }?.isEnabled == true)
     }
 
     @Test

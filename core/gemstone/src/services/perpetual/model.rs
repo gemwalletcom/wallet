@@ -499,19 +499,12 @@ mod tests {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualBalanceHeader {
-    pub header: GemValueHeader,
-    pub deposit_asset: Asset,
-    pub withdraw_asset: Asset,
-}
-
 #[uniffi::export]
 pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
     rules::balance_total(balance.as_ref())
 }
 
 #[uniffi::export]
-pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
+pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
     rules::balance_header(balance, wallet_type)
 }

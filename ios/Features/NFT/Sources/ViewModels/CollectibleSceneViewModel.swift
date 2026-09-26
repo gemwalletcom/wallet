@@ -8,7 +8,7 @@ import struct Gemstone.GemCollectibleAttribute
 import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
 import protocol Gemstone.GemCollectibleServiceProtocol
-import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemHeaderButtonTap
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
@@ -79,11 +79,8 @@ public final class CollectibleSceneViewModel {
         AssetImage(type: .text(assetData.asset.name), imageURL: assetData.asset.images.preview.url.asURL, placeholder: .none, chainPlaceholder: .none)
     }
 
-    func headerButtons(_ details: GemCollectibleDetails) -> [HeaderButton] {
-        details.header.headerButtons.map { button in
-            guard button.type == .more else { return button }
-            return HeaderButton(type: .more, viewType: .menuButton(title: title, items: details.actions.map(menuItem)), isEnabled: button.isEnabled)
-        }
+    func menuItems(_ details: GemCollectibleDetails) -> [ActionMenuItemType] {
+        details.actions.map(menuItem)
     }
 
     private func contextMenuItem(_ action: GemCollectibleAction) -> ContextMenuItemType? {
@@ -118,17 +115,17 @@ public final class CollectibleSceneViewModel {
 // MARK: - Business Logic
 
 extension CollectibleSceneViewModel {
-    func onSelectHeaderButton(type: GemHeaderButtonKind) {
+    func onSelectHeaderButton(_ tap: GemHeaderButtonTap) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
         }
-        switch type {
-        case .send:
+        switch tap {
+        case .sendCollectible:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
                 type: .send(.nft(nftAsset: assetData.asset.toGem())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
-        case .buy, .receive, .swap, .more, .deposit, .withdraw:
+        case .send, .receive, .buy, .swap, .deposit, .withdraw, .collectibleMenu:
             break
         }
     }

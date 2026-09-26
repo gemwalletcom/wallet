@@ -162,10 +162,10 @@ impl GemAssetDetailsService {
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;
-        let state = rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts);
+        let swap_pair = self.swap.pair_for_asset(asset.id.clone(), has_balance);
         GemAssetDetails {
             header: GemValueHeader {
-                actions: Some(state.header_actions.clone()),
+                actions: Some(rules::header_actions(wallet_type, &asset.id, &metadata, &banner_events, &swap_pair)),
                 ..GemValueHeader::asset(
                     asset_icon(&asset.id),
                     GemLocalizedText::Number {
@@ -175,7 +175,7 @@ impl GemAssetDetailsService {
                 )
             },
             title: rules::asset_title(&asset),
-            state,
+            state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
             banner: visible_banners.into_iter().next(),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
@@ -194,7 +194,7 @@ impl GemAssetDetailsService {
             verification_status: rules::verification_status(&asset, metadata.rank_score),
             network_destination: rules::network_destination(&asset.id),
             share_url: self.deeplinks.build_url(Deeplink::Asset { asset_id: asset.id.clone() }),
-            swap_pair: self.swap.pair_for_asset(asset.id, has_balance),
+            swap_pair,
         }
     }
 

@@ -30,7 +30,7 @@ import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemHeaderActions
-import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemHeaderButtonTap
 
 @Composable
 fun NftHeaderActions(header: GemHeaderActions, actions: List<NftActionUIModel>, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit) {
@@ -45,8 +45,8 @@ fun NftHeaderActions(header: GemHeaderActions, actions: List<NftActionUIModel>, 
     ) {
         buttons.forEach { button ->
             val title = stringResource(button.kind.stringRes())
-            when (button.kind) {
-                GemHeaderButtonKind.MORE -> Box(modifier = Modifier.weight(1f)) {
+            when (button.tap) {
+                GemHeaderButtonTap.CollectibleMenu -> Box(modifier = Modifier.weight(1f)) {
                     AmountHeadAction(
                         modifier = Modifier.fillMaxWidth(),
                         title = title,

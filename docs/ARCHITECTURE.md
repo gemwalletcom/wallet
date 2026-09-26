@@ -860,9 +860,9 @@ struct ChainNodeViewModel {
 A shared view reads the record through the same kind of extension:
 
 ```swift
-extension GemPerpetualBalanceHeader {
+extension GemValueHeader {
     public var valueHeader: ValueHeader {
-        ValueHeader(title: total.text(), subtitle: Localized.Wallet.availableBalance(available.text()), buttons: actions.headerButtons)
+        ValueHeader(assetImage: icon?.assetImage, title: title.text, subtitle: subtitle?.text.text, buttons: actions?.headerButtons ?? [])
     }
 }
 ```

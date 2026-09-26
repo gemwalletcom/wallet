@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import struct Gemstone.GemHeaderButton
 import struct Gemstone.GemValueHeader
 import enum Gemstone.GemValueHeaderIcon
 import enum Gemstone.GemValueHeaderSubtitleIcon
@@ -17,7 +18,7 @@ public struct ValueHeader {
     public let subtitle: String?
     public let subtitleColor: Color
     public let subtitleImage: Image?
-    public let buttons: [HeaderButton]
+    public let buttons: [GemHeaderButton]
     public let isWatchWallet: Bool
 
     public init(
@@ -26,7 +27,7 @@ public struct ValueHeader {
         subtitle: String? = nil,
         subtitleColor: Color = Colors.gray,
         subtitleImage: Image? = nil,
-        buttons: [HeaderButton] = [],
+        buttons: [GemHeaderButton] = [],
         isWatchWallet: Bool = false,
     ) {
         self.assetImage = assetImage

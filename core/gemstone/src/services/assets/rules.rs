@@ -9,7 +9,7 @@ use primitives::{
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput,
-    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
+    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonTap,
     GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction,
     GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
@@ -28,6 +28,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::nft::rules::nft_chains;
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
+use crate::services::swap::GemSwapPairSuggestion;
 use number_formatter::CryptoFiatConverter;
 use swapper::AssetList as SwapAssetList;
 
@@ -689,27 +690,33 @@ fn balance_tap(row: &GemBalanceRow) -> Option<GemRowTap> {
     }
 }
 
+pub fn header_actions(wallet_type: WalletType, asset_id: &AssetId, metadata: &AssetMetaData, banner_events: &[BannerEvent], swap_pair: &GemSwapPairSuggestion) -> GemHeaderActions {
+    if wallet_type == WalletType::View {
+        return GemHeaderActions::WatchOnly;
+    }
+    let buttons_enabled = !banner_events.iter().any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
+    let asset_id = Some(asset_id.clone());
+    GemHeaderActions::Buttons {
+        buttons: [
+            Some(GemHeaderButtonTap::Send { asset_id: asset_id.clone() }),
+            Some(GemHeaderButtonTap::Receive { asset_id: asset_id.clone() }),
+            metadata.is_buy_enabled.then_some(GemHeaderButtonTap::Buy { asset_id }),
+            metadata.is_swap_enabled.then(|| GemHeaderButtonTap::Swap {
+                pay_asset_id: Some(swap_pair.pay_asset_id.clone()),
+                receive_asset_id: swap_pair.receive_asset_id.clone(),
+            }),
+        ]
+        .into_iter()
+        .flatten()
+        .map(|tap| GemHeaderButton::new(tap, buttons_enabled))
+        .collect(),
+    }
+}
+
 pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent], price_alerts: &[PriceAlert]) -> GemAssetDetailsState {
     let is_view_only = wallet_type == WalletType::View;
-    let buttons_enabled = !banner_events.iter().any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
-    let button = |kind: GemHeaderButtonKind, shows: bool| shows.then_some(GemHeaderButton { kind, is_enabled: buttons_enabled });
     GemAssetDetailsState {
         is_view_only,
-        header_actions: if is_view_only {
-            GemHeaderActions::WatchOnly
-        } else {
-            GemHeaderActions::Buttons {
-                buttons: [
-                    button(GemHeaderButtonKind::Send, true),
-                    button(GemHeaderButtonKind::Receive, true),
-                    button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
-                    button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
-                ]
-                .into_iter()
-                .flatten()
-                .collect(),
-            }
-        },
         shows_banners: !banner_events.is_empty(),
         price_alert: price_alert_toggle(price_alerts),
         empty_transactions_action: if is_view_only {
@@ -918,6 +925,7 @@ mod tests {
         );
     }
     use super::*;
+    use crate::services::assets::model::GemHeaderButtonKind;
     use crate::services::price_alert::rules::GemPriceAlertToggle;
 
     #[test]
@@ -1376,6 +1384,14 @@ mod tests {
         details_state(wallet_type, metadata, banner_events, &[])
     }
 
+    fn actions(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemHeaderActions {
+        let swap_pair = GemSwapPairSuggestion {
+            pay_asset_id: AssetId::from_chain(Chain::Ethereum),
+            receive_asset_id: None,
+        };
+        header_actions(wallet_type, &AssetId::from_chain(Chain::Bitcoin), metadata, banner_events, &swap_pair)
+    }
+
     fn sections(asset: &Asset, metadata: &AssetMetaData, balance: &GemAssetBalance, price: Option<f64>, price_alerts: &[PriceAlert]) -> Vec<GemAssetDetailSection> {
         details_sections(DetailsSectionsInput {
             wallet_type: WalletType::Multicoin,
@@ -1394,15 +1410,15 @@ mod tests {
         sections.iter().filter(|section| section.title == title).map(|section| section.rows.clone()).collect()
     }
 
-    fn buttons(state: &GemAssetDetailsState) -> Vec<GemHeaderButton> {
-        match &state.header_actions {
+    fn buttons(actions: &GemHeaderActions) -> Vec<GemHeaderButton> {
+        match actions {
             GemHeaderActions::Buttons { buttons } => buttons.clone(),
             GemHeaderActions::WatchOnly => panic!("the header offers no buttons"),
         }
     }
 
-    fn kinds(state: &GemAssetDetailsState) -> Vec<GemHeaderButtonKind> {
-        buttons(state).into_iter().map(|button| button.kind).collect()
+    fn kinds(actions: &GemHeaderActions) -> Vec<GemHeaderButtonKind> {
+        buttons(actions).into_iter().map(|button| button.kind).collect()
     }
 
     #[test]
@@ -1459,11 +1475,24 @@ mod tests {
             is_swap_enabled: true,
             ..AssetMetaData::mock()
         };
-        let all = state(WalletType::Multicoin, &tradable, &[]);
+        let all = actions(WalletType::Multicoin, &tradable, &[]);
         assert_eq!(kinds(&all), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive, GemHeaderButtonKind::Buy, GemHeaderButtonKind::Swap]);
         assert!(buttons(&all).iter().all(|button| button.is_enabled));
+        assert_eq!(
+            buttons(&all).into_iter().map(|button| button.tap).collect::<Vec<_>>()[2..],
+            [
+                GemHeaderButtonTap::Buy {
+                    asset_id: Some(AssetId::from_chain(Chain::Bitcoin))
+                },
+                GemHeaderButtonTap::Swap {
+                    pay_asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                    receive_asset_id: None
+                },
+            ],
+            "the buttons act on this asset and swap the suggested pair"
+        );
 
-        let transfer_only = state(WalletType::Multicoin, &AssetMetaData::mock(), &[]);
+        let transfer_only = actions(WalletType::Multicoin, &AssetMetaData::mock(), &[]);
         assert_eq!(kinds(&transfer_only), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive]);
     }
 
@@ -1475,10 +1504,10 @@ mod tests {
             ..AssetMetaData::mock()
         };
         for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
-            let state = state(WalletType::Multicoin, &tradable, &[BannerEvent::Stake, event]);
-            assert!(buttons(&state).iter().all(|button| !button.is_enabled), "{event:?}");
+            let actions = actions(WalletType::Multicoin, &tradable, &[BannerEvent::Stake, event]);
+            assert!(buttons(&actions).iter().all(|button| !button.is_enabled), "{event:?}");
         }
-        let stake_only = state(WalletType::Multicoin, &tradable, &[BannerEvent::Stake]);
+        let stake_only = actions(WalletType::Multicoin, &tradable, &[BannerEvent::Stake]);
         assert!(buttons(&stake_only).iter().all(|button| button.is_enabled));
     }
 
@@ -1493,7 +1522,7 @@ mod tests {
         let state = state(WalletType::View, &metadata, &[]);
 
         assert!(state.is_view_only);
-        assert_eq!(state.header_actions, GemHeaderActions::WatchOnly);
+        assert_eq!(actions(WalletType::View, &metadata, &[]), GemHeaderActions::WatchOnly);
         assert!(!state.shows_banners);
         assert_eq!(state.empty_transactions_action, None);
     }

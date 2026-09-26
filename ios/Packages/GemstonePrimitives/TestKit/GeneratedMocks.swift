@@ -177,14 +177,12 @@ public extension Gemstone.GemAssetDetails {
 public extension Gemstone.GemAssetDetailsState {
     static func mock(
         isViewOnly: Bool = false,
-        headerActions: Gemstone.GemHeaderActions = .watchOnly,
         showsBanners: Bool = false,
         priceAlert: Gemstone.GemPriceAlertToggle = .enabled,
         emptyTransactionsAction: Gemstone.GemAssetEmptyAction? = nil,
     ) -> Gemstone.GemAssetDetailsState {
         Gemstone.GemAssetDetailsState(
             isViewOnly: isViewOnly,
-            headerActions: headerActions,
             showsBanners: showsBanners,
             priceAlert: priceAlert,
             emptyTransactionsAction: emptyTransactionsAction,
@@ -641,6 +639,26 @@ public extension Gemstone.GemHeaderAmount {
             fiat: fiat,
             icon: icon,
         )
+    }
+}
+
+public extension Gemstone.GemHeaderButton {
+    static func mock(
+        kind: Gemstone.GemHeaderButtonKind = .send,
+        tap: Gemstone.GemHeaderButtonTap = .mock(),
+        isEnabled: Bool = false,
+    ) -> Gemstone.GemHeaderButton {
+        Gemstone.GemHeaderButton(
+            kind: kind,
+            tap: tap,
+            isEnabled: isEnabled,
+        )
+    }
+}
+
+public extension Gemstone.GemHeaderButtonTap {
+    static func mock() -> Gemstone.GemHeaderButtonTap {
+        .send(assetId: nil)
     }
 }
 

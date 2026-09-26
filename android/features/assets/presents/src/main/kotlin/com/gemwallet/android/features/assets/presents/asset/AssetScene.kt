@@ -84,13 +84,7 @@ internal fun AssetScene(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 item {
-                    AssetHeadItem(
-                        uiState = uiState,
-                        onTransfer = { onAction(AssetAction.Transfer(it)) },
-                        onReceive = { onAction(AssetAction.Receive(it)) },
-                        onBuy = { onAction(AssetAction.Buy(it)) },
-                        onSwap = swapAction,
-                    )
+                    AssetHeadItem(header = uiState.details.header, onAction = onAction)
                 }
                 val banner = uiState.banner
                 if (detailsState.showsBanners && banner != null) {

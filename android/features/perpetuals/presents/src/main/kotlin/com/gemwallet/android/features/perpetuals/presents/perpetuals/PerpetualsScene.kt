@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.perpetuals.presents.components.previewPerpetual
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
@@ -40,7 +41,6 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.components.list_head.ValueListHead
-import com.gemwallet.android.ui.components.list_head.uiModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -65,15 +65,16 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemEmptyStateKind
-import uniffi.gemstone.GemPerpetualBalanceHeader
+import uniffi.gemstone.GemHeaderButtonTap
 import uniffi.gemstone.GemPerpetualMarketSection
+import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
 
 @Composable
 internal fun PerpetualsScene(
     isRefreshing: Boolean,
-    balanceHeader: GemPerpetualBalanceHeader?,
+    balanceHeader: GemValueHeader?,
     positions: List<PerpetualPositionRowUIModel>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
     pinnedPerpetuals: List<PerpetualDataAggregate>,
@@ -122,19 +123,20 @@ internal fun PerpetualsScene(
                 if (!isSearching && balanceHeader != null) {
                     item {
                         ValueListHead(
-                            header = balanceHeader.header,
+                            header = balanceHeader,
                             onClick = { onAction(PerpetualsAction.OpenPortfolio) },
                         ) {
-                            AssetHeadActions(
-                                (balanceHeader.header.actions ?: return@ValueListHead).uiModel(
-                                    onTransfer = null,
-                                    onReceive = null,
-                                    onBuy = null,
-                                    onSwap = null,
-                                    onDeposit = { onAction(PerpetualsAction.Deposit) },
-                                    onWithdraw = { onAction(PerpetualsAction.Withdraw) },
-                                ),
-                            )
+                            AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { tap ->
+                                when (tap) {
+                                    is GemHeaderButtonTap.Deposit -> onAction(PerpetualsAction.Deposit(tap.asset.toPrimitives().id))
+
+                                    is GemHeaderButtonTap.Withdraw -> onAction(PerpetualsAction.Withdraw(tap.asset.toPrimitives().id))
+
+                                    is GemHeaderButtonTap.Send, is GemHeaderButtonTap.Receive, is GemHeaderButtonTap.Buy, is GemHeaderButtonTap.Swap,
+                                    GemHeaderButtonTap.SendCollectible, GemHeaderButtonTap.CollectibleMenu,
+                                    -> Unit
+                                }
+                            }
                         }
                     }
                 }
