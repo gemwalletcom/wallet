@@ -15,7 +15,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-public final class WalletImageViewModel: Sendable {
+public final class WalletImageSceneViewModel: Sendable {
     struct NFTAssetImageItem: Identifiable {
         let id: String
         let assetImage: AssetImage

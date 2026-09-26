@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailsUIModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.EmojiPickerGrid
 import com.gemwallet.android.ui.components.image.NftImage
@@ -49,7 +49,7 @@ private const val NFT_COLUMNS = 2
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
 @Composable
-internal fun WalletImageScene(wallet: WalletDetailsUIModel?, emojis: List<String>, nftImages: List<NftItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
+internal fun WalletImageScene(wallet: WalletDetailUIModel?, emojis: List<String>, nftImages: List<NftItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded

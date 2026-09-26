@@ -52,7 +52,7 @@ import com.gemwallet.android.ui.navigation.routes.swap
 import com.gemwallet.android.ui.navigation.routes.swapSelect
 import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
-import com.gemwallet.android.ui.navigation.routes.walletScreen
+import com.gemwallet.android.ui.navigation.routes.walletDetailScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
 import com.wallet.core.primitives.PortfolioType
@@ -208,7 +208,7 @@ fun WalletNavGraph(
                 onCancel = onCancel,
             )
 
-            walletScreen(
+            walletDetailScreen(
                 onCancel = onCancel,
                 onBoard = navigator::resetToOnboarding,
                 onSelectImage = { navigator.openWalletImage(it) },

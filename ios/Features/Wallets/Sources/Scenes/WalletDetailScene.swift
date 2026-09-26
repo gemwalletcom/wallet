@@ -16,9 +16,9 @@ public struct WalletDetailScene: View {
 
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedField: Field?
-    @State private var model: WalletDetailViewModel
+    @State private var model: WalletDetailSceneViewModel
 
-    public init(model: WalletDetailViewModel) {
+    public init(model: WalletDetailSceneViewModel) {
         _model = State(initialValue: model)
     }
 

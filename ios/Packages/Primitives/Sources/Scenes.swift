@@ -87,7 +87,7 @@ public enum Scenes {
         }
     }
 
-    public struct WalletSelectImage: Hashable, Codable {
+    public struct WalletImage: Hashable, Codable {
         public let wallet: Wallet
 
         public init(wallet: Wallet) {

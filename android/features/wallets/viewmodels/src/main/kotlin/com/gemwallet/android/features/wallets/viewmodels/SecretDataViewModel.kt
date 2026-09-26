@@ -15,7 +15,7 @@ import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
-class WalletSecretDataViewModel @Inject constructor(private val service: GemWalletServiceInterface, savedStateHandle: SavedStateHandle, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
+class SecretDataViewModel @Inject constructor(private val service: GemWalletServiceInterface, savedStateHandle: SavedStateHandle, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
     val secretKind = savedStateHandle.requireSecretKind()
 
     val secret = MutableStateFlow<Result<WalletSecretContentUIModel>?>(null)

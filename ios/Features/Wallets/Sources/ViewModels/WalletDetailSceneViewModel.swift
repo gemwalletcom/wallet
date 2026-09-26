@@ -16,7 +16,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class WalletDetailViewModel {
+public final class WalletDetailSceneViewModel {
     private let navigationPath: Binding<NavigationPath>
     private let service: any GemWalletServiceProtocol
     private let biometry: any BiometryAuthenticatable
@@ -97,7 +97,7 @@ public final class WalletDetailViewModel {
 
 // MARK: - Business Logic
 
-extension WalletDetailViewModel {
+extension WalletDetailSceneViewModel {
     func rename(name: String) async throws {
         try await service.rename(walletId: wallet.id, newName: name)
     }
@@ -107,13 +107,13 @@ extension WalletDetailViewModel {
     }
 
     func onSelectImage() {
-        navigationPath.wrappedValue.append(Scenes.WalletSelectImage(wallet: wallet))
+        navigationPath.wrappedValue.append(Scenes.WalletImage(wallet: wallet))
     }
 }
 
 // MARK: - Actions
 
-extension WalletDetailViewModel {
+extension WalletDetailSceneViewModel {
     func onChangeWalletName() async {
         do {
             try await rename(name: nameInput)

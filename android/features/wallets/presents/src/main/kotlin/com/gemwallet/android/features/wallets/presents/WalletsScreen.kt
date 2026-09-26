@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallets.presents.views
+package com.gemwallet.android.features.wallets.presents
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.AlertDialog
@@ -63,7 +63,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 
 @Preview
 @Composable
-fun PreviewWalletScreen() {
+fun PreviewWalletsScene() {
     val wallet = { id: String, name: String, isCurrent: Boolean ->
         WalletItemUIModel(
             row = WalletRowUIModel(id = id, name = name, subtitle = "Multicoin", icon = R.drawable.multicoin_wallet, supportIcon = null),

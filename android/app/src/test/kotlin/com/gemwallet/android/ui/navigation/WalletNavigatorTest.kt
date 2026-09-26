@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
+import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
@@ -37,6 +38,7 @@ import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
@@ -44,9 +46,7 @@ import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
-import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
-import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
-import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
+import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
@@ -233,8 +233,8 @@ class WalletNavigatorTest {
         val walletId = WalletId("wallet-1")
         val navigator = navigatorWith(
             WalletRootRoute,
-            WalletDetailsRoute(walletId),
-            WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            WalletDetailRoute(walletId),
+            ExportWalletRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
         )
         val route = AssetRoute(mockAssetId(Chain.Solana))
 
@@ -249,8 +249,8 @@ class WalletNavigatorTest {
         val walletId = WalletId("wallet-1")
         val navigator = navigatorWith(
             WalletRootRoute,
-            WalletDetailsRoute(walletId),
-            WalletSecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            WalletDetailRoute(walletId),
+            SecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
         )
 
         navigator.finishWalletSecurityReminder(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE))
@@ -258,8 +258,8 @@ class WalletNavigatorTest {
         assertEquals(
             listOf(
                 WalletRootRoute,
-                WalletDetailsRoute(walletId),
-                WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+                WalletDetailRoute(walletId),
+                ExportWalletRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             ),
             navigator.backStack.toList(),
         )
@@ -304,8 +304,8 @@ class WalletNavigatorTest {
         val restored = listOf<NavKey>(
             WalletRootRoute,
             AssetRoute(assetId),
-            WalletSecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
-            WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            SecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            ExportWalletRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             CreateWalletRoute,
             RecipientInputRoute(assetId),
             AmountRoute("amount"),

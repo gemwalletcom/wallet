@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM352 before NAM353, then NAM354 to NAM372 in any order, one feature per change.
+7. **Names:** NAM353, then NAM354 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -318,8 +318,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletsUIState` splits pinned and unpinned and marks the current wallet.
   - **Expected:** Core returns the wallet sections with the current flag; both splits go.
 - **VM239** **S** **Wallet details are twinned.**
-  - **iOS:** `WalletIDetailViewModel` and `WalletImageViewModel` read and reshape wallet details; `WalletIDetailViewModel` also composes "Show {secret}" and the address row.
-  - **Android:** `WalletDetailsUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`; `WalletViewModel` composes "Show {secret}".
+  - **iOS:** `WalletDetailSceneViewModel` and `WalletImageSceneViewModel` read and reshape wallet details; `WalletDetailSceneViewModel` also composes "Show {secret}" and the address row.
+  - **Android:** `WalletDetailUIModel` and `WalletAvatarUIModel` copy `GemWalletDetails`; `WalletDetailViewModel` composes "Show {secret}".
   - **Expected:** `GemWalletDetails` returns its rows, texts included, and the views read it; the twins and both row builders go.
 - **VM240** **S** **The secret screen decides its own title and warning.**
   - **iOS:** `SecretDataViewModel` titles words "Secret phrase" or "New wallet" depending on a continue action, picks the callout, and builds rows and copy.
@@ -647,10 +647,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM352** **M** **Wallets: the detail screen is `WalletDetail` on both apps.** Lands before NAM353, which reuses the name `Wallet`.
-  - **iOS:** `WalletDetailViewModel` (file `WalletIDetailViewModel.swift`) → `WalletDetailSceneViewModel`; `WalletImageViewModel` → `WalletImageSceneViewModel`; route `Scenes.WalletSelectImage` → `Scenes.WalletImage`.
-  - **Android:** `WalletScreen`/`WalletScene`/`WalletViewModel`/`WalletAction`/`WalletDetailsUIModel`/`WalletDetailsRoute`/`walletScreen()` → `WalletDetail…`; `WalletSecretDataScreen`/`WalletSecretDataViewModel` → `SecretDataScreen`/`SecretDataViewModel`; `WalletSecurityReminderRoute` → `SecurityReminderRoute`, `WalletPhraseRoute` → `ExportWalletRoute`; package `presents.views` → `presents`; `PreviewWalletScreen` → `PreviewWalletsScene`; `WalletsUIState` and `WalletAvatarUIModel` get their own files.
-- **NAM353** **S** **Wallet tab: the home screen is `Wallet` and the chart screen `Portfolio`.** After NAM352.
+- **NAM353** **S** **Wallet tab: the home screen is `Wallet` and the chart screen `Portfolio`.**
   - **Android:** `AssetsScreen`/`AssetsViewModel`/`AssetsAction`/`AssetsTopBar`/`AssetsHead`/`AssetsViewModelTest` → `WalletScreen` (+ stateless `WalletScene`)/`WalletViewModel`/`WalletAction`/`WalletTopBar`/`WalletHeader`/`WalletViewModelTest`; `PortfolioChartScene`/`PortfolioChartViewModel`/`PortfolioChartRoute`/`portfolioChartScreen()` → `PortfolioScreen`/`PortfolioViewModel`/`PortfolioRoute`/`portfolioScreen()`; file `InAppUpdateViewModelsTest.kt` → `InAppUpdateViewModelTest.kt`.
   - **iOS:** `WalletNavigationView` follows the destination-host rule.
 - **NAM354** **M** **Assets: the asset screen is `Asset`, selection is `SelectAsset`, recents are `Recents`.**

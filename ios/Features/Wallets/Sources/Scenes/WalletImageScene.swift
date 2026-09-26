@@ -15,9 +15,9 @@ public struct WalletImageScene: View {
     }
 
     @State private var selectedTab: Tab = .emoji
-    @State private var model: WalletImageViewModel
+    @State private var model: WalletImageSceneViewModel
 
-    public init(model: WalletImageViewModel) {
+    public init(model: WalletImageSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -81,7 +81,7 @@ public struct WalletImageScene: View {
         }
     }
 
-    private func nftAssetListView(_ items: [WalletImageViewModel.NFTAssetImageItem]) -> some View {
+    private func nftAssetListView(_ items: [WalletImageSceneViewModel.NFTAssetImageItem]) -> some View {
         ForEach(items) { item in
             let view = GridPosterView(model: GridPosterViewModel(assetImage: item.assetImage, title: nil))
             NavigationCustomLink(with: view) {
@@ -94,7 +94,7 @@ public struct WalletImageScene: View {
 // MARK: - Actions
 
 private extension WalletImageScene {
-    func onSelectNftAsset(_ item: WalletImageViewModel.NFTAssetImageItem) {
+    func onSelectNftAsset(_ item: WalletImageSceneViewModel.NFTAssetImageItem) {
         guard let url = item.assetImage.imageURL else {
             return
         }

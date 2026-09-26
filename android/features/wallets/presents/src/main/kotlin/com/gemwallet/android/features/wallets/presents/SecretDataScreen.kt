@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.features.wallets.viewmodels.WalletSecretDataViewModel
+import com.gemwallet.android.features.wallets.viewmodels.SecretDataViewModel
 import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretContentUIModel
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun WalletSecretDataScreen(onCancel: () -> Unit, viewModel: WalletSecretDataViewModel = hiltViewModel()) {
+fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hiltViewModel()) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
@@ -56,7 +56,7 @@ fun WalletSecretDataScreen(onCancel: () -> Unit, viewModel: WalletSecretDataView
         if (result == null) {
             LoadingScene(title = title, onCancel)
         } else {
-            WalletSecretDataErrorScene(title = title, onCancel = onCancel)
+            SecretDataErrorScene(title = title, onCancel = onCancel)
         }
         return
     }
@@ -120,7 +120,7 @@ fun WalletSecretDataScreen(onCancel: () -> Unit, viewModel: WalletSecretDataView
 }
 
 @Composable
-private fun WalletSecretDataErrorScene(title: String, onCancel: () -> Unit) {
+private fun SecretDataErrorScene(title: String, onCancel: () -> Unit) {
     Scene(
         title = title,
         padding = sceneContentPaddingValues(),

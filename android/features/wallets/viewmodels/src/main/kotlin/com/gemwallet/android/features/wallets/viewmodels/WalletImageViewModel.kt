@@ -10,7 +10,7 @@ import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailsUIModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
 import com.gemwallet.android.features.wallets.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.text
@@ -47,7 +47,7 @@ class WalletImageViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    val details: StateFlow<WalletDetailsUIModel?> = walletQuery(walletId)
+    val details: StateFlow<WalletDetailUIModel?> = walletQuery(walletId)
         .mapLatest { wallet -> wallet?.let { walletService.walletDetails(it.toGem()) } }
         .map { it?.uiModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

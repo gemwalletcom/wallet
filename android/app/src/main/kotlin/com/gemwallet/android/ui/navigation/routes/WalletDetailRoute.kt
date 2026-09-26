@@ -6,9 +6,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.onboarding.presents.create_wallet.PhraseAlertDialog
+import com.gemwallet.android.features.wallets.presents.SecretDataScreen
+import com.gemwallet.android.features.wallets.presents.WalletDetailScreen
 import com.gemwallet.android.features.wallets.presents.WalletImageScreen
-import com.gemwallet.android.features.wallets.presents.WalletScreen
-import com.gemwallet.android.features.wallets.presents.WalletSecretDataScreen
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -18,24 +18,24 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class WalletDetailsRoute(val walletId: WalletId) : NavKey
+data class WalletDetailRoute(val walletId: WalletId) : NavKey
 
 @Serializable
 data class WalletImageRoute(val walletId: WalletId) : NavKey
 
 @Serializable
-data class WalletSecurityReminderRoute(val input: WalletSecretInput) : NavKey
+data class SecurityReminderRoute(val input: WalletSecretInput) : NavKey
 
 @Serializable
-data class WalletPhraseRoute(val input: WalletSecretInput) : NavKey
+data class ExportWalletRoute(val input: WalletSecretInput) : NavKey
 
-fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () -> Unit, onSelectImage: (WalletId) -> Unit, onSecurityReminder: (WalletSecretInput) -> Unit, onSecurityReminderAccepted: (WalletSecretInput) -> Unit) {
-    entry<WalletDetailsRoute>(
+fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel: () -> Unit, onSelectImage: (WalletId) -> Unit, onSecurityReminder: (WalletSecretInput) -> Unit, onSecurityReminderAccepted: (WalletSecretInput) -> Unit) {
+    entry<WalletDetailRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
     ) {
         val context = LocalContext.current
 
-        WalletScreen(
+        WalletDetailScreen(
             onPhraseShow = { input ->
                 context.requestAuth(AuthRequest.Default) { onSecurityReminder(input) }
             },
@@ -51,7 +51,7 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
         WalletImageScreen(onCancel = onCancel)
     }
 
-    entry<WalletSecurityReminderRoute> { key ->
+    entry<SecurityReminderRoute> { key ->
         PhraseAlertDialog(
             title = stringResource(key.input.kind.stringRes()),
             onAccept = { onSecurityReminderAccepted(key.input) },
@@ -59,7 +59,7 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
         )
     }
 
-    entry<WalletPhraseRoute>(
+    entry<ExportWalletRoute>(
         metadata = { key ->
             routeArguments(
                 RouteArgument.WalletId to key.input.walletId.id,
@@ -67,6 +67,6 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
             )
         },
     ) {
-        WalletSecretDataScreen(onCancel = onCancel)
+        SecretDataScreen(onCancel = onCancel)
     }
 }

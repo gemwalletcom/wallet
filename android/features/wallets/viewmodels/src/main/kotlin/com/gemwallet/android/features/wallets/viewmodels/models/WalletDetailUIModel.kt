@@ -8,11 +8,9 @@ import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletDetails
 
-data class WalletAvatarUIModel(val imageUrl: String?, val placeholder: Any?, val supportIcon: String?, val canRemove: Boolean)
+data class WalletDetailUIModel(val walletId: WalletId, val name: String, val avatar: WalletAvatarUIModel, val address: ChainAddress?, val addressExplorer: BlockExplorerLink?)
 
-data class WalletDetailsUIModel(val walletId: WalletId, val name: String, val avatar: WalletAvatarUIModel, val address: ChainAddress?, val addressExplorer: BlockExplorerLink?)
-
-internal fun GemWalletDetails.uiModel() = WalletDetailsUIModel(
+internal fun GemWalletDetails.uiModel() = WalletDetailUIModel(
     walletId = WalletId(row.id),
     name = row.name,
     avatar = WalletAvatarUIModel(

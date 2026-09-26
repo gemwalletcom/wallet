@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallets.presents.views
+package com.gemwallet.android.features.wallets.presents
 
 import com.wallet.core.primitives.WalletId
 

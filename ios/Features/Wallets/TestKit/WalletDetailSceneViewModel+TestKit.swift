@@ -9,13 +9,13 @@ import PrimitivesTestKit
 import SwiftUI
 import Wallets
 
-public extension WalletDetailViewModel {
+public extension WalletDetailSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         service: any GemWalletServiceProtocol = GemWalletService.mock(),
         biometry: any BiometryAuthenticatable = BiometryAuthenticationMock(requiresAuthentication: false),
-    ) -> WalletDetailViewModel {
-        WalletDetailViewModel(
+    ) -> WalletDetailSceneViewModel {
+        WalletDetailSceneViewModel(
             navigationPath: .constant(NavigationPath()),
             wallet: wallet,
             service: service,

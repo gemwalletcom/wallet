@@ -10,7 +10,7 @@ import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailsUIModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
 import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.features.wallets.viewmodels.models.uiModel
 import com.gemwallet.android.ui.R
@@ -37,7 +37,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class WalletViewModel @Inject constructor(
+class WalletDetailViewModel @Inject constructor(
     walletQuery: WalletQuery,
     private val service: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
@@ -51,7 +51,7 @@ class WalletViewModel @Inject constructor(
         .mapLatest { wallet -> wallet?.let { service.walletDetails(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val details: StateFlow<WalletDetailsUIModel?> = wallet.map { it?.uiModel() }
+    val details: StateFlow<WalletDetailUIModel?> = wallet.map { it?.uiModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val secret: StateFlow<WalletSecretUIModel?> = wallet.map { details ->

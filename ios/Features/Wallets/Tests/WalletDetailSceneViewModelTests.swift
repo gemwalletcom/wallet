@@ -13,11 +13,11 @@ import Testing
 import WalletsTestKit
 
 @MainActor
-struct WalletDetailViewModelTests {
+struct WalletDetailSceneViewModelTests {
     @Test
     func theRowAndTheNameComeFromCore() {
         let wallet = Primitives.Wallet.mock(name: "Main Wallet")
-        let model = WalletDetailViewModel.mock(wallet: wallet)
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet)
 
         #expect(model.name == "Main Wallet")
         #expect(model.nameInput == "Main Wallet")
@@ -26,7 +26,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func aMulticoinWalletHasNoSingleAddressRow() {
-        let model = WalletDetailViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
 
         #expect(model.addressModel == nil)
     }
@@ -34,7 +34,7 @@ struct WalletDetailViewModelTests {
     @Test
     func aSingleChainWalletShowsItsAddressWithAnExplorerLink() throws {
         let account = Account.mock(chain: .ethereum, address: "0xabc")
-        let model = WalletDetailViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
 
         let address = try #require(model.addressModel)
         #expect(address.account.address == "0xabc")
@@ -43,7 +43,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func renamingAWalletThatIsGoneShowsTheError() async {
-        let model = WalletDetailViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
         model.nameInput = "Renamed"
 
         await model.onChangeWalletName()
@@ -56,7 +56,7 @@ struct WalletDetailViewModelTests {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"), name: "Old")
         let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
         model.nameInput = "New"
 
         await model.onChangeWalletName()
@@ -67,7 +67,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func askingToDeleteOpensTheConfirmation() {
-        let model = WalletDetailViewModel.mock()
+        let model = WalletDetailSceneViewModel.mock()
 
         model.onSelectDelete()
 
@@ -80,7 +80,7 @@ struct WalletDetailViewModelTests {
         let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock(requiresAuthentication: false)
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
 
         #expect(await model.onDelete())
         #expect(biometry.authenticateCallsCount == 0)
@@ -93,7 +93,7 @@ struct WalletDetailViewModelTests {
         let db = DB.mock(wallets: [wallet])
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
 
         #expect(await model.onDelete())
         #expect(biometry.authenticateCallsCount == 1)
@@ -107,7 +107,7 @@ struct WalletDetailViewModelTests {
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
         biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
 
         #expect(await model.onDelete() == false)
         #expect(model.isPresentingAlertMessage == nil)
@@ -121,7 +121,7 @@ struct WalletDetailViewModelTests {
         let walletStore = WalletStore.mock(db: db)
         let biometry = BiometryAuthenticationMock()
         biometry.authenticateError = BiometryAuthenticationError.authenticationFailed
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
 
         #expect(await model.onDelete() == false)
         #expect(model.isPresentingAlertMessage == nil)
@@ -130,7 +130,7 @@ struct WalletDetailViewModelTests {
 
     @Test
     func exportingASecretAWatchWalletDoesNotHaveShowsTheError() async {
-        let model = WalletDetailViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
 
         await model.onShowSecret()
 

@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.wallets.presents.components.WalletAddress
 import com.gemwallet.android.features.wallets.presents.dialogs.ConfirmWalletDeleteDialog
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailsUIModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
 import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIModel?, snackbar: SnackbarHostState? = null, onAction: (WalletAction) -> Unit) {
+internal fun WalletDetailScene(wallet: WalletDetailUIModel?, secret: WalletSecretUIModel?, snackbar: SnackbarHostState? = null, onAction: (WalletDetailAction) -> Unit) {
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -50,14 +50,14 @@ internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIMo
         snackbar = snackbar,
         actions = {
             TextButton(
-                onClick = { onAction(WalletAction.Cancel) },
+                onClick = { onAction(WalletDetailAction.Cancel) },
                 colors = ButtonDefaults.textButtonColors()
                     .copy(contentColor = MaterialTheme.colorScheme.onBackground),
             ) {
                 Text(stringResource(R.string.common_done).uppercase())
             }
         },
-        onClose = { onAction(WalletAction.Cancel) },
+        onClose = { onAction(WalletDetailAction.Cancel) },
     ) {
         Column(
             modifier = Modifier
@@ -65,13 +65,13 @@ internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIMo
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            WalletAvatarHeader(wallet = wallet, onClick = { onAction(WalletAction.SelectImage) })
+            WalletAvatarHeader(wallet = wallet, onClick = { onAction(WalletDetailAction.SelectImage) })
             GemTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(id = R.string.wallet_name),
                 value = walletName,
                 onValueChange = {
-                    onAction(WalletAction.SetName(it))
+                    onAction(WalletDetailAction.SetName(it))
                     walletName = it
                 },
                 singleLine = true,
@@ -80,7 +80,7 @@ internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIMo
                 ListItem(
                     model = it.model,
                     listPosition = ListPosition.Single,
-                    modifier = Modifier.clickable { onAction(WalletAction.ShowPhrase(it.input)) },
+                    modifier = Modifier.clickable { onAction(WalletDetailAction.ShowPhrase(it.input)) },
                     accessory = { DataBadgeChevron() },
                 )
             }
@@ -106,14 +106,14 @@ internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIMo
             walletName = walletName,
             onConfirm = {
                 showDeleteDialog = false
-                onAction(WalletAction.Delete)
+                onAction(WalletDetailAction.Delete)
             },
         ) { showDeleteDialog = false }
     }
 }
 
 @Composable
-private fun WalletAvatarHeader(wallet: WalletDetailsUIModel, onClick: () -> Unit) {
+private fun WalletAvatarHeader(wallet: WalletDetailUIModel, onClick: () -> Unit) {
     WalletAvatar(
         imageUrl = wallet.avatar.imageUrl,
         placeholder = wallet.avatar.placeholder,

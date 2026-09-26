@@ -48,6 +48,7 @@ import com.gemwallet.android.ui.navigation.routes.DevelopPaymentsRoute
 import com.gemwallet.android.ui.navigation.routes.DevelopRoute
 import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
+import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
@@ -71,6 +72,7 @@ import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
@@ -80,11 +82,9 @@ import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
-import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletDetailRoute
 import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
-import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
-import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
@@ -211,10 +211,10 @@ class WalletNavigator(
     fun openImportWallet(importType: ImportType) {
         push(importType.toImportRoute())
     }
-    fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
+    fun openWallet(walletId: WalletId) = push(WalletDetailRoute(walletId))
     fun openWalletImage(walletId: WalletId) = push(WalletImageRoute(walletId))
-    fun openWalletSecurityReminder(input: WalletSecretInput) = push(WalletSecurityReminderRoute(input))
-    fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(WalletPhraseRoute(input))
+    fun openWalletSecurityReminder(input: WalletSecretInput) = push(SecurityReminderRoute(input))
+    fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(ExportWalletRoute(input))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))

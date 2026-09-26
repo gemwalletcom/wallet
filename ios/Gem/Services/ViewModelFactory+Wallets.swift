@@ -28,8 +28,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
-        WalletDetailViewModel(
+    func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailSceneViewModel {
+        WalletDetailSceneViewModel(
             navigationPath: navigationPath,
             wallet: wallet,
             service: walletService,
@@ -38,8 +38,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, service: walletService)
+    func walletImageScene(wallet: Wallet) -> WalletImageSceneViewModel {
+        WalletImageSceneViewModel(wallet: wallet, service: walletService)
     }
 
     @MainActor

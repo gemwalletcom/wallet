@@ -28,7 +28,7 @@ struct WalletsNavigationStack: View {
             .navigationDestination(for: Scenes.WalletDetail.self) {
                 WalletDetailScene(model: viewModelFactory.walletDetailScene(navigationPath: $navigationPath, wallet: $0.wallet))
             }
-            .navigationDestination(for: Scenes.WalletSelectImage.self) {
+            .navigationDestination(for: Scenes.WalletImage.self) {
                 WalletImageScene(model: viewModelFactory.walletImageScene(wallet: $0.wallet))
             }
             .sheet(isPresented: $isPresentingCreateWalletSheet) {

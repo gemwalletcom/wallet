@@ -31,7 +31,7 @@ import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WalletViewModelTest {
+class WalletDetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
@@ -55,7 +55,7 @@ class WalletViewModelTest {
     @Test
     fun `renaming a wallet goes to Core`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk(relaxed = true)
-        val model = WalletViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.setWalletName("Savings").join()
 
@@ -67,7 +67,7 @@ class WalletViewModelTest {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { rename(any(), any()) } throws IllegalStateException("taken")
         }
-        val model = WalletViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.setWalletName("Savings").join()
 
@@ -83,7 +83,7 @@ class WalletViewModelTest {
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
         val onComplete = mockk<() -> Unit>(relaxed = true)
-        val model = WalletViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.delete(onBoard, onComplete).join()
 
@@ -98,7 +98,7 @@ class WalletViewModelTest {
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
         val onComplete = mockk<() -> Unit>(relaxed = true)
-        val model = WalletViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.delete(onBoard, onComplete).join()
 
@@ -113,7 +113,7 @@ class WalletViewModelTest {
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
         val onComplete = mockk<() -> Unit>(relaxed = true)
-        val model = WalletViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.delete(onBoard, onComplete).join()
 
@@ -127,7 +127,7 @@ class WalletViewModelTest {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { exportSecret(any()) } throws IllegalStateException("locked")
         }
-        val model = WalletSecretDataViewModel(
+        val model = SecretDataViewModel(
             service,
             route(RouteArgument.Type.key to GemWalletSecretKind.PHRASE),
             dispatcher,
