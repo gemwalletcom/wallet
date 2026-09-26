@@ -29,16 +29,7 @@ class AssetsQuery @Inject constructor(private val assetsDao: AssetsDao, private 
         return searchDao.hasAssetPriorities(query)
             .map { it > 0 }
             .distinctUntilChanged()
-            .flatMapLatest { hasPriority ->
-                when (scope) {
-                    AssetsQueryScope.Wallet -> assetsDao.filteredSearch(walletId.id, query, limit, filters, hasPriority)
-
-                    AssetsQueryScope.AllAssets -> when (hasPriority) {
-                        true -> assetsDao.searchByAllWalletsWithPriority(walletId.id, query, limit)
-                        false -> assetsDao.searchByAllWallets(walletId.id, query, limit)
-                    }
-                }
-            }
+            .flatMapLatest { hasPriority -> assetsDao.filteredSearch(walletId.id, query, limit, filters, hasPriority, scope) }
             .toAssetDataModel()
     }
 }

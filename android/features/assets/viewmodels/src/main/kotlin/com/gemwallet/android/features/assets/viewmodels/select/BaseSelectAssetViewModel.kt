@@ -193,7 +193,7 @@ open class BaseSelectAssetViewModel(
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
             } else {
-                walletId.flatMapLatest { recentActivityQuery(it, recentTypes, filters.map { filter -> filter.toQueryFilter() }.toSet()) }
+                walletId.flatMapLatest { recentActivityQuery(it, recentTypes, filters.map { filter -> filter.toQueryFilter() }.toSet(), GemConstants.recentAssetsLimit) }
             }
         }
         .map { items -> items.map { it.asset }.toImmutableList() }

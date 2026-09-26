@@ -19,3 +19,4 @@ flowchart LR
 - The user turns assets on or off for the wallet; a turned-off asset leaves the list and keeps its data.
 - A custom token is looked up by its contract address or token ID; an unverified one shows "Know What You're Adding" before it is added.
 - Assets the user recently used appear as Recents when picking an asset, per wallet, most recent first.
+- Recents follow the same filters as the list below them, so picking an asset to sell never offers one that cannot be sold.

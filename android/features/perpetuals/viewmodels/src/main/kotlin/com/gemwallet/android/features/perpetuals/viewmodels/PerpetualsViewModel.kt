@@ -14,6 +14,7 @@ import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
 import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.domains.perpetual.aggregates.positionAggregates
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
@@ -122,7 +123,7 @@ class PerpetualsViewModel @Inject constructor(
         .filterNotNull()
         .map { it.wallet.id }
         .distinctUntilChanged()
-        .flatMapLatest { recentActivityQuery(it, listOf(RecentActivityType.Perpetual)) }
+        .flatMapLatest { recentActivityQuery(it, listOf(RecentActivityType.Perpetual), limit = GemConstants.recentAssetsLimit) }
         .map { items -> items.map { it.asset } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

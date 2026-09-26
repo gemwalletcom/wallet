@@ -45,7 +45,7 @@ class RecentActivityQueryTest {
             listOf(
                 DbAsset(id = "ethereum", chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18, type = AssetType.NATIVE, isSwapEnabled = true),
                 DbAsset(id = "bitcoin", chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE),
-                DbAsset(id = "solana", chain = Chain.Solana, name = "Solana", symbol = "SOL", decimals = 9, type = AssetType.NATIVE, isSwapEnabled = true),
+                DbAsset(id = "solana", chain = Chain.Solana, name = "Solana", symbol = "SOL", decimals = 9, type = AssetType.NATIVE, isSwapEnabled = true, isSellEnabled = true),
                 DbAsset(id = "ethereum_0x0000000000000000000000000000000000000001", chain = Chain.Ethereum, name = "Spam", symbol = "SPAM", decimals = 18, type = AssetType.ERC20, rank = -1),
             ),
         )
@@ -89,6 +89,16 @@ class RecentActivityQueryTest {
         assertEquals(listOf(AssetId(Chain.Ethereum), AssetId(Chain.Solana)), query(WalletId("wallet-1"), filters = setOf(AssetsQueryFilter.Swappable)).first().map { it.asset.id })
         assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), filters = setOf(AssetsQueryFilter.HasBalance)).first().map { it.asset.id })
         assertEquals(listOf(AssetId(Chain.Solana)), query(WalletId("wallet-1"), filters = setOf(AssetsQueryFilter.Chains(listOf(Chain.Solana)))).first().map { it.asset.id })
+        assertEquals(listOf(AssetId(Chain.Solana)), query(WalletId("wallet-1"), filters = setOf(AssetsQueryFilter.Sellable)).first().map { it.asset.id })
+    }
+
+    @Test
+    fun twentyRecentsShowByDefault() = runBlocking(Dispatchers.IO) {
+        val tokens = (1..25).map { index -> DbAsset(id = "ethereum_0x$index", chain = Chain.Ethereum, name = "Token $index", symbol = "T$index", decimals = 18, type = AssetType.ERC20) }
+        database.assetsDao().insert(tokens)
+        tokens.forEachIndexed { index, token -> database.assetsDao().addRecentActivity(DbRecentActivity(assetId = token.id, walletId = "wallet-1", type = RecentActivityType.Transfer, addedAt = 1_000L + index)) }
+
+        assertEquals(20, query(WalletId("wallet-1")).first().size)
     }
 
     @Test

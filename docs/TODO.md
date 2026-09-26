@@ -22,8 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM201 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD351.
-5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+4. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -553,10 +552,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Same rule, different answers
 
 - **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
-- **BD351** **S** **Recents and all-assets search ignore filters on Android.**
-  - **iOS:** `RecentActivityQuery` applies every filter and shows 20 by default; the all-assets search applies its filters.
-  - **Android:** `RecentActivityQuery` ignores the sellable filter and shows 10 by default; the all-assets search ignores filters (`AssetsQuery`).
-  - **Expected:** Android matches iOS.
 - **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.
 - **BD341** **S** **Android finds no stored Earn provider for a token.** Both apps store an Earn provider under its chain's native asset (`DelegationValidator.toRecord`, iOS `StakeValidatorRecord`). iOS `EarnSceneViewModel` reads `ValidatorsQuery(chain:providerType:)` by that native asset; Android `EarnViewModel` reads `ValidatorsQuery` by the screen's asset, and `AmountViewModel` reads `ValidatorQuery` for an Earn deposit the same way, so a Yo USDC or USDT screen gets no providers and Core returns no `deposit_provider`. **Expected:** Android reads Earn providers by the chain's native asset, as iOS does.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.

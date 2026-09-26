@@ -153,6 +153,15 @@ class AssetsQueryTest {
     }
 
     @Test
+    fun anAllAssetsSearchAppliesTheFilters() = runBlocking(Dispatchers.IO) {
+        database.searchDao().insert(listOf(DbSearch(query = "stable", assetId = "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", priority = 0)))
+        val bitcoinOnly = setOf(AssetsQueryFilter.Chains(listOf(Chain.Bitcoin)))
+
+        assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), "", AssetsQueryScope.AllAssets, bitcoinOnly, 10).first().map { it.asset.id })
+        assertEquals(emptyList<AssetId>(), query(WalletId("wallet-1"), "stable", AssetsQueryScope.AllAssets, bitcoinOnly, 10).first().map { it.asset.id })
+    }
+
+    @Test
     fun aChainListsTheWalletVisibleRankedAssetsOfThatChain() = runBlocking(Dispatchers.IO) {
         assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), Chain.Ethereum).first().map { it.asset.id })
         assertEquals(listOf(AssetId(Chain.Bitcoin)), query(WalletId("wallet-1"), Chain.Bitcoin).first().map { it.asset.id })
