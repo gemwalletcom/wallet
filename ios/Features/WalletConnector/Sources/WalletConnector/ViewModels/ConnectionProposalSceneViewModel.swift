@@ -3,9 +3,9 @@
 import Components
 import Foundation
 import func Gemstone.applicationConnectionRow
+import func Gemstone.connectionProposal
+import struct Gemstone.GemConnectionProposal
 import struct Gemstone.GemConnectionRow
-import enum Gemstone.GemVerificationLevel
-import func Gemstone.verificationLevel
 import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
@@ -19,7 +19,6 @@ public struct ConnectionProposalSceneViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let pairingProposal: WCPairingProposal
     private let row: GemConnectionRow
-    private let verification: GemVerificationLevel
 
     var walletSelectorModel: SelectWalletViewModel
 
@@ -30,7 +29,6 @@ public struct ConnectionProposalSceneViewModel {
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
         row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
-        verification = verificationLevel(status: pairingProposal.verificationStatus.toGem())
         walletSelectorModel = SelectWalletViewModel(
             sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
@@ -45,28 +43,8 @@ public struct ConnectionProposalSceneViewModel {
         Localized.Transfer.confirm
     }
 
-    var walletListItem: ListItemModel {
-        ListItemModel(title: walletTitle, subtitle: walletName)
-    }
-
-    var connectionListItem: ListItemModel {
-        ListItemModel(title: connectionTitle, subtitle: connectionText)
-    }
-
-    var walletTitle: String {
-        Localized.Common.wallet
-    }
-
-    var connectionTitle: String {
-        Localized.WalletConnect.Connection.title
-    }
-
-    var connectionText: String {
-        Localized.WalletConnect.brandName
-    }
-
-    var walletName: String {
-        walletSelectorModel.selectedItems.first?.name ?? .empty
+    var proposal: GemConnectionProposal {
+        connectionProposal(status: pairingProposal.verificationStatus.toGem(), walletName: walletSelectorModel.selectedItems.first?.name ?? .empty)
     }
 
     var appName: String {
@@ -82,15 +60,15 @@ public struct ConnectionProposalSceneViewModel {
     }
 
     var verificationImage: Image {
-        verification.image
+        proposal.verification.image
     }
 
     var statusText: String {
-        verification.title
+        proposal.verification.title
     }
 
     var statusTextStyle: TextStyle {
-        verification.textStyle
+        proposal.verification.textStyle
     }
 
     var statusAssetImage: AssetImage {
@@ -102,16 +80,12 @@ public struct ConnectionProposalSceneViewModel {
     }
 
     var permissions: [ListItemModel] {
-        [
+        proposal.permissions.map {
             ListItemModel(
-                title: Localized.WalletConnect.Permissions.viewBalance,
+                title: $0.title,
                 imageStyle: .accessory(assetImage: .image(Images.System.checkmark), fontWeight: .semibold),
-            ),
-            ListItemModel(
-                title: Localized.WalletConnect.Permissions.approvalRequests,
-                imageStyle: .accessory(assetImage: .image(Images.System.checkmark), fontWeight: .semibold),
-            ),
-        ]
+            )
+        }
     }
 
     var appPreview: AppPreviewModel {

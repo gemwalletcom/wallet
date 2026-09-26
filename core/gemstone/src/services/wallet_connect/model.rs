@@ -1,6 +1,8 @@
 use crate::application::GemConnectionRow;
-use crate::models::list::GemListRow;
+use crate::formatted_number::GemValueTone;
+use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error_text::GemErrorText;
+use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
 use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
@@ -159,6 +161,39 @@ pub fn verification_level(status: WalletConnectionVerificationStatus) -> GemVeri
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConnectionPermission {
+    ViewBalance,
+    ApprovalRequests,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConnectionProposal {
+    pub wallet_row: GemListRow,
+    pub connection_row: GemListRow,
+    pub verification: GemVerificationLevel,
+    pub permissions: Vec<GemConnectionPermission>,
+}
+
+#[uniffi::export]
+pub fn connection_proposal(status: WalletConnectionVerificationStatus, wallet_name: String) -> GemConnectionProposal {
+    GemConnectionProposal {
+        wallet_row: GemListRow::Text {
+            title: GemListRowTitle::Wallet,
+            value: wallet_name,
+        },
+        connection_row: GemListRow::Label {
+            title: GemListRowTitle::Connection,
+            text: GemLocalizedText::RowTitle { title: GemListRowTitle::WalletConnect },
+            tone: GemValueTone::Plain,
+            info: None,
+            progress: false,
+        },
+        verification: verification_level(status),
+        permissions: vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests],
+    }
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConnection {
     pub connection: WalletConnection,
@@ -193,5 +228,20 @@ mod verification_tests {
         assert_eq!(verification_level(WalletConnectionVerificationStatus::Unknown), GemVerificationLevel::Unverified);
         assert_eq!(verification_level(WalletConnectionVerificationStatus::Invalid), GemVerificationLevel::Suspicious);
         assert_eq!(verification_level(WalletConnectionVerificationStatus::Malicious), GemVerificationLevel::Suspicious);
+    }
+
+    #[test]
+    fn test_a_proposal_names_the_chosen_wallet_and_asks_for_balance_and_approvals() {
+        let proposal = connection_proposal(WalletConnectionVerificationStatus::Malicious, "Main".to_string());
+
+        assert_eq!(
+            proposal.wallet_row,
+            GemListRow::Text {
+                title: GemListRowTitle::Wallet,
+                value: "Main".to_string()
+            }
+        );
+        assert_eq!(proposal.verification, GemVerificationLevel::Suspicious);
+        assert_eq!(proposal.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
     }
 }

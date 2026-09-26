@@ -22,7 +22,7 @@ fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyConte
     val viewModel: ConnectionProposalViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val walletListItem by viewModel.walletListItem.collectAsStateWithLifecycle()
+    val proposalRows by viewModel.proposalRows.collectAsStateWithLifecycle()
     val statusListItem by viewModel.statusListItem.collectAsStateWithLifecycle()
     val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
@@ -46,10 +46,8 @@ fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyConte
         else -> ConnectionProposalScene(
             peer = currentPeer,
             state = state,
-            walletListItem = walletListItem,
-            connectionListItem = viewModel.connectionListItem,
+            proposalRows = proposalRows,
             statusListItem = statusListItem,
-            permissionListItems = viewModel.permissionListItems,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
             availableWalletSections = availableWalletSections,

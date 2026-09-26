@@ -59,7 +59,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM281, VM291; retain Android-only one-click auth |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
@@ -141,10 +141,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Screen composition
 
-- **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
-  - **iOS:** `ConnectionProposalSceneViewModel` builds wallet, connection, status and the two permission rows.
-  - **Android:** `ConnectionProposalViewModel` builds the same four.
-  - **Expected:** a Core proposal record returns the rows.
 - **VM282** **S** **The perpetual market hides its header while searching in the views.**
   - **iOS:** `PerpetualsScene` gates the balance header on `!model.isSearching`.
   - **Android:** `PerpetualsScene` gates the header and sections on `isSearching`.

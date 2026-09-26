@@ -58,6 +58,7 @@ import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
+import uniffi.gemstone.GemConnectionPermission
 import uniffi.gemstone.GemCurrencySectionKind
 import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemDelegationAction
@@ -479,6 +480,12 @@ fun PerpetualDirection.stringRes(): Int = when (this) {
 }
 
 @StringRes
+fun GemConnectionPermission.titleRes(): Int = when (this) {
+    GemConnectionPermission.VIEW_BALANCE -> R.string.wallet_connect_permissions_view_balance
+    GemConnectionPermission.APPROVAL_REQUESTS -> R.string.wallet_connect_permissions_approval_requests
+}
+
+@StringRes
 fun GemVerificationLevel.stringRes(): Int = when (this) {
     GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
     GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
@@ -848,6 +855,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.ENABLE_PRICE_ALERTS -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_price_alerts_title))
     GemListRowTitle.DEPOSIT -> context.getString(R.string.wallet_deposit)
     GemListRowTitle.NO_DATA -> context.getString(R.string.errors_no_data_available)
+    GemListRowTitle.CONNECTION -> context.getString(R.string.wallet_connect_connection_title)
     GemListRowTitle.SET_PRICE_ALERT -> context.getString(R.string.price_alerts_set_alert_title)
     GemListRowTitle.ENERGY -> context.getString(R.string.stake_resource_energy)
     GemListRowTitle.BANDWIDTH -> context.getString(R.string.stake_resource_bandwidth)

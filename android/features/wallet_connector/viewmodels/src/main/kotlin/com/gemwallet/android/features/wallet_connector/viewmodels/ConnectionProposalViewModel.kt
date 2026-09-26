@@ -14,9 +14,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
@@ -41,6 +39,7 @@ import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.applicationConnectionRow
+import uniffi.gemstone.connectionProposal
 import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
@@ -74,10 +73,8 @@ class ConnectionProposalViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val walletListItem = selectedWallet.map { ListItemModel(title = context.getString(R.string.common_wallet), subtitle = it?.name.orEmpty()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.common_wallet), subtitle = ""))
-
-    val connectionListItem = ListItemModel(title = context.getString(R.string.wallet_connect_connection_title), subtitle = context.getString(R.string.wallet_connect_brand_name))
+    val proposalRows = combine(selectedWallet, state) { wallet, sceneState -> connectionProposal(sceneState.verificationStatus, wallet?.name.orEmpty()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, connectionProposal(WalletConnectionVerificationStatus.UNKNOWN, ""))
 
     val statusListItem = state.map { sceneState ->
         ListItemModel(
@@ -87,9 +84,6 @@ class ConnectionProposalViewModel @Inject constructor(
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.transaction_status)))
-
-    val permissionListItems = listOf(R.string.wallet_connect_permissions_view_balance, R.string.wallet_connect_permissions_approval_requests)
-        .map { ListItemModel(title = context.getString(it), image = ListItemImage.Symbol(ListItemSymbol.Check)) }
 
     val buttonState = combine(selectedWallet, state) { wallet, sceneState ->
         buttonState(enabled = wallet != null, loading = sceneState is ConnectionProposalUIState.Approving)

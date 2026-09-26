@@ -29,6 +29,7 @@ import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemConfirmErrorDisplay
 import enum Gemstone.GemConfirmTitle
+import enum Gemstone.GemConnectionPermission
 import enum Gemstone.GemContactAddressField
 import struct Gemstone.GemCopy
 import enum Gemstone.GemCopyKind
@@ -895,6 +896,7 @@ public extension GemListRowTitle {
         case .enablePriceAlerts: Localized.Settings.enableValue(Localized.Settings.PriceAlerts.title)
         case .deposit: Localized.Wallet.deposit
         case .noData: Localized.Errors.noDataAvailable
+        case .connection: Localized.WalletConnect.Connection.title
         case .setPriceAlert: Localized.PriceAlerts.SetAlert.title
         case .energy: Localized.Stake.Resource.energy
         case .bandwidth: Localized.Stake.Resource.bandwidth
@@ -1673,6 +1675,15 @@ public extension GemRecipientSectionKind {
         case .contacts: Localized.Contacts.title
         case .wallets: Localized.Transfer.Recipient.myWallets
         case .viewWallets: Localized.Transfer.Recipient.viewWallets
+        }
+    }
+}
+
+public extension GemConnectionPermission {
+    var title: String {
+        switch self {
+        case .viewBalance: Localized.WalletConnect.Permissions.viewBalance
+        case .approvalRequests: Localized.WalletConnect.Permissions.approvalRequests
         }
     }
 }

@@ -17,19 +17,24 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemConnectionProposal
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletSection
 
@@ -37,10 +42,8 @@ import uniffi.gemstone.GemWalletSection
 internal fun ConnectionProposalScene(
     peer: GemConnectionRow,
     state: ConnectionProposalUIState,
-    walletListItem: ListItemModel,
-    connectionListItem: ListItemModel,
+    proposalRows: GemConnectionProposal,
     statusListItem: ListItemModel,
-    permissionListItems: List<ListItemModel>,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     availableWalletSections: List<GemWalletSection>,
@@ -78,8 +81,8 @@ internal fun ConnectionProposalScene(
                 )
             }
             item {
-                ListItem(
-                    model = walletListItem,
+                GemListRowView(
+                    row = proposalRows.walletRow,
                     listPosition = ListPosition.First,
                     modifier = if (state is ConnectionProposalUIState.Approving) {
                         Modifier
@@ -89,7 +92,7 @@ internal fun ConnectionProposalScene(
                     accessory = { DataBadgeChevron() },
                 )
             }
-            item { ListItem(model = connectionListItem, listPosition = ListPosition.Middle) }
+            item { GemListRowView(row = proposalRows.connectionRow, listPosition = ListPosition.Middle) }
             item {
                 ListItem(
                     model = statusListItem,
@@ -104,8 +107,12 @@ internal fun ConnectionProposalScene(
                 )
             }
             item { SubheaderItem(R.string.wallet_connect_permissions_title) }
-            itemsPositioned(permissionListItems) { position, item ->
-                ListItem(model = item, listPosition = position, minHeight = ListItemDefaults.plainMinHeight)
+            itemsPositioned(proposalRows.permissions) { position, permission ->
+                ListItem(
+                    model = ListItemModel(title = stringResource(permission.titleRes()), image = ListItemImage.Symbol(ListItemSymbol.Check)),
+                    listPosition = position,
+                    minHeight = ListItemDefaults.plainMinHeight,
+                )
             }
         }
     }
