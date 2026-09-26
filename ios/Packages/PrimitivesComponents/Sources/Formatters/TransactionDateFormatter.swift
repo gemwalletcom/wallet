@@ -3,6 +3,7 @@
 import Foundation
 import struct Gemstone.GemDayBoundaries
 import GemstonePrimitives
+import Localization
 
 public struct TransactionDateFormatter: Sendable {
     private let date: Date?
@@ -46,7 +47,7 @@ public struct TransactionDateFormatter: Sendable {
         guard let dayLabel else {
             return formatter(dateStyle: .long, timeStyle: .short).string(from: date)
         }
-        return "\(dayLabel), \(formatter(dateStyle: .none, timeStyle: .short).string(from: date))"
+        return Localized.Date.dayTime(dayLabel, formatter(dateStyle: .none, timeStyle: .short).string(from: date))
     }
 
     public var day: String {

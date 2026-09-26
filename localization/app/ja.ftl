@@ -356,6 +356,7 @@ charts_price_change = 変動
 
 date_today = 今日
 date_yesterday = 昨日
+date_day_time = %@, %@
 
 # Wallet Connect
 

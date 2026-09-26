@@ -28,10 +28,11 @@ data class DateSection<T>(val label: String, val items: List<T>)
 fun <T> rememberDateSections(items: List<T>, createdAt: (T) -> Long): List<DateSection<T>> {
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
+    val dayTimeTemplate = stringResource(R.string.date_day_time)
     val locale = LocalConfiguration.current.locales[0]
-    return remember(items, todayLabel, yesterdayLabel, locale) {
+    return remember(items, todayLabel, yesterdayLabel, dayTimeTemplate, locale) {
         val zone = ZoneId.systemDefault()
-        dateSections(items, createdAt, zone, locale, SectionDateFormatter(todayLabel, yesterdayLabel, Clock.system(zone)))
+        dateSections(items, createdAt, zone, locale, SectionDateFormatter(todayLabel, yesterdayLabel, dayTimeTemplate, Clock.system(zone)))
     }
 }
 
@@ -39,9 +40,10 @@ fun <T> rememberDateSections(items: List<T>, createdAt: (T) -> Long): List<DateS
 fun <D, T> rememberDaySections(days: List<D>, day: (D) -> GemDay, items: (D) -> List<T>): List<DateSection<T>> {
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
+    val dayTimeTemplate = stringResource(R.string.date_day_time)
     val locale = LocalConfiguration.current.locales[0]
-    return remember(days, todayLabel, yesterdayLabel, locale) {
-        val formatter = SectionDateFormatter(todayLabel, yesterdayLabel, Clock.system(ZoneId.systemDefault()))
+    return remember(days, todayLabel, yesterdayLabel, dayTimeTemplate, locale) {
+        val formatter = SectionDateFormatter(todayLabel, yesterdayLabel, dayTimeTemplate, Clock.system(ZoneId.systemDefault()))
         days.map { DateSection(label = formatter.format(day(it).localDate(), locale), items = items(it)) }
     }
 }

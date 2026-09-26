@@ -356,6 +356,7 @@ charts_price_change = Forandring
 
 date_today = I dag
 date_yesterday = I går
+date_day_time = %@, %@
 
 # Wallet Connect
 

@@ -356,6 +356,7 @@ charts_price_change = Změna
 
 date_today = Dnes
 date_yesterday = Včera
+date_day_time = %@, %@
 
 # Wallet Connect
 

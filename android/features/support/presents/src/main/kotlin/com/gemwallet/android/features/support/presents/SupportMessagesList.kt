@@ -46,9 +46,10 @@ private sealed interface ChatRow {
 internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: String?, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
+    val dayTimeTemplate = stringResource(R.string.date_day_time)
     val boundaries = LocalDate.now().gemDay().boundaries()
-    val dateFormatter = remember(todayLabel, yesterdayLabel, boundaries) {
-        SectionDateFormatter(todayLabel, yesterdayLabel, boundaries)
+    val dateFormatter = remember(todayLabel, yesterdayLabel, dayTimeTemplate, boundaries) {
+        SectionDateFormatter(todayLabel, yesterdayLabel, dayTimeTemplate, boundaries)
     }
     val rows = remember(days) {
         buildList {

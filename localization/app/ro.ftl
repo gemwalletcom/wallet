@@ -356,6 +356,7 @@ charts_price_change = Variație
 
 date_today = Astăzi
 date_yesterday = Ieri
+date_day_time = %@, %@
 
 # Wallet Connect
 

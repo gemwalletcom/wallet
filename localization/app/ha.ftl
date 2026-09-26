@@ -356,6 +356,7 @@ charts_price_change = Sauyi
 
 date_today = Yau
 date_yesterday = Jiya
+date_day_time = %@, %@
 
 # Wallet Connect
 

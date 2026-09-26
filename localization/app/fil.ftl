@@ -356,6 +356,7 @@ charts_price_change = Pagbabago
 
 date_today = Ngayong araw
 date_yesterday = Kahapon
+date_day_time = %@, %@
 
 # Wallet Connect
 

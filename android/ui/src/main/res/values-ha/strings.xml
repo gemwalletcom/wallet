@@ -308,6 +308,7 @@
   <string name="charts_price_change">Sauyi</string>
   <string name="date_today">Yau</string>
   <string name="date_yesterday">Jiya</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Haɗin kai</string>
   <string name="wallet_connect_disconnect">Cire haɗin</string>

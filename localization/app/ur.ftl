@@ -356,6 +356,7 @@ charts_price_change = تبدیلی
 
 date_today = آج
 date_yesterday = کل
+date_day_time = %@, %@
 
 # Wallet Connect
 

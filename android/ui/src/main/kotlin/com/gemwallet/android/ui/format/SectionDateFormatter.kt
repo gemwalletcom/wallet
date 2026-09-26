@@ -14,10 +14,11 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-class SectionDateFormatter(private val todayLabel: String, private val yesterdayLabel: String, val boundaries: GemDayBoundaries = LocalDate.now().gemDay().boundaries()) {
-    constructor(todayLabel: String, yesterdayLabel: String, clock: Clock) : this(
+class SectionDateFormatter(private val todayLabel: String, private val yesterdayLabel: String, private val dayTimeTemplate: String, val boundaries: GemDayBoundaries = LocalDate.now().gemDay().boundaries()) {
+    constructor(todayLabel: String, yesterdayLabel: String, dayTimeTemplate: String, clock: Clock) : this(
         todayLabel = todayLabel,
         yesterdayLabel = yesterdayLabel,
+        dayTimeTemplate = dayTimeTemplate,
         boundaries = LocalDate.now(clock).gemDay().boundaries(),
     )
 
@@ -42,8 +43,8 @@ class SectionDateFormatter(private val todayLabel: String, private val yesterday
         val moment = Instant.ofEpochMilli(timestamp).atZone(zone)
         val time = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(moment)
         return when (boundaries.label(moment.toLocalDate().gemDay())) {
-            GemDayLabel.TODAY -> "$todayLabel, $time"
-            GemDayLabel.YESTERDAY -> "$yesterdayLabel, $time"
+            GemDayLabel.TODAY -> String.format(locale, dayTimeTemplate, todayLabel, time)
+            GemDayLabel.YESTERDAY -> String.format(locale, dayTimeTemplate, yesterdayLabel, time)
             GemDayLabel.DATE -> DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).format(moment)
         }
     }
@@ -65,4 +66,4 @@ fun LocalDate.gemDay(): GemDay = GemDay(year = year, month = monthValue.toUInt()
 
 fun GemDay.localDate(): LocalDate = LocalDate.of(year, month.toInt(), day.toInt())
 
-fun Context.rowDateFormatter(): SectionDateFormatter = SectionDateFormatter(getString(R.string.date_today), getString(R.string.date_yesterday))
+fun Context.rowDateFormatter(): SectionDateFormatter = SectionDateFormatter(getString(R.string.date_today), getString(R.string.date_yesterday), getString(R.string.date_day_time))

@@ -356,6 +356,7 @@ charts_price_change = 漲跌幅
 
 date_today = 今天
 date_yesterday = 昨天
+date_day_time = %@, %@
 
 # Wallet Connect
 

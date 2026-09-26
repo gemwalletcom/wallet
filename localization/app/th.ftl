@@ -356,6 +356,7 @@ charts_price_change = เปลี่ยน
 
 date_today = วันนี้
 date_yesterday = เมื่อวาน
+date_day_time = %@, %@
 
 # Wallet Connect
 

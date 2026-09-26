@@ -308,6 +308,7 @@
   <string name="charts_price_change">Thay đổi</string>
   <string name="date_today">Hôm nay</string>
   <string name="date_yesterday">Hôm qua</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Sự liên quan</string>
   <string name="wallet_connect_disconnect">Ngắt kết nối</string>

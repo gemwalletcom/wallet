@@ -308,6 +308,7 @@
   <string name="charts_price_change">เปลี่ยน</string>
   <string name="date_today">วันนี้</string>
   <string name="date_yesterday">เมื่อวาน</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">การเชื่อมต่อ</string>
   <string name="wallet_connect_disconnect">ตัดการเชื่อมต่อ</string>

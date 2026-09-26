@@ -46,7 +46,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Texts composed in the apps
 
-- **VM276** **S** **The "Today, 10:30" row date is composed in both formatters.**
-  - **iOS:** `TransactionDateFormatter.row` joins the day label and the time with ", ".
-  - **Android:** `SectionDateFormatter.row` does the same.
-  - **Expected:** Core returns the day label with a localized template for label plus time; only the time formatting stays native.
 - **VM277** **S** **The price-alerts toggle label is composed in the apps.**
   - **iOS:** `PriceAlertsSceneViewModel` composes "Enable price alerts".
   - **Android:** `PriceAlertsScene` composes the same.

@@ -356,6 +356,7 @@ charts_price_change = Değişim
 
 date_today = Bugün
 date_yesterday = Dün
+date_day_time = %@, %@
 
 # Wallet Connect
 

@@ -308,6 +308,7 @@
   <string name="charts_price_change">परिवर्तन</string>
   <string name="date_today">आज</string>
   <string name="date_yesterday">कल</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">कनेक्शन</string>
   <string name="wallet_connect_disconnect">डिस्कनेक्ट करें</string>

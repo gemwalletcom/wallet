@@ -308,6 +308,7 @@
   <string name="charts_price_change">Değişim</string>
   <string name="date_today">Bugün</string>
   <string name="date_yesterday">Dün</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Bağlantı</string>
   <string name="wallet_connect_disconnect">Bağlantıyı kes</string>

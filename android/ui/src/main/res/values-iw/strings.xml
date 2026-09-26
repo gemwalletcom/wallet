@@ -308,6 +308,7 @@
   <string name="charts_price_change">לְשַׁנוֹת</string>
   <string name="date_today">היום</string>
   <string name="date_yesterday">אתמול</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">חיבור</string>
   <string name="wallet_connect_disconnect">התנתק</string>

@@ -308,6 +308,7 @@
   <string name="charts_price_change">يتغير</string>
   <string name="date_today">اليوم</string>
   <string name="date_yesterday">أمس</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">اتصال</string>
   <string name="wallet_connect_disconnect">قطع الاتصال</string>

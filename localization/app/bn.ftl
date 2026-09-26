@@ -356,6 +356,7 @@ charts_price_change = পরিবর্তন
 
 date_today = আজ
 date_yesterday = গতকাল
+date_day_time = %@, %@
 
 # Wallet Connect
 

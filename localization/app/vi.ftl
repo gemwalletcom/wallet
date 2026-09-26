@@ -356,6 +356,7 @@ charts_price_change = Thay đổi
 
 date_today = Hôm nay
 date_yesterday = Hôm qua
+date_day_time = %@, %@
 
 # Wallet Connect
 

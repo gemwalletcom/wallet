@@ -356,6 +356,7 @@ charts_price_change = 변화
 
 date_today = 오늘
 date_yesterday = 어제
+date_day_time = %@, %@
 
 # Wallet Connect
 
