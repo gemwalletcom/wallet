@@ -19,7 +19,7 @@ public extension WalletSearchSceneViewModel {
         WalletSearchSceneViewModel(
             wallet: wallet,
             service: service,
-            recentModel: RecentAssetsModel(
+            recentModel: RecentAssetsViewModel(
                 walletId: wallet.id,
                 types: RecentActivityType.allCases,
                 service: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),

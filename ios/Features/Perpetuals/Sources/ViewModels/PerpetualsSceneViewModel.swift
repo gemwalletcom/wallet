@@ -33,7 +33,7 @@ public final class PerpetualsSceneViewModel {
     let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
     let perpetualsQuery: ObservableQuery<MappedQuery<PerpetualsQuery, GemPerpetualMarketSections>>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
-    let recentModel: RecentAssetsModel
+    let recentModel: RecentAssetsViewModel
 
     var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -85,7 +85,7 @@ public final class PerpetualsSceneViewModel {
             PerpetualWalletBalanceQuery(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
+        recentModel = RecentAssetsViewModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }
 
     var navigationTitle: String {

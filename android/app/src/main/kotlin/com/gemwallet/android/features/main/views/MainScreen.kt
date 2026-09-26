@@ -214,7 +214,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                         WalletAction.Receive -> navigator.openReceive()
                                         WalletAction.Buy -> navigator.openBuy()
                                         WalletAction.Swap -> navigator.openSwap()
-                                        WalletAction.Portfolio -> navigator.openPortfolioChart()
+                                        WalletAction.Portfolio -> navigator.openPortfolio()
                                         WalletAction.Perpetuals -> navigator.openPerpetuals()
                                         is WalletAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
                                         is WalletAction.OpenAsset -> navigator.openAsset(action.assetId)

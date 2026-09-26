@@ -27,7 +27,7 @@ struct ConfirmTransferNavigationView: View {
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
                 case let .paymentAsset(type):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.assetAcquisitionWallet,
                             selectType: type,

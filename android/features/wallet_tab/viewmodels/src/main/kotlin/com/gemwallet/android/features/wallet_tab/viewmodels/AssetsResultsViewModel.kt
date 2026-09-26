@@ -19,7 +19,7 @@ import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.assets.viewmodels.select.BaseAssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
@@ -59,7 +59,7 @@ class AssetsResultsViewModel @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
-) : BaseAssetSelectViewModel(
+) : BaseSelectAssetViewModel(
     getSession,
     recentActivityQuery,
     service,

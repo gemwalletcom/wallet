@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM354 to NAM372 in any order, one feature per change.
+7. **Names:** NAM355 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -365,7 +365,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM250** **S** **Asset filters are held in the apps.**
   - **iOS:** `AssetsFilterViewModel` holds the balance toggle and chains and decides `isAnyFilterSpecified`.
-  - **Android:** `BaseAssetSelectViewModel` holds the same filters.
+  - **Android:** `BaseSelectAssetViewModel` holds the same filters.
   - **Expected:** a filter session in Core (as for activity) returns the state; both go.
 - **VM251** **S** **Asset context menus are assembled in the apps.**
   - **iOS:** `AssetContextMenu` builds `GemAssetMenuInput` from which callbacks exist and maps actions to items.
@@ -377,11 +377,11 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** search returns list rows; both builders go.
 - **VM253** **S** **Asset details sections are twinned.**
   - **iOS:** `AssetDetailRowItem`, `AssetDetailSectionItem` and `AssetDetailRowAction` copy `GemAssetDetails` sections.
-  - **Android:** `AssetInfoUIModel`, `AssetInfoUIModelFactory`, `PriceAlertMenuUIModel` and `EmptyTransactionsUIModel` do the same.
+  - **Android:** `AssetUIState`, `AssetUIStateFactory`, `PriceAlertMenuUIModel` and `EmptyTransactionsUIModel` do the same.
   - **Expected:** views read the Core sections and their `GemRowTap`; the twins go.
 - **VM254** **S** **Recents are wrapped and grouped in the apps.**
-  - **iOS:** `RecentAssetsModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
-  - **Android:** `RecentsSheetUIModel` and `RecentAsset` do the same and sort by date in the view.
+  - **iOS:** `RecentAssetsViewModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
+  - **Android:** `RecentsUIState` and `RecentAsset` do the same and sort by date in the view.
   - **Expected:** Core returns the recents list sectioned (with VM210); the models go.
 - **VM255** **S** **The collections grid is built in the app.**
   - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
@@ -415,11 +415,11 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `AssetDetailsMenu.kt` builds the same three entries.
   - **Expected:** `GemAssetDetails` returns the menu rows (kind and link); the mapper supplies titles and icons; both builders go.
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `SelectAssetViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseAssetSelectViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualMarketViewModel`, `RecentsSheetUIModel` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualDetailsViewModel`.
+  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
+  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualMarketViewModel`, `RecentsUIState` (`GemRecentsCounts`) and `loadError(..., candles.isNotEmpty())` in `PerpetualDetailsViewModel`.
   - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
 - **VM263** **S** **Asset list section titles are chosen in the apps.**
-  - **iOS:** `SelectAssetViewModel` titles the popular section and `SelectAssetScene` shows popular, pinned and other sections by emptiness.
+  - **iOS:** `SelectAssetSceneViewModel` titles the popular section and `SelectAssetScene` shows popular, pinned and other sections by emptiness.
   - **Android:** `PinnedAssetsHeaderItem` picks "Popular" or "Pinned" and the icon by `AssetsGroupType`.
   - **Expected:** asset sections from Core carry their titles and kinds; the header choices go.
 - **VM264** **S** **Search result sections are split in the apps.**
@@ -643,9 +643,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM354** **M** **Assets: the asset screen is `Asset`, selection is `SelectAsset`, recents are `Recents`.**
-  - **iOS:** `SelectAssetViewModel` → `SelectAssetSceneViewModel`; `SelectAssetSceneNavigationStack` → `SelectAssetNavigationStack`; `RecentAssetsModel` → `RecentAssetsViewModel`; TestKit files `*+AssetsTestKit.swift` → `*+TestKit.swift`; `AssetNavigationView` follows the destination-host rule.
-  - **Android:** `AssetDetailsScreen`/`AssetDetailsScene`/`AssetDetailsViewModel`/`AssetDetailsAction` → `Asset…`, `AssetInfoUIModel` (whole screen) → `AssetUIState`, its `RowUIModel`/`SectionUIModel` → `AssetDetailRowUIModel`/`AssetDetailSectionUIModel`; packages `presents.details`/`viewmodels.details.viewmodels` → `presents.asset`/`viewmodels.asset`; `AssetSelectScreen`/`AssetSelectScene`/`AssetSelectRow`/`AssetSelectViewModel`/`BaseAssetSelectViewModel`/`AssetSelectAction`/`AssetSelectFlowUIModel` → `SelectAsset…`; `RecentsSheetHost`/`RecentsBottomSheet`/`RecentsSheetViewModel`/`RecentsSheetUIModel` → `RecentsScreen`/`RecentsScene`/`RecentsViewModel`/`RecentsUIState`; `BannerScene` (file `BannersScene.kt`) → `Banner` in `Banner.kt`; files `AssetDetailsMenuUIModel.kt`, `AssetDetailRowAction.kt` and `AssetsManageNavigation.kt` named after their types.
 - **NAM355** **S** **Market: the chart screen is `Chart`.**
   - **iOS:** route `Scenes.Price` → `Scenes.Chart`.
   - **Android:** first the chart component `ChartViewModel`(`Test`) → `ChartValuesViewModel`(`Test`), as iOS; then `AssetChartScene` (binds view models) → `ChartScreen`, `AssetChartViewModel`(`Test`) → `ChartViewModel`(`Test`), `AssetChartRoute`/`assetChartScreen()` → `ChartRoute`/`chartScreen()`.

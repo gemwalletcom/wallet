@@ -18,7 +18,7 @@ struct CollectionsSceneNavigationView: View {
     var body: some View {
         CollectionsScene(model: model)
             .sheet(item: $model.isPresentingReceiveSelectAssetType) {
-                SelectAssetSceneNavigationStack(
+                SelectAssetNavigationStack(
                     model: viewModelFactory.selectAssetScene(
                         wallet: model.wallet,
                         selectType: $0,

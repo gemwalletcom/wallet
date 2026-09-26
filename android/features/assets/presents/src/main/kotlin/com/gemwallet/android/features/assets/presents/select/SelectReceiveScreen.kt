@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.assets.presents.select
 
 import androidx.compose.runtime.Composable
-import com.gemwallet.android.features.assets.viewmodels.select.AssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemSelectAssetType
 
@@ -12,9 +12,9 @@ fun SelectReceiveScreen(
     titleContent: (@Composable () -> Unit)? = null,
     closeIcon: Boolean = false,
     showFilter: Boolean? = null,
-    viewModel: AssetSelectViewModel = assetSelectViewModel(GemSelectAssetType.Receive),
+    viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.Receive),
 ) {
-    AssetSelectScreen(
+    SelectAssetScreen(
         titleContent = titleContent,
         closeIcon = closeIcon,
         showFilter = showFilter,

@@ -22,7 +22,7 @@ struct SwapNavigationView: View {
                 case let .info(type):
                     InfoSheetScene(sheet: type)
                 case let .selectAsset(type):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: .swap(type),

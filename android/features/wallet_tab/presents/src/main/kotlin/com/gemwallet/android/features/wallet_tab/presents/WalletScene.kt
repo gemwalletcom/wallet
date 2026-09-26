@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
-import com.gemwallet.android.features.assets.presents.banner.BannerScene
+import com.gemwallet.android.features.assets.presents.banner.Banner
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetuals.presents.PerpetualsPreviewSection
@@ -125,7 +125,7 @@ internal fun WalletScene(
                 }
                 bannerRow?.let { banner ->
                     item(key = BannersItemKey) {
-                        BannerScene(
+                        Banner(
                             banner = banner,
                             onSelect = { destination ->
                                 when (destination) {

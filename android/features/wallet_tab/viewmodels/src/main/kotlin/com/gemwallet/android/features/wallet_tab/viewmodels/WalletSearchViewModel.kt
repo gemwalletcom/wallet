@@ -14,7 +14,7 @@ import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
 import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.assets.viewmodels.select.BaseAssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel
 import com.gemwallet.android.features.wallet_tab.viewmodels.models.uiModel
@@ -60,7 +60,7 @@ class WalletSearchViewModel @Inject constructor(
     nftQuery: NFTQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
-) : BaseAssetSelectViewModel(
+) : BaseSelectAssetViewModel(
     getSession,
     recentActivityQuery,
     service,

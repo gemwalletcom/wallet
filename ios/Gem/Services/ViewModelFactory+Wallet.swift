@@ -84,7 +84,7 @@ public extension ViewModelFactory {
         WalletSearchSceneViewModel(
             wallet: wallet,
             service: assetSelectionService(),
-            recentModel: RecentAssetsModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
+            recentModel: RecentAssetsViewModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
             onDismissSearch: onDismissSearch,
             onSelectAssetAction: onSelectAssetAction,
             onAddToken: onAddToken,
@@ -150,7 +150,7 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
+    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetSceneViewModel? {
         currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
@@ -160,8 +160,8 @@ public extension ViewModelFactory {
         selectType: SelectAssetType,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
-    ) -> SelectAssetViewModel {
-        SelectAssetViewModel(
+    ) -> SelectAssetSceneViewModel {
+        SelectAssetSceneViewModel(
             wallet: wallet,
             selectType: selectType,
             service: assetSelectionService(),

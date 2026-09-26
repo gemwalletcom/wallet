@@ -7,11 +7,11 @@ import Style
 import SwiftUI
 
 public struct RecentAssetsSectionView: View {
-    private let model: RecentAssetsModel
+    private let model: RecentAssetsViewModel
     private let onSelect: (Asset) -> Void
 
     public init(
-        model: RecentAssetsModel,
+        model: RecentAssetsViewModel,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.model = model

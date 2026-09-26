@@ -7,9 +7,9 @@ import PrimitivesComponents
 import SwiftUI
 
 struct AddAssetPriceAlertsNavigationStack: View {
-    @State private var selectAssetModel: SelectAssetViewModel
+    @State private var selectAssetModel: SelectAssetSceneViewModel
 
-    init(selectAssetModel: SelectAssetViewModel) {
+    init(selectAssetModel: SelectAssetSceneViewModel) {
         self.selectAssetModel = selectAssetModel
     }
 

@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.assets.presents.details.AssetDetailsScreen
-import com.gemwallet.android.features.assets.viewmodels.details.models.AssetDetailsAction
+import com.gemwallet.android.features.assets.presents.asset.AssetScreen
+import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.features.market.presents.AssetChartScene
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -20,11 +20,11 @@ data class AssetRoute(val assetId: AssetId) : NavKey
 @Serializable
 data class AssetChartRoute(val assetId: AssetId) : NavKey
 
-fun EntryProviderScope<NavKey>.assetScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
+fun EntryProviderScope<NavKey>.assetScreen(onAction: (AssetAction.Navigation) -> Unit) {
     entry<AssetRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        AssetDetailsScreen(onAction = onAction)
+        AssetScreen(onAction = onAction)
     }
 }
 

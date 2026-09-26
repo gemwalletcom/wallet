@@ -2,18 +2,18 @@ package com.gemwallet.android.features.assets.presents.select
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.gemwallet.android.features.assets.viewmodels.select.AssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemSelectAssetType
 
 @Composable
-fun SelectSendScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)?, chains: List<Chain> = emptyList(), viewModel: AssetSelectViewModel = assetSelectViewModel(GemSelectAssetType.Send)) {
+fun SelectSendScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)?, chains: List<Chain> = emptyList(), viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.Send)) {
     LaunchedEffect(chains) {
         viewModel.setChainFilter(chains)
     }
 
-    AssetSelectScreen(
+    SelectAssetScreen(
         onSelect = onSelect,
         onSelectRecent = onSelect,
         onCancel = onCancel,

@@ -7,7 +7,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.features.assets.viewmodels.select.BaseAssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,7 +27,7 @@ class SwapSelectViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
-) : BaseAssetSelectViewModel(
+) : BaseSelectAssetViewModel(
     getSession = getSession,
     recentActivityQuery = recentActivityQuery,
     service = service,

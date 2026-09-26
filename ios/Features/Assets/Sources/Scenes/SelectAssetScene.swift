@@ -7,10 +7,10 @@ import Style
 import SwiftUI
 
 public struct SelectAssetScene: View {
-    @State private var model: SelectAssetViewModel
+    @State private var model: SelectAssetSceneViewModel
 
     public init(
-        model: SelectAssetViewModel,
+        model: SelectAssetSceneViewModel,
     ) {
         _model = State(wrappedValue: model)
     }

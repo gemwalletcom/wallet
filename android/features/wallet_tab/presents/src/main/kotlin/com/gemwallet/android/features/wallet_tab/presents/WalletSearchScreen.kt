@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.features.assets.presents.select.AssetSelectAction
-import com.gemwallet.android.features.assets.presents.select.AssetSelectScene
-import com.gemwallet.android.features.assets.presents.select.RecentsSheetHost
-import com.gemwallet.android.features.assets.viewmodels.select.RecentsSheetViewModel
+import com.gemwallet.android.features.assets.presents.select.RecentsScreen
+import com.gemwallet.android.features.assets.presents.select.SelectAssetAction
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScene
+import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
 import com.gemwallet.android.features.wallet_tab.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel
@@ -36,7 +36,7 @@ import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
-fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsSheetViewModel = hiltViewModel()) {
+fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsViewModel = hiltViewModel()) {
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -157,7 +157,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         null
     }
 
-    AssetSelectScene(
+    SelectAssetScene(
         title = {
             SearchBar(
                 query = viewModel.queryState,
@@ -175,23 +175,23 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         searchable = false,
         onAction = { action ->
             when (action) {
-                AssetSelectAction.Cancel -> handleAction(WalletSearchAction.Cancel)
+                SelectAssetAction.Cancel -> handleAction(WalletSearchAction.Cancel)
 
-                AssetSelectAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
+                SelectAssetAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
 
-                AssetSelectAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
+                SelectAssetAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
 
-                AssetSelectAction.ShowAllAssets -> handleAction(
+                SelectAssetAction.ShowAllAssets -> handleAction(
                     WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString()),
                 )
 
-                is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.asset))
+                is SelectAssetAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.asset))
 
-                is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.asset))
+                is SelectAssetAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.asset))
 
-                is AssetSelectAction.ChainFilter,
-                is AssetSelectAction.BalanceFilter,
-                AssetSelectAction.ClearFilters,
+                is SelectAssetAction.ChainFilter,
+                is SelectAssetAction.BalanceFilter,
+                SelectAssetAction.ClearFilters,
                 -> Unit
             }
         },
@@ -209,7 +209,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         snackbar = snackbar,
     )
 
-    RecentsSheetHost(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })
+    RecentsScreen(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })
 }
 
 @Composable

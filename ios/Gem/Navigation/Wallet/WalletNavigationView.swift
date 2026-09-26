@@ -199,7 +199,7 @@ struct WalletNavigationView: View {
             Group {
                 switch sheet {
                 case let .selectAsset(type, chains):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: type,

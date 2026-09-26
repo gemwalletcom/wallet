@@ -6,7 +6,7 @@ import SwiftUI
 public extension View {
     @MainActor
     func recentAssetsSheet(
-        model: RecentAssetsModel,
+        model: RecentAssetsViewModel,
         onSelect: @escaping (Asset) -> Void,
     ) -> some View {
         @Bindable var model = model

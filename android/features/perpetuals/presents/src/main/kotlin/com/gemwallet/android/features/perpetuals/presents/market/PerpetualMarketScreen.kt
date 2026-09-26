@@ -9,8 +9,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.assets.presents.select.RecentsSheetHost
-import com.gemwallet.android.features.assets.viewmodels.select.RecentsSheetViewModel
+import com.gemwallet.android.features.assets.presents.select.RecentsScreen
+import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualMarketViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.RefreshOnTimer
@@ -25,7 +25,7 @@ fun PerpetualMarketScreen(
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
     viewModel: PerpetualMarketViewModel = hiltViewModel(),
-    recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
+    recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
@@ -91,7 +91,7 @@ fun PerpetualMarketScreen(
         },
     )
 
-    RecentsSheetHost(
+    RecentsScreen(
         viewModel = recentsViewModel,
         onSelect = { onOpenPerpetualDetails(it.id) },
     )

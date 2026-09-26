@@ -77,7 +77,7 @@ struct TransactionsNavigationView: View {
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
                 case let .selectAsset(selectType):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: selectType,

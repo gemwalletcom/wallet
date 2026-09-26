@@ -1825,8 +1825,8 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAddressDetailsService` | — | `AddressDetailsSceneViewModel` | `AddressDetailsViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
 | `GemAppUpdateService` | — | `AboutUsViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
-| `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
-| `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
+| `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetViewModel` |
+| `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
 | `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel`, `AssetChartViewModel` (+ `PriceQuery`) |
@@ -1846,7 +1846,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
 | `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertViewModel` | `PriceAlertViewModel`, `PriceAlertTargetViewModel` |
 | `GemReceiveService` | — | `ReceiveViewModel` | `ReceiveViewModel` |
-| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsModel` vended by `SelectAssetViewModel` and `PerpetualsSceneViewModel` | `RecentsSheetViewModel` (+ `RecentActivityQuery`) |
+| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
 | `GemServiceStatus` | — | `ServiceStatusViewModel` | `ServiceStatusViewModel` |

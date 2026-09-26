@@ -18,7 +18,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.features.assets.presents.select.assetsManageScreen
-import com.gemwallet.android.features.assets.viewmodels.details.models.AssetDetailsAction
+import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.features.contacts.presents.ContactsAction
 import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.onboarding.presents.create_wallet.createWalletScreen
@@ -114,20 +114,20 @@ fun WalletNavGraph(
             assetScreen(
                 onAction = { action ->
                     when (action) {
-                        AssetDetailsAction.Close -> onCancel()
-                        is AssetDetailsAction.Transfer -> navigator.openRecipient(action.assetId)
-                        is AssetDetailsAction.Receive -> navigator.openReceive(action.assetId)
-                        is AssetDetailsAction.Buy -> navigator.openBuy(action.assetId)
-                        is AssetDetailsAction.Swap -> navigator.openSwap(action.fromAssetId, action.toAssetId)
-                        is AssetDetailsAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
-                        is AssetDetailsAction.OpenChart -> navigator.openAssetChart(action.assetId)
-                        is AssetDetailsAction.OpenNetwork -> navigator.openAsset(action.assetId)
-                        is AssetDetailsAction.OpenNetworkAssets -> navigator.openNetworkAssets(action.chain)
-                        is AssetDetailsAction.Stake -> navigator.openStake(action.assetId)
-                        is AssetDetailsAction.Earn -> navigator.openEarn(action.assetId)
-                        AssetDetailsAction.OpenPerpetuals -> navigator.openPerpetuals()
-                        is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
-                        is AssetDetailsAction.Confirm -> navigator.openConfirm(action.input)
+                        AssetAction.Close -> onCancel()
+                        is AssetAction.Transfer -> navigator.openRecipient(action.assetId)
+                        is AssetAction.Receive -> navigator.openReceive(action.assetId)
+                        is AssetAction.Buy -> navigator.openBuy(action.assetId)
+                        is AssetAction.Swap -> navigator.openSwap(action.fromAssetId, action.toAssetId)
+                        is AssetAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
+                        is AssetAction.OpenChart -> navigator.openAssetChart(action.assetId)
+                        is AssetAction.OpenNetwork -> navigator.openAsset(action.assetId)
+                        is AssetAction.OpenNetworkAssets -> navigator.openNetworkAssets(action.chain)
+                        is AssetAction.Stake -> navigator.openStake(action.assetId)
+                        is AssetAction.Earn -> navigator.openEarn(action.assetId)
+                        AssetAction.OpenPerpetuals -> navigator.openPerpetuals()
+                        is AssetAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
+                        is AssetAction.Confirm -> navigator.openConfirm(action.input)
                     }
                 },
             )
@@ -202,7 +202,7 @@ fun WalletNavGraph(
             walletsScreen(
                 onCreateWallet = navigator::openCreateWalletRules,
                 onImportWallet = navigator::openImportWallet,
-                onEditWallet = navigator::openWallet,
+                onEditWallet = navigator::openWalletDetail,
                 onSelectWallet = navigator::resetToWallet,
                 onBoard = navigator::resetToOnboarding,
                 onCancel = onCancel,
@@ -301,7 +301,7 @@ fun WalletNavGraph(
 
             perpetualScreen(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,
-                onOpenPortfolio = { navigator.openPortfolioChart(PortfolioType.Perpetuals) },
+                onOpenPortfolio = { navigator.openPortfolio(PortfolioType.Perpetuals) },
                 amountAction = AmountTransactionAction(navigator::openAmount),
                 confirmAction = ConfirmTransactionAction(navigator::openConfirm),
                 onCancel = onCancel,

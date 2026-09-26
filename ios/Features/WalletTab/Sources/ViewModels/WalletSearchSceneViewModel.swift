@@ -35,7 +35,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     var searchableQuery: String = .empty
 
     public let searchQuery: ObservableQuery<WalletSearchQuery>
-    public let recentModel: RecentAssetsModel
+    public let recentModel: RecentAssetsViewModel
 
     var searchResult: WalletSearchResult {
         searchQuery.value
@@ -51,7 +51,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     public init(
         wallet: Wallet,
         service: any GemAssetSelectionServiceProtocol,
-        recentModel: RecentAssetsModel,
+        recentModel: RecentAssetsViewModel,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,
         onAddToken: VoidAction,

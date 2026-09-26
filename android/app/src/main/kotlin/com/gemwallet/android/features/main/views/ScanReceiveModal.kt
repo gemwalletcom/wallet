@@ -15,7 +15,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
-import com.gemwallet.android.features.assets.presents.select.assetSelectViewModel
+import com.gemwallet.android.features.assets.presents.select.selectAssetViewModel
 import com.gemwallet.android.features.qr_scanner.presents.QrCodeRequest
 import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
@@ -38,9 +38,9 @@ fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (
     ) {
         PortraitOrientationLock()
 
-        val assetSelectViewModel = assetSelectViewModel(GemSelectAssetType.Receive)
+        val selectAssetViewModel = selectAssetViewModel(GemSelectAssetType.Receive)
         DisposableEffect(Unit) {
-            onDispose { assetSelectViewModel.reset() }
+            onDispose { selectAssetViewModel.reset() }
         }
 
         var mode by rememberSaveable { mutableStateOf(ScanReceiveMode.Scan) }
@@ -57,7 +57,7 @@ fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (
                 )
 
                 ScanReceiveMode.Receive -> SelectReceiveScreen(
-                    viewModel = assetSelectViewModel,
+                    viewModel = selectAssetViewModel,
                     onCancel = onDismissRequest,
                     onSelect = {
                         receiveAssetId = it.toIdentifier()

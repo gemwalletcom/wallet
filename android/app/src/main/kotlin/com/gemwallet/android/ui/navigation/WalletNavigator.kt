@@ -211,7 +211,7 @@ class WalletNavigator(
     fun openImportWallet(importType: ImportType) {
         push(importType.toImportRoute())
     }
-    fun openWallet(walletId: WalletId) = push(WalletDetailRoute(walletId))
+    fun openWalletDetail(walletId: WalletId) = push(WalletDetailRoute(walletId))
     fun openWalletImage(walletId: WalletId) = push(WalletImageRoute(walletId))
     fun openWalletSecurityReminder(input: WalletSecretInput) = push(SecurityReminderRoute(input))
     fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(ExportWalletRoute(input))
@@ -219,7 +219,7 @@ class WalletNavigator(
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
-    fun openPortfolioChart(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
+    fun openPortfolio(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
     fun openTransaction(transactionId: TransactionId) = push(TransactionDetailsRoute(transactionId))
     fun openAddress(chainAddress: ChainAddress) = push(AddressDetailsRoute(chainAddress))
     fun openBridgeConnections() = push(BridgeConnectionsRoute)

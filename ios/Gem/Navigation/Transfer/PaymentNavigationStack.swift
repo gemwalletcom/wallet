@@ -30,7 +30,7 @@ struct PaymentNavigationStack: View {
         case let .recipient(input):
             SelectedAssetNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .selectAsset(type, chains):
-            SelectAssetSceneNavigationStack(
+            SelectAssetNavigationStack(
                 model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: type, chains: chains),
             )
         }
