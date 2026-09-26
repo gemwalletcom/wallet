@@ -12,8 +12,6 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.settings.viewmodels.currency.models.CurrencyRowUIModel
-import com.gemwallet.android.features.settings.viewmodels.currency.models.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +26,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemCurrencyRow
 import uniffi.gemstone.GemCurrencyServiceInterface
 import java.util.Locale
 import javax.inject.Inject
@@ -54,13 +53,12 @@ class CurrencyViewModel @Inject constructor(
         runCatchingCancellable { service.sections(currency.toGem(), localeCurrency?.toGem(), query, localizedNames) }
             .onFailure { errorState.value = it.errorText().text(context) }
             .getOrDefault(emptyList())
-            .map { it.uiModel(context) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun setCurrency(row: CurrencyRowUIModel, onSelected: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(row.row.currency.toPrimitives()) }
+    fun setCurrency(row: GemCurrencyRow, onSelected: () -> Unit) = viewModelScope.launch {
+        runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(row.currency.toPrimitives()) }
             .onSuccess { onSelected() }
             .onFailure { errorState.value = it.errorText().text(context) }
     }

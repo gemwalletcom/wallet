@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM243 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM244 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Settings
 
-- **VM243** **S** **Currency rows are wrapped.**
-  - **iOS:** `CurrencySceneViewModel` maps sections and rows.
-  - **Android:** `CurrencyRowUIModel` copies `GemCurrencyRow` into a list item.
-  - **Expected:** views read `GemCurrencySection`; the wrapper goes.
 - **VM244** **S** **Network settings sections are fixed in the apps.**
   - **iOS:** `ChainSettingsSectionViewModel.Kind` (nodes, explorer) and `ChainNodeViewModel` build the sections.
   - **Android:** `ChainSettingsUIState`, `ChainSettingsSectionUIModel`, `ChainNodeUIModel` and `ExplorerRowUIModel` do the same with fixed titles.
