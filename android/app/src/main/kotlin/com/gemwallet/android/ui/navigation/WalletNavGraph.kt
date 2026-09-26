@@ -19,7 +19,6 @@ import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
-import com.gemwallet.android.features.assets.views.WalletSearchAction
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
 import com.gemwallet.android.features.main.views.MainScreen
@@ -27,6 +26,7 @@ import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.onboarding.acceptTermsScreen
 import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
 import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsAction
+import com.gemwallet.android.features.wallet_tab.presents.WalletSearchAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction

@@ -1,0 +1,89 @@
+package com.gemwallet.android.features.wallet_tab.presents
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.walletImageModel
+import com.gemwallet.android.ui.components.list_item.iconModel
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.smallIconSize
+
+private const val ScanActionTag = "assetsScanAction"
+private const val ManageActionTag = "assetsManageAction"
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AssetsTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
+    val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletRow?.imageUrl)
+        ?: walletSummary?.walletRow?.placeholder?.iconModel()
+
+    CenterAlignedTopAppBar(
+        title = {
+            TextButton(onClick = onShowWallets) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (walletIcon != null) {
+                        AsyncImage(
+                            model = walletIcon,
+                            size = smallIconSize,
+                        )
+                        Spacer(modifier = Modifier.size(paddingSmall))
+                    }
+                    Text(
+                        text = walletSummary?.walletRow?.name ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Icon(
+                        imageVector = AppIcons.ExpandMore,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        contentDescription = "select_wallet",
+                    )
+                }
+            }
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = onScan,
+                Modifier.testTag(ScanActionTag),
+            ) {
+                Icon(
+                    imageVector = AppIcons.QrCodeScanner,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = stringResource(R.string.wallet_scan_qr_code),
+                )
+            }
+        },
+        actions = {
+            IconButton(
+                onClick = onSearch,
+                Modifier.testTag(ManageActionTag),
+            ) {
+                Icon(
+                    imageVector = AppIcons.Search,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "asset_select",
+                )
+            }
+        },
+    )
+}
