@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemConfirmHeader
+import struct Gemstone.GemConfirmHeader
 import enum Gemstone.GemListRow
 import GemstonePrimitives
 import Primitives
@@ -43,7 +43,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 }
 
 public enum ConfirmTransferItemModel {
-    case header(TransactionHeaderType, isReserved: Bool)
+    case header(GemConfirmHeader)
     case row(GemListRow)
     case recipient(AddressListItemViewModel)
     case paymentAsset(ListItemModel, selectable: Bool)
@@ -62,21 +62,5 @@ public enum ConfirmTransferItemModel {
 extension ListSection where T == ConfirmTransferItem {
     init(type: ConfirmTransferSectionType, _ items: [ConfirmTransferItem]) {
         self.init(type: type, values: items)
-    }
-}
-
-extension GemConfirmHeader {
-    var itemModel: ConfirmTransferItemModel {
-        let headerType: TransactionHeaderType = switch self {
-        case let .value(value): .assetValue(value.header.valueHeader)
-        case let .placeholder(icon): .assetValue(.placeholder(assetImage: AssetImage(icon: icon)))
-        case let .transaction(header), let .reserved(header): header.headerType
-        }
-        let isReserved = if case .reserved = self {
-            true
-        } else {
-            false
-        }
-        return .header(headerType, isReserved: isReserved)
     }
 }

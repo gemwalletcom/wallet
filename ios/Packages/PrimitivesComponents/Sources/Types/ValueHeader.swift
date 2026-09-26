@@ -37,10 +37,6 @@ public struct ValueHeader {
         self.buttons = buttons
         self.isWatchWallet = isWatchWallet
     }
-
-    public static func placeholder(assetImage: AssetImage) -> ValueHeader {
-        ValueHeader(assetImage: assetImage, title: "")
-    }
 }
 
 public extension GemValueHeader {
@@ -71,11 +67,5 @@ extension GemValueHeaderSubtitleIcon {
         switch self {
         case .chart: Image(systemName: SystemImage.chartLineUptrendXyaxis)
         }
-    }
-}
-
-extension AmountDisplay {
-    var valueHeader: ValueHeader {
-        ValueHeader(assetImage: assetImage, title: amount.text, subtitle: fiat?.text)
     }
 }

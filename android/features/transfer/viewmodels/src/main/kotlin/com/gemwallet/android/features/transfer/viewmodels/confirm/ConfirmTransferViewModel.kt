@@ -26,12 +26,10 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.FeeSelectionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.acquireOptions
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.confirmHeader
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.feeItems
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.uiModel
@@ -84,6 +82,7 @@ import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
@@ -341,8 +340,8 @@ class ConfirmTransferViewModel @Inject constructor(
     val buttonState: StateFlow<ButtonState> = button.map { it.state.buttonState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
-    val header: StateFlow<ConfirmHeaderUIModel?> = combine(confirmation, load, screen) { confirmation, _, screen ->
-        confirmation?.let { confirmHeader(it.header(screen), context) }
+    val header: StateFlow<GemConfirmHeader?> = combine(confirmation, load, screen) { confirmation, _, screen ->
+        confirmation?.header(screen)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = loadOptions.filterNotNull()

@@ -275,6 +275,7 @@ mocks:
   - GemChartHeader
   - GemConfirmFee
   - GemConfirmFeeSelection
+  - GemConfirmHeader
   - GemConfirmLoad
   - GemConfirmLoadOptions
   - GemConfirmMetadata

@@ -12,8 +12,8 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemAssetBalance
-import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemConfirmFee
+import com.gemwallet.android.testkit.mockGemConfirmHeader
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -50,7 +50,6 @@ import org.junit.Test
 import uniffi.gemstone.GemAcquireAsset
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
@@ -58,7 +57,6 @@ import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemSwapPairSelection
-import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.confirmErrorInfo
@@ -170,7 +168,7 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem(), mockGemAssetIcon()))
+        every { confirmation.header(any()) } returns mockGemConfirmHeader()
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(
                 transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),

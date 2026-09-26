@@ -609,6 +609,18 @@ pub struct GemValueHeader {
     pub actions: Option<GemHeaderActions>,
 }
 
+impl GemValueHeader {
+    pub fn asset(icon: super::icon::GemAssetIcon, title: GemLocalizedText, subtitle: Option<GemRowText>) -> Self {
+        Self {
+            icon: Some(GemValueHeaderIcon::Asset { icon }),
+            title,
+            subtitle,
+            subtitle_icon: None,
+            actions: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetEmptyAction {
     Buy,

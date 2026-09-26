@@ -29,14 +29,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.transfer.presents.confirm.components.AddressRow
 import com.gemwallet.android.features.transfer.presents.confirm.components.ConfirmErrorInfo
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
 import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmTransferViewModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AuthRequest
@@ -46,11 +44,7 @@ import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.infoSheet
-import com.gemwallet.android.ui.components.list_head.AmountListHead
-import com.gemwallet.android.ui.components.list_head.AssetListHead
-import com.gemwallet.android.ui.components.list_head.AssetValueListHead
-import com.gemwallet.android.ui.components.list_head.NftHead
-import com.gemwallet.android.ui.components.list_head.SwapListHead
+import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
@@ -186,40 +180,19 @@ fun ConfirmTransferScreen(
                 when (section) {
                     GemConfirmSection.Header -> {
                         item {
-                            when (val model = header) {
-                                is ConfirmHeaderUIModel.Placeholder -> AmountListHead(amount = "", icon = model.icon)
-
-                                is ConfirmHeaderUIModel.ReservedSpace -> Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .alpha(0f)
-                                        .clearAndSetSemantics { },
+                            header?.let { header ->
+                                Box(
+                                    modifier = if (header.isReserved) {
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .alpha(0f)
+                                            .clearAndSetSemantics { }
+                                    } else {
+                                        Modifier
+                                    },
                                 ) {
-                                    AmountListHead(amount = "", icon = model.icon)
+                                    TransactionListHead(header.header)
                                 }
-
-                                is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
-
-                                is ConfirmHeaderUIModel.Swap -> SwapListHead(
-                                    fromAsset = model.fromAsset,
-                                    fromIcon = model.fromIcon,
-                                    fromValueText = model.fromValueText,
-                                    fromEquivalentText = model.fromEquivalentText,
-                                    toAsset = model.toAsset,
-                                    toIcon = model.toIcon,
-                                    toValueText = model.toValueText,
-                                    toEquivalentText = model.toEquivalentText,
-                                )
-
-                                is ConfirmHeaderUIModel.Nft -> NftHead(model.source)
-
-                                is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.icon)
-
-                                is ConfirmHeaderUIModel.AssetImage -> AssetListHead(icon = model.icon)
-
-                                is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.icon)
-
-                                null -> Unit
                             }
                         }
                     }

@@ -48,9 +48,9 @@ extension ConfirmTransferScene {
     @ViewBuilder
     private func content(for itemModel: ConfirmTransferItemModel) -> some View {
         switch itemModel {
-        case let .header(headerType, isReserved):
-            TransactionHeaderListItemView(headerType: headerType)
-                .isVisible(!isReserved)
+        case let .header(header):
+            TransactionHeaderListItemView(header: header.header)
+                .isVisible(!header.isReserved)
         case let .row(row):
             GemListRowView(row: row)
         case let .recipient(model):

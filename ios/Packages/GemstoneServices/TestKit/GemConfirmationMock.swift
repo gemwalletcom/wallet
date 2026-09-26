@@ -6,7 +6,7 @@ public import typealias Gemstone.Currency
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemConfirmError
 public import struct Gemstone.GemConfirmErrorInfo
-public import enum Gemstone.GemConfirmHeader
+public import struct Gemstone.GemConfirmHeader
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
 public import enum Gemstone.GemConfirmRowContent
@@ -57,7 +57,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         self.warnings = warnings
     }
 
-    public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem(), icon: .mock()))
+    public var headerValue: GemConfirmHeader = .mock()
 
     public func screen() -> GemConfirmScreen {
         .mock()

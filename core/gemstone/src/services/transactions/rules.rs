@@ -363,9 +363,7 @@ pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fi
 
 fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransactionHeader {
     let transaction = &extended.transaction;
-    let amount = |shows_fiat: bool| GemTransactionHeader::Amount {
-        amount: header_amount(transaction_amount(extended, value_sign(transaction)), currency, shows_fiat),
-    };
+    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(transaction_amount(extended, value_sign(transaction)), currency, shows_fiat));
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
@@ -378,12 +376,11 @@ fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransaction
         GemTransactionHeaderKind::Nft => match nft_metadata(transaction) {
             Some(metadata) => GemTransactionHeader::Nft {
                 image_url: GemImage::NftAsset { asset_id: metadata.asset_id.to_string() }.url(),
-                asset_id: metadata.asset_id,
                 name: metadata.name,
             },
             None => amount(false),
         },
-        GemTransactionHeaderKind::Symbol => GemTransactionHeader::symbol(extended.asset.clone()),
+        GemTransactionHeaderKind::Symbol => GemTransactionHeader::symbol(&extended.asset),
         GemTransactionHeaderKind::AssetImage => GemTransactionHeader::asset_image(&extended.asset),
     }
 }

@@ -17,10 +17,7 @@ import com.gemwallet.android.features.transactions.viewmodels.models.Transaction
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionItemUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.list_head.AmountListHead
-import com.gemwallet.android.ui.components.list_head.AssetListHead
-import com.gemwallet.android.ui.components.list_head.NftHead
-import com.gemwallet.android.ui.components.list_head.SwapListHead
+import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.listSections
@@ -84,33 +81,9 @@ internal fun TransactionScene(title: String, sections: List<ListSection<Transact
                         onSelectAddress = { address -> onAction(TransactionAction.OpenAddress(ChainAddress(chain, address))) },
                     )
 
-                    is TransactionItemUIModel.NftHead -> NftHead(
-                        metadata = row.metadata,
+                    is TransactionItemUIModel.Head -> TransactionListHead(
+                        header = row.header,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
-                    )
-
-                    is TransactionItemUIModel.AmountHead -> AmountListHead(
-                        icon = row.icon,
-                        amount = row.amount,
-                        equivalent = row.equivalent,
-                        onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
-                    )
-
-                    is TransactionItemUIModel.AssetHead -> AssetListHead(
-                        icon = row.icon,
-                        onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
-                    )
-
-                    is TransactionItemUIModel.SwapHead -> SwapListHead(
-                        fromAsset = row.fromAsset,
-                        fromIcon = row.fromIcon,
-                        fromValueText = row.fromValueText,
-                        toAsset = row.toAsset,
-                        toIcon = row.toIcon,
-                        toValueText = row.toValueText,
-                        fromEquivalentText = row.fromEquivalentText,
-                        toEquivalentText = row.toEquivalentText,
-                        onSwapClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         onAssetClick = { onAction(TransactionAction.OpenAsset(it)) },
                     )
 

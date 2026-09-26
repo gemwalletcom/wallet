@@ -1,6 +1,10 @@
 package com.gemwallet.android.features.transfer.viewmodels.confirm
 
+import com.gemwallet.android.testkit.mockGemConfirmHeader
+import com.gemwallet.android.testkit.mockGemValueHeader
+import com.wallet.core.primitives.Asset
 import io.mockk.every
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemConfirmStage
@@ -8,6 +12,8 @@ import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConfirmViewState
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemKeystoreAuthentication
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemTransactionHeader
 
 internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
     every { viewState(any()) } answers {
@@ -28,3 +34,5 @@ internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
         )
     }
 }
+
+internal fun symbolHeader(asset: Asset): GemConfirmHeader = mockGemConfirmHeader(header = GemTransactionHeader.Amount(mockGemValueHeader(title = GemLocalizedText.Text(asset.symbol))))

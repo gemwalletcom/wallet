@@ -31,9 +31,9 @@ public struct TransactionScene: View {
                 with: ListItemView(model: model),
                 action: self.model.onSelectFeeDetails,
             )
-        case let .header(headerType):
+        case let .header(header):
             TransactionHeaderListItemView(
-                headerType: headerType,
+                header: header,
                 action: model.onTransactionHeaderTap,
             )
         case let .swapProgress(model):

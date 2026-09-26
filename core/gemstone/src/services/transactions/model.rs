@@ -3,6 +3,8 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
+use crate::services::assets::model::{GemRowText, GemValueHeader};
+use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
 use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
@@ -264,16 +266,28 @@ pub fn transaction_rows(items: Vec<TransactionListItem>) -> Vec<GemTransactionRo
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemTransactionHeader {
-    Amount { amount: GemHeaderAmount },
+    Amount { header: GemValueHeader },
+    Value { header: GemValueHeader },
     Swap { from: GemHeaderAmount, to: GemHeaderAmount },
-    Nft { asset_id: NFTAssetId, name: Option<String>, image_url: String },
-    Symbol { asset: Asset, icon: GemAssetIcon },
+    Nft { name: Option<String>, image_url: String },
     AssetImage { icon: GemAssetIcon },
 }
 
 impl GemTransactionHeader {
-    pub fn symbol(asset: Asset) -> Self {
-        Self::Symbol { icon: asset_icon(&asset.id), asset }
+    pub fn amount(amount: GemHeaderAmount) -> Self {
+        Self::Amount {
+            header: GemValueHeader::asset(
+                amount.icon,
+                GemLocalizedText::Number { number: amount.amount },
+                amount.fiat.map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            ),
+        }
+    }
+
+    pub fn symbol(asset: &Asset) -> Self {
+        Self::Amount {
+            header: GemValueHeader::asset(asset_icon(&asset.id), GemLocalizedText::Text { text: asset.symbol.clone() }, None),
+        }
     }
 
     pub fn asset_image(asset: &Asset) -> Self {

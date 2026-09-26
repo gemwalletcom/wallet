@@ -11,7 +11,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemAssetBalance
-import com.gemwallet.android.testkit.mockGemAssetIcon
+import com.gemwallet.android.testkit.mockGemConfirmHeader
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -47,12 +47,10 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemConfirmFeeSelection
-import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
@@ -144,7 +142,7 @@ class ConfirmTransferViewModelRequestTest {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem(), mockGemAssetIcon()))
+        every { confirmation.header(any()) } returns mockGemConfirmHeader()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } returns null
         coEvery { confirmation.state() } returns

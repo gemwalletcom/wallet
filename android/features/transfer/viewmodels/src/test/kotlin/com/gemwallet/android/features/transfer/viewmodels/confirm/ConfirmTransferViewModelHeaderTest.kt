@@ -8,11 +8,9 @@ import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmHeaderUIModel
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockGemAssetBalance
-import com.gemwallet.android.testkit.mockGemAssetIcon
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -42,12 +40,10 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
@@ -76,7 +72,7 @@ class ConfirmTransferViewModelHeaderTest {
 
         val header = viewModel.header.first { it != null }
 
-        assertEquals(asset, (header as ConfirmHeaderUIModel.Symbol).asset)
+        assertEquals(symbolHeader(asset), header)
         assertEquals(FeeUIModel.Calculating, viewModel.feeUIModel.first { it != null })
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
     }
@@ -89,7 +85,7 @@ class ConfirmTransferViewModelHeaderTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
-        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem(), mockGemAssetIcon()))
+        every { confirmation.header(any()) } returns symbolHeader(asset)
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(
                 transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),

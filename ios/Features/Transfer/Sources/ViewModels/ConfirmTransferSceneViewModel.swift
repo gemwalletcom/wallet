@@ -195,7 +195,7 @@ extension ConfirmTransferSceneViewModel {
     public func itemModel(for item: ConfirmTransferItem) -> ConfirmTransferItemModel {
         switch item {
         case .header:
-            confirmation.header(screen: state.screen).itemModel
+            .header(confirmation.header(screen: state.screen))
         case .notice:
             notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:

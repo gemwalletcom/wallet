@@ -344,6 +344,18 @@ public extension Gemstone.GemConfirmFeeSelection {
     }
 }
 
+public extension Gemstone.GemConfirmHeader {
+    static func mock(
+        header: Gemstone.GemTransactionHeader = .mock(),
+        isReserved: Bool = false,
+    ) -> Gemstone.GemConfirmHeader {
+        Gemstone.GemConfirmHeader(
+            header: header,
+            isReserved: isReserved,
+        )
+    }
+}
+
 public extension Gemstone.GemConfirmLoad {
     static func mock(
         transfer: Gemstone.GemTransferData = .mock(),
@@ -1118,7 +1130,7 @@ public extension Gemstone.GemTransactionFeeRow {
 
 public extension Gemstone.GemTransactionHeader {
     static func mock() -> Gemstone.GemTransactionHeader {
-        .amount(amount: .mock())
+        .amount(header: .mock())
     }
 }
 

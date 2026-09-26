@@ -8,7 +8,7 @@ use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
-use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemValueHeader, GemValueHeaderIcon};
+use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemValueHeader};
 use crate::services::balance::GemAssetBalance;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
@@ -275,13 +275,7 @@ impl GemSimulationValue {
             },
         };
         Self {
-            header: GemValueHeader {
-                icon: Some(GemValueHeaderIcon::Asset { icon: asset_icon(&asset.id) }),
-                title,
-                subtitle: None,
-                subtitle_icon: None,
-                actions: None,
-            },
+            header: GemValueHeader::asset(asset_icon(&asset.id), title, None),
             asset,
             value,
         }

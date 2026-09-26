@@ -1,122 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
-import enum Gemstone.GemConfirmHeader
-import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemValueHeader
-import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import Localization
-@testable import Primitives
-import PrimitivesComponents
-import PrimitivesComponentsTestKit
-import PrimitivesTestKit
+import GemstoneServicesTestKit
 import Testing
 @testable import Transfer
-@testable import TransferTestKit
+import TransferTestKit
 
+@MainActor
 struct ConfirmHeaderItemTests {
     @Test
-    func amountShowsClearHeader() {
-        let headerType = TransactionHeaderType.amount(.numeric(.mock()))
-        #expect(headerType.showsClearHeader == true)
-    }
+    func theHeaderItemCarriesCoresHeaderAndWhetherItOnlyReservesItsPlace() {
+        let confirmation = GemConfirmationMock()
+        confirmation.headerValue = .mock(header: .value(header: .mock()), isReserved: true)
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
 
-    @Test
-    func swapHidesClearHeader() {
-        let headerType = TransactionHeaderType.swap(
-            from: SwapAmountField(
-                assetId: .mock(chain: .ethereum),
-                assetImage: AssetImage(),
-                amount: "1 ETH",
-                fiatAmount: "$1",
-            ),
-            to: SwapAmountField(
-                assetId: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id,
-                assetImage: AssetImage(),
-                amount: "2 USDC",
-                fiatAmount: "$2",
-            ),
-        )
-        #expect(headerType.showsClearHeader == false)
-    }
-
-    @Test
-    func nftShowsClearHeader() {
-        #expect(TransactionHeaderType.nft(name: nil, image: AssetImage()).showsClearHeader == true)
-    }
-
-    @Test
-    func assetShowsClearHeader() {
-        #expect(TransactionHeaderType.asset(image: AssetImage()).showsClearHeader == true)
-    }
-
-    @Test
-    func aValueHeaderDrawsTheAssetAndWhatItApproves() {
-        let value = GemSimulationValue(
-            asset: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
-            value: .unlimited,
-            header: GemValueHeader(icon: .asset(icon: .mock()), title: .unlimitedAsset(symbol: "USDT"), subtitle: nil, subtitleIcon: nil, actions: nil),
-        )
-        let model = GemConfirmHeader.value(value: value)
-
-        guard case let .header(headerType, _) = model.itemModel,
-              case let .assetValue(header) = headerType
-        else {
-            Issue.record("Expected assetValue header")
+        guard case let .header(header) = model.itemModel(for: .header) else {
+            Issue.record("Expected the header item")
             return
         }
-        #expect(header.title == Localized.Simulation.Header.unlimitedAsset("USDT"))
-        #expect(header.assetImage != nil)
-        #expect(headerType.showsClearHeader)
-    }
-
-    @Test
-    func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
-        let model = GemConfirmHeader.placeholder(icon: .mock())
-
-        guard case let .header(headerType, _) = model.itemModel,
-              case let .assetValue(header) = headerType
-        else {
-            Issue.record("Expected assetValue header")
-            return
-        }
-        #expect(header.title.isEmpty)
-        #expect(header.assetImage != nil)
-        #expect(headerType.showsClearHeader)
-    }
-
-    @Test
-    func aTransactionHeaderReadsThroughTheSharedMapper() {
-        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: Primitives.Asset.mock(
-            id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-            name: "Tether",
-            symbol: "USDT",
-            decimals: 6,
-            type: .erc20,
-        ).toGem())))
-
-        guard case let .header(headerType, _) = model.itemModel, case .amount = headerType else {
-            Issue.record("Expected the amount header")
-            return
-        }
-        #expect(headerType.showsClearHeader)
-    }
-
-    @Test
-    func aReservedHeaderKeepsItsPlaceHidden() {
-        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: Primitives.Asset.mock(
-            id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
-            name: "Tether",
-            symbol: "USDT",
-            decimals: 6,
-            type: .erc20,
-        ).toGem())))
-
-        guard case let .header(headerType, isReserved) = model.itemModel, case .amount = headerType else {
-            Issue.record("Expected the amount header")
-            return
-        }
-        #expect(isReserved)
+        #expect(header == confirmation.headerValue)
     }
 }

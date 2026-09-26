@@ -96,7 +96,7 @@ extension TransactionSceneViewModel {
     }
 
     private var headerItem: TransactionItemModel {
-        .header(rows.header.headerType)
+        .header(rows.header)
     }
 
     private var swapProgressItem: TransactionItemModel {

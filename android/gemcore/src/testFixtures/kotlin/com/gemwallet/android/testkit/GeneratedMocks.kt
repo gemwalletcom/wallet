@@ -1325,6 +1325,14 @@ fun mockGemConfirmFee(
 
 fun mockGemConfirmFeeSelection(): uniffi.gemstone.GemConfirmFeeSelection = uniffi.gemstone.GemConfirmFeeSelection.Priority(priority = uniffi.gemstone.FeePriority.NORMAL)
 
+fun mockGemConfirmHeader(
+    header: uniffi.gemstone.GemTransactionHeader = mockGemTransactionHeader(),
+    isReserved: Boolean = false,
+) = uniffi.gemstone.GemConfirmHeader(
+    header = header,
+    isReserved = isReserved,
+)
+
 fun mockGemConfirmLoad(
     transfer: uniffi.gemstone.GemTransferData = mockGemTransferData(),
     sender: uniffi.gemstone.Account = mockAccount().toGem(),
@@ -1905,7 +1913,7 @@ fun mockGemTransactionFeeRow(
     info = info,
 )
 
-fun mockGemTransactionHeader(): uniffi.gemstone.GemTransactionHeader = uniffi.gemstone.GemTransactionHeader.Amount(amount = mockGemHeaderAmount())
+fun mockGemTransactionHeader(): uniffi.gemstone.GemTransactionHeader = uniffi.gemstone.GemTransactionHeader.Amount(header = mockGemValueHeader())
 
 fun mockGemTransactionStatus(
     tone: uniffi.gemstone.GemTransactionStateTone = uniffi.gemstone.GemTransactionStateTone.PENDING,

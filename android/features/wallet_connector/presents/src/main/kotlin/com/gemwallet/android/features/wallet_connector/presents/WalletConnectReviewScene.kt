@@ -19,9 +19,9 @@ import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletC
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
+import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -75,7 +75,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
                     )
                 }
             } else {
-                item { AssetValueListHead(header) }
+                item { ValueListHead(header = header) }
             }
             details()
             itemsPositioned(model.warnings) { position, row -> GemListRowView(row = row, listPosition = position) }

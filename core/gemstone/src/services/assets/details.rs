@@ -21,7 +21,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::failures::{StepFailure, record_result};
 
 use super::icon::asset_icon;
-use super::model::{GemRowText, GemValueHeader, GemValueHeaderIcon};
+use super::model::{GemRowText, GemValueHeader};
 use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -165,13 +165,14 @@ impl GemAssetDetailsService {
         let state = rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts);
         GemAssetDetails {
             header: GemValueHeader {
-                icon: Some(GemValueHeaderIcon::Asset { icon: asset_icon(&asset.id) }),
-                title: GemLocalizedText::Number {
-                    number: balance_amount(&balance.total(), &asset),
-                },
-                subtitle: rules::fiat_value(&asset, &balance, price, currency.clone()).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
-                subtitle_icon: None,
                 actions: Some(state.header_actions.clone()),
+                ..GemValueHeader::asset(
+                    asset_icon(&asset.id),
+                    GemLocalizedText::Number {
+                        number: balance_amount(&balance.total(), &asset),
+                    },
+                    rules::fiat_value(&asset, &balance, price, currency.clone()).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                )
             },
             title: rules::asset_title(&asset),
             state,

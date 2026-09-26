@@ -29,7 +29,6 @@ import struct Gemstone.GemSocialLink
 import enum Gemstone.GemSwapProgressMarker
 import struct Gemstone.GemSwapProgressState
 import enum Gemstone.GemSwapProgressStep
-import enum Gemstone.GemTransactionHeader
 import enum Gemstone.GemTransactionRowValue
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
@@ -503,34 +502,13 @@ public extension GemTransactionRowValue {
         case .none:
             nil
         case let .assetSymbol(asset):
-            AmountDisplay.symbol(asset: asset.toPrimitives()).amount
+            TextValue(
+                text: asset.symbol,
+                style: TextStyle(font: .body, color: Colors.black, fontWeight: .semibold),
+                lineLimit: 1,
+            )
         case let .number(number):
             TextValue(text: number.text(), style: textStyle)
-        }
-    }
-}
-
-public extension GemTransactionHeader {
-    var headerType: TransactionHeaderType {
-        switch self {
-        case let .amount(amount):
-            .amount(.numeric(NumericViewModel(header: amount)))
-        case let .swap(from, to):
-            .swap(from: from.swapAmountField, to: to.swapAmountField)
-        case let .nft(_, name, imageUrl):
-            .nft(
-                name: name,
-                image: AssetImage(
-                    type: .text("NFT"),
-                    imageURL: URL(string: imageUrl),
-                    placeholder: .none,
-                    chainPlaceholder: .none,
-                ),
-            )
-        case let .symbol(asset, icon):
-            .amount(.symbol(asset: asset.toPrimitives(), icon: icon))
-        case let .assetImage(icon):
-            .asset(image: AssetImage(icon: icon))
         }
     }
 }
