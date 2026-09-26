@@ -18,9 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.settings.viewmodels.security.SecurityViewModel
+import com.gemwallet.android.features.settings.viewmodels.security.models.LockPeriodOption
 import com.gemwallet.android.features.settings.viewmodels.security.models.SecurityRowAction
 import com.gemwallet.android.features.settings.viewmodels.security.models.securityAction
 import com.gemwallet.android.model.AuthRequest
@@ -32,12 +30,11 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
+import uniffi.gemstone.GemListSection
 
 @Composable
-fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewModel()) {
+fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, onAuthRequired: (Boolean) -> Unit, onHideBalances: () -> Unit, onLockInterval: (Int) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val lockInterval by viewModel.lockInterval.collectAsStateWithLifecycle(null)
     var isShowLockPeriods by remember { mutableStateOf(false) }
 
     Scene(
@@ -52,8 +49,8 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                         listPosition = position,
                         onToggle = { tap, isOn ->
                             when (tap.securityAction()) {
-                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { viewModel.setAuthRequired(isOn) }
-                                SecurityRowAction.HideBalance -> viewModel.setHideBalances()
+                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
+                                SecurityRowAction.HideBalance -> onHideBalances()
                                 null -> Unit
                             }
                         },
@@ -64,7 +61,7 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                                 onDismissRequest = { isShowLockPeriods = false },
                                 containerColor = MaterialTheme.colorScheme.background,
                             ) {
-                                for (option in viewModel.lockPeriods) {
+                                for (option in lockPeriods) {
                                     DropdownMenuItem(
                                         text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -78,7 +75,7 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                                             }
                                         },
                                         {
-                                            viewModel.setLockInterval(option.minutes)
+                                            onLockInterval(option.minutes)
                                             isShowLockPeriods = false
                                         },
                                     )

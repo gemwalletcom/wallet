@@ -23,7 +23,7 @@ These need no further answer; work them in this order, one family per change.
 2. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 3. **Generated mappers:** BD299, then GEN300.
 4. **Unused code:** CLN318.
-5. **Names:** NAM365 to NAM372 in any order, one feature per change.
+5. **Names:** NAM366 to NAM372 in any order, one feature per change.
 6. **Parity:** BD342, BD343, BD345 to BD351.
 7. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -137,7 +137,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** the rows that show these texts carry them; both wrappers go.
 - **VM199** **S** **Chain rows are built by the apps.**
   - **iOS:** `ChainViewModel` builds title, image and list item from a `Chain` (network name, `standard` suffix).
-  - **Android:** `ChainItem`, `NetworkScene`, `AddNodeScene` and the contact chain rows build the same row from `Chain.networkName()` and the chain icon.
+  - **Android:** `ChainItem`, `ChainSettingsScene`, `AddNodeScene` and the contact chain rows build the same row from `Chain.networkName()` and the chain icon.
   - **Expected:** `GemChainService` returns chain rows (title, subtitle, icon) and the shared renderer draws them; `ChainViewModel` goes.
 - **VM200** **M** **Value headers are composed in the apps from several Core records.**
   - **iOS:** `ValueHeader` extensions build headers from `GemWalletHomeViewState`, `GemSimulationValue` (formats the value with a full-style `ValueFormatter`) and `GemPerpetualBalanceHeader` (composes "Available balance: X"); `AmountDisplay`, `NumericViewModel` and `SymbolViewModel` wrap the same parts.
@@ -331,11 +331,11 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** views read `GemCurrencySection`; the wrapper goes.
 - **VM244** **S** **Network settings sections are fixed in the apps.**
   - **iOS:** `ChainSettingsSectionViewModel.Kind` (nodes, explorer) and `ChainNodeViewModel` build the sections.
-  - **Android:** `NetworksUIState`, `NetworkSectionUIModel`, `NodeRowUIModel` and `ExplorerRowUIModel` do the same with fixed titles.
+  - **Android:** `ChainSettingsUIState`, `ChainSettingsSectionUIModel`, `ChainNodeUIModel` and `ExplorerRowUIModel` do the same with fixed titles.
   - **Expected:** the chain settings view state returns sections with titles and rows; the models go.
 - **VM245** **S** **Add-node results are shaped in the apps.**
   - **iOS:** `AddNodeSceneViewModel` shows the warning only once checks exist.
-  - **Android:** `AddNodeUIModel` derives error text and checks from the phase, shows the warning once checks exist and maps sync state to a flag.
+  - **Android:** `AddNodeUIState` derives error text and checks from the phase, shows the warning once checks exist and maps sync state to a flag.
   - **Expected:** the add-node view state carries error, check rows and warning; both models go.
 - **VM246** **S** **Contact address rows are built in the apps.**
   - **iOS:** `ContactEditorViewModel.listItemModel(for:)` builds network name, short address and image.
@@ -420,8 +420,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
 - **VM265** **S** **Chain pickers each search chains themselves.**
-  - **iOS:** `ChainListSettingsViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
-  - **Android:** `ContactChainSelectViewModel`, `NetworksViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
+  - **iOS:** `ChainListSettingsSceneViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
+  - **Android:** `ContactChainSelectViewModel`, `ChainSettingsViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
   - **Expected:** one Core chain list (rows plus search) that every picker uses, with VM199's chain rows.
 - **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
   - **iOS:** `InfoSheetModel` and `InfoSheetButton` copy `GemInfoSheet` and show the button for learn-more or when a handler exists.
@@ -440,7 +440,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM270** **S** **Delete confirmations are composed in the apps.**
   - **iOS:** `ChainSettingsSceneViewModel`, `WalletDetailScene` and `WalletsScene` compose "Delete X?".
-  - **Android:** `NetworkScene` and `ConfirmWalletDeleteDialog` compose the same.
+  - **Android:** `ChainSettingsScene` and `ConfirmWalletDeleteDialog` compose the same.
   - **Expected:** Core returns the prompt as a `GemLocalizedText` with the name; the mapper renders it.
 - **VM271** **S** **Toast texts are composed in the apps.**
   - **iOS:** `ToastMessage+PrimitivesComponents` composes pinned/unpinned asset, price alerts enabled/disabled for an asset, and copied value.
@@ -490,7 +490,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `PerpetualsScene` gates the header and sections on `isSearching`.
   - **Expected:** `GemPerpetualMarketSession` sections include or omit the header.
 - **VM283** **S** **Settings screens hand Core the values its preference store holds.**
-  - **iOS:** `PreferencesViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecurityViewModel` builds `GemSecurityInput`.
+  - **iOS:** `PreferencesSceneViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecuritySceneViewModel` builds `GemSecurityInput`.
   - **Android:** `PreferencesViewModel` and `SecurityViewModel` build the same inputs.
   - **Expected:** the settings services read preferences through their store port and return sections; the inputs go.
 - **VM284** **S** **Recipients are built from contacts in each app.**
@@ -525,7 +525,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM290** **M** **Empty states are decided scene by scene.**
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrenciesScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
@@ -632,9 +632,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM365** **M** **Settings: currency, developer and chain settings follow iOS.**
-  - **iOS:** `SettingsViewModel`, `SecurityViewModel`, `PreferencesViewModel`, `NotificationsViewModel`, `AboutUsViewModel`, `AppearanceViewModel`, `DeveloperViewModel`, `ChainListSettingsViewModel`, `ServiceStatusViewModel` (+ tests, TestKit) → `…SceneViewModel`; `SettingsNavigationView` → `SettingsNavigationStack`.
-  - **Android:** `SettingsScene`, `SecurityScene`, `PreferencesScene`, `NotificationsScene`, `ServiceStatusScene`, `AddNodeScene` (bind view models) → `XScreen` with the stateless body as `XScene`; `CurrenciesScene`/`CurrenciesViewModel`/`CurrenciesRoute` → `CurrencyScreen`/`CurrencyScene`/`CurrencyViewModel`/`CurrencyRoute`; `DevelopScene`/`DevelopViewModel`/`DevelopRoute` → `DeveloperScreen`/`DeveloperViewModel`/`DeveloperRoute`; `PaymentsScene`/`DevelopPaymentsRoute` → `DeveloperPaymentsScene`/`DeveloperPaymentsRoute`; `NetworksListScene`/`NetworksListAction` → `ChainListSettingsScene`/`ChainListSettingsAction`; `NetworkScene`/`NetworkAction`/`NetworksScreen`/`NetworksViewModel`(`Test`)/`NetworksUIState`/`NetworksRoute` → `ChainSettings…`; `NetworkSectionUIModel`/`NodeRowUIModel`/`NodeItem` → `ChainSettingsSectionUIModel`/`ChainNodeUIModel`/`ChainNodeItem`; packages `.networks` → `.chain_settings`; `AddNodeUIModel` (whole screen) → `AddNodeUIState`; `AboutusRoute` → `AboutUsRoute`; `SettingsSceneAction` → `SettingsAction`.
 - **NAM366** **S** **Contacts: screen view models and rows follow the table.**
   - **iOS:** `ContactsViewModel`/`ContactEditorViewModel`/`ContactAddressEditorViewModel` (+ tests, TestKit) → `…SceneViewModel`; `ContactsNavigationView` and the app's `AddContactNavigationView` follow the destination-host rule.
   - **Android:** `ContactChainSelectScene` (binds a view model) → `ContactChainSelectScreen`; `ContactListItem` → `ContactRowUIModel` in `models/`; `ContactEditorState` becomes private or `ContactEditorSession`; `ContactAddressFormTest` folds into `ContactEditorViewModelTest`.

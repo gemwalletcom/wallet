@@ -6,9 +6,9 @@ import SwiftUI
 
 public struct AppearanceScene: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var model: AppearanceViewModel
+    @State private var model: AppearanceSceneViewModel
 
-    public init(model: AppearanceViewModel) {
+    public init(model: AppearanceSceneViewModel) {
         self.model = model
     }
 

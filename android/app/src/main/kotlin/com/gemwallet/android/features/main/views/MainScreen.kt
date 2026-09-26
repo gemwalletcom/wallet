@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.MessageToast
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
-import com.gemwallet.android.features.settings.presents.SettingsScene
+import com.gemwallet.android.features.settings.presents.SettingsScreen
 import com.gemwallet.android.features.transactions.presents.list.TransactionsScreen
 import com.gemwallet.android.features.wallet_tab.presents.WalletAction
 import com.gemwallet.android.features.wallet_tab.presents.WalletScreen
@@ -53,7 +53,7 @@ import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.components.screen.text
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.actions.SettingsSceneAction
+import com.gemwallet.android.ui.models.actions.SettingsAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.routes.SettingsRoute
@@ -235,19 +235,19 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                 onReceive = navigator::openReceive,
                             )
 
-                            else -> SettingsScene(
+                            else -> SettingsScreen(
                                 scrollState = settingsScrollState,
                                 onAction = { action ->
                                     when (action) {
-                                        SettingsSceneAction.Wallets -> navigator.openWallets()
-                                        SettingsSceneAction.Security -> navigator.openSecurity()
-                                        SettingsSceneAction.Notifications -> navigator.openNotifications()
-                                        SettingsSceneAction.Preferences -> navigator.openPreferences()
-                                        SettingsSceneAction.Bridges -> navigator.openConnections()
-                                        SettingsSceneAction.Support -> navigator.openSupport()
-                                        SettingsSceneAction.Referral -> navigator.openReferral()
-                                        SettingsSceneAction.AboutUs -> navigator.openAboutUs()
-                                        SettingsSceneAction.Develop -> navigator.openDevelop()
+                                        SettingsAction.Wallets -> navigator.openWallets()
+                                        SettingsAction.Security -> navigator.openSecurity()
+                                        SettingsAction.Notifications -> navigator.openNotifications()
+                                        SettingsAction.Preferences -> navigator.openPreferences()
+                                        SettingsAction.Connections -> navigator.openConnections()
+                                        SettingsAction.Support -> navigator.openSupport()
+                                        SettingsAction.Rewards -> navigator.openReferral()
+                                        SettingsAction.AboutUs -> navigator.openAboutUs()
+                                        SettingsAction.Developer -> navigator.openDeveloper()
                                     }
                                 },
                             )

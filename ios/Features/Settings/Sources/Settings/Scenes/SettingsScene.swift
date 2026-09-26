@@ -10,12 +10,12 @@ import SwiftUI
 public struct SettingsScene: View {
     @Environment(\.openURL) private var openURL
 
-    @State private var model: SettingsViewModel
+    @State private var model: SettingsSceneViewModel
     @Binding private var isPresentingWallets: Bool
     @Binding private var isPresentingSupport: Bool
 
     public init(
-        model: SettingsViewModel,
+        model: SettingsSceneViewModel,
         isPresentingWallets: Binding<Bool>,
         isPresentingSupport: Binding<Bool>,
     ) {

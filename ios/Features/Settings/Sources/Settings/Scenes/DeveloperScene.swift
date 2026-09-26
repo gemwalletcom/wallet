@@ -8,9 +8,9 @@ import PrimitivesComponents
 import SwiftUI
 
 public struct DeveloperScene: View {
-    @State private var model: DeveloperViewModel
+    @State private var model: DeveloperSceneViewModel
 
-    public init(model: DeveloperViewModel) {
+    public init(model: DeveloperSceneViewModel) {
         _model = State(initialValue: model)
     }
 

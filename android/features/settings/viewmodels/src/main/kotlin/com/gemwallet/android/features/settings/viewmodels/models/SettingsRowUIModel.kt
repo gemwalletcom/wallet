@@ -1,18 +1,18 @@
 package com.gemwallet.android.features.settings.viewmodels.models
 
-import com.gemwallet.android.ui.models.actions.SettingsSceneAction
+import com.gemwallet.android.ui.models.actions.SettingsAction
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemRowTap
 
-fun GemListRow.settingsAction(): SettingsSceneAction? = when (tap()) {
-    GemRowTap.Wallets -> SettingsSceneAction.Wallets
-    GemRowTap.Security -> SettingsSceneAction.Security
-    GemRowTap.Notifications -> SettingsSceneAction.Notifications
-    GemRowTap.Preferences -> SettingsSceneAction.Preferences
-    GemRowTap.WalletConnect -> SettingsSceneAction.Bridges
-    GemRowTap.Support -> SettingsSceneAction.Support
-    GemRowTap.Rewards -> SettingsSceneAction.Referral
-    GemRowTap.AboutUs -> SettingsSceneAction.AboutUs
-    GemRowTap.Developer -> SettingsSceneAction.Develop
+fun GemListRow.settingsAction(): SettingsAction? = when (tap()) {
+    GemRowTap.Wallets -> SettingsAction.Wallets
+    GemRowTap.Security -> SettingsAction.Security
+    GemRowTap.Notifications -> SettingsAction.Notifications
+    GemRowTap.Preferences -> SettingsAction.Preferences
+    GemRowTap.WalletConnect -> SettingsAction.Connections
+    GemRowTap.Support -> SettingsAction.Support
+    GemRowTap.Rewards -> SettingsAction.Rewards
+    GemRowTap.AboutUs -> SettingsAction.AboutUs
+    GemRowTap.Developer -> SettingsAction.Developer
     else -> null
 }

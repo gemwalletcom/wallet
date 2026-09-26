@@ -1340,11 +1340,11 @@ This limit does not count explicit platform ports such as a signer, keystore, ob
 A store is not one of those ports. A store is the database side of a Core service, and a view model that holds one has reached past the service into what the service owns — the same coupling a second service would be, by a shorter path, and the operations it reaches for then exist on one platform only. The developer screen's clear actions are `GemDeveloperStore` operations its service exports, so both apps offer them from the one service each view model holds:
 
 ```swift
-DeveloperViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
+DeveloperSceneViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
 ```
 
 ```kotlin
-class DevelopViewModel @Inject constructor(
+class DeveloperViewModel @Inject constructor(
     private val service: GemDeveloperServiceInterface,
     private val getSession: GetSession,
     val notificationsAvailable: NotificationsAvailable,
@@ -1824,23 +1824,23 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAddAssetService` | — | `AddAssetSceneViewModel` | `AddAssetViewModel` |
 | `GemAddressDetailsService` | — | `AddressDetailsSceneViewModel` | `AddressDetailsViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
-| `GemAppUpdateService` | — | `AboutUsViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
+| `GemAppUpdateService` | — | `AboutUsSceneViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
-| `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
-| `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
+| `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
+| `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
 | `GemContactService` | — | `ContactsViewModel` | `ContactsViewModel` |
-| `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ `GetCurrentCurrency`); `SessionCoordinator` behind `SetCurrentCurrency` (calls `set_currency` and updates the in-memory currency the session combines, which iOS hears through the `GemPreferencesObserver` that Android's `UserConfig`, behind the `ObservablePreferences` port, holds) |
+| `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrencyViewModel` (+ `GetCurrentCurrency`); `SessionCoordinator` behind `SetCurrentCurrency` (calls `set_currency` and updates the in-memory currency the session combines, which iOS hears through the `GemPreferencesObserver` that Android's `UserConfig`, behind the `ObservablePreferences` port, holds) |
 | `GemDeviceService` | — | `RootSceneViewModel`, `AppLifecycleService`, `CurrencySceneViewModel` | `DeviceObserverService`, `DevicePushSettings` |
-| `GemDeveloperService` | — | `DeveloperViewModel` | `DevelopViewModel` |
+| `GemDeveloperService` | — | `DeveloperSceneViewModel` | `DeveloperViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemContactEditorService` | — | `ContactEditorViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
 | `GemNftService` | — | `CollectionsSceneViewModel` | `CollectionsViewModel` (+ `NFTQuery`) |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
-| `GemNotificationsService` | — | `NotificationsViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
+| `GemNotificationsService` | — | `NotificationsSceneViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
@@ -1849,8 +1849,8 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
-| `GemServiceStatus` | — | `ServiceStatusViewModel` | `ServiceStatusViewModel` |
-| `GemSettingsService` | — | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
+| `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
+| `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel` |
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) |

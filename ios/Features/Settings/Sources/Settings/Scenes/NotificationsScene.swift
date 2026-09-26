@@ -8,9 +8,9 @@ import Style
 import SwiftUI
 
 public struct NotificationsScene: View {
-    @State private var model: NotificationsViewModel
+    @State private var model: NotificationsSceneViewModel
 
-    public init(model: NotificationsViewModel) {
+    public init(model: NotificationsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

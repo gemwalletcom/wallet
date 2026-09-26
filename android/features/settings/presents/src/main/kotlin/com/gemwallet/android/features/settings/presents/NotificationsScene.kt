@@ -1,25 +1,18 @@
 package com.gemwallet.android.features.settings.presents
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.settings.viewmodels.SettingsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemRowTap
 
 @Composable
-fun NotificationsScene(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
-    val sections by viewModel.notificationsSections.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
-
+fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostState, onEnableNotifications: () -> Unit, onDisableNotifications: () -> Unit, onPriceAlerts: () -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.settings_notifications_title),
         snackbar = snackbar,
@@ -33,7 +26,7 @@ fun NotificationsScene(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewMode
                         listPosition = position,
                         onToggle = { tap, isOn ->
                             when (tap) {
-                                GemRowTap.PushNotifications -> if (isOn) viewModel.enableNotifications() else viewModel.disableNotifications()
+                                GemRowTap.PushNotifications -> if (isOn) onEnableNotifications() else onDisableNotifications()
                                 else -> Unit
                             }
                         },

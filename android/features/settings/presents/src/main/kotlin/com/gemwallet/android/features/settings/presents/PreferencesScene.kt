@@ -15,19 +15,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.settings.viewmodels.PreferencesViewModel
+import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
 import com.gemwallet.android.features.settings.viewmodels.models.PreferencesRowAction
 import com.gemwallet.android.features.settings.viewmodels.models.of
 import com.gemwallet.android.features.settings.viewmodels.models.opensPicker
@@ -46,16 +42,22 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.wallet.core.primitives.Appearance
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemPerpetualDefaults
+import uniffi.gemstone.GemPerpetualPickers
 
 @Composable
-fun PreferencesScene(onAction: (PreferencesAction) -> Unit, viewModel: PreferencesViewModel = hiltViewModel()) {
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val appearance by viewModel.appearance.collectAsStateWithLifecycle()
-    val perpetualDefaults by viewModel.perpetualDefaults.collectAsStateWithLifecycle()
-    val configuration = LocalConfiguration.current
+fun PreferencesScene(
+    sections: List<GemListSection>,
+    appearance: Appearance,
+    perpetualDefaults: GemPerpetualDefaults,
+    perpetualOptions: GemPerpetualPickers,
+    onAction: (PreferencesAction) -> Unit,
+    onAppearance: (Appearance) -> Unit,
+    onPerpetualEnabled: (Boolean) -> Unit,
+    onPerpetualOption: (PerpetualSetting, Int) -> Unit,
+) {
     val context = LocalContext.current
-
-    LaunchedEffect(configuration) { viewModel.setLanguage(configuration) }
 
     Scene(
         title = stringResource(id = (R.string.settings_preferences_title)),
@@ -89,25 +91,25 @@ fun PreferencesScene(onAction: (PreferencesAction) -> Unit, viewModel: Preferenc
                             current = appearance,
                             options = Appearance.entries,
                             label = { stringResource(it.stringRes()) },
-                            onSelect = { viewModel.setAppearance(it) },
+                            onSelect = { onAppearance(it) },
                         )
 
                         is PreferencesRowAction.Perpetuals -> GemListRowView(
                             row = row,
                             listPosition = position,
-                            modifier = Modifier.clickable { viewModel.setPerpetualEnabled(!action.isOn) },
-                            onToggle = { _, isOn -> viewModel.setPerpetualEnabled(isOn) },
+                            modifier = Modifier.clickable { onPerpetualEnabled(!action.isOn) },
+                            onToggle = { _, isOn -> onPerpetualEnabled(isOn) },
                         )
 
                         is PreferencesRowAction.Option -> {
-                            val options = viewModel.perpetualOptions.of(action.setting)
+                            val options = perpetualOptions.of(action.setting)
                             OptionPickerRow(
                                 row = row,
                                 listPosition = position,
                                 current = perpetualDefaults.value(action.setting),
                                 options = options.map { it.value.toInt() },
                                 label = { value -> options.first { it.value.toInt() == value }.label.string(LocalContext.current) },
-                                onSelect = { viewModel.setPerpetualOption(action.setting, it) },
+                                onSelect = { onPerpetualOption(action.setting, it) },
                             )
                         }
 

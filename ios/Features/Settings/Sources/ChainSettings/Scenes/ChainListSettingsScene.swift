@@ -8,10 +8,10 @@ import Style
 import SwiftUI
 
 public struct ChainListSettingsScene: View {
-    @State private var model: ChainListSettingsViewModel
+    @State private var model: ChainListSettingsSceneViewModel
     @State private var searchQuery = ""
 
-    public init(model: ChainListSettingsViewModel) {
+    public init(model: ChainListSettingsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

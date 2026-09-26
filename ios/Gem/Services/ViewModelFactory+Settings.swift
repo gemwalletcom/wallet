@@ -21,26 +21,26 @@ import WalletConnectorService
 
 public extension ViewModelFactory {
     @MainActor
-    func notificationsScene() -> NotificationsViewModel {
-        NotificationsViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
+    func notificationsScene() -> NotificationsSceneViewModel {
+        NotificationsSceneViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
     }
 
     @MainActor
-    func settingsScene() -> SettingsViewModel {
-        SettingsViewModel(
+    func settingsScene() -> SettingsSceneViewModel {
+        SettingsSceneViewModel(
             service: GemSettingsService(preferences: preferencesService),
             observablePreferences: observablePreferences,
         )
     }
 
     @MainActor
-    func appearanceScene() -> AppearanceViewModel {
-        AppearanceViewModel(preferences: observablePreferences)
+    func appearanceScene() -> AppearanceSceneViewModel {
+        AppearanceSceneViewModel(preferences: observablePreferences)
     }
 
     @MainActor
-    func preferencesScene() -> PreferencesViewModel {
-        PreferencesViewModel(
+    func preferencesScene() -> PreferencesSceneViewModel {
+        PreferencesSceneViewModel(
             settings: GemSettingsService(preferences: preferencesService),
             preferences: observablePreferences,
         )
@@ -59,18 +59,18 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func aboutUsScene() -> AboutUsViewModel {
-        AboutUsViewModel(preferences: observablePreferences, service: appUpdateService)
+    func aboutUsScene() -> AboutUsSceneViewModel {
+        AboutUsSceneViewModel(preferences: observablePreferences, service: appUpdateService)
     }
 
     @MainActor
-    func chainListSettingsScene() -> ChainListSettingsViewModel {
-        ChainListSettingsViewModel(service: gatewayService.chainSettingsService(nodes: nodeService, explorer: explorerService))
+    func chainListSettingsScene() -> ChainListSettingsSceneViewModel {
+        ChainListSettingsSceneViewModel(service: gatewayService.chainSettingsService(nodes: nodeService, explorer: explorerService))
     }
 
     @MainActor
-    func serviceStatusScene() -> ServiceStatusViewModel {
-        ServiceStatusViewModel(service: serviceStatusService)
+    func serviceStatusScene() -> ServiceStatusSceneViewModel {
+        ServiceStatusSceneViewModel(service: serviceStatusService)
     }
 
     @MainActor
@@ -115,8 +115,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func developerScene(walletId: WalletId) -> DeveloperViewModel {
-        DeveloperViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
+    func developerScene(walletId: WalletId) -> DeveloperSceneViewModel {
+        DeveloperSceneViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
     }
 
     @MainActor
@@ -125,8 +125,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func securityScene() -> SecurityViewModel {
-        SecurityViewModel(
+    func securityScene() -> SecuritySceneViewModel {
+        SecuritySceneViewModel(
             service: biometryService,
             settings: GemSettingsService(preferences: preferencesService),
             preferences: observablePreferences,

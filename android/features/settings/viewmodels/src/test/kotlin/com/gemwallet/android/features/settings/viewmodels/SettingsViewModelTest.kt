@@ -9,7 +9,7 @@ import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.features.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.actions.SettingsSceneAction
+import com.gemwallet.android.ui.models.actions.SettingsAction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
@@ -104,15 +104,15 @@ class SettingsViewModelTest {
         viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertEquals(listOf(SettingsSceneAction.Wallets), viewModel.actions().first { it.isNotEmpty() })
+        assertEquals(listOf(SettingsAction.Wallets), viewModel.actions().first { it.isNotEmpty() })
 
         every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowTap.Wallets, GemListRowTitle.REWARDS to GemRowTap.Rewards))
         wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
         advanceUntilIdle()
 
         assertEquals(
-            listOf(SettingsSceneAction.Wallets, SettingsSceneAction.Referral),
-            viewModel.actions().first { actions -> actions.contains(SettingsSceneAction.Referral) },
+            listOf(SettingsAction.Wallets, SettingsAction.Rewards),
+            viewModel.actions().first { actions -> actions.contains(SettingsAction.Rewards) },
         )
     }
 

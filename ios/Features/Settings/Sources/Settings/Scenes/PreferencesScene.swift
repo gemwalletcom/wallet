@@ -10,9 +10,9 @@ import SwiftUI
 public struct PreferencesScene: View {
     @Environment(\.openURL) private var openURL
 
-    @State private var model: PreferencesViewModel
+    @State private var model: PreferencesSceneViewModel
 
-    public init(model: PreferencesViewModel) {
+    public init(model: PreferencesSceneViewModel) {
         _model = State(initialValue: model)
     }
 

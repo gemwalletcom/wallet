@@ -27,7 +27,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.routes
 import com.gemwallet.android.ui.models.navigation.RouteMessage
-import com.gemwallet.android.ui.navigation.routes.AboutusRoute
+import com.gemwallet.android.ui.navigation.routes.AboutUsRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
+import com.gemwallet.android.ui.navigation.routes.ChainSettingsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
 import com.gemwallet.android.ui.navigation.routes.CollectionRoute
@@ -44,10 +45,10 @@ import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.ConnectionRoute
 import com.gemwallet.android.ui.navigation.routes.ConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
-import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
+import com.gemwallet.android.ui.navigation.routes.CurrencyRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
-import com.gemwallet.android.ui.navigation.routes.DevelopPaymentsRoute
-import com.gemwallet.android.ui.navigation.routes.DevelopRoute
+import com.gemwallet.android.ui.navigation.routes.DeveloperPaymentsRoute
+import com.gemwallet.android.ui.navigation.routes.DeveloperRoute
 import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
@@ -56,7 +57,6 @@ import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
 import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
-import com.gemwallet.android.ui.navigation.routes.NetworksRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
@@ -223,13 +223,13 @@ class WalletNavigator(
     fun openAddress(chainAddress: ChainAddress) = push(AddressDetailsRoute(chainAddress))
     fun openConnections() = push(ConnectionsRoute)
     fun openConnection(connectionId: String) = push(ConnectionRoute(connectionId))
-    fun openCurrencies() = push(CurrenciesRoute)
+    fun openCurrency() = push(CurrencyRoute)
     fun openContacts() = push(ContactsRoute)
     fun openAddContact() = push(AddContactRoute)
     fun openContact(contactId: String) = push(EditContactRoute(contactId))
     fun openSecurity() = push(SecurityRoute)
-    fun openDevelop() = push(DevelopRoute)
-    fun openDeveloperPayments() = push(DevelopPaymentsRoute)
+    fun openDeveloper() = push(DeveloperRoute)
+    fun openDeveloperPayments() = push(DeveloperPaymentsRoute)
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
         val action = runCatching { deeplinkService.urlAction(url) }.getOrNull() ?: return false
@@ -252,8 +252,8 @@ class WalletNavigator(
         }
         return true
     }
-    fun openAboutUs() = push(AboutusRoute)
-    fun openNetworks() = push(NetworksRoute)
+    fun openAboutUs() = push(AboutUsRoute)
+    fun openChainSettings() = push(ChainSettingsRoute)
     fun openNotifications() = push(NotificationsRoute)
     fun openPreferences() = push(PreferencesRoute)
     fun openSupport() = push(SupportRoute)
