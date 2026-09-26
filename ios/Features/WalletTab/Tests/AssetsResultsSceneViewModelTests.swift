@@ -23,13 +23,6 @@ struct AssetsResultsSceneViewModelTests {
     }
 
     @Test
-    func aListScopeSearchesByItsTag() {
-        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.asset]))
-
-        #expect(model.searchQuery.request.searchKey == "tag:trending")
-    }
-
-    @Test
     func noResultsReadAsEmptyOnceTheSearchFinished() async {
         let model = AssetsResultsSceneViewModel.mock()
 

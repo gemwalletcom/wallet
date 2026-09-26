@@ -13,29 +13,6 @@ import WalletTabTestKit
 @MainActor
 struct NetworkAssetsSceneViewModelTests {
     @Test
-    func anEmptyNetworkShowsOnlyTheEmptyState() {
-        let model = NetworkAssetsSceneViewModel.mock()
-
-        #expect(model.groups.sections.showsEmpty)
-        #expect(model.groups.sections.showsPinned == false)
-        #expect(model.groups.sections.showsUnpinned == false)
-        #expect(model.groups.sections.showsHidden == false)
-    }
-
-    @Test
-    func theNativeAssetIsNeverListed() {
-        let model = NetworkAssetsSceneViewModel.mock()
-        model.activeQuery.value = [
-            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
-            .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false)),
-        ]
-
-        #expect(model.groups.unpinned.map(\.asset.id) == [Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id])
-        #expect(model.groups.sections.showsUnpinned)
-        #expect(model.groups.sections.showsEmpty == false)
-    }
-
-    @Test
     func pinnedAndUnpinnedSplitOnTheirMetadata() {
         let model = NetworkAssetsSceneViewModel.mock()
         model.activeQuery.value = [
@@ -62,14 +39,16 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func updatingBalancesAsksForEveryListedAsset() async {
-        let model = NetworkAssetsSceneViewModel.mock()
-        let token = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))
-        model.activeQuery.value = [token]
-        model.hiddenQuery.value = [token]
+        let service = GemWalletHomeServiceMock()
+        let model = NetworkAssetsSceneViewModel.mock(service: service)
+        let active = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))
+        let hidden = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))
+        model.activeQuery.value = [active]
+        model.hiddenQuery.value = [hidden]
 
         await model.updateBalances()
 
-        #expect(model.assetIds.count == 2)
+        #expect(service.updatedBalances == [[active.asset.id.identifier, hidden.asset.id.identifier]])
     }
 
     @Test

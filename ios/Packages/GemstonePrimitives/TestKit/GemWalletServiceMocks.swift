@@ -259,6 +259,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     public private(set) var closedKeys: [GemBannerKey] = []
     public private(set) var pinned: [(assetId: Gemstone.AssetId, pinned: Bool)] = []
     public private(set) var enabled: [(assetIds: [Gemstone.AssetId], enabled: Bool)] = []
+    public private(set) var updatedBalances: [[Gemstone.AssetId]] = []
     public var showsLoading = false
     public var refreshError: (any Error)?
 
@@ -292,7 +293,9 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         )
     }
 
-    public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
+    public func updateBalances(assetIds: [Gemstone.AssetId]) async throws {
+        updatedBalances.append(assetIds)
+    }
 
     public func showsInitialLoading() -> Bool {
         showsLoading
