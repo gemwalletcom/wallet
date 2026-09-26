@@ -19,8 +19,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.acquireOptions
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
 import com.gemwallet.android.math.numberFormat
@@ -276,9 +274,6 @@ class ConfirmTransferViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val balanceChangeRows: StateFlow<List<GemListRow>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.rows.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val acquireOptions: StateFlow<List<GetAssetOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it) }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val executeErrorText: StateFlow<String?> = screen.map { it.failure?.takeIf { failure -> failure.stage == GemConfirmStage.EXECUTE }?.error?.broadcastLabel(context) }

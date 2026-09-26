@@ -8,6 +8,7 @@ import enum Gemstone.DelegationState
 import enum Gemstone.FeeOption
 import enum Gemstone.GemAcceptTermsItem
 import enum Gemstone.GemAcquireAssetFlow
+import enum Gemstone.GemAcquireOption
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemAssetMenuAction
@@ -1372,6 +1373,24 @@ public extension GemSwapProgressStep {
         case .failed: Localized.Transaction.Status.failed
         case .reverted: Localized.Transaction.Status.reverted
         case .refunded: Localized.Transaction.Status.refunded
+        }
+    }
+}
+
+public extension GemAcquireOption {
+    var title: String {
+        switch self {
+        case .buy: Localized.Wallet.buy
+        case .swap: Localized.Wallet.swap
+        case .receive: Localized.Wallet.receive
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .buy: Localized.Wallet.payWithCardOrBank
+        case .swap: Localized.Wallet.fromYourWalletAssets
+        case .receive: Localized.Wallet.transferFromAnotherWallet
         }
     }
 }

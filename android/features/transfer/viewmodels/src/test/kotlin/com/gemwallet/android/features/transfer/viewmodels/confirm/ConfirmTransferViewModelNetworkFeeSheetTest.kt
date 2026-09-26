@@ -153,7 +153,7 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
         assertEquals("Error", error.text)
         assertTrue(error.info?.sheet?.action is GemInfoAction.Acquire)
 
-        val acquire = GemAcquireAsset(GemAcquireAssetFlow.FIAT, 10, GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier()))
+        val acquire = GemAcquireAsset(GemAcquireAssetFlow.FIAT, emptyList(), 10, GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier()))
         viewModel.acquire(asset, acquire)
         assertEquals(AcquireAssetRequest(asset = asset, acquire = acquire), viewModel.acquireRequest.value)
         assertEquals(payAsset.id, viewModel.acquireRequest.value?.swapPayAssetId)

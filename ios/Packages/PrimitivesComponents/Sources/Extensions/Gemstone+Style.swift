@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemAcquireOption
 import struct Gemstone.GemAssetIcon
 import struct Gemstone.GemAssetText
 import struct Gemstone.GemAvatar
@@ -446,6 +447,24 @@ public extension GemButtonState {
         case .disabled: .disabled
         case .loading: .loading(showProgress: true)
         case .enabled: .normal
+        }
+    }
+}
+
+public extension GemAcquireOption {
+    var image: Image {
+        switch self {
+        case .buy: Images.System.plus
+        case .swap: Images.System.arrowSwap
+        case .receive: Image(systemName: "arrow.down")
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .buy: Colors.blue
+        case .swap: Colors.green
+        case .receive: Color.purple
         }
     }
 }

@@ -26,6 +26,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.ChainAddress
+import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemAmountInputType
@@ -96,6 +97,15 @@ fun GemNoticeKind.color(): Color = when (this) {
     GemNoticeKind.ERROR -> MaterialTheme.colorScheme.error
     GemNoticeKind.WARNING, GemNoticeKind.INFO -> pendingColor
 }
+
+fun GemAcquireOption.image(): ListItemImage = ListItemImage.Symbol(
+    when (this) {
+        GemAcquireOption.BUY -> ListItemSymbol.Buy
+        GemAcquireOption.SWAP -> ListItemSymbol.Swap
+        GemAcquireOption.RECEIVE -> ListItemSymbol.Receive
+    },
+    style = ListItemImageStyle.Action,
+)
 
 @Composable
 fun GemKeystoreAuthentication.icon(): ImageVector? = when (this) {

@@ -128,8 +128,16 @@ pub enum GemAcquireAssetFlow {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAcquireAsset {
     pub flow: GemAcquireAssetFlow,
+    pub options: Vec<GemAcquireOption>,
     pub buy_amount: Option<i32>,
     pub swap_pair: GemSwapPairSelection,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
+pub enum GemAcquireOption {
+    Buy,
+    Swap,
+    Receive,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

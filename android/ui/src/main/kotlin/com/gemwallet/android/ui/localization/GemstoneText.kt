@@ -37,6 +37,7 @@ import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
 import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAssetMenuAction
@@ -185,6 +186,22 @@ fun GemDelegationStatus.stateText(): String = stringResource(
 )
 
 @StringRes
+fun GemAcquireOption.title(context: Context): String = context.getString(
+    when (this) {
+        GemAcquireOption.BUY -> R.string.wallet_buy
+        GemAcquireOption.SWAP -> R.string.wallet_swap
+        GemAcquireOption.RECEIVE -> R.string.wallet_receive
+    },
+)
+
+fun GemAcquireOption.subtitle(context: Context): String = context.getString(
+    when (this) {
+        GemAcquireOption.BUY -> R.string.wallet_pay_with_card_or_bank
+        GemAcquireOption.SWAP -> R.string.wallet_from_your_wallet_assets
+        GemAcquireOption.RECEIVE -> R.string.wallet_transfer_from_another_wallet
+    },
+)
+
 fun GemTransactionFilter.getLabel() = when (this) {
     GemTransactionFilter.TRANSFERS -> R.string.transfer_title
     GemTransactionFilter.SWAPS -> R.string.wallet_swap

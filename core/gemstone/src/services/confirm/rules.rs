@@ -21,8 +21,8 @@ use primitives::{
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
-    ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState,
-    GemFeeAsset, GemFeeRateKind, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
+    ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemAcquireOption, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata,
+    GemConfirmSimulationState, GemFeeAsset, GemFeeRateKind, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::config::fiat_config::get_fiat_config;
@@ -346,6 +346,13 @@ fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<Gem
         .ok_or_else(|| GemConfirmError::BalanceMissing { asset_id: asset_id.clone() })
 }
 
+fn acquire_options(flow: GemAcquireAssetFlow) -> Vec<GemAcquireOption> {
+    match flow {
+        GemAcquireAssetFlow::Options => vec![GemAcquireOption::Buy, GemAcquireOption::Swap, GemAcquireOption::Receive],
+        GemAcquireAssetFlow::Fiat => vec![],
+    }
+}
+
 pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
     let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemConfirmRequirement>, required: Option<&GemFormattedNumber>| {
         let required = required.or(requirement.map(|requirement| &requirement.required)).cloned();
@@ -361,6 +368,7 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
             shortfall: requirement.map(|requirement| requirement.shortfall.clone()),
             acquire: asset.map(|asset| GemAcquireAsset {
                 flow: acquire_asset_flow(asset.chain()),
+                options: acquire_options(acquire_asset_flow(asset.chain())),
                 buy_amount,
                 swap_pair: acquire_swap_pair(input_asset_id, fee_asset_id, asset.id.clone()),
             }),
@@ -1335,6 +1343,8 @@ mod tests {
     fn test_acquire_asset_flow_offers_options_only_on_tron() {
         assert_eq!(acquire_asset_flow(Chain::Tron), GemAcquireAssetFlow::Options);
         assert_eq!(acquire_asset_flow(Chain::Ethereum), GemAcquireAssetFlow::Fiat);
+        assert_eq!(acquire_options(GemAcquireAssetFlow::Options), vec![GemAcquireOption::Buy, GemAcquireOption::Swap, GemAcquireOption::Receive]);
+        assert!(acquire_options(GemAcquireAssetFlow::Fiat).is_empty(), "the fiat flow goes straight to buying");
     }
 
     #[test]

@@ -99,7 +99,6 @@ fun ConfirmTransferScreen(
     val context = LocalContext.current
     val transactionRows by viewModel.transactionRows.collectAsStateWithLifecycle()
     val feeListItem by viewModel.feeListItem.collectAsStateWithLifecycle()
-    val acquireOptions by viewModel.acquireOptions.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
@@ -281,7 +280,6 @@ fun ConfirmTransferScreen(
                 ConfirmErrorInfo(
                     error = loadError,
                     acquireRequest = acquireRequest,
-                    acquireOptions = acquireOptions,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onDismissBottomSheetInfo = viewModel::dismissErrorSheet,
                     onDismissAcquire = viewModel::dismissAcquire,

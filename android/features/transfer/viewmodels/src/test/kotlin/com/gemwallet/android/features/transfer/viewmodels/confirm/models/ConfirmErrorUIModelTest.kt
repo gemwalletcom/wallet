@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.transfer.viewmodels.confirm.models
 
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -10,9 +11,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Currency
+import uniffi.gemstone.GemAcquireAsset
+import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemInfoDescription
+import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.Platform
 import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
@@ -24,6 +29,25 @@ class ConfirmErrorUIModelTest {
     @Before
     fun setUp() {
         Locale.setDefault(Locale.US)
+    }
+
+    @Test
+    fun eachAcquireOptionOpensItsFlowForTheAsset() {
+        val usdt = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+        val request = AcquireAssetRequest(
+            asset = asset,
+            acquire = GemAcquireAsset(
+                flow = GemAcquireAssetFlow.OPTIONS,
+                options = listOf(GemAcquireOption.BUY, GemAcquireOption.SWAP, GemAcquireOption.RECEIVE),
+                buyAmount = 25,
+                swapPair = GemSwapPairSelection(payAssetId = usdt.toIdentifier(), receiveAssetId = asset.id.toIdentifier()),
+            ),
+        )
+
+        assertEquals(
+            listOf(GetAssetAction.Buy(25), GetAssetAction.Swap(usdt), GetAssetAction.Receive),
+            request.acquire.options.map(request::action),
+        )
     }
 
     @Test

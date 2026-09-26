@@ -11,7 +11,6 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetOptionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.list_item.WarningItem
@@ -22,7 +21,6 @@ import com.wallet.core.primitives.AssetId
 internal fun ConfirmErrorInfo(
     error: ConfirmErrorUIModel?,
     acquireRequest: AcquireAssetRequest?,
-    acquireOptions: List<GetAssetOptionUIModel>,
     isShowBottomSheetInfo: Boolean,
     onDismissBottomSheetInfo: () -> Unit,
     onDismissAcquire: () -> Unit,
@@ -42,11 +40,11 @@ internal fun ConfirmErrorInfo(
 
     GetAssetSheet(
         asset = acquireRequest?.takeIf { it.offersOptions }?.asset,
-        options = acquireOptions,
+        options = acquireRequest?.acquire?.options.orEmpty(),
         onDismiss = onDismissAcquire,
-        onAction = { action ->
+        onSelect = { option ->
             onDismissAcquire()
-            acquireRequest?.let { onGetAsset(action, it.asset.id) }
+            acquireRequest?.let { onGetAsset(it.action(option), it.asset.id) }
         },
     )
 
