@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -54,7 +54,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
-| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
+| Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM246 |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM244, VM245, VM265, VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM243, VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
@@ -118,13 +118,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
   - **Phase 5, removal:** stop generating the Swift and Kotlin models, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
   - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with generated `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
-
-### Shared components
-
-- **VM208** **S** **The name-resolve indicator is mapped in two places per app.**
-  - **iOS:** `NameRecordViewModel` drives the lookup and maps the state to an image (`resolveImage`).
-  - **Android:** `NameRecordController` and `NameResolveIndicatorUIModel` do the same.
-  - **Expected:** the name state carries its indicator kind and the mapper supplies the icon; the indicator models go.
 
 ### Activity
 

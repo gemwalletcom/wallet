@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.contacts.viewmodels.models
 
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.contactAddressFields
 
 enum class ContactEditorPage {
@@ -37,7 +37,7 @@ data class ContactAddressInput(
     val chain: Chain,
     val address: String = "",
     val memo: String = "",
-    val nameResolveIndicator: NameResolveIndicatorUIModel? = null,
+    val nameResolveIndicator: GemNameIndicator? = null,
     val isAddressValid: Boolean = false,
     val addressError: String = "",
     val showsMemo: Boolean = false,

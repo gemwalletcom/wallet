@@ -52,7 +52,6 @@ import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
@@ -69,6 +68,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemWalletImportKind
 
 private val loadingDialogSize = 100.dp
@@ -149,7 +149,7 @@ private fun ImportWalletScene(
     input: ImportInputUIModel,
     title: String,
     showsTabs: Boolean,
-    nameResolveIndicator: NameResolveIndicatorUIModel?,
+    nameResolveIndicator: GemNameIndicator?,
     dataError: String?,
     buttonState: ButtonState,
     onImport: () -> Unit,
@@ -215,7 +215,7 @@ private fun ImportWalletScene(
 private fun DataInput(
     input: ImportInputUIModel,
     inputState: MutableState<TextFieldValue>,
-    nameResolveIndicator: NameResolveIndicatorUIModel?,
+    nameResolveIndicator: GemNameIndicator?,
     suggestions: List<String>,
     onSelectSuggestion: (String) -> String,
     onInput: (String, Int) -> Unit,

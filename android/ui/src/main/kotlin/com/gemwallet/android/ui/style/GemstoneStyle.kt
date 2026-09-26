@@ -12,7 +12,6 @@ import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.supportIconModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -36,7 +35,7 @@ import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoImage
-import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPriceAlertToggle
@@ -197,11 +196,14 @@ fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
     GemEmptyStateImage.WALLET -> EmptyStateImage.Vector(R.drawable.ic_wallet)
 }
 
-fun GemNameRecordState.indicator(): NameResolveIndicatorUIModel? = when (this) {
-    is GemNameRecordState.Loading -> NameResolveIndicatorUIModel.Loading
-    GemNameRecordState.Error -> NameResolveIndicatorUIModel.Icon(ListItemSymbol.Error, ListItemTextStyle.Negative, R.string.errors_error_occurred)
-    is GemNameRecordState.Complete -> NameResolveIndicatorUIModel.Icon(ListItemSymbol.CheckCircle, ListItemTextStyle.Positive, null)
-    GemNameRecordState.None -> null
+fun GemNameIndicator.symbol(): ListItemSymbol = when (this) {
+    GemNameIndicator.ERROR -> ListItemSymbol.Error
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> ListItemSymbol.CheckCircle
+}
+
+fun GemNameIndicator.style(): ListItemTextStyle = when (this) {
+    GemNameIndicator.ERROR -> ListItemTextStyle.Negative
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> ListItemTextStyle.Positive
 }
 
 fun GemAddressServiceInterface.formatShort(address: String, chain: String?): String = format(address, chain, GemAddressFormatStyle.Short)

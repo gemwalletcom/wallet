@@ -78,6 +78,7 @@ import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemLockPeriod
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNodeCheckRow
 import uniffi.gemstone.GemNodeRowTitle
@@ -1447,4 +1448,9 @@ fun VerificationStatus.labelRes(): Int? = when (this) {
     VerificationStatus.Verified -> null
     VerificationStatus.Unverified -> R.string.asset_verification_unverified
     VerificationStatus.Suspicious -> R.string.asset_verification_suspicious
+}
+
+fun GemNameIndicator.contentDescription(): Int? = when (this) {
+    GemNameIndicator.ERROR -> R.string.errors_error_occurred
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> null
 }

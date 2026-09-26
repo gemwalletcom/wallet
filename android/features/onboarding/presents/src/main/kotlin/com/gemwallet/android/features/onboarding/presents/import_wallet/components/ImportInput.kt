@@ -31,13 +31,13 @@ import com.gemwallet.android.ui.components.clipboard.clear
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemNameIndicator
 
 @Composable
-internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: NameResolveIndicatorUIModel?, onValueChange: (TextFieldValue) -> Unit) {
+internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: GemNameIndicator?, onValueChange: (TextFieldValue) -> Unit) {
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 

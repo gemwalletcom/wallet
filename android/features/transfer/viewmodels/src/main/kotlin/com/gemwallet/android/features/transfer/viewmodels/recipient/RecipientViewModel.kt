@@ -21,7 +21,6 @@ import com.gemwallet.android.features.transfer.viewmodels.recipient.models.Recip
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientUIState
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.uiSection
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListSection
@@ -33,7 +32,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNft
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -53,6 +51,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
@@ -82,7 +81,7 @@ class RecipientViewModel @Inject constructor(
     private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     val address: StateFlow<String> = addressInput.text
-    val nameResolveIndicator: StateFlow<NameResolveIndicatorUIModel?> = addressInput.nameResolveState.map { it.indicator() }
+    val nameResolveIndicator: StateFlow<GemNameIndicator?> = addressInput.nameResolveState.map { it.indicator() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val addressError: StateFlow<String> = addressInput.error
         .map { it?.string(context).orEmpty() }

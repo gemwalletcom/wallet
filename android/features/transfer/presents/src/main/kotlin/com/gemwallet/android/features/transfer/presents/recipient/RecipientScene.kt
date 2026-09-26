@@ -20,7 +20,6 @@ import com.gemwallet.android.features.transfer.viewmodels.recipient.models.Recip
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.listSections
@@ -31,6 +30,7 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemNameIndicator
 
 @Composable
 internal fun RecipientScene(
@@ -40,7 +40,7 @@ internal fun RecipientScene(
     address: String,
     memo: String,
     addressError: String,
-    nameResolveIndicator: NameResolveIndicatorUIModel?,
+    nameResolveIndicator: GemNameIndicator?,
     sections: List<ListSection<RecipientRowUIModel>>,
     buttonState: ButtonState,
     onAction: (RecipientAction) -> Unit,

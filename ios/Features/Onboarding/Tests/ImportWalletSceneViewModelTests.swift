@@ -55,12 +55,12 @@ struct ImportWalletSceneViewModelTests {
         model.importType = .privateKey
         model.onChangeInput("", newValue: "vitalik.eth")
 
-        #expect(model.nameRecordViewModel.isResolving == false)
+        #expect(model.nameRecordViewModel.state.indicator() != .loading)
 
         model.importType = .address
         model.onChangeInput("", newValue: "vitalik.eth")
 
-        #expect(model.nameRecordViewModel.isResolving == true)
+        #expect(model.nameRecordViewModel.state.indicator() == .loading)
     }
 
     @Test

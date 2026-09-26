@@ -23,7 +23,6 @@ import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel

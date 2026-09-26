@@ -21,6 +21,7 @@ import enum Gemstone.GemInfoImage
 import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemLoadState
+import enum Gemstone.GemNameIndicator
 import enum Gemstone.GemNodeSyncState
 import enum Gemstone.GemNoticeKind
 import enum Gemstone.GemPerpetualChartLineKind
@@ -186,6 +187,16 @@ public extension GemFiatTransactionBadge {
 
     var textStyle: TextStyle {
         TextStyle(font: Font.system(.footnote, weight: .medium), color: color, background: color.opacity(.light))
+    }
+}
+
+public extension GemNameIndicator {
+    var image: Image? {
+        switch self {
+        case .loading: nil
+        case .error: Images.NameResolve.error
+        case .success: Images.NameResolve.success
+        }
     }
 }
 

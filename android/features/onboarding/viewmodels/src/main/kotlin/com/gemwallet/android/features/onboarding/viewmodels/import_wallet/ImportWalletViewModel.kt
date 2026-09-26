@@ -8,14 +8,12 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.importWallet
 import com.gemwallet.android.ui.localization.fieldStringRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.tabStringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.NameRecordController
-import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,6 +30,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemWalletImportKind
@@ -62,7 +61,7 @@ class ImportWalletViewModel @Inject constructor(
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
-    val nameResolveIndicator: StateFlow<NameResolveIndicatorUIModel?> = nameResolveState.map { it.indicator() }
+    val nameResolveIndicator: StateFlow<GemNameIndicator?> = nameResolveState.map { it.indicator() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun importKind(type: ImportType) {
