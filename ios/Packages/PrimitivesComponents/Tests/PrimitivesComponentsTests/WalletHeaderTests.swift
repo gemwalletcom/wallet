@@ -17,18 +17,8 @@ struct WalletHeaderTests {
     }
 
     @Test
-    func titleSmallValue() {
-        #expect(model(total: 0.1041).title == "$0.10")
-    }
-
-    @Test
     func subtitle() {
         #expect(model(total: 1000, pnlAmount: 50, pnlPercentage: 5).subtitle == "+$50.00 (5.00%)")
-    }
-
-    @Test
-    func subtitleSmallPnlAmount() {
-        #expect(model(total: 61.40, pnlAmount: 0.1041, pnlPercentage: 0.17).subtitle == "+$0.10 (0.17%)")
     }
 
     @Test

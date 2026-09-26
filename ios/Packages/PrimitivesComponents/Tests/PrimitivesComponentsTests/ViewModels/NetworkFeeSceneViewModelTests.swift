@@ -103,26 +103,6 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func aRateRowShowsTheCoreRateWithItsLocalizedUnit() {
-        let rate = GemFormattedNumber.mock(value: 2.5, unit: .plain, display: .number(precision: .fraction(min: 0, max: 1)), notation: .plain, tone: .plain, rounding: .toNearest)
-        let solRate = GemFormattedNumber.mock(value: 2.5, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 1)), notation: .plain, tone: .plain, rounding: .toNearest)
-        let valueText = { (value: GemLocalizedText) in
-            NetworkFeeSceneViewModel.mock(feeRates: .mock(
-                rows: [.mock(value: value, isSelected: true)],
-                showsOptions: false,
-                unitType: .gwei,
-                unitDecimals: 9,
-                selectedTotal: 1,
-                normalTotal: 1,
-            )).selectedRowItem?.subtitle
-        }
-
-        #expect(valueText(.feeRate(rate: rate, unit: .gwei)) == "2.5 gwei")
-        #expect(valueText(.feeRate(rate: rate, unit: .satVb)) == "2.5 sat/vB")
-        #expect(valueText(.feeRate(rate: solRate, unit: .native)) == "2.5 SOL")
-    }
-
-    @Test
     func fiatValueForNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),

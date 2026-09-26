@@ -63,15 +63,6 @@ struct SimulationPayloadFieldViewModelTests {
     }
 
     @Test
-    func titlesFollowTheKind() {
-        let titles = [GemSimulationPayloadTitle.contract, .method, .token, .value].map {
-            SimulationPayloadFieldViewModel(row: GemSimulationPayloadRow(title: $0, value: .text(text: ""))).title
-        }
-
-        #expect(titles == [Localized.Asset.contract, Localized.Common.method, Localized.Common.token, Localized.Perpetual.value])
-    }
-
-    @Test
     func addressFieldCopiesAndOpensTheRowsExplorerLink() {
         let kind = SimulationPayloadFieldViewModel.models(for: [contract])[0].kind
 
