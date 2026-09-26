@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemLatencyStatus
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNodeRow
 import uniffi.gemstone.GemNodeRowTitle
 import uniffi.gemstone.GemNodeSelection
@@ -76,6 +77,7 @@ fun ChainNodeItemPreview() {
                 subtitle = GemNodeSubtitle.LatestBlock(null),
                 latencyStatus = GemLatencyStatus.Loading,
                 canDelete = true,
+                deletePrompt = GemLocalizedText.DeleteConfirmation("some.url.eth"),
             ),
             listPosition = ListPosition.Middle,
             isDeleteRevealed = false,

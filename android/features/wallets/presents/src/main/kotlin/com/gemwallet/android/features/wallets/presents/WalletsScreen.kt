@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
@@ -79,6 +80,7 @@ fun PreviewWalletsScene() {
             isCurrent = isCurrent,
             hasAvatar = false,
             imageUrl = null,
+            deletePrompt = GemLocalizedText.DeleteConfirmation(name),
         )
     }
     MaterialTheme {

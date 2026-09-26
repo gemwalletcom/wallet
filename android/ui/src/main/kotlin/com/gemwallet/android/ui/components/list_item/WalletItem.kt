@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSubtitle
@@ -87,6 +88,7 @@ fun PreviewWalletItem() {
                 isCurrent = true,
                 hasAvatar = false,
                 imageUrl = null,
+                deletePrompt = GemLocalizedText.DeleteConfirmation("Foo wallet name"),
             ),
             listPosition = ListPosition.Single,
             isCurrent = true,
