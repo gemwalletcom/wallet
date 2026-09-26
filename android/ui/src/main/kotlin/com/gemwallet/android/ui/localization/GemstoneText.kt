@@ -282,6 +282,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.ChartLine -> "${context.getString(kind.stringRes())} | ${price.text()}"
 
+    GemLocalizedText.ExpectedProfit -> context.getString(R.string.perpetual_auto_close_expected_profit)
+
+    GemLocalizedText.ExpectedLoss -> context.getString(R.string.perpetual_auto_close_expected_loss)
+
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"

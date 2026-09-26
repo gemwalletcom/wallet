@@ -20,22 +20,14 @@ import SwiftUI
 @MainActor
 public final class AutocloseSceneViewModel {
     private let type: AutocloseType
-    private let decimalSeparator = NumberInput.format(.current).decimalSeparator
 
-    var input: AutocloseInput
+    var focusField: AutocloseScene.Field?
     var isPresentingAlertMessage: AlertMessage?
     private var session: GemAutocloseSession
 
     public init(type: AutocloseType) {
-        let session = Self.session(for: type)
-        let separator = NumberInput.format(.current).decimalSeparator
-
         self.type = type
-        self.session = session
-        input = AutocloseInput(
-            takeProfitText: session.inputText(tpslType: .takeProfit, decimalSeparator: separator),
-            stopLossText: session.inputText(tpslType: .stopLoss, decimalSeparator: separator),
-        )
+        session = Self.session(for: type)
     }
 
     private static func session(for type: AutocloseType) -> GemAutocloseSession {
@@ -45,6 +37,7 @@ public final class AutocloseSceneViewModel {
                 perpetual: position.perpetual.toGem(),
                 asset: position.asset.toGem(),
                 position: position.position.toGem(),
+                format: NumberInput.format(),
             )
         case let .open(data, _):
             autocloseOpenSession(
@@ -54,9 +47,10 @@ public final class AutocloseSceneViewModel {
                 leverage: data.leverage,
                 decimals: data.assetDecimals,
                 provider: .hypercore,
+                format: NumberInput.format(),
             )
-            .onPrice(tpslType: .takeProfit, price: data.takeProfit.flatMap { NumberInput.double($0) })
-            .onPrice(tpslType: .stopLoss, price: data.stopLoss.flatMap { NumberInput.double($0) })
+            .onInput(tpslType: .takeProfit, text: data.takeProfit ?? .empty)
+            .onInput(tpslType: .stopLoss, text: data.stopLoss ?? .empty)
         }
     }
 
@@ -68,12 +62,18 @@ public final class AutocloseSceneViewModel {
         session.viewState()
     }
 
-    func takeProfitModel(_ viewState: GemAutocloseViewState) -> AutocloseViewModel {
-        AutocloseViewModel(state: viewState.takeProfit)
+    var takeProfitText: String {
+        get { viewState.takeProfit.text }
+        set { session = session.onInput(tpslType: .takeProfit, text: newValue) }
     }
 
-    func stopLossModel(_ viewState: GemAutocloseViewState) -> AutocloseViewModel {
-        AutocloseViewModel(state: viewState.stopLoss)
+    var stopLossText: String {
+        get { viewState.stopLoss.text }
+        set { session = session.onInput(tpslType: .stopLoss, text: newValue) }
+    }
+
+    func percentSuggestions(_ viewState: GemAutocloseViewState) -> [PercentageSuggestion] {
+        viewState.takeProfit.suggestions.map { PercentageSuggestion(number: $0) }
     }
 
     func positionRow(_ viewState: GemAutocloseViewState) -> GemAssetItemRow? {
@@ -92,27 +92,21 @@ public final class AutocloseSceneViewModel {
 
 public extension AutocloseSceneViewModel {
     func isEditing(field: AutocloseScene.Field?) -> Bool {
-        guard let field else { return false }
-        return input.text(for: field).isEmpty
+        switch field {
+        case .takeProfit: takeProfitText.isEmpty
+        case .stopLoss: stopLossText.isEmpty
+        case nil: false
+        }
     }
 
     func onChangeFocusField(_ _: AutocloseScene.Field?, _ newField: AutocloseScene.Field?) {
-        input.focusField = newField
-    }
-
-    func onChangePrice() {
-        session = session
-            .onPrice(tpslType: .takeProfit, price: takeProfitPrice)
-            .onPrice(tpslType: .stopLoss, price: stopLossPrice)
+        focusField = newField
     }
 
     func onSelectConfirm() {
-        onChangePrice()
-
         let attempted = session.onSubmitAttempt()
         session = attempted
         let state = attempted.viewState()
-        input.update(state: state)
         guard state.confirmEnabled else { return }
 
         switch type {
@@ -124,25 +118,17 @@ public extension AutocloseSceneViewModel {
             }
 
         case let .open(_, onComplete):
-            onComplete(input.selection)
+            onComplete(state.takeProfit.text, state.stopLoss.text)
         }
     }
 
     func onSelectPercent(_ percent: Int) {
-        guard let type = input.focusedType, let focused = input.focused else { return }
+        let type: TpslType
+        switch focusField {
+        case .takeProfit: type = .takeProfit
+        case .stopLoss: type = .stopLoss
+        case nil: return
+        }
         session = session.onPercentSelected(tpslType: type.toGem(), percent: Int32(percent))
-        focused.text = session.inputText(tpslType: type.toGem(), decimalSeparator: decimalSeparator) ?? .empty
-    }
-}
-
-// MARK: - Private
-
-extension AutocloseSceneViewModel {
-    private var takeProfitPrice: Double? {
-        NumberInput.double(input.takeProfit.text)
-    }
-
-    private var stopLossPrice: Double? {
-        NumberInput.double(input.stopLoss.text)
     }
 }

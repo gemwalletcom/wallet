@@ -12,7 +12,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -36,6 +35,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.updateAndGet
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
@@ -71,57 +71,30 @@ class AutocloseViewModel @Inject constructor(
     private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val errors: SharedFlow<String> = _errors
 
-    private val userTakeProfitText = MutableStateFlow<String?>(null)
-    private val userStopLossText = MutableStateFlow<String?>(null)
+    private val session = MutableStateFlow<GemAutocloseSession?>(null)
 
-    val takeProfitText: StateFlow<String> = combine(userTakeProfitText, position) { user, pos ->
-        user ?: initialText(pos, TpslType.TakeProfit)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    val stopLossText: StateFlow<String> = combine(userStopLossText, position) { user, pos ->
-        user ?: initialText(pos, TpslType.StopLoss)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    private val submitAttempted = MutableStateFlow(false)
-
-    val viewState: StateFlow<GemAutocloseViewState?> = combine(
-        position,
-        takeProfitText,
-        stopLossText,
-        submitAttempted,
-    ) { position, takeProfit, stopLoss, attempted ->
-        position?.let { session(it, takeProfit, stopLoss).let { session -> if (attempted) session.onSubmitAttempt() else session }.viewState() }
+    val viewState: StateFlow<GemAutocloseViewState?> = combine(position, session) { position, session ->
+        (session ?: position?.let(::newSession))?.viewState()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val positionRow: StateFlow<GemAssetItemRow?> = viewState.map { it?.positionRow?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onTakeProfitChanged(text: String) {
-        submitAttempted.value = false
-        userTakeProfitText.value = numberFormat().sanitize(text, null, null)
+        updateSession { it.onInput(TpslType.TakeProfit.toGem(), numberFormat().sanitize(text, null, null)) }
     }
 
     fun onStopLossChanged(text: String) {
-        submitAttempted.value = false
-        userStopLossText.value = numberFormat().sanitize(text, null, null)
+        updateSession { it.onInput(TpslType.StopLoss.toGem(), numberFormat().sanitize(text, null, null)) }
     }
 
     fun onPercentSelected(type: TpslType, percent: Int) {
-        submitAttempted.value = false
-        val position = position.value ?: return
-        val text = session(position, takeProfitText.value, stopLossText.value)
-            .onPercentSelected(type.toGem(), percent)
-            .inputText(type.toGem(), numberFormat().decimalSeparator.toString())
-        when (type) {
-            TpslType.TakeProfit -> userTakeProfitText.value = text
-            TpslType.StopLoss -> userStopLossText.value = text
-        }
+        updateSession { it.onPercentSelected(type.toGem(), percent) }
     }
 
     fun onConfirm() {
-        submitAttempted.value = true
         val position = position.value ?: return
-        val session = session(position, takeProfitText.value, stopLossText.value).onSubmitAttempt()
+        val session = updateSession { it.onSubmitAttempt() } ?: return
         if (!session.viewState().confirmEnabled) return
         val transfer = runCatching { session.modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()) }.getOrElse { error ->
             _errors.tryEmit(error.errorText().text(context))
@@ -130,14 +103,10 @@ class AutocloseViewModel @Inject constructor(
         _confirmRequests.tryEmit(ConfirmTransferInput(transfer))
     }
 
-    private fun session(position: PerpetualPositionData, takeProfitText: String, stopLossText: String): GemAutocloseSession = autocloseSession(position.perpetual.toGem(), position.asset.toGem(), position.position.toGem())
-        .onPrice(TpslType.TakeProfit.toGem(), takeProfitText.parseInputNumberOrNull()?.toDouble())
-        .onPrice(TpslType.StopLoss.toGem(), stopLossText.parseInputNumberOrNull()?.toDouble())
-
-    private fun initialText(position: PerpetualPositionData?, type: TpslType): String {
-        position ?: return ""
-        return autocloseSession(position.perpetual.toGem(), position.asset.toGem(), position.position.toGem())
-            .inputText(type.toGem(), numberFormat().decimalSeparator.toString())
-            .orEmpty()
+    private fun updateSession(transform: (GemAutocloseSession) -> GemAutocloseSession): GemAutocloseSession? {
+        val position = position.value ?: return null
+        return session.updateAndGet { transform(it ?: newSession(position)) }
     }
+
+    private fun newSession(position: PerpetualPositionData): GemAutocloseSession = autocloseSession(position.perpetual.toGem(), position.asset.toGem(), position.position.toGem(), numberFormat())
 }

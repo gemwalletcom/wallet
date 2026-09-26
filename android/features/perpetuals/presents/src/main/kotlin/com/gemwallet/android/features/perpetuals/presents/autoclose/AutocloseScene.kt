@@ -31,7 +31,7 @@ import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseViewState
 
 @Composable
-internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetItemRow?, takeProfitText: String, stopLossText: String, snackbar: SnackbarHostState, onAction: (AutocloseAction) -> Unit) {
+internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetItemRow?, snackbar: SnackbarHostState, onAction: (AutocloseAction) -> Unit) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
 
     val activeField = focusedField?.let { type ->
@@ -40,12 +40,7 @@ internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetI
             TpslType.StopLoss -> model.stopLoss
         }
     }
-    val activeText = when (focusedField) {
-        TpslType.TakeProfit -> takeProfitText
-        TpslType.StopLoss -> stopLossText
-        null -> ""
-    }
-    val isPercentBarVisible = WindowInsets.isKeyboardVisible && activeField != null && activeText.isEmpty()
+    val isPercentBarVisible = WindowInsets.isKeyboardVisible && activeField != null && activeField.text.isEmpty()
 
     Scene(
         title = stringResource(R.string.perpetual_auto_close),
@@ -86,7 +81,6 @@ internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetI
             item {
                 AutocloseInputSection(
                     field = model.takeProfit,
-                    text = takeProfitText,
                     onTextChanged = { onAction(AutocloseAction.TakeProfitChanged(it)) },
                     onFocusChanged = { focused ->
                         if (focused) {
@@ -101,7 +95,6 @@ internal fun AutocloseScene(model: GemAutocloseViewState, positionRow: GemAssetI
             item {
                 AutocloseInputSection(
                     field = model.stopLoss,
-                    text = stopLossText,
                     onTextChanged = { onAction(AutocloseAction.StopLossChanged(it)) },
                     onFocusChanged = { focused ->
                         if (focused) {

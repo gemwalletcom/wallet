@@ -36,6 +36,8 @@ pub enum GemLocalizedText {
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
     ChartLine { kind: GemPerpetualChartLineKind, price: GemFormattedNumber },
+    ExpectedProfit,
+    ExpectedLoss,
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: GemFormattedNumber },

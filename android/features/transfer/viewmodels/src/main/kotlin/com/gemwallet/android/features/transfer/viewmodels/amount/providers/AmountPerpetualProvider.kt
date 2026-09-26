@@ -104,21 +104,27 @@ class AmountPerpetualProvider(
             leverage = leverageState.value?.current?.value ?: market.perpetual.maxLeverage.toUByte(),
             decimals = market.asset.decimals,
             provider = PerpetualProvider.HYPERCORE,
+            format = numberFormat(),
         )
-            .onPrice(TpslType.TakeProfit.toGem(), takeProfit.value?.parseInputNumberOrNull()?.toDouble())
-            .onPrice(TpslType.StopLoss.toGem(), stopLoss.value?.parseInputNumberOrNull()?.toDouble())
+            .onInput(TpslType.TakeProfit.toGem(), takeProfit.value.orEmpty())
+            .onInput(TpslType.StopLoss.toGem(), stopLoss.value.orEmpty())
     }
 
     fun onAutocloseChanged(type: TpslType, text: String) {
-        autoclose.update { it?.onPrice(type.toGem(), text.parseInputNumberOrNull()?.toDouble()) }
+        autoclose.update { it?.onInput(type.toGem(), text) }
     }
 
-    fun onAutoclosePercentSelected(type: TpslType, percent: Int): String? {
-        val session = autoclose.updateAndGet { it?.onPercentSelected(type.toGem(), percent) } ?: return null
-        return session.inputText(type.toGem(), numberFormat().decimalSeparator.toString())
+    fun onAutoclosePercentSelected(type: TpslType, percent: Int) {
+        autoclose.update { it?.onPercentSelected(type.toGem(), percent) }
     }
 
-    fun onAutocloseSubmitted(): Boolean = autoclose.updateAndGet { it?.onSubmitAttempt() }?.viewState()?.confirmEnabled == true
+    fun onAutocloseSubmitted(): Boolean {
+        val state = autoclose.updateAndGet { it?.onSubmitAttempt() }?.viewState() ?: return false
+        if (!state.confirmEnabled) return false
+        setTakeProfit(state.takeProfit.text)
+        setStopLoss(state.stopLoss.text)
+        return true
+    }
 
     init {
         scope.launch {

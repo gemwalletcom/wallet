@@ -21,7 +21,6 @@ public struct AutocloseScene: View {
 
     public var body: some View {
         let viewState = model.viewState
-        let takeProfitModel = model.takeProfitModel(viewState)
         return List {
             if let positionRow = model.positionRow(viewState) {
                 Section {
@@ -36,15 +35,15 @@ public struct AutocloseScene: View {
             }
 
             AutocloseInputSection(
-                inputModel: $model.input.takeProfit,
-                sectionModel: takeProfitModel,
+                text: $model.takeProfitText,
+                state: viewState.takeProfit,
                 field: Field.takeProfit,
                 focusedField: $focusedField,
             )
 
             AutocloseInputSection(
-                inputModel: $model.input.stopLoss,
-                sectionModel: model.stopLossModel(viewState),
+                text: $model.stopLossText,
+                state: viewState.stopLoss,
                 field: Field.stopLoss,
                 focusedField: $focusedField,
             )
@@ -55,7 +54,7 @@ public struct AutocloseScene: View {
         .safeAreaView {
             InputAccessoryView(
                 isEditing: model.isEditing(field: focusedField),
-                suggestions: takeProfitModel.percentSuggestions,
+                suggestions: model.percentSuggestions(viewState),
                 onSelect: { model.onSelectPercent($0.value) },
                 onDone: { focusedField = nil },
                 button: StateButton(
@@ -70,8 +69,6 @@ public struct AutocloseScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
         .onChange(of: focusedField, model.onChangeFocusField)
-        .onChange(of: model.input.takeProfit.text) { _, _ in model.onChangePrice() }
-        .onChange(of: model.input.stopLoss.text) { _, _ in model.onChangePrice() }
     }
 
     private func onSelectConfirm() {

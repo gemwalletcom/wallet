@@ -168,6 +168,10 @@ public extension GemLocalizedText {
             "\(order.title): \(price?.text() ?? Placeholder.empty)"
         case let .chartLine(kind, price):
             "\(kind.title) | \(price.text())"
+        case .expectedProfit:
+            Localized.Perpetual.AutoClose.expectedProfit
+        case .expectedLoss:
+            Localized.Perpetual.AutoClose.expectedLoss
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):

@@ -248,8 +248,8 @@ extension AmountSceneViewModel {
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
-    public func onAutocloseComplete(_ selection: AutocloseSelection) {
-        perpetual?.updateAutoclose(takeProfit: selection.takeProfit, stopLoss: selection.stopLoss)
+    public func onAutocloseComplete(takeProfit: String, stopLoss: String) {
+        perpetual?.updateAutoclose(takeProfit: takeProfit, stopLoss: stopLoss)
         isPresentingSheet = nil
     }
 

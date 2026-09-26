@@ -92,7 +92,7 @@ class AutocloseViewModelTest {
 
         model.onPercentSelected(TpslType.TakeProfit, 50)
 
-        val takeProfit = model.takeProfitText.first { it.isNotEmpty() }
+        val takeProfit = model.viewState.first { it?.takeProfit?.text?.isNotEmpty() == true }!!.takeProfit.text
         assertTrue("expected a target above the entry price, got $takeProfit", takeProfit.toDouble() > 100.0)
     }
 
@@ -103,7 +103,7 @@ class AutocloseViewModelTest {
 
         model.onPercentSelected(TpslType.StopLoss, 50)
 
-        val stopLoss = model.stopLossText.first { it.isNotEmpty() }
+        val stopLoss = model.viewState.first { it?.stopLoss?.text?.isNotEmpty() == true }!!.stopLoss.text
         assertTrue("expected a target below the entry price, got $stopLoss", stopLoss.toDouble() < 100.0)
     }
 
@@ -124,7 +124,7 @@ class AutocloseViewModelTest {
 
         model.onTakeProfitChanged("12a3.4b5")
 
-        assertEquals("123.45", model.takeProfitText.first { it.isNotEmpty() })
+        assertEquals("123.45", model.viewState.first { it?.takeProfit?.text?.isNotEmpty() == true }!!.takeProfit.text)
     }
 
     @Test

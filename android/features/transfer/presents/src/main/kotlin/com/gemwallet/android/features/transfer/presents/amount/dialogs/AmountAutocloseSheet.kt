@@ -38,11 +38,6 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
         onDismiss()
         return
     }
-    val storedTakeProfit by provider.takeProfit.collectAsStateWithLifecycle()
-    val storedStopLoss by provider.stopLoss.collectAsStateWithLifecycle()
-
-    var takeProfitText by remember { mutableStateOf(storedTakeProfit.orEmpty()) }
-    var stopLossText by remember { mutableStateOf(storedStopLoss.orEmpty()) }
     var focused: TpslType? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) { provider.onAutocloseOpened(amount) }
@@ -52,11 +47,6 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
         TpslType.TakeProfit -> viewState.takeProfit
         TpslType.StopLoss -> viewState.stopLoss
         null -> null
-    }
-    val activeText = when (focused) {
-        TpslType.TakeProfit -> takeProfitText
-        TpslType.StopLoss -> stopLossText
-        null -> ""
     }
     ModalBottomSheet(
         isVisible = isVisible,
@@ -79,11 +69,7 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
             Spacer16()
             AutocloseInputSection(
                 field = viewState.takeProfit,
-                text = takeProfitText,
-                onTextChanged = {
-                    takeProfitText = it
-                    provider.onAutocloseChanged(TpslType.TakeProfit, it)
-                },
+                onTextChanged = { provider.onAutocloseChanged(TpslType.TakeProfit, it) },
                 onFocusChanged = { hasFocus ->
                     if (hasFocus) {
                         focused = TpslType.TakeProfit
@@ -95,11 +81,7 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
             Spacer16()
             AutocloseInputSection(
                 field = viewState.stopLoss,
-                text = stopLossText,
-                onTextChanged = {
-                    stopLossText = it
-                    provider.onAutocloseChanged(TpslType.StopLoss, it)
-                },
+                onTextChanged = { provider.onAutocloseChanged(TpslType.StopLoss, it) },
                 onFocusChanged = { hasFocus ->
                     if (hasFocus) {
                         focused = TpslType.StopLoss
@@ -109,17 +91,10 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                 },
             )
             Spacer(Modifier.weight(1f))
-            if (activeField != null && activeText.isEmpty()) {
+            if (activeField != null && activeField.text.isEmpty()) {
                 PercentSuggestionsBar(
                     suggestions = activeField.suggestions,
-                    onPercentSelected = { percent ->
-                        val type = activeField.tpslType.toPrimitives()
-                        val text = provider.onAutoclosePercentSelected(type, percent).orEmpty()
-                        when (type) {
-                            TpslType.TakeProfit -> takeProfitText = text
-                            TpslType.StopLoss -> stopLossText = text
-                        }
-                    },
+                    onPercentSelected = { percent -> provider.onAutoclosePercentSelected(activeField.tpslType.toPrimitives(), percent) },
                 )
             } else {
                 MainActionButton(
@@ -127,8 +102,6 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                     state = buttonState(enabled = viewState.confirmEnabled),
                     onClick = {
                         if (provider.onAutocloseSubmitted()) {
-                            provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
-                            provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
                             onDismiss()
                         }
                     },
