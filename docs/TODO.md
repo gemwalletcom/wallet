@@ -123,7 +123,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM240** **S** **The secret screen decides its own title and warning.**
   - **iOS:** `SecretDataViewModel` titles words "Secret phrase" or "New wallet" depending on a continue action, picks the callout, and builds rows and copy.
-  - **Android:** `WalletSecretContentUIModel` and `WalletSecretUIModel` build rows and copy.
+  - **Android:** `WalletSecretContentUIModel` builds rows and copy.
   - **Expected:** a Core secret-screen record (title, warning kind, rows, copy); both go.
 - **VM241** **S** **Terms acceptance is tracked in the apps.**
   - **iOS:** `AcceptTermsSceneViewModel` and `TermItemViewModel` list the terms and track which are confirmed.

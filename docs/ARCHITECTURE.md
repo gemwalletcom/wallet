@@ -562,25 +562,26 @@ A row is shaped for a list, and a details screen of the same value always needs 
 pub struct GemWalletDetails {
     pub row: GemWalletRow,
     pub secret_kind: Option<GemWalletSecretKind>,
-    pub address: Option<ChainAddress>,
+    pub show_secret: Option<GemLocalizedText>,
+    pub address: Option<GemAddressRow>,
 }
 ```
 
-Android's `GemWalletDetails.uiModel()` and iOS's `WalletDetailSceneViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
+Both screens read the record itself, and neither keeps the `Wallet` for anything the record answers:
 
 ```kotlin
-internal fun GemWalletDetails.uiModel() = WalletDetailUIModel(
-    walletId = WalletId(row.id),
-    name = row.name,
-    address = address?.toPrimitives(),
-    addressExplorer = addressExplorer?.toPrimitives(),
-)
+val details: StateFlow<GemWalletDetails?> = walletQuery(walletId)
+    .mapLatest { wallet -> wallet?.let { service.walletDetails(it.toGem()) } }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
 
 ```swift
-var addressModel: AddressListItemViewModel? {
-    guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
-    return AddressListItemViewModel(title: Localized.Common.address, account: SimpleAccount(...), mode: .auto(addressStyle: .short), addressLink: link)
+if let secretKind = model.details.secretKind, let showSecret = model.details.showSecret {
+    Section {
+        NavigationCustomLink(with: ListItemView(model: ListItemModel(title: showSecret.text)), action: onShowSecret)
+    } header: {
+        Text(secretKind.title)
+    }
 }
 ```
 
