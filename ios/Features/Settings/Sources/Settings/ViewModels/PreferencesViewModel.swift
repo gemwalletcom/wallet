@@ -8,6 +8,7 @@ import struct Gemstone.GemPerpetualDefaults
 import struct Gemstone.GemPerpetualPickers
 import struct Gemstone.GemPickerOption
 import struct Gemstone.GemPreferencesInput
+import enum Gemstone.GemRowTap
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -137,15 +138,15 @@ public extension PreferencesViewModel {
 // MARK: - Actions
 
 extension PreferencesViewModel {
-    func onToggle(_ title: GemListRowTitle, _ isOn: Bool) {
-        switch title {
+    func onToggle(_ tap: GemRowTap, _ isOn: Bool) {
+        switch tap {
         case .perpetuals: isPerpetualEnabled = isOn
         default: break
         }
     }
 
-    func onSelect(_ title: GemListRowTitle) {
-        switch title {
+    func onSelect(_ tap: GemRowTap) {
+        switch tap {
         case .perpetualLeverage: isPresentingLeveragePicker = true
         case .perpetualTakeProfit: isPresentingTakeProfitPicker = true
         case .perpetualStopLoss: isPresentingStopLossPicker = true

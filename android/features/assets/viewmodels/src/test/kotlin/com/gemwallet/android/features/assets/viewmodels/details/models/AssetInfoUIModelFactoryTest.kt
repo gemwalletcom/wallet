@@ -32,6 +32,7 @@ import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemRowTap
 import uniffi.gemstone.GemValueTone
 import java.math.BigInteger
 
@@ -60,11 +61,11 @@ class AssetInfoUIModelFactoryTest {
                 GemAssetDetailSection(
                     GemListSectionTitle.BALANCES,
                     listOf(
-                        GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger("2000000")), GemBalanceRowValue.Amount(staked)),
-                        GemAssetBalanceRow(GemBalanceRow.Reserved(BigInteger("500000"), "https://reserve"), GemBalanceRowValue.Amount(staked)),
-                        GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger.ZERO), GemBalanceRowValue.Apr(apr)),
-                        GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger.ZERO), GemBalanceRowValue.Apr(null)),
-                    ).map { GemAssetDetailRow.Balance(it) },
+                        GemAssetDetailRow.Balance(GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger("2000000")), GemBalanceRowValue.Amount(staked)), GemRowTap.Stake),
+                        GemAssetDetailRow.Balance(GemAssetBalanceRow(GemBalanceRow.Reserved(BigInteger("500000"), "https://reserve"), GemBalanceRowValue.Amount(staked)), GemRowTap.Explorer("https://reserve")),
+                        GemAssetDetailRow.Balance(GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger.ZERO), GemBalanceRowValue.Apr(apr)), GemRowTap.Stake),
+                        GemAssetDetailRow.Balance(GemAssetBalanceRow(GemBalanceRow.Staked(BigInteger.ZERO), GemBalanceRowValue.Apr(null)), GemRowTap.Stake),
+                    ),
                 ),
             ),
         ).sections.single()
@@ -86,8 +87,8 @@ class AssetInfoUIModelFactoryTest {
         val change = mockGemFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
         val asset = mockAsset()
         val assetInfo = mockAssetInfo(asset = asset, owner = null)
-        val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, price, change)))))
-        val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null)))))
+        val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, price, change), GemRowTap.Price))))
+        val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null), GemRowTap.Price))))
 
         val quotedRow = model(assetInfo, sections = quoted).sections.first().rows.first() as AssetInfoUIModel.RowUIModel.Row
         val unquotedRow = model(assetInfo, sections = unquoted).sections.first().rows.first() as AssetInfoUIModel.RowUIModel.Row
@@ -99,17 +100,17 @@ class AssetInfoUIModelFactoryTest {
 
     @Test
     fun `sections keep the order and titles core decided`() {
-        val link = GemListRow.Link(GemListRowTitle.PIN, null, GemListRowIcon.PIN)
+        val link = GemListRow.Link(GemListRowTitle.PIN, null, GemListRowIcon.PIN, GemRowTap.Pin)
         val asset = mockAsset()
         val sections = model(
             mockAssetInfo(asset = asset, owner = null),
             sections = listOf(
-                GemAssetDetailSection(GemListSectionTitle.MANAGE, listOf(GemAssetDetailRow.Row(link))),
+                GemAssetDetailSection(GemListSectionTitle.MANAGE, listOf(GemAssetDetailRow.Row(link, GemRowTap.Pin))),
                 GemAssetDetailSection(
                     GemListSectionTitle.NONE,
                     listOf(
-                        GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null)),
-                        GemAssetDetailRow.Row(GemListRow.Network(GemListRowTitle.NETWORK, "ethereum", "Ethereum (ERC20)")),
+                        GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null), GemRowTap.Price),
+                        GemAssetDetailRow.Row(GemListRow.Network(GemListRowTitle.NETWORK, "ethereum", "Ethereum (ERC20)"), GemRowTap.Network),
                     ),
                 ),
             ),

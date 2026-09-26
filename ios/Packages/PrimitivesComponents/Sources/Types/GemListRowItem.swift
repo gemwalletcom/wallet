@@ -8,6 +8,7 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemNoticeKind
+import enum Gemstone.GemRowTap
 import struct Gemstone.GemSocialLink
 import enum Gemstone.GemUrlTarget
 import enum Gemstone.GemValueTone
@@ -26,8 +27,8 @@ enum GemListRowItem {
     case listItem(ListItemModel)
     case rate(title: String, direct: String, inverse: String)
     case provider(ListItemModel, contract: String?)
-    case picker(ListItemModel, title: GemListRowTitle)
-    case toggle(label: String, title: GemListRowTitle, isOn: Bool, imageStyle: ListItemImageStyle?)
+    case picker(ListItemModel, tap: GemRowTap)
+    case toggle(label: String, tap: GemRowTap, isOn: Bool, imageStyle: ListItemImageStyle?)
     case page(ListItemModel, url: URL)
     case explorerPage(ListItemModel, context: ExplorerContextData)
     case external(ListItemModel, url: URL)
@@ -139,12 +140,12 @@ extension GemListRow {
             )
         case let .memo(value, copy):
             .memo(ListItemModel(title: Localized.Transfer.memo, subtitle: value), copy: copy)
-        case let .link(title, value, icon):
+        case let .link(title, value, icon, _):
             .listItem(listItem(title: title, value: value, icon: icon))
-        case let .picker(title, value, icon):
-            .picker(listItem(title: title, value: value.text, icon: icon), title: title)
-        case let .toggle(title, value, icon, isOn):
-            .toggle(label: toggleLabel(title: title, value: value), title: title, isOn: isOn, imageStyle: icon.imageStyle)
+        case let .picker(title, value, icon, tap):
+            .picker(listItem(title: title, value: value.text, icon: icon), tap: tap)
+        case let .toggle(title, value, icon, isOn, tap):
+            .toggle(label: toggleLabel(title: title, value: value), tap: tap, isOn: isOn, imageStyle: icon.imageStyle)
         case let .url(title, value, icon, url, target):
             urlItem(title: title, value: value, icon: icon, url: url, target: target)
         case let .social(links):

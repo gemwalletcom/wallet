@@ -21,13 +21,13 @@ public struct ChartScene: View {
             ForEach(model.sections.listSections) { section in
                 Section {
                     ForEach(section.values) { item in
-                        switch item.row {
-                        case .link(.priceAlerts, _, _):
+                        switch item.row.tap() {
+                        case .priceAlerts:
                             NavigationLink(
                                 value: Scenes.AssetPriceAlert(asset: model.asset),
                                 label: { GemListRowView(row: item.row) },
                             )
-                        case .link(.setPriceAlert, _, _):
+                        case .setPriceAlert:
                             NavigationCustomLink(with: GemListRowView(row: item.row)) {
                                 model.onSelectSetPriceAlerts()
                             }

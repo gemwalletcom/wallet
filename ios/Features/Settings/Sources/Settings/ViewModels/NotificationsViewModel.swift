@@ -2,10 +2,10 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemListRowTitle
 import struct Gemstone.GemListSection
 import protocol Gemstone.GemNotificationsServiceProtocol
 import enum Gemstone.GemPushResult
+import enum Gemstone.GemRowTap
 import func Gemstone.notificationsSections
 import Localization
 import Primitives
@@ -39,9 +39,9 @@ public extension NotificationsViewModel {
 // MARK: - Business Logic
 
 extension NotificationsViewModel {
-    func onToggle(_ title: GemListRowTitle, _ isOn: Bool) {
-        switch title {
-        case .notifications: isEnabled = isOn
+    func onToggle(_ tap: GemRowTap, _ isOn: Bool) {
+        switch tap {
+        case .pushNotifications: isEnabled = isOn
         default: break
         }
     }

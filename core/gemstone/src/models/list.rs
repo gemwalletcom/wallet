@@ -229,6 +229,43 @@ pub enum GemListRowIcon {
     AddToWallet,
 }
 
+/// What tapping a row opens or switches; each app maps it to its route or handler once.
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemRowTap {
+    Wallets,
+    Security,
+    Notifications,
+    Preferences,
+    WalletConnect,
+    Support,
+    Rewards,
+    AboutUs,
+    Developer,
+    Currency,
+    Language,
+    Appearance,
+    Networks,
+    Contacts,
+    Perpetuals,
+    PerpetualLeverage,
+    PerpetualTakeProfit,
+    PerpetualStopLoss,
+    PushNotifications,
+    Authentication,
+    LockPeriod,
+    PrivacyLock,
+    HideBalance,
+    PriceAlerts,
+    SetPriceAlert,
+    Price,
+    Network,
+    Earn,
+    Stake,
+    Pin,
+    AddToWallet,
+    Explorer { url: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemListRow {
     Latency {
@@ -322,6 +359,7 @@ pub enum GemListRow {
         title: GemListRowTitle,
         value: Option<String>,
         icon: GemListRowIcon,
+        tap: GemRowTap,
     },
     Url {
         title: GemListRowTitle,
@@ -335,11 +373,13 @@ pub enum GemListRow {
         value: Option<String>,
         icon: GemListRowIcon,
         is_on: bool,
+        tap: GemRowTap,
     },
     Picker {
         title: GemListRowTitle,
         value: GemLocalizedText,
         icon: GemListRowIcon,
+        tap: GemRowTap,
     },
     Social {
         links: Vec<GemSocialLink>,
@@ -377,6 +417,16 @@ pub enum GemListRow {
     Error {
         error: GemServiceError,
     },
+}
+
+#[uniffi::export]
+impl GemListRow {
+    pub fn tap(&self) -> Option<GemRowTap> {
+        match self {
+            Self::Link { tap, .. } | Self::Toggle { tap, .. } | Self::Picker { tap, .. } => Some(tap.clone()),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

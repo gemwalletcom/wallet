@@ -2,7 +2,7 @@ use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Bann
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::models::list::{GemListRow, GemListSectionTitle, GemRowTap};
 use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
 use crate::services::banner::GemBannerRow;
@@ -621,8 +621,8 @@ pub struct GemAssetDetailsState {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
-    Balance { row: GemAssetBalanceRow },
-    Row { row: GemListRow },
+    Balance { row: GemAssetBalanceRow, tap: Option<GemRowTap> },
+    Row { row: GemListRow, tap: Option<GemRowTap> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

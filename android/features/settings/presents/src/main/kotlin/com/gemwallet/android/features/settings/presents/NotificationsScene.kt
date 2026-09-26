@@ -12,7 +12,7 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemRowTap
 
 @Composable
 fun NotificationsScene(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
@@ -31,15 +31,15 @@ fun NotificationsScene(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewMode
                     GemListRowView(
                         row = row,
                         listPosition = position,
-                        onToggle = { title, isOn ->
-                            when (title) {
-                                GemListRowTitle.NOTIFICATIONS -> if (isOn) viewModel.enableNotifications() else viewModel.disableNotifications()
+                        onToggle = { tap, isOn ->
+                            when (tap) {
+                                GemRowTap.PushNotifications -> if (isOn) viewModel.enableNotifications() else viewModel.disableNotifications()
                                 else -> Unit
                             }
                         },
-                        onSelect = { title ->
-                            when (title) {
-                                GemListRowTitle.PRICE_ALERTS -> onPriceAlerts()
+                        onSelect = { tap ->
+                            when (tap) {
+                                GemRowTap.PriceAlerts -> onPriceAlerts()
                                 else -> Unit
                             }
                         },

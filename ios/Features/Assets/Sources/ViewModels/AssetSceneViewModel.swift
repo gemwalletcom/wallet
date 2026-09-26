@@ -14,6 +14,7 @@ import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
+import enum Gemstone.GemRowTap
 import enum Gemstone.GemServiceError
 import func Gemstone.loadError
 import GemstonePrimitives
@@ -107,18 +108,18 @@ public final class AssetSceneViewModel: Sendable {
 
     private func detailRowItem(_ row: GemAssetDetailRow, id: String, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowItem {
         switch row {
-        case let .balance(item):
+        case let .balance(item, tap):
             AssetDetailRowItem(
                 id: id,
                 content: .item(balanceListItem(for: item)),
-                action: balanceAction(item),
+                action: tap.flatMap { action($0, networkDestination: networkDestination) },
                 accessibilityIdentifier: balanceAccessibilityIdentifier(item),
             )
-        case let .row(row):
+        case let .row(row, tap):
             AssetDetailRowItem(
                 id: id,
                 content: .row(row),
-                action: rowAction(row, networkDestination: networkDestination),
+                action: tap.flatMap { action($0, networkDestination: networkDestination) },
                 accessibilityIdentifier: accessibilityIdentifier(row),
             )
         }
@@ -132,15 +133,6 @@ public final class AssetSceneViewModel: Sendable {
         }
     }
 
-    private func balanceAction(_ item: GemAssetBalanceRow) -> AssetDetailRowAction? {
-        switch item.row {
-        case .available, .pendingUnconfirmed: nil
-        case .staked: .stake
-        case .earn: .earn
-        case let .reserved(_, url): url.flatMap(URL.init).map { .explorer($0) }
-        }
-    }
-
     private func balanceAccessibilityIdentifier(_ item: GemAssetBalanceRow) -> String? {
         switch item.row {
         case .staked: "stake"
@@ -149,14 +141,16 @@ public final class AssetSceneViewModel: Sendable {
         }
     }
 
-    private func rowAction(_ row: GemListRow, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowAction? {
-        switch row {
-        case .quote: .price
+    private func action(_ tap: GemRowTap, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowAction? {
+        switch tap {
+        case .price: .price
         case .network: networkAction(networkDestination)
-        case .amount(.stakeApr, _, _), .text(.stakeApr, _): .earn
-        case .link(.priceAlerts, _, _): .priceAlerts
-        case .link(.pin, _, _), .link(.unpin, _, _): .pin
-        case .link(.addToWallet, _, _): .enable
+        case .earn: .earn
+        case .stake: .stake
+        case .priceAlerts: .priceAlerts
+        case .pin: .pin
+        case .addToWallet: .enable
+        case let .explorer(url): URL(string: url).map { .explorer($0) }
         default: nil
         }
     }

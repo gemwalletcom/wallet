@@ -49,7 +49,7 @@ public struct PreferencesScene: View {
 
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch PreferencesRowDestination(row: row) {
+        switch row.tap() {
         case .currency:
             link(row, to: Scenes.Currency())
         case .language:
@@ -60,7 +60,7 @@ public struct PreferencesScene: View {
             link(row, to: Scenes.Chains())
         case .contacts:
             link(row, to: Scenes.Contacts())
-        case .none:
+        default:
             if case .picker = row {
                 GemListRowView(row: row, onSelect: model.onSelect)
                     .padding(.leading, Sizing.image.asset - .tiny)

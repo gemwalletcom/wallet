@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Screens:** VM189, VM191, VM190, VM192 with VM193.
+1. **Screens:** VM191, VM190, VM192 with VM193.
 2. **Models:** VM195.
 3. **Sessions:** VM185.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
@@ -41,9 +41,9 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM237, VM238, VM239, VM240, VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM200, VM202, VM204, VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
-| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
+| Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
-| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189, VM232 |
+| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM232 |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185, VM284 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
@@ -59,9 +59,9 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245, VM265, VM270 |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM189, VM243, VM283, VM290; retain native locale/theme application |
-| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM189; retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM189, VM247, VM259 |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM243, VM283, VM290; retain native locale/theme application |
+| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM247, VM259 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
@@ -164,7 +164,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM202** **S** **Header buttons are mapped to callbacks and titles in the apps.**
   - **iOS:** `HeaderButton` and `HeaderButtonViewType` carry `GemHeaderButtonKind` with title and image outside the mapper.
   - **Android:** `HeadActionsUIModel` maps each kind to a callback, a string, an icon and a test tag (`assetBuy`).
-  - **Expected:** header buttons carry their tap as a Core record (as in VM189); titles and icons come from the mapper files; both wrappers go.
+  - **Expected:** header buttons carry their tap as a Core record (as rows carry `GemRowTap`); titles and icons come from the mapper files; both wrappers go.
 - **VM203** **S** **Empty states are assembled from app callbacks.**
   - **iOS:** `EmptyContentType` and `EmptyContentTypeViewModel` build `GemEmptyStateInput` from the keys of an app callback map, then join Core's actions back to the callbacks.
   - **Android:** `EmptyStateUIModel` does the same and styles the first action as primary.
@@ -385,7 +385,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM253** **S** **Asset details sections are twinned.**
   - **iOS:** `AssetDetailRowItem`, `AssetDetailSectionItem` and `AssetDetailRowAction` copy `GemAssetDetails` sections.
   - **Android:** `AssetInfoUIModel`, `AssetInfoUIModelFactory`, `PriceAlertMenuUIModel` and `EmptyTransactionsUIModel` do the same.
-  - **Expected:** views read the Core sections (taps from VM189); the twins go.
+  - **Expected:** views read the Core sections and their `GemRowTap`; the twins go.
 - **VM254** **S** **Recents are wrapped and grouped in the apps.**
   - **iOS:** `RecentAssetsModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
   - **Android:** `RecentsSheetUIModel` and `RecentAsset` do the same and sort by date in the view.
@@ -576,10 +576,6 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
 
 Taps on rows that already exist, not new row types.
 
-- **VM189** **M** **Both apps map row titles to taps.** Core sends rows keyed by `GemListRowTitle`; each app keeps a table from title to destination for the same screens.
-  - **iOS:** asset details (`AssetSceneViewModel.rowAction`, `balanceAction`), settings (`SettingsRowDestination`), preferences (`PreferencesRowDestination`), security (`SecurityViewModel`), notifications (`NotificationsScene`), chart (`ChartScene`).
-  - **Android:** asset details (`AssetDetailRowAction.kt`), settings (`SettingsRowUIModel.settingsAction`), preferences (`PreferencesRowAction.kt`), security (`SecurityRowAction.kt`), notifications (`NotificationsScene`), chart (`AssetChartScene`).
-  - **Expected:** each tappable row carries its tap as a Core record (destination, toggle or picker), and each app maps that record to its routes once; the title tables go.
 
 
 ## 8. Persistence and parity

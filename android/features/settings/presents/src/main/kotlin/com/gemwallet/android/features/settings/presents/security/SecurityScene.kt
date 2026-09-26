@@ -50,8 +50,8 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                     GemListRowView(
                         row = row,
                         listPosition = position,
-                        onToggle = { title, isOn ->
-                            when (title.securityAction()) {
+                        onToggle = { tap, isOn ->
+                            when (tap.securityAction()) {
                                 SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { viewModel.setAuthRequired(isOn) }
                                 SecurityRowAction.HideBalance -> viewModel.setHideBalances()
                                 null -> Unit
