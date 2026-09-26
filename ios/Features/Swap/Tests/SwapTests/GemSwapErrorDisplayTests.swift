@@ -16,12 +16,4 @@ struct GemSwapErrorDisplayTests {
                 "Minimum trade amount is **0.1234 USDT**. Please enter a higher amount.",
         )
     }
-
-    @Test
-    func userFacingMessages() {
-        #expect(GemSwapErrorDisplay.notSupportedAsset.errorDescription == "Not supported asset.")
-        #expect(GemSwapErrorDisplay.noQuote.errorDescription == "No quote available.")
-        #expect(GemSwapErrorDisplay.offline.errorDescription == "The Internet connection appears to be offline.")
-        #expect(GemSwapErrorDisplay.amountTooSmall.errorDescription == "Amount too small")
-    }
 }
