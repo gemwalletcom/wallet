@@ -306,6 +306,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.ReservedFees -> context.getString(R.string.transfer_reserved_fees, fee.text())
 
+    is GemLocalizedText.RewardsInviteDescription -> context.getString(R.string.rewards_invite_friends_description, points.bold())
+
+    is GemLocalizedText.RewardsShareText -> context.getString(R.string.rewards_share_text, link)
+
     is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"
 
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }

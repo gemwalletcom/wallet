@@ -80,7 +80,8 @@ fun RewardsScene(
     referralLink: String?,
     actions: List<GemRewardsAction>,
     notices: List<GemListRow>,
-    inviteRewardPoints: String,
+    inviteDescription: String,
+    shareText: String?,
     sections: List<RewardsSectionUIModel>,
     redemptions: List<GemRewardsRedemption>,
     currentWallet: Wallet?,
@@ -96,7 +97,7 @@ fun RewardsScene(
 ) {
     val context = LocalContext.current
     val link = referralLink.orEmpty()
-    val joinText = stringResource(R.string.rewards_share_text, link)
+    val joinText = shareText.orEmpty()
     val shareTitle = stringResource(id = R.string.common_share, link)
 
     var getStartedDialogShow by remember(actions) { mutableStateOf(false) }
@@ -175,7 +176,7 @@ fun RewardsScene(
                     return@LazyColumn
                 }
                 rewardsHead(
-                    joinPointsCost = inviteRewardPoints,
+                    description = inviteDescription,
                     action = actions.firstOrNull { it is GemRewardsAction.Share || it is GemRewardsAction.CreateCode },
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
@@ -251,7 +252,8 @@ private fun RewardsScenePreview() {
             referralLink = null,
             actions = listOf(GemRewardsAction.Share),
             notices = emptyList(),
-            inviteRewardPoints = "100",
+            inviteDescription = "Invite friends and earn 100 points",
+            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
             currentWallet = previewWallet(),
@@ -278,7 +280,8 @@ private fun RewardsSceneNoRewardsPreview() {
             referralLink = null,
             actions = listOf(GemRewardsAction.CreateCode, GemRewardsAction.UseReferralCode),
             notices = emptyList(),
-            inviteRewardPoints = "100",
+            inviteDescription = "Invite friends and earn 100 points",
+            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
             currentWallet = previewWallet(),

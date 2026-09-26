@@ -23,7 +23,7 @@ pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomi
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
         return GemRewardsState {
-            invite_reward_points: points_number(Rewards::default().invite_reward_points),
+            invite_description: invite_description(Rewards::default().invite_reward_points),
             ..GemRewardsState::default()
         };
     };
@@ -49,12 +49,17 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
             has_referral_code || has_used_referral_code,
             info_rows(referral_code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref()),
         ),
-        invite_reward_points: points_number(rewards.invite_reward_points),
+        invite_description: invite_description(rewards.invite_reward_points),
         referral_code: referral_code.clone(),
         referral_link: referral_code.as_deref().map(get_referral_url),
+        share_text: referral_code.as_deref().map(|code| GemLocalizedText::RewardsShareText { link: get_referral_url(code) }),
         used_referral_code,
         redemptions: redemptions(rewards),
     }
+}
+
+fn invite_description(points: i32) -> GemLocalizedText {
+    GemLocalizedText::RewardsInviteDescription { points: points_number(points) }
 }
 
 fn actions(has_referral_code: bool, can_invite: bool, can_use_referral_code: bool, pending_code: Option<String>, can_activate_pending: bool) -> Vec<GemRewardsAction> {
@@ -227,6 +232,7 @@ mod tests {
         let with_code = super::state(Some(&rewards), Utc::now());
         assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
         assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+        assert_eq!(with_code.share_text, Some(GemLocalizedText::RewardsShareText { link: get_referral_url("abc123") }), "the invite shares the link");
 
         let without_code = super::state(Some(&Rewards::default()), Utc::now());
         assert_eq!(without_code.referral_code, None);
@@ -332,7 +338,7 @@ mod tests {
         assert_eq!(
             state,
             GemRewardsState {
-                invite_reward_points: points_number(100),
+                invite_description: invite_description(100),
                 ..GemRewardsState::default()
             },
             "a wallet whose rewards failed to load still reads the invite pitch"
@@ -365,7 +371,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![(GemListRowTitle::Referrals, 5.0), (GemListRowTitle::Points, 250.0)]
         );
-        assert_eq!(state.invite_reward_points.value, 150.0);
+        assert_eq!(state.invite_description, GemLocalizedText::RewardsInviteDescription { points: points_number(150) });
         assert_eq!(
             state.error_notice,
             Some(GemListRow::Notice {

@@ -33,9 +33,10 @@ pub struct GemRewardsState {
     pub error_notice: Option<GemListRow>,
     pub status_notice: Option<GemListRow>,
     pub sections: Vec<GemListSection>,
-    pub invite_reward_points: GemFormattedNumber,
+    pub invite_description: GemLocalizedText,
     pub referral_code: Option<String>,
     pub referral_link: Option<String>,
+    pub share_text: Option<GemLocalizedText>,
     pub used_referral_code: Option<String>,
     pub redemptions: Vec<GemRewardsRedemption>,
 }
@@ -65,9 +66,10 @@ impl Default for GemRewardsState {
             error_notice: None,
             status_notice: None,
             sections: Vec::new(),
-            invite_reward_points: GemFormattedNumber::count(0),
+            invite_description: GemLocalizedText::RewardsInviteDescription { points: GemFormattedNumber::count(0) },
             referral_code: None,
             referral_link: None,
+            share_text: None,
             used_referral_code: None,
             redemptions: Vec::new(),
         }

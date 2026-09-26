@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import uniffi.gemstone.GemRewardsAction
 
-internal fun LazyListScope.rewardsHead(joinPointsCost: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
+internal fun LazyListScope.rewardsHead(description: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
             modifier = Modifier
@@ -47,12 +47,7 @@ internal fun LazyListScope.rewardsHead(joinPointsCost: String, action: GemReward
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
-                text = parseMarkdownToAnnotatedString(
-                    markdown = stringResource(
-                        R.string.rewards_invite_friends_description,
-                        "**$joinPointsCost**",
-                    ),
-                ),
+                text = parseMarkdownToAnnotatedString(markdown = description),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,

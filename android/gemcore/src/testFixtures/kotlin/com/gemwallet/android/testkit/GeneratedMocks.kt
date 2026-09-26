@@ -1840,9 +1840,10 @@ fun mockGemRewardsState(
     errorNotice: uniffi.gemstone.GemListRow? = null,
     statusNotice: uniffi.gemstone.GemListRow? = null,
     sections: List<uniffi.gemstone.GemListSection> = emptyList(),
-    inviteRewardPoints: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    inviteDescription: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     referralCode: String? = null,
     referralLink: String? = null,
+    shareText: uniffi.gemstone.GemLocalizedText? = null,
     usedReferralCode: String? = null,
     redemptions: List<uniffi.gemstone.GemRewardsRedemption> = emptyList(),
 ) = uniffi.gemstone.GemRewardsState(
@@ -1850,9 +1851,10 @@ fun mockGemRewardsState(
     errorNotice = errorNotice,
     statusNotice = statusNotice,
     sections = sections,
-    inviteRewardPoints = inviteRewardPoints,
+    inviteDescription = inviteDescription,
     referralCode = referralCode,
     referralLink = referralLink,
+    shareText = shareText,
     usedReferralCode = usedReferralCode,
     redemptions = redemptions,
 )

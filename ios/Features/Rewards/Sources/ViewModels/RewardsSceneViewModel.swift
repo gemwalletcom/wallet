@@ -81,7 +81,7 @@ public final class RewardsSceneViewModel: Sendable {
     }
 
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(rewardsState.inviteRewardPoints.text().boldMarkdown())
+        rewardsState.inviteDescription.text
     }
 
     var activateCodeFooterTitle: String {
@@ -104,7 +104,7 @@ public final class RewardsSceneViewModel: Sendable {
     }
 
     var shareText: String? {
-        referralLink.map { Localized.Rewards.shareText($0) }
+        rewardsState.shareText?.text
     }
 
     var referralLink: String? {

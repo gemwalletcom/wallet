@@ -12,7 +12,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
-import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -84,8 +84,11 @@ class RewardsViewModel @Inject constructor(
     val notices: StateFlow<List<GemListRow>> = rewardsState.map { listOfNotNull(it.errorNotice, it.statusNotice) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val inviteRewardPoints: StateFlow<String> = rewardsState.map { it.inviteRewardPoints.text() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.inviteRewardPoints.text())
+    val inviteDescription: StateFlow<String> = rewardsState.map { it.inviteDescription.string(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.inviteDescription.string(context))
+
+    val shareText: StateFlow<String?> = rewardsState.map { it.shareText?.string(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.shareText?.string(context))
 
     val sections: StateFlow<List<RewardsSectionUIModel>> = rewardsState.map { it.sectionModels(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

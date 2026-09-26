@@ -53,7 +53,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM277 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM274, VM291, VM292 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Texts composed in the apps
 
-- **VM274** **S** **Rewards invite and share texts are composed in the apps.**
-  - **iOS:** `RewardsSceneViewModel` composes the invite description with bold points and the share text with the link.
-  - **Android:** `RewardsHead` bolds the points and `RewardsScene` composes the share text.
-  - **Expected:** the rewards state carries both texts.
 - **VM275** **S** **The app update prompt is composed in the apps.**
   - **iOS:** `RootSceneViewModel` builds the alert title, the version description and skip/update actions.
   - **Android:** `WalletApp` and `InAppUpdateBanner` compose the description and "version · …"; `AppViewModel` decides dismissal from `canSkip`.

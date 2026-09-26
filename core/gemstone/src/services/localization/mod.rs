@@ -48,6 +48,8 @@ pub enum GemLocalizedText {
     PriceAlertsToggled { name: String, enabled: bool },
     AmountBalance { balance: GemFormattedNumber },
     ReservedFees { fee: GemFormattedNumber },
+    RewardsInviteDescription { points: GemFormattedNumber },
+    RewardsShareText { link: String },
     CurrentPrice { price: GemFormattedNumber },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },

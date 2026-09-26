@@ -194,6 +194,10 @@ public extension GemLocalizedText {
             Localized.Transfer.balance(balance.text())
         case let .reservedFees(fee):
             Localized.Transfer.reservedFees(fee.text())
+        case let .rewardsInviteDescription(points):
+            Localized.Rewards.InviteFriends.description(points.text().boldMarkdown())
+        case let .rewardsShareText(link):
+            Localized.Rewards.shareText(link)
         case let .currentPrice(price):
             [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):

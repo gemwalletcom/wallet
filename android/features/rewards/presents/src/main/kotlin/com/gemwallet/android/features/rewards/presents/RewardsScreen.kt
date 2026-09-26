@@ -50,7 +50,8 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val incomingCode by viewModel.incomingCode.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val notices by viewModel.notices.collectAsStateWithLifecycle()
-    val inviteRewardPoints by viewModel.inviteRewardPoints.collectAsStateWithLifecycle()
+    val inviteDescription by viewModel.inviteDescription.collectAsStateWithLifecycle()
+    val shareText by viewModel.shareText.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
@@ -63,7 +64,8 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         referralLink = referralLink,
         actions = actions,
         notices = notices,
-        inviteRewardPoints = inviteRewardPoints,
+        inviteDescription = inviteDescription,
+        shareText = shareText,
         sections = sections,
         redemptions = redemptions,
         currentWallet = currentWallet,

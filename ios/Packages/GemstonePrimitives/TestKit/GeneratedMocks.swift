@@ -1048,9 +1048,10 @@ public extension Gemstone.GemRewardsState {
         errorNotice: Gemstone.GemListRow? = nil,
         statusNotice: Gemstone.GemListRow? = nil,
         sections: [Gemstone.GemListSection] = [],
-        inviteRewardPoints: Gemstone.GemFormattedNumber = .mock(),
+        inviteDescription: Gemstone.GemLocalizedText = .mock(),
         referralCode: String? = nil,
         referralLink: String? = nil,
+        shareText: Gemstone.GemLocalizedText? = nil,
         usedReferralCode: String? = nil,
         redemptions: [Gemstone.GemRewardsRedemption] = [],
     ) -> Gemstone.GemRewardsState {
@@ -1059,9 +1060,10 @@ public extension Gemstone.GemRewardsState {
             errorNotice: errorNotice,
             statusNotice: statusNotice,
             sections: sections,
-            inviteRewardPoints: inviteRewardPoints,
+            inviteDescription: inviteDescription,
             referralCode: referralCode,
             referralLink: referralLink,
+            shareText: shareText,
             usedReferralCode: usedReferralCode,
             redemptions: redemptions,
         )
