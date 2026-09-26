@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.chart.CandlestickTooltip
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemCandlestickChart
@@ -23,26 +22,25 @@ import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartPeriod
-import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleChart
+import uniffi.gemstone.GemCandleTooltip
 import java.time.ZoneId
 import java.util.Locale
 
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, tooltip: (ChartCandleStick) -> CandleTooltipUIModel, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
+internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
     val chart = state.dataOrNull
     val data = chart?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
-    val selectedCandle = safeSelectedIndex?.let { data[it] }
     val isSelectedRightHalf = safeSelectedIndex?.let { it.toFloat() / data.size.toFloat() > 0.5f } ?: false
 
     val selection = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.selection(it.toUInt()) } }
     val dateFormatter = LocalContext.current.rowDateFormatter()
     val headerDate = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), Locale.getDefault()) } }
-    val tooltipModel = remember(selectedCandle) { selectedCandle?.let(tooltip) }
+    val tooltip = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.tooltip(it.toUInt()) } }
 
     ChartStateView(
         state = state,
@@ -59,8 +57,8 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
                 onSelectionChanged = { selectedIndex = it },
             )
             TooltipOverlay(
-                visible = tooltipModel != null,
-                tooltip = tooltipModel,
+                visible = tooltip != null,
+                tooltip = tooltip,
                 alignToStart = isSelectedRightHalf,
             )
         }
@@ -68,7 +66,7 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
 }
 
 @Composable
-private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: CandleTooltipUIModel?, alignToStart: Boolean) {
+private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: GemCandleTooltip?, alignToStart: Boolean) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),
@@ -81,6 +79,6 @@ private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: CandleTooltipUIMo
                 top = paddingSmall,
             ),
     ) {
-        tooltip?.let { CandlestickTooltip(model = it) }
+        tooltip?.let { CandlestickTooltip(tooltip = it) }
     }
 }

@@ -53,7 +53,6 @@ fun PerpetualScreen(
         details = details,
         transactions = transactions,
         chart = chart,
-        tooltip = viewModel::tooltip,
         period = period,
         isRefreshing = isRefreshing,
         snackbar = snackbar,

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,12 +22,16 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
+import uniffi.gemstone.GemCandleTooltip
+import uniffi.gemstone.GemCandleTooltipCell
 
 private object CandlestickTooltipMetrics {
     val ChipCornerRadius = space10
@@ -41,7 +46,7 @@ private object CandlestickTooltipMetrics {
 private data class TooltipCellData(val label: String, val value: String, val valueColor: Color)
 
 @Composable
-fun CandlestickTooltip(model: CandleTooltipUIModel, modifier: Modifier = Modifier) {
+fun CandlestickTooltip(tooltip: GemCandleTooltip, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(CandlestickTooltipMetrics.ChipCornerRadius)
     val labelStyle = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -52,7 +57,7 @@ fun CandlestickTooltip(model: CandleTooltipUIModel, modifier: Modifier = Modifie
         textAlign = TextAlign.End,
     )
 
-    val rows = (model.prices + model.summary).map { it.toCellData() }
+    val rows = (tooltip.prices + tooltip.summary).map { it.toCellData() }
 
     TooltipGrid(
         rows = rows,
@@ -60,7 +65,7 @@ fun CandlestickTooltip(model: CandleTooltipUIModel, modifier: Modifier = Modifie
         valueStyle = valueStyle,
         columnGap = paddingDefault,
         rowSpacing = space4,
-        dividerAfter = model.prices.lastIndex,
+        dividerAfter = tooltip.prices.lastIndex,
         dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
         dividerThickness = CandlestickTooltipMetrics.DividerThickness,
         dividerSpacing = space4,
@@ -149,8 +154,8 @@ private fun TooltipGrid(
 }
 
 @Composable
-private fun CandleTooltipCellUIModel.toCellData(): TooltipCellData = TooltipCellData(
-    label = label,
-    value = value,
-    valueColor = style.color(),
+private fun GemCandleTooltipCell.toCellData(): TooltipCellData = TooltipCellData(
+    label = stringResource(row.stringRes()),
+    value = value.text(),
+    valueColor = value.tone.textStyle().color(),
 )

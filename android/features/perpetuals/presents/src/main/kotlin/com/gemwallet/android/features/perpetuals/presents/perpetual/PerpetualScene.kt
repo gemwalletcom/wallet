@@ -17,7 +17,6 @@ import com.gemwallet.android.features.perpetuals.presents.components.PerpetualCh
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -60,7 +59,6 @@ internal fun PerpetualScene(
     transactions: List<GemTransactionRow>,
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
-    tooltip: (uniffi.gemstone.ChartCandleStick) -> CandleTooltipUIModel,
     isRefreshing: Boolean,
     snackbar: SnackbarHostState? = null,
     onAction: (PerpetualAction) -> Unit,
@@ -94,7 +92,6 @@ internal fun PerpetualScene(
                     PerpetualChartSection(
                         state = chart,
                         period = period,
-                        tooltip = tooltip,
                         onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },
                     )
                 }
@@ -205,7 +202,6 @@ private fun PerpetualScenePreview() {
             ),
             transactions = emptyList(),
             chart = candleSession(ChartPeriod.Day.toGem()).onCandles(chartData.map { it.toGem() }).chart(samplePosition.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData,
-            tooltip = { CandleTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,
             onAction = {},

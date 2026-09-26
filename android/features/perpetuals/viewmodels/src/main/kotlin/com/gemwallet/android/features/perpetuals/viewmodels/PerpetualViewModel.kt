@@ -19,8 +19,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
-import com.gemwallet.android.ui.components.chart.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -57,14 +55,12 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
-import uniffi.gemstone.candleTooltip
 import uniffi.gemstone.loadError
 import javax.inject.Inject
 
@@ -154,8 +150,6 @@ class PerpetualViewModel @Inject constructor(
             else -> StateViewType.Error(error.errorText().text(context))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
-
-    fun tooltip(candle: ChartCandleStick): CandleTooltipUIModel = candleTooltip(candle).uiModel(context)
 
     private val screenVisible = MutableStateFlow(false)
 

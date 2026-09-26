@@ -264,6 +264,10 @@ impl GemCandleChart {
             date: candle.date,
         })
     }
+
+    pub fn tooltip(&self, index: u32) -> Option<GemCandleTooltip> {
+        self.candles.get(index as usize).map(rules::candle_tooltip)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -286,11 +290,6 @@ pub struct GemCandleTooltipCell {
 pub struct GemCandleTooltip {
     pub prices: Vec<GemCandleTooltipCell>,
     pub summary: Vec<GemCandleTooltipCell>,
-}
-
-#[uniffi::export]
-pub fn candle_tooltip(candle: ChartCandleStick) -> GemCandleTooltip {
-    rules::candle_tooltip(&candle)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

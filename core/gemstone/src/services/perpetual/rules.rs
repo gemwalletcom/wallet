@@ -1258,6 +1258,8 @@ mod tests {
         assert_eq!(chart.header, candlestick_header(candles[0].close, candles[1].close));
         assert_eq!(chart.selection(0).map(|selection| selection.header), Some(candlestick_header(candles[0].close, candles[0].close)));
         assert_eq!(chart.selection(2), None);
+        assert_eq!(chart.tooltip(1), Some(candle_tooltip(&candles[1])));
+        assert_eq!(chart.tooltip(2), None);
         assert_eq!(candle_chart(&[], ChartPeriod::Day, None), None, "no candles, no chart");
     }
 

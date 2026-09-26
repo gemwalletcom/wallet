@@ -4,7 +4,7 @@ import Charts
 import Components
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemCandleChart
-import GemstonePrimitives
+import struct Gemstone.GemCandleTooltip
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -80,8 +80,8 @@ struct CandlestickChartView: View {
                             },
                     )
 
-                if let selectedCandle {
-                    tooltipOverlay(for: selectedCandle, proxy: proxy, geometry: geometry)
+                if let selectedCandle, let tooltip = selectedIndex.flatMap({ chart.tooltip(index: UInt32($0)) }) {
+                    tooltipOverlay(tooltip, for: selectedCandle, proxy: proxy, geometry: geometry)
                 }
             }
         }
@@ -188,14 +188,14 @@ struct CandlestickChartView: View {
     }
 
     @ViewBuilder
-    private func tooltipOverlay(for candle: ChartCandleStick, proxy: ChartProxy, geometry: GeometryProxy) -> some View {
+    private func tooltipOverlay(_ tooltip: GemCandleTooltip, for candle: ChartCandleStick, proxy: ChartProxy, geometry: GeometryProxy) -> some View {
         let isRightHalf: Bool = {
             guard let plotFrame = proxy.plotFrame,
                   let xPosition = proxy.position(forX: candle.date) else { return false }
             return xPosition > geometry[plotFrame].size.width / 2
         }()
 
-        CandleTooltipView(model: CandleTooltipViewModel(candle: candle.toPrimitives()))
+        CandleTooltipView(tooltip: tooltip)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isRightHalf ? .topLeading : .topTrailing)
             .padding(.leading, Spacing.small)
             .padding(.top, Spacing.small)
