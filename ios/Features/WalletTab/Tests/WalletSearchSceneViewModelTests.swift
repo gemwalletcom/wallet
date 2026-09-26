@@ -76,8 +76,10 @@ struct WalletSearchSceneViewModelTests {
         let list = AssetList(id: "stocks", name: "Stocks", count: 2)
         model.searchQuery.value = .mock(lists: [list])
 
+        let row = model.derived.sections.lists[0]
         #expect(model.derived.view.state.showsLists == true)
-        #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
+        #expect(row.listItem.subtitle == "2")
+        #expect(model.listDestination(for: row) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
     @Test

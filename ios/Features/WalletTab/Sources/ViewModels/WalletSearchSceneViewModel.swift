@@ -5,9 +5,9 @@ import Components
 import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import enum Gemstone.GemImage
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualMarketItem
+import struct Gemstone.GemSearchListRow
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchView
@@ -133,19 +133,11 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         )
     }
 
-    func listItem(for list: AssetList) -> ListItemModel {
-        ListItemModel(
-            title: list.name,
-            subtitle: String(list.count),
-            imageStyle: .settings(assetImage: AssetImage(type: .text(list.name), imageURL: GemImage.assetList(listId: list.id).imageURL)),
-        )
-    }
-
-    func listDestination(for list: AssetList) -> Scenes.AssetsResults {
+    func listDestination(for row: GemSearchListRow) -> Scenes.AssetsResults {
         Scenes.AssetsResults(
             searchQuery: .empty,
-            scope: .list(list.id),
-            title: list.name,
+            scope: .list(row.list.id),
+            title: row.list.name,
         )
     }
 

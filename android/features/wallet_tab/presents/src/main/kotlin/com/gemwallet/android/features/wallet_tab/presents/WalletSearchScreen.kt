@@ -17,12 +17,13 @@ import com.gemwallet.android.features.assets.presents.select.SelectAssetScene
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.wallet_tab.viewmodels.WalletSearchViewModel
-import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.NftListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -34,6 +35,7 @@ import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
+import uniffi.gemstone.GemSearchListRow
 
 @Composable
 fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsViewModel = hiltViewModel()) {
@@ -125,9 +127,9 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             }
             itemsPositioned(lists) { position, item ->
                 SearchListItem(
-                    list = item,
+                    row = item,
                     listPosition = position,
-                    onClick = { handleAction(WalletSearchAction.OpenList(item.id, item.name)) },
+                    onClick = { handleAction(WalletSearchAction.OpenList(item.list.id, item.list.name)) },
                 )
             }
         }
@@ -213,9 +215,9 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
 }
 
 @Composable
-private fun SearchListItem(list: AssetListRowUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+private fun SearchListItem(row: GemSearchListRow, listPosition: ListPosition, onClick: () -> Unit) {
     ListItem(
-        model = list.model,
+        model = ListItemModel(title = row.list.name, subtitle = row.subtitle, image = ListItemImage.Url(row.imageUrl, placeholder = row.list.name)),
         listPosition = listPosition,
         modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.plainMinHeight,

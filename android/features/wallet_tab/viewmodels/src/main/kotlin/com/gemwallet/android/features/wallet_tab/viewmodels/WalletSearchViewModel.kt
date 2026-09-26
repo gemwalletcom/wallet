@@ -16,8 +16,6 @@ import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
-import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel
-import com.gemwallet.android.features.wallet_tab.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.toUIModels
@@ -39,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSearchListRow
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
@@ -46,6 +45,7 @@ import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchInput
 import uniffi.gemstone.GemWalletSearchView
 import uniffi.gemstone.perpetualMarketQuery
+import uniffi.gemstone.searchListRows
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -96,9 +96,9 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val lists: StateFlow<List<AssetListRowUIModel>> = currentQuery
+    val lists: StateFlow<List<GemSearchListRow>> = currentQuery
         .flatMapLatest { query -> walletSearchQuery.lists(query) }
-        .map { lists -> lists.map { it.uiModel() } }
+        .map { lists -> searchListRows(lists.map { it.toGem() }) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

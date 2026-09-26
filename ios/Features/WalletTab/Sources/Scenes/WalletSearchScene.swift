@@ -3,6 +3,7 @@
 import Assets
 import Components
 import struct Gemstone.GemPerpetualMarketItem
+import struct Gemstone.GemSearchListRow
 import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
@@ -144,10 +145,10 @@ public struct WalletSearchScene: View {
         )
     }
 
-    private func listItems(for lists: [AssetList]) -> some View {
-        ForEach(lists) { list in
-            NavigationLink(value: model.listDestination(for: list)) {
-                ListItemView(model: model.listItem(for: list))
+    private func listItems(for rows: [GemSearchListRow]) -> some View {
+        ForEach(rows, id: \.list.id) { row in
+            NavigationLink(value: model.listDestination(for: row)) {
+                ListItemView(model: row.listItem)
             }
         }
     }

@@ -1,5 +1,6 @@
 use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, RecentActivityType, VerificationStatus, Wallet};
 
+use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
@@ -353,8 +354,22 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
+    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemImage, GemSelectAssetState, GemSelectAssetType, RecentActivityType, search_list_rows};
     use primitives::Chain;
+
+    #[test]
+    fn test_a_list_row_shows_its_asset_count_and_list_image() {
+        let list = primitives::AssetList {
+            id: "trending".to_string(),
+            name: "Trending".to_string(),
+            count: 12,
+        };
+        let row = search_list_rows(vec![list.clone()]).remove(0);
+
+        assert_eq!(row.list, list);
+        assert_eq!(row.subtitle, "12");
+        assert_eq!(row.image_url, GemImage::AssetList { list_id: "trending".to_string() }.url());
+    }
 
     #[test]
     fn test_a_search_runs_only_on_a_trimmed_query_a_network_flow_accepts() {
@@ -574,6 +589,25 @@ pub struct GemWalletSearchView {
     pub has_more_perpetuals: bool,
     pub has_more_nfts: bool,
     pub empty_state: GemEmptyState,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSearchListRow {
+    pub list: primitives::AssetList,
+    pub subtitle: String,
+    pub image_url: String,
+}
+
+#[uniffi::export]
+pub fn search_list_rows(lists: Vec<primitives::AssetList>) -> Vec<GemSearchListRow> {
+    lists
+        .into_iter()
+        .map(|list| GemSearchListRow {
+            subtitle: list.count.to_string(),
+            image_url: GemImage::AssetList { list_id: list.id.clone() }.url(),
+            list,
+        })
+        .collect()
 }
 
 #[uniffi::export]
