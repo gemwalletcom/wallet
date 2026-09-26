@@ -5,6 +5,7 @@ import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
+import enum Gemstone.GemErrorText
 import protocol Gemstone.GemNavigationServiceProtocol
 import enum Gemstone.GemNavigationTab
 import enum Gemstone.GemNavigationTarget
@@ -22,7 +23,6 @@ import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Store
 import Style
 import SwiftUI
 import Transfer
@@ -35,11 +35,9 @@ final class NavigationRouter: Sendable {
     private let presenter: NavigationPresenter
 
     private let assetsService: any GemAssetsServiceProtocol
-    private let assetStore: AssetStore
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
     private let pushNotificationService: any GemPushNotificationServiceProtocol
-    private let transactionStore: TransactionStore
     private let deeplinkService: any GemDeeplinkServiceProtocol
     private let navigationService: any GemNavigationServiceProtocol
     private let paymentService: any GemPaymentServiceProtocol
@@ -51,11 +49,9 @@ final class NavigationRouter: Sendable {
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
         assetsService: any GemAssetsServiceProtocol,
-        assetStore: AssetStore,
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
         pushNotificationService: any GemPushNotificationServiceProtocol,
-        transactionStore: TransactionStore,
         deeplinkService: any GemDeeplinkServiceProtocol,
         navigationService: any GemNavigationServiceProtocol,
         paymentService: any GemPaymentServiceProtocol,
@@ -66,11 +62,9 @@ final class NavigationRouter: Sendable {
         self.navigationState = navigationState
         self.presenter = presenter
         self.assetsService = assetsService
-        self.assetStore = assetStore
         self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
         self.pushNotificationService = pushNotificationService
-        self.transactionStore = transactionStore
         self.deeplinkService = deeplinkService
         self.navigationService = navigationService
         self.paymentService = paymentService
@@ -173,8 +167,7 @@ extension NavigationRouter {
         case let .address(chain, address):
             presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
         case let .transaction(asset, walletId, transaction, isPerpetual):
-            let stored = try transactionStore.getTransaction(walletId: Primitives.WalletId.from(id: walletId), transactionId: transaction.toPrimitives().id)
-            try openTarget(path: transactionPath(asset: asset.toPrimitives(), isPerpetual: isPerpetual, transactionId: stored.transaction.id), walletId: walletId)
+            try openTarget(path: transactionPath(asset: asset.toPrimitives(), isPerpetual: isPerpetual, transactionId: transaction.toPrimitives().id), walletId: walletId)
         case .none:
             break
         }
@@ -216,13 +209,13 @@ extension NavigationRouter {
             return .amount(AmountInput(type: .transfer(recipient: payment), asset: asset.toPrimitives()))
         case let .recipient(asset, payment):
             let asset = asset.toPrimitives()
-            guard let assetData = try assetStore.getAssetsData(walletId: wallet.id, filters: [.chainsOrAssets([], [asset.id.identifier])]).first else {
-                throw AnyError(Localized.Errors.notSupported)
+            guard let account = try? wallet.account(for: asset.chain) else {
+                throw GemErrorText.noAccountForChain
             }
             return .recipient(
                 SelectedAssetInput(
                     type: .send(.asset(asset: asset.toGem())),
-                    assetData: assetData,
+                    assetData: .with(asset: asset, account: account),
                     recipient: payment,
                 ),
             )
