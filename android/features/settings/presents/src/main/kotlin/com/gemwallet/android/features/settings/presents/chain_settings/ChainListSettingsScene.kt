@@ -23,12 +23,12 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
-import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemChainRow
 
 @Composable
-internal fun ChainListSettingsScene(chains: List<Chain>, chainFilter: TextFieldState, listState: LazyListState = rememberLazyListState(), onAction: (ChainListSettingsAction) -> Unit) {
+internal fun ChainListSettingsScene(chains: List<GemChainRow>, chainFilter: TextFieldState, listState: LazyListState = rememberLazyListState(), onAction: (ChainListSettingsAction) -> Unit) {
     SelectChain(
-        chains = chains,
+        rows = chains,
         chainFilter = chainFilter,
         listState = listState,
         onSelect = { onAction(ChainListSettingsAction.Select(it)) },

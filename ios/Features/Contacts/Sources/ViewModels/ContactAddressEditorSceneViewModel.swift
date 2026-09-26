@@ -58,7 +58,7 @@ public final class ContactAddressEditorSceneViewModel {
     ) {
         self.contactId = contactId
         self.mode = mode
-        chains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
+        chains = GemChainService.shared.chainRows(chains: nil, query: .empty).map { Chain(core: $0.chain) }
         self.service = service
         self.onComplete = onComplete
         title = Localized.Common.address

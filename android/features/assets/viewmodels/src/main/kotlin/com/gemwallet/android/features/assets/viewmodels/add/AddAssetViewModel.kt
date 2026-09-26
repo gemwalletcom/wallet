@@ -75,7 +75,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
+        availableChains?.let { chainService.chainRows(it.map { chain -> chain.string }, query.toString()) } ?: emptyList()
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

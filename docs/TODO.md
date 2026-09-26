@@ -55,7 +55,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM265, VM270 |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
@@ -129,10 +129,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
   - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
-- **VM265** **S** **Chain pickers each search chains themselves.**
-  - **iOS:** `ChainListSettingsSceneViewModel`, `ContactAddressEditorSceneViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
-  - **Android:** `ContactChainSelectViewModel`, `ChainSettingsViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
-  - **Expected:** one Core chain list (rows plus search) that every picker uses, with Core's chain rows (`chain_row`).
 - **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
   - **iOS:** `InfoSheetModel` and `InfoSheetButton` copy `GemInfoSheet` and show the button for learn-more or when a handler exists.
   - **Android:** `InfoSheetEntity` and `InfoBottomSheet` apply the same rule.

@@ -9,18 +9,19 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemChainRow
 import uniffi.gemstone.GemEmptyStateKind
-import uniffi.gemstone.chainRow
 
 @Composable
 fun SelectChain(
-    chains: List<Chain>,
+    rows: List<GemChainRow>,
     chainFilter: TextFieldState,
     listState: LazyListState = rememberLazyListState(),
     title: String = stringResource(id = R.string.settings_networks_title),
@@ -38,7 +39,7 @@ fun SelectChain(
                 SearchBar(query = chainFilter)
             }
             listHeader()
-            if (chains.isEmpty()) {
+            if (rows.isEmpty()) {
                 item {
                     EmptyContentView(
                         kind = GemEmptyStateKind.SEARCH_NETWORKS,
@@ -46,13 +47,14 @@ fun SelectChain(
                     )
                 }
             } else {
-                val size = chains.size
-                itemsIndexed(chains) { index, item ->
+                val size = rows.size
+                itemsIndexed(rows) { index, row ->
+                    val chain = row.chain.requireChain()
                     ChainItem(
-                        row = chainRow(item.string),
+                        row = row,
                         listPosition = ListPosition.getPosition(index, size),
-                        trailing = trailing?.let { t -> @Composable { t(item) } },
-                        onClick = { onSelect(item) },
+                        trailing = trailing?.let { t -> @Composable { t(chain) } },
+                        onClick = { onSelect(chain) },
                     )
                 }
             }

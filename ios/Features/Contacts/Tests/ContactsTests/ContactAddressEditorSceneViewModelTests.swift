@@ -77,7 +77,7 @@ struct ContactAddressEditorSceneViewModelTests {
     @Test
     func theNetworkPickerFollowsCoreChainOrder() {
         let model = ContactAddressEditorSceneViewModel.mock()
-        let chains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
+        let chains = GemChainService.shared.chainRows(chains: nil, query: .empty).map { Chain(core: $0.chain) }
 
         #expect(model.networkSelectorModel.state.value?.items == chains)
         #expect(chains != Chain.allCases)

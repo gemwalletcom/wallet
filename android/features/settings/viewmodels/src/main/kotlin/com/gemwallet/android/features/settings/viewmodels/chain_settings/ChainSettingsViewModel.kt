@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsUIState
 import com.gemwallet.android.ui.localization.text
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemChainRow
 import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemExplorerRow
@@ -53,9 +53,9 @@ class ChainSettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            updateState { it.copy(availableChains = chainService.getChains("").map { it.requireChain() }) }
+            updateState { it.copy(availableChains = chainService.chainRows(null, "")) }
             snapshotFlow { chainFilter.text }.collectLatest { query ->
-                updateState { it.copy(availableChains = chainService.getChains(query.toString()).map { it.requireChain() }) }
+                updateState { it.copy(availableChains = chainService.chainRows(null, query.toString())) }
             }
         }
     }
@@ -152,7 +152,7 @@ class ChainSettingsViewModel @Inject constructor(
         val chain: Chain? = null,
         val explorers: List<GemExplorerRow> = emptyList(),
         val session: GemNodeListSession? = null,
-        val availableChains: List<Chain> = emptyList(),
+        val availableChains: List<GemChainRow> = emptyList(),
         val selectChain: Boolean = true,
         val errorText: String? = null,
     )

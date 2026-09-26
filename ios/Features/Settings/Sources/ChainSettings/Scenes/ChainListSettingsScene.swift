@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import func Gemstone.chainRow
+import struct Gemstone.GemChainRow
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -25,9 +26,9 @@ public struct ChainListSettingsScene: View {
             }
 
             Section(Localized.Settings.Networks.title) {
-                ForEach(filteredChains) { chain in
-                    NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
-                        ChainView(model: chainRow(chain: chain.rawValue))
+                ForEach(chainRows, id: \.chain) { row in
+                    NavigationLink(value: Scenes.ChainSettings(chain: Chain(core: row.chain))) {
+                        ChainView(model: row)
                     }
                 }
             }
@@ -42,7 +43,7 @@ public struct ChainListSettingsScene: View {
         .autocorrectionDisabled(true)
         .scrollDismissesKeyboard(.interactively)
         .overlay {
-            if filteredChains.isEmpty {
+            if chainRows.isEmpty {
                 ContentUnavailableView {
                     EmptyContentView(model: model.emptyContent)
                 }
@@ -57,7 +58,7 @@ public struct ChainListSettingsScene: View {
 // MARK: - Private
 
 extension ChainListSettingsScene {
-    private var filteredChains: [Chain] {
-        model.filterChains(for: searchQuery)
+    private var chainRows: [GemChainRow] {
+        model.chainRows(for: searchQuery)
     }
 }

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemChainRow
 import class Gemstone.GemChainService
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import GemstonePrimitives
@@ -23,8 +24,8 @@ public final class ChainListSettingsSceneViewModel {
         EmptyStateViewModel(kind: .searchNetworks)
     }
 
-    func filterChains(for query: String) -> [Chain] {
-        GemChainService.shared.getChains(query: query).map { Chain(core: $0) }
+    func chainRows(for query: String) -> [GemChainRow] {
+        GemChainService.shared.chainRows(chains: nil, query: query)
     }
 
     var serviceStatusListItem: ListItemModel {

@@ -51,19 +51,16 @@ impl GemChainService {
         Self {}
     }
 
-    pub fn get_chains(&self, query: String) -> Vec<Chain> {
-        rules::matching_chains(rules::chains_by_rank(), &query)
+    /// Every chain by rank, or only `chains` in their order, that matches `query`, as the rows each chain picker draws.
+    pub fn chain_rows(&self, chains: Option<Vec<Chain>>, query: String) -> Vec<GemChainRow> {
+        rules::matching_chains(chains.unwrap_or_else(rules::chains_by_rank), &query).into_iter().map(chain_row).collect()
     }
 
     pub fn import_wallet_types(&self, query: String) -> GemImportWalletTypes {
         GemImportWalletTypes {
             multicoin: GemLocalizedText::WalletMulticoin,
-            chains: self.get_chains(query).into_iter().map(chain_row).collect(),
+            chains: self.chain_rows(None, query),
         }
-    }
-
-    pub fn get_matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
-        rules::matching_chains(chains, &query)
     }
 
     pub fn caip2_namespace(&self, chain: Chain) -> Option<String> {
@@ -86,6 +83,18 @@ mod tests {
         assert_eq!(types.multicoin, GemLocalizedText::WalletMulticoin);
         assert_eq!(types.chains.first().map(|row| row.chain), Some(Chain::Bitcoin));
         assert!(GemChainService::new().import_wallet_types("zzz-no-chain".to_string()).chains.is_empty());
+    }
+
+    #[test]
+    fn test_chain_rows_search_every_chain_or_only_the_ones_offered() {
+        let service = GemChainService::new();
+        let all = service.chain_rows(None, String::new());
+        let offered = service.chain_rows(Some(vec![Chain::Solana, Chain::Bitcoin]), String::new());
+
+        assert_eq!(all.len(), rules::chains_by_rank().len());
+        assert_eq!(offered.iter().map(|row| row.chain).collect::<Vec<_>>(), vec![Chain::Solana, Chain::Bitcoin], "offered chains keep their order");
+        assert_eq!(service.chain_rows(Some(vec![Chain::Solana, Chain::Bitcoin]), "bitcoin".to_string()), vec![chain_row(Chain::Bitcoin)]);
+        assert!(service.chain_rows(None, "zzz-no-chain".to_string()).is_empty());
     }
 
     #[test]

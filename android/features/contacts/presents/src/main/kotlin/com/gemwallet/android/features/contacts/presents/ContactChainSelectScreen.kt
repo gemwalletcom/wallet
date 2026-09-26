@@ -16,7 +16,7 @@ fun ContactChainSelectScreen(onSelect: (Chain) -> Unit, onCancel: () -> Unit, vi
     val query = chainFilter.text.toString()
 
     SelectChain(
-        chains = remember(query) { viewModel.chains(query) },
+        rows = remember(query) { viewModel.chains(query) },
         chainFilter = chainFilter,
         title = stringResource(R.string.transfer_network),
         onSelect = onSelect,
