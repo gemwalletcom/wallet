@@ -299,7 +299,7 @@ pub enum GemTransactionDetailRow {
     Header,
     SwapProgress,
     SwapAgain,
-    Participant,
+    Participant { row: GemAddressRow },
     Fee,
     Row { row: GemListRow },
 }

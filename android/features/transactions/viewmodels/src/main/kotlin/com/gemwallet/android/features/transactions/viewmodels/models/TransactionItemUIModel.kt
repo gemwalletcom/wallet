@@ -39,7 +39,7 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
             TransactionItemUIModel.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId))
         }
 
-        GemTransactionDetailRow.Participant -> TransactionItemUIModel.Address(requireNotNull(participant))
+        is GemTransactionDetailRow.Participant -> TransactionItemUIModel.Address(row.row)
 
         GemTransactionDetailRow.Fee -> TransactionItemUIModel.Fee(
             model = ListItemModel(

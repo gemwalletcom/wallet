@@ -209,7 +209,7 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
                 estimate: true,
             })
         }),
-        rows.participant.is_some().then_some(Participant),
+        rows.participant.clone().map(|row| Participant { row }),
         rows.memo.clone().filter(|memo| !memo.is_empty()).map(|memo| list(GemListRow::memo(memo.clone(), Some(memo)))),
         rows.resource.map(|resource| {
             list(GemListRow::Label {
@@ -1306,6 +1306,7 @@ mod tests {
     fn test_detail_sections_list_only_the_rows_the_transaction_has_in_one_order() {
         let explorer = BlockExplorerLink::mock_with_address("tx");
         let kind = |row: GemTransactionDetailRow| match row {
+            GemTransactionDetailRow::Participant { .. } => "Participant".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Explorer { .. } } => "Explorer".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Memo { .. } } => "Memo".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Provider { .. } } => "Provider".to_string(),

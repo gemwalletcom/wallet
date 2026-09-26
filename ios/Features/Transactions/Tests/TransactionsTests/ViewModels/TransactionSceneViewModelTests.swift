@@ -173,7 +173,14 @@ struct TransactionSceneViewModelTests {
             to: "0xRecipientAddress",
         )
 
-        if case let .participant(row) = modelWithAddresses.itemModel(for: GemTransactionDetailRow.participant) {
+        let participant = modelWithAddresses.sections.flatMap(\.values).first {
+            if case .participant = $0 {
+                true
+            } else {
+                false
+            }
+        }
+        if let participant, case let .participant(row) = modelWithAddresses.itemModel(for: participant) {
             #expect(row.title.text == Localized.Transaction.sender)
             #expect(row.address == "0xSenderAddress")
         } else {
@@ -181,10 +188,13 @@ struct TransactionSceneViewModelTests {
         }
 
         let swapModel = TransactionSceneViewModel.mock(type: TransactionType.swap)
-        if case .empty = swapModel.itemModel(for: GemTransactionDetailRow.participant) {
-        } else {
-            Issue.record("Expected empty for swap participant")
-        }
+        #expect(swapModel.sections.flatMap(\.values).contains {
+            if case .participant = $0 {
+                true
+            } else {
+                false
+            }
+        } == false, "a swap names its provider, not a participant")
     }
 
     @Test
@@ -271,8 +281,11 @@ struct TransactionSceneViewModelTests {
     }
 
     private func kind(_ row: GemTransactionDetailRow) -> String {
-        guard case let .row(listRow) = row else { return "\(row)" }
-        return kind(listRow)
+        switch row {
+        case let .row(listRow): kind(listRow)
+        case .participant: "participant"
+        default: "\(row)"
+        }
     }
 
     private func kind(_ row: GemListRow) -> String {

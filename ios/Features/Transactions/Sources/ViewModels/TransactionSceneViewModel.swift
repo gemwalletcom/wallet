@@ -83,7 +83,7 @@ extension TransactionSceneViewModel {
         case .header: headerItem
         case .swapProgress: swapProgressItem
         case .swapAgain: rows.swapAgain == nil ? .empty : .swapAgain(text: Localized.Transaction.swapAgain)
-        case .participant: rows.participant.map(TransactionItemModel.participant) ?? .empty
+        case let .participant(row): .participant(row)
         case .fee: feeItem
         case let .row(row): .row(row)
         }

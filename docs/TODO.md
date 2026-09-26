@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM211 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM212 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -46,7 +46,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Activity
 
-- **VM211** **S** **Transaction details carry the participant beside their sections.**
-  - **iOS:** `TransactionSceneViewModel` fills the sections' `participant` marker from `rows.participant`.
-  - **Android:** `TransactionItemUIModel` does the same.
-  - **Expected:** the details sections carry the finished participant `GemAddressRow` itself; the marker and the separate field go.
 - **VM212** **S** **Swap progress steps are composed in the apps.**
   - **iOS:** `TransactionSwapProgressItemModel` derives tag, marker, spinner and colours from `GemSwapProgressState`.
   - **Android:** `TransactionSwapProgressUIModel` composes the transfer subtitle as "amount (network)", activates the connector when the transfer step completed and shows the estimate only with a spinner.
@@ -415,7 +411,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM280** **M** **Transaction details are composed per row kind in the apps.**
   - **iOS:** `TransactionSceneViewModel` maps each `GemTransactionDetailRow` kind to an item, writes "Swap again", rebuilds the fee amount and routes header taps; `TransactionItemModel` lists the cases.
   - **Android:** `TransactionViewModel`, `TransactionItemUIModel` and `TransactionScene` do the same.
-  - **Expected:** the details sections carry finished rows (with VM211, VM212); both item layers go.
+  - **Expected:** the details sections carry finished rows (with VM212); both item layers go.
 - **VM281** **S** **WalletConnect proposal rows are hardcoded in the apps.**
   - **iOS:** `ConnectionProposalSceneViewModel` builds wallet, connection, status and the two permission rows.
   - **Android:** `ConnectionProposalViewModel` builds the same four.
