@@ -36,8 +36,10 @@ public struct AssetScene: View {
             if details.state.showsBanners, let banner = details.banner {
                 Section {
                     BannerView(
-                        model: BannerViewModel(row: banner),
-                        action: model.onSelectBanner,
+                        row: banner,
+                        onDestination: model.onSelectBanner(destination:),
+                        onButton: model.onSelectBanner(button:),
+                        onClose: model.onCloseBanner,
                     )
                 }
                 .listRowInsets(.zero)

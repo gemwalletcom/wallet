@@ -15,8 +15,6 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.banner.BannerRowUIModel
-import com.gemwallet.android.ui.components.banner.uiModel
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
@@ -38,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemBannerKey
+import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
@@ -80,7 +79,7 @@ class WalletViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val bannerRow: StateFlow<BannerRowUIModel?> = walletSummary.map { summary -> summary?.state?.banner?.uiModel(context) }
+    val bannerRow: StateFlow<GemBannerRow?> = walletSummary.map { summary -> summary?.state?.banner }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val collectionsAvailable = walletSummary

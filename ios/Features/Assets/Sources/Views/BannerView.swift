@@ -2,31 +2,46 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemBannerButton
+import struct Gemstone.GemBannerContent
+import enum Gemstone.GemBannerDestination
+import struct Gemstone.GemBannerKey
+import struct Gemstone.GemBannerRow
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct BannerView: View {
-    private let model: BannerViewModel
-    private let action: (BannerAction) -> Void
+    private let row: GemBannerRow
+    private let onDestination: (GemBannerDestination) -> Void
+    private let onButton: (GemBannerButton) -> Void
+    private let onClose: (GemBannerKey) -> Void
 
     public init(
-        model: BannerViewModel,
-        action: @escaping (BannerAction) -> Void,
+        row: GemBannerRow,
+        onDestination: @escaping (GemBannerDestination) -> Void,
+        onButton: @escaping (GemBannerButton) -> Void,
+        onClose: @escaping (GemBannerKey) -> Void,
     ) {
-        self.model = model
-        self.action = action
+        self.row = row
+        self.onDestination = onDestination
+        self.onButton = onButton
+        self.onClose = onClose
+    }
+
+    private var content: GemBannerContent {
+        row.content
     }
 
     public var body: some View {
         ZStack(alignment: .topTrailing) {
-            switch model.viewType {
+            switch content.style {
             case .list: listView
-            case .banner: bannerView
+            case .welcome: bannerView
             }
 
-            if model.canClose {
+            if content.canClose {
                 closeButton
                     .padding([.top, .trailing], .medium)
             }
@@ -39,12 +54,12 @@ public struct BannerView: View {
 private extension BannerView {
     private var listView: some View {
         Button(
-            action: { model.action.map(action) },
+            action: { content.destination.map(onDestination) },
             label: {
                 HStack(spacing: .zero) {
-                    ListItemView(model: model.listItem)
+                    ListItemView(model: ListItemModel(title: content.title?.text, titleExtra: content.description?.text, imageStyle: content.icon?.imageStyle))
 
-                    Spacer(minLength: model.canClose ? .extraLarge : .zero)
+                    Spacer(minLength: content.canClose ? .extraLarge : .zero)
                 }
             },
         )
@@ -53,17 +68,17 @@ private extension BannerView {
 
     private var bannerView: some View {
         VStack(spacing: .medium) {
-            if let image = model.image {
-                AssetImageView(assetImage: image, size: model.imageSize)
+            if let icon = content.icon, let image = icon.image {
+                AssetImageView(assetImage: image, size: icon.imageSize)
             }
 
             VStack(spacing: .small) {
-                if let title = model.title {
+                if let title = content.title?.text {
                     Text(title)
                         .textStyle(TextStyle(font: .body, color: .primary, fontWeight: .semibold))
                 }
 
-                if let subtitle = model.description {
+                if let subtitle = content.description?.text {
                     Text(subtitle)
                         .textStyle(.bodySecondary)
                 }
@@ -71,9 +86,9 @@ private extension BannerView {
             .multilineTextAlignment(.center)
 
             HStack(spacing: .medium) {
-                ForEach(model.buttons) { button in
+                ForEach(content.buttons, id: \.self) { button in
                     Button {
-                        action(button.action)
+                        onButton(button)
                     } label: {
                         Text(button.title)
                     }
@@ -88,7 +103,7 @@ private extension BannerView {
 
     private var closeButton: some View {
         Button {
-            action(model.closeAction)
+            onClose(row.key)
         } label: {
             Images.System.xmark
                 .resizable()
@@ -99,7 +114,7 @@ private extension BannerView {
                 .liquidGlass { _ in
                     ListButton(
                         image: Images.System.xmarkCircle,
-                        action: { action(model.closeAction) },
+                        action: { onClose(row.key) },
                     )
                     .foregroundStyle(Colors.gray)
                 }

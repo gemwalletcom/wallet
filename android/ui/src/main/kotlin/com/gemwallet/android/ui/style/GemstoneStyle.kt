@@ -1,11 +1,14 @@
 package com.gemwallet.android.ui.style
 
 import androidx.annotation.DrawableRes
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
@@ -27,6 +30,7 @@ import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
@@ -207,6 +211,12 @@ fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<
 fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): AmountSymbolUIModel = when (this) {
     GemAmountInputType.ASSET -> AmountSymbolUIModel(assetSymbol, AmountSymbolPlacement.Trailing)
     GemAmountInputType.FIAT -> AmountSymbolUIModel(java.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
+}
+
+@Composable
+fun GemBannerButton.colors(): ButtonColors = when (this) {
+    GemBannerButton.BUY -> ButtonDefaults.buttonColors()
+    GemBannerButton.RECEIVE -> secondaryActionButtonColors()
 }
 
 fun GemBannerIcon.image(): ListItemImage = when (this) {

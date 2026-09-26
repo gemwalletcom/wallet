@@ -51,8 +51,10 @@ public struct WalletScene: View {
             if let banner = state.banner {
                 Section {
                     BannerView(
-                        model: BannerViewModel(row: banner),
-                        action: model.onBanner,
+                        row: banner,
+                        onDestination: model.onSelectBanner(destination:),
+                        onButton: model.onSelectBanner(button:),
+                        onClose: model.onCloseBanner,
                     )
                 }
                 .listRowInsets(.zero)

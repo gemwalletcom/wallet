@@ -40,7 +40,6 @@ import com.gemwallet.android.features.wallet_tab.presents.components.AssetsListF
 import com.gemwallet.android.features.wallet_tab.presents.components.WalletHeader
 import com.gemwallet.android.features.wallet_tab.presents.components.assets
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
@@ -52,6 +51,7 @@ import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
+import uniffi.gemstone.GemBannerRow
 
 private const val WalletHeaderItemKey = "assets_head"
 private const val InAppUpdateBannerItemKey = "in_app_update_banner"
@@ -69,7 +69,7 @@ internal fun WalletScene(
     importing: Boolean,
     pinnedAssets: List<AssetInfoDataAggregate>,
     unpinnedAssets: List<AssetInfoDataAggregate>,
-    bannerRow: BannerRowUIModel?,
+    bannerRow: GemBannerRow?,
     isRefreshing: Boolean,
     collectionsAvailable: Boolean,
     snackbar: SnackbarHostState,

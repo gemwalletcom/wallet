@@ -4,6 +4,9 @@ import Assets
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemBannerButton
+import enum Gemstone.GemBannerDestination
+import struct Gemstone.GemBannerKey
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemPerpetualCollateral
@@ -186,27 +189,28 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
     }
 
-    internal func onBanner(action: BannerAction) {
-        switch action.type {
-        case let .destination(destination):
-            switch destination {
-            case let .url(url): isPresentingUrl = URL(string: url)
-            case .stake, .activateAsset, .perpetuals: break
-            }
-        case .closeBanner:
-            Task {
-                do {
-                    try await service.closeBanner(key: action.key)
-                } catch let error as GemServiceError {
-                    isPresentingToastMessage = .error(error.text().text)
-                } catch {
-                    isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-                }
-            }
-        case let .button(bannerButton):
-            switch bannerButton {
-            case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-            case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
+    internal func onSelectBanner(destination: GemBannerDestination) {
+        switch destination {
+        case let .url(url): isPresentingUrl = URL(string: url)
+        case .stake, .activateAsset, .perpetuals: break
+        }
+    }
+
+    internal func onSelectBanner(button: GemBannerButton) {
+        switch button {
+        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
+        }
+    }
+
+    internal func onCloseBanner(_ key: GemBannerKey) {
+        Task {
+            do {
+                try await service.closeBanner(key: key)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
+            } catch {
+                isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }

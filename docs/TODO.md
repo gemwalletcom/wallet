@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM204 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM205 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD375.
@@ -36,7 +36,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM237, VM238, VM239, VM240, VM294 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM204, VM264, VM269 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Shared components
 
-- **VM204** **S** **Banner rows are wrapped and styled outside the mappers.**
-  - **iOS:** `BannerViewModel`, `BannerButtonViewModel` and `BannerAction` wrap `GemBannerRow`; icon size and corner radius are chosen per icon, button titles and styles per button.
-  - **Android:** `BannerRowUIModel` and `BannerItemUIModel` copy the same fields; `WelcomeBanner` picks button titles.
-  - **Expected:** views take `GemBannerRow`; sizes, radii, titles and button styles live in the mapper files; the wrappers go.
 - **VM205** **S** **Shared-row texts and menus are composed by the renderers.**
   - **iOS:** `GemListRowItem` writes the titles of app, wallet, memo and explorer rows itself, composes "View on X", the " #rank " tag and "Enable Face ID" for the authentication toggle, and builds the explorer, wallet and memo menus; `GemListRowView` titles the provider row "Contract".
   - **Android:** `GemListRowUIModel` composes the explorer title and the same labels, builds the website, copy-address, view-on and copy-memo menus, picks the copy title by copy kind, and exposes an address only when the title is `CONTRACT`.

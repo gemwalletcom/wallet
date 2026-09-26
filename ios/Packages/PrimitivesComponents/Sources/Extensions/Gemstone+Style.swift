@@ -200,6 +200,24 @@ public extension GemBannerIcon {
         case .perpetuals: AssetImage.image(Images.Perpetuals.perpetuals)
         }
     }
+
+    var imageSize: CGFloat {
+        switch self {
+        case .bitcoin: .image.medium
+        case .moneyBag, .network, .warning, .suspicious, .perpetuals: .image.asset
+        }
+    }
+
+    var cornerRadius: CGFloat {
+        switch self {
+        case .warning, .bitcoin: 0
+        case .moneyBag, .network, .suspicious, .perpetuals: 14
+        }
+    }
+
+    var imageStyle: ListItemImageStyle? {
+        ListItemImageStyle(assetImage: image, imageSize: imageSize, cornerRadiusType: .custom(cornerRadius))
+    }
 }
 
 public extension GemListRowIcon {

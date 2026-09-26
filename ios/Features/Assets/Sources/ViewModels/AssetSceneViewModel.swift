@@ -7,6 +7,9 @@ import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
+import enum Gemstone.GemBannerButton
+import enum Gemstone.GemBannerDestination
+import struct Gemstone.GemBannerKey
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
@@ -264,34 +267,35 @@ public extension AssetSceneViewModel {
         isPresentingAssetSheet = .info(GemInfoTopic.watchWallet.infoSheet)
     }
 
-    internal func onSelectBanner(_ action: BannerAction) {
-        switch action.type {
-        case let .destination(destination):
-            switch destination {
-            case .stake:
-                onSelectStake()
-            case let .activateAsset(transfer):
-                isPresentingAssetSheet = .transfer(transfer)
-            case .perpetuals:
-                preferences.isPerpetualEnabled = true
-                onSelectPerpetuals?()
-            case let .url(url):
-                onSelect(url: URL(string: url))
-            }
-        case let .button(bannerButton):
-            switch bannerButton {
-            case .buy: onSelectBuy()
-            case .receive: onSelectReceive()
-            }
-        case .closeBanner:
-            Task {
-                do {
-                    try await service.closeBanner(key: action.key)
-                } catch let error as GemServiceError {
-                    isPresentingToastMessage = .error(error.text().text)
-                } catch {
-                    isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-                }
+    internal func onSelectBanner(destination: GemBannerDestination) {
+        switch destination {
+        case .stake:
+            onSelectStake()
+        case let .activateAsset(transfer):
+            isPresentingAssetSheet = .transfer(transfer)
+        case .perpetuals:
+            preferences.isPerpetualEnabled = true
+            onSelectPerpetuals?()
+        case let .url(url):
+            onSelect(url: URL(string: url))
+        }
+    }
+
+    internal func onSelectBanner(button: GemBannerButton) {
+        switch button {
+        case .buy: onSelectBuy()
+        case .receive: onSelectReceive()
+        }
+    }
+
+    internal func onCloseBanner(_ key: GemBannerKey) {
+        Task {
+            do {
+                try await service.closeBanner(key: key)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
+            } catch {
+                isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }

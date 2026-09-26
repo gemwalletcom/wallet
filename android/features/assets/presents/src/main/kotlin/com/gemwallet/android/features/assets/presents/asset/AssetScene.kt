@@ -87,7 +87,7 @@ internal fun AssetScene(
                 item {
                     AssetHeadItem(header = uiState.details.header, onAction = onAction)
                 }
-                val banner = uiState.banner
+                val banner = uiState.details.banner
                 if (detailsState.showsBanners && banner != null) {
                     item {
                         BannerItem(

@@ -2,7 +2,6 @@ package com.gemwallet.android.features.assets.viewmodels.asset.models
 
 import android.content.Context
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.banner.uiModel
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
@@ -26,7 +25,6 @@ class AssetUIStateFactory @Inject constructor(@ApplicationContext private val co
             assetInfo = assetInfo,
             details = details,
             priceAlertMenu = details.state.priceAlert.menu(),
-            banner = details.banner?.uiModel(context),
             sections = details.sections.map { section ->
                 AssetDetailSectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id, details.networkDestination.navigation()) })
             },
