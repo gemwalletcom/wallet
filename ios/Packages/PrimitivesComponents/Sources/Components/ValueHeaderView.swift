@@ -62,7 +62,7 @@ public struct ValueHeaderView: View {
 
     private let titleActionType: HeaderTitleActionType
     private let spacing: ValueHeaderViewSpacing
-    private let onHeaderAction: HeaderButtonAction?
+    private let onHeaderAction: HeaderButtonActionHandler?
     private let onSubtitleAction: VoidAction
     private let onInfoAction: VoidAction
 
@@ -71,7 +71,7 @@ public struct ValueHeaderView: View {
         isPrivacyEnabled: Binding<Bool>,
         titleActionType: HeaderTitleActionType,
         spacing: ValueHeaderViewSpacing = .standard,
-        onHeaderAction: HeaderButtonAction?,
+        onHeaderAction: HeaderButtonActionHandler?,
         onSubtitleAction: VoidAction = nil,
         onInfoAction: VoidAction,
     ) {

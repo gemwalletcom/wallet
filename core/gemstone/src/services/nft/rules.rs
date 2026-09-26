@@ -10,7 +10,7 @@ use crate::config::chain::supports_nft_transfer;
 use crate::config::social::social_links;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSectionTitle};
-use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonTap};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction};
 use crate::services::assets::rules::asset_text;
 use crate::services::empty_state::{GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
 use crate::services::localization::GemLocalizedText;
@@ -168,8 +168,8 @@ pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_own
         is_verified: data.collection.status == VerificationStatus::Verified,
         header: GemHeaderActions::Buttons {
             buttons: vec![
-                GemHeaderButton::new(GemHeaderButtonTap::SendCollectible, can_send(wallet_type, data.asset.chain, is_owned)),
-                GemHeaderButton::new(GemHeaderButtonTap::CollectibleMenu, true),
+                GemHeaderButton::new(GemHeaderButtonAction::SendCollectible, can_send(wallet_type, data.asset.chain, is_owned)),
+                GemHeaderButton::new(GemHeaderButtonAction::CollectibleMenu, true),
             ],
         },
         image_actions: actions.iter().copied().filter(|action| matches!(action, GemCollectibleAction::SaveImage | GemCollectibleAction::SetAvatar)).collect(),

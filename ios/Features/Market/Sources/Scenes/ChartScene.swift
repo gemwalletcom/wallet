@@ -21,7 +21,7 @@ public struct ChartScene: View {
             ForEach(model.sections.listSections) { section in
                 Section {
                     ForEach(section.values) { item in
-                        switch item.row.tap() {
+                        switch item.row.action() {
                         case .priceAlerts:
                             NavigationLink(
                                 value: Scenes.AssetPriceAlert(asset: model.asset),

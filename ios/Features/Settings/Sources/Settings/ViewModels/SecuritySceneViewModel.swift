@@ -4,7 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemListSection
 import enum Gemstone.GemLockPeriod
-import enum Gemstone.GemRowTap
+import enum Gemstone.GemRowAction
 import struct Gemstone.GemSecurityInput
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
@@ -80,8 +80,8 @@ public extension SecuritySceneViewModel {
 // MARK: - Business Logic
 
 extension SecuritySceneViewModel {
-    func onToggle(_ tap: GemRowTap, _ isOn: Bool) {
-        switch tap {
+    func onToggle(_ action: GemRowAction, _ isOn: Bool) {
+        switch action {
         case .authentication:
             isEnabled = isOn
             Task { await toggleBiometrics() }
@@ -95,8 +95,8 @@ extension SecuritySceneViewModel {
         }
     }
 
-    func onSelect(_ tap: GemRowTap) {
-        switch tap {
+    func onSelect(_ action: GemRowAction) {
+        switch action {
         case .lockPeriod: isPresentingLockPeriods = true
         default: break
         }

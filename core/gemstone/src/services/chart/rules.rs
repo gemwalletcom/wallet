@@ -6,7 +6,7 @@ use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::copy::address_copy;
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemRowTap};
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::price::rules::has_price;
@@ -102,13 +102,13 @@ fn price_alert_section(price: Option<f64>, price_alerts: Vec<PriceAlert>) -> Opt
             title: GemListRowTitle::SetPriceAlert,
             value: None,
             icon: GemListRowIcon::None,
-            tap: GemRowTap::SetPriceAlert,
+            action: GemRowAction::SetPriceAlert,
         },
         count => GemListRow::Link {
             title: GemListRowTitle::PriceAlerts,
             value: Some(count.to_string()),
             icon: GemListRowIcon::None,
-            tap: GemRowTap::PriceAlerts,
+            action: GemRowAction::PriceAlerts,
         },
     };
     Some(section(GemListSectionTitle::None, vec![row]))
@@ -289,7 +289,7 @@ mod tests {
                 title: GemListRowTitle::SetPriceAlert,
                 value: None,
                 icon: GemListRowIcon::None,
-                tap: GemRowTap::SetPriceAlert,
+                action: GemRowAction::SetPriceAlert,
             }],
         )
     }
@@ -583,7 +583,7 @@ mod tests {
                     title: GemListRowTitle::PriceAlerts,
                     value: Some("1".to_string()),
                     icon: GemListRowIcon::None,
-                    tap: GemRowTap::PriceAlerts,
+                    action: GemRowAction::PriceAlerts,
                 }]
             ))
         );

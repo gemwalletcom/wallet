@@ -3,7 +3,7 @@
 import Assets
 import Components
 import Foundation
-import enum Gemstone.GemHeaderButtonTap
+import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemMarketsRefreshTrigger
 import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
@@ -143,8 +143,8 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSelectHeaderAction(_ tap: GemHeaderButtonTap) {
-        switch tap {
+    func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
+        switch action {
         case let .deposit(asset):
             onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
         case let .withdraw(asset):

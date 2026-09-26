@@ -9,7 +9,7 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemNoticeKind
-import enum Gemstone.GemRowTap
+import enum Gemstone.GemRowAction
 import struct Gemstone.GemSocialLink
 import enum Gemstone.GemUrlTarget
 import enum Gemstone.GemValueTone
@@ -28,8 +28,8 @@ enum GemListRowItem {
     case listItem(ListItemModel)
     case rate(title: String, direct: String, inverse: String)
     case provider(ListItemModel, contract: String?)
-    case picker(ListItemModel, tap: GemRowTap)
-    case toggle(label: String, tap: GemRowTap, isOn: Bool, imageStyle: ListItemImageStyle?)
+    case picker(ListItemModel, action: GemRowAction)
+    case toggle(label: String, action: GemRowAction, isOn: Bool, imageStyle: ListItemImageStyle?)
     case page(ListItemModel, url: URL)
     case explorerPage(ListItemModel, context: ExplorerContextData)
     case external(ListItemModel, url: URL)
@@ -143,10 +143,10 @@ extension GemListRow {
             .memo(ListItemModel(title: Localized.Transfer.memo, subtitle: value), copy: copy)
         case let .link(title, value, icon, _):
             .listItem(listItem(title: title, value: value, icon: icon))
-        case let .picker(title, value, icon, tap):
-            .picker(listItem(title: title, value: value.text, icon: icon), tap: tap)
-        case let .toggle(title, value, icon, isOn, tap):
-            .toggle(label: toggleLabel(title: title, value: value), tap: tap, isOn: isOn, imageStyle: icon.imageStyle)
+        case let .picker(title, value, icon, action):
+            .picker(listItem(title: title, value: value.text, icon: icon), action: action)
+        case let .toggle(title, value, icon, isOn, action):
+            .toggle(label: toggleLabel(title: title, value: value), action: action, isOn: isOn, imageStyle: icon.imageStyle)
         case let .url(title, value, icon, url, target):
             urlItem(title: title, value: value, icon: icon, url: url, target: target)
         case let .social(links):

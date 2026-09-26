@@ -4,7 +4,7 @@ import Components
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
-import enum Gemstone.GemRowTap
+import enum Gemstone.GemRowAction
 import Localization
 import Primitives
 import Style
@@ -17,16 +17,16 @@ public struct GemListRowView: View {
     @State private var isRateInverse = false
 
     private let row: GemListRow
-    private let onToggle: ((GemRowTap, Bool) -> Void)?
-    private let onSelect: ((GemRowTap) -> Void)?
+    private let onToggle: ((GemRowAction, Bool) -> Void)?
+    private let onSelect: ((GemRowAction) -> Void)?
     private let onSelectAddress: ((String) -> Void)?
     private let onInfo: ((GemInfoTopic) -> Void)?
     private let onCopy: ((CopyTypeViewModel) -> Void)?
 
     public init(
         row: GemListRow,
-        onToggle: ((GemRowTap, Bool) -> Void)? = nil,
-        onSelect: ((GemRowTap) -> Void)? = nil,
+        onToggle: ((GemRowAction, Bool) -> Void)? = nil,
+        onSelect: ((GemRowAction) -> Void)? = nil,
         onSelectAddress: ((String) -> Void)? = nil,
         onInfo: ((GemInfoTopic) -> Void)? = nil,
         onCopy: ((CopyTypeViewModel) -> Void)? = nil,
@@ -72,13 +72,13 @@ public struct GemListRowView: View {
             } else {
                 ListItemView(model: model)
             }
-        case let .picker(model, tap):
-            NavigationCustomLink(with: ListItemView(model: model)) { onSelect?(tap) }
-        case let .toggle(label, tap, isOn, imageStyle):
+        case let .picker(model, action):
+            NavigationCustomLink(with: ListItemView(model: model)) { onSelect?(action) }
+        case let .toggle(label, action, isOn, imageStyle):
             if let imageStyle {
-                ListItemToggleView(isOn: Binding(get: { isOn }, set: { onToggle?(tap, $0) }), title: label, imageStyle: imageStyle)
+                ListItemToggleView(isOn: Binding(get: { isOn }, set: { onToggle?(action, $0) }), title: label, imageStyle: imageStyle)
             } else {
-                Toggle(label, isOn: Binding(get: { isOn }, set: { onToggle?(tap, $0) }))
+                Toggle(label, isOn: Binding(get: { isOn }, set: { onToggle?(action, $0) }))
                     .toggleStyle(AppToggleStyle())
             }
         case let .page(model, url):

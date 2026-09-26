@@ -337,7 +337,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM253** **S** **Asset details sections are twinned.**
   - **iOS:** `AssetDetailRowItem`, `AssetDetailSectionItem` and `AssetDetailRowAction` copy `GemAssetDetails` sections.
   - **Android:** `AssetUIState`, `AssetUIStateFactory`, `PriceAlertMenuUIModel` and `EmptyTransactionsUIModel` do the same.
-  - **Expected:** views read the Core sections and their `GemRowTap`; the twins go.
+  - **Expected:** views read the Core sections and their `GemRowAction`; the twins go.
 - **VM254** **S** **Recents are wrapped and grouped in the apps.**
   - **iOS:** `RecentAssetsViewModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
   - **Android:** `RecentsUIState` and `RecentAsset` do the same and sort by date in the view.

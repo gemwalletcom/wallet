@@ -71,7 +71,7 @@ pub struct GemDelegationActionItem {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemStakeAction {
+pub enum GemStakeActionKind {
     Stake,
     Freeze,
     Unfreeze,
@@ -80,14 +80,14 @@ pub enum GemStakeAction {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeActionItem {
-    pub action: GemStakeAction,
+    pub kind: GemStakeActionKind,
     pub row: GemListRow,
-    pub tap: GemStakeActionTap,
+    pub action: GemStakeAction,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum GemStakeActionTap {
+pub enum GemStakeAction {
     Open { destination: GemStakeDestination },
     FrozenBalanceInfo,
     Disabled,

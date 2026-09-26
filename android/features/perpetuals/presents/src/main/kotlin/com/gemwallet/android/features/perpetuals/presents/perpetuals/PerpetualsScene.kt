@@ -64,7 +64,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemEmptyStateKind
-import uniffi.gemstone.GemHeaderButtonTap
+import uniffi.gemstone.GemHeaderButtonAction
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualBalance
@@ -125,14 +125,14 @@ internal fun PerpetualsScene(
                             header = balanceHeader,
                             onClick = { onAction(PerpetualsAction.OpenPortfolio) },
                         ) {
-                            AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { tap ->
-                                when (tap) {
-                                    is GemHeaderButtonTap.Deposit -> onAction(PerpetualsAction.Deposit(tap.asset.toPrimitives().id))
+                            AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
+                                when (action) {
+                                    is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
 
-                                    is GemHeaderButtonTap.Withdraw -> onAction(PerpetualsAction.Withdraw(tap.asset.toPrimitives().id))
+                                    is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 
-                                    is GemHeaderButtonTap.Send, is GemHeaderButtonTap.Receive, is GemHeaderButtonTap.Buy, is GemHeaderButtonTap.Swap,
-                                    GemHeaderButtonTap.SendCollectible, GemHeaderButtonTap.CollectibleMenu,
+                                    is GemHeaderButtonAction.Send, is GemHeaderButtonAction.Receive, is GemHeaderButtonAction.Buy, is GemHeaderButtonAction.Swap,
+                                    GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu,
                                     -> Unit
                                 }
                             }

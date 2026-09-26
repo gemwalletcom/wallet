@@ -4,7 +4,7 @@ import Assets
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemHeaderButtonTap
+import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
@@ -172,8 +172,8 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .portfolio(.wallet)
     }
 
-    internal func onHeaderAction(_ tap: GemHeaderButtonTap) {
-        switch tap {
+    internal func onHeaderAction(_ action: GemHeaderButtonAction) {
+        switch action {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])

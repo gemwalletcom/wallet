@@ -2,7 +2,7 @@ use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, 
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListSectionTitle, GemRowTap};
+use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
 use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
 use crate::services::empty_state::GemEmptyState;
@@ -579,7 +579,7 @@ pub fn asset_menu_actions(input: GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemHeaderButtonTap {
+pub enum GemHeaderButtonAction {
     Send { asset_id: Option<AssetId> },
     Receive { asset_id: Option<AssetId> },
     Buy { asset_id: Option<AssetId> },
@@ -590,7 +590,7 @@ pub enum GemHeaderButtonTap {
     CollectibleMenu,
 }
 
-impl GemHeaderButtonTap {
+impl GemHeaderButtonAction {
     fn kind(&self) -> GemHeaderButtonKind {
         match self {
             Self::Send { .. } | Self::SendCollectible => GemHeaderButtonKind::Send,
@@ -607,13 +607,13 @@ impl GemHeaderButtonTap {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemHeaderButton {
     pub kind: GemHeaderButtonKind,
-    pub tap: GemHeaderButtonTap,
+    pub action: GemHeaderButtonAction,
     pub is_enabled: bool,
 }
 
 impl GemHeaderButton {
-    pub fn new(tap: GemHeaderButtonTap, is_enabled: bool) -> Self {
-        Self { kind: tap.kind(), tap, is_enabled }
+    pub fn new(action: GemHeaderButtonAction, is_enabled: bool) -> Self {
+        Self { kind: action.kind(), action, is_enabled }
     }
 }
 
@@ -666,8 +666,8 @@ pub struct GemAssetDetailsState {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
-    Balance { row: GemAssetBalanceRow, tap: Option<GemRowTap> },
-    Row { row: GemListRow, tap: Option<GemRowTap> },
+    Balance { row: GemAssetBalanceRow, action: Option<GemRowAction> },
+    Row { row: GemListRow, action: Option<GemRowAction> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

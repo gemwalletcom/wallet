@@ -34,8 +34,8 @@ class AssetUIStateFactory @Inject constructor(@ApplicationContext private val co
     }
 
     private fun row(row: GemAssetDetailRow, assetId: AssetId, network: AssetAction.Navigation?): AssetDetailRowUIModel = when (row) {
-        is GemAssetDetailRow.Balance -> balance(row.row, row.tap?.detailsAction(assetId, network))
-        is GemAssetDetailRow.Row -> AssetDetailRowUIModel.Row(row.row, row.tap?.detailsAction(assetId, network))
+        is GemAssetDetailRow.Balance -> balance(row.row, row.action?.detailsAction(assetId, network))
+        is GemAssetDetailRow.Row -> AssetDetailRowUIModel.Row(row.row, row.action?.detailsAction(assetId, network))
     }
 
     private fun balance(item: GemAssetBalanceRow, action: AssetAction?): AssetDetailRowUIModel.Balance {

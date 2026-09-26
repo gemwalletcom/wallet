@@ -46,7 +46,7 @@ import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemPushState
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -122,14 +122,14 @@ class SettingsViewModelTest {
 
     @Test
     fun `the rows follow core's answer for the loaded wallets`() = runTest(testDispatcher) {
-        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowTap.Wallets))
+        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
         wallets.value = listOf(mockWallet(type = WalletType.Single))
         viewModel = createViewModel()
         advanceUntilIdle()
 
         assertEquals(listOf(SettingsAction.Wallets), viewModel.actions().first { it.isNotEmpty() })
 
-        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowTap.Wallets, GemListRowTitle.REWARDS to GemRowTap.Rewards))
+        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets, GemListRowTitle.REWARDS to GemRowAction.Rewards))
         wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
         advanceUntilIdle()
 
@@ -141,14 +141,14 @@ class SettingsViewModelTest {
 
     private fun SettingsViewModel.actions() = sections.map { sections -> sections.flatMap { it.rows }.mapNotNull { it.settingsAction() } }
 
-    private fun section(vararg links: Pair<GemListRowTitle, GemRowTap>) = GemListSection(
+    private fun section(vararg links: Pair<GemListRowTitle, GemRowAction>) = GemListSection(
         title = GemListSectionTitle.NONE,
         footer = GemListSectionFooter.NONE,
-        rows = links.map { (title, tap) -> GemListRow.Link(title = title, value = null, icon = GemListRowIcon.NONE, tap = tap) },
+        rows = links.map { (title, action) -> GemListRow.Link(title = title, value = null, icon = GemListRowIcon.NONE, action = action) },
     )
 
     private val settingsService = mockk<GemSettingsServiceInterface>(relaxed = true).also {
-        every { it.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowTap.Wallets))
+        every { it.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
     }
 
     private fun createViewModel() = SettingsViewModel(

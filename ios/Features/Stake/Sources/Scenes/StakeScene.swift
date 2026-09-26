@@ -70,7 +70,7 @@ extension StakeScene {
 
     @ViewBuilder
     private func actionLink(_ item: GemStakeActionItem) -> some View {
-        switch item.tap {
+        switch item.action {
         case .frozenBalanceInfo:
             NavigationCustomLink(with: GemListRowView(row: item.row, onInfo: { _ in model.onStakeFrozenInfo() }), action: model.onStakeFrozenInfo)
         case .disabled:

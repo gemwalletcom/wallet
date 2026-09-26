@@ -2,7 +2,7 @@ use primitives::{AssetFiatValue, BannerEvent, Chain, PerpetualBalance, WalletTyp
 
 use crate::services::banner::GemBannerRow;
 
-use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonTap};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemPerpetualCollateral {
@@ -40,14 +40,14 @@ pub fn header_actions(wallet_type: WalletType, chains: &[Chain], is_enabled: boo
 
 fn header_buttons(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -> Vec<GemHeaderButton> {
     [
-        Some(GemHeaderButtonTap::Send { asset_id: None }),
-        Some(GemHeaderButtonTap::Receive { asset_id: None }),
-        Some(GemHeaderButtonTap::Buy { asset_id: None }),
-        swaps(wallet_type, chains).then_some(GemHeaderButtonTap::Swap { pay_asset_id: None, receive_asset_id: None }),
+        Some(GemHeaderButtonAction::Send { asset_id: None }),
+        Some(GemHeaderButtonAction::Receive { asset_id: None }),
+        Some(GemHeaderButtonAction::Buy { asset_id: None }),
+        swaps(wallet_type, chains).then_some(GemHeaderButtonAction::Swap { pay_asset_id: None, receive_asset_id: None }),
     ]
     .into_iter()
     .flatten()
-    .map(|tap| GemHeaderButton::new(tap, is_enabled))
+    .map(|action| GemHeaderButton::new(action, is_enabled))
     .collect()
 }
 
@@ -134,12 +134,12 @@ mod tests {
         use GemHeaderButtonKind::*;
         assert_eq!(kinds(WalletType::Multicoin, Chain::Bitcoin), vec![Send, Receive, Buy, Swap]);
         assert!(
-            buttons(WalletType::Multicoin, Chain::Bitcoin, true).iter().all(|button| match &button.tap {
-                GemHeaderButtonTap::Send { asset_id } | GemHeaderButtonTap::Receive { asset_id } | GemHeaderButtonTap::Buy { asset_id } => asset_id.is_none(),
-                GemHeaderButtonTap::Swap { pay_asset_id, receive_asset_id } => pay_asset_id.is_none() && receive_asset_id.is_none(),
+            buttons(WalletType::Multicoin, Chain::Bitcoin, true).iter().all(|button| match &button.action {
+                GemHeaderButtonAction::Send { asset_id } | GemHeaderButtonAction::Receive { asset_id } | GemHeaderButtonAction::Buy { asset_id } => asset_id.is_none(),
+                GemHeaderButtonAction::Swap { pay_asset_id, receive_asset_id } => pay_asset_id.is_none() && receive_asset_id.is_none(),
                 other => panic!("the wallet header offers no {other:?}"),
             }),
-            "the wallet header asks for the asset after the tap"
+            "the wallet header asks for the asset after the action"
         );
         assert_eq!(kinds(WalletType::Single, Chain::Ethereum), vec![Send, Receive, Buy, Swap]);
         assert_eq!(kinds(WalletType::PrivateKey, Chain::Solana), vec![Send, Receive, Buy, Swap]);

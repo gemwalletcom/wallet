@@ -1565,15 +1565,15 @@ fun mockGemHeaderAmount(
 
 fun mockGemHeaderButton(
     kind: uniffi.gemstone.GemHeaderButtonKind = uniffi.gemstone.GemHeaderButtonKind.SEND,
-    tap: uniffi.gemstone.GemHeaderButtonTap = mockGemHeaderButtonTap(),
+    action: uniffi.gemstone.GemHeaderButtonAction = mockGemHeaderButtonAction(),
     isEnabled: Boolean = false,
 ) = uniffi.gemstone.GemHeaderButton(
     kind = kind,
-    tap = tap,
+    action = action,
     isEnabled = isEnabled,
 )
 
-fun mockGemHeaderButtonTap(): uniffi.gemstone.GemHeaderButtonTap = uniffi.gemstone.GemHeaderButtonTap.Send(assetId = null)
+fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.gemstone.GemHeaderButtonAction.Send(assetId = null)
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.NetworkFee(asset = mockAsset().toGem())
 

@@ -9,7 +9,7 @@ use primitives::{
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput, GemAssetNetworkDestination,
-    GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonTap, GemNetworkAssetIds,
+    GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds,
     GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
     GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
@@ -18,7 +18,7 @@ use crate::config::stake::EARN_OFFERED;
 use crate::constants::ASSET_RESULTS_LIMIT;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowTap};
+use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
@@ -617,15 +617,15 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     let chain = asset.chain();
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
     let quoted = price_row(price, price_change_percentage_24h, currency.clone(), GemCurrencyStyle::Currency);
-    let row = |row: GemListRow, tap: Option<GemRowTap>| GemAssetDetailRow::Row { row, tap };
-    let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, tap: GemRowTap| GemAssetDetailRow::Row {
-        row: GemListRow::Link { title, value, icon, tap: tap.clone() },
-        tap: Some(tap),
+    let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
+    let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
+        row: GemListRow::Link { title, value, icon, action: action.clone() },
+        action: Some(action),
     };
     let section = |title: GemListSectionTitle, rows: Vec<GemAssetDetailRow>| (!rows.is_empty()).then_some(GemAssetDetailSection { title, rows });
     let pin = match metadata.is_pinned {
-        true => link(GemListRowTitle::Unpin, None, GemListRowIcon::Unpin, GemRowTap::Pin),
-        false => link(GemListRowTitle::Pin, None, GemListRowIcon::Pin, GemRowTap::Pin),
+        true => link(GemListRowTitle::Unpin, None, GemListRowIcon::Unpin, GemRowAction::Pin),
+        false => link(GemListRowTitle::Pin, None, GemListRowIcon::Pin, GemRowAction::Pin),
     };
     let shows_earn = EARN_OFFERED && metadata.is_earn_enabled && wallet_type != WalletType::View && balance.earn == GemBigUint::ZERO;
     let shows_resources = StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze());
@@ -634,7 +634,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
             GemListSectionTitle::Manage,
             match metadata.is_balance_enabled {
                 true => vec![],
-                false => vec![pin, link(GemListRowTitle::AddToWallet, None, GemListRowIcon::AddToWallet, GemRowTap::AddToWallet)],
+                false => vec![pin, link(GemListRowTitle::AddToWallet, None, GemListRowIcon::AddToWallet, GemRowAction::AddToWallet)],
             },
         ),
         section(
@@ -646,16 +646,16 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
                         value: quoted.price,
                         change: quoted.change,
                     },
-                    Some(GemRowTap::Price),
+                    Some(GemRowAction::Price),
                 )),
-                (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None, GemRowTap::PriceAlerts)),
+                (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None, GemRowAction::PriceAlerts)),
                 Some(row(
                     GemListRow::Network {
                         title: GemListRowTitle::Network,
                         chain,
                         name: asset_text(asset).network_full_name,
                     },
-                    Some(GemRowTap::Network),
+                    Some(GemRowAction::Network),
                 )),
             ]
             .into_iter()
@@ -664,12 +664,12 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         ),
         section(
             GemListSectionTitle::Balances,
-            balance_rows(asset, metadata, balance).into_iter().map(|row| GemAssetDetailRow::Balance { tap: balance_tap(&row.row), row }).collect(),
+            balance_rows(asset, metadata, balance).into_iter().map(|row| GemAssetDetailRow::Balance { action: balance_action(&row.row), row }).collect(),
         ),
         section(
             GemListSectionTitle::None,
             match shows_earn {
-                true => vec![row(crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr), Some(GemRowTap::Earn))],
+                true => vec![row(crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr), Some(GemRowAction::Earn))],
                 false => vec![],
             },
         ),
@@ -686,11 +686,11 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     .collect()
 }
 
-fn balance_tap(row: &GemBalanceRow) -> Option<GemRowTap> {
+fn balance_action(row: &GemBalanceRow) -> Option<GemRowAction> {
     match row {
-        GemBalanceRow::Staked { .. } => Some(GemRowTap::Stake),
-        GemBalanceRow::Earn { .. } => Some(GemRowTap::Earn),
-        GemBalanceRow::Reserved { url: Some(url), .. } => Some(GemRowTap::Explorer { url: url.clone() }),
+        GemBalanceRow::Staked { .. } => Some(GemRowAction::Stake),
+        GemBalanceRow::Earn { .. } => Some(GemRowAction::Earn),
+        GemBalanceRow::Reserved { url: Some(url), .. } => Some(GemRowAction::Explorer { url: url.clone() }),
         GemBalanceRow::Available { .. } | GemBalanceRow::PendingUnconfirmed { .. } | GemBalanceRow::Reserved { url: None, .. } => None,
     }
 }
@@ -703,17 +703,17 @@ pub fn header_actions(wallet_type: WalletType, asset_id: &AssetId, metadata: &As
     let asset_id = Some(asset_id.clone());
     GemHeaderActions::Buttons {
         buttons: [
-            Some(GemHeaderButtonTap::Send { asset_id: asset_id.clone() }),
-            Some(GemHeaderButtonTap::Receive { asset_id: asset_id.clone() }),
-            metadata.is_buy_enabled.then_some(GemHeaderButtonTap::Buy { asset_id }),
-            metadata.is_swap_enabled.then(|| GemHeaderButtonTap::Swap {
+            Some(GemHeaderButtonAction::Send { asset_id: asset_id.clone() }),
+            Some(GemHeaderButtonAction::Receive { asset_id: asset_id.clone() }),
+            metadata.is_buy_enabled.then_some(GemHeaderButtonAction::Buy { asset_id }),
+            metadata.is_swap_enabled.then(|| GemHeaderButtonAction::Swap {
                 pay_asset_id: Some(swap_pair.pay_asset_id.clone()),
                 receive_asset_id: swap_pair.receive_asset_id.clone(),
             }),
         ]
         .into_iter()
         .flatten()
-        .map(|tap| GemHeaderButton::new(tap, buttons_enabled))
+        .map(|action| GemHeaderButton::new(action, buttons_enabled))
         .collect(),
     }
 }
@@ -1485,12 +1485,12 @@ mod tests {
         assert_eq!(kinds(&all), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive, GemHeaderButtonKind::Buy, GemHeaderButtonKind::Swap]);
         assert!(buttons(&all).iter().all(|button| button.is_enabled));
         assert_eq!(
-            buttons(&all).into_iter().map(|button| button.tap).collect::<Vec<_>>()[2..],
+            buttons(&all).into_iter().map(|button| button.action).collect::<Vec<_>>()[2..],
             [
-                GemHeaderButtonTap::Buy {
+                GemHeaderButtonAction::Buy {
                     asset_id: Some(AssetId::from_chain(Chain::Bitcoin))
                 },
-                GemHeaderButtonTap::Swap {
+                GemHeaderButtonAction::Swap {
                     pay_asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                     receive_asset_id: None
                 },
@@ -1555,9 +1555,14 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let balance = GemAssetBalance::mock();
         let manage = |metadata: &AssetMetaData| section(&sections(&asset, metadata, &balance, Some(1.0), &[]), GemListSectionTitle::Manage);
-        let link = |title: GemListRowTitle, icon: GemListRowIcon, tap: GemRowTap| GemAssetDetailRow::Row {
-            row: GemListRow::Link { title, value: None, icon, tap: tap.clone() },
-            tap: Some(tap),
+        let link = |title: GemListRowTitle, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
+            row: GemListRow::Link {
+                title,
+                value: None,
+                icon,
+                action: action.clone(),
+            },
+            action: Some(action),
         };
         let unmanaged = AssetMetaData {
             is_balance_enabled: false,
@@ -1567,13 +1572,13 @@ mod tests {
         assert_eq!(
             manage(&unmanaged),
             vec![vec![
-                link(GemListRowTitle::Pin, GemListRowIcon::Pin, GemRowTap::Pin),
-                link(GemListRowTitle::AddToWallet, GemListRowIcon::AddToWallet, GemRowTap::AddToWallet)
+                link(GemListRowTitle::Pin, GemListRowIcon::Pin, GemRowAction::Pin),
+                link(GemListRowTitle::AddToWallet, GemListRowIcon::AddToWallet, GemRowAction::AddToWallet)
             ]]
         );
         assert_eq!(
             manage(&AssetMetaData { is_pinned: true, ..unmanaged })[0][0],
-            link(GemListRowTitle::Unpin, GemListRowIcon::Unpin, GemRowTap::Pin),
+            link(GemListRowTitle::Unpin, GemListRowIcon::Unpin, GemRowAction::Pin),
             "pinned or not, the row toggles the pin"
         );
         assert!(manage(&AssetMetaData::mock()).is_empty());
@@ -1604,7 +1609,7 @@ mod tests {
         };
         let text = |title: GemListRowTitle, value: &str| GemAssetDetailRow::Row {
             row: GemListRow::Text { title, value: value.to_string() },
-            tap: None,
+            action: None,
         };
 
         assert_eq!(
@@ -1656,8 +1661,8 @@ mod tests {
         };
         let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), &[]);
         let earn = rows.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
-            GemAssetDetailRow::Row { row, tap } if matches!(row, GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }) => {
-                assert_eq!(tap, Some(GemRowTap::Earn), "the rate opens earn");
+            GemAssetDetailRow::Row { row, action } if matches!(row, GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }) => {
+                assert_eq!(action, Some(GemRowAction::Earn), "the rate opens earn");
                 Some(row)
             }
             _ => None,
@@ -1680,7 +1685,7 @@ mod tests {
             sections[0].rows[0],
             GemAssetDetailRow::Row {
                 row: GemListRow::Quote { title: GemListRowTitle::Price, .. },
-                tap: Some(GemRowTap::Price),
+                action: Some(GemRowAction::Price),
             }
         ));
         assert_eq!(
@@ -1691,7 +1696,7 @@ mod tests {
                     chain: Chain::Ethereum,
                     name: "Ethereum (ERC20)".to_string(),
                 },
-                tap: Some(GemRowTap::Network),
+                action: Some(GemRowAction::Network),
             }
         );
         assert!(sections[1].rows.iter().all(|row| matches!(row, GemAssetDetailRow::Balance { .. })));
@@ -1705,11 +1710,11 @@ mod tests {
             url: url.map(str::to_string),
         };
 
-        assert_eq!(balance_tap(&staked), Some(GemRowTap::Stake));
-        assert_eq!(balance_tap(&GemBalanceRow::Earn { value: GemBigUint::ZERO }), Some(GemRowTap::Earn));
-        assert_eq!(balance_tap(&reserved(Some("https://explorer/reserve"))), Some(GemRowTap::Explorer { url: "https://explorer/reserve".to_string() }));
-        assert_eq!(balance_tap(&reserved(None)), None, "a reserve without a page is not tappable");
-        assert_eq!(balance_tap(&GemBalanceRow::Available { value: GemBigUint::ZERO }), None);
+        assert_eq!(balance_action(&staked), Some(GemRowAction::Stake));
+        assert_eq!(balance_action(&GemBalanceRow::Earn { value: GemBigUint::ZERO }), Some(GemRowAction::Earn));
+        assert_eq!(balance_action(&reserved(Some("https://explorer/reserve"))), Some(GemRowAction::Explorer { url: "https://explorer/reserve".to_string() }));
+        assert_eq!(balance_action(&reserved(None)), None, "a reserve without a page is not tappable");
+        assert_eq!(balance_action(&GemBalanceRow::Available { value: GemBigUint::ZERO }), None);
     }
 
     #[test]

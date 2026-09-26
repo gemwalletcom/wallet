@@ -29,7 +29,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNoticeKind
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemSocialLink
 import uniffi.gemstone.GemValueTone
 import java.time.ZoneId
@@ -46,8 +46,8 @@ internal sealed interface GemListRowUIModel {
     data class Address(val address: String, val copy: GemCopy, val menu: List<GemListRowMenuItem>) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
     data class Social(val links: List<GemSocialLink>) : GemListRowUIModel
-    data class Toggle(val model: ListItemModel, val tap: GemRowTap, val isOn: Boolean) : GemListRowUIModel
-    data class Picker(val model: ListItemModel, val tap: GemRowTap) : GemListRowUIModel
+    data class Toggle(val model: ListItemModel, val action: GemRowAction, val isOn: Boolean) : GemListRowUIModel
+    data class Picker(val model: ListItemModel, val action: GemRowAction) : GemListRowUIModel
     data object Loading : GemListRowUIModel
 }
 
@@ -189,9 +189,9 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
         menu = listOf(GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value)),
     )
 
-    is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), tap, isOn)
+    is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), action, isOn)
 
-    is GemListRow.Picker -> GemListRowUIModel.Picker(listItemModel(context, title, value.string(context), icon), tap)
+    is GemListRow.Picker -> GemListRowUIModel.Picker(listItemModel(context, title, value.string(context), icon), action)
 
     is GemListRow.Social -> GemListRowUIModel.Social(links)
 

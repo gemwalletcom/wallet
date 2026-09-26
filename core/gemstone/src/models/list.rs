@@ -231,7 +231,7 @@ pub enum GemListRowIcon {
 
 /// What tapping a row opens or switches; each app maps it to its route or handler once.
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
-pub enum GemRowTap {
+pub enum GemRowAction {
     Wallets,
     Security,
     Notifications,
@@ -359,7 +359,7 @@ pub enum GemListRow {
         title: GemListRowTitle,
         value: Option<String>,
         icon: GemListRowIcon,
-        tap: GemRowTap,
+        action: GemRowAction,
     },
     Url {
         title: GemListRowTitle,
@@ -373,13 +373,13 @@ pub enum GemListRow {
         value: Option<String>,
         icon: GemListRowIcon,
         is_on: bool,
-        tap: GemRowTap,
+        action: GemRowAction,
     },
     Picker {
         title: GemListRowTitle,
         value: GemLocalizedText,
         icon: GemListRowIcon,
-        tap: GemRowTap,
+        action: GemRowAction,
     },
     Social {
         links: Vec<GemSocialLink>,
@@ -421,9 +421,9 @@ pub enum GemListRow {
 
 #[uniffi::export]
 impl GemListRow {
-    pub fn tap(&self) -> Option<GemRowTap> {
+    pub fn action(&self) -> Option<GemRowAction> {
         match self {
-            Self::Link { tap, .. } | Self::Toggle { tap, .. } | Self::Picker { tap, .. } => Some(tap.clone()),
+            Self::Link { action, .. } | Self::Toggle { action, .. } | Self::Picker { action, .. } => Some(action.clone()),
             _ => None,
         }
     }

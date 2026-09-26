@@ -41,7 +41,7 @@ public struct SettingsScene: View {
 extension SettingsScene {
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch row.tap() {
+        switch row.action() {
         case .wallets:
             NavigationCustomLink(with: GemListRowView(row: row), action: onOpenWallets)
         case .security:

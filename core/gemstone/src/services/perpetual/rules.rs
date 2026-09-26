@@ -23,7 +23,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::perpetual::GemPerpetual;
-use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonTap, GemRowText, GemValueHeader};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -433,8 +433,8 @@ pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType
         WalletType::View => GemHeaderActions::WatchOnly,
         WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
             buttons: vec![
-                GemHeaderButton::new(GemHeaderButtonTap::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, withdrawable > 0.0),
-                GemHeaderButton::new(GemHeaderButtonTap::Deposit { asset: perpetual.deposit_asset() }, true),
+                GemHeaderButton::new(GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, withdrawable > 0.0),
+                GemHeaderButton::new(GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() }, true),
             ],
         },
     };
@@ -911,10 +911,10 @@ mod tests {
         };
 
         assert_eq!(
-            buttons.into_iter().map(|button| button.tap).collect::<Vec<_>>(),
+            buttons.into_iter().map(|button| button.action).collect::<Vec<_>>(),
             vec![
-                GemHeaderButtonTap::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() },
-                GemHeaderButtonTap::Deposit {
+                GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() },
+                GemHeaderButtonAction::Deposit {
                     asset: GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
                 },
             ],

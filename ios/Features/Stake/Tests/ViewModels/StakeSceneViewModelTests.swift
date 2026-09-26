@@ -62,8 +62,8 @@ struct StakeSceneViewModelTests {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
 
-        let stake = tron.viewState.actions.first { $0.action == .stake }
-        guard case .disabled = stake?.tap else {
+        let stake = tron.viewState.actions.first { $0.kind == .stake }
+        guard case .disabled = stake?.action else {
             Issue.record("expected a disabled stake action")
             return
         }
@@ -92,7 +92,7 @@ struct StakeSceneViewModelTests {
     }
 
     private func claimDestination(_ model: StakeSceneViewModel) -> GemStakeDestination? {
-        guard case let .open(destination) = model.viewState.actions.first(where: { $0.action == .claimRewards })?.tap else { return nil }
+        guard case let .open(destination) = model.viewState.actions.first(where: { $0.kind == .claimRewards })?.action else { return nil }
         return destination
     }
 }

@@ -16,7 +16,7 @@ use std::str::FromStr;
 
 use super::model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
-    GemStakeActionTap, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
+    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -447,47 +447,47 @@ pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delega
     let requires_frozen_balance = requires_frozen_balance(chain, &(&balance.frozen + &balance.locked));
     let resource = default_resource(chain);
     let destination = |action| match action {
-        GemStakeAction::Stake => recommended_validator(chain, validators.to_vec()).map(|validator| GemStakeDestination::Amount {
+        GemStakeActionKind::Stake => recommended_validator(chain, validators.to_vec()).map(|validator| GemStakeDestination::Amount {
             input: GemStakeAmountInput::Stake { validator },
         }),
-        GemStakeAction::Freeze => Some(GemStakeDestination::Amount {
+        GemStakeActionKind::Freeze => Some(GemStakeDestination::Amount {
             input: GemStakeAmountInput::Freeze { resource },
         }),
-        GemStakeAction::Unfreeze => Some(GemStakeDestination::Amount {
+        GemStakeActionKind::Unfreeze => Some(GemStakeDestination::Amount {
             input: GemStakeAmountInput::Unfreeze { resource },
         }),
-        GemStakeAction::ClaimRewards => claim_destination(chain, delegations.to_vec()),
+        GemStakeActionKind::ClaimRewards => claim_destination(chain, delegations.to_vec()),
     };
-    let item = |action: GemStakeAction, value: Option<GemFormattedNumber>, requires_frozen_balance: bool| GemStakeActionItem {
-        action,
+    let item = |kind: GemStakeActionKind, value: Option<GemFormattedNumber>, requires_frozen_balance: bool| GemStakeActionItem {
+        kind,
         row: GemListRow::Action {
-            title: action_title(action),
+            title: action_title(kind),
             value,
             info: requires_frozen_balance.then_some(GemInfoTopic::StakeFrozenRequired),
         },
-        tap: match requires_frozen_balance {
-            true => GemStakeActionTap::FrozenBalanceInfo,
-            false => destination(action).map_or(GemStakeActionTap::Disabled, |destination| GemStakeActionTap::Open { destination }),
+        action: match requires_frozen_balance {
+            true => GemStakeAction::FrozenBalanceInfo,
+            false => destination(kind).map_or(GemStakeAction::Disabled, |destination| GemStakeAction::Open { destination }),
         },
     };
     let rewards = rewards_value(delegations);
     [
-        Some(item(GemStakeAction::Stake, None, requires_frozen_balance)),
-        uses_freeze.then(|| item(GemStakeAction::Freeze, None, false)),
-        uses_freeze.then(|| item(GemStakeAction::Unfreeze, None, false)),
-        can_claim_stake_rewards(chain, &rewards).then(|| item(GemStakeAction::ClaimRewards, rewards_amount(chain, &rewards), false)),
+        Some(item(GemStakeActionKind::Stake, None, requires_frozen_balance)),
+        uses_freeze.then(|| item(GemStakeActionKind::Freeze, None, false)),
+        uses_freeze.then(|| item(GemStakeActionKind::Unfreeze, None, false)),
+        can_claim_stake_rewards(chain, &rewards).then(|| item(GemStakeActionKind::ClaimRewards, rewards_amount(chain, &rewards), false)),
     ]
     .into_iter()
     .flatten()
     .collect()
 }
 
-fn action_title(action: GemStakeAction) -> GemListRowTitle {
+fn action_title(action: GemStakeActionKind) -> GemListRowTitle {
     match action {
-        GemStakeAction::Stake => GemListRowTitle::Stake,
-        GemStakeAction::Freeze => GemListRowTitle::Freeze,
-        GemStakeAction::Unfreeze => GemListRowTitle::Unfreeze,
-        GemStakeAction::ClaimRewards => GemListRowTitle::ClaimRewards,
+        GemStakeActionKind::Stake => GemListRowTitle::Stake,
+        GemStakeActionKind::Freeze => GemListRowTitle::Freeze,
+        GemStakeActionKind::Unfreeze => GemListRowTitle::Unfreeze,
+        GemStakeActionKind::ClaimRewards => GemListRowTitle::ClaimRewards,
     }
 }
 
@@ -1175,7 +1175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_delegation_tap_withdraws_only_an_awaiting_withdrawal_on_a_signing_wallet() {
+    fn test_a_delegation_action_withdraws_only_an_awaiting_withdrawal_on_a_signing_wallet() {
         let asset = Asset::from_chain(Chain::Solana);
         let awaiting = Delegation::mock_with(Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal, 0);
         let active = Delegation::mock_with(Chain::Solana, StakeProviderType::Stake, DelegationState::Active, 0);
@@ -1345,16 +1345,16 @@ mod tests {
         let destination = |chain, action| {
             stake_actions(WalletType::Multicoin, chain, &[DelegationValidator::mock()], &GemAssetBalance::mock(), &[])
                 .into_iter()
-                .find(|item| item.action == action)
-                .and_then(|item| match item.tap {
-                    GemStakeActionTap::Open { destination } => Some(destination),
-                    GemStakeActionTap::FrozenBalanceInfo | GemStakeActionTap::Disabled => None,
+                .find(|item| item.kind == action)
+                .and_then(|item| match item.action {
+                    GemStakeAction::Open { destination } => Some(destination),
+                    GemStakeAction::FrozenBalanceInfo | GemStakeAction::Disabled => None,
                 })
         };
 
-        assert!(matches!(destination(Chain::Cosmos, GemStakeAction::Stake), Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Stake { .. } })));
+        assert!(matches!(destination(Chain::Cosmos, GemStakeActionKind::Stake), Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Stake { .. } })));
         assert!(matches!(
-            destination(Chain::Tron, GemStakeAction::Freeze),
+            destination(Chain::Tron, GemStakeActionKind::Freeze),
             Some(GemStakeDestination::Amount {
                 input: GemStakeAmountInput::Freeze { resource: Resource::Bandwidth }
             })
@@ -1365,7 +1365,7 @@ mod tests {
 
     #[test]
     fn test_stake_actions_follow_the_wallet_chain_and_balance() {
-        use GemStakeAction::*;
+        use GemStakeActionKind::*;
         let validators = |has: bool| match has {
             true => vec![DelegationValidator::mock()],
             false => Vec::new(),
@@ -1373,10 +1373,10 @@ mod tests {
         let actions = |chain, has_validators: bool, balance: GemAssetBalance, rewards: Vec<Delegation>| {
             stake_actions(WalletType::Multicoin, chain, &validators(has_validators), &balance, &rewards)
                 .into_iter()
-                .map(|item| match item.tap {
-                    GemStakeActionTap::Open { .. } => (item.action, true, false),
-                    GemStakeActionTap::Disabled => (item.action, false, false),
-                    GemStakeActionTap::FrozenBalanceInfo => (item.action, true, true),
+                .map(|item| match item.action {
+                    GemStakeAction::Open { .. } => (item.kind, true, false),
+                    GemStakeAction::Disabled => (item.kind, false, false),
+                    GemStakeAction::FrozenBalanceInfo => (item.kind, true, true),
                 })
                 .collect::<Vec<_>>()
         };
@@ -1395,7 +1395,7 @@ mod tests {
             &[Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 1_500_000)],
         )
         .into_iter()
-        .find(|item| item.action == ClaimRewards);
+        .find(|item| item.kind == ClaimRewards);
         assert_eq!(
             claim.map(|item| item.row),
             Some(GemListRow::Action {
@@ -1799,7 +1799,7 @@ mod tests {
     }
 
     #[test]
-    fn test_earn_positions_sort_by_balance_and_carry_their_tap() {
+    fn test_earn_positions_sort_by_balance_and_carry_their_action() {
         let small = Delegation::mock_base(DelegationBase::mock_with_balance(10, 0));
         let awaiting = Delegation::mock_base(DelegationBase {
             state: DelegationState::AwaitingWithdrawal,

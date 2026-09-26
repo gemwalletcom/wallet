@@ -8,7 +8,7 @@ import struct Gemstone.GemCollectibleAttribute
 import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
 import protocol Gemstone.GemCollectibleServiceProtocol
-import enum Gemstone.GemHeaderButtonTap
+import enum Gemstone.GemHeaderButtonAction
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
@@ -115,11 +115,11 @@ public final class CollectibleSceneViewModel {
 // MARK: - Business Logic
 
 extension CollectibleSceneViewModel {
-    func onSelectHeaderButton(_ tap: GemHeaderButtonTap) {
+    func onSelectHeaderButton(_ action: GemHeaderButtonAction) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
         }
-        switch tap {
+        switch action {
         case .sendCollectible:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
                 type: .send(.nft(nftAsset: assetData.asset.toGem())),

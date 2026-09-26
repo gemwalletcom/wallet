@@ -661,19 +661,19 @@ public extension Gemstone.GemHeaderAmount {
 public extension Gemstone.GemHeaderButton {
     static func mock(
         kind: Gemstone.GemHeaderButtonKind = .send,
-        tap: Gemstone.GemHeaderButtonTap = .mock(),
+        action: Gemstone.GemHeaderButtonAction = .mock(),
         isEnabled: Bool = false,
     ) -> Gemstone.GemHeaderButton {
         Gemstone.GemHeaderButton(
             kind: kind,
-            tap: tap,
+            action: action,
             isEnabled: isEnabled,
         )
     }
 }
 
-public extension Gemstone.GemHeaderButtonTap {
-    static func mock() -> Gemstone.GemHeaderButtonTap {
+public extension Gemstone.GemHeaderButtonAction {
+    static func mock() -> Gemstone.GemHeaderButtonAction {
         .send(assetId: nil)
     }
 }

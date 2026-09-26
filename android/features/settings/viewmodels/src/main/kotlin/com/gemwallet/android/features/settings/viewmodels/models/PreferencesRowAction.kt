@@ -5,7 +5,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
 import uniffi.gemstone.GemPickerOption
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 
 sealed interface PreferencesRowAction {
     data class Open(val action: PreferencesAction) : PreferencesRowAction
@@ -31,15 +31,15 @@ fun GemPerpetualDefaults.value(setting: PerpetualSetting): Int = when (setting) 
     PerpetualSetting.StopLoss -> stopLossPercent.toInt()
 }
 
-fun GemListRow.preferencesAction(): PreferencesRowAction? = when (tap()) {
-    GemRowTap.Currency -> PreferencesRowAction.Open(PreferencesAction.Currencies)
-    GemRowTap.Networks -> PreferencesRowAction.Open(PreferencesAction.Networks)
-    GemRowTap.Contacts -> PreferencesRowAction.Open(PreferencesAction.Contacts)
-    GemRowTap.Language -> PreferencesRowAction.Language
-    GemRowTap.Appearance -> PreferencesRowAction.Appearance
-    GemRowTap.Perpetuals -> (this as? GemListRow.Toggle)?.let { PreferencesRowAction.Perpetuals(it.isOn) }
-    GemRowTap.PerpetualLeverage -> PreferencesRowAction.Option(PerpetualSetting.Leverage)
-    GemRowTap.PerpetualTakeProfit -> PreferencesRowAction.Option(PerpetualSetting.TakeProfit)
-    GemRowTap.PerpetualStopLoss -> PreferencesRowAction.Option(PerpetualSetting.StopLoss)
+fun GemListRow.preferencesAction(): PreferencesRowAction? = when (action()) {
+    GemRowAction.Currency -> PreferencesRowAction.Open(PreferencesAction.Currencies)
+    GemRowAction.Networks -> PreferencesRowAction.Open(PreferencesAction.Networks)
+    GemRowAction.Contacts -> PreferencesRowAction.Open(PreferencesAction.Contacts)
+    GemRowAction.Language -> PreferencesRowAction.Language
+    GemRowAction.Appearance -> PreferencesRowAction.Appearance
+    GemRowAction.Perpetuals -> (this as? GemListRow.Toggle)?.let { PreferencesRowAction.Perpetuals(it.isOn) }
+    GemRowAction.PerpetualLeverage -> PreferencesRowAction.Option(PerpetualSetting.Leverage)
+    GemRowAction.PerpetualTakeProfit -> PreferencesRowAction.Option(PerpetualSetting.TakeProfit)
+    GemRowAction.PerpetualStopLoss -> PreferencesRowAction.Option(PerpetualSetting.StopLoss)
     else -> null
 }

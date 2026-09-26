@@ -43,9 +43,9 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 
-fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowTap) -> Unit)? = null) {
+fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
     sections.forEachIndexed { index, section ->
         val title = section.title.titleRes()
         if (title != null) {
@@ -62,8 +62,8 @@ fun GemListRowView(
     row: GemListRow,
     listPosition: ListPosition,
     modifier: Modifier = Modifier,
-    onToggle: ((GemRowTap, Boolean) -> Unit)? = null,
-    onSelect: ((GemRowTap) -> Unit)? = null,
+    onToggle: ((GemRowAction, Boolean) -> Unit)? = null,
+    onSelect: ((GemRowAction) -> Unit)? = null,
     onSelectAddress: ((String) -> Unit)? = null,
     accessory: (@Composable () -> Unit)? = null,
 ) {
@@ -71,7 +71,7 @@ fun GemListRowView(
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
 
-    val tap = row.tap()
+    val action = row.action()
     when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
             title = row.title,
@@ -93,7 +93,7 @@ fun GemListRowView(
         }
 
         is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
-            val selects = onSelect != null && tap != null && row.url == null
+            val selects = onSelect != null && action != null && row.url == null
             val openAddress = row.address?.let { address -> onSelectAddress?.let { select -> { select(address) } } }
             ListItem(
                 model = row.model,
@@ -102,7 +102,7 @@ fun GemListRowView(
                     when {
                         openAddress != null -> Modifier.clickable(onClick = openAddress)
                         row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
-                        selects -> Modifier.clickable { tap?.let(onSelect) }
+                        selects -> Modifier.clickable { action?.let(onSelect) }
                         else -> Modifier
                     },
                 ),
@@ -152,7 +152,7 @@ fun GemListRowView(
             chain = row.chain,
             value = row.name,
             listPosition = listPosition,
-            onOpenNetwork = onSelect?.let { select -> { select(GemRowTap.Network) } },
+            onOpenNetwork = onSelect?.let { select -> { select(GemRowAction.Network) } },
         )
 
         is GemListRowUIModel.Toggle -> ListItem(
@@ -160,13 +160,13 @@ fun GemListRowView(
             listPosition = listPosition,
             modifier = modifier,
             minHeight = ListItemDefaults.plainMinHeight,
-            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.tap, it) }) },
+            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.action, it) }) },
         )
 
         is GemListRowUIModel.Picker -> ListItem(
             model = row.model,
             listPosition = listPosition,
-            modifier = modifier.clickable { onSelect?.invoke(row.tap) },
+            modifier = modifier.clickable { onSelect?.invoke(row.action) },
             minHeight = ListItemDefaults.plainMinHeight,
             accessory = {
                 DataBadgeChevron()

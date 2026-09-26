@@ -295,7 +295,7 @@ mocks:
   - GemFormattedNumber
   - GemHeaderAmount
   - GemHeaderButton
-  - GemHeaderButtonTap
+  - GemHeaderButtonAction
   - GemInfoTopic
   - GemLocalizedText
   - GemNftEntry

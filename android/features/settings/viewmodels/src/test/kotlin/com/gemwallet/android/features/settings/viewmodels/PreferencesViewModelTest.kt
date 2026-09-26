@@ -37,7 +37,7 @@ import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
 import uniffi.gemstone.GemPickerOption
 import uniffi.gemstone.GemPreferencesInput
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,7 +68,7 @@ class PreferencesViewModelTest {
                 GemListSection(
                     GemListSectionTitle.NONE,
                     GemListSectionFooter.NONE,
-                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, input.currency.toString(), GemListRowIcon.CURRENCY, GemRowTap.Currency)),
+                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, input.currency.toString(), GemListRowIcon.CURRENCY, GemRowAction.Currency)),
                 ),
             )
         }

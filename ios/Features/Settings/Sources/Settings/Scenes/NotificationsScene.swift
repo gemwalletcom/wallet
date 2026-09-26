@@ -33,7 +33,7 @@ public struct NotificationsScene: View {
 extension NotificationsScene {
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        if row.tap() == .priceAlerts {
+        if row.action() == .priceAlerts {
             NavigationLink(value: Scenes.PriceAlerts()) {
                 GemListRowView(row: row)
             }

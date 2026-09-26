@@ -8,12 +8,12 @@ import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemFormattedNumber
-import enum Gemstone.GemHeaderButtonTap
+import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
-import enum Gemstone.GemRowTap
+import enum Gemstone.GemRowAction
 import enum Gemstone.GemServiceError
 import func Gemstone.loadError
 import GemstonePrimitives
@@ -107,18 +107,18 @@ public final class AssetSceneViewModel: Sendable {
 
     private func detailRowItem(_ row: GemAssetDetailRow, id: String, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowItem {
         switch row {
-        case let .balance(item, tap):
+        case let .balance(item, rowAction):
             AssetDetailRowItem(
                 id: id,
                 content: .item(balanceListItem(for: item)),
-                action: tap.flatMap { action($0, networkDestination: networkDestination) },
+                action: rowAction.flatMap { action($0, networkDestination: networkDestination) },
                 accessibilityIdentifier: balanceAccessibilityIdentifier(item),
             )
-        case let .row(row, tap):
+        case let .row(row, rowAction):
             AssetDetailRowItem(
                 id: id,
                 content: .row(row),
-                action: tap.flatMap { action($0, networkDestination: networkDestination) },
+                action: rowAction.flatMap { action($0, networkDestination: networkDestination) },
                 accessibilityIdentifier: accessibilityIdentifier(row),
             )
         }
@@ -140,8 +140,8 @@ public final class AssetSceneViewModel: Sendable {
         }
     }
 
-    private func action(_ tap: GemRowTap, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowAction? {
-        switch tap {
+    private func action(_ action: GemRowAction, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowAction? {
+        switch action {
         case .price: .price
         case .network: networkAction(networkDestination)
         case .earn: .earn
@@ -243,8 +243,8 @@ public extension AssetSceneViewModel {
         }
     }
 
-    internal func onSelectHeader(_ tap: GemHeaderButtonTap) {
-        switch tap {
+    internal func onSelectHeader(_ action: GemHeaderButtonAction) {
+        switch action {
         case .buy: onSelectBuy()
         case .send: onSelect(assetType: .send(.asset(asset: assetData.asset.toGem())))
         case let .swap(payAssetId?, receiveAssetId): onSelect(assetType: .swap(AssetId(core: payAssetId), receiveAssetId.map { AssetId(core: $0) }))

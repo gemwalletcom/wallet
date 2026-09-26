@@ -8,7 +8,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBannerKey
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 
 sealed interface AssetAction {
     sealed interface Navigation : AssetAction
@@ -42,46 +42,46 @@ fun GemAssetNetworkDestination?.navigation(): AssetAction.Navigation? = when (th
     null -> null
 }
 
-fun GemRowTap.detailsAction(assetId: AssetId, network: AssetAction.Navigation?): AssetAction? = when (this) {
-    GemRowTap.Price -> AssetAction.OpenChart(assetId)
+fun GemRowAction.detailsAction(assetId: AssetId, network: AssetAction.Navigation?): AssetAction? = when (this) {
+    GemRowAction.Price -> AssetAction.OpenChart(assetId)
 
-    GemRowTap.Network -> network
+    GemRowAction.Network -> network
 
-    GemRowTap.Earn -> AssetAction.Earn(assetId)
+    GemRowAction.Earn -> AssetAction.Earn(assetId)
 
-    GemRowTap.Stake -> AssetAction.Stake(assetId)
+    GemRowAction.Stake -> AssetAction.Stake(assetId)
 
-    GemRowTap.PriceAlerts -> AssetAction.OpenPriceAlerts(assetId)
+    GemRowAction.PriceAlerts -> AssetAction.OpenPriceAlerts(assetId)
 
-    GemRowTap.Pin -> AssetAction.Pin
+    GemRowAction.Pin -> AssetAction.Pin
 
-    GemRowTap.AddToWallet -> AssetAction.Add
+    GemRowAction.AddToWallet -> AssetAction.Add
 
-    is GemRowTap.Explorer -> AssetAction.OpenUrl(url)
+    is GemRowAction.Explorer -> AssetAction.OpenUrl(url)
 
-    GemRowTap.Wallets,
-    GemRowTap.Security,
-    GemRowTap.Notifications,
-    GemRowTap.Preferences,
-    GemRowTap.WalletConnect,
-    GemRowTap.Support,
-    GemRowTap.Rewards,
-    GemRowTap.AboutUs,
-    GemRowTap.Developer,
-    GemRowTap.Currency,
-    GemRowTap.Language,
-    GemRowTap.Appearance,
-    GemRowTap.Networks,
-    GemRowTap.Contacts,
-    GemRowTap.Perpetuals,
-    GemRowTap.PerpetualLeverage,
-    GemRowTap.PerpetualTakeProfit,
-    GemRowTap.PerpetualStopLoss,
-    GemRowTap.PushNotifications,
-    GemRowTap.Authentication,
-    GemRowTap.LockPeriod,
-    GemRowTap.PrivacyLock,
-    GemRowTap.HideBalance,
-    GemRowTap.SetPriceAlert,
+    GemRowAction.Wallets,
+    GemRowAction.Security,
+    GemRowAction.Notifications,
+    GemRowAction.Preferences,
+    GemRowAction.WalletConnect,
+    GemRowAction.Support,
+    GemRowAction.Rewards,
+    GemRowAction.AboutUs,
+    GemRowAction.Developer,
+    GemRowAction.Currency,
+    GemRowAction.Language,
+    GemRowAction.Appearance,
+    GemRowAction.Networks,
+    GemRowAction.Contacts,
+    GemRowAction.Perpetuals,
+    GemRowAction.PerpetualLeverage,
+    GemRowAction.PerpetualTakeProfit,
+    GemRowAction.PerpetualStopLoss,
+    GemRowAction.PushNotifications,
+    GemRowAction.Authentication,
+    GemRowAction.LockPeriod,
+    GemRowAction.PrivacyLock,
+    GemRowAction.HideBalance,
+    GemRowAction.SetPriceAlert,
     -> null
 }

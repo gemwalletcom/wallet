@@ -49,7 +49,7 @@ public struct PreferencesScene: View {
 
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch row.tap() {
+        switch row.action() {
         case .currency:
             link(row, to: Scenes.Currency())
         case .language:

@@ -16,15 +16,15 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemDelegationAmountInput
-import uniffi.gemstone.GemStakeActionTap
+import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemTransferData
 
 internal fun LazyListScope.stakeActions(actions: List<StakeActionUIModel>, assetId: AssetId, amountAction: AmountTransactionAction, onConfirm: (GemTransferData) -> Unit) {
     itemsPositioned(actions) { position, item ->
         var showInfo by remember { mutableStateOf(false) }
-        val onClick: (() -> Unit)? = when (val tap = item.tap) {
-            is GemStakeActionTap.Open -> when (val destination = tap.destination) {
+        val onClick: (() -> Unit)? = when (val action = item.action) {
+            is GemStakeAction.Open -> when (val destination = action.destination) {
                 is GemStakeDestination.Amount -> {
                     { amountAction(GemDelegationAmountInput.Stake(destination.input).toAmountParams(assetId)) }
                 }
@@ -34,11 +34,11 @@ internal fun LazyListScope.stakeActions(actions: List<StakeActionUIModel>, asset
                 }
             }
 
-            GemStakeActionTap.FrozenBalanceInfo -> {
+            GemStakeAction.FrozenBalanceInfo -> {
                 { showInfo = true }
             }
 
-            GemStakeActionTap.Disabled -> null
+            GemStakeAction.Disabled -> null
         }
         ListItem(
             model = item.model,

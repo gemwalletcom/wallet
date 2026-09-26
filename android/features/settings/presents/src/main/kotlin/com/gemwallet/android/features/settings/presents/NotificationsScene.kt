@@ -9,7 +9,7 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 
 @Composable
 fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostState, onEnableNotifications: () -> Unit, onDisableNotifications: () -> Unit, onPriceAlerts: () -> Unit, onCancel: () -> Unit) {
@@ -24,15 +24,15 @@ fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostSta
                     GemListRowView(
                         row = row,
                         listPosition = position,
-                        onToggle = { tap, isOn ->
-                            when (tap) {
-                                GemRowTap.PushNotifications -> if (isOn) onEnableNotifications() else onDisableNotifications()
+                        onToggle = { action, isOn ->
+                            when (action) {
+                                GemRowAction.PushNotifications -> if (isOn) onEnableNotifications() else onDisableNotifications()
                                 else -> Unit
                             }
                         },
-                        onSelect = { tap ->
-                            when (tap) {
-                                GemRowTap.PriceAlerts -> onPriceAlerts()
+                        onSelect = { action ->
+                            when (action) {
+                                GemRowAction.PriceAlerts -> onPriceAlerts()
                                 else -> Unit
                             }
                         },

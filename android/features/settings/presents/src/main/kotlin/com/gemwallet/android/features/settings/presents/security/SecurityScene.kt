@@ -47,8 +47,8 @@ fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriod
                     GemListRowView(
                         row = row,
                         listPosition = position,
-                        onToggle = { tap, isOn ->
-                            when (tap.securityAction()) {
+                        onToggle = { action, isOn ->
+                            when (action.securityAction()) {
                                 SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
                                 SecurityRowAction.HideBalance -> onHideBalances()
                                 null -> Unit

@@ -1,14 +1,14 @@
 package com.gemwallet.android.features.settings.viewmodels.security.models
 
-import uniffi.gemstone.GemRowTap
+import uniffi.gemstone.GemRowAction
 
 sealed interface SecurityRowAction {
     data object Authentication : SecurityRowAction
     data object HideBalance : SecurityRowAction
 }
 
-fun GemRowTap.securityAction(): SecurityRowAction? = when (this) {
-    GemRowTap.Authentication -> SecurityRowAction.Authentication
-    GemRowTap.HideBalance -> SecurityRowAction.HideBalance
+fun GemRowAction.securityAction(): SecurityRowAction? = when (this) {
+    GemRowAction.Authentication -> SecurityRowAction.Authentication
+    GemRowAction.HideBalance -> SecurityRowAction.HideBalance
     else -> null
 }

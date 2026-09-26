@@ -190,14 +190,14 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {
         let actions = [
             GemStakeActionItem(
-                action: .stake,
+                kind: .stake,
                 row: .action(title: .stake, value: nil, info: nil),
-                tap: validators.first.map { .open(destination: .amount(input: .stake(validator: $0))) } ?? .disabled,
+                action: validators.first.map { .open(destination: .amount(input: .stake(validator: $0))) } ?? .disabled,
             ),
             GemStakeActionItem(
-                action: .claimRewards,
+                kind: .claimRewards,
                 row: .action(title: .claimRewards, value: nil, info: nil),
-                tap: (claimRewardsDestination ?? input.delegations.first.map { .amount(input: .rewards(delegations: input.delegations, validator: $0.validator)) })
+                action: (claimRewardsDestination ?? input.delegations.first.map { .amount(input: .rewards(delegations: input.delegations, validator: $0.validator)) })
                     .map { .open(destination: $0) } ?? .disabled,
             ),
         ]

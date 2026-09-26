@@ -46,7 +46,7 @@ class AmountListHeadTest {
     private fun setWatchWalletContent() {
         composeRule.setContent {
             WalletTheme {
-                AssetHeadActions(actions = GemHeaderActions.WatchOnly, onTap = {})
+                AssetHeadActions(actions = GemHeaderActions.WatchOnly, onAction = {})
             }
         }
     }

@@ -4,7 +4,7 @@ use crate::config::perpetual_config;
 use crate::config::public::PublicUrl;
 use crate::config::social::community_links;
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemRowTap, GemUrlTarget};
+use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemRowAction, GemUrlTarget};
 use crate::percentage::GemPercentageStyle;
 use crate::services::currency;
 use crate::services::localization::GemLocalizedText;
@@ -85,12 +85,12 @@ pub struct GemSecurityInput {
 }
 
 pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
-    let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, tap: GemRowTap| GemListRow::Link { title, value, icon, tap };
-    let picker = |title: GemListRowTitle, value: GemLocalizedText, tap: GemRowTap| GemListRow::Picker {
+    let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemListRow::Link { title, value, icon, action };
+    let picker = |title: GemListRowTitle, value: GemLocalizedText, action: GemRowAction| GemListRow::Picker {
         title,
         value,
         icon: GemListRowIcon::None,
-        tap,
+        action,
     };
     let pickers = perpetual_pickers();
     let label = |options: &[GemPickerOption], value: u8| options.iter().find(|option| option.value == value).map(|option| option.label.clone()).unwrap_or(GemLocalizedText::None);
@@ -102,11 +102,11 @@ pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
     vec![
         section(
             [
-                Some(link(GemListRowTitle::Currency, Some(currency::rules::currency_text(&input.currency)), GemListRowIcon::Currency, GemRowTap::Currency)),
-                input.language.map(|language| link(GemListRowTitle::Language, Some(language), GemListRowIcon::Language, GemRowTap::Language)),
-                Some(link(GemListRowTitle::Appearance, Some(input.appearance), GemListRowIcon::Appearance, GemRowTap::Appearance)),
-                Some(link(GemListRowTitle::Networks, None, GemListRowIcon::Networks, GemRowTap::Networks)),
-                Some(link(GemListRowTitle::Contacts, None, GemListRowIcon::Contacts, GemRowTap::Contacts)),
+                Some(link(GemListRowTitle::Currency, Some(currency::rules::currency_text(&input.currency)), GemListRowIcon::Currency, GemRowAction::Currency)),
+                input.language.map(|language| link(GemListRowTitle::Language, Some(language), GemListRowIcon::Language, GemRowAction::Language)),
+                Some(link(GemListRowTitle::Appearance, Some(input.appearance), GemListRowIcon::Appearance, GemRowAction::Appearance)),
+                Some(link(GemListRowTitle::Networks, None, GemListRowIcon::Networks, GemRowAction::Networks)),
+                Some(link(GemListRowTitle::Contacts, None, GemListRowIcon::Contacts, GemRowAction::Contacts)),
             ]
             .into_iter()
             .flatten()
@@ -119,17 +119,21 @@ pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
                     value: None,
                     icon: GemListRowIcon::Perpetuals,
                     is_on: input.perpetuals_enabled,
-                    tap: GemRowTap::Perpetuals,
+                    action: GemRowAction::Perpetuals,
                 }),
                 input
                     .perpetuals_enabled
-                    .then(|| picker(GemListRowTitle::PerpetualLeverage, label(&pickers.leverage, input.perpetual_defaults.leverage), GemRowTap::PerpetualLeverage)),
+                    .then(|| picker(GemListRowTitle::PerpetualLeverage, label(&pickers.leverage, input.perpetual_defaults.leverage), GemRowAction::PerpetualLeverage)),
+                input.perpetuals_enabled.then(|| {
+                    picker(
+                        GemListRowTitle::PerpetualTakeProfit,
+                        label(&pickers.take_profit, input.perpetual_defaults.take_profit_percent),
+                        GemRowAction::PerpetualTakeProfit,
+                    )
+                }),
                 input
                     .perpetuals_enabled
-                    .then(|| picker(GemListRowTitle::PerpetualTakeProfit, label(&pickers.take_profit, input.perpetual_defaults.take_profit_percent), GemRowTap::PerpetualTakeProfit)),
-                input
-                    .perpetuals_enabled
-                    .then(|| picker(GemListRowTitle::PerpetualStopLoss, label(&pickers.stop_loss, input.perpetual_defaults.stop_loss_percent), GemRowTap::PerpetualStopLoss)),
+                    .then(|| picker(GemListRowTitle::PerpetualStopLoss, label(&pickers.stop_loss, input.perpetual_defaults.stop_loss_percent), GemRowAction::PerpetualStopLoss)),
             ]
             .into_iter()
             .flatten()
@@ -150,24 +154,24 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
             value: None,
             icon: GemListRowIcon::None,
             is_on: push_enabled,
-            tap: GemRowTap::PushNotifications,
+            action: GemRowAction::PushNotifications,
         }),
         section(GemListRow::Link {
             title: GemListRowTitle::PriceAlerts,
             value: None,
             icon: GemListRowIcon::PriceAlerts,
-            tap: GemRowTap::PriceAlerts,
+            action: GemRowAction::PriceAlerts,
         }),
     ]
 }
 
 pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
-    let toggle = |title: GemListRowTitle, is_on: bool, tap: GemRowTap| GemListRow::Toggle {
+    let toggle = |title: GemListRowTitle, is_on: bool, action: GemRowAction| GemListRow::Toggle {
         title,
         value: None,
         icon: GemListRowIcon::None,
         is_on,
-        tap,
+        action,
     };
     vec![
         GemListSection {
@@ -179,15 +183,15 @@ pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
                     value: input.authentication_name,
                     icon: GemListRowIcon::None,
                     is_on: input.authentication_enabled,
-                    tap: GemRowTap::Authentication,
+                    action: GemRowAction::Authentication,
                 }),
                 input.authentication_enabled.then_some(GemListRow::Picker {
                     title: GemListRowTitle::LockPeriod,
                     value: GemLocalizedText::Text { text: input.lock_period },
                     icon: GemListRowIcon::None,
-                    tap: GemRowTap::LockPeriod,
+                    action: GemRowAction::LockPeriod,
                 }),
-                (input.authentication_enabled && input.privacy_lock_supported).then(|| toggle(GemListRowTitle::PrivacyLock, input.privacy_lock_enabled, GemRowTap::PrivacyLock)),
+                (input.authentication_enabled && input.privacy_lock_supported).then(|| toggle(GemListRowTitle::PrivacyLock, input.privacy_lock_enabled, GemRowAction::PrivacyLock)),
             ]
             .into_iter()
             .flatten()
@@ -196,7 +200,7 @@ pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
         GemListSection {
             title: GemListSectionTitle::None,
             footer: GemListSectionFooter::None,
-            rows: vec![toggle(GemListRowTitle::HideBalance, input.hide_balance_enabled, GemRowTap::HideBalance)],
+            rows: vec![toggle(GemListRowTitle::HideBalance, input.hide_balance_enabled, GemRowAction::HideBalance)],
         },
     ]
 }
@@ -262,33 +266,33 @@ fn store_url(store: PlatformStore) -> PublicUrl {
 }
 
 pub fn sections(wallets_count: usize, notifications_available: bool, wallet_connect_available: bool, shows_rewards: bool, developer_enabled: bool) -> Vec<GemListSection> {
-    let link = |title: GemListRowTitle, icon: GemListRowIcon, tap: GemRowTap| GemListRow::Link { title, value: None, icon, tap };
+    let link = |title: GemListRowTitle, icon: GemListRowIcon, action: GemRowAction| GemListRow::Link { title, value: None, icon, action };
     [
         vec![
             GemListRow::Link {
                 title: GemListRowTitle::Wallets,
                 value: Some(wallets_count.to_string()),
                 icon: GemListRowIcon::Wallets,
-                tap: GemRowTap::Wallets,
+                action: GemRowAction::Wallets,
             },
-            link(GemListRowTitle::Security, GemListRowIcon::Security, GemRowTap::Security),
+            link(GemListRowTitle::Security, GemListRowIcon::Security, GemRowAction::Security),
         ],
         [
-            notifications_available.then(|| link(GemListRowTitle::Notifications, GemListRowIcon::Notifications, GemRowTap::Notifications)),
-            Some(link(GemListRowTitle::Preferences, GemListRowIcon::Preferences, GemRowTap::Preferences)),
+            notifications_available.then(|| link(GemListRowTitle::Notifications, GemListRowIcon::Notifications, GemRowAction::Notifications)),
+            Some(link(GemListRowTitle::Preferences, GemListRowIcon::Preferences, GemRowAction::Preferences)),
         ]
         .into_iter()
         .flatten()
         .collect(),
         match wallet_connect_available {
-            true => vec![link(GemListRowTitle::WalletConnect, GemListRowIcon::WalletConnect, GemRowTap::WalletConnect)],
+            true => vec![link(GemListRowTitle::WalletConnect, GemListRowIcon::WalletConnect, GemRowAction::WalletConnect)],
             false => vec![],
         },
         [
-            Some(link(GemListRowTitle::Support, GemListRowIcon::Support, GemRowTap::Support)),
-            shows_rewards.then(|| link(GemListRowTitle::Rewards, GemListRowIcon::Rewards, GemRowTap::Rewards)),
-            Some(link(GemListRowTitle::AboutUs, GemListRowIcon::AboutUs, GemRowTap::AboutUs)),
-            developer_enabled.then(|| link(GemListRowTitle::Developer, GemListRowIcon::Developer, GemRowTap::Developer)),
+            Some(link(GemListRowTitle::Support, GemListRowIcon::Support, GemRowAction::Support)),
+            shows_rewards.then(|| link(GemListRowTitle::Rewards, GemListRowIcon::Rewards, GemRowAction::Rewards)),
+            Some(link(GemListRowTitle::AboutUs, GemListRowIcon::AboutUs, GemRowAction::AboutUs)),
+            developer_enabled.then(|| link(GemListRowTitle::Developer, GemListRowIcon::Developer, GemRowAction::Developer)),
         ]
         .into_iter()
         .flatten()
@@ -320,13 +324,13 @@ mod tests {
                     value: None,
                     icon: GemListRowIcon::None,
                     is_on: true,
-                    tap: GemRowTap::PushNotifications,
+                    action: GemRowAction::PushNotifications,
                 }],
                 vec![GemListRow::Link {
                     title: GemListRowTitle::PriceAlerts,
                     value: None,
                     icon: GemListRowIcon::PriceAlerts,
-                    tap: GemRowTap::PriceAlerts,
+                    action: GemRowAction::PriceAlerts,
                 }],
             ]
         );
@@ -356,7 +360,7 @@ mod tests {
                 value: None,
                 icon: GemListRowIcon::Perpetuals,
                 is_on: false,
-                tap: GemRowTap::Perpetuals,
+                action: GemRowAction::Perpetuals,
             }])
         );
         assert_eq!(
@@ -385,7 +389,7 @@ mod tests {
                 title: GemListRowTitle::PerpetualStopLoss,
                 value: GemLocalizedText::None,
                 icon: GemListRowIcon::None,
-                tap: GemRowTap::PerpetualStopLoss,
+                action: GemRowAction::PerpetualStopLoss,
             },
             "the saved value reads through the same option label"
         );
@@ -401,7 +405,7 @@ mod tests {
                 title: GemListRowTitle::Currency,
                 value: Some("\u{1f1ec}\u{1f1e7} GBP".to_string()),
                 icon: GemListRowIcon::Currency,
-                tap: GemRowTap::Currency,
+                action: GemRowAction::Currency,
             })
         );
         assert_eq!(
@@ -451,7 +455,7 @@ mod tests {
                 value: None,
                 icon: GemListRowIcon::None,
                 is_on: false,
-                tap: GemRowTap::HideBalance,
+                action: GemRowAction::HideBalance,
             }]),
             "hiding the balance is its own choice, not part of the lock"
         );
@@ -513,7 +517,7 @@ mod tests {
                 title: GemListRowTitle::Wallets,
                 value: Some("3".to_string()),
                 icon: GemListRowIcon::Wallets,
-                tap: GemRowTap::Wallets,
+                action: GemRowAction::Wallets,
             }),
             "the wallets row counts the wallets the screen was given"
         );
@@ -531,13 +535,13 @@ mod tests {
             hide_balance_enabled: false,
         });
 
-        assert_eq!(settings[0].rows[0].tap(), Some(GemRowTap::Wallets));
-        assert_eq!(settings.last().and_then(|section| section.rows.last()).and_then(GemListRow::tap), Some(GemRowTap::Developer));
+        assert_eq!(settings[0].rows[0].action(), Some(GemRowAction::Wallets));
+        assert_eq!(settings.last().and_then(|section| section.rows.last()).and_then(GemListRow::action), Some(GemRowAction::Developer));
         assert_eq!(
-            security[0].rows.iter().map(GemListRow::tap).collect::<Vec<_>>(),
-            vec![Some(GemRowTap::Authentication), Some(GemRowTap::LockPeriod), Some(GemRowTap::PrivacyLock)]
+            security[0].rows.iter().map(GemListRow::action).collect::<Vec<_>>(),
+            vec![Some(GemRowAction::Authentication), Some(GemRowAction::LockPeriod), Some(GemRowAction::PrivacyLock)]
         );
-        assert_eq!(about_sections("1.0".to_string(), "1".to_string(), None).last().and_then(|section| section.rows.first()).and_then(GemListRow::tap), None);
+        assert_eq!(about_sections("1.0".to_string(), "1".to_string(), None).last().and_then(|section| section.rows.first()).and_then(GemListRow::action), None);
     }
 
     fn row_title(row: &GemListRow) -> Option<GemListRowTitle> {

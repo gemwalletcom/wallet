@@ -3,17 +3,17 @@
 import Components
 import Foundation
 import struct Gemstone.GemHeaderButton
-import enum Gemstone.GemHeaderButtonTap
+import enum Gemstone.GemHeaderButtonAction
 import Primitives
 import SwiftUI
 
-public typealias HeaderButtonAction = @MainActor @Sendable (GemHeaderButtonTap) -> Void
+public typealias HeaderButtonActionHandler = @MainActor @Sendable (GemHeaderButtonAction) -> Void
 
 public struct HeaderButtonsView: View {
     private let buttons: [GemHeaderButton]
     private let menuTitle: String?
     private let menuItems: [ActionMenuItemType]
-    private var action: HeaderButtonAction?
+    private var action: HeaderButtonActionHandler?
 
     var maxWidth: CGFloat {
         buttons.count > 3 ? 84 : 94
@@ -23,7 +23,7 @@ public struct HeaderButtonsView: View {
         buttons: [GemHeaderButton],
         menuTitle: String? = nil,
         menuItems: [ActionMenuItemType] = [],
-        action: HeaderButtonAction? = nil,
+        action: HeaderButtonActionHandler? = nil,
     ) {
         self.buttons = buttons
         self.menuTitle = menuTitle
@@ -41,14 +41,14 @@ public struct HeaderButtonsView: View {
 
     private func buttonView(for button: GemHeaderButton) -> some View {
         Group {
-            switch button.tap {
+            switch button.action {
             case .send, .receive, .buy, .swap, .deposit, .withdraw, .sendCollectible:
                 RoundButton(
                     title: button.kind.title,
                     image: button.kind.image,
                     isEnabled: button.isEnabled,
                 ) {
-                    action?(button.tap)
+                    action?(button.action)
                 }
             case .collectibleMenu:
                 AdaptiveActionMenu(
@@ -74,10 +74,10 @@ public struct HeaderButtonsView: View {
 
 #Preview {
     let buttons = [
-        GemHeaderButton(kind: .send, tap: .send(assetId: nil), isEnabled: true),
-        GemHeaderButton(kind: .receive, tap: .receive(assetId: nil), isEnabled: true),
-        GemHeaderButton(kind: .buy, tap: .buy(assetId: nil), isEnabled: true),
-        GemHeaderButton(kind: .swap, tap: .swap(payAssetId: nil, receiveAssetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .send, action: .send(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .receive, action: .receive(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .buy, action: .buy(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .swap, action: .swap(payAssetId: nil, receiveAssetId: nil), isEnabled: true),
     ]
     VStack {
         Spacer()

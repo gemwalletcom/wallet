@@ -89,8 +89,8 @@ import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
+import uniffi.gemstone.GemHeaderButtonAction
 import uniffi.gemstone.GemHeaderButtonKind
-import uniffi.gemstone.GemHeaderButtonTap
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.assetText
 import kotlin.math.floor
@@ -227,7 +227,7 @@ fun HeaderIcon(icon: GemAssetIcon, iconSize: Dp = headerIconSize) {
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun AssetHeadActions(actions: GemHeaderActions, onTap: (GemHeaderButtonTap) -> Unit) {
+fun AssetHeadActions(actions: GemHeaderActions, onAction: (GemHeaderButtonAction) -> Unit) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     val buttons = when (actions) {
         GemHeaderActions.WatchOnly -> {
@@ -256,7 +256,7 @@ fun AssetHeadActions(actions: GemHeaderActions, onTap: (GemHeaderButtonTap) -> U
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
                 },
-                onClick = { onTap(button.tap) },
+                onClick = { onAction(button.action) },
             )
         }
     }
@@ -469,13 +469,13 @@ fun PreviewAssetHeadActions() {
         AssetHeadActions(
             GemHeaderActions.Buttons(
                 listOf(
-                    GemHeaderButton(GemHeaderButtonKind.SEND, GemHeaderButtonTap.Send(null), isEnabled = true),
-                    GemHeaderButton(GemHeaderButtonKind.RECEIVE, GemHeaderButtonTap.Receive(null), isEnabled = true),
-                    GemHeaderButton(GemHeaderButtonKind.BUY, GemHeaderButtonTap.Buy(null), isEnabled = true),
-                    GemHeaderButton(GemHeaderButtonKind.SWAP, GemHeaderButtonTap.Swap(null, null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.SEND, GemHeaderButtonAction.Send(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.RECEIVE, GemHeaderButtonAction.Receive(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.BUY, GemHeaderButtonAction.Buy(null), isEnabled = true),
+                    GemHeaderButton(GemHeaderButtonKind.SWAP, GemHeaderButtonAction.Swap(null, null), isEnabled = true),
                 ),
             ),
-            onTap = {},
+            onAction = {},
         )
     }
 }
