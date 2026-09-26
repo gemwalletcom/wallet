@@ -32,7 +32,6 @@ ALLOWED = {
     "GemKeystore.export_private_key": "VM181",
     "GemKeystore.export_recovery_phrase": "VM181",
     "GemConfirmation.row_contents": DOUBLE,
-    "GemConfirmScreen.button": DOUBLE,
     "GemConfirmScreen.fee_value": DOUBLE,
     "confirm_error_info": DOUBLE,
     "delegation_list_rows": DOUBLE,

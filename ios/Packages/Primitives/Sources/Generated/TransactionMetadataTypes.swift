@@ -2,16 +2,6 @@
 
 import Foundation
 
-public struct TransactionNFTTransferMetadata: Codable, Sendable {
-	public let assetId: NFTAssetId
-	public let name: String?
-
-	public init(assetId: NFTAssetId, name: String?) {
-		self.assetId = assetId
-		self.name = name
-	}
-}
-
 public struct TransactionSwapMetadata: Codable, Equatable, Hashable, Sendable {
 	public let fromAsset: AssetId
 	public let fromValue: String

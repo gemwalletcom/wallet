@@ -28,7 +28,7 @@ struct TransactionSceneViewModelTests {
         var selectedAction: GemTransactionHeaderAction?
         let model = TransactionSceneViewModel.mock(
             type: .transferNFT,
-            metadata: .encode(TransactionNFTTransferMetadata(assetId: assetId, name: "NFT")),
+            metadata: .object(["assetId": .string(assetId.identifier), "name": .string("NFT")]),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -43,7 +43,7 @@ struct TransactionSceneViewModelTests {
     func nftHeaderActionRequiresHandler() {
         let model = TransactionSceneViewModel.mock(
             type: .transferNFT,
-            metadata: .encode(TransactionNFTTransferMetadata(assetId: .mock(), name: "NFT")),
+            metadata: .object(["assetId": .string(NFTAssetId.mock().identifier), "name": .string("NFT")]),
         )
 
         #expect(model.onTransactionHeaderTap == nil)

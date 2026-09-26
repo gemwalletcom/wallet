@@ -23,7 +23,6 @@ pub enum CacheKey<'a> {
     FetchAssets(&'a str),
     FetchNftAsset(&'a str),
     Price(&'a str),
-    PricerCoinInfo(&'a str),
     PriceMetadata(&'a str, u64),
     PriceMissingMapping(&'a str, &'a str, u64),
 
@@ -42,8 +41,6 @@ pub enum CacheKey<'a> {
 
     // Status keys
     JobStatus(&'a str),
-    ConsumerStatus(&'a str),
-    ParserStatus(&'a str),
 
     // Pricer keys
     Markets,
@@ -88,7 +85,6 @@ impl CacheKey<'_> {
             Self::FetchAssets(asset_id) => format!("fetch:assets:{}", asset_id),
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
-            Self::PricerCoinInfo(coin_id) => format!("pricer:coin_info:{}", coin_id),
             Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
             Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
@@ -98,8 +94,6 @@ impl CacheKey<'_> {
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
-            Self::ConsumerStatus(name) => format!("consumers:status:{}", name),
-            Self::ParserStatus(chain) => format!("parser:status:{}", chain),
             Self::Markets => "markets:markets".to_string(),
             Self::ObservedAssets => "pricer:observed_assets".to_string(),
             Self::SwapDepositAddresses(provider) => format!("swap:deposit_addresses:{}", provider),
@@ -130,7 +124,6 @@ impl CacheKey<'_> {
             Self::FetchAssets(_) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
-            Self::PricerCoinInfo(_) => SECONDS_PER_DAY,
             Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
             Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,
@@ -139,8 +132,6 @@ impl CacheKey<'_> {
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
-            Self::ConsumerStatus(_) => 7 * SECONDS_PER_DAY,
-            Self::ParserStatus(_) => 7 * SECONDS_PER_DAY,
             Self::Markets => SECONDS_PER_DAY,
             Self::ObservedAssets => 2 * SECONDS_PER_MINUTE,
             Self::SwapDepositAddresses(_) => 7 * SECONDS_PER_DAY,

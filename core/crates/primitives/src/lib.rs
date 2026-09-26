@@ -373,8 +373,6 @@ pub mod connection_component;
 pub use self::connection_component::ConnectionComponent;
 pub mod connection_status;
 pub use self::connection_status::ConnectionStatus;
-pub mod metrics;
-pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
 pub mod version;
 pub use self::version::{Version, is_version_higher};
 pub mod value_access;

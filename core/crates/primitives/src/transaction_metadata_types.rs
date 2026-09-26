@@ -36,8 +36,7 @@ pub struct TransactionSwapMetadata {
     pub provider: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Model)]
-#[model(swift = "Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionNFTTransferMetadata {
     pub asset_id: NFTAssetId,

@@ -6,12 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class TransactionNFTTransferMetadata (
-	val assetId: NFTAssetId,
-	val name: String? = null
-)
-
-@Serializable
 data class TransactionSwapMetadata (
 	val fromAsset: AssetId,
 	val fromValue: String,
