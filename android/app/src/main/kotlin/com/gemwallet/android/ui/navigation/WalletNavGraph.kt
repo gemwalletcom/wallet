@@ -139,7 +139,7 @@ fun WalletNavGraph(
 
             chartScreen(
                 onPriceAlerts = navigator::openPriceAlerts,
-                onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
+                onSetPriceAlert = navigator::openSetPriceAlert,
                 onOpenAddress = navigator::openAddress,
                 routeMessage = navigator::routeMessage,
                 onRouteMessageShown = navigator::clearRouteMessage,
@@ -254,8 +254,8 @@ fun WalletNavGraph(
                         SettingsAction.Contacts -> navigator.openContacts()
                         SettingsAction.Networks -> navigator.openChainSettings()
                         SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
-                        is SettingsAction.AddPriceAlertTarget -> navigator.openAddPriceAlertTarget(action.assetId)
-                        is SettingsAction.PriceAlertTargetComplete -> navigator.popWithToast(action.message)
+                        is SettingsAction.SetPriceAlert -> navigator.openSetPriceAlert(action.assetId)
+                        is SettingsAction.SetPriceAlertComplete -> navigator.popWithToast(action.message)
                         is SettingsAction.Chart -> navigator.openChart(action.assetId)
                         SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
                         SettingsAction.DeveloperPayments -> navigator.openDeveloperPayments()

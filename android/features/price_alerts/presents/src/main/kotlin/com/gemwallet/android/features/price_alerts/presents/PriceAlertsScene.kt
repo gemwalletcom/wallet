@@ -61,7 +61,7 @@ import uniffi.gemstone.GemPriceAlertToggle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PriceAlertScene(
+internal fun PriceAlertsScene(
     asset: AssetInfoDataAggregate? = null,
     sections: List<ListSection<PriceAlertItemUIModel>>,
     errorRow: GemListRow?,
@@ -71,7 +71,7 @@ internal fun PriceAlertScene(
     syncState: Boolean,
     isAssetView: Boolean,
     snackbar: SnackbarHostState? = null,
-    onAction: (PriceAlertAction) -> Unit,
+    onAction: (PriceAlertsAction) -> Unit,
 ) {
     val revealable = remember { mutableStateOf<String?>(null) }
     Scene(
@@ -80,39 +80,39 @@ internal fun PriceAlertScene(
             val assetId = asset?.id
             IconButton(
                 onClick = if (assetId == null) {
-                    { onAction(PriceAlertAction.Add) }
+                    { onAction(PriceAlertsAction.Add) }
                 } else {
-                    { onAction(PriceAlertAction.AddTarget(assetId)) }
+                    { onAction(PriceAlertsAction.SetPriceAlert(assetId)) }
                 },
             ) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
         snackbar = snackbar,
-        onClose = { onAction(PriceAlertAction.Close) },
+        onClose = { onAction(PriceAlertsAction.Close) },
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = syncState,
-            onRefresh = { onAction(PriceAlertAction.Refresh) },
+            onRefresh = { onAction(PriceAlertsAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 errorRow?.let { row -> item { GemListRowView(row = row, listPosition = ListPosition.Single) } }
                 if (isAssetView) {
-                    autoAlertToggle(asset, assetAlerts) { onAction(PriceAlertAction.ToggleAutoAlert(it)) }
+                    autoAlertToggle(asset, assetAlerts) { onAction(PriceAlertsAction.ToggleAutoAlert(it)) }
                     emptyAlertingAssets(showsEmpty)
                     assets(
                         revealable = revealable,
                         sections = sections,
                         onChart = null,
-                        onExclude = { onAction(PriceAlertAction.Exclude(it)) },
+                        onExclude = { onAction(PriceAlertsAction.Exclude(it)) },
                     )
                 } else {
                     item {
                         SwitchProperty(
                             text = stringResource(R.string.settings_enable_value, stringResource(R.string.settings_price_alerts_title)),
                             checked = enabled,
-                            onCheckedChange = { onAction(PriceAlertAction.TogglePriceAlerts(it)) },
+                            onCheckedChange = { onAction(PriceAlertsAction.TogglePriceAlerts(it)) },
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = paddingLarge),
@@ -125,8 +125,8 @@ internal fun PriceAlertScene(
                     assets(
                         revealable = revealable,
                         sections = sections,
-                        onChart = { onAction(PriceAlertAction.OpenChart(it)) },
-                        onExclude = { onAction(PriceAlertAction.Exclude(it)) },
+                        onChart = { onAction(PriceAlertsAction.OpenChart(it)) },
+                        onExclude = { onAction(PriceAlertsAction.Exclude(it)) },
                     )
                 }
             }
@@ -186,7 +186,7 @@ private fun LazyListScope.assets(revealable: MutableState<String?>, sections: Li
             onCollapsed = { revealable.value = null },
             listPosition = position,
         ) { position ->
-            PriceAlertAssetItem(
+            PriceAlertItem(
                 modifier = (
                     onChart?.let {
                         Modifier

@@ -26,7 +26,7 @@ import uniffi.gemstone.GemRowTap
 fun ChartScreen(
     onCancel: () -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
-    onAddPriceAlertTarget: (AssetId) -> Unit,
+    onSetPriceAlert: (AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
     message: RouteMessage?,
     onMessageShown: () -> Unit,
@@ -58,7 +58,7 @@ fun ChartScreen(
                 gemListSections(sections, onSelectAddress = { onOpenAddress(ChainAddress(viewModel.assetId.chain, it)) }) { tap ->
                     when (tap) {
                         GemRowTap.PriceAlerts -> onPriceAlerts(viewModel.assetId)
-                        GemRowTap.SetPriceAlert -> onAddPriceAlertTarget(viewModel.assetId)
+                        GemRowTap.SetPriceAlert -> onSetPriceAlert(viewModel.assetId)
                         else -> Unit
                     }
                 }

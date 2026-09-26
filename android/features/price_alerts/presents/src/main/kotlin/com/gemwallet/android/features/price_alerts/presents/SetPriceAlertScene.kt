@@ -62,7 +62,7 @@ private val tabs = listOf(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PriceAlertTargetScene(
+fun SetPriceAlertScene(
     value: TextFieldState = rememberTextFieldState(),
     type: PriceAlertNotificationType,
     direction: PriceAlertDirection,
@@ -233,9 +233,9 @@ fun PriceAlertTargetScene(
 
 @Preview
 @Composable
-fun PriceAlertTargetScenePricePreview() {
+fun SetPriceAlertScenePricePreview() {
     WalletTheme {
-        PriceAlertTargetScene(
+        SetPriceAlertScene(
             value = rememberTextFieldState(""),
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.Price,
@@ -255,9 +255,9 @@ fun PriceAlertTargetScenePricePreview() {
 
 @Preview
 @Composable
-fun PriceAlertTargetScenePercentagePreview() {
+fun SetPriceAlertScenePercentagePreview() {
     WalletTheme {
-        PriceAlertTargetScene(
+        SetPriceAlertScene(
             value = rememberTextFieldState(""),
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.PricePercentChange,

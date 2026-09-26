@@ -23,7 +23,7 @@ These need no further answer; work them in this order, one family per change.
 2. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 3. **Generated mappers:** BD299, then GEN300.
 4. **Unused code:** CLN318.
-5. **Names:** NAM367 to NAM372 in any order, one feature per change.
+5. **Names:** NAM368 to NAM372 in any order, one feature per change.
 6. **Parity:** BD342, BD343, BD345 to BD351.
 7. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -346,12 +346,12 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `NotificationRowUIModel` does the same.
   - **Expected:** the shared renderer draws `GemNotificationRow`; both models go.
 - **VM248** **S** **Price alert items are twinned.**
-  - **iOS:** `PriceAlertItem` copies `GemPriceAlertItem` fields.
+  - **iOS:** `PriceAlertItemViewModel` copies `GemPriceAlertItem` fields.
   - **Android:** `PriceAlertItemUIModel` does the same.
   - **Expected:** views read `GemPriceAlertItem`; both go.
 - **VM249** **S** **The price-alert input is configured in the apps.**
   - **iOS:** `SetPriceAlertType` and `SetPriceAlertCurrencyInputConfig` pick placeholder "5", the "%" symbol, direction images and compose "Current price X".
-  - **Android:** `PriceAlertTargetScene` shows "%" for percent alerts and composes "Current price **X**".
+  - **Android:** `SetPriceAlertScene` shows "%" for percent alerts and composes "Current price **X**".
   - **Expected:** the alert session returns placeholder, symbol and the current-price text; the editor already holds one alert session.
 
 ### Assets, NFT, rewards, support
@@ -464,7 +464,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** Core returns the day label with a localized template for label plus time; only the time formatting stays native.
 - **VM277** **S** **The price-alerts toggle label is composed in the apps.**
   - **iOS:** `PriceAlertsSceneViewModel` composes "Enable price alerts".
-  - **Android:** `PriceAlertScene` composes the same.
+  - **Android:** `PriceAlertsScene` composes the same.
   - **Expected:** the price-alerts screen returns a toggle row from Core.
 
 ### Screen composition
@@ -524,8 +524,8 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Scenes
 
 - **VM290** **M** **Empty states are decided scene by scene.**
-  - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsSceneViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
+  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertsScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
   - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
@@ -632,9 +632,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM367** **S** **Price alerts: the list is plural and setting a target is `SetPriceAlert`.**
-  - **iOS:** `AssetPriceAlertsViewModel`/`SetPriceAlertViewModel` (+ tests) → `…SceneViewModel`; `PriceAlertItem` (struct) → `PriceAlertItemViewModel`; file `AddAssetPriceAlertNavigationStack.swift` → `AddAssetPriceAlertsNavigationStack.swift`; `PriceAlertsNavigationView` follows the destination-host rule.
-  - **Android:** `PriceAlertScene`/`PriceAlertViewModel`(`Test`)/`PriceAlertAction` → `PriceAlertsScene`/`PriceAlertsViewModel`(`Test`)/`PriceAlertsAction`; `PriceAlertTargetScreen`/`Scene`/`ViewModel`/`AddPriceAlertTargetRoute` → `SetPriceAlert…`/`SetPriceAlertRoute`; `PriceAlertAssetItem` in `PriceAlertListItem.kt` → `PriceAlertItem` in `PriceAlertItem.kt`; `PriceAlertSelectScreen` → `AddAssetPriceAlertsScreen`.
 - **NAM368** **S** **In-app notifications: the screen binds its view model as `Screen`.**
   - **iOS:** `InAppNotificationsViewModel` → `InAppNotificationsSceneViewModel`.
   - **Android:** `InAppNotificationsScene` (binds a view model) → `InAppNotificationsScreen` + stateless `InAppNotificationsScene`; `NotificationRowUIModel` → `InAppNotificationListItemUIModel`.

@@ -56,7 +56,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PriceAlertViewModel @Inject constructor(
+class PriceAlertsViewModel @Inject constructor(
     priceAlertsQuery: PriceAlertsQuery,
     private val getCurrentWalletId: GetCurrentWalletId,
     private val assetQuery: AssetQueryOptional,

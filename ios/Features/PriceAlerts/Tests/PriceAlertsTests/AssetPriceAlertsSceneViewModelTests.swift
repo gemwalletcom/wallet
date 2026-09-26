@@ -11,7 +11,7 @@ import PrimitivesTestKit
 import Testing
 
 @MainActor
-struct AssetPriceAlertsViewModelTests {
+struct AssetPriceAlertsSceneViewModelTests {
     @Test
     func alertsModelSorting() {
         let alert1 = PriceAlertData.mock(priceAlert: .mock(price: 100, priceDirection: .up))
@@ -19,7 +19,7 @@ struct AssetPriceAlertsViewModelTests {
         let alert3 = PriceAlertData.mock(priceAlert: .mock(price: 200, priceDirection: .up))
         let autoAlert = PriceAlertData.mock(priceAlert: .mock(priceDirection: nil))
 
-        let model = AssetPriceAlertsViewModel.mock()
+        let model = AssetPriceAlertsSceneViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
         #expect(model.alerts(model.assetAlerts).map(\.data.priceAlert) == [alert3, alert2, alert1].map(\.priceAlert))

@@ -11,11 +11,11 @@ import Style
 import SwiftUI
 
 struct SetPriceAlertScene: View {
-    @State private var model: SetPriceAlertViewModel
+    @State private var model: SetPriceAlertSceneViewModel
 
     @FocusState private var focusedField: Bool
 
-    init(model: SetPriceAlertViewModel) {
+    init(model: SetPriceAlertSceneViewModel) {
         _model = State(initialValue: model)
     }
 

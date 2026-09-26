@@ -8,7 +8,7 @@ import Style
 import SwiftUI
 
 struct PriceAlertItemView: View {
-    let item: PriceAlertItem
+    let item: PriceAlertItemViewModel
     let onDelete: (PriceAlert) -> Void
 
     var body: some View {

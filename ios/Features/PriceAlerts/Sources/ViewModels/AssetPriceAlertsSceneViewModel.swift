@@ -17,7 +17,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class AssetPriceAlertsViewModel: Sendable {
+public final class AssetPriceAlertsSceneViewModel: Sendable {
     private let service: any GemPriceAlertServiceProtocol
     let walletId: WalletId
     let asset: Asset
@@ -62,8 +62,8 @@ public final class AssetPriceAlertsViewModel: Sendable {
         )
     }
 
-    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [PriceAlertItem] {
-        assetAlerts.alerts.map(PriceAlertItem.init(item:))
+    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [PriceAlertItemViewModel] {
+        assetAlerts.alerts.map(PriceAlertItemViewModel.init(item:))
     }
 
     func showsEmpty(_ assetAlerts: GemAssetPriceAlerts) -> Bool {
@@ -86,7 +86,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
 // MARK: - Business Logic
 
-extension AssetPriceAlertsViewModel {
+extension AssetPriceAlertsSceneViewModel {
     func load() async {
         loadState = await service.refresh(assetId: asset.id.identifier, hasAlerts: priceAlerts.isNotEmpty)
     }
@@ -120,7 +120,7 @@ extension AssetPriceAlertsViewModel {
         isPresentingToastMessage = .priceAlert(message: message)
     }
 
-    func setPriceAlertModel() -> SetPriceAlertViewModel {
-        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: service) { [weak self] in self?.onSetPriceAlertComplete(message: $0) }
+    func setPriceAlertModel() -> SetPriceAlertSceneViewModel {
+        SetPriceAlertSceneViewModel(walletId: walletId, asset: asset, service: service) { [weak self] in self?.onSetPriceAlertComplete(message: $0) }
     }
 }

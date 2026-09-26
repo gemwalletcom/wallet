@@ -5,10 +5,10 @@ import PriceAlerts
 import Primitives
 import PrimitivesTestKit
 
-public extension AssetPriceAlertsViewModel {
+public extension AssetPriceAlertsSceneViewModel {
     @MainActor
-    static func mock() -> AssetPriceAlertsViewModel {
-        AssetPriceAlertsViewModel(
+    static func mock() -> AssetPriceAlertsSceneViewModel {
+        AssetPriceAlertsSceneViewModel(
             service: GemPriceAlertServiceMock(),
             walletId: .mock(),
             asset: .mock(),

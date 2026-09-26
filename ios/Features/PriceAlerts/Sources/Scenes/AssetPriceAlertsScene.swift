@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 public struct AssetPriceAlertsScene: View {
-    @State private var model: AssetPriceAlertsViewModel
+    @State private var model: AssetPriceAlertsSceneViewModel
 
-    public init(model: AssetPriceAlertsViewModel) {
+    public init(model: AssetPriceAlertsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

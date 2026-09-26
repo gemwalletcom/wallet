@@ -5,9 +5,9 @@ import PrimitivesComponents
 import SwiftUI
 
 public struct SetPriceAlertNavigationStack: View {
-    private let model: SetPriceAlertViewModel
+    private let model: SetPriceAlertSceneViewModel
 
-    public init(model: SetPriceAlertViewModel) {
+    public init(model: SetPriceAlertSceneViewModel) {
         self.model = model
     }
 

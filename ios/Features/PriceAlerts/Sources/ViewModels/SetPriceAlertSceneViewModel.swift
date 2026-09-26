@@ -17,7 +17,7 @@ import Style
 
 @MainActor
 @Observable
-public final class SetPriceAlertViewModel {
+public final class SetPriceAlertSceneViewModel {
     private let asset: Primitives.Asset
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
@@ -127,7 +127,7 @@ public final class SetPriceAlertViewModel {
 
 // MARK: - Business logic
 
-extension SetPriceAlertViewModel {
+extension SetPriceAlertSceneViewModel {
     func setPriceAlert() async {
         guard let alert = priceAlert() else { return }
         session = session.onSaving(isSaving: true)

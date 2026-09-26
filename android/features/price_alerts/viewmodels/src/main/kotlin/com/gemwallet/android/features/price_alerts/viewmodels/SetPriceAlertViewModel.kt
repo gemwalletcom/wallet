@@ -53,7 +53,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PriceAlertTargetViewModel @Inject constructor(
+class SetPriceAlertViewModel @Inject constructor(
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
     private val service: GemPriceAlertServiceInterface,

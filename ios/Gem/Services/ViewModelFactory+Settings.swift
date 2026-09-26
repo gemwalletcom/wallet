@@ -79,13 +79,13 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func assetPriceAlertsScene(walletId: WalletId, asset: Asset) -> AssetPriceAlertsViewModel {
-        AssetPriceAlertsViewModel(service: priceAlertService, walletId: walletId, asset: asset)
+    func assetPriceAlertsScene(walletId: WalletId, asset: Asset) -> AssetPriceAlertsSceneViewModel {
+        AssetPriceAlertsSceneViewModel(service: priceAlertService, walletId: walletId, asset: asset)
     }
 
     @MainActor
-    func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertViewModel {
-        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
+    func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertSceneViewModel {
+        SetPriceAlertSceneViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
     }
 
     @MainActor

@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertTargetViewModel
+import com.gemwallet.android.features.price_alerts.viewmodels.SetPriceAlertViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
-fun PriceAlertTargetScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: PriceAlertTargetViewModel = hiltViewModel()) {
+fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: SetPriceAlertViewModel = hiltViewModel()) {
     val currency = viewModel.currency
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
@@ -22,7 +22,7 @@ fun PriceAlertTargetScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = 
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
-    PriceAlertTargetScene(
+    SetPriceAlertScene(
         value = viewModel.value,
         type = type,
         direction = direction,

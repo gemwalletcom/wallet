@@ -8,7 +8,7 @@ import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemSelectAssetType
 
 @Composable
-fun PriceAlertSelectScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)? = null, viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.PriceAlert)) {
+fun AddAssetPriceAlertsScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)? = null, viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.PriceAlert)) {
     SelectAssetScreen(
         onCancel = onCancel,
         onSelect = onSelect,

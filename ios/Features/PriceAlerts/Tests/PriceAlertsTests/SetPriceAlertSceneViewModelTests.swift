@@ -9,10 +9,10 @@ import PrimitivesTestKit
 import Testing
 
 @MainActor
-struct SetPriceAlertViewModelTests {
+struct SetPriceAlertSceneViewModelTests {
     @Test
     func theSuggestionsComeFromCoreAndAreFormattedForTheCurrency() {
-        let viewModel = SetPriceAlertViewModel.mock()
+        let viewModel = SetPriceAlertSceneViewModel.mock()
         #expect(viewModel.suggestions(viewModel.viewState).isEmpty)
 
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
@@ -28,7 +28,7 @@ struct SetPriceAlertViewModelTests {
 
     @Test
     func pickingASuggestionFillsTheAmount() {
-        let viewModel = SetPriceAlertViewModel.mock()
+        let viewModel = SetPriceAlertSceneViewModel.mock()
 
         viewModel.onSelectSuggestion(PriceSuggestion(title: "$67,000", inputValue: "67000"))
 
@@ -37,7 +37,7 @@ struct SetPriceAlertViewModelTests {
 
     @Test
     func theConfirmButtonFollowsWhetherTheAlertCanBeSaved() {
-        let viewModel = SetPriceAlertViewModel.mock()
+        let viewModel = SetPriceAlertSceneViewModel.mock()
 
         #expect(viewModel.confirmButtonState(viewModel.viewState) == .disabled)
 
@@ -51,7 +51,7 @@ struct SetPriceAlertViewModelTests {
     func savingEnablesTheAlertAndReportsIt() async {
         let service = GemPriceAlertServiceMock()
         let messages = MessageRecorder()
-        let viewModel = SetPriceAlertViewModel.mock(service: service, onComplete: { messages.record($0) })
+        let viewModel = SetPriceAlertSceneViewModel.mock(service: service, onComplete: { messages.record($0) })
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
         viewModel.amount = "2500"
 
@@ -66,7 +66,7 @@ struct SetPriceAlertViewModelTests {
     @Test
     func savingWithNoAmountDoesNothing() async {
         let service = GemPriceAlertServiceMock()
-        let viewModel = SetPriceAlertViewModel.mock(service: service)
+        let viewModel = SetPriceAlertSceneViewModel.mock(service: service)
 
         await viewModel.setPriceAlert()
 
@@ -75,7 +75,7 @@ struct SetPriceAlertViewModelTests {
 
     @Test
     func eachAlertTypeKeepsItsOwnAmount() {
-        let viewModel = SetPriceAlertViewModel.mock()
+        let viewModel = SetPriceAlertSceneViewModel.mock()
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
 
         viewModel.amount = "2500"

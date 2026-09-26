@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertViewModel
+import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -20,7 +20,7 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 
 @Composable
-fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onAddPriceAlertTarget: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertViewModel = hiltViewModel()) {
+fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onSetPriceAlert: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
@@ -45,7 +45,7 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
-            true -> PriceAlertSelectScreen(
+            true -> AddAssetPriceAlertsScreen(
                 onCancel = { selectingAsset = false },
                 onSelect = { assetId ->
                     viewModel.includeAsset(assetId) { asset ->
@@ -58,7 +58,7 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
                 },
             )
 
-            false -> PriceAlertScene(
+            false -> PriceAlertsScene(
                 errorRow = errorRow,
                 asset = asset,
                 sections = sections,
@@ -70,14 +70,14 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
                 snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
-                        is PriceAlertAction.TogglePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
-                        is PriceAlertAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
-                        is PriceAlertAction.Exclude -> viewModel.excludeAsset(action.id)
-                        PriceAlertAction.Refresh -> viewModel.refresh()
-                        PriceAlertAction.Add -> selectingAsset = true
-                        PriceAlertAction.Close -> onCancel()
-                        is PriceAlertAction.OpenChart -> onChart(action.assetId)
-                        is PriceAlertAction.AddTarget -> onAddPriceAlertTarget(action.assetId)
+                        is PriceAlertsAction.TogglePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
+                        is PriceAlertsAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
+                        is PriceAlertsAction.Exclude -> viewModel.excludeAsset(action.id)
+                        PriceAlertsAction.Refresh -> viewModel.refresh()
+                        PriceAlertsAction.Add -> selectingAsset = true
+                        PriceAlertsAction.Close -> onCancel()
+                        is PriceAlertsAction.OpenChart -> onChart(action.assetId)
+                        is PriceAlertsAction.SetPriceAlert -> onSetPriceAlert(action.assetId)
                     }
                 },
             )

@@ -32,7 +32,7 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.PriceAlertFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PriceAlertViewModelTest {
+class PriceAlertsViewModelTest {
 
     private val assetId = AssetId(Chain.SmartChain)
 
@@ -108,7 +108,7 @@ class PriceAlertViewModelTest {
         }
     }
 
-    private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertViewModel(
+    private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertsViewModel(
         priceAlertsQuery = mockk<PriceAlertsQuery> {
             every { this@mockk(any()) } returns flowOf(emptyList())
         },

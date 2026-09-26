@@ -23,7 +23,7 @@ internal fun PriceAlertAutoAssetItem(row: GemAssetItemRow, enabled: Boolean, onC
 }
 
 @Composable
-internal fun PriceAlertAssetItem(item: PriceAlertItemUIModel, listPosition: ListPosition, modifier: Modifier = Modifier) {
+internal fun PriceAlertItem(item: PriceAlertItemUIModel, listPosition: ListPosition, modifier: Modifier = Modifier) {
     AssetListItem(
         modifier = modifier,
         row = item.row,

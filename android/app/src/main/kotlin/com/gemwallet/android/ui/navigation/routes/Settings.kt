@@ -12,8 +12,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScene
-import com.gemwallet.android.features.price_alerts.presents.PriceAlertTargetScreen
 import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
+import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
 import com.gemwallet.android.features.settings.presents.NotificationsScreen
 import com.gemwallet.android.features.settings.presents.PreferencesScreen
 import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
@@ -62,7 +62,7 @@ data object PriceAlertsRoute : NavKey
 data class AssetPriceAlertsRoute(val assetId: AssetId) : NavKey
 
 @Serializable
-data class AddPriceAlertTargetRoute(val assetId: AssetId) : NavKey
+data class SetPriceAlertRoute(val assetId: AssetId) : NavKey
 
 @Serializable
 data object SupportRoute : NavKey
@@ -144,12 +144,12 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         )
     }
 
-    entry<AddPriceAlertTargetRoute>(
+    entry<SetPriceAlertRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        PriceAlertTargetScreen(
+        SetPriceAlertScreen(
             onCancel = onCancel,
-            onComplete = { onAction(SettingsAction.PriceAlertTargetComplete(it)) },
+            onComplete = { onAction(SettingsAction.SetPriceAlertComplete(it)) },
         )
     }
 
@@ -202,7 +202,7 @@ private fun priceAlertsScreenContent(message: RouteMessage?, onMessageShown: () 
         message = message,
         onMessageShown = onMessageShown,
         onChart = { onAction(SettingsAction.Chart(it)) },
-        onAddPriceAlertTarget = { onAction(SettingsAction.AddPriceAlertTarget(it)) },
+        onSetPriceAlert = { onAction(SettingsAction.SetPriceAlert(it)) },
         onCancel = { onAction(SettingsAction.Cancel) },
     )
 }

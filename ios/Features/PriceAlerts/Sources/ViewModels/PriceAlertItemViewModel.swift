@@ -5,7 +5,7 @@ import struct Gemstone.GemPriceAlertItem
 import GemstonePrimitives
 import Primitives
 
-struct PriceAlertItem: Identifiable {
+struct PriceAlertItemViewModel: Identifiable {
     let data: PriceAlertData
     let row: GemAssetItemRow
 

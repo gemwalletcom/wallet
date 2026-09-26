@@ -15,7 +15,7 @@ data class ChartRoute(val assetId: AssetId) : NavKey
 
 fun EntryProviderScope<NavKey>.chartScreen(
     onPriceAlerts: (AssetId) -> Unit,
-    onAddPriceAlertTarget: (AssetId) -> Unit,
+    onSetPriceAlert: (AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
     routeMessage: (ChartRoute) -> RouteMessage?,
     onRouteMessageShown: (ChartRoute) -> Unit,
@@ -26,7 +26,7 @@ fun EntryProviderScope<NavKey>.chartScreen(
     ) { key ->
         ChartScreen(
             onPriceAlerts = onPriceAlerts,
-            onAddPriceAlertTarget = onAddPriceAlertTarget,
+            onSetPriceAlert = onSetPriceAlert,
             onOpenAddress = onOpenAddress,
             message = routeMessage(key),
             onMessageShown = { onRouteMessageShown(key) },
