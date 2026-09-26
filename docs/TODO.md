@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM363 to NAM372 in any order, one feature per change.
+6. **Names:** NAM364 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -637,8 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM363** **M** **WalletConnect: the request screen follows iOS.**
-  - **Request screen, as iOS:** Android `RequestScene`/`WCRequestViewModel`/`RequestSceneState` today handle messages and transactions. A message request becomes `SignMessageScreen` + `SignMessageScene`/`SignMessageViewModel`/`SignMessageUIState`, and the app's `WalletConnectorRequestContent` opens it for a message and `ConfirmTransferScreen` for a transaction, as iOS `WalletConnectorNavigationStack` does, so every transaction passes the one confirmation screen.
 - **NAM364** **M** **Onboarding: import is `ImportWallet`, the phrase check `VerifyPhrase`.**
   - **iOS:** `CreateWalletModel` (+ tests, TestKit) → `CreateWalletViewModel`; `ImportWalletTypeViewModel`/`AcceptTermsViewModel`/`VerifyPhraseViewModel` → `…SceneViewModel`; `VerifyPhraseWalletScene` → `VerifyPhraseScene`; `OnboardingViewModelTests.swift` splits per type; `Types/WalletType.swift` → `ImportWalletType.swift`.
   - **Android:** `OnboardScreen` (no view model) → `OnboardingScene`, `PreviewWelcomeScreen` follows; `ImportScreen`/`ImportScene`/`ImportViewModel`/`ImportUIState`/`ImportViewModelTest` → `ImportWallet…`, `ImportViewModelState` folds into `ImportWalletUIState`; `SelectImportTypeScreen`/`Scene`/`ViewModel`/`ImportSelectTypeRoute` → `ImportWalletType…`; `ImportMulticoinWalletRoute`/`ImportChainWalletRoute` (file `ImportWalletNavigation.kt`) → `ImportWalletRoute` cases; `CreateWalletViewModelState` → `CreateWalletUIState`; private `UI`/`PreviewCreateUI` → `CreateWalletScene`; `PhraseAlertDialog`/`CreateWalletAlertRoute` → `SecurityReminderScene`/`SecurityReminderRoute`; `CheckPhrase` → `VerifyPhraseScene`; the stateless `AcceptTermsScreen` → `AcceptTermsScene`; `AcceptTermRowUIModel` → `TermItemUIModel`.
