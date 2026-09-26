@@ -21,10 +21,6 @@ let package = Package(
     targets: [
         .target(
             name: "Formatters",
-            dependencies: [
-                "Primitives",
-                .product(name: "BigInt", package: "BigInt"),
-            ],
             path: "Sources",
         ),
         .testTarget(

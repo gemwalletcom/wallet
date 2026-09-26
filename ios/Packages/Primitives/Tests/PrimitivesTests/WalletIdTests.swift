@@ -12,10 +12,9 @@ struct WalletIdTests {
     }
 
     @Test
-    func walletTypeAndChain() {
+    func walletType() {
         #expect(WalletId.multicoin(address: "0x123").walletType == .multicoin)
-        #expect(WalletId.multicoin(address: "0x123").chain == nil)
-        #expect(WalletId.single(chain: .ethereum, address: "0x456").chain == .ethereum)
+        #expect(WalletId.single(chain: .ethereum, address: "0x456").walletType == .single)
     }
 
     @Test

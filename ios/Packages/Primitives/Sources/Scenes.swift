@@ -197,11 +197,9 @@ public enum Scenes {
 
     public struct AssetPriceAlert: Hashable, Codable {
         public let asset: Primitives.Asset
-        public let price: Double?
 
-        public init(asset: Primitives.Asset, price: Double? = nil) {
+        public init(asset: Primitives.Asset) {
             self.asset = asset
-            self.price = price
         }
     }
 

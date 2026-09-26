@@ -12,26 +12,6 @@ public extension Asset {
     var tokenId: String? {
         id.tokenId
     }
-
-    func getTokenId() throws -> String {
-        try id.getTokenId()
-    }
-}
-
-public extension [Asset] {
-    var ids: [String] {
-        map(\.id.identifier)
-    }
-
-    var assetIds: [AssetId] {
-        map(\.id)
-    }
-}
-
-public extension [Chain] {
-    var ids: [AssetId] {
-        compactMap(\.assetId)
-    }
 }
 
 public extension AssetFull {

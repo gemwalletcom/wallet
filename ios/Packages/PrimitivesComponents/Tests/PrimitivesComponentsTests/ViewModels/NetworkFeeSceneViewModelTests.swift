@@ -338,13 +338,6 @@ struct NetworkFeeSceneViewModelTests {
             feeAmount: feeAmount,
         )
 
-        #expect(model.value == feeAsset.feeText(feeAmount))
-        #expect(model.value != Asset.mock(id: .mock(chain: .hyperCore), name: "Hyperliquid", symbol: "HYPE", decimals: 8).feeText(feeAmount))
-    }
-}
-
-extension Asset {
-    func feeText(_ value: BigInt) -> String {
-        ValueFormatter.auto.string(value, asset: self)
+        #expect(model.value == "12.34 USDC")
     }
 }

@@ -73,23 +73,21 @@ struct FormattedNumberTests {
     }
 
     @Test
-    func aShortPriceReadsLikeTheCurrencyFormatter() {
-        let formatter = CurrencyFormatter(type: .short, locale: .US, currencyCode: "USD")
+    func aShortPriceReadsDustBelowTheThreshold() {
+        let prices: [(Double, String)] = [(0.00000783, "<$0.0001"), (0.0001, "$0.0001"), (0.0345, "$0.0345"), (1234.5, "$1,234.50")]
 
-        for value in [0.00000783, 0.0001, 0.0345, 1234.5] {
-            #expect(formattedCurrency(value: value, code: "USD", style: .short).text(locale: .US) == formatter.string(value))
+        for (value, text) in prices {
+            #expect(formattedCurrency(value: value, code: "USD", style: .short).text(locale: .US) == text)
         }
-        #expect(formattedCurrency(value: 0.00000783, code: "USD", style: .short).text(locale: .US) == "<$0.0001")
     }
 
     @Test
-    func anAmountReadsLikeTheValueFormatter() throws {
-        let formatter = ValueFormatter(locale: .US, style: .auto)
-        let values: [(BigInt, Int)] = [(5_205_516, 6), (99999, 6), (1992, 4), (1_239_999_000_000, 6), (546, 8)]
+    func anAmountReadsWithTheAutoStyle() throws {
+        let amounts: [(Double, String)] = [(5.205516, "5.2 ATOM"), (0.099999, "0.09999 ATOM"), (0.1992, "0.1992 ATOM"), (1_239_999, "1,239,999 ATOM"), (0.00000546, "0.00000546 ATOM")]
 
-        for (value, decimals) in values {
-            let number = try formattedAmount(value: formatter.double(from: value, decimals: decimals), symbol: "ATOM", style: .auto)
-            #expect(number.text(locale: .US) == formatter.string(value, decimals: decimals, currency: "ATOM"))
+        for (value, text) in amounts {
+            let formatted = try formattedAmount(value: value, symbol: "ATOM", style: .auto).text(locale: .US)
+            #expect(formatted == text)
         }
     }
 }

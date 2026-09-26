@@ -3,8 +3,3 @@
 import Foundation
 import SwiftUI
 
-public extension NavigationPath {
-    mutating func removeAll() {
-        removeLast(count)
-    }
-}
