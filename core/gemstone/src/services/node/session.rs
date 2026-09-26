@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
 use super::rules;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
@@ -209,6 +209,22 @@ impl GemNodeListSession {
             statuses: HashMap::new(),
         }
     }
+
+    pub fn rows(&self) -> Vec<GemNodeRow> {
+        self.nodes
+            .iter()
+            .map(|node| {
+                let status = self.statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
+                GemNodeRow {
+                    title: node.title(),
+                    subtitle: status.subtitle(),
+                    latency_status: status.latency_status(),
+                    can_delete: rules::can_delete_node(self.chain, &node.url),
+                    node: node.clone(),
+                }
+            })
+            .collect()
+    }
 }
 
 #[uniffi::export]
@@ -237,24 +253,12 @@ impl GemNodeListSession {
         Self { statuses, ..self.clone() }
     }
 
-    pub fn rows(&self) -> Vec<GemNodeRow> {
-        self.nodes
-            .iter()
-            .map(|node| {
-                let status = self.statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
-                GemNodeRow {
-                    title: node.title(),
-                    subtitle: status.subtitle(),
-                    latency_status: status.latency_status(),
-                    can_delete: rules::can_delete_node(self.chain, &node.url),
-                    node: node.clone(),
-                }
-            })
-            .collect()
-    }
-
     pub fn node_urls(&self) -> Vec<String> {
         self.nodes.iter().map(|node| node.url.clone()).collect()
+    }
+
+    pub fn sections(&self, explorers: Vec<GemExplorerRow>) -> Vec<GemChainSettingsSection> {
+        vec![GemChainSettingsSection::Nodes { rows: self.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
     }
 }
 
@@ -321,5 +325,19 @@ mod node_list_tests {
         );
         assert!(!rows[0].can_delete);
         assert!(rows[1].can_delete);
+    }
+
+    #[test]
+    fn test_the_settings_list_the_nodes_before_the_explorers() {
+        let session = GemNodeListSession::new(Chain::Ethereum).on_nodes(vec![GemNodeSelection::mock("a")]);
+        let explorers = vec![GemExplorerRow {
+            name: "Etherscan".to_string(),
+            is_selected: true,
+        }];
+
+        assert_eq!(
+            session.sections(explorers.clone()),
+            vec![GemChainSettingsSection::Nodes { rows: session.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
+        );
     }
 }

@@ -46,6 +46,7 @@ import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
+import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemChainsFilterSummary
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemConfirmButtonKind
@@ -1485,4 +1486,9 @@ fun VerificationStatus.labelRes(): Int? = when (this) {
 fun GemNameIndicator.contentDescription(): Int? = when (this) {
     GemNameIndicator.ERROR -> R.string.errors_error_occurred
     GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> null
+}
+
+fun GemChainSettingsSection.stringRes(): Int = when (this) {
+    is GemChainSettingsSection.Nodes -> R.string.settings_networks_source
+    is GemChainSettingsSection.Explorers -> R.string.settings_networks_explorer
 }

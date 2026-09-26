@@ -96,6 +96,12 @@ pub struct GemNodeRow {
     pub can_delete: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemChainSettingsSection {
+    Nodes { rows: Vec<GemNodeRow> },
+    Explorers { rows: Vec<GemExplorerRow> },
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNodeRowTitle {
     Host { host: String },

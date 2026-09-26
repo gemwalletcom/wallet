@@ -17,9 +17,9 @@ struct ChainSettingsSceneViewModelTests {
 
         await model.load()
 
-        #expect(model.nodesModels.count == 2)
+        #expect(model.nodeRows.count == 2)
         #expect(service.statusCalls.sorted() == ["a", "b"])
-        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)))
+        #expect(model.nodeRows[0].subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)))
     }
 
     @Test
@@ -34,7 +34,7 @@ struct ChainSettingsSceneViewModelTests {
         await model.onDeleteNode()
 
         #expect(service.deletedNodes == ["b"])
-        #expect(model.nodesModels.map(\.node.url) == ["a"])
+        #expect(model.nodeRows.map(\.node.url) == ["a"])
     }
 
     @Test
@@ -48,5 +48,17 @@ struct ChainSettingsSceneViewModelTests {
 
         #expect(service.setExplorerNames == ["Blockchair"])
         #expect(model.explorers.map(\.name) == ["Blockchair"])
+    }
+}
+
+private extension ChainSettingsSceneViewModel {
+    var nodeRows: [GemNodeRow] {
+        sections.flatMap { section -> [GemNodeRow] in
+            if case let .nodes(rows) = section {
+                rows
+            } else {
+                []
+            }
+        }
     }
 }

@@ -848,15 +848,14 @@ A row model that copies `url`, `host` and `isSelected` out of a Core record is a
 The test is what the model carries that the record cannot, not how much they overlap. A screen input that holds two app assets and a max-amount flag and *projects* the Core request from them is not a twin, however many field names rhyme; a record that carries the same fields re-typed, so that both have to move together, is one whatever it is called. Holding the domain object *and* the row is the twin this rule exists to prevent: the model then has two places to answer the same question, and the two apps answer it differently.
 
 ```swift
-struct ChainNodeViewModel {
-    let row: GemNodeRow
-
-    var url: String { row.node.url }
-    var canDelete: Bool { row.canDelete }
+extension GemNodeRow {
+    var listItem: ListItemModel {
+        latencyStatus.listItem(title: title.text(gemNodeLabel: Localized.Nodes.gemWalletNode), titleExtra: subtitle.text)
+    }
 }
 ```
 
-`GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so the model stores the row and every member reads through it. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A view-facing UI model that turns the row into platform values for a composable (Android's `GemNodeRow.uiModel(context)`) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no Core type.
+`GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so no model stands between it and the view: the scene reads `row.node.url` and `row.canDelete` and draws `row.listItem`. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A composable that turns the row into platform values (Android's `ChainNodeItem`, which builds its list item from the row) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no copy of the row.
 
 A shared view reads the record through the same kind of extension:
 

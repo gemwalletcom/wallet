@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemChainSettingsSection
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import struct Gemstone.GemExplorerRow
 import struct Gemstone.GemNodeListSession
@@ -22,27 +23,21 @@ public final class ChainSettingsSceneViewModel {
     var isPresentingImportNode: Bool = false
     var isPresentingAlertMessage: AlertMessage?
 
-    private var session: GemNodeListSession {
-        didSet { nodesModels = session.rows().map { ChainNodeViewModel(row: $0) } }
-    }
-
-    private(set) var nodesModels: [ChainNodeViewModel]
+    private var session: GemNodeListSession
 
     public init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service
         explorers = service.explorerRows(chain: chain.rawValue)
-        let session = service.newNodeListSession(chain: chain.rawValue)
-        self.session = session
-        nodesModels = session.rows().map { ChainNodeViewModel(row: $0) }
+        session = service.newNodeListSession(chain: chain.rawValue)
     }
 
     var title: String {
         chain.networkName
     }
 
-    var sections: [ChainSettingsSectionViewModel] {
-        ChainSettingsSectionViewModel.Kind.allCases.map(ChainSettingsSectionViewModel.init)
+    var sections: [GemChainSettingsSection] {
+        session.sections(explorers: explorers)
     }
 
     var deleteButtonTitle: String {

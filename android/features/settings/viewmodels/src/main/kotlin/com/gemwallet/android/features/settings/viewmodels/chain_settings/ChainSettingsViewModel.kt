@@ -9,9 +9,7 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsSectionUIModel
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsUIState
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -163,10 +161,7 @@ class ChainSettingsViewModel @Inject constructor(
         chain = chain,
         chains = availableChains,
         selectChain = selectChain,
-        sections = listOf(
-            ChainSettingsSectionUIModel.Nodes(session?.rows().orEmpty().map { it.uiModel(context) }),
-            ChainSettingsSectionUIModel.Explorers(explorers.map { it.uiModel() }),
-        ),
+        sections = session?.sections(explorers).orEmpty(),
         errorText = errorText,
     )
 }

@@ -28,27 +28,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainNodeUIModel
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsSectionUIModel
 import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsUIState
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ExplorerRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemChainSettingsSection
+import uniffi.gemstone.GemExplorerRow
+import uniffi.gemstone.GemNodeRow
 
 @Composable
 internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarHostState? = null, onAction: (ChainSettingsAction) -> Unit) {
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
-    var nodeDelete by remember { mutableStateOf<ChainNodeUIModel?>(null) }
+    var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }
 
     Scene(
         title = chain.networkName(),
@@ -66,21 +68,21 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 state.sections.forEach { section ->
-                    item { SubheaderItem(section.title) }
+                    item { SubheaderItem(section.stringRes()) }
                     when (section) {
-                        is ChainSettingsSectionUIModel.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.row.node.url }) { index, node ->
+                        is GemChainSettingsSection.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.node.url }) { index, node ->
                             ChainNodeItem(
-                                model = node,
+                                row = node,
                                 listPosition = ListPosition.getPosition(index, section.rows.size),
-                                isDeleteRevealed = revealedNodeId == node.row.node.url,
-                                onDeleteReveal = { revealedNodeId = node.row.node.url },
+                                isDeleteRevealed = revealedNodeId == node.node.url,
+                                onDeleteReveal = { revealedNodeId = node.node.url },
                                 onDeleteCollapse = {
-                                    if (revealedNodeId == node.row.node.url) {
+                                    if (revealedNodeId == node.node.url) {
                                         revealedNodeId = null
                                     }
                                 },
                                 onSelect = { onAction(ChainSettingsAction.SelectNode(it)) },
-                                onDelete = if (node.row.canDelete) {
+                                onDelete = if (node.canDelete) {
                                     {
                                         revealedNodeId = null
                                         nodeDelete = node
@@ -91,7 +93,7 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
                             )
                         }
 
-                        is ChainSettingsSectionUIModel.Explorers -> itemsPositioned(section.rows) { position, item ->
+                        is GemChainSettingsSection.Explorers -> itemsPositioned(section.rows) { position, item ->
                             BlockExplorerItem(item, position) { onAction(ChainSettingsAction.SelectBlockExplorer(it)) }
                         }
                     }
@@ -117,9 +119,9 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
 
     nodeDelete?.let { pendingNode ->
         ConfirmNodeDeleteDialog(
-            nodeName = pendingNode.row.node.host,
+            nodeName = pendingNode.node.host,
             onConfirm = {
-                onAction(ChainSettingsAction.DeleteNode(pendingNode.row.node.url))
+                onAction(ChainSettingsAction.DeleteNode(pendingNode.node.url))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },
@@ -128,12 +130,12 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
 }
 
 @Composable
-private fun BlockExplorerItem(explorer: ExplorerRowUIModel, listPosition: ListPosition, onSelect: (String) -> Unit) {
+private fun BlockExplorerItem(explorer: GemExplorerRow, listPosition: ListPosition, onSelect: (String) -> Unit) {
     ListItem(
-        model = explorer.model,
+        model = ListItemModel(title = explorer.name),
         listPosition = listPosition,
-        modifier = Modifier.clickable { onSelect(explorer.row.name) },
-        accessory = if (explorer.row.isSelected) {
+        modifier = Modifier.clickable { onSelect(explorer.name) },
+        accessory = if (explorer.isSelected) {
             { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
         } else {
             null

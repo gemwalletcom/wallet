@@ -3,7 +3,6 @@ package com.gemwallet.android.features.settings.viewmodels.chain_settings
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.ChainSettingsSectionUIModel
 import com.gemwallet.android.testkit.mockGemNodeSelection
 import com.gemwallet.android.testkit.mockLatency
 import com.wallet.core.primitives.Chain
@@ -24,6 +23,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemNodeListSession
 import uniffi.gemstone.GemNodeSelection
@@ -110,6 +110,6 @@ class ChainSettingsViewModelTest {
 
     private fun sessionUrls(viewModel: ChainSettingsViewModel): List<String> {
         val rows = viewModel.uiState.value
-        return rows.sections.filterIsInstance<ChainSettingsSectionUIModel.Nodes>().flatMap { it.rows }.map { it.row.node.url }
+        return rows.sections.filterIsInstance<GemChainSettingsSection.Nodes>().flatMap { it.rows }.map { it.node.url }
     }
 }
