@@ -47,6 +47,7 @@ import uniffi.gemstone.GemInfoImage
 import uniffi.gemstone.GemKeystoreAuthentication
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNoticeKind
+import uniffi.gemstone.GemNotificationIcon
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemSecurityReminderItem
@@ -360,4 +361,10 @@ fun GemWalletRow.supportIcon(): String? = if (showsWatchBadge) {
     "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
 } else {
     null
+}
+
+fun GemNotificationIcon.listItemImage(): ListItemImage = when (this) {
+    is GemNotificationIcon.Emoji -> ListItemImage.Emoji(glyph)
+    is GemNotificationIcon.Image -> ListItemImage.Url(url)
+    is GemNotificationIcon.Asset -> ListItemImage.Asset(icon)
 }

@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM247 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM248 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -58,7 +58,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM265, VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM247, VM259 |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM259 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Settings
 
-- **VM247** **S** **Notification rows decide their tag and icon.**
-  - **iOS:** `InAppNotificationListItemViewModel` shows "New" when unread and maps the icon.
-  - **Android:** `InAppNotificationListItemUIModel` does the same.
-  - **Expected:** the shared renderer draws `GemNotificationRow`; both models go.
 - **VM248** **S** **Price alert items are twinned.**
   - **iOS:** `PriceAlertItemViewModel` copies `GemPriceAlertItem` fields.
   - **Android:** `PriceAlertItemUIModel` does the same.

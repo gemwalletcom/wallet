@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemNotificationRow
 import Localization
 import PrimitivesComponents
 import Store
@@ -23,8 +24,8 @@ public struct InAppNotificationsScene: View {
             }
             ForEach(sections) { section in
                 Section(header: section.title.map { Text($0) }) {
-                    ForEach(section.values) { itemModel in
-                        notificationRow(itemModel)
+                    ForEach(section.values) { row in
+                        notificationRow(row)
                     }
                 }
             }
@@ -42,9 +43,9 @@ public struct InAppNotificationsScene: View {
     }
 
     @ViewBuilder
-    private func notificationRow(_ itemModel: InAppNotificationListItemViewModel) -> some View {
-        let view = ListItemView(model: itemModel.listItemModel)
-        if let destination = itemModel.destination {
+    private func notificationRow(_ row: GemNotificationRow) -> some View {
+        let view = ListItemView(model: row.listItem)
+        if let destination = row.destination {
             NavigationCustomLink(with: view) {
                 model.open(destination: destination)
             }

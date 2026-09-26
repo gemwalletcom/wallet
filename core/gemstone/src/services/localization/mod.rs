@@ -42,6 +42,7 @@ pub enum GemLocalizedText {
     ShowSecret { kind: GemWalletSecretKind },
     SecretKind { kind: GemWalletSecretKind },
     NewWallet,
+    NewTag,
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: GemFormattedNumber },

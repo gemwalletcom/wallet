@@ -28,6 +28,7 @@ import enum Gemstone.GemLoadState
 import enum Gemstone.GemNameIndicator
 import enum Gemstone.GemNodeSyncState
 import enum Gemstone.GemNoticeKind
+import enum Gemstone.GemNotificationIcon
 import enum Gemstone.GemPerpetualChartLineKind
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemRecipientSectionKind
@@ -728,5 +729,15 @@ public extension GemChainRow {
             titleStyleExtra: .calloutSecondary,
             imageStyle: .asset(assetImage: AssetImage(icon: icon)),
         )
+    }
+}
+
+public extension GemNotificationIcon {
+    var assetImage: AssetImage {
+        switch self {
+        case let .emoji(glyph): AssetImage(type: .emoji(glyph))
+        case let .asset(_, icon): AssetImage(icon: icon)
+        case let .image(url): AssetImage(imageURL: url.asURL)
+        }
     }
 }

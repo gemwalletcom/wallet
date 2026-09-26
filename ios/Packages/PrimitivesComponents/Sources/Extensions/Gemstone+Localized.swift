@@ -180,6 +180,8 @@ public extension GemLocalizedText {
             kind.title
         case .newWallet:
             Localized.Wallet.New.title
+        case .newTag:
+            Localized.Assets.Tags.new
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):
