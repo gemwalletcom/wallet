@@ -105,6 +105,7 @@ impl GemWalletConnectOutcome {
 pub struct GemSessionProposal {
     pub proposal: WalletConnectionSessionProposal,
     pub verification_status: WalletConnectionVerificationStatus,
+    pub can_choose_wallet: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

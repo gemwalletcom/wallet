@@ -40,6 +40,7 @@ import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsServiceInterface
+import uniffi.gemstone.GemRewardsWallets
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.RewardStatus
 
@@ -63,7 +64,7 @@ class RewardsViewModelTest {
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
     }
     private val service = mockk<GemRewardsServiceInterface> {
-        every { wallets(any()) } answers { firstArg() }
+        every { wallets(any()) } answers { GemRewardsWallets(firstArg(), firstArg<List<*>>().size > 1) }
         every { selectedWallet(any(), any()) } answers { firstArg() }
         coEvery { refresh(any()) } answers {
             mockGemRewardsResult(

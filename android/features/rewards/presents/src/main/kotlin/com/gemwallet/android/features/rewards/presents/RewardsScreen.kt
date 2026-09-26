@@ -40,7 +40,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     var showErrorDialog by remember { mutableStateOf<Throwable?>(null) }
     var showMessageDialog by remember { mutableStateOf<String?>(null) }
 
-    val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
+    val canChooseWallet by viewModel.canChooseWallet.collectAsStateWithLifecycle()
     val availableWalletSections by viewModel.availableWalletSections.collectAsStateWithLifecycle()
     val currentWallet by viewModel.currentWallet.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
@@ -59,7 +59,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         isLoading = isLoading,
         isRefreshing = isRefreshing,
         loadError = loadError,
-        isAvailableWalletSelect = availableWallets.size > 1,
+        isAvailableWalletSelect = canChooseWallet,
         incomingCode = incomingCode,
         referralLink = referralLink,
         actions = actions,

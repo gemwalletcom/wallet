@@ -34,6 +34,7 @@ public final class RewardsSceneViewModel: Sendable {
 
     private(set) var selectedWalletRow: GemWalletRow
     private(set) var wallets: [Wallet]
+    let showsWalletSelector: Bool
 
     private(set) var session: GemRewardsSession {
         didSet { viewState = session.viewState(now: Date()) }
@@ -58,7 +59,9 @@ public final class RewardsSceneViewModel: Sendable {
         viewState = session.viewState(now: Date())
         selectedWallet = wallet
         selectedWalletRow = walletRow(wallet: wallet.toGem())
-        self.wallets = service.wallets(wallets: core).map { $0.toPrimitives() }
+        let choice = service.wallets(wallets: core)
+        self.wallets = choice.wallets.map { $0.toPrimitives() }
+        showsWalletSelector = choice.canChoose
         self.activateCode = activateCode
     }
 
@@ -90,10 +93,6 @@ public final class RewardsSceneViewModel: Sendable {
 
     var activateCodeFooterDescription: String {
         Localized.Rewards.ActivateReferralCode.description
-    }
-
-    var showsWalletSelector: Bool {
-        wallets.count > 1
     }
 
     var walletSelectorModel: SelectWalletViewModel {

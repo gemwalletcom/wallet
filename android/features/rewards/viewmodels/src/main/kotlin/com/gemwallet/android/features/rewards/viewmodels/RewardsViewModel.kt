@@ -99,8 +99,14 @@ class RewardsViewModel @Inject constructor(
     val referralLink = rewardsState.mapLatest { it.referralLink }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = walletsQuery().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
+    private val walletChoice = walletsQuery().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val availableWallets = walletChoice.map { choice -> choice?.wallets.orEmpty().map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val canChooseWallet = walletChoice.map { it?.canChoose == true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }, null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

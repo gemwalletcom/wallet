@@ -230,6 +230,7 @@ class AuthRequestViewModel @Inject constructor(
             peer = applicationConnectionRow(prepared.proposal.metadata),
             availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
             availableWalletSections = walletSections(prepared.proposal.wallets, null),
+            canChooseWallet = prepared.canChooseWallet,
             selectedWallet = selectedWallet,
             approval = buildApproval(request, selectedWallet),
         )
@@ -299,6 +300,7 @@ sealed interface AuthRequestUIState {
         val peer: GemConnectionRow
         val availableWallets: List<Wallet>
         val availableWalletSections: List<GemWalletSection>
+        val canChooseWallet: Boolean
         val selectedWallet: Wallet
         val approval: AuthApproval
         val texts: ReviewTexts
@@ -321,6 +323,7 @@ sealed interface AuthRequestUIState {
         override val peer: GemConnectionRow,
         override val availableWallets: List<Wallet>,
         override val availableWalletSections: List<GemWalletSection>,
+        override val canChooseWallet: Boolean,
         override val selectedWallet: Wallet,
         override val approval: AuthApproval,
         override val texts: ReviewTexts,
@@ -330,6 +333,7 @@ sealed interface AuthRequestUIState {
         override val peer: GemConnectionRow get() = request.peer
         override val availableWallets: List<Wallet> get() = request.availableWallets
         override val availableWalletSections: List<GemWalletSection> get() = request.availableWalletSections
+        override val canChooseWallet: Boolean get() = request.canChooseWallet
         override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
         override val texts: ReviewTexts get() = request.texts

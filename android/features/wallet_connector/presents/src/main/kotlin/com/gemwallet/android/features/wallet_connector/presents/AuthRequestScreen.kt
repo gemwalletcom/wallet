@@ -76,7 +76,7 @@ private fun AuthRequestContent(
     onOpenAddress: (ChainAddress) -> Unit,
 ) {
     var isShowSelectWallets by remember { mutableStateOf(false) }
-    val canSelectWallet = state.availableWallets.size > 1
+    val canSelectWallet = state.canChooseWallet
 
     WalletConnectReviewScene(
         model = state,

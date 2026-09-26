@@ -156,6 +156,7 @@ impl GemWalletConnectService {
         let wallets = rules::session_wallets(wallets, &required, &optional);
         let default_wallet = rules::default_wallet(&wallets, current_wallet_id).ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
+            can_choose_wallet: crate::services::wallet_session::rules::can_choose_wallet(&wallets),
             proposal: WalletConnectionSessionProposal { default_wallet, wallets, metadata },
             verification_status,
         })

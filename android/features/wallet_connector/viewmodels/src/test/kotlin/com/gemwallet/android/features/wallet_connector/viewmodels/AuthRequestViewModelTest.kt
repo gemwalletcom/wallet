@@ -90,6 +90,7 @@ class AuthRequestViewModelTest {
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
+            canChooseWallet = true,
         )
         every { authenticationChainIds(any()) } returns listOf("eip155:1")
         every { authenticationMethods() } returns listOf("personal_sign")

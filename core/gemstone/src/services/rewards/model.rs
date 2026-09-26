@@ -1,7 +1,7 @@
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSection};
 use crate::models::state::GemLoadState;
-use primitives::{AssetId, Rewards, WalletId};
+use primitives::{AssetId, Rewards, Wallet, WalletId};
 
 use crate::services::localization::GemLocalizedText;
 
@@ -39,6 +39,12 @@ pub struct GemRewardsState {
     pub share_text: Option<GemLocalizedText>,
     pub used_referral_code: Option<String>,
     pub redemptions: Vec<GemRewardsRedemption>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemRewardsWallets {
+    pub wallets: Vec<Wallet>,
+    pub can_choose: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

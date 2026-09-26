@@ -54,7 +54,7 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return try rewardsResult.get()
     }
 
-    public func wallets(wallets: [Wallet]) -> [Wallet] {
-        wallets
+    public func wallets(wallets: [Wallet]) -> GemRewardsWallets {
+        GemRewardsWallets(wallets: wallets, canChoose: wallets.count > 1)
     }
 }
