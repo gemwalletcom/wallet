@@ -9,11 +9,10 @@ import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletAlertRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportChainWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportMulticoinWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportSelectTypeRoute
+import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
+import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
+import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletTypeRoute
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.model.ImportType
@@ -159,7 +158,7 @@ class WalletNavigatorTest {
 
         navigator.finishAcceptTerms(AcceptTermsDestination.Create)
 
-        assertEquals(listOf(OnboardingRoute, CreateWalletAlertRoute), navigator.backStack.toList())
+        assertEquals(listOf(OnboardingRoute, CreateWalletSecurityReminderRoute), navigator.backStack.toList())
     }
 
     @Test
@@ -168,13 +167,13 @@ class WalletNavigatorTest {
 
         navigator.finishAcceptTerms(AcceptTermsDestination.Import)
 
-        assertEquals(listOf(OnboardingRoute, ImportSelectTypeRoute), navigator.backStack.toList())
+        assertEquals(listOf(OnboardingRoute, ImportWalletTypeRoute), navigator.backStack.toList())
     }
 
     @Test
     fun resetToWallet_landsOnTheWalletFromCreateOrImport() {
         val createNavigator = navigatorWith(OnboardingRoute, CreateWalletRoute)
-        val importNavigator = navigatorWith(OnboardingRoute, ImportMulticoinWalletRoute)
+        val importNavigator = navigatorWith(OnboardingRoute, ImportWalletRoute.MulticoinWallet)
 
         createNavigator.resetToWallet()
         importNavigator.resetToWallet()
@@ -327,9 +326,9 @@ class WalletNavigatorTest {
         assertEquals(
             listOf(
                 OnboardingRoute,
-                ImportSelectTypeRoute,
-                ImportMulticoinWalletRoute,
-                ImportChainWalletRoute(GemWalletImportKind.PRIVATE_KEY, Chain.Solana),
+                ImportWalletTypeRoute,
+                ImportWalletRoute.MulticoinWallet,
+                ImportWalletRoute.ChainWallet(GemWalletImportKind.PRIVATE_KEY, Chain.Solana),
             ),
             navigator.backStack.toList(),
         )

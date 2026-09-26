@@ -43,8 +43,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
-        CreateWalletModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
+    func createWalletScene(onComplete: VoidAction) -> CreateWalletViewModel {
+        CreateWalletViewModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
     }
 
     @MainActor

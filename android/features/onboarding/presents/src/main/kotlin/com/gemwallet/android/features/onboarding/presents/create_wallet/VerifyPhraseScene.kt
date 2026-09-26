@@ -33,7 +33,7 @@ import uniffi.gemstone.GemVerifyPhraseViewState
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun CheckPhrase(state: GemVerifyPhraseViewState, choices: List<String>, rows: List<PhraseRow>, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
+internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<String>, rows: List<PhraseRow>, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
     val isSmallScreen = isCompactDimension(WindowDimension.Height)
     val groups = if (isSmallScreen) {
         listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it.toInt()) })

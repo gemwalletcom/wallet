@@ -8,28 +8,31 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemWalletImportKind
 
 @Serializable
-data object ImportSelectTypeRoute : NavKey
+data object ImportWalletTypeRoute : NavKey
 
 @Serializable
-data object ImportMulticoinWalletRoute : NavKey
+sealed interface ImportWalletRoute : NavKey {
+    @Serializable
+    data object MulticoinWallet : ImportWalletRoute
 
-@Serializable
-data class ImportChainWalletRoute(val kind: GemWalletImportKind, val chain: Chain) : NavKey
+    @Serializable
+    data class ChainWallet(val kind: GemWalletImportKind, val chain: Chain) : ImportWalletRoute
+}
 
 fun EntryProviderScope<NavKey>.importWalletScreen(onCancel: () -> Unit, onImported: () -> Unit, onSelectType: (ImportType) -> Unit) {
-    entry<ImportSelectTypeRoute> {
-        SelectImportTypeScreen(onClose = onCancel, onSelect = onSelectType)
+    entry<ImportWalletTypeRoute> {
+        ImportWalletTypeScreen(onClose = onCancel, onSelect = onSelectType)
     }
-    entry<ImportMulticoinWalletRoute> {
-        ImportScreen(
+    entry<ImportWalletRoute.MulticoinWallet> {
+        ImportWalletScreen(
             importType = ImportType(GemWalletImportKind.PHRASE),
             onCancel = onCancel,
             onImported = onImported,
         )
     }
 
-    entry<ImportChainWalletRoute> { key ->
-        ImportScreen(
+    entry<ImportWalletRoute.ChainWallet> { key ->
+        ImportWalletScreen(
             importType = ImportType(key.kind, key.chain),
             onCancel = onCancel,
             onImported = onImported,

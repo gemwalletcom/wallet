@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 struct AcceptTermsScene: View {
-    @State private var model: AcceptTermsViewModel
+    @State private var model: AcceptTermsSceneViewModel
 
-    init(model: AcceptTermsViewModel) {
+    init(model: AcceptTermsSceneViewModel) {
         self.model = model
     }
 

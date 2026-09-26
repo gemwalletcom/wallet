@@ -11,11 +11,11 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class CreateWalletModel {
+public final class CreateWalletViewModel {
     private let service: any GemWalletServiceProtocol
 
-    func verifyPhraseModel(onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseViewModel {
-        VerifyPhraseViewModel(
+    func verifyPhraseModel(onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseSceneViewModel {
+        VerifyPhraseSceneViewModel(
             words: words,
             setup: service.verifyPhraseSetup(words: words),
             onComplete: onComplete,
@@ -49,7 +49,7 @@ public final class CreateWalletModel {
 
 // MARK: - Actions
 
-extension CreateWalletModel {
+extension CreateWalletViewModel {
     func generateSecretPhrase() throws {
         words = try service.createWallet()
     }

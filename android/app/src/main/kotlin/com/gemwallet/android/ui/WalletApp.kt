@@ -25,7 +25,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.WalletConnectorRequestContent
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.features.onboarding.presents.OnboardScreen
+import com.gemwallet.android.features.onboarding.presents.OnboardingScene
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.navigation.WalletNavGraph
@@ -91,10 +91,10 @@ fun WalletApp(
         onPayment = viewModel::openPayment,
         walletConnectorRequest = walletConnectorRequestContent,
         onboard = {
-            OnboardScreen(
+            OnboardingScene(
                 onCreateWallet = {
                     if (isTermsAccepted) {
-                        navigator.openCreateWalletRules()
+                        navigator.openCreateWalletSecurityReminder()
                     } else {
                         navigator.openAcceptTerms(AcceptTermsDestination.Create)
                     }

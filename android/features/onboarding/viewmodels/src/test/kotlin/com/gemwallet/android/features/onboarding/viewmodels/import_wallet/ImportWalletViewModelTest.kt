@@ -34,7 +34,7 @@ import uniffi.gemstone.GemWalletImportScreen
 import uniffi.gemstone.GemWalletServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ImportViewModelTest {
+class ImportWalletViewModelTest {
 
     private val chain = Chain.Ethereum
 
@@ -48,7 +48,7 @@ class ImportViewModelTest {
         )
     }
 
-    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service()) = ImportViewModel(
+    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service()) = ImportWalletViewModel(
         service = service,
         nameService = nameService,
         enablePushForNewWallet = mockk(relaxed = true),

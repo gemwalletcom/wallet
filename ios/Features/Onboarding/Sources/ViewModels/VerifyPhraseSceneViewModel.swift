@@ -14,7 +14,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-final class VerifyPhraseViewModel {
+final class VerifyPhraseSceneViewModel {
     private let onComplete: ([String]) async throws -> Void
     private let words: [String]
     private let choices: [String]
@@ -75,7 +75,7 @@ final class VerifyPhraseViewModel {
 
 // MARK: - Actions
 
-extension VerifyPhraseViewModel {
+extension VerifyPhraseSceneViewModel {
     func onContinue() {
         session = session.onCreating(isCreating: true)
         Task {

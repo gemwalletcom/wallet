@@ -32,7 +32,7 @@ import com.gemwallet.android.ui.theme.space24
 private const val BrandmarkCornerPercent = 29
 
 @Composable
-fun OnboardScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit) {
+fun OnboardingScene(onCreateWallet: () -> Unit, onImportWallet: () -> Unit) {
     Box(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -75,9 +75,9 @@ fun OnboardScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit) {
 
 @Preview
 @Composable
-fun PreviewWelcomeScreen() {
+fun PreviewOnboardingScene() {
     WalletTheme {
-        OnboardScreen(onCreateWallet = { }) {
+        OnboardingScene(onCreateWallet = { }) {
         }
     }
 }

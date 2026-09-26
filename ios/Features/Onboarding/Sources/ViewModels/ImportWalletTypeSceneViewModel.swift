@@ -8,7 +8,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct ImportWalletTypeViewModel {
+public struct ImportWalletTypeSceneViewModel {
     private let allChains: [Chain]
 
     public init() {
@@ -34,11 +34,11 @@ public struct ImportWalletTypeViewModel {
 
 // MARK: - Equatable
 
-extension ImportWalletTypeViewModel: Equatable {}
+extension ImportWalletTypeSceneViewModel: Equatable {}
 
 // MARK: - Hashable
 
-extension ImportWalletTypeViewModel: Hashable {
+extension ImportWalletTypeSceneViewModel: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(allChains)
     }

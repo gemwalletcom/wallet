@@ -6,10 +6,10 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct VerifyPhraseWalletScene: View {
-    @State private var model: VerifyPhraseViewModel
+struct VerifyPhraseScene: View {
+    @State private var model: VerifyPhraseSceneViewModel
 
-    init(model: VerifyPhraseViewModel) {
+    init(model: VerifyPhraseSceneViewModel) {
         _model = State(initialValue: model)
     }
 

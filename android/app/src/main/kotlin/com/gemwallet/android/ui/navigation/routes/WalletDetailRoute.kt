@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.wallet.WalletSecretInput
-import com.gemwallet.android.features.onboarding.presents.create_wallet.PhraseAlertDialog
+import com.gemwallet.android.features.onboarding.presents.create_wallet.SecurityReminderScene
 import com.gemwallet.android.features.wallets.presents.SecretDataScreen
 import com.gemwallet.android.features.wallets.presents.WalletDetailScreen
 import com.gemwallet.android.features.wallets.presents.WalletImageScreen
@@ -52,7 +52,7 @@ fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel:
     }
 
     entry<SecurityReminderRoute> { key ->
-        PhraseAlertDialog(
+        SecurityReminderScene(
             title = stringResource(key.input.kind.stringRes()),
             onAccept = { onSecurityReminderAccepted(key.input) },
             onCancel = onCancel,

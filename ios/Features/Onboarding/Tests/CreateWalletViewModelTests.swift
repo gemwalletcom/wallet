@@ -12,11 +12,11 @@ import StoreTestKit
 import Testing
 
 @MainActor
-struct CreateWalletModelTests {
+struct CreateWalletViewModelTests {
     @Test
     func aCreatedWalletIsStoredAsCreated() async throws {
         let service = GemWalletService.mock(db: .mock(chains: AssetConfiguration.allChains))
-        let model = CreateWalletModel.mock(service: service)
+        let model = CreateWalletViewModel.mock(service: service)
 
         try await model.createWallet(words: LocalKeystore.words)
 
@@ -25,7 +25,7 @@ struct CreateWalletModelTests {
 
     @Test
     func generatingASecretPhraseKeepsTheNewWords() throws {
-        let model = CreateWalletModel.mock()
+        let model = CreateWalletViewModel.mock()
 
         try model.generateSecretPhrase()
         let words = model.words

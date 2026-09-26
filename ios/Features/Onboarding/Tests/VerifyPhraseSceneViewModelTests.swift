@@ -8,14 +8,14 @@ import Primitives
 import Testing
 
 @MainActor
-struct VerifyPhraseViewModelTests {
+struct VerifyPhraseSceneViewModelTests {
     private let words = ["alpha", "beta", "gamma", "delta"]
     private let session = GemVerifyPhraseSetup(choices: ["alpha", "beta", "gamma", "delta"], session: GemVerifyPhraseSession(expected: [0, 1, 2, 3], chips: [0, 1, 2, 3], picked: [], isCreating: false))
     private let completed = GemVerifyPhraseSetup(choices: ["alpha", "beta", "gamma", "delta"], session: GemVerifyPhraseSession(expected: [0, 1, 2, 3], chips: [0, 1, 2, 3], picked: [0, 1, 2, 3], isCreating: false))
 
     @Test
     func failedCreationReEnablesTheButtonAndShowsTheError() async {
-        let model = VerifyPhraseViewModel(words: words, setup: completed) { _ in throw AnyError("keystore write failed") }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: completed) { _ in throw AnyError("keystore write failed") }
         model.onContinue()
 
         await model.complete()
@@ -26,7 +26,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func cancelledPromptReEnablesTheButtonWithoutAnError() async {
-        let model = VerifyPhraseViewModel(words: words, setup: completed) { _ in throw GemServiceError.Cancelled }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: completed) { _ in throw GemServiceError.Cancelled }
         model.onContinue()
 
         await model.complete()
@@ -37,7 +37,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func successfulCreationKeepsTheButtonBusyWhileTheFlowMovesOn() async {
-        let model = VerifyPhraseViewModel(words: words, setup: completed) { _ in }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: completed) { _ in }
         model.onContinue()
 
         await model.complete()
@@ -48,7 +48,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func pickingEveryWordInOrderEnablesTheButton() {
-        let model = VerifyPhraseViewModel(words: words, setup: session) { _ in }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
         model.groups.joined().forEach(model.pickWord)
 
@@ -59,7 +59,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func aWrongWordLeavesTheButtonDisabled() {
-        let model = VerifyPhraseViewModel(words: words, setup: session) { _ in }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
         model.pickWord(index: Array(model.groups.joined())[1])
 
@@ -70,7 +70,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func verifiedRowsShowTheAppsOwnWordsUpToTheLastPick() {
-        let model = VerifyPhraseViewModel(words: words, setup: session) { _ in }
+        let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
         model.pickWord(index: Array(model.groups.joined())[0])
 

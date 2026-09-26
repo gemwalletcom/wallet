@@ -32,7 +32,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.DocsUrl
 
 @Composable
-fun PhraseAlertDialog(title: String = stringResource(R.string.wallet_new_title), onAccept: () -> Unit, onCancel: CancelAction) {
+fun SecurityReminderScene(title: String = stringResource(R.string.wallet_new_title), onAccept: () -> Unit, onCancel: CancelAction) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val items = remember { securityReminderListItems(context) }
@@ -74,8 +74,8 @@ fun PhraseAlertDialog(title: String = stringResource(R.string.wallet_new_title),
 
 @Preview
 @Composable
-fun PreviewPhraseAlertDialog() {
+fun PreviewSecurityReminderScene() {
     WalletTheme {
-        PhraseAlertDialog(onAccept = {}, onCancel = {})
+        SecurityReminderScene(onAccept = {}, onCancel = {})
     }
 }

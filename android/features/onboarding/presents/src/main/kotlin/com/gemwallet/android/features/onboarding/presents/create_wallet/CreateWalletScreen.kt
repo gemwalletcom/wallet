@@ -80,7 +80,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     ) { state ->
         when (state) {
             true -> verificationState?.let { verification ->
-                CheckPhrase(
+                VerifyPhraseScene(
                     state = verification,
                     choices = verificationChoices,
                     rows = verifiedRows,
@@ -90,7 +90,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                 )
             }
 
-            false -> UI(
+            false -> CreateWalletScene(
                 rows = phraseRows,
                 onCopy = viewModel::phraseCopy,
                 dataError = errorText,
@@ -120,7 +120,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 }
 
 @Composable
-private fun UI(rows: List<PhraseRow>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
+private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     Scene(
@@ -167,10 +167,10 @@ private fun UI(rows: List<PhraseRow>, onCopy: () -> GemCopy, dataError: String?,
 @Preview(name = "Pixel 4", device = Devices.PIXEL_4)
 @Preview(name = "Nexus 5", device = Devices.NEXUS_5)
 @Preview(name = "Nexus 7", device = Devices.NEXUS_7)
-fun PreviewCreateUI() {
+fun PreviewCreateWalletScene() {
     WalletTheme {
         Column {
-            UI(
+            CreateWalletScene(
                 rows = phraseRows(
                     listOf(
                         "cinnamon", "two", "three", "cinnamon", "five", "six",

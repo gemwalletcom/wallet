@@ -16,7 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.SelectImportTypeViewModel
+import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportWalletTypeViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
@@ -28,11 +28,11 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.DocsUrl
 
 @Composable
-fun SelectImportTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) {
-    val viewModel: SelectImportTypeViewModel = hiltViewModel()
+fun ImportWalletTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) {
+    val viewModel: ImportWalletTypeViewModel = hiltViewModel()
     val chains by viewModel.chains.collectAsStateWithLifecycle()
 
-    SelectImportTypeScene(
+    ImportWalletTypeScene(
         chains = chains,
         chainFilter = viewModel.chainFilter,
         onSelect = onSelect,
@@ -41,7 +41,7 @@ fun SelectImportTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) 
 }
 
 @Composable
-private fun SelectImportTypeScene(chains: List<Chain>, chainFilter: TextFieldState, onSelect: (ImportType) -> Unit, onClose: () -> Unit) {
+private fun ImportWalletTypeScene(chains: List<Chain>, chainFilter: TextFieldState, onSelect: (ImportType) -> Unit, onClose: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.wallet_import_title),
         actions = {
@@ -78,10 +78,10 @@ private fun SelectImportTypeScene(chains: List<Chain>, chainFilter: TextFieldSta
 
 @Preview
 @Composable
-fun PreviewChainSelectScreen() {
+fun PreviewImportWalletTypeScene() {
     MaterialTheme {
         Column {
-            SelectImportTypeScene(
+            ImportWalletTypeScene(
                 chains = listOf(Chain.Bitcoin, Chain.Ethereum, Chain.Solana),
                 chainFilter = rememberTextFieldState(),
                 onClose = {},

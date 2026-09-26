@@ -17,7 +17,7 @@ data class AcceptTermsRoute(val destination: AcceptTermsDestination) : NavKey
 
 fun EntryProviderScope<NavKey>.acceptTermsScreen(onCancel: () -> Unit, onAccept: (AcceptTermsDestination) -> Unit) {
     entry<AcceptTermsRoute> { route ->
-        AcceptTermsScreen(
+        AcceptTermsScene(
             onCancel = onCancel,
             onAccept = { onAccept(route.destination) },
         )

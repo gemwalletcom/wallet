@@ -9,11 +9,11 @@ import Style
 import SwiftUI
 
 struct ImportWalletTypeScene: View {
-    let model: ImportWalletTypeViewModel
+    let model: ImportWalletTypeSceneViewModel
     @State private var searchQuery = ""
 
     init(
-        model: ImportWalletTypeViewModel,
+        model: ImportWalletTypeSceneViewModel,
     ) {
         self.model = model
     }

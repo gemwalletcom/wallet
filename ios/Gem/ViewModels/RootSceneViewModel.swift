@@ -147,7 +147,7 @@ extension RootSceneViewModel {
         await navigationRouter.open(url: url)
     }
 
-    func createWalletModel() -> CreateWalletModel {
+    func createWalletModel() -> CreateWalletViewModel {
         viewModelFactory.createWalletScene(onComplete: { [weak self] in self?.dismissCreateWallet() })
     }
 

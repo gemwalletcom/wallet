@@ -15,7 +15,7 @@ import uniffi.gemstone.GemChainServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
-class SelectImportTypeViewModel @Inject constructor(private val chainService: GemChainServiceInterface) : ViewModel() {
+class ImportWalletTypeViewModel @Inject constructor(private val chainService: GemChainServiceInterface) : ViewModel() {
     val chainFilter = TextFieldState()
     val chains: StateFlow<List<Chain>> = snapshotFlow { chainFilter.text.toString() }
         .map { query -> chainService.getChains(query).map { it.requireChain() } }

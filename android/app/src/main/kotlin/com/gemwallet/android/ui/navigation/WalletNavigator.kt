@@ -16,11 +16,10 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
-import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletAlertRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportChainWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportMulticoinWalletRoute
-import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportSelectTypeRoute
+import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
+import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
+import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletTypeRoute
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
@@ -205,9 +204,9 @@ class WalletNavigator(
     fun openAssetsSearch() = push(WalletSearchRoute)
     fun openAssetsResults(query: String) = push(AssetsResultsRoute(query, WalletSearchTag.All))
     fun openAssetsResultsList(listId: String, title: String) = push(AssetsResultsRoute(query = "", scope = WalletSearchTag.List(listId), title = title))
-    fun openCreateWalletRules() = push(CreateWalletAlertRoute)
+    fun openCreateWalletSecurityReminder() = push(CreateWalletSecurityReminderRoute)
     fun openCreateWallet() = push(CreateWalletRoute)
-    fun openImportWallet() = push(ImportSelectTypeRoute)
+    fun openImportWallet() = push(ImportWalletTypeRoute)
     fun openImportWallet(importType: ImportType) {
         push(importType.toImportRoute())
     }
@@ -328,8 +327,8 @@ class WalletNavigator(
     fun finishAcceptTerms(destination: AcceptTermsDestination) {
         replaceTop(
             when (destination) {
-                AcceptTermsDestination.Create -> CreateWalletAlertRoute
-                AcceptTermsDestination.Import -> ImportSelectTypeRoute
+                AcceptTermsDestination.Create -> CreateWalletSecurityReminderRoute
+                AcceptTermsDestination.Import -> ImportWalletTypeRoute
             },
         )
     }
@@ -394,6 +393,6 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
 }
 
 private fun ImportType.toImportRoute(): NavKey = when (val chain = chain) {
-    null -> ImportMulticoinWalletRoute
-    else -> ImportChainWalletRoute(kind, chain)
+    null -> ImportWalletRoute.MulticoinWallet
+    else -> ImportWalletRoute.ChainWallet(kind, chain)
 }

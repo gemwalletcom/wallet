@@ -44,7 +44,7 @@ class CreateWalletViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow(CreateWalletViewModelState())
+    private val state = MutableStateFlow(CreateWalletUIState())
     val uiState = state.asStateFlow()
 
     val errorText: StateFlow<String?> = state.map { it.dataError?.text(context) }
@@ -119,6 +119,6 @@ class CreateWalletViewModel @Inject constructor(
     }
 }
 
-data class CreateWalletViewModelState(val data: List<String> = emptyList(), val dataError: GemErrorText? = null, val isShowSafeMessage: Boolean = false) {
-    override fun toString() = "CreateWalletViewModelState(wordCount=${data.size}, isShowSafeMessage=$isShowSafeMessage)"
+data class CreateWalletUIState(val data: List<String> = emptyList(), val dataError: GemErrorText? = null, val isShowSafeMessage: Boolean = false) {
+    override fun toString() = "CreateWalletUIState(wordCount=${data.size}, isShowSafeMessage=$isShowSafeMessage)"
 }

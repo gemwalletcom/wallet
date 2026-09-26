@@ -8,7 +8,7 @@ import Localization
 import Primitives
 
 @Observable
-final class AcceptTermsViewModel {
+final class AcceptTermsSceneViewModel {
     private let preferences: ObservablePreferences
     let onNext: VoidAction
 

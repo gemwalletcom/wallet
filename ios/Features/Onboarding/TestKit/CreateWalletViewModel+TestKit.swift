@@ -5,9 +5,9 @@ import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServicesTestKit
 import Onboarding
 
-public extension CreateWalletModel {
-    static func mock(service: any GemWalletServiceProtocol = GemWalletService.mock()) -> CreateWalletModel {
-        CreateWalletModel(
+public extension CreateWalletViewModel {
+    static func mock(service: any GemWalletServiceProtocol = GemWalletService.mock()) -> CreateWalletViewModel {
+        CreateWalletViewModel(
             service: service,
             preferences: .mock(),
             onComplete: nil,

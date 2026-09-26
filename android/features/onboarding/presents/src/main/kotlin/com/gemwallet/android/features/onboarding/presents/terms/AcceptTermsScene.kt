@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.features.onboarding.viewmodels.terms.acceptTermRows
+import com.gemwallet.android.features.onboarding.viewmodels.terms.termItems
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.SelectionIndicator
@@ -50,10 +50,10 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.PublicUrl
 
 @Composable
-fun AcceptTermsScreen(onCancel: CancelAction, onAccept: () -> Unit) {
+fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val items = remember { acceptTermRows() }
+    val items = remember { termItems() }
     val accepted = remember { mutableStateMapOf<Int, Boolean>() }
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
@@ -137,8 +137,8 @@ private fun LazyListScope.termItem(isUnderstand: Boolean, @StringRes description
 
 @Preview
 @Composable
-fun AcceptTermsScreenPreview() {
+fun AcceptTermsScenePreview() {
     WalletTheme {
-        AcceptTermsScreen({}) { }
+        AcceptTermsScene({}) { }
     }
 }

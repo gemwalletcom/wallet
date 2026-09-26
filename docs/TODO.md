@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM364 to NAM372 in any order, one feature per change.
+6. **Names:** NAM365 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -95,7 +95,7 @@ The same product rule written in both apps, or in one app while the other reads 
 
 - **VM183** **S** **Phrase suggestions are cut and applied by each app.** Core returns suggestions for one word (`phrase_suggestions`, `core/gemstone/src/mnemonic.rs`); the input handling around it is written twice.
   - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
-  - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
+  - **Android:** `ImportWalletViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
   - **Expected:** Core owns both steps beside `phrase_suggestions`: one call takes the input and whether the cursor is at the end and returns the suggestions, one returns the input with the picked word applied.
   - **Needs a decision:** [security](../skills/security.md) keeps phrase editing in the app and gives Core only the word being typed, while both calls above hand Core the whole phrase on every keystroke; either the rule or this design changes.
 - **VM185** **M** **What opening a link or a scanned code shows is decided in each app.** Core parses the code (`GemDeeplinkService.url_action`) and builds the target; the outcome around it is not shared.
@@ -316,12 +316,12 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletSecretContentUIModel` and `WalletSecretUIModel` build rows and copy.
   - **Expected:** a Core secret-screen record (title, warning kind, rows, copy); both go.
 - **VM241** **S** **Terms acceptance is tracked in the apps.**
-  - **iOS:** `AcceptTermsViewModel` and `TermItemViewModel` list the terms and track which are confirmed.
-  - **Android:** `AcceptTermRowUIModel` lists `GemConstants.acceptTermsItems` and the screen tracks confirmation.
+  - **iOS:** `AcceptTermsSceneViewModel` and `TermItemViewModel` list the terms and track which are confirmed.
+  - **Android:** `TermItemUIModel` lists `GemConstants.acceptTermsItems` and the screen tracks confirmation.
   - **Expected:** a terms session returns rows and whether all are accepted; both models go.
 - **VM242** **S** **Import types are enumerated in the apps.**
-  - **iOS:** `ImportWalletTypeViewModel` and the `ImportWalletType` enum twin the import kinds.
-  - **Android:** `SelectImportTypeViewModel` and `ImportType` do the same.
+  - **iOS:** `ImportWalletTypeSceneViewModel` and the `ImportWalletType` enum twin the import kinds.
+  - **Android:** `ImportWalletTypeViewModel` and `ImportType` do the same.
   - **Expected:** Core returns the import type rows; the enums go.
 
 ### Settings
@@ -421,8 +421,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
 - **VM265** **S** **Chain pickers each search chains themselves.**
-  - **iOS:** `ChainListSettingsViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
-  - **Android:** `ContactChainSelectViewModel`, `NetworksViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
+  - **iOS:** `ChainListSettingsViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
+  - **Android:** `ContactChainSelectViewModel`, `NetworksViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
   - **Expected:** one Core chain list (rows plus search) that every picker uses, with VM199's chain rows.
 - **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
   - **iOS:** `InfoSheetModel` and `InfoSheetButton` copy `GemInfoSheet` and show the button for learn-more or when a handler exists.
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM364** **M** **Onboarding: import is `ImportWallet`, the phrase check `VerifyPhrase`.**
-  - **iOS:** `CreateWalletModel` (+ tests, TestKit) → `CreateWalletViewModel`; `ImportWalletTypeViewModel`/`AcceptTermsViewModel`/`VerifyPhraseViewModel` → `…SceneViewModel`; `VerifyPhraseWalletScene` → `VerifyPhraseScene`; `OnboardingViewModelTests.swift` splits per type; `Types/WalletType.swift` → `ImportWalletType.swift`.
-  - **Android:** `OnboardScreen` (no view model) → `OnboardingScene`, `PreviewWelcomeScreen` follows; `ImportScreen`/`ImportScene`/`ImportViewModel`/`ImportUIState`/`ImportViewModelTest` → `ImportWallet…`, `ImportViewModelState` folds into `ImportWalletUIState`; `SelectImportTypeScreen`/`Scene`/`ViewModel`/`ImportSelectTypeRoute` → `ImportWalletType…`; `ImportMulticoinWalletRoute`/`ImportChainWalletRoute` (file `ImportWalletNavigation.kt`) → `ImportWalletRoute` cases; `CreateWalletViewModelState` → `CreateWalletUIState`; private `UI`/`PreviewCreateUI` → `CreateWalletScene`; `PhraseAlertDialog`/`CreateWalletAlertRoute` → `SecurityReminderScene`/`SecurityReminderRoute`; `CheckPhrase` → `VerifyPhraseScene`; the stateless `AcceptTermsScreen` → `AcceptTermsScene`; `AcceptTermRowUIModel` → `TermItemUIModel`.
 - **NAM365** **M** **Settings: currency, developer and chain settings follow iOS.**
   - **iOS:** `SettingsViewModel`, `SecurityViewModel`, `PreferencesViewModel`, `NotificationsViewModel`, `AboutUsViewModel`, `AppearanceViewModel`, `DeveloperViewModel`, `ChainListSettingsViewModel`, `ServiceStatusViewModel` (+ tests, TestKit) → `…SceneViewModel`; `SettingsNavigationView` → `SettingsNavigationStack`.
   - **Android:** `SettingsScene`, `SecurityScene`, `PreferencesScene`, `NotificationsScene`, `ServiceStatusScene`, `AddNodeScene` (bind view models) → `XScreen` with the stateless body as `XScene`; `CurrenciesScene`/`CurrenciesViewModel`/`CurrenciesRoute` → `CurrencyScreen`/`CurrencyScene`/`CurrencyViewModel`/`CurrencyRoute`; `DevelopScene`/`DevelopViewModel`/`DevelopRoute` → `DeveloperScreen`/`DeveloperViewModel`/`DeveloperRoute`; `PaymentsScene`/`DevelopPaymentsRoute` → `DeveloperPaymentsScene`/`DeveloperPaymentsRoute`; `NetworksListScene`/`NetworksListAction` → `ChainListSettingsScene`/`ChainListSettingsAction`; `NetworkScene`/`NetworkAction`/`NetworksScreen`/`NetworksViewModel`(`Test`)/`NetworksUIState`/`NetworksRoute` → `ChainSettings…`; `NetworkSectionUIModel`/`NodeRowUIModel`/`NodeItem` → `ChainSettingsSectionUIModel`/`ChainNodeUIModel`/`ChainNodeItem`; packages `.networks` → `.chain_settings`; `AddNodeUIModel` (whole screen) → `AddNodeUIState`; `AboutusRoute` → `AboutUsRoute`; `SettingsSceneAction` → `SettingsAction`.

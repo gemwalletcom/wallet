@@ -41,7 +41,7 @@ import uniffi.gemstone.phraseSuggestions
 import javax.inject.Inject
 
 @HiltViewModel
-class ImportViewModel @Inject constructor(
+class ImportWalletViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
     private val enablePushForNewWallet: EnablePushForNewWallet,
@@ -49,12 +49,12 @@ class ImportViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow(ImportViewModelState())
+    private val state = MutableStateFlow(ImportWalletUIState())
     private val input = MutableStateFlow("")
     private val isTypingLastWord = MutableStateFlow(true)
     private val isImporting = MutableStateFlow(false)
-    val uiState = combine(state, isImporting) { state, importing -> state.toUIState(importing, context) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
+    val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
     val suggestions: StateFlow<List<String>> = combine(input, isTypingLastWord, state) { input, isTypingLastWord, state ->
         if (isTypingLastWord && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(input.lastWord()) else emptyList()
     }
@@ -109,7 +109,7 @@ class ImportViewModel @Inject constructor(
             it.copy(
                 importType = importType,
                 title = screen.title.string(context),
-                tabs = screen.kinds,
+                kinds = screen.kinds,
                 showsTabs = screen.showsKinds,
             )
         }
@@ -142,7 +142,7 @@ class ImportViewModel @Inject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = err) }
+                state.update { it.copy(dataError = err.errorText().text(context)) }
                 isImporting.value = false
             }
         }
@@ -153,36 +153,21 @@ class ImportViewModel @Inject constructor(
     }
 }
 
-data class ImportViewModelState(
-    val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
-    val title: String = "",
-    val tabs: List<GemWalletImportKind> = emptyList(),
-    val showsTabs: Boolean = false,
-    val dataError: Throwable? = null,
-    val existingWalletName: String? = null,
-) {
-    fun toUIState(loading: Boolean, context: Context): ImportUIState = ImportUIState(
-        loading = loading,
-        title = title,
-        showsTabs = showsTabs,
-        tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
-        input = importType.kind.inputUiModel(),
-        importType = importType,
-        dataError = dataError?.errorText()?.text(context),
-        existingWalletName = existingWalletName,
-    )
-}
-
-data class ImportUIState(
+data class ImportWalletUIState(
     val loading: Boolean = false,
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val title: String = "",
-    val tabs: List<ImportTabUIModel> = emptyList(),
+    val kinds: List<GemWalletImportKind> = emptyList(),
     val showsTabs: Boolean = false,
-    val input: ImportInputUIModel = GemWalletImportKind.PHRASE.inputUiModel(),
     val dataError: String? = null,
     val existingWalletName: String? = null,
-)
+) {
+    val tabs: List<ImportTabUIModel>
+        get() = kinds.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) }
+
+    val input: ImportInputUIModel
+        get() = importType.kind.inputUiModel()
+}
 
 data class ImportTabUIModel(val type: ImportType, @StringRes val title: Int, val isSelected: Boolean)
 

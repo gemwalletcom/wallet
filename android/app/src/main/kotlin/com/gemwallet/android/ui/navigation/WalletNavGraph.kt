@@ -200,7 +200,7 @@ fun WalletNavGraph(
             )
 
             walletsScreen(
-                onCreateWallet = navigator::openCreateWalletRules,
+                onCreateWallet = navigator::openCreateWalletSecurityReminder,
                 onImportWallet = navigator::openImportWallet,
                 onEditWallet = navigator::openWalletDetail,
                 onSelectWallet = navigator::resetToWallet,

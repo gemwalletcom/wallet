@@ -5,14 +5,14 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object CreateWalletAlertRoute : NavKey
+data object CreateWalletSecurityReminderRoute : NavKey
 
 @Serializable
 data object CreateWalletRoute : NavKey
 
 fun EntryProviderScope<NavKey>.createWalletScreen(onCreateWallet: () -> Unit, onCancel: () -> Unit, onCreated: () -> Unit) {
-    entry<CreateWalletAlertRoute> {
-        PhraseAlertDialog(onAccept = onCreateWallet, onCancel = onCancel)
+    entry<CreateWalletSecurityReminderRoute> {
+        SecurityReminderScene(onAccept = onCreateWallet, onCancel = onCancel)
     }
 
     entry<CreateWalletRoute> {

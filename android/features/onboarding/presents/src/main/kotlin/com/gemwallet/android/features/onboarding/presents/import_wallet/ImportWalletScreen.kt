@@ -45,7 +45,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.componen
 import com.gemwallet.android.features.onboarding.presents.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportTabUIModel
-import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportViewModel
+import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportWalletViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -75,11 +75,11 @@ private val loadingDialogSize = 100.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () -> Unit) {
+fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel: () -> Unit) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
-    val viewModel: ImportViewModel = hiltViewModel()
+    val viewModel: ImportWalletViewModel = hiltViewModel()
 
     DisposableEffect(Unit) {
         viewModel.importSelect(importType)
@@ -91,7 +91,7 @@ fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () ->
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }
 
-    ImportScene(
+    ImportWalletScene(
         inputState = inputState,
         importType = uiState.importType,
         tabs = uiState.tabs,
@@ -143,7 +143,7 @@ fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () ->
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ImportScene(
+private fun ImportWalletScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
     tabs: List<ImportTabUIModel>,
@@ -286,7 +286,7 @@ private fun ErrorMessage(error: String?) {
 fun PreviewImportAddress() {
     WalletTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            ImportScene(
+            ImportWalletScene(
                 inputState = remember { mutableStateOf(TextFieldValue()) },
                 importType = ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin),
                 tabs = listOf(
