@@ -1,12 +1,12 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{AssetId, BannerEvent, Deeplink};
+use primitives::{AssetData, AssetId, BannerEvent, Deeplink};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;
 use crate::models::state::GemLoadState;
-use crate::services::balance::GemBalanceService;
+use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -136,17 +136,23 @@ impl GemAssetDetailsService {
     pub fn details(&self, input: GemAssetDetailsInput) -> GemAssetDetails {
         let GemAssetDetailsInput {
             wallet,
-            asset,
-            owner_address,
-            metadata,
-            balance,
-            price,
-            price_change_percentage_24h,
+            asset_data,
             currency,
             banners,
-            price_alerts,
             fee_balance_metadata,
         } = input;
+        let balance = GemAssetBalance::from(&asset_data);
+        let AssetData {
+            asset,
+            account,
+            price,
+            price_alerts,
+            metadata,
+            ..
+        } = asset_data;
+        let owner_address = Some(account.address).filter(|address| !address.is_empty());
+        let price_change_percentage_24h = price.as_ref().map(|price| price.price_change_percentage_24h);
+        let price = price.map(|price| price.price);
         let wallet_type = wallet.wallet_type;
         let visible_banners = self.banners.visible_banners(&GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance), banners);
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();

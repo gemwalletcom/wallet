@@ -1,24 +1,19 @@
 package com.gemwallet.android.data.services.store.database.entities
 
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.AssetPriceInfo
-import com.gemwallet.android.model.Balance
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetMetaData
-import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Balance
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.Price
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 data class DbAssetInfo(
     val id: String,
@@ -76,80 +71,64 @@ data class DbAssetInfo(
     val assetIsActive: Boolean?,
 )
 
-fun Flow<List<DbAssetInfo>>.toAssetInfoModel() = map { it.toAssetInfoModels() }
+fun Flow<List<DbAssetInfo>>.toAssetDataModel() = map { it.toAssetDataModels() }
 
-fun List<DbAssetInfo>.toAssetInfoModels() = mapNotNull { it.toDTO() }
+fun List<DbAssetInfo>.toAssetDataModels() = mapNotNull { it.toDTO() }
 
-fun DbAssetInfo.toDTO(): AssetInfo? {
+fun DbAssetInfo.toDTO(): AssetData? {
     val entity = this
     val assetId = entity.id.toAssetId() ?: return null
-    val asset = Asset(
-        id = assetId,
-        name = entity.name,
-        symbol = entity.symbol,
-        decimals = entity.decimals,
-        type = entity.type,
-    )
-    val balances = AssetBalance(
-        asset = asset,
+    return AssetData(
+        asset = Asset(
+            id = assetId,
+            name = entity.name,
+            symbol = entity.symbol,
+            decimals = entity.decimals,
+            type = entity.type,
+        ),
         balance = Balance(
             available = entity.balanceAvailable.toBigInteger(),
             frozen = entity.balanceFrozen.toBigInteger(),
             locked = entity.balanceLocked.toBigInteger(),
             staked = entity.balanceStaked.toBigInteger(),
             pending = entity.balancePending.toBigInteger(),
+            pendingUnconfirmed = entity.balancePendingUnconfirmed.toBigInteger(),
             rewards = entity.balanceRewards.toBigInteger(),
             reserved = entity.balanceReserved.toBigInteger(),
-            withdrawable = entity.balanceWithdrawable.toBigInteger(),
-            pendingUnconfirmed = entity.balancePendingUnconfirmed.toBigInteger(),
             earn = entity.balanceEarn.toBigInteger(),
+            withdrawable = entity.balanceWithdrawable.toBigInteger(),
+            metadata = entity.balanceMetadata,
         ),
-        metadata = entity.balanceMetadata,
-        isActive = assetIsActive != false,
-    )
-
-    val account = if (entity.address.isNullOrEmpty()) {
-        null
-    } else {
-        Account(
+        account = Account(
             chain = entity.chain,
-            address = entity.address,
-            derivationPath = entity.derivationPath ?: "",
+            address = entity.address.orEmpty(),
+            derivationPath = entity.derivationPath.orEmpty(),
             extendedPublicKey = entity.extendedPublicKey,
-        )
-    }
-    return AssetInfo(
-        owner = account,
-        asset = asset,
-        balance = balances,
+        ),
         price = if (entity.priceValue != null && entity.priceValue > 0 && entity.priceCurrency != null) {
-            AssetPriceInfo(
-                currency = entity.priceCurrency,
-                price = AssetPrice(
-                    assetId = assetId,
-                    price = entity.priceValue,
-                    priceChangePercentage24h = entity.priceDayChanges ?: 0.0,
-                    updatedAt = entity.priceUpdatedAt ?: 0,
-                ),
+            Price(
+                price = entity.priceValue,
+                priceChangePercentage24h = entity.priceDayChanges ?: 0.0,
+                updatedAt = entity.priceUpdatedAt ?: 0,
             )
         } else {
             null
         },
+        priceAlerts = emptyList(),
         metadata = AssetMetaData(
             isEnabled = entity.isEnabled,
+            isBalanceEnabled = entity.visible == true,
             isBuyEnabled = entity.isBuyEnabled,
             isSellEnabled = entity.isSellEnabled,
             isSwapEnabled = entity.isSwapEnabled,
             isStakeEnabled = entity.isStakeEnabled,
-            isPinned = entity.pinned == true,
-            rankScore = entity.assetRank,
-            isActive = true,
-            isBalanceEnabled = entity.visible == true,
             isEarnEnabled = entity.isEarnEnabled,
+            isPinned = entity.pinned == true,
+            isActive = assetIsActive != false,
             stakingApr = entity.stakingApr,
             earnApr = entity.earnApr,
+            rankScore = entity.assetRank,
         ),
-        walletId = walletId?.let(::WalletId),
         associations = entity.associations,
     )
 }

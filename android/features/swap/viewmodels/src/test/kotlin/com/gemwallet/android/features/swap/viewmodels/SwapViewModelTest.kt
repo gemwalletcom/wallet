@@ -15,14 +15,12 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetBalance
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockGemSwapSession
 import com.gemwallet.android.testkit.mockGemSwapTransfer
+import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.testkit.mockSwapperQuote
@@ -81,13 +79,12 @@ class SwapViewModelTest {
 
     private val solAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
     private val usdcAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
-    private val solInfo = mockAssetInfo(
-        owner = mockAccount(chain = Chain.Solana),
+    private val solInfo = mockAssetData(
+        account = mockAccount(chain = Chain.Solana),
         asset = solAsset,
-        balance = mockAssetBalance(asset = solAsset, balance = mockBalance(available = BigInteger("1000000000"))),
-        walletId = mockWalletId(),
+        balance = mockBalance(available = BigInteger("1000000000")),
     )
-    private val usdcInfo = mockAssetInfo(owner = mockAccount(chain = Chain.Solana), asset = usdcAsset, walletId = mockWalletId())
+    private val usdcInfo = mockAssetData(account = mockAccount(chain = Chain.Solana), asset = usdcAsset)
 
     private val getSession = mockk<GetSession>(relaxed = true) {
         every { this@mockk() } returns MutableStateFlow(null)
@@ -237,7 +234,7 @@ class SwapViewModelTest {
 
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
         assertNull(savedState.get<String?>(RouteArgument.ToAssetId.key))
-        assertEquals(solAsset.id, viewModel.payAsset.value?.id())
+        assertEquals(solAsset.id, viewModel.payAsset.value?.asset?.id)
     }
 
     @Test
@@ -512,7 +509,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Enabled, state.buttonState)
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
-        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.owner!!.address)
+        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.account.address)
 
         var confirmed: GemTransferData? = null
         viewModel.onPrimaryAction(
@@ -522,7 +519,7 @@ class SwapViewModelTest {
         )
         awaitCondition { confirmed != null }
 
-        assertEquals(solInfo.owner!!.address, confirmed?.recipient?.address)
+        assertEquals(solInfo.account.address, confirmed?.recipient?.address)
     }
 
     @Test
@@ -682,8 +679,8 @@ class SwapViewModelTest {
 
     @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
-        every { assetQuery(walletId.id, solAsset.id) } returns flowOf(solInfo.copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 100.0))))
-        every { assetQuery(walletId.id, usdcAsset.id) } returns flowOf(usdcInfo.copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 1.0))))
+        every { assetQuery(walletId.id, solAsset.id) } returns flowOf(solInfo.copy(price = mockPrice(price = 100.0)))
+        every { assetQuery(walletId.id, usdcAsset.id) } returns flowOf(usdcInfo.copy(price = mockPrice(price = 1.0)))
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -763,7 +760,7 @@ class SwapViewModelTest {
             val quote = firstArg<SwapperQuote>()
             mockGemSwapTransfer(
                 quote = mockSwapQuote(fromValue = quote.fromValue, toValue = quote.toValue, useMaxAmount = quote.request.options.useMaxAmount),
-                recipient = solInfo.owner!!.address,
+                recipient = solInfo.account.address,
                 value = quote.fromValue,
                 useMaxAmount = quote.request.options.useMaxAmount,
             )

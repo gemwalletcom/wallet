@@ -11,7 +11,6 @@ import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
 import struct Gemstone.GemAmountSession
 import enum Gemstone.GemAmountType
-import struct Gemstone.GemAssetBalance
 import enum Gemstone.GemInfoAction
 import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemStakeServiceProtocol
@@ -321,8 +320,8 @@ private extension AmountSceneViewModel {
         entry.equivalent.text()
     }
 
-    static func input(request: GemAmountRequest, asset: Asset, assetData: AssetData) -> GemAmountInput {
-        request.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
+    static func input(request: GemAmountRequest, asset _: Asset, assetData: AssetData) -> GemAmountInput {
+        request.input(data: assetData.toGem())
     }
 
     static func entry(session: GemAmountSession, amountType: GemAmountType, asset: Asset, assetData: AssetData, input: GemAmountInput, currency: Currency) -> GemAmountEntry {

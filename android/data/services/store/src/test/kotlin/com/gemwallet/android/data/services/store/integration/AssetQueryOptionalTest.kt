@@ -14,7 +14,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
@@ -75,10 +74,9 @@ class AssetQueryOptionalTest {
         val first = query("wallet-1", ethereum).first()
         val second = query("wallet-2", ethereum).first()
 
-        assertEquals(listOf("0xabc", "0xdef"), listOf(first?.owner?.address, second?.owner?.address))
-        assertEquals(listOf(BigInteger.valueOf(5), BigInteger.valueOf(7)), listOf(first?.balance?.balance?.available, second?.balance?.balance?.available))
-        assertEquals(listOf(WalletId("wallet-1"), WalletId("wallet-2")), listOf(first?.walletId, second?.walletId))
-        assertEquals(2000.0, first?.price?.price?.price)
+        assertEquals(listOf("0xabc", "0xdef"), listOf(first?.account?.address, second?.account?.address))
+        assertEquals(listOf(BigInteger.valueOf(5), BigInteger.valueOf(7)), listOf(first?.balance?.available, second?.balance?.available))
+        assertEquals(2000.0, first?.price?.price)
     }
 
     @Test
@@ -86,16 +84,16 @@ class AssetQueryOptionalTest {
         val token = query("wallet-1", usdt).first()
 
         assertEquals(usdt, token?.asset?.id)
-        assertEquals("0xabc", token?.owner?.address)
-        assertEquals(BigInteger.ZERO, token?.balance?.balance?.available)
+        assertEquals("0xabc", token?.account?.address)
+        assertEquals(BigInteger.ZERO, token?.balance?.available)
     }
 
     @Test
-    fun aChainWithoutAnAccountHasNoOwner() = runBlocking(Dispatchers.IO) {
+    fun aChainWithoutAnAccountHasNoAddress() = runBlocking(Dispatchers.IO) {
         val bitcoin = query("wallet-1", AssetId(Chain.Bitcoin)).first()
 
         assertEquals(AssetId(Chain.Bitcoin), bitcoin?.asset?.id)
-        assertNull(bitcoin?.owner)
+        assertEquals("", bitcoin?.account?.address)
     }
 
     @Test

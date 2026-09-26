@@ -20,6 +20,9 @@ remote:
   - BannerEvent
   - Banner
   - BalanceMetadata
+  - Balance
+  - AssetBalance
+  - AssetData
   - BannerState
   - ChainAddress
   - ChainType
@@ -225,7 +228,9 @@ mocks:
   - ApplicationMetadata
   - ApprovalData
   - Asset
+  - AssetBalance
   - AssetBasic
+  - AssetData
   - AssetFull
   - AssetLink
   - AssetMarket
@@ -233,8 +238,10 @@ mocks:
   - AssetPrice
   - AssetProperties
   - AssetScore
+  - Balance
   - Banner
   - BlockExplorerLink
+  - ChainAssetData
   - ChartCandleStick
   - ChartDateValue
   - ChartValuePercentage
@@ -357,6 +364,7 @@ mocks:
   - Price
   - PriceAlert
   - PriceAlertData
+  - RecentAsset
   - RedelegateData
   - RedemptionResult
   - ReferralAllowance

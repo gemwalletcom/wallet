@@ -12,7 +12,9 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetBalance
 import com.wallet.core.primitives.AssetBasic
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
@@ -22,11 +24,14 @@ import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Balance
+import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChainAssetData
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartValuePercentage
@@ -81,6 +86,7 @@ import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.PriceAlertDirection
+import com.wallet.core.primitives.RecentAsset
 import com.wallet.core.primitives.SerializedBigInteger
 import com.wallet.core.primitives.SerializedDate
 import com.wallet.core.primitives.StakeProviderType
@@ -167,6 +173,16 @@ fun mockAsset(
     type = type,
 )
 
+fun mockAssetBalance(
+    assetId: AssetId = mockAssetId(),
+    balance: Balance = mockBalance(),
+    isActive: Boolean = false,
+) = AssetBalance(
+    assetId = assetId,
+    balance = balance,
+    isActive = isActive,
+)
+
 fun mockAssetBasic(
     asset: Asset = mockAsset(),
     properties: AssetProperties = mockAssetProperties(),
@@ -177,6 +193,24 @@ fun mockAssetBasic(
     properties = properties,
     score = score,
     price = price,
+)
+
+fun mockAssetData(
+    asset: Asset = mockAsset(),
+    balance: Balance = mockBalance(),
+    account: Account = mockAccount(),
+    price: Price? = null,
+    priceAlerts: List<PriceAlert> = emptyList(),
+    metadata: AssetMetaData = mockAssetMetaData(),
+    associations: List<AssetAssociation> = emptyList(),
+) = AssetData(
+    asset = asset,
+    balance = balance,
+    account = account,
+    price = price,
+    priceAlerts = priceAlerts,
+    metadata = metadata,
+    associations = associations,
 )
 
 fun mockAssetFull(
@@ -299,6 +333,32 @@ fun mockAssetScore(
     rank = rank,
 )
 
+fun mockBalance(
+    available: SerializedBigInteger = java.math.BigInteger.ZERO,
+    frozen: SerializedBigInteger = java.math.BigInteger.ZERO,
+    locked: SerializedBigInteger = java.math.BigInteger.ZERO,
+    staked: SerializedBigInteger = java.math.BigInteger.ZERO,
+    pending: SerializedBigInteger = java.math.BigInteger.ZERO,
+    pendingUnconfirmed: SerializedBigInteger = java.math.BigInteger.ZERO,
+    rewards: SerializedBigInteger = java.math.BigInteger.ZERO,
+    reserved: SerializedBigInteger = java.math.BigInteger.ZERO,
+    earn: SerializedBigInteger = java.math.BigInteger.ZERO,
+    withdrawable: SerializedBigInteger = java.math.BigInteger.ZERO,
+    metadata: BalanceMetadata? = null,
+) = Balance(
+    available = available,
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    pendingUnconfirmed = pendingUnconfirmed,
+    rewards = rewards,
+    reserved = reserved,
+    earn = earn,
+    withdrawable = withdrawable,
+    metadata = metadata,
+)
+
 fun mockBanner(
     walletId: WalletId? = null,
     asset: Asset? = null,
@@ -317,6 +377,14 @@ fun mockBlockExplorerLink(
 ) = BlockExplorerLink(
     name = name,
     link = link,
+)
+
+fun mockChainAssetData(
+    assetData: AssetData = mockAssetData(),
+    feeAssetData: AssetData = mockAssetData(),
+) = ChainAssetData(
+    assetData = assetData,
+    feeAssetData = feeAssetData,
 )
 
 fun mockChartCandleStick(
@@ -771,6 +839,14 @@ fun mockPriceAlertData(
     price = price,
     priceAlert = priceAlert,
     rankScore = rankScore,
+)
+
+fun mockRecentAsset(
+    asset: Asset = mockAsset(),
+    createdAt: SerializedDate = 0L,
+) = RecentAsset(
+    asset = asset,
+    createdAt = createdAt,
 )
 
 fun mockSupportAgent(

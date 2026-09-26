@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.collections.immutable.ImmutableList
@@ -138,13 +139,13 @@ open class BaseSelectAssetViewModel(
         filters,
         search.items(filters),
     ) { _, items ->
-        val wallet = session.value?.wallet
+        val current = session.value
         items
             .map { item ->
-                val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
-                if (item.owner == owner) item else item.copy(owner = owner)
+                val account = item.account.takeIf { it.address.isNotEmpty() } ?: current?.wallet?.getAccount(item.asset.id.chain)
+                if (account == null || account == item.account) item else item.copy(account = account)
             }
-            .toAssetInfoDataAggregates(flow.rowStyle)
+            .toAssetInfoDataAggregates(current?.currency ?: Currency.USD, flow.rowStyle)
     }
         .flowOn(ioDispatcher)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)

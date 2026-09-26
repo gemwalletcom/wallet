@@ -2,19 +2,21 @@ package com.gemwallet.android.features.wallet_tab.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -25,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
@@ -44,20 +47,20 @@ class NetworkAssetsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
-    private val native = mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18))
+    private val native = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18))
     private val pinnedToken =
-        mockAssetInfo(
+        mockAssetData(
             asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20),
             metadata = mockAssetMetaData(isPinned = true),
         )
-    private val unpinnedToken = mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xusdc"), symbol = "USDC", type = AssetType.ERC20))
-    private val hiddenToken = mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdai"), symbol = "DAI", type = AssetType.ERC20))
-    private val otherWalletToken = mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xlink"), symbol = "LINK", type = AssetType.ERC20))
+    private val unpinnedToken = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xusdc"), symbol = "USDC", type = AssetType.ERC20))
+    private val hiddenToken = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdai"), symbol = "DAI", type = AssetType.ERC20))
+    private val otherWalletToken = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xlink"), symbol = "LINK", type = AssetType.ERC20))
 
     private val active = MutableStateFlow(listOf(native, pinnedToken, unpinnedToken))
     private val hidden = MutableStateFlow(listOf(hiddenToken))
     private val otherWalletActive = MutableStateFlow(listOf(native, otherWalletToken))
-    private val otherWalletHidden = MutableStateFlow(emptyList<AssetInfo>())
+    private val otherWalletHidden = MutableStateFlow(emptyList<AssetData>())
     private var activeSubscriptions = 0
 
     private val walletId = MutableStateFlow(WalletId(FIRST_WALLET))
@@ -150,6 +153,9 @@ class NetworkAssetsViewModelTest {
         assetsQuery = assetsQuery,
         getCurrentWalletId = object : GetCurrentWalletId {
             override fun invoke(): Flow<WalletId> = walletId
+        },
+        getCurrentCurrency = object : GetCurrentCurrency {
+            override fun getCurrency(): StateFlow<Currency> = MutableStateFlow(Currency.USD)
         },
         service = service,
         ioDispatcher = testDispatcher,

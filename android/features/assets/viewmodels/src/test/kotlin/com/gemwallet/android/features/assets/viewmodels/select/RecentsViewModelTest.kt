@@ -4,11 +4,11 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.assets.viewmodels.select.models.RecentsUIState
-import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RecentActivityType
+import com.wallet.core.primitives.RecentAsset
 import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
@@ -48,8 +48,8 @@ class RecentsViewModelTest {
     private val solAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
     private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val recentItems = listOf(
-        RecentAsset(asset = solAsset, addedAt = 1000L),
-        RecentAsset(asset = ethAsset, addedAt = 2000L),
+        RecentAsset(asset = solAsset, createdAt = 1000L),
+        RecentAsset(asset = ethAsset, createdAt = 2000L),
     )
 
     private val getCurrentWalletId = object : GetCurrentWalletId {

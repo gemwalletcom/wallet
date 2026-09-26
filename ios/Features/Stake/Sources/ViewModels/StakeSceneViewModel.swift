@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
@@ -67,11 +66,7 @@ public final class StakeSceneViewModel {
         service.stakeViewState(
             input: GemStakeInput(
                 walletType: wallet.type.toGem(),
-                asset: asset.toGem(),
-                balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
-                balanceMetadata: assetData.balance.metadata?.toGem(),
-                stakingApr: assetData.metadata.stakingApr,
-                price: assetData.price?.price,
+                assetData: assetData.toGem(),
                 currency: service.getCurrency(),
                 validators: validatorsQuery.value.map { $0.toGem() },
                 delegations: delegationsQuery.value.map { $0.toGem() },

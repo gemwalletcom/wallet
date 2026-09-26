@@ -2,7 +2,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemListRowTitle;
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, asset_balance::BalanceMetadata};
+use primitives::{AssetBalance, AssetData, AssetId, Balance, asset_balance::BalanceMetadata};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBalanceRequirement {
@@ -78,6 +78,24 @@ pub struct GemAssetBalance {
 }
 
 impl GemAssetBalance {
+    pub fn new(asset_id: AssetId, balance: &Balance, is_active: bool) -> Self {
+        Self {
+            asset_id,
+            available: balance.available.clone(),
+            frozen: balance.frozen.clone(),
+            locked: balance.locked.clone(),
+            staked: balance.staked.clone(),
+            pending: balance.pending.clone(),
+            pending_unconfirmed: balance.pending_unconfirmed.clone(),
+            rewards: balance.rewards.clone(),
+            reserved: balance.reserved.clone(),
+            withdrawable: balance.withdrawable.clone(),
+            earn: balance.earn.clone(),
+            metadata: balance.metadata.clone(),
+            is_active,
+        }
+    }
+
     pub fn zero(asset_id: AssetId) -> Self {
         Self {
             asset_id,
@@ -145,6 +163,18 @@ impl GemAssetBalance {
             }
         }
         balance
+    }
+}
+
+impl From<&AssetData> for GemAssetBalance {
+    fn from(data: &AssetData) -> Self {
+        Self::new(data.asset.id.clone(), &data.balance, data.metadata.is_active)
+    }
+}
+
+impl From<AssetBalance> for GemAssetBalance {
+    fn from(balance: AssetBalance) -> Self {
+        Self::new(balance.asset_id, &balance.balance, balance.is_active)
     }
 }
 

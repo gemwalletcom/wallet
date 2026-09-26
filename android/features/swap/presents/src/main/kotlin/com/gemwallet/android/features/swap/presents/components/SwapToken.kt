@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.AmountInputTransformation
@@ -44,12 +43,13 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSideInteraction
 
 @Composable
 internal fun SwapToken(
-    item: AssetInfo?,
+    item: AssetData?,
     balance: GemLocalizedText?,
     equivalent: String,
     calculating: Boolean = false,
@@ -102,7 +102,7 @@ private fun SwapItemLotInfo(asset: Asset?, enabled: Boolean, onClick: () -> Unit
     if (asset == null) {
         SelectAssetInfo(enabled, onClick)
     } else {
-        AssetInfo(asset, enabled, onClick)
+        AssetData(asset, enabled, onClick)
     }
 }
 
@@ -125,7 +125,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AssetInfo(asset: Asset, enabled: Boolean, onClick: () -> Unit) {
+private fun AssetData(asset: Asset, enabled: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)

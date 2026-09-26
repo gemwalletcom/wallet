@@ -5,7 +5,7 @@ use strum::{AsRefStr, EnumString};
 
 use crate::{Asset, AssetId, Device, Price, currency::Currency};
 
-#[derive(Clone, Debug, Serialize, Deserialize, Model)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PriceAlert {

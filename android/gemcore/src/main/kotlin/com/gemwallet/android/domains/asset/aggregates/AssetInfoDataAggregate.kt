@@ -2,15 +2,13 @@ package com.gemwallet.android.domains.asset.aggregates
 
 import androidx.compose.runtime.Immutable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.toGem
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAssetItemTrailing
-import uniffi.gemstone.GemAssetListRowInput
 import uniffi.gemstone.GemAssetRowStyle
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.assetListRow
@@ -25,32 +23,20 @@ data class AssetInfoDataAggregate(val asset: Asset, val row: GemAssetItemRow, va
 val GemAssetItemRow.trailingValue: GemRowText?
     get() = (trailing as? GemAssetItemTrailing.Value)?.value
 
-fun List<AssetInfo>.toAssetInfoDataAggregates(style: GemAssetRowStyle? = null, hideBalance: Boolean = false): List<AssetInfoDataAggregate> {
-    val inputs = map { it.rowInput(GemAssetBalanceScope.TOTAL) }
-    val rows = style?.let { assetListRows(inputs, it) } ?: walletAssetRows(inputs)
+fun List<AssetData>.toAssetInfoDataAggregates(currency: Currency, style: GemAssetRowStyle? = null, hideBalance: Boolean = false): List<AssetInfoDataAggregate> {
+    val assets = map { it.toGem() }
+    val rows = style?.let { assetListRows(assets, currency.toGem(), it) } ?: walletAssetRows(assets, currency.toGem())
     return zip(rows) { info, row -> info.aggregate(row, hideBalance) }
 }
 
-fun AssetInfo.toAssetInfoDataAggregate(style: GemAssetRowStyle, hideBalance: Boolean = false, scope: GemAssetBalanceScope = GemAssetBalanceScope.TOTAL): AssetInfoDataAggregate = aggregate(assetListRow(rowInput(scope), style), hideBalance)
+fun AssetData.toAssetInfoDataAggregate(currency: Currency, style: GemAssetRowStyle, hideBalance: Boolean = false, scope: GemAssetBalanceScope = GemAssetBalanceScope.TOTAL): AssetInfoDataAggregate =
+    aggregate(assetListRow(toGem(), currency.toGem(), scope, style), hideBalance)
 
-private fun AssetInfo.rowInput(scope: GemAssetBalanceScope): GemAssetListRowInput {
-    val assetPrice = price?.price
-    return GemAssetListRowInput(
-        asset = asset.toGem(),
-        balance = balance.toGem(),
-        scope = scope,
-        price = assetPrice?.price?.takeIf(Double::isFinite),
-        change = assetPrice?.priceChangePercentage24h?.takeIf(Double::isFinite),
-        currency = (price?.currency ?: Currency.USD).toGem(),
-        isEnabled = metadata.isBalanceEnabled,
-    )
-}
-
-private fun AssetInfo.aggregate(row: GemAssetItemRow, hideBalance: Boolean): AssetInfoDataAggregate = AssetInfoDataAggregate(
+private fun AssetData.aggregate(row: GemAssetItemRow, hideBalance: Boolean): AssetInfoDataAggregate = AssetInfoDataAggregate(
     asset = asset,
     row = row,
     hideBalance = hideBalance,
     pinned = metadata.isPinned,
     balanceEnabled = metadata.isBalanceEnabled,
-    accountAddress = owner?.address.orEmpty(),
+    accountAddress = account.address,
 )

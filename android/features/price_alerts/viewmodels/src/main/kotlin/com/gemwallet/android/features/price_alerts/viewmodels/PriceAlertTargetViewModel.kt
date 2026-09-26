@@ -69,10 +69,10 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val assetInfo = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
     val currency = service.getCurrency().toPrimitives()
-    private val assetPrice = assetInfo.map { it?.price?.price }
+    private val assetPrice = assetInfo.map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val assetRow: StateFlow<GemAssetItemRow?> = assetInfo.map { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle)?.row }
+    val assetRow: StateFlow<GemAssetItemRow?> = assetInfo.map { it?.toAssetInfoDataAggregate(currency, GemSelectAssetType.PriceAlert.flow().rowStyle)?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = MutableStateFlow(service.newAlertSession(assetId.toIdentifier(), numberFormat()))

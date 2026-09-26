@@ -6,9 +6,7 @@ import Formatters
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
-import struct Gemstone.GemAssetBalance
 import enum Gemstone.GemSlippageSelection
-import struct Gemstone.GemSwapAssetData
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
@@ -40,7 +38,7 @@ public final class SwapSceneViewModel {
     public let wallet: Wallet
 
     public var session: GemSwapSession
-    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: GemSwapAssetData?, receive: GemSwapAssetData?, state: GemSwapViewState)?
+    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: AssetData?, receive: AssetData?, state: GemSwapViewState)?
     public var isPresentingInfoSheet: SwapSheetType?
 
     public let fromAssetQuery: ObservableQuery<AssetQueryOptional>
@@ -59,12 +57,12 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var viewState: GemSwapViewState {
-        let pay = fromAsset?.swapAssetData
-        let receive = toAsset?.swapAssetData
+        let pay = fromAsset
+        let receive = toAsset
         if let cache = viewStateCache, cache.session == session, cache.pay == pay, cache.receive == receive {
             return cache.state
         }
-        let state = session.viewState(pay: pay, receive: receive, currency: service.currency.toGem())
+        let state = session.viewState(pay: pay?.toGem(), receive: receive?.toGem(), currency: service.currency.toGem())
         viewStateCache = (session, pay, receive, state)
         return state
     }
@@ -437,15 +435,5 @@ extension SwapSceneViewModel {
             }
             swap()
         }
-    }
-}
-
-private extension AssetData {
-    var swapAssetData: GemSwapAssetData {
-        GemSwapAssetData(
-            asset: asset.toGem(),
-            balance: GemAssetBalance(balance, assetId: asset.id, isActive: metadata.isActive),
-            price: price?.price,
-        )
     }
 }

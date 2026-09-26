@@ -11,7 +11,8 @@ pub struct AddressBalances {
     pub assets: Vec<AssetBalance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetBalance {
     pub asset_id: AssetId,
@@ -67,28 +68,39 @@ impl AssetBalance {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Balance {
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub available: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub frozen: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub locked: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub staked: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub pending: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub pending_unconfirmed: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub rewards: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub reserved: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub earn: BigUint,
     #[serde(with = "serde_serializers::biguint::string")]
+    #[model(serialized_as = "BigIntValue")]
     pub withdrawable: BigUint,
     pub metadata: Option<BalanceMetadata>,
 }

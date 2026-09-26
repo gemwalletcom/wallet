@@ -3,20 +3,20 @@
 
 use crate::models::custom_types::{GemBigInt, GemBigUint, GemJsonValue};
 use primitives::{
-    Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFiatValue, AssetFull, AssetLink, AssetList,
-    AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain, ChainAddress, ChainAsset, ChainType,
-    ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContractCallData, CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon,
-    Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl, FiatRate, FiatTransaction,
-    FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType,
-    NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus,
-    PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata,
-    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionData, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder,
-    PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection,
-    PriceAlertNotificationType, PriceProvider, RecentActivityType, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, ReportReason, Resource, RewardRedemption, RewardRedemptionOption,
-    RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender,
-    SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType,
-    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction,
+    Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBalance, AssetBasic, AssetData, AssetFiatValue,
+    AssetFull, AssetLink, AssetList, AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, Balance, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain,
+    ChainAddress, ChainAsset, ChainType, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContractCallData, CoreEmoji, CoreListItem,
+    CoreListItemBadge, CoreListItemIcon, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl,
+    FiatRate, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset, NFTAssetData,
+    NFTAttribute, NFTAttributeType, NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote,
+    PaymentRequest, PaymentStatus, PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
+    PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionData, PerpetualProvider, PerpetualReduceData, PerpetualSearchData,
+    PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData,
+    PriceAlertDirection, PriceAlertNotificationType, PriceProvider, RecentActivityType, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, ReportReason, Resource, RewardRedemption,
+    RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage,
+    SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue,
+    TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction,
     TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
     WalletSource, WalletType, YieldProvider,
 };
@@ -895,11 +895,29 @@ pub struct AssetAssociation {
 }
 
 #[uniffi::remote(Record)]
+pub struct AssetBalance {
+    pub asset_id: primitives::AssetId,
+    pub balance: Balance,
+    pub is_active: bool,
+}
+
+#[uniffi::remote(Record)]
 pub struct AssetBasic {
     pub asset: Asset,
     pub properties: AssetProperties,
     pub score: AssetScore,
     pub price: Option<Price>,
+}
+
+#[uniffi::remote(Record)]
+pub struct AssetData {
+    pub asset: Asset,
+    pub balance: Balance,
+    pub account: Account,
+    pub price: Option<Price>,
+    pub price_alerts: Vec<PriceAlert>,
+    pub metadata: AssetMetaData,
+    pub associations: Vec<AssetAssociation>,
 }
 
 #[uniffi::remote(Record)]
@@ -996,6 +1014,21 @@ pub struct AssetProperties {
 pub struct AssetScore {
     pub rank: i32,
     pub rank_type: AssetRank,
+}
+
+#[uniffi::remote(Record)]
+pub struct Balance {
+    pub available: GemBigUint,
+    pub frozen: GemBigUint,
+    pub locked: GemBigUint,
+    pub staked: GemBigUint,
+    pub pending: GemBigUint,
+    pub pending_unconfirmed: GemBigUint,
+    pub rewards: GemBigUint,
+    pub reserved: GemBigUint,
+    pub earn: GemBigUint,
+    pub withdrawable: GemBigUint,
+    pub metadata: Option<BalanceMetadata>,
 }
 
 #[uniffi::remote(Record)]

@@ -8,20 +8,18 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetBalance
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemValidatorRow
+import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.DelegationValidator
@@ -64,7 +62,7 @@ class AmountViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
 
-    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(assetInfo(HundredAtom))
+    private val assetInfoFlow = MutableStateFlow<AssetData?>(assetInfo(HundredAtom))
 
     private val sentValues = mutableListOf<BigInteger>()
     private val sentIsMax = mutableListOf<Boolean>()
@@ -224,8 +222,7 @@ class AmountViewModelTest {
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
-    private fun assetInfo(available: BigInteger) =
-        mockAssetInfo(asset = asset, balance = mockAssetBalance(asset = asset, balance = mockBalance(available = available)), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 10.0)))
+    private fun assetInfo(available: BigInteger) = mockAssetData(asset = asset, balance = mockBalance(available = available), price = mockPrice(price = 10.0))
 
     private fun viewModelTest(params: AmountParams = AmountParams.Transfer(assetId = asset.id, payment = GemPaymentRecipient(GemRecipient(address = "to", memo = null), null)), block: suspend TestScope.(AmountViewModel) -> Unit) =
         runTest(testDispatcher) {

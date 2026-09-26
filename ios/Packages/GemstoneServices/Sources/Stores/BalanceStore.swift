@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.AssetBalance
 import typealias Gemstone.AssetId
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetConfiguration
 import struct Gemstone.GemBalanceRecord
 import protocol Gemstone.GemBalanceStore
@@ -18,9 +18,9 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         self.store = store
     }
 
-    public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
+    public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetBalance] {
         try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
-            .map { GemAssetBalance($0.balance, assetId: $0.assetId, isActive: $0.isActive) }
+            .map { $0.toGem() }
     }
 
     public func getBalanceAssetIds(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetId] {

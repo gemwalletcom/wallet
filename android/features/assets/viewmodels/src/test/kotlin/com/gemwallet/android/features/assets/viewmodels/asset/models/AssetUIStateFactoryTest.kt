@@ -2,16 +2,16 @@ package com.gemwallet.android.features.assets.viewmodels.asset.models
 
 import android.content.Context
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockChainAssetInfo
+import com.gemwallet.android.testkit.mockChainAssetData
 import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.ui.R
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
@@ -56,7 +56,7 @@ class AssetUIStateFactoryTest {
         val apr = mockGemFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
         val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos))
         val section = model(
-            mockAssetInfo(asset = asset, owner = null),
+            mockAssetData(asset = asset),
             sections = listOf(
                 GemAssetDetailSection(
                     GemListSectionTitle.BALANCES,
@@ -86,7 +86,7 @@ class AssetUIStateFactoryTest {
         val price = mockGemFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
         val change = mockGemFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
         val asset = mockAsset()
-        val assetInfo = mockAssetInfo(asset = asset, owner = null)
+        val assetInfo = mockAssetData(asset = asset)
         val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, price, change), GemRowTap.Price))))
         val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null), GemRowTap.Price))))
 
@@ -103,7 +103,7 @@ class AssetUIStateFactoryTest {
         val link = GemListRow.Link(GemListRowTitle.PIN, null, GemListRowIcon.PIN, GemRowTap.Pin)
         val asset = mockAsset()
         val sections = model(
-            mockAssetInfo(asset = asset, owner = null),
+            mockAssetData(asset = asset),
             sections = listOf(
                 GemAssetDetailSection(GemListSectionTitle.MANAGE, listOf(GemAssetDetailRow.Row(link, GemRowTap.Pin))),
                 GemAssetDetailSection(
@@ -136,12 +136,12 @@ class AssetUIStateFactoryTest {
     }
 
     private fun model(
-        assetInfo: AssetInfo,
+        assetInfo: AssetData,
         sections: List<GemAssetDetailSection> = emptyList(),
         fiatValue: GemFormattedNumber? = null,
         balanceValue: GemFormattedNumber = mockGemFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
     ) = AssetUIStateFactory(context).create(
-        mockChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
+        mockChainAssetData(assetData = assetInfo, feeAssetData = assetInfo),
         mockGemAssetDetails(state = mockGemAssetDetailsState(showsBanners = true), balanceValue = balanceValue, sections = sections, fiatValue = fiatValue),
     )
 }

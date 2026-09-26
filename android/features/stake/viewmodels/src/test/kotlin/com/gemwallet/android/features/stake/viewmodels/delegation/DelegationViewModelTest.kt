@@ -8,8 +8,8 @@ import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
@@ -50,7 +50,7 @@ class DelegationViewModelTest {
         every { this@mockk() } returns flowOf(walletId)
     }
     private val assetQuery = mockk<AssetQuery> {
-        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetData(asset = asset))
     }
     private val delegationQuery = mockk<DelegationQuery>()
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v2")

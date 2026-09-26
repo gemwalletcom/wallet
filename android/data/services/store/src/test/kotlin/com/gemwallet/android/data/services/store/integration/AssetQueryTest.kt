@@ -14,7 +14,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
@@ -68,10 +67,9 @@ class AssetQueryTest {
         val first = query("wallet-1", ethereum).first()
         val second = query("wallet-2", ethereum).first()
 
-        assertEquals(listOf("0xabc", "0xdef"), listOf(first?.owner?.address, second?.owner?.address))
-        assertEquals(listOf(BigInteger.valueOf(5), BigInteger.valueOf(7)), listOf(first?.balance?.balance?.available, second?.balance?.balance?.available))
-        assertEquals(WalletId("wallet-1"), first?.walletId)
-        assertEquals(listOf(2000.0, 1.5), listOf(first?.price?.price?.price, first?.price?.price?.priceChangePercentage24h))
+        assertEquals(listOf("0xabc", "0xdef"), listOf(first?.account?.address, second?.account?.address))
+        assertEquals(listOf(BigInteger.valueOf(5), BigInteger.valueOf(7)), listOf(first?.balance?.available, second?.balance?.available))
+        assertEquals(listOf(2000.0, 1.5), listOf(first?.price?.price, first?.price?.priceChangePercentage24h))
     }
 
     @Test

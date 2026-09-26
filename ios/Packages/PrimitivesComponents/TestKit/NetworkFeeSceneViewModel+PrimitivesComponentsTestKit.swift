@@ -5,7 +5,6 @@ import func Gemstone.assetListRow
 import func Gemstone.feeAmount
 import enum Gemstone.FeeOption
 import struct Gemstone.GemAssetItemRow
-import struct Gemstone.GemAssetListRowInput
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeOptionItem
@@ -66,15 +65,9 @@ public extension FeeAssetItem {
         FeeAssetItem(
             asset: asset,
             row: assetListRow(
-                input: GemAssetListRowInput(
-                    asset: asset.toGem(),
-                    balance: .mock(assetId: asset.id.identifier),
-                    scope: .available,
-                    price: nil,
-                    change: nil,
-                    currency: Primitives.Currency.usd.toGem(),
-                    isEnabled: true,
-                ),
+                data: AssetData.mock(asset: asset).toGem(),
+                currency: Primitives.Currency.usd.toGem(),
+                scope: .available,
                 style: GemSelectAssetType.send.flow().rowStyle,
             ),
             isSelected: false,

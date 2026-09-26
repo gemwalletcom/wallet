@@ -3,15 +3,15 @@ use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert, StakeChain, VerificationStatus,
-    Wallet, WalletType,
+    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert, StakeChain,
+    VerificationStatus, Wallet, WalletType,
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetListRowInput, GemAssetMenuAction,
-    GemAssetMenuInput, GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton,
-    GemHeaderButtonKind, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
-    GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuInput,
+    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
+    GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction,
+    GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -224,21 +224,16 @@ pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText
     }
 }
 
-pub fn asset_list_row(input: GemAssetListRowInput, style: GemAssetRowStyle) -> GemAssetItemRow {
-    let GemAssetListRowInput {
-        asset,
-        balance,
-        scope,
-        price,
-        change,
-        currency,
-        is_enabled,
-    } = input;
+pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBalanceScope, style: GemAssetRowStyle) -> GemAssetItemRow {
+    let asset = &data.asset;
+    let balance = GemAssetBalance::from(data);
     let value = match scope {
         GemAssetBalanceScope::Total => balance.total(),
         GemAssetBalanceScope::Available => balance.available,
     };
-    let text = asset_row_text(&asset, style);
+    let price = data.price.as_ref().map(|price| price.price).filter(|price| price.is_finite());
+    let change = data.price.as_ref().map(|price| price.price_change_percentage_24h).filter(|change| change.is_finite());
+    let text = asset_row_text(asset, style);
     let prices = price_row(price, change, currency.clone(), GemCurrencyStyle::Short);
     let (subtitle, subtitle_extra) = match style.subtitle {
         GemAssetSubtitleStyle::Price => (prices.price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })), prices.change.map(GemRowText::number)),
@@ -252,10 +247,10 @@ pub fn asset_list_row(input: GemAssetListRowInput, style: GemAssetRowStyle) -> G
         subtitle_extra,
         trailing: match style.trailing {
             GemAssetTrailingStyle::Balance => GemAssetItemTrailing::Value {
-                value: balance_text(&value, &asset),
-                extra: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                value: balance_text(&value, asset),
+                extra: fiat_amount(asset, &value, price, currency.clone(), GemCurrencyStyle::Short).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
             },
-            GemAssetTrailingStyle::Toggle => GemAssetItemTrailing::Toggle { is_on: is_enabled },
+            GemAssetTrailingStyle::Toggle => GemAssetItemTrailing::Toggle { is_on: data.metadata.is_balance_enabled },
             GemAssetTrailingStyle::Copy => GemAssetItemTrailing::Copy,
             GemAssetTrailingStyle::None => GemAssetItemTrailing::None,
         },
@@ -771,19 +766,12 @@ mod tests {
     #[test]
     fn test_a_list_row_carries_the_balance_its_fiat_and_whether_there_is_any() {
         let usdc = Asset::mock_ethereum_usdc();
-        let row = |balance: GemAssetBalance, scope, price| {
-            asset_list_row(
-                GemAssetListRowInput {
-                    asset: usdc.clone(),
-                    balance,
-                    scope,
-                    price,
-                    change: Some(-2.5),
-                    currency: Currency::USD,
-                    is_enabled: true,
-                },
-                wallet_asset_row_style(),
-            )
+        let row = |balance: Balance, scope, price: Option<f64>| {
+            let data = AssetData {
+                price: price.map(|price| Price::new(price, -2.5, Utc::now(), PriceProvider::Coingecko)),
+                ..AssetData::mock(usdc.clone(), balance)
+            };
+            asset_list_row(&data, &Currency::USD, scope, wallet_asset_row_style())
         };
         let value = |row: &GemAssetItemRow| match &row.trailing {
             GemAssetItemTrailing::Value { value, extra } => (value.clone(), extra.clone()),
@@ -793,9 +781,9 @@ mod tests {
             GemLocalizedText::Number { number } => number.clone(),
             other => panic!("expected a number, got {other:?}"),
         };
-        let held = GemAssetBalance {
-            staked: GemBigUint::from(2_000_000u32),
-            ..GemAssetBalance::mock_with_available(1_000_000)
+        let held = Balance {
+            staked: 2_000_000u32.into(),
+            ..Balance::coin_balance(1_000_000u32.into())
         };
 
         let total = row(held.clone(), GemAssetBalanceScope::Total, Some(1.0));
@@ -817,29 +805,24 @@ mod tests {
 
         assert_eq!(value(&row(held, GemAssetBalanceScope::Total, None)).1, None, "an unpriced asset is worth nothing the row can name");
 
-        let empty = row(GemAssetBalance::mock(), GemAssetBalanceScope::Total, Some(1.0));
+        let empty = row(Balance::coin_balance(0u32.into()), GemAssetBalanceScope::Total, Some(1.0));
         assert_eq!(value(&empty).0.tone, GemValueTone::Neutral, "an empty balance greys the row on both apps");
         assert_eq!(value(&empty).1, None);
     }
 
     #[test]
     fn test_a_row_trails_with_the_control_its_list_asks_for() {
-        let input = |is_enabled| GemAssetListRowInput {
-            asset: Asset::mock_ethereum_usdc(),
-            balance: GemAssetBalance::mock(),
-            scope: GemAssetBalanceScope::Total,
-            price: None,
-            change: None,
-            currency: Currency::USD,
-            is_enabled,
+        let data = |is_balance_enabled| AssetData {
+            metadata: AssetMetaData { is_balance_enabled, ..AssetMetaData::mock() },
+            ..AssetData::mock(Asset::mock_ethereum_usdc(), Balance::coin_balance(0u32.into()))
         };
-        let style = |trailing| GemAssetRowStyle { trailing, ..wallet_asset_row_style() };
+        let row = |is_balance_enabled, trailing| asset_list_row(&data(is_balance_enabled), &Currency::USD, GemAssetBalanceScope::Total, GemAssetRowStyle { trailing, ..wallet_asset_row_style() });
 
-        let toggle = asset_list_row(input(false), style(GemAssetTrailingStyle::Toggle));
+        let toggle = row(false, GemAssetTrailingStyle::Toggle);
         assert_eq!(toggle.trailing, GemAssetItemTrailing::Toggle { is_on: false });
         assert!(!toggle.masks_balance, "a switch has no balance to hide");
-        assert_eq!(asset_list_row(input(true), style(GemAssetTrailingStyle::Copy)).trailing, GemAssetItemTrailing::Copy);
-        assert_eq!(asset_list_row(input(true), style(GemAssetTrailingStyle::None)).trailing, GemAssetItemTrailing::None);
+        assert_eq!(row(true, GemAssetTrailingStyle::Copy).trailing, GemAssetItemTrailing::Copy);
+        assert_eq!(row(true, GemAssetTrailingStyle::None).trailing, GemAssetItemTrailing::None);
     }
 
     #[test]
@@ -1097,19 +1080,6 @@ mod tests {
     }
 
     #[test]
-    fn test_a_fiat_equivalent_needs_a_positive_value_and_a_price() {
-        use super::super::model::fiat_equivalent;
-        use crate::models::custom_types::GemBigInt;
-        let eth = Asset::from_chain(Chain::Ethereum);
-        let one = GemBigInt::from(10u64.pow(18));
-
-        assert_eq!(fiat_equivalent(eth.clone(), one.clone(), Some(2000.0), Currency::USD).map(|number| number.value), Some(2000.0));
-        assert_eq!(fiat_equivalent(eth.clone(), one, None, Currency::USD), None);
-        assert_eq!(fiat_equivalent(eth.clone(), GemBigInt::from(0), Some(2000.0), Currency::USD), None);
-        assert_eq!(fiat_equivalent(eth, GemBigInt::from(-5), Some(2000.0), Currency::USD), None);
-    }
-
-    #[test]
     fn test_a_fee_reads_in_its_asset_and_in_fiat_when_priced() {
         let eth = Asset::from_chain(Chain::Ethereum);
         let fee = num_bigint::BigInt::from(10u64.pow(15));
@@ -1308,6 +1278,7 @@ mod tests {
         assert!(!stakeable_asset_ids().contains(&bitcoin));
     }
     use chrono::Utc;
+    use primitives::{Balance, Price, PriceProvider};
     use primitives::{Chain, PriceAlertDirection, WalletType, currency::Currency};
 
     #[test]

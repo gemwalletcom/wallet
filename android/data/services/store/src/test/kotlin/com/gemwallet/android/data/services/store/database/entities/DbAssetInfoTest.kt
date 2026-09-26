@@ -47,8 +47,8 @@ class DbAssetInfoTest {
             priceCurrency = Currency.USD,
         ).toDTO()
 
-        assertEquals(1_700_000_000_000, withTimestamp?.price?.price?.updatedAt)
-        assertEquals(0L, withoutTimestamp?.price?.price?.updatedAt)
+        assertEquals(1_700_000_000_000, withTimestamp?.price?.updatedAt)
+        assertEquals(0L, withoutTimestamp?.price?.updatedAt)
     }
 
     @Test
@@ -57,9 +57,9 @@ class DbAssetInfoTest {
         val active = mockDbAssetInfo(chain = Chain.Stellar, assetIsActive = true).toDTO()
         val unknown = mockDbAssetInfo(chain = Chain.Ethereum, assetIsActive = null).toDTO()
 
-        assertEquals(false, inactive?.balance?.isActive)
-        assertEquals(true, active?.balance?.isActive)
-        assertEquals(true, unknown?.balance?.isActive)
+        assertEquals(false, inactive?.metadata?.isActive)
+        assertEquals(true, active?.metadata?.isActive)
+        assertEquals(true, unknown?.metadata?.isActive)
     }
 
     @Test

@@ -1466,6 +1466,26 @@ public extension Primitives.AssetAssociation {
     }
 }
 
+public extension Gemstone.AssetBalance {
+    func toPrimitives() -> Primitives.AssetBalance {
+        Primitives.AssetBalance(
+            assetId: Primitives.AssetId(core: assetId),
+            balance: balance.toPrimitives(),
+            isActive: isActive,
+        )
+    }
+}
+
+public extension Primitives.AssetBalance {
+    func toGem() -> Gemstone.AssetBalance {
+        Gemstone.AssetBalance(
+            assetId: assetId.identifier,
+            balance: balance.toGem(),
+            isActive: isActive,
+        )
+    }
+}
+
 public extension Gemstone.AssetBasic {
     func toPrimitives() -> Primitives.AssetBasic {
         Primitives.AssetBasic(
@@ -1484,6 +1504,34 @@ public extension Primitives.AssetBasic {
             properties: properties.toGem(),
             score: score.toGem(),
             price: price.map { $0.toGem() },
+        )
+    }
+}
+
+public extension Gemstone.AssetData {
+    func toPrimitives() -> Primitives.AssetData {
+        Primitives.AssetData(
+            asset: asset.toPrimitives(),
+            balance: balance.toPrimitives(),
+            account: account.toPrimitives(),
+            price: price.map { $0.toPrimitives() },
+            priceAlerts: priceAlerts.map { $0.toPrimitives() },
+            metadata: metadata.toPrimitives(),
+            associations: associations.map { $0.toPrimitives() },
+        )
+    }
+}
+
+public extension Primitives.AssetData {
+    func toGem() -> Gemstone.AssetData {
+        Gemstone.AssetData(
+            asset: asset.toGem(),
+            balance: balance.toGem(),
+            account: account.toGem(),
+            price: price.map { $0.toGem() },
+            priceAlerts: priceAlerts.map { $0.toGem() },
+            metadata: metadata.toGem(),
+            associations: associations.map { $0.toGem() },
         )
     }
 }
@@ -1722,6 +1770,42 @@ public extension Primitives.AssetScore {
         Gemstone.AssetScore(
             rank: rank,
             rankType: Gemstone.AssetRank.unknown,
+        )
+    }
+}
+
+public extension Gemstone.Balance {
+    func toPrimitives() -> Primitives.Balance {
+        Primitives.Balance(
+            available: BigInt(available),
+            frozen: BigInt(frozen),
+            locked: BigInt(locked),
+            staked: BigInt(staked),
+            pending: BigInt(pending),
+            pendingUnconfirmed: BigInt(pendingUnconfirmed),
+            rewards: BigInt(rewards),
+            reserved: BigInt(reserved),
+            earn: BigInt(earn),
+            withdrawable: BigInt(withdrawable),
+            metadata: metadata.map { $0.toPrimitives() },
+        )
+    }
+}
+
+public extension Primitives.Balance {
+    func toGem() -> Gemstone.Balance {
+        Gemstone.Balance(
+            available: available.magnitude,
+            frozen: frozen.magnitude,
+            locked: locked.magnitude,
+            staked: staked.magnitude,
+            pending: pending.magnitude,
+            pendingUnconfirmed: pendingUnconfirmed.magnitude,
+            rewards: rewards.magnitude,
+            reserved: reserved.magnitude,
+            earn: earn.magnitude,
+            withdrawable: withdrawable.magnitude,
+            metadata: metadata.map { $0.toGem() },
         )
     }
 }

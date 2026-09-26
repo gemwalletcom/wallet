@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
@@ -36,7 +37,7 @@ import javax.inject.Singleton
 object AssetModule {
     @Provides
     @Singleton
-    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, userConfig: UserConfig): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, userConfig)
+    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets, getCurrentCurrency: GetCurrentCurrency, userConfig: UserConfig): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, getCurrentCurrency, userConfig)
 
     @Provides
     @Singleton

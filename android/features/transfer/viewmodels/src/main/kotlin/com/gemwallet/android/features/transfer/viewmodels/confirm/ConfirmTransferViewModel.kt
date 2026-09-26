@@ -20,7 +20,6 @@ import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.domains.confirm.unpackTransferData
-import com.gemwallet.android.ext.toAssetPriceInfo
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
@@ -37,7 +36,6 @@ import com.gemwallet.android.features.transfer.viewmodels.confirm.models.feeItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.uiModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
-import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
@@ -409,7 +407,7 @@ class ConfirmTransferViewModel @Inject constructor(
 
         val feeAssets: List<FeeAssetUIModel> = load.feeAssets.map { it.toFeeAssetUIModel() }
 
-        fun assetPrice(asset: Asset): AssetPriceValue = AssetPriceValue(asset, load.metadata.price(asset.id.toIdentifier())?.toAssetPriceInfo(currency))
+        fun price(asset: Asset): Double? = load.metadata.price(asset.id.toIdentifier())?.price
     }
 
     private fun buildDetailElements(request: GemTransferData?, content: ConfirmContent?): List<ConfirmDetailsUIModel> = listOfNotNull(
@@ -429,9 +427,8 @@ class ConfirmTransferViewModel @Inject constructor(
     private fun buildSwapDetailElement(transfer: GemTransferData?, content: ConfirmContent?): ConfirmDetailsUIModel.SwapDetails? {
         val swapData = transfer?.inputType?.swapData ?: return null
         content ?: return null
-        val fromAsset = content.assetPrice(transfer.asset)
-        val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val model = swapQuoteDetails(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem(), fromAsset.price?.price?.price, toAsset.price?.price?.price, content.currency.toGem())
+        val toAsset = transfer.inputType.toAsset ?: return null
+        val model = swapQuoteDetails(swapData.quote, transfer.asset.toGem(), toAsset.toGem(), content.price(transfer.asset), content.price(toAsset), content.currency.toGem())
             .uiModel() ?: return null
 
         return ConfirmDetailsUIModel.SwapDetails(model)

@@ -19,14 +19,13 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Models:** VM195.
-2. **Sessions:** VM185.
-3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
-4. **Generated mappers:** BD299, then GEN300.
-5. **Unused code:** CLN318.
-6. **Names:** NAM365 to NAM372 in any order, one feature per change.
-7. **Parity:** BD342, BD343, BD345 to BD351.
-8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+1. **Sessions:** VM185.
+2. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+3. **Generated mappers:** BD299, then GEN300.
+4. **Unused code:** CLN318.
+5. **Names:** NAM365 to NAM372 in any order, one feature per change.
+6. **Parity:** BD342, BD343, BD345 to BD351.
+7. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -65,7 +64,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM260, VM281, VM291; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM197, VM198, VM203, VM205, VM206, VM266 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM195, VM288, BD299, GEN300 |
+| Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
@@ -122,7 +121,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 1, coverage:** declare the 10 generated model types the bindings lack, or delete their app use: `AssetSubtype`, `ContactData`, `Device`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.
   - **Phase 2, enums and identifiers:** `Chain` may migrate separately to a generated UniFFI enum. Keep the existing handwritten platform wrappers and parsers for `AssetId`, `NFTAssetId`, `NFTCollectionId`, `PerpetualId`, `TransactionId`, and `WalletId`, including their stable stored-string conversions; do not replace them with generated UniFFI records.
   - **Phase 3, storage and routes:** `just generate-models` emits `Codable` and `Hashable` conformances (iOS) and kotlinx serializers (Android) for the generated types that routes and stored JSON carry: iOS `Scenes`, Android route arguments, and three GRDB JSON columns. iOS `Store` gains the `Gemstone` dependency.
-  - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM195 (asset read model), VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
+  - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`), VM288 (iOS service wrappers) and VM289 (Android aggregates) land inside this phase.
   - **Phase 5, removal:** stop generating the Swift and Kotlin models, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
   - **Widget:** the iOS widget links neither `Gemstone` nor `GemstonePrimitives` and decodes API JSON with generated `Codable` models. Default: it keeps a small widget-local model for the fields it shows, so the no-Gemstone rule stands.
 
@@ -547,10 +546,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Twins and dead code
 
-- **VM195** **L** **Each app hand-writes its own asset read model and converts it for Core.** Core has `Asset`, `Price`, `AssetMetaData` and `GemAssetBalance`, but the composite a store read returns is written twice, with different shapes.
-  - **iOS:** `AssetData`, `ChainAssetData`, `Balance`, `AssetValuePrice` and `RecentAsset` (`Primitives`), converted by `GemAssetBalance(_:assetId:isActive:)` and `AssetData.rowInput` (`ListAssetItemsViewModel.swift`).
-  - **Android:** `AssetInfo`, `ChainAssetInfo`, `Balance`, `AssetBalance`, `AssetPriceValue` and `RecentAsset` (`gemcore/.../model`), converted by `AssetBalance.toGem` and `AssetInfo.rowInput` (`AssetInfoDataAggregate.kt`), which also drops non-finite prices where iOS does not.
-  - **Expected:** one generated read model from Core primitives that both store adapters fill, taken directly by Core's row functions; both sets of twins, conversions and row-input builders go.
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
 
 ## 6. Orchestration, services and stores

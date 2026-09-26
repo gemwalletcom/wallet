@@ -13,12 +13,11 @@ import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetUIStateFactory
-import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockChainAssetInfo
+import com.gemwallet.android.testkit.mockChainAssetData
 import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockPriceAlert
@@ -27,6 +26,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChainAssetData
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import io.mockk.coEvery
@@ -64,8 +64,8 @@ class AssetViewModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val chainAssetInfoFlow = MutableStateFlow<ChainAssetInfo?>(
-        mockChainAssetInfo(assetInfo = mockAssetInfo(asset = asset), feeAssetInfo = mockAssetInfo(asset = asset)),
+    private val chainAssetInfoFlow = MutableStateFlow<ChainAssetData?>(
+        mockChainAssetData(assetData = mockAssetData(asset = asset), feeAssetData = mockAssetData(asset = asset)),
     )
     private val sessionFlow = MutableStateFlow<Session?>(mockSession())
     private val banners = MutableSharedFlow<List<Banner>>(replay = 1)
@@ -98,7 +98,7 @@ class AssetViewModelTest {
             mockGemAssetDetails(
                 state = mockGemAssetDetailsState(
                     showsBanners = input.banners.isNotEmpty(),
-                    priceAlert = if (input.priceAlerts.isEmpty()) GemPriceAlertToggle.DISABLED else GemPriceAlertToggle.ENABLED,
+                    priceAlert = if (input.assetData.priceAlerts.isEmpty()) GemPriceAlertToggle.DISABLED else GemPriceAlertToggle.ENABLED,
                 ),
             )
         }

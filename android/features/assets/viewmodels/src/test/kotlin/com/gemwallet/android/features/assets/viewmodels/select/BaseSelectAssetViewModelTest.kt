@@ -8,15 +8,15 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectAssetFilters
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
@@ -90,7 +90,7 @@ class BaseSelectAssetViewModelTest {
     }
 
     private fun viewModel(
-        items: List<AssetInfo>,
+        items: List<AssetData>,
         recents: RecentActivityQuery = mockk(relaxed = true) {
             every { this@mockk(any(), any(), any(), any()) } returns flowOf(emptyList())
         },
@@ -103,10 +103,10 @@ class BaseSelectAssetViewModelTest {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet))
         }
         val search = object : SelectSearch {
-            override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.filterNotNull().map { current ->
+            override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetData>> = filters.filterNotNull().map { current ->
                 val query = current.queryFilters()
                 val chains = query.map { it.toQueryFilter() }.chains()
-                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.balance.available.signum() > 0) }.take(current.limit)
+                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.available.signum() > 0) }.take(current.limit)
             }
         }
         return BaseSelectAssetViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))
@@ -115,7 +115,7 @@ class BaseSelectAssetViewModelTest {
 
     @Test
     fun `the chain filter narrows the list and toggling it back restores it`() = runTest(dispatcher) {
-        val model = viewModel(listOf(mockAssetInfo(asset = ethereum), mockAssetInfo(asset = bitcoin)))
+        val model = viewModel(listOf(mockAssetData(asset = ethereum), mockAssetData(asset = bitcoin)))
 
         assertEquals(2, model.unpinned.first { it.size == 2 }.size)
 
@@ -128,7 +128,7 @@ class BaseSelectAssetViewModelTest {
 
     @Test
     fun `clearing the filters puts every chain back`() = runTest(dispatcher) {
-        val model = viewModel(listOf(mockAssetInfo(asset = ethereum), mockAssetInfo(asset = bitcoin)))
+        val model = viewModel(listOf(mockAssetData(asset = ethereum), mockAssetData(asset = bitcoin)))
         model.unpinned.first { it.size == 2 }
 
         model.setChainFilter(listOf(Chain.Bitcoin))
@@ -145,7 +145,7 @@ class BaseSelectAssetViewModelTest {
 
     @Test
     fun `the picker lists at most a hundred assets`() = runTest(dispatcher) {
-        val model = viewModel((1..101).map { mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0x$it"), type = AssetType.ERC20)) })
+        val model = viewModel((1..101).map { mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0x$it"), type = AssetType.ERC20)) })
 
         assertEquals(100, model.unpinned.first { it.isNotEmpty() }.size)
     }
@@ -174,7 +174,7 @@ class BaseSelectAssetViewModelTest {
             every { flow(any()) } returns sendFlow()
             every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         }
-        val model = viewModel(listOf(mockAssetInfo(asset = ethereum)), service = service)
+        val model = viewModel(listOf(mockAssetData(asset = ethereum)), service = service)
         model.unpinned.first { it.isNotEmpty() }
 
         val toast = CompletableDeferred<ToastMessage>()

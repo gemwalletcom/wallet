@@ -1,16 +1,16 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockPrice
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.every
@@ -29,27 +29,33 @@ import uniffi.gemstone.GemLocalizedText
 
 class GetActiveAssetsInfoImplTest {
     private val assets = listOf(
-        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 50000.0, priceChangePercentage24h = 2.5))),
-        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum)), price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0))),
-        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Solana))),
+        mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockPrice(price = 50000.0, priceChangePercentage24h = 2.5)),
+        mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum)), price = mockPrice(price = 3000.0)),
+        mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Solana))),
     )
 
     private val walletAssets = MutableStateFlow(assets)
 
     private val getWalletAssets = object : GetWalletAssets {
-        override fun invoke(): StateFlow<List<AssetInfo>> = walletAssets
+        override fun invoke(): StateFlow<List<AssetData>> = walletAssets
+    }
+
+    private val getCurrentCurrency = object : GetCurrentCurrency {
+        override fun getCurrency(): StateFlow<Currency> = MutableStateFlow(Currency.USD)
     }
 
     private val hideBalances = MutableStateFlow(false)
 
     private fun subject(hideBalance: Boolean, scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
+        getCurrentCurrency = getCurrentCurrency,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns flowOf(hideBalance) },
         scope = scope,
     )
 
     private fun observed(scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
+        getCurrentCurrency = getCurrentCurrency,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns hideBalances },
         scope = scope,
     )
@@ -58,7 +64,7 @@ class GetActiveAssetsInfoImplTest {
     fun emitsFormattedRowsForEveryWalletAsset() = runTest {
         val rows = subject(hideBalance = false, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(hideBalance = false), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(Currency.USD, hideBalance = false), rows)
         assertEquals("\$50,000.00", rows.first().priceText)
         assertEquals("+2.50%", rows.first().changeText)
     }
@@ -72,9 +78,9 @@ class GetActiveAssetsInfoImplTest {
             if (index ==
                 0
             ) {
-                item.copy(price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 51000.0, priceChangePercentage24h = 2.5)))
+                item.copy(price = mockPrice(price = 51000.0, priceChangePercentage24h = 2.5))
             } else {
-                item.copy(balance = item.balance.copy(balance = item.balance.balance.copy()))
+                item.copy(balance = item.balance.copy())
             }
         }
         val second = subject.assetsInfo().first { it.first().priceText == "\$51,000.00" }
@@ -114,7 +120,7 @@ class GetActiveAssetsInfoImplTest {
     fun hidesBalancesWhenAsked() = runTest {
         val rows = subject(hideBalance = true, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(hideBalance = true), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(Currency.USD, hideBalance = true), rows)
         assertEquals(listOf(true, true, true), rows.map { it.hideBalance })
     }
 }

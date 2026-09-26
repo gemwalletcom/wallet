@@ -42,7 +42,6 @@ import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.transfer.presents.receive.components.rememberQRCodePainter
 import com.gemwallet.android.features.transfer.viewmodels.receive.ReceiveViewModel
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
@@ -65,6 +64,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemLocalizedText
@@ -115,7 +115,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 }
 
 @Composable
-private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
+private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, warning: String, shareText: String?, copyText: GemCopy?, standard: GemLocalizedText?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -166,7 +166,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: Stri
             }
         },
     ) {
-        if (assetInfo.owner?.address.isNullOrEmpty()) {
+        if (assetInfo.account.address.isEmpty()) {
             return@Scene
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -197,7 +197,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: Stri
                         .clickable(onCopyClick),
                 ) {
                     rememberQRCodePainter(
-                        content = assetInfo.owner?.address ?: "",
+                        content = assetInfo.account.address,
                         size = qrSize,
                     )?.let { painter ->
                         Image(
@@ -213,7 +213,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: Stri
                         .width(imageSize)
                         .padding(horizontal = imagePadding)
                         .clickable(onCopyClick),
-                    text = assetInfo.owner?.address ?: "",
+                    text = assetInfo.account.address,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Medium,

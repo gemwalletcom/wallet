@@ -80,7 +80,7 @@ impl GemPortfolioService {
     }
 
     async fn get_wallet_assets(&self, wallet_id: WalletId, period: ChartPeriod) -> Result<PortfolioAssets, GemServiceError> {
-        let assets = self.store.get_wallet_balances(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
+        let assets = self.store.get_portfolio_assets(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
         Ok(self.get_assets(period, PortfolioAssetsRequest { assets }).await?)
     }
 }

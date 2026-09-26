@@ -25,7 +25,6 @@ import com.gemwallet.android.features.swap.presents.components.SwapError
 import com.gemwallet.android.features.swap.presents.components.SwapToken
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.IndicatorButton
@@ -41,13 +40,14 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
+import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemLocalizedText
 
 @Composable
 internal fun SwapScene(
     swapState: SwapUIState,
-    pay: AssetInfo?,
-    receive: AssetInfo?,
+    pay: AssetData?,
+    receive: AssetData?,
     payEquivalent: String,
     receiveEquivalent: String,
     payBalance: GemLocalizedText?,

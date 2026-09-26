@@ -17,3 +17,43 @@ public struct BalanceMetadata: Codable, Equatable, Hashable, Sendable {
 		self.bandwidthTotal = bandwidthTotal
 	}
 }
+
+public struct Balance: Codable, Equatable, Hashable, Sendable {
+	public let available: BigIntValue
+	public let frozen: BigIntValue
+	public let locked: BigIntValue
+	public let staked: BigIntValue
+	public let pending: BigIntValue
+	public let pendingUnconfirmed: BigIntValue
+	public let rewards: BigIntValue
+	public let reserved: BigIntValue
+	public let earn: BigIntValue
+	public let withdrawable: BigIntValue
+	public let metadata: BalanceMetadata?
+
+	public init(available: BigIntValue, frozen: BigIntValue, locked: BigIntValue, staked: BigIntValue, pending: BigIntValue, pendingUnconfirmed: BigIntValue, rewards: BigIntValue, reserved: BigIntValue, earn: BigIntValue, withdrawable: BigIntValue, metadata: BalanceMetadata?) {
+		self.available = available
+		self.frozen = frozen
+		self.locked = locked
+		self.staked = staked
+		self.pending = pending
+		self.pendingUnconfirmed = pendingUnconfirmed
+		self.rewards = rewards
+		self.reserved = reserved
+		self.earn = earn
+		self.withdrawable = withdrawable
+		self.metadata = metadata
+	}
+}
+
+public struct AssetBalance: Codable, Equatable, Hashable, Sendable {
+	public let assetId: AssetId
+	public let balance: Balance
+	public let isActive: Bool
+
+	public init(assetId: AssetId, balance: Balance, isActive: Bool) {
+		self.assetId = assetId
+		self.balance = balance
+		self.isActive = isActive
+	}
+}

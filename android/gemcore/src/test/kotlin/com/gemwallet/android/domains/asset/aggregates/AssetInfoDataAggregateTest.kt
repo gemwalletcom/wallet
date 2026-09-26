@@ -3,14 +3,12 @@ package com.gemwallet.android.domains.asset.aggregates
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetBalance
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockGemAssetRowStyle
+import com.gemwallet.android.testkit.mockPrice
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
@@ -34,7 +32,7 @@ class AssetInfoDataAggregateTest {
     @Test
     fun theAggregateKeepsTheAssetIdentityNextToItsRow() {
         val account = mockAccount(address = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
-        val aggregate = mockAssetInfo(asset = btcAsset, owner = account, metadata = mockAssetMetaData(isPinned = true)).toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = true)
+        val aggregate = mockAssetData(asset = btcAsset, account = account, metadata = mockAssetMetaData(isPinned = true)).toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle(), hideBalance = true)
 
         assertEquals(btcAsset, aggregate.asset)
         assertEquals(btcAsset.id, aggregate.id)
@@ -42,14 +40,15 @@ class AssetInfoDataAggregateTest {
         assertTrue(aggregate.pinned)
         assertTrue(aggregate.hideBalance)
         assertTrue("a balance row is the one the privacy setting hides", aggregate.row.masksBalance)
-        assertEquals("", mockAssetInfo(asset = btcAsset, owner = null).toAssetInfoDataAggregate(mockGemAssetRowStyle()).accountAddress)
+        assertEquals("", mockAssetData(asset = btcAsset).toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle()).accountAddress)
     }
 
     @Test
     fun theTitleSymbolAndNetworkAreTheOnesCoreResolved() {
         val usdc = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xusdc"), name = "USDC", symbol = "USDC")
-        val assetInfo = mockAssetInfo(asset = usdc)
+        val assetInfo = mockAssetData(asset = usdc)
         val networked = assetInfo.toAssetInfoDataAggregate(
+            Currency.USD,
             mockGemAssetRowStyle(title = GemAssetTitleStyle.NETWORK, showsSymbol = true, subtitle = GemAssetSubtitleStyle.NETWORK),
         ).row
 
@@ -57,19 +56,19 @@ class AssetInfoDataAggregateTest {
         assertEquals("USDC", networked.titleExtra)
         assertEquals("Ethereum", networked.subtitle.string)
 
-        val named = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(showsSymbol = true)).row
+        val named = assetInfo.toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle(showsSymbol = true)).row
 
         assertEquals("USDC", named.title)
         assertNull("a symbol that repeats the title is not shown", named.titleExtra)
     }
 
     @Test
-    fun theBalanceTrailsWithItsValueInThePriceCurrency() {
-        val aggregate = mockAssetInfo(
+    fun theBalanceTrailsWithItsValueInTheCurrency() {
+        val aggregate = mockAssetData(
             asset = btcAsset,
-            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
-            price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0, priceChangePercentage24h = -5.0)),
-        ).toAssetInfoDataAggregate(mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE))
+            balance = mockBalance(available = BigInteger("100000000")),
+            price = mockPrice(price = 3000.0, priceChangePercentage24h = -5.0),
+        ).toAssetInfoDataAggregate(Currency.EUR, mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE))
         val trailing = aggregate.row.trailing as GemAssetItemTrailing.Value
 
         assertEquals("1 BTC", trailing.value.string)
@@ -80,22 +79,22 @@ class AssetInfoDataAggregateTest {
 
     @Test
     fun theAvailableScopeShowsWhatIsSpendable() {
-        val assetInfo = mockAssetInfo(
+        val assetInfo = mockAssetData(
             asset = btcAsset,
-            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"), staked = BigInteger("200000000"))),
+            balance = mockBalance(available = BigInteger("100000000"), staked = BigInteger("200000000")),
         )
 
-        assertEquals("3 BTC", assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle()).row.trailingValue.string)
-        assertEquals("1 BTC", assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), scope = GemAssetBalanceScope.AVAILABLE).row.trailingValue.string)
+        assertEquals("3 BTC", assetInfo.toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle()).row.trailingValue.string)
+        assertEquals("1 BTC", assetInfo.toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle(), scope = GemAssetBalanceScope.AVAILABLE).row.trailingValue.string)
     }
 
     @Test
     fun aPriceThatIsNotANumberIsNoPrice() {
-        val row = mockAssetInfo(
+        val row = mockAssetData(
             asset = btcAsset,
-            balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
-            price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = Double.NaN, priceChangePercentage24h = -5.2)),
-        ).toAssetInfoDataAggregate(mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE)).row
+            balance = mockBalance(available = BigInteger("100000000")),
+            price = mockPrice(price = Double.NaN, priceChangePercentage24h = -5.2),
+        ).toAssetInfoDataAggregate(Currency.USD, mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE)).row
 
         assertNull(row.subtitle)
         assertNull((row.trailing as GemAssetItemTrailing.Value).extra)
@@ -104,22 +103,22 @@ class AssetInfoDataAggregateTest {
     @Test
     fun theListMatchesMappingEachItemAndWalletListsUseTheWalletStyle() {
         val items = listOf(
-            mockAssetInfo(
+            mockAssetData(
                 asset = btcAsset,
-                balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("150000000"))),
-                price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 50000.0, priceChangePercentage24h = 1.0)),
+                balance = mockBalance(available = BigInteger("150000000")),
+                price = mockPrice(price = 50000.0, priceChangePercentage24h = 1.0),
             ),
-            mockAssetInfo(
+            mockAssetData(
                 asset = ethAsset,
-                balance = mockAssetBalance(asset = ethAsset, balance = mockBalance(available = BigInteger("2000000000000000000"))),
-                price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0, priceChangePercentage24h = -1.0)),
+                balance = mockBalance(available = BigInteger("2000000000000000000")),
+                price = mockPrice(price = 3000.0, priceChangePercentage24h = -1.0),
             ),
-            mockAssetInfo(asset = btcAsset, price = null),
+            mockAssetData(asset = btcAsset, price = null),
         )
         val style = mockGemAssetRowStyle(title = GemAssetTitleStyle.CANONICAL_ASSET, subtitle = GemAssetSubtitleStyle.PRICE)
 
-        assertEquals(items.map { it.toAssetInfoDataAggregate(style, hideBalance = true) }, items.toAssetInfoDataAggregates(style, hideBalance = true))
-        assertEquals(items.toAssetInfoDataAggregates(style), items.toAssetInfoDataAggregates())
+        assertEquals(items.map { it.toAssetInfoDataAggregate(Currency.USD, style, hideBalance = true) }, items.toAssetInfoDataAggregates(Currency.USD, style, hideBalance = true))
+        assertEquals(items.toAssetInfoDataAggregates(Currency.USD, style), items.toAssetInfoDataAggregates(Currency.USD))
     }
 }
 

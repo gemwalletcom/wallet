@@ -14,3 +14,25 @@ data class BalanceMetadata (
 	val bandwidthTotal: UInt
 )
 
+@Serializable
+data class Balance (
+	val available: SerializedBigInteger,
+	val frozen: SerializedBigInteger,
+	val locked: SerializedBigInteger,
+	val staked: SerializedBigInteger,
+	val pending: SerializedBigInteger,
+	val pendingUnconfirmed: SerializedBigInteger,
+	val rewards: SerializedBigInteger,
+	val reserved: SerializedBigInteger,
+	val earn: SerializedBigInteger,
+	val withdrawable: SerializedBigInteger,
+	val metadata: BalanceMetadata? = null
+)
+
+@Serializable
+data class AssetBalance (
+	val assetId: AssetId,
+	val balance: Balance,
+	val isActive: Boolean
+)
+

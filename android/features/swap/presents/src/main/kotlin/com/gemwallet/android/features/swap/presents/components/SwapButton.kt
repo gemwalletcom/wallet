@@ -8,15 +8,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.wallet.core.primitives.AssetData
 
 @Composable
-internal fun SwapButton(swapState: SwapUIState, pay: AssetInfo?, onSwap: () -> Unit) {
+internal fun SwapButton(swapState: SwapUIState, pay: AssetData?, onSwap: () -> Unit) {
     MainActionButton(
         state = swapState.buttonState,
         onClick = onSwap,

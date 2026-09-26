@@ -77,8 +77,8 @@ fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldSt
                 }
             }
             SearchBar(query = query)
-            val recents = uiModel.items.sortedByDescending { it.addedAt }
-            val sections = rememberDateSections(recents) { it.addedAt }
+            val recents = uiModel.items.sortedByDescending { it.createdAt }
+            val sections = rememberDateSections(recents) { it.createdAt }
             val empty = uiModel.emptyState
             if (empty != null) {
                 RecentsEmptyStateView(empty)
@@ -86,7 +86,7 @@ fun RecentsScene(isVisible: Boolean, uiModel: RecentsUIState, query: TextFieldSt
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     dateSectionedList(
                         sections = sections,
-                        key = { _, recent -> "${recent.addedAt}-${recent.asset.id.toIdentifier()}" },
+                        key = { _, recent -> "${recent.createdAt}-${recent.asset.id.toIdentifier()}" },
                     ) { position, recent ->
                         AssetListItem(
                             asset = recent.asset,

@@ -61,11 +61,8 @@ class ReceiveViewModel @AssistedInject constructor(
         .flatMapLatest { assetId ->
             session.filterNotNull().flatMapLatest { session ->
                 assetQuery(session.wallet.id.id, assetId).map { info ->
-                    if (info?.owner == null) {
-                        info?.copy(owner = session.wallet.getAccount(info.asset.chain))
-                    } else {
-                        info
-                    }
+                    val account = info?.account?.takeIf { it.address.isEmpty() }?.let { session.wallet.getAccount(info.asset.chain) }
+                    if (info == null || account == null) info else info.copy(account = account)
                 }
             }
         }
@@ -94,10 +91,10 @@ class ReceiveViewModel @AssistedInject constructor(
         selectedAssetId.value = assetId
     }
 
-    fun shareAddress(): String? = asset.value?.owner?.address
+    fun shareAddress(): String? = asset.value?.account?.address?.takeIf { it.isNotEmpty() }
 
     fun copyAddress(): GemCopy? = asset.value?.let { assetInfo ->
-        assetInfo.owner?.address?.let { addressCopy(assetInfo.asset.id.chain.string, it) }
+        assetInfo.account.address.takeIf { it.isNotEmpty() }?.let { addressCopy(assetInfo.asset.id.chain.string, it) }
     }
 
     @AssistedFactory

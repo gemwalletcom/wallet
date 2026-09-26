@@ -7,16 +7,16 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemSocialLink
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockPriceAlert
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -57,7 +57,7 @@ class ChartViewModelTest {
     private val currencyFlow = MutableStateFlow(Currency.USD)
 
     private val priceQuery = mockk<PriceQuery>(relaxed = true)
-    private val walletAssetsFlow = MutableStateFlow<List<AssetInfo>>(emptyList())
+    private val walletAssetsFlow = MutableStateFlow<List<AssetData>>(emptyList())
     private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
         every { this@mockk.invoke() } returns walletAssetsFlow
     }
@@ -82,7 +82,7 @@ class ChartViewModelTest {
 
     @Test
     fun `a stored asset gives the scene its title before any flow emits and its sections once core builds them`() = runTest(testDispatcher) {
-        walletAssetsFlow.value = listOf(mockAssetInfo(asset = asset))
+        walletAssetsFlow.value = listOf(mockAssetData(asset = asset))
         coEvery { chartService.sections(asset.toGem(), any(), null, any(), any()) } returns listOf(
             section(listOf(GemListRow.Text(GemListRowTitle.TYPE, "SPL"))),
         )

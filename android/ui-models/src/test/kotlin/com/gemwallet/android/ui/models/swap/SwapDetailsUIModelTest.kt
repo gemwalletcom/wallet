@@ -1,16 +1,15 @@
 package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetPrice
-import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockAssetPriceValue
+import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockSwapProviderData
 import com.gemwallet.android.testkit.mockSwapQuote
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.SwapProvider
@@ -24,8 +23,8 @@ import java.math.BigInteger
 
 class SwapDetailsUIModelTest {
 
-    private val payAsset = mockAssetPriceValue(asset = mockAsset(symbol = "AAA", name = "AAA", decimals = 18), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 1.0)))
-    private val receiveAsset = mockAssetPriceValue(asset = mockAsset(symbol = "BBB", name = "BBB", decimals = 18), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 1.0)))
+    private val payAsset = mockAssetData(asset = mockAsset(symbol = "AAA", name = "AAA", decimals = 18), price = mockPrice(price = 1.0))
+    private val receiveAsset = mockAssetData(asset = mockAsset(symbol = "BBB", name = "BBB", decimals = 18), price = mockPrice(price = 1.0))
 
     @Test
     fun `low price impact stays in details and is hidden in summary`() {
@@ -63,8 +62,8 @@ class SwapDetailsUIModelTest {
 
     @Test
     fun `rate handles cross decimal assets`() {
-        val eth = mockAssetPriceValue(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 1.0)))
-        val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 1.0)))
+        val eth = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), price = mockPrice(price = 1.0))
+        val usdc = mockAssetData(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockPrice(price = 1.0))
         val result = swapDetails(toValue = "2000000000", pay = eth, receive = usdc)
 
         assertEquals("1 ETH ≈ 2,000.00 USDC", result!!.rate.forward)
@@ -81,7 +80,7 @@ class SwapDetailsUIModelTest {
         assertNull(swapDetails(toValue = "0"))
     }
 
-    private fun swapDetails(fromValue: String = DEFAULT_FROM_VALUE, toValue: String, isProviderSelectable: Boolean = false, pay: AssetPriceValue = payAsset, receive: AssetPriceValue = receiveAsset): SwapDetailsUIModel? = swapQuoteDetails(
+    private fun swapDetails(fromValue: String = DEFAULT_FROM_VALUE, toValue: String, isProviderSelectable: Boolean = false, pay: AssetData = payAsset, receive: AssetData = receiveAsset): SwapDetailsUIModel? = swapQuoteDetails(
         mockSwapQuote(
             fromAddress = mockAccount().address,
             fromValue = fromValue.toBigInteger(),
@@ -93,8 +92,8 @@ class SwapDetailsUIModelTest {
         ),
         pay.asset.toGem(),
         receive.asset.toGem(),
-        pay.price?.price?.price,
-        receive.price?.price?.price,
+        pay.price?.price,
+        receive.price?.price,
         Currency.USD.toGem(),
     ).uiModel(isProviderSelectable = isProviderSelectable)
 

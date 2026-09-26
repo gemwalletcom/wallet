@@ -25,15 +25,14 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.providers.Amoun
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountStakeProvider
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
-import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.amountSymbol
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.StakeProviderType
@@ -96,7 +95,7 @@ class AmountViewModel @Inject constructor(
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getCurrentWalletId, assetQuery, perpetualQuery, viewModelScope) }
 
-    private val assetInfo: StateFlow<AssetInfo?> = perpetualProvider?.assetInfo
+    private val assetInfo: StateFlow<AssetData?> = perpetualProvider?.assetInfo
         ?: getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, params.assetId) }
             .flowOn(ioDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -124,7 +123,7 @@ class AmountViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val input: StateFlow<GemAmountInput?> = combine(request, assetInfo) { request, current ->
-        if (request == null || current == null) null else request.input(current.asset.toGem(), current.balance.toGem())
+        if (request == null || current == null) null else request.input(current.toGem())
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val extras: StateFlow<AmountExtrasUIModel> = stakeProvider?.extras ?: perpetualProvider?.extras ?: amountType
@@ -150,7 +149,7 @@ class AmountViewModel @Inject constructor(
         if (current == null || amountType == null || input == null) {
             null
         } else {
-            session.entry(amountType, current.asset.toGem(), input, current.price?.price?.price, currency.toGem())
+            session.entry(amountType, current.asset.toGem(), input, current.price?.price, currency.toGem())
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

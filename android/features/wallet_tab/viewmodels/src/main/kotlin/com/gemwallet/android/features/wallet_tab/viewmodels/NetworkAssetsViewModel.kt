@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -13,7 +14,6 @@ import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.localization.text
@@ -21,8 +21,10 @@ import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireChain
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -46,6 +48,7 @@ import javax.inject.Inject
 class NetworkAssetsViewModel @Inject constructor(
     assetsQuery: AssetsQuery,
     getCurrentWalletId: GetCurrentWalletId,
+    getCurrentCurrency: GetCurrentCurrency,
     private val service: GemWalletHomeServiceInterface,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -62,7 +65,8 @@ class NetworkAssetsViewModel @Inject constructor(
             combine(
                 assetsQuery(walletId, chain).flowOn(ioDispatcher),
                 assetsQuery.hidden(walletId, chain).flowOn(ioDispatcher),
-            ) { active, hidden -> groups(active, hidden) }
+                getCurrentCurrency.getCurrency(),
+            ) { active, hidden, currency -> groups(active, hidden, currency) }
         }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, NetworkAssetGroups())
@@ -91,14 +95,14 @@ class NetworkAssetsViewModel @Inject constructor(
         }
     }
 
-    private fun groups(active: List<AssetInfo>, hidden: List<AssetInfo>): NetworkAssetGroups {
+    private fun groups(active: List<AssetData>, hidden: List<AssetData>, currency: Currency): NetworkAssetGroups {
         val ids = networkAssetSections(
             active = active.map { it.asset.id.toIdentifier() },
             pinned = active.filter { it.metadata.isPinned }.map { it.asset.id.toIdentifier() },
             hidden = hidden.map { it.asset.id.toIdentifier() },
         )
         val byId = (active + hidden).associateBy { it.asset.id.toIdentifier() }
-        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates() }
+        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates(currency) }
         return NetworkAssetGroups(
             pinned = assets(ids.pinned),
             unpinned = assets(ids.unpinned),

@@ -73,7 +73,7 @@ class RecentActivityQueryTest {
         val recents = query(WalletId("wallet-1")).first()
 
         assertEquals(listOf(AssetId(Chain.Ethereum), AssetId(Chain.Bitcoin), AssetId(Chain.Solana)), recents.map { it.asset.id })
-        assertEquals(listOf(400L, 300L, 200L), recents.map { it.addedAt })
+        assertEquals(listOf(400L, 300L, 200L), recents.map { it.createdAt })
     }
 
     @Test
@@ -81,7 +81,7 @@ class RecentActivityQueryTest {
         val recents = query(WalletId("wallet-1"), types = listOf(RecentActivityType.Transfer, RecentActivityType.Search)).first()
 
         assertEquals(listOf(AssetId(Chain.Solana), AssetId(Chain.Ethereum)), recents.map { it.asset.id })
-        assertEquals(listOf(200L, 100L), recents.map { it.addedAt })
+        assertEquals(listOf(200L, 100L), recents.map { it.createdAt })
     }
 
     @Test
@@ -102,6 +102,6 @@ class RecentActivityQueryTest {
         val recents = query(WalletId("wallet-2")).first()
 
         assertEquals(listOf(AssetId(Chain.Bitcoin)), recents.map { it.asset.id })
-        assertEquals(listOf(900L), recents.map { it.addedAt })
+        assertEquals(listOf(900L), recents.map { it.createdAt })
     }
 }

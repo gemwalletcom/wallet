@@ -328,7 +328,7 @@ pub fn generate(root: &Path, platform: Platform, output: &Path, mappings: &TypeM
             let relative = path.strip_prefix(&sources).expect("source file outside primitives").to_path_buf();
             let file_name = relative.file_name()?.to_str()?.to_string();
             let source = fs::read_to_string(&path).expect("failed to read source file");
-            match is_generated_for(platform, &file_name) && source.contains(DERIVE) {
+            match !SKIPPED_FILES.contains(&file_name.as_str()) && source.contains(DERIVE) {
                 true => Some((relative.clone(), parse(&source).unwrap_or_else(|error| panic!("{}: {error}", relative.display())))),
                 false => None,
             }
@@ -379,13 +379,6 @@ fn capitalized(text: &str) -> String {
         .collect()
 }
 
-fn is_generated_for(platform: Platform, file_name: &str) -> bool {
-    !SKIPPED_FILES.contains(&file_name)
-        && match platform {
-            Platform::IOS => true,
-            Platform::Android => file_name != "asset_data.rs",
-        }
-}
 
 fn swift_file(models: &[Model], mappings: &TypeMappings) -> String {
     format!("{HEADER}import Foundation\n{}", models.iter().map(|model| swift_model(model, &mappings.swift)).collect::<Vec<_>>().concat())

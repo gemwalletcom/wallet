@@ -98,9 +98,8 @@ class AssetsQueryTest {
     fun eachAssetCarriesTheWalletBalanceAndPrice() = runBlocking(Dispatchers.IO) {
         val bitcoin = query(WalletId("wallet-1")).first().first { it.asset.id == AssetId(Chain.Bitcoin) }
 
-        assertEquals(BigInteger.valueOf(10_000_000), bitcoin.balance.balance.available)
-        assertEquals(listOf(60000.0, -2.0), listOf(bitcoin.price?.price?.price, bitcoin.price?.price?.priceChangePercentage24h))
-        assertEquals(WalletId("wallet-1"), bitcoin.walletId)
+        assertEquals(BigInteger.valueOf(10_000_000), bitcoin.balance.available)
+        assertEquals(listOf(60000.0, -2.0), listOf(bitcoin.price?.price, bitcoin.price?.priceChangePercentage24h))
     }
 
     @Test
@@ -108,8 +107,8 @@ class AssetsQueryTest {
         val assets = query(WalletId("wallet-2")).first()
 
         assertEquals(listOf(AssetId(Chain.Ethereum)), assets.map { it.asset.id })
-        assertEquals(BigInteger("7000000000000000000"), assets.single().balance.balance.available)
-        assertEquals("0xdef", assets.single().owner?.address)
+        assertEquals(BigInteger("7000000000000000000"), assets.single().balance.available)
+        assertEquals("0xdef", assets.single().account.address)
     }
 
     @Test

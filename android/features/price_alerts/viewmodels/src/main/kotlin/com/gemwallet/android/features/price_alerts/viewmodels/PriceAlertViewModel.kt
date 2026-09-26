@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.footer
 import com.gemwallet.android.ui.localization.text
@@ -23,7 +24,6 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Price
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -80,7 +80,7 @@ class PriceAlertViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val asset = assetInfo
-        .mapLatest { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle) }
+        .mapLatest { it?.toAssetInfoDataAggregate(service.getCurrency().toPrimitives(), GemSelectAssetType.PriceAlert.flow().rowStyle) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val alerts = assetId.flatMapLatest { priceAlertsQuery(it) }
@@ -88,8 +88,7 @@ class PriceAlertViewModel @Inject constructor(
 
     val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, alerts) { info, alerts ->
         info ?: return@combine null
-        val price = info.price?.price?.let { Price(price = it.price, priceChangePercentage24h = it.priceChangePercentage24h, updatedAt = it.updatedAt).toGem() }
-        priceAlertFormatter.assetAlerts(info.asset.toGem(), price, alerts.map { it.toGem() }, service.getCurrency())
+        priceAlertFormatter.assetAlerts(info.asset.toGem(), info.price?.toGem(), alerts.map { it.toGem() }, service.getCurrency())
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val grouped = alerts.map { alerts ->

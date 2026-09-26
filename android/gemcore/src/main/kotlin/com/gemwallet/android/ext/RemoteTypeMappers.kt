@@ -992,6 +992,18 @@ fun com.wallet.core.primitives.AssetAssociation.toGem(): uniffi.gemstone.AssetAs
     associationType = type.toGem(),
 )
 
+fun uniffi.gemstone.AssetBalance.toPrimitives(): com.wallet.core.primitives.AssetBalance = com.wallet.core.primitives.AssetBalance(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    balance = balance.toPrimitives(),
+    isActive = isActive,
+)
+
+fun com.wallet.core.primitives.AssetBalance.toGem(): uniffi.gemstone.AssetBalance = uniffi.gemstone.AssetBalance(
+    assetId = assetId.toIdentifier(),
+    balance = balance.toGem(),
+    isActive = isActive,
+)
+
 fun uniffi.gemstone.AssetBasic.toPrimitives(): com.wallet.core.primitives.AssetBasic = com.wallet.core.primitives.AssetBasic(
     asset = asset.toPrimitives(),
     properties = properties.toPrimitives(),
@@ -1004,6 +1016,26 @@ fun com.wallet.core.primitives.AssetBasic.toGem(): uniffi.gemstone.AssetBasic = 
     properties = properties.toGem(),
     score = score.toGem(),
     price = price?.let { it.toGem() },
+)
+
+fun uniffi.gemstone.AssetData.toPrimitives(): com.wallet.core.primitives.AssetData = com.wallet.core.primitives.AssetData(
+    asset = asset.toPrimitives(),
+    balance = balance.toPrimitives(),
+    account = account.toPrimitives(),
+    price = price?.let { it.toPrimitives() },
+    priceAlerts = priceAlerts.map { it.toPrimitives() },
+    metadata = metadata.toPrimitives(),
+    associations = associations.map { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.AssetData.toGem(): uniffi.gemstone.AssetData = uniffi.gemstone.AssetData(
+    asset = asset.toGem(),
+    balance = balance.toGem(),
+    account = account.toGem(),
+    price = price?.let { it.toGem() },
+    priceAlerts = priceAlerts.map { it.toGem() },
+    metadata = metadata.toGem(),
+    associations = associations.map { it.toGem() },
 )
 
 fun uniffi.gemstone.AssetFiatValue.toPrimitives(): com.wallet.core.primitives.AssetFiatValue = com.wallet.core.primitives.AssetFiatValue(
@@ -1170,6 +1202,34 @@ fun uniffi.gemstone.AssetScore.toPrimitives(): com.wallet.core.primitives.AssetS
 fun com.wallet.core.primitives.AssetScore.toGem(): uniffi.gemstone.AssetScore = uniffi.gemstone.AssetScore(
     rank = rank,
     rankType = uniffi.gemstone.AssetRank.UNKNOWN,
+)
+
+fun uniffi.gemstone.Balance.toPrimitives(): com.wallet.core.primitives.Balance = com.wallet.core.primitives.Balance(
+    available = available,
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    pendingUnconfirmed = pendingUnconfirmed,
+    rewards = rewards,
+    reserved = reserved,
+    earn = earn,
+    withdrawable = withdrawable,
+    metadata = metadata?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.Balance.toGem(): uniffi.gemstone.Balance = uniffi.gemstone.Balance(
+    available = available,
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    pendingUnconfirmed = pendingUnconfirmed,
+    rewards = rewards,
+    reserved = reserved,
+    earn = earn,
+    withdrawable = withdrawable,
+    metadata = metadata?.let { it.toGem() },
 )
 
 fun uniffi.gemstone.BalanceMetadata.toPrimitives(): com.wallet.core.primitives.BalanceMetadata = com.wallet.core.primitives.BalanceMetadata(

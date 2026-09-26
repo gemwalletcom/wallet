@@ -7,7 +7,7 @@ import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.AssetBalance
 import uniffi.gemstone.GemAssetConfiguration
 import uniffi.gemstone.GemBalanceRecord
 import uniffi.gemstone.GemBalanceStore
@@ -16,8 +16,8 @@ class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val ass
 
     private val converters = StoreConverters()
 
-    override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> = withContext(Dispatchers.IO) {
-        balancesDao.getByAssets(walletId, assetIds).map { it.toGemAssetBalance() }
+    override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<AssetBalance> = withContext(Dispatchers.IO) {
+        balancesDao.getByAssets(walletId, assetIds).map { it.toAssetBalance() }
     }
 
     override suspend fun getBalanceAssetIds(walletId: String, assetIds: List<String>): List<String> = balancesDao.getAssetIds(walletId, assetIds)

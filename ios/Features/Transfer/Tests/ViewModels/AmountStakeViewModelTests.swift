@@ -3,7 +3,6 @@
 import BigInt
 import struct Gemstone.GemAmountInput
 import class Gemstone.GemAmountService
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
 import enum Gemstone.StakeType
@@ -150,7 +149,7 @@ struct AmountStakeViewModelTests {
     }
 
     private func amountInput(_ model: AmountStakeViewModel, _ assetData: AssetData) -> GemAmountInput {
-        model.request.input(asset: model.asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: model.asset.id, isActive: assetData.metadata.isActive))
+        model.request.input(data: assetData.toGem())
     }
 
     private func transferData(_ model: AmountStakeViewModel, value: BigInt) async throws -> GemTransferData {

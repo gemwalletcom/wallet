@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Primitives
 
 public extension AssetId {
@@ -65,84 +64,6 @@ public extension AssetAddress {
         AssetAddress(
             asset: asset,
             address: address,
-        )
-    }
-}
-
-public extension AssetData {
-    static func mock(
-        asset: Asset = .mock(),
-        balance: Balance = .mock(),
-        account: Account = .mock(),
-        price: Price? = nil,
-        priceAlerts: [PriceAlert] = [],
-        metadata: AssetMetaData = .mock(),
-        associations: [AssetAssociation] = [],
-    ) -> AssetData {
-        AssetData(
-            asset: asset,
-            balance: balance,
-            account: account,
-            price: price,
-            priceAlerts: priceAlerts,
-            metadata: metadata,
-            associations: associations,
-        )
-    }
-}
-
-public extension AssetValuePrice {
-    static func mock(
-        asset: Asset = .mock(),
-        value: BigInt = .zero,
-        price: Price? = nil,
-    ) -> AssetValuePrice {
-        AssetValuePrice(
-            asset: asset,
-            value: value,
-            price: price,
-        )
-    }
-}
-
-public extension Balance {
-    static func mock(
-        available: BigInt = .zero,
-        frozen: BigInt = .zero,
-        locked: BigInt = .zero,
-        staked: BigInt = .zero,
-        pending: BigInt = .zero,
-        pendingUnconfirmed: BigInt = .zero,
-        rewards: BigInt = .zero,
-        reserved: BigInt = .zero,
-        withdrawable: BigInt = .zero,
-        earn: BigInt = .zero,
-        metadata: BalanceMetadata? = nil,
-    ) -> Balance {
-        Balance(
-            available: available,
-            frozen: frozen,
-            locked: locked,
-            staked: staked,
-            pending: pending,
-            pendingUnconfirmed: pendingUnconfirmed,
-            rewards: rewards,
-            reserved: reserved,
-            withdrawable: withdrawable,
-            earn: earn,
-            metadata: metadata,
-        )
-    }
-}
-
-public extension ChainAssetData {
-    static func mock(
-        assetData: AssetData = .mock(),
-        feeAssetData: AssetData = .mock(),
-    ) -> ChainAssetData {
-        ChainAssetData(
-            assetData: assetData,
-            feeAssetData: feeAssetData,
         )
     }
 }

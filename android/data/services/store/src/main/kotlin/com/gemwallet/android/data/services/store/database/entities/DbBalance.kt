@@ -4,12 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.Balance
 import com.wallet.core.primitives.BalanceMetadata
-import java.math.BigInteger
 
 @Entity(
     tableName = "balances",
@@ -73,23 +68,3 @@ data class DbBalance(
     @ColumnInfo("metadata") var metadata: BalanceMetadata? = null,
     @ColumnInfo("updated_at") var updatedAt: Long?,
 )
-
-fun DbBalance.toDTO(): AssetBalance? {
-    return AssetBalance(
-        asset = assetId.toAssetId()?.chain?.asset() ?: return null,
-        balance = Balance(
-            available = available.toBigInteger(),
-            frozen = frozen.toBigInteger(),
-            locked = locked.toBigInteger(),
-            staked = staked.toBigInteger(),
-            pending = pending.toBigInteger(),
-            rewards = rewards.toBigInteger(),
-            reserved = reserved.toBigInteger(),
-            withdrawable = withdrawable.toBigInteger(),
-            pendingUnconfirmed = pendingUnconfirmed.toBigInteger(),
-            earn = earn.toBigInteger(),
-        ),
-        isActive = isActive,
-        metadata = metadata,
-    )
-}

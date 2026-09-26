@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetBalanceRow
 import enum Gemstone.GemAssetDetailRow
 import struct Gemstone.GemAssetDetails
@@ -173,15 +172,9 @@ public final class AssetSceneViewModel: Sendable {
         service.details(
             input: GemAssetDetailsInput(
                 wallet: wallet.toGem(),
-                asset: asset.toGem(),
-                ownerAddress: assetData.account.address,
-                metadata: assetData.metadata.toGem(),
-                balance: stakeBalance,
-                price: assetData.price?.price,
-                priceChangePercentage24h: assetData.price?.priceChangePercentage24h,
+                assetData: assetData.toGem(),
                 currency: preferences.currency.toGem(),
                 banners: banners.map { $0.toGem() },
-                priceAlerts: assetData.priceAlerts.map { $0.toGem() },
                 feeBalanceMetadata: chainAssetData.feeAssetData.balance.metadata?.toGem(),
             ),
         )
@@ -399,10 +392,6 @@ public extension AssetSceneViewModel {
 // MARK: - Private
 
 extension AssetSceneViewModel {
-    private var stakeBalance: GemAssetBalance {
-        GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive)
-    }
-
     private func onSelect(url: URL?) {
         guard let url else { return }
         isPresentingAssetSheet = .url(url)

@@ -21,7 +21,6 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -83,8 +82,8 @@ class DelegationViewModel @Inject constructor(
             session.wallet.type.toGem(),
             delegation.toGem(),
             assetInfo.asset.toGem(),
-            assetInfo.price?.price?.price,
-            (assetInfo.price?.currency ?: Currency.USD).toGem(),
+            assetInfo.price?.price,
+            session.currency.toGem(),
             validators.map { it.toGem() },
         )
         DelegationUIState(

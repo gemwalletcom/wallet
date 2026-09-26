@@ -1,6 +1,6 @@
 use crate::models::button::GemButtonState;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetId, Currency};
+use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::{Quote as SwapperQuote, SwapperError, SwapperProvider};
 
 use super::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapDetails, quote_details};
@@ -174,13 +174,6 @@ impl GemSwapErrorDisplay {
             },
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSwapAssetData {
-    pub asset: Asset,
-    pub balance: GemAssetBalance,
-    pub price: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -378,7 +371,7 @@ impl GemSwapSession {
         }
     }
 
-    pub fn view_state(&self, pay: Option<GemSwapAssetData>, receive: Option<GemSwapAssetData>, currency: Currency) -> GemSwapViewState {
+    pub fn view_state(&self, pay: Option<AssetData>, receive: Option<AssetData>, currency: Currency) -> GemSwapViewState {
         let available_balance = pay.as_ref().map(|pay| GemBigInt::from(pay.balance.available.clone())).unwrap_or_default();
         let button_action = self.button_action(available_balance);
         let is_transfer_loading = self.is_transfer_loading();
@@ -399,11 +392,11 @@ impl GemSwapSession {
                     is_asset_selectable: !is_transfer_loading,
                     is_balance_action_enabled: !is_transfer_loading && pay.is_some(),
                 },
-                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), pay.balance.clone())),
+                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), GemAssetBalance::from(pay))),
                 fiat: pay
                     .as_ref()
                     .zip(self.pay_value.as_ref())
-                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, pay.price, currency.clone(), GemCurrencyStyle::Currency)),
+                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
             },
             receive: GemSwapSideState {
                 interaction: GemSwapSideInteraction {
@@ -411,18 +404,22 @@ impl GemSwapSession {
                     is_asset_selectable: !is_transfer_loading,
                     is_balance_action_enabled: false,
                 },
-                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), receive.balance.clone())),
+                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), GemAssetBalance::from(receive))),
                 fiat: receive
                     .as_ref()
                     .zip(quote)
-                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, receive.price, currency.clone(), GemCurrencyStyle::Currency)),
+                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, price_value(receive), currency.clone(), GemCurrencyStyle::Currency)),
             },
             is_receive_loading: self.is_quote_loading() && !is_transfer_loading,
             receive_amount: quote.map(receive_amount),
-            providers: receive.as_ref().filter(|_| quote.is_some()).map(|receive| self.provider_rows(&receive.asset, receive.price, &currency)).unwrap_or_default(),
+            providers: receive
+                .as_ref()
+                .filter(|_| quote.is_some())
+                .map(|receive| self.provider_rows(&receive.asset, price_value(receive), &currency))
+                .unwrap_or_default(),
             details: pay.zip(receive).zip(quote).map(|((pay, receive), quote)| {
                 let has_selected_slippage = self.current_request().is_some_and(|request| request.slippage_bps.is_some());
-                quote_details(rules::swap_quote(quote), pay.asset, receive.asset, pay.price, receive.price, &currency, has_selected_slippage)
+                quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency, has_selected_slippage)
             }),
             quote: quote.cloned(),
         }
@@ -494,7 +491,7 @@ impl GemSwapSession {
             .collect()
     }
 
-    fn pair_quote(&self, pay: Option<&GemSwapAssetData>, receive: Option<&GemSwapAssetData>) -> Option<&SwapperQuote> {
+    fn pair_quote(&self, pay: Option<&AssetData>, receive: Option<&AssetData>) -> Option<&SwapperQuote> {
         let request = &self.quotes.as_ref()?.request;
         let is_current_pair = pay?.asset.id == request.pay_asset_id && receive?.asset.id == request.receive_asset_id;
         self.current_quote().filter(|_| is_current_pair)
@@ -550,14 +547,20 @@ impl GemSwapSession {
     }
 }
 
+fn price_value(data: &AssetData) -> Option<f64> {
+    data.price.as_ref().map(|price| price.price)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::swap::testkit::mock_asset_data;
+    use chrono::Utc;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain};
+    use primitives::{Asset, Chain, Price, PriceProvider};
 
     fn view(session: &GemSwapSession, available: u64) -> GemSwapViewState {
-        session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, available)), Some(GemSwapAssetData::mock(Chain::Solana, 0)), Currency::USD)
+        session.view_state(Some(mock_asset_data(Chain::Ethereum, available)), Some(mock_asset_data(Chain::Solana, 0)), Currency::USD)
     }
 
     #[test]
@@ -934,9 +937,9 @@ mod tests {
 
     #[test]
     fn test_each_side_reads_its_balance_and_value_and_the_pay_value_waits_for_no_receive_asset() {
-        let pay = GemSwapAssetData {
-            price: Some(2.0),
-            ..GemSwapAssetData::mock(Chain::Ethereum, 1000)
+        let pay = AssetData {
+            price: Some(Price::new(2.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            ..mock_asset_data(Chain::Ethereum, 1000)
         };
         let typed = GemSwapSession::default().on_input_changed("1".to_string(), Some(pay.asset.clone()), None, GemBigInt::from(1000), None, GemNumberFormat { decimal_separator: ".".to_string() });
         let state = typed.view_state(Some(pay), None, Currency::USD);
@@ -952,11 +955,11 @@ mod tests {
     fn test_a_quote_shows_only_for_the_pair_it_was_asked_for() {
         let session = GemSwapSession::mock_ready();
         let quote = session.quote().unwrap();
-        let receive = GemSwapAssetData {
-            price: Some(100.0),
-            ..GemSwapAssetData::mock(Chain::Solana, 0)
+        let receive = AssetData {
+            price: Some(Price::new(100.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            ..mock_asset_data(Chain::Solana, 0)
         };
-        let state = session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
+        let state = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
 
         assert_eq!(state.quote.as_ref(), Some(&quote));
         assert_eq!(state.receive_amount, Some(receive_amount(&quote)));
@@ -970,7 +973,7 @@ mod tests {
         assert_eq!(details.provider.provider, quote.data.provider.id);
         assert!(!details.provider.is_selected);
 
-        let stale = session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, 1000)), Some(GemSwapAssetData::mock(Chain::Bitcoin, 0)), Currency::USD);
+        let stale = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(mock_asset_data(Chain::Bitcoin, 0)), Currency::USD);
         assert_eq!((stale.quote, stale.receive_amount, stale.details, stale.receive.fiat), (None, None, None, None));
         assert!(stale.providers.is_empty(), "a quote for another pair is not shown while the new one loads");
     }

@@ -1,10 +1,9 @@
-use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, Wallet};
+use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, RecentActivityType, VerificationStatus, Wallet};
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowTap};
-use crate::precision::GemCurrencyStyle;
-use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
+use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
 use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
@@ -114,17 +113,6 @@ pub enum GemAssetBalanceScope {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAssetListRowInput {
-    pub asset: Asset,
-    pub balance: GemAssetBalance,
-    pub scope: GemAssetBalanceScope,
-    pub price: Option<f64>,
-    pub change: Option<f64>,
-    pub currency: Currency,
-    pub is_enabled: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRowText {
     pub text: GemLocalizedText,
     pub tone: GemValueTone,
@@ -170,18 +158,18 @@ pub struct GemPriceRow {
 }
 
 #[uniffi::export]
-pub fn asset_list_row(input: GemAssetListRowInput, style: GemAssetRowStyle) -> GemAssetItemRow {
-    super::rules::asset_list_row(input, style)
+pub fn asset_list_row(data: AssetData, currency: Currency, scope: GemAssetBalanceScope, style: GemAssetRowStyle) -> GemAssetItemRow {
+    super::rules::asset_list_row(&data, &currency, scope, style)
 }
 
 #[uniffi::export]
-pub fn asset_list_rows(inputs: Vec<GemAssetListRowInput>, style: GemAssetRowStyle) -> Vec<GemAssetItemRow> {
-    inputs.into_iter().map(|input| super::rules::asset_list_row(input, style)).collect()
+pub fn asset_list_rows(assets: Vec<AssetData>, currency: Currency, style: GemAssetRowStyle) -> Vec<GemAssetItemRow> {
+    assets.iter().map(|data| super::rules::asset_list_row(data, &currency, GemAssetBalanceScope::Total, style)).collect()
 }
 
 #[uniffi::export]
-pub fn wallet_asset_rows(inputs: Vec<GemAssetListRowInput>) -> Vec<GemAssetItemRow> {
-    asset_list_rows(inputs, super::rules::wallet_asset_row_style())
+pub fn wallet_asset_rows(assets: Vec<AssetData>, currency: Currency) -> Vec<GemAssetItemRow> {
+    asset_list_rows(assets, currency, super::rules::wallet_asset_row_style())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -503,12 +491,6 @@ pub fn fee_amount(asset: Asset, value: GemBigInt, price: Option<f64>, currency: 
 }
 
 #[uniffi::export]
-pub fn fiat_equivalent(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    let value = value.to_biguint()?;
-    super::rules::fiat_amount_of(&asset, &value, price, currency, GemCurrencyStyle::Currency)
-}
-
-#[uniffi::export]
 pub fn network_asset_sections(active: Vec<AssetId>, pinned: Vec<AssetId>, hidden: Vec<AssetId>) -> GemNetworkAssetIds {
     super::rules::network_asset_sections(active, &pinned, hidden)
 }
@@ -634,15 +616,9 @@ pub struct GemAssetDetailSection {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetailsInput {
     pub wallet: Wallet,
-    pub asset: Asset,
-    pub owner_address: Option<String>,
-    pub metadata: AssetMetaData,
-    pub balance: GemAssetBalance,
-    pub price: Option<f64>,
-    pub price_change_percentage_24h: Option<f64>,
+    pub asset_data: AssetData,
     pub currency: Currency,
     pub banners: Vec<Banner>,
-    pub price_alerts: Vec<PriceAlert>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
 }
 

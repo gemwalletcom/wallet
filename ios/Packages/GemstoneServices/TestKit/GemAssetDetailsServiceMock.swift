@@ -46,17 +46,17 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 emptyTransactionsAction: nil,
             ),
             banner: nil,
-            balanceValue: .mock(value: 0, unit: .symbol(symbol: input.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            balanceValue: .mock(value: 0, unit: .symbol(symbol: input.assetData.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
             sections: [],
-            title: input.asset.name,
+            title: input.assetData.asset.name,
             fiatValue: .none,
             explorerName: "Explorer",
-            addressLink: input.ownerAddress.map { Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\($0)") },
+            addressLink: input.assetData.account.address.isEmpty ? nil : Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(input.assetData.account.address)"),
             tokenLink: .none,
             verificationStatus: .none,
             networkDestination: .none,
             shareUrl: "https://gemwallet.com",
-            swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.asset.id, receiveAssetId: nil),
+            swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.assetData.asset.id, receiveAssetId: nil),
         )
     }
 

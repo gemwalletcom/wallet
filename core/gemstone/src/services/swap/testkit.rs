@@ -1,19 +1,18 @@
 use std::sync::{Arc, Mutex};
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AssetId, Chain, RecentActivityType, WalletId};
+use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::{Quote, SwapperProvider};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
 use super::quote::GemSwapQuoteService;
-use super::session::{GemSwapAssetData, GemSwapQuoteInput, GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
+use super::session::{GemSwapQuoteInput, GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
 use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
 use crate::keystore::GemKeystore;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::assets::GemAssetFilter;
-use crate::services::balance::GemAssetBalance;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
 use crate::services::stream::testkit::{MemoryStreamConnection, SubscriptionTestkit};
@@ -102,14 +101,8 @@ impl GemSwapQuotesResult {
     }
 }
 
-impl GemSwapAssetData {
-    pub fn mock(chain: Chain, available: u64) -> Self {
-        Self {
-            asset: Asset::from_chain(chain),
-            balance: GemAssetBalance::mock_with_available(available),
-            price: None,
-        }
-    }
+pub fn mock_asset_data(chain: Chain, available: u64) -> AssetData {
+    AssetData::mock(Asset::from_chain(chain), Balance::coin_balance(available.into()))
 }
 
 impl GemSwapSession {

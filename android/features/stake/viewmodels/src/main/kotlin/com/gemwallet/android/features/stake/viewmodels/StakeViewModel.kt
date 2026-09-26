@@ -21,12 +21,10 @@ import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.list_item.DelegationUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -105,12 +103,8 @@ class StakeViewModel @Inject constructor(
         stakeService.stakeViewState(
             GemStakeInput(
                 walletType = walletType.toGem(),
-                asset = assetInfo.asset.toGem(),
-                balance = assetInfo.balance.toGem(),
-                balanceMetadata = assetInfo.balance.metadata?.toGem(),
-                stakingApr = assetInfo.metadata.stakingApr,
-                price = assetInfo.price?.price?.price,
-                currency = (assetInfo.price?.currency ?: Currency.USD).toGem(),
+                assetData = assetInfo.toGem(),
+                currency = stakeService.getCurrency(),
                 validators = validators.map { it.toGem() },
                 delegations = delegations.map { it.toGem() },
             ),

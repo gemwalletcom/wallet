@@ -25,9 +25,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteRequestPar
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUIState
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
-import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
 import com.gemwallet.android.ui.components.swap.uiModel
 import com.gemwallet.android.ui.models.ButtonState
@@ -68,7 +66,6 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSlippageSession
-import uniffi.gemstone.GemSwapAssetData
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteInput
@@ -176,7 +173,7 @@ class SwapViewModel @Inject constructor(
     private val currency = swapQuoteService.getCurrency()
 
     private val viewState = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
-        quoteSession.viewState(pay?.swapAssetData(), receive?.swapAssetData(), currency)
+        quoteSession.viewState(pay?.toGem(), receive?.toGem(), currency)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -191,7 +188,7 @@ class SwapViewModel @Inject constructor(
             selectedSlippageBps.value = swapQuoteService.slippageBps()
         }
         combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { text, pay, receive, slippageBps ->
-            session.update { it.onInputChanged(text, pay?.asset?.toGem(), receive?.asset?.toGem(), pay?.balance?.balance?.available ?: BigInteger.ZERO, slippageBps, numberFormat()) }
+            session.update { it.onInputChanged(text, pay?.asset?.toGem(), receive?.asset?.toGem(), pay?.balance?.available ?: BigInteger.ZERO, slippageBps, numberFormat()) }
         }.launchIn(viewModelScope)
         quoteResults
             .onEach(::onQuoteResults)
@@ -220,13 +217,13 @@ class SwapViewModel @Inject constructor(
     fun onSelect(type: SwapItemType, assetId: AssetId) {
         val selection = swapQuoteService.selectPairAsset(
             GemSwapPairSelection(
-                payAssetId = payAsset.value?.id()?.toIdentifier(),
-                receiveAssetId = receiveAsset.value?.id()?.toIdentifier(),
+                payAssetId = payAsset.value?.asset?.id?.toIdentifier(),
+                receiveAssetId = receiveAsset.value?.asset?.id?.toIdentifier(),
             ),
             type.toGem(),
             assetId.toIdentifier(),
         )
-        val payChanged = selection.payAssetId != payAsset.value?.id()?.toIdentifier()
+        val payChanged = selection.payAssetId != payAsset.value?.asset?.id?.toIdentifier()
         savedStateHandle[RouteArgument.FromAssetId.key] = selection.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = selection.receiveAssetId
         if (payChanged) {
@@ -235,8 +232,8 @@ class SwapViewModel @Inject constructor(
     }
 
     fun switchSwap() = viewModelScope.launch {
-        val payAssetId = payAsset.value?.id()?.toIdentifier()
-        val receiveAssetId = receiveAsset.value?.id()?.toIdentifier()
+        val payAssetId = payAsset.value?.asset?.id?.toIdentifier()
+        val receiveAssetId = receiveAsset.value?.asset?.id?.toIdentifier()
         savedStateHandle[RouteArgument.FromAssetId.key] = receiveAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = payAssetId
         payValue.clearText()
@@ -281,7 +278,7 @@ class SwapViewModel @Inject constructor(
 
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
-        val value = swapQuoteService.amountForPercent(asset.balance.balance.available, percent.toUInt())
+        val value = swapQuoteService.amountForPercent(asset.balance.available, percent.toUInt())
         val text = numberFormat().inputText(value.toString(), asset.asset.decimals.toUInt()) ?: return
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(text)
@@ -396,5 +393,3 @@ class SwapViewModel @Inject constructor(
 }
 
 private const val TAG = "Swap"
-
-private fun AssetInfo.swapAssetData(): GemSwapAssetData = GemSwapAssetData(asset.toGem(), balance.toGem(), price?.price?.price)

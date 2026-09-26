@@ -3,7 +3,6 @@
 import BigInt
 import struct Gemstone.GemAmountInput
 import class Gemstone.GemAmountService
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemPerpetualAutoclose
 import struct Gemstone.GemTransferData
 import enum Gemstone.PerpetualType
@@ -156,6 +155,6 @@ struct AmountPerpetualViewModelTests {
     }
 
     private func amountInput(_ model: AmountPerpetualViewModel, _ assetData: AssetData) -> GemAmountInput {
-        model.request.input(asset: model.asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: model.asset.id, isActive: assetData.metadata.isActive))
+        model.request.input(data: assetData.toGem())
     }
 }

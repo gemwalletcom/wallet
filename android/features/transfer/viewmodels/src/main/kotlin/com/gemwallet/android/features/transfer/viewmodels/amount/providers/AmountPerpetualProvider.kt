@@ -12,13 +12,13 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountEx
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.style.textStyle
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
@@ -179,7 +179,7 @@ class AmountPerpetualProvider(
         GemAmountRequest.Perpetual(params.positionAction, state?.current?.value ?: params.positionAction.transferData().leverage, draft, decimalSeparator)
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
+    val assetInfo: StateFlow<AssetData?> = perpetual.filterNotNull()
         .flatMapLatest { getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, HypercoreUSDC.id) } }
         .stateIn(scope, SharingStarted.Eagerly, null)
 }

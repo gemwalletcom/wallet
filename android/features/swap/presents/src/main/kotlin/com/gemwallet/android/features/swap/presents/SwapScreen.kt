@@ -63,7 +63,7 @@ fun SwapScreen(
         showsSlippageIndicator = selectedSlippage != null,
         onAction = { action ->
             when (action) {
-                is SwapAction.SelectAsset -> onSelect(action.type, pay?.id(), receive?.id())
+                is SwapAction.SelectAsset -> onSelect(action.type, pay?.asset?.id, receive?.asset?.id)
 
                 is SwapAction.SelectPercent -> viewModel.onSelectPercent(action.percent)
 

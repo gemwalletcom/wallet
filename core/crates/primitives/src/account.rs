@@ -2,7 +2,7 @@ use crate::Chain;
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Account {

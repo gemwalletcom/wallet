@@ -56,7 +56,7 @@ impl GemBalanceService {
 
 impl GemBalanceService {
     pub async fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-        self.store.get_available_balances(wallet_id, asset_ids).await
+        Ok(self.store.get_available_balances(wallet_id, asset_ids).await?.into_iter().map(GemAssetBalance::from).collect())
     }
 
     pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
@@ -198,7 +198,7 @@ impl GemBalanceService {
             return Ok(());
         }
         let asset_ids: Vec<AssetId> = rules::unique_asset_ids(updates.iter().map(|update| update.asset_id.clone()).collect());
-        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?;
+        let stored: Vec<GemAssetBalance> = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?.into_iter().map(GemAssetBalance::from).collect();
         let stored_ids: Vec<AssetId> = stored.iter().map(|balance| balance.asset_id.clone()).collect();
         self.assets.add_missing_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids)).await?;
         let records = rules::balance_records(rules::changed_balances(stored, updates), assets);

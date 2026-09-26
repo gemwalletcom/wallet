@@ -29,7 +29,7 @@ public final class SetPriceAlertViewModel {
     var isPresentingAlertMessage: AlertMessage?
 
     public let assetQuery: ObservableQuery<AssetQuery>
-    var assetData: AssetData {
+    var assetData: Primitives.AssetData {
         assetQuery.value
     }
 
@@ -99,7 +99,7 @@ public final class SetPriceAlertViewModel {
     }
 
     var assetRow: GemAssetItemRow {
-        assetListRow(input: assetData.rowInput(currency: currency), style: GemSelectAssetType.priceAlert.flow().rowStyle)
+        assetListRow(data: assetData.toGem(), currency: currency.toGem(), scope: .total, style: GemSelectAssetType.priceAlert.flow().rowStyle)
     }
 
     // MARK: - Private

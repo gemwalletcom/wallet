@@ -109,7 +109,7 @@ struct BalanceStoreTests {
                 .filter(BalanceRecord.Columns.walletId == walletId)
                 .order(BalanceRecord.Columns.assetId)
                 .fetchAll(db)
-                .map { StoredBalance(assetId: $0.assetId, balance: $0.mapToBalance(), isActive: $0.isActive) }
+                .map { AssetBalance(assetId: $0.assetId, balance: $0.mapToBalance(), isActive: $0.isActive) }
         }
 
         await withCheckedContinuation { continuation in
@@ -131,11 +131,11 @@ struct BalanceStoreTests {
 }
 
 private final class Observed: @unchecked Sendable {
-    private(set) var values: [[StoredBalance]] = []
+    private(set) var values: [[AssetBalance]] = []
     private var cancellable: AnyDatabaseCancellable?
 
     @discardableResult
-    func append(_ value: [StoredBalance]) -> Int {
+    func append(_ value: [AssetBalance]) -> Int {
         values.append(value)
         return values.count
     }

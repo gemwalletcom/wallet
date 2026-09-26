@@ -262,6 +262,8 @@ pub mod support;
 pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
+pub mod asset_data;
+pub use self::asset_data::{AssetData, ChainAssetData, RecentAsset};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;

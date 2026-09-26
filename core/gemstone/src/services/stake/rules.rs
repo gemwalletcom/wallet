@@ -267,27 +267,25 @@ fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
 pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeViewState {
     let GemStakeInput {
         wallet_type,
-        asset,
-        balance,
-        balance_metadata,
-        staking_apr,
-        price,
+        asset_data,
         currency,
         validators,
         delegations,
     } = input;
+    let asset = &asset_data.asset;
     let chain = asset.chain();
+    let price = asset_data.price.as_ref().map(|price| price.price);
     let validators = selectable_validators(validators);
     let delegations = sorted_delegations(delegations);
-    let actions = stake_actions(wallet_type, chain, &validators, &balance, &delegations);
+    let actions = stake_actions(wallet_type, chain, &validators, &GemAssetBalance::from(&asset_data), &delegations);
     GemStakeViewState {
         sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
-        info_rows: stake_info_rows(&asset, staking_apr),
-        resource_rows: crate::services::balance::rules::balance_resource_rows(balance_metadata),
+        info_rows: stake_info_rows(asset, asset_data.metadata.staking_apr),
+        resource_rows: crate::services::balance::rules::balance_resource_rows(asset_data.balance.metadata.clone()),
         delegations: delegations
             .into_iter()
             .map(|delegation| GemStakeDelegationItem {
-                row: delegation_list_row(&delegation, &asset, price, currency.clone()),
+                row: delegation_list_row(&delegation, asset, price, currency.clone()),
                 destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
                 delegation,
             })
@@ -755,7 +753,7 @@ mod tests {
     use crate::duration_formatter::GemDurationUnit;
     use crate::services::transfer::GemTransferData;
     use chrono::Duration;
-    use primitives::Resource;
+    use primitives::{AssetData, Balance, Resource};
 
     #[test]
     fn test_delegation_details_title_follows_the_provider_and_the_header_keeps_its_precision() {
@@ -1313,11 +1311,7 @@ mod tests {
         let state = stake_view_state(
             GemStakeInput {
                 wallet_type: WalletType::Multicoin,
-                asset: asset.clone(),
-                balance: GemAssetBalance::mock(),
-                balance_metadata: None,
-                staking_apr: None,
-                price: None,
+                asset_data: AssetData::mock(asset.clone(), Balance::coin_balance(0u32.into())),
                 currency: Currency::USD,
                 validators: validators.clone(),
                 delegations: delegations.clone(),

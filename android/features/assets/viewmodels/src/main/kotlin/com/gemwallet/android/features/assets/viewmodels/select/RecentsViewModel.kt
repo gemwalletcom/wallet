@@ -15,10 +15,10 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.viewmodels.select.models.RecentsUIState
-import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.RecentActivityType
+import com.wallet.core.primitives.RecentAsset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher

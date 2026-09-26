@@ -10,8 +10,8 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
@@ -74,7 +74,7 @@ class EarnViewModelTest {
         every { this@mockk() } returns flowOf(walletId)
     }
     private val assetQuery = mockk<AssetQuery> {
-        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetData(asset = asset))
     }
     private val session = MutableStateFlow(mockSession(wallet = mockWallet(type = WalletType.Multicoin)))
     private val getSession = mockk<GetSession> {

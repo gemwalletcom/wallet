@@ -90,8 +90,8 @@ class EarnViewModel @Inject constructor(
                 providers = providers.map { it.toGem() },
                 delegations = delegations.map { it.toGem() },
                 assetApr = info.metadata?.earnApr,
-                price = info.price?.price?.price,
-                currency = (info.price?.currency ?: Currency.USD).toGem(),
+                price = info.price?.price,
+                currency = (current?.currency ?: Currency.USD).toGem(),
             ),
         )
     }

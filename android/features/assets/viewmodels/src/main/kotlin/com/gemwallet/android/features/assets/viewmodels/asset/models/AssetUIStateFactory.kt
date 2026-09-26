@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels.asset.models
 
 import android.content.Context
-import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.banner.uiModel
 import com.gemwallet.android.ui.components.infoSheet
@@ -9,6 +8,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ChainAssetData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import uniffi.gemstone.GemAssetBalanceRow
 import uniffi.gemstone.GemAssetDetailRow
@@ -19,8 +19,8 @@ import javax.inject.Inject
 
 class AssetUIStateFactory @Inject constructor(@ApplicationContext private val context: Context) {
 
-    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails): AssetUIState {
-        val assetInfo = chainAssetInfo.assetInfo
+    fun create(chainAssetInfo: ChainAssetData, details: GemAssetDetails): AssetUIState {
+        val assetInfo = chainAssetInfo.assetData
         val asset = assetInfo.asset
         return AssetUIState(
             assetInfo = assetInfo,

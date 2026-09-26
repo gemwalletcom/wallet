@@ -9,8 +9,8 @@ import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +36,7 @@ class ChartViewModel internal constructor(
     val assetId: AssetId,
 ) : ViewModel() {
 
-    private val storedAssetInfo: AssetInfo? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
+    private val storedAssetInfo: AssetData? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
     private val priceData = priceQuery(assetId)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)

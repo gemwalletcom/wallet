@@ -1,6 +1,6 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAsset, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic,
-    PortfolioType,
+    AssetData, ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAsset, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage,
+    PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -13,10 +13,10 @@ use crate::services::chart::GemChartData;
 use crate::services::chart::rules::{change_chart_data, converted_values};
 use crate::services::localization::GemLocalizedText;
 
-pub fn portfolio_asset(balance: &GemAssetBalance) -> PortfolioAsset {
+pub fn portfolio_asset(data: &AssetData) -> PortfolioAsset {
     PortfolioAsset {
-        asset_id: balance.asset_id.clone(),
-        value: balance.total(),
+        asset_id: data.asset.id.clone(),
+        value: GemAssetBalance::from(data).total(),
     }
 }
 
@@ -177,21 +177,23 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
+    use primitives::{Asset, Balance, ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
 
     #[test]
     fn test_the_portfolio_value_is_the_balance_total_core_already_owns() {
-        let balance = GemAssetBalance {
-            available: 100u32.into(),
-            staked: 20u32.into(),
-            reserved: 7u32.into(),
-            ..GemAssetBalance::zero(primitives::AssetId::new("ethereum").unwrap())
-        };
+        let data = AssetData::mock(
+            Asset::mock_eth(),
+            Balance {
+                staked: 20u32.into(),
+                reserved: 7u32.into(),
+                ..Balance::coin_balance(100u32.into())
+            },
+        );
 
-        assert_eq!(portfolio_asset(&balance).value, balance.total());
-        assert_eq!(portfolio_asset(&balance).value, 120u32.into(), "a reserved balance is not part of the total");
+        assert_eq!(portfolio_asset(&data).value, GemAssetBalance::from(&data).total());
+        assert_eq!(portfolio_asset(&data).value, 120u32.into(), "a reserved balance is not part of the total");
     }
 
     #[test]

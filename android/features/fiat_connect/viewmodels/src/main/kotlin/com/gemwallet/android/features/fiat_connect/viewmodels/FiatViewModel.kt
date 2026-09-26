@@ -20,7 +20,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.createFiatUIState
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.toQuoteUIModel
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -28,6 +27,7 @@ import com.gemwallet.android.ui.localization.quotesMessage
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
@@ -90,7 +90,7 @@ class FiatViewModel @Inject constructor(
     val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    private val assetInfo: StateFlow<AssetInfo?> = combine(
+    private val assetInfo: StateFlow<AssetData?> = combine(
         getSession(),
         getSession().filterNotNull().map { it.wallet.id.id }.distinctUntilChanged().flatMapLatest { walletId -> assetQuery(walletId, assetId) },
     ) { walletSession, info -> info?.takeIf { walletSession?.wallet?.getAccount(assetId) != null } }
@@ -110,6 +110,7 @@ class FiatViewModel @Inject constructor(
         .mapNotNull { it }
         .map {
             it.toAssetInfoDataAggregate(
+                currency = currency,
                 style = GemSelectAssetType.Buy.flow().rowStyle,
                 scope = GemAssetBalanceScope.AVAILABLE,
             )
@@ -157,7 +158,7 @@ class FiatViewModel @Inject constructor(
         assetInfo.filterNotNull()
             .onEach { data ->
                 session.update {
-                    it.onBalanceChanged(data.balance.balance.available)
+                    it.onBalanceChanged(data.balance.available)
                         .onSellEnabledChanged(data.metadata.isSellEnabled)
                 }
             }

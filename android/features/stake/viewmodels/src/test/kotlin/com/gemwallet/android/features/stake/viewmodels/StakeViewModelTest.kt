@@ -10,8 +10,8 @@ import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
@@ -59,7 +59,7 @@ class StakeViewModelTest {
         every { this@mockk() } returns flowOf(walletId)
     }
     private val assetQuery = mockk<AssetQuery> {
-        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+        every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetData(asset = asset))
     }
     private val getWalletAssets = mockk<GetWalletAssets> {
         every { this@mockk() } returns MutableStateFlow(emptyList())

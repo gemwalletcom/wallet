@@ -206,7 +206,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             infoRows: infoRows,
             actions: actions,
             resourceRows: [],
-            delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
+            delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
             docsUrl: nil,

@@ -29,29 +29,6 @@ const USDC_SYMBOL: &str = "USDC";
 
 #[uniffi::export]
 impl GemAmountType {
-    pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
-        let available = self.available_value(asset, balance);
-        let reserve = reserve_for_fee(self, asset);
-        let max_after_fee = (&available - &reserve).max(BigInt::from(0));
-        let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
-        let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
-        let can_change_value = can_change_value(self, asset);
-        GemAmountInput {
-            balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
-            available_value: available,
-            prefill: (!can_change_value).then(|| GemAmountMaxEntry {
-                input_type: GemAmountInputType::Asset,
-                value: max_value.clone(),
-            }),
-            max_value,
-            reserved_fee,
-            can_change_value,
-            focuses_input: can_change_value,
-            shows_asset_balance: shows_asset_balance(self, asset),
-            uses_whole_amounts: uses_whole_amounts(self, asset),
-        }
-    }
-
     pub fn can_switch_input_type(&self) -> bool {
         matches!(self, Self::Transfer)
     }
@@ -73,6 +50,31 @@ impl GemAmountType {
             reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto)),
             value,
             error,
+        }
+    }
+}
+
+impl GemAmountType {
+    pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
+        let available = self.available_value(asset, balance);
+        let reserve = reserve_for_fee(self, asset);
+        let max_after_fee = (&available - &reserve).max(BigInt::from(0));
+        let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
+        let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
+        let can_change_value = can_change_value(self, asset);
+        GemAmountInput {
+            balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
+            available_value: available,
+            prefill: (!can_change_value).then(|| GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: max_value.clone(),
+            }),
+            max_value,
+            reserved_fee,
+            can_change_value,
+            focuses_input: can_change_value,
+            shows_asset_balance: shows_asset_balance(self, asset),
+            uses_whole_amounts: uses_whole_amounts(self, asset),
         }
     }
 }

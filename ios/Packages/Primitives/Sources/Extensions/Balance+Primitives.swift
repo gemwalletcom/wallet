@@ -4,5 +4,17 @@ import BigInt
 import Foundation
 
 public extension Balance {
-    static let zero: Balance = .init(available: BigInt.zero)
+    static let zero = Balance(
+        available: .zero,
+        frozen: .zero,
+        locked: .zero,
+        staked: .zero,
+        pending: .zero,
+        pendingUnconfirmed: .zero,
+        rewards: .zero,
+        reserved: .zero,
+        earn: .zero,
+        withdrawable: .zero,
+        metadata: nil,
+    )
 }

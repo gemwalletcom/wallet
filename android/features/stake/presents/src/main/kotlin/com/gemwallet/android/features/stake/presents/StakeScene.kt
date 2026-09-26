@@ -20,7 +20,6 @@ import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -38,6 +37,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
+import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemServiceException
@@ -45,7 +45,7 @@ import uniffi.gemstone.GemServiceException
 @Composable
 internal fun StakeScene(
     inSync: Boolean,
-    assetInfo: AssetInfo,
+    assetInfo: AssetData,
     actions: List<StakeActionUIModel>,
     stakeInfoUrl: String?,
     sections: List<StakeSectionUIModel>,
@@ -88,7 +88,7 @@ internal fun StakeScene(
                     when (section) {
                         is StakeSectionUIModel.Manage -> stakeActions(
                             actions = actions,
-                            assetId = assetInfo.id(),
+                            assetId = assetInfo.asset.id,
                             amountAction = amountAction,
                             onConfirm = { onAction(StakeAction.Confirm(it)) },
                         )

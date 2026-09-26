@@ -8,7 +8,7 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::autoclose::GemAutocloseDraft;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
-use primitives::{Asset, Currency, Delegation, PerpetualDirection, Resource};
+use primitives::{Asset, AssetData, Currency, Delegation, PerpetualDirection, Resource};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -100,10 +100,11 @@ impl GemAmountRequest {
         }
     }
 
-    pub fn input(&self, asset: Asset, balance: GemAssetBalance) -> GemAmountInput {
+    pub fn input(&self, data: AssetData) -> GemAmountInput {
+        let balance = GemAssetBalance::from(&data);
         match self {
-            Self::Transfer { transfer } => super::rules::transfer_input(transfer, &asset, &balance),
-            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => self.amount_type().input(&asset, &balance),
+            Self::Transfer { transfer } => super::rules::transfer_input(transfer, &data.asset, &balance),
+            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => self.amount_type().input(&data.asset, &balance),
         }
     }
 }

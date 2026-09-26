@@ -77,6 +77,20 @@ public extension Asset {
     }
 }
 
+public extension AssetBalance {
+    static func mock(
+        assetId: AssetId = .mock(),
+        balance: Balance = .mock(),
+        isActive: Bool = false,
+    ) -> AssetBalance {
+        AssetBalance(
+            assetId: assetId,
+            balance: balance,
+            isActive: isActive,
+        )
+    }
+}
+
 public extension AssetBasic {
     static func mock(
         asset: Asset = .mock(),
@@ -89,6 +103,28 @@ public extension AssetBasic {
             properties: properties,
             score: score,
             price: price,
+        )
+    }
+}
+
+public extension AssetData {
+    static func mock(
+        asset: Asset = .mock(),
+        balance: Balance = .mock(),
+        account: Account = .mock(),
+        price: Price? = nil,
+        priceAlerts: [PriceAlert] = [],
+        metadata: AssetMetaData = .mock(),
+        associations: [AssetAssociation] = [],
+    ) -> AssetData {
+        AssetData(
+            asset: asset,
+            balance: balance,
+            account: account,
+            price: price,
+            priceAlerts: priceAlerts,
+            metadata: metadata,
+            associations: associations,
         )
     }
 }
@@ -241,6 +277,36 @@ public extension AssetScore {
     }
 }
 
+public extension Balance {
+    static func mock(
+        available: BigIntValue = 0,
+        frozen: BigIntValue = 0,
+        locked: BigIntValue = 0,
+        staked: BigIntValue = 0,
+        pending: BigIntValue = 0,
+        pendingUnconfirmed: BigIntValue = 0,
+        rewards: BigIntValue = 0,
+        reserved: BigIntValue = 0,
+        earn: BigIntValue = 0,
+        withdrawable: BigIntValue = 0,
+        metadata: BalanceMetadata? = nil,
+    ) -> Balance {
+        Balance(
+            available: available,
+            frozen: frozen,
+            locked: locked,
+            staked: staked,
+            pending: pending,
+            pendingUnconfirmed: pendingUnconfirmed,
+            rewards: rewards,
+            reserved: reserved,
+            earn: earn,
+            withdrawable: withdrawable,
+            metadata: metadata,
+        )
+    }
+}
+
 public extension Banner {
     static func mock(
         walletId: WalletId? = nil,
@@ -265,6 +331,18 @@ public extension BlockExplorerLink {
         BlockExplorerLink(
             name: name,
             link: link,
+        )
+    }
+}
+
+public extension ChainAssetData {
+    static func mock(
+        assetData: AssetData = .mock(),
+        feeAssetData: AssetData = .mock(),
+    ) -> ChainAssetData {
+        ChainAssetData(
+            assetData: assetData,
+            feeAssetData: feeAssetData,
         )
     }
 }
@@ -843,6 +921,18 @@ public extension PriceAlertData {
             price: price,
             priceAlert: priceAlert,
             rankScore: rankScore,
+        )
+    }
+}
+
+public extension RecentAsset {
+    static func mock(
+        asset: Asset = .mock(),
+        createdAt: Date = Date(timeIntervalSince1970: 0),
+    ) -> RecentAsset {
+        RecentAsset(
+            asset: asset,
+            createdAt: createdAt,
         )
     }
 }

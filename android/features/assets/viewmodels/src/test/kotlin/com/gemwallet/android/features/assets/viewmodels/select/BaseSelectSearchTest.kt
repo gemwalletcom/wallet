@@ -7,8 +7,8 @@ import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelect
 import com.gemwallet.android.features.assets.viewmodels.select.models.mockSelectAssetFilters
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -31,7 +31,7 @@ class BaseSelectSearchTest {
 
     private val walletId = WalletId("wallet-1")
     private val session = mockSession(wallet = mockWallet(id = walletId))
-    private val results = listOf(mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)))
+    private val results = listOf(mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)))
 
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {

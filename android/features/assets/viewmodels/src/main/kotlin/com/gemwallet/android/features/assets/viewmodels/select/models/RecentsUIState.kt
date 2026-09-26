@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels.select.models
 
-import com.gemwallet.android.model.RecentAsset
+import com.wallet.core.primitives.RecentAsset
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import uniffi.gemstone.GemEmptyStateKind
