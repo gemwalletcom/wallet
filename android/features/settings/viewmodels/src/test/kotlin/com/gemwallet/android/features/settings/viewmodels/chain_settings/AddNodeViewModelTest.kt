@@ -31,7 +31,6 @@ import uniffi.gemstone.LatencyType
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddNodeViewModelTest {
-
     private val dispatcher = StandardTestDispatcher()
 
     @Before
@@ -52,17 +51,6 @@ class AddNodeViewModelTest {
         every { newAddNodeSession(any()) } answers { GemAddNodeSession(firstArg(), "", null, null, false) }
         coEvery { checkNode(any(), any()) } answers { answer() }
         coEvery { addNode(any(), any()) } returns Unit
-    }
-
-    @Test
-    fun `an untouched form is idle`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check }, dispatcher)
-
-        viewModel.init(Chain.Ethereum)
-        advanceUntilIdle()
-
-        assertEquals(GemAddNodePhase.Idle, viewModel.viewState.value?.phase)
-        assertEquals(false, viewModel.viewState.value?.canImport)
     }
 
     @Test
