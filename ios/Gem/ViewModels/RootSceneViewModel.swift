@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import AppService
 import Components
 import Foundation
@@ -16,6 +15,7 @@ import Localization
 import Onboarding
 import Primitives
 import PrimitivesComponents
+import Settings
 import SwiftUI
 import WalletConnector
 

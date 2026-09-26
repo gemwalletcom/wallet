@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import Foundation
 import class Gemstone.GemCurrencyService
 import class Gemstone.GemNotificationsService

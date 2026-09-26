@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-@testable import AppLock
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
 import LocalAuthentication
 import Primitives
+@testable import Settings
 
 extension LockSceneViewModel {
     var isUnlocking: Bool {

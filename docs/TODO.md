@@ -628,7 +628,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
 - **NAM372** **M** **App lock belongs to Settings on both apps**, as [settings.md](product/settings.md) already describes the lock.
-  - **iOS:** the `AppLock` package folds into `Settings`: `LockWindow`, `LockWindowViewModifier`, `LockSceneViewModel`, `LockSceneState`, `UnlockAttempt`, and `LockScreenScene` → `LockScene`, as its view model; the app keeps wiring the window.
   - **Android:** the lock leaves `app` for `features/settings`: `LockedSplash` in `LockedAppContent.kt` → `LockScene` (+ `LockScreen` binding a new `LockViewModel`), the lock state and `AuthState` from `MainViewModel` → `LockViewModel`/`LockUIState`, and `LockTimer` with it; `SystemAuthenticator`, bound to the activity, stays in `app`.
 
 ## 12. Cleanup sweeps

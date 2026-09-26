@@ -20,7 +20,6 @@
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
 		8349F1472D5E4FF4003A0A93 /* Wallets in Frameworks */ = {isa = PBXBuildFile; productRef = 8349F1462D5E4FF4003A0A93 /* Wallets */; };
 		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
-		834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* AppLock */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -169,7 +168,6 @@
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
 		8349F1452D5E4D04003A0A93 /* Wallets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Wallets; sourceTree = "<group>"; };
 		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
-		834B38182D1D858D009D58D4 /* AppLock */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AppLock; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
 		8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualNavigationView.swift; sourceTree = "<group>"; };
@@ -317,7 +315,6 @@
 				DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */,
 				D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */,
 				D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */,
-				834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */,
 				B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */,
 				0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */,
 				833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */,
@@ -642,7 +639,6 @@
 				D829BF432CBDD9D200DEB2E8 /* FiatConnect */,
 				D829BF402CBDD64D00DEB2E8 /* Market */,
 				C366791B2A1860E500F1D74D /* QRScanner */,
-				834B38182D1D858D009D58D4 /* AppLock */,
 				C370289B2A9C3B0E009AE123 /* Settings */,
 				D88BB2682E2EE09F006310B9 /* Perpetuals */,
 			);
@@ -747,7 +743,6 @@
 				D85AD2A52CD7017E0010DEF8 /* NativeProviderService */,
 				D8D83C832CECFA610083AA53 /* Swap */,
 				839C794A2D1C42A500E32072 /* PrimitivesComponents */,
-				834B38192D1D85E2009D58D4 /* AppLock */,
 				833931A42D2D5B1D0063BB6A /* PriceAlerts */,
 				B604C2E92F3F538100CBAFDC /* Contacts */,
 				D9F015752F10654000000002 /* InAppNotifications */,
@@ -1562,10 +1557,6 @@
 		E1B4C7082E85B00000RWD003 /* Rewards */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Rewards;
-		};
-		834B38192D1D85E2009D58D4 /* AppLock */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppLock;
 		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;

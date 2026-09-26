@@ -69,7 +69,7 @@ extension LockWindow {
     }
 
     private func configured(_ window: UIWindow) -> UIWindow {
-        window.rootViewController = UIHostingController(rootView: LockScreenScene(model: lockModel))
+        window.rootViewController = UIHostingController(rootView: LockScene(model: lockModel))
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
         window.overrideUserInterfaceStyle = userInterfaceStyle

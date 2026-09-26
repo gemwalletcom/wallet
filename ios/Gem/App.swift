@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import AppService
 import Components
 import GemstoneServices
 import Primitives
+import Settings
 import Store
 import Style
 import SwiftUI

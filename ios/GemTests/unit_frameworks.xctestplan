@@ -51,13 +51,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/AppLock",
-        "identifier": "AppLockTests",
-        "name": "AppLockTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages/Validators",
         "identifier": "ValidatorsTests",
         "name": "ValidatorsTests"

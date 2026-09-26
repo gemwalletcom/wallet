@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import GemstoneServices
 import GemstoneServicesTestKit
+import Settings
 import UIKit
 
 public extension LockWindow {

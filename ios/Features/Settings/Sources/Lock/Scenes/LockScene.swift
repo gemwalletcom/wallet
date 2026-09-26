@@ -4,7 +4,7 @@ import Components
 import Style
 import SwiftUI
 
-struct LockScreenScene: View {
+struct LockScene: View {
     let model: LockSceneViewModel
 
     var body: some View {
@@ -17,7 +17,7 @@ struct LockScreenScene: View {
 
 // MARK: - UI Components
 
-extension LockScreenScene {
+extension LockScene {
     @ViewBuilder
     private var unlockButton: some View {
         if model.isUnlockButtonVisible {
@@ -46,5 +46,5 @@ extension LockScreenScene {
 // MARK: - Previews
 
 #Preview {
-    LockScreenScene(model: .preview)
+    LockScene(model: .preview)
 }
