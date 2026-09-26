@@ -20,7 +20,7 @@ extension CalloutViewStyle {
         )
     }
 
-    static func header(title: String) -> CalloutViewStyle {
+    public static func header(title: String) -> CalloutViewStyle {
         CalloutViewStyle(
             title: TextValue(
                 text: title,

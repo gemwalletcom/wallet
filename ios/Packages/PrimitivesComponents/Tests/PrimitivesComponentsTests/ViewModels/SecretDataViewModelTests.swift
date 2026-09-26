@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Localization
-@testable import Onboarding
-import PrimitivesComponents
+@testable import PrimitivesComponents
 import Testing
 
 struct SecretDataViewModelTests {

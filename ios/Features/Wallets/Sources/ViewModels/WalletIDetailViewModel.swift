@@ -8,7 +8,6 @@ import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import Onboarding
 import Primitives
 import PrimitivesComponents
 import Store

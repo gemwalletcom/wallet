@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import Localization
-import Onboarding
 import Primitives
 import PrimitivesComponents
 import Store

@@ -2,6 +2,7 @@
 
 import enum Gemstone.GemWalletSecret
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 public struct ExportWalletNavigationStack: View {

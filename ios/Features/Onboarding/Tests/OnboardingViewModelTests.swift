@@ -65,17 +65,6 @@ struct TermItemViewModelTests {
     }
 }
 
-struct SecurityReminderViewModelTests {
-    @Test
-    func theRemindersComeFromCore() {
-        let model = SecurityReminderViewModel(title: "Before you start", onNext: {})
-
-        #expect(model.title == "Before you start")
-        #expect(model.items.isNotEmpty)
-        #expect(model.message.isNotEmpty)
-    }
-}
-
 struct ImportWalletTypeViewModelTests {
     @Test
     func anEmptyQueryOffersEveryChain() {

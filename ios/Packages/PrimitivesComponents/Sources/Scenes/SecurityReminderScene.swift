@@ -7,14 +7,14 @@ import Primitives
 import Style
 import SwiftUI
 
-struct SecurityReminderScene: View {
+public struct SecurityReminderScene: View {
     @State private var model: SecurityReminderViewModel
 
-    init(model: SecurityReminderViewModel) {
+    public init(model: SecurityReminderViewModel) {
         self.model = model
     }
 
-    var body: some View {
+    public var body: some View {
         List {
             CalloutView(style: .header(title: model.message))
                 .cleanListRow()

@@ -8,11 +8,11 @@ import Localization
 import Style
 
 @Observable
-final class SecurityReminderViewModel {
+public final class SecurityReminderViewModel {
     let title: String
     let onNext: () -> Void
 
-    init(
+    public init(
         title: String,
         onNext: @escaping () -> Void,
     ) {

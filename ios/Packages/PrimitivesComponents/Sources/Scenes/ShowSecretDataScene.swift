@@ -3,15 +3,18 @@
 import Components
 import Localization
 import Primitives
-import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct ShowSecretDataScene: View {
+public struct ShowSecretDataScene: View {
     let model: SecretDataViewModel
     @State private var isPresentingCopyToast = false
 
-    var body: some View {
+    public init(model: SecretDataViewModel) {
+        self.model = model
+    }
+
+    public var body: some View {
         List {
             Section {
                 CalloutView(style: model.calloutViewStyle)

@@ -9,13 +9,12 @@ import func Gemstone.secretPhraseCopy
 import GemstonePrimitives
 import Localization
 import Primitives
-import PrimitivesComponents
 
-struct SecretDataViewModel {
+public struct SecretDataViewModel {
     private let secret: GemWalletSecret
     let continueAction: VoidAction
 
-    init(secret: GemWalletSecret, continueAction: VoidAction = nil) {
+    public init(secret: GemWalletSecret, continueAction: VoidAction = nil) {
         self.secret = secret
         self.continueAction = continueAction
     }
