@@ -42,9 +42,3 @@ extension LockScene {
             .background(Colors.white)
     }
 }
-
-// MARK: - Previews
-
-#Preview {
-    LockScene(model: .preview)
-}

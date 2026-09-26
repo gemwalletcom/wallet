@@ -297,14 +297,6 @@ public extension AssetSceneViewModel {
         isPresentingAssetSheet = .info(GemInfoTopic.pendingUnconfirmedBalance.infoSheet)
     }
 
-    func onSelect(_ title: GemListRowTitle) {
-        switch title {
-        case .pin, .unpin: onSelectPin()
-        case .addToWallet: onSelectEnable()
-        default: break
-        }
-    }
-
     func onSelectPin() {
         let pinned = !assetData.metadata.isPinned
         Task {

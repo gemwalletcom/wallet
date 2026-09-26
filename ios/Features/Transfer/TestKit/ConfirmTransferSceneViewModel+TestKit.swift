@@ -8,7 +8,6 @@ import enum Gemstone.GemConfirmRowContent
 import struct Gemstone.GemCopy
 import enum Gemstone.GemSubmitResult
 import struct Gemstone.GemTransferData
-import struct Gemstone.SimulationResult
 import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -21,7 +20,6 @@ public extension ConfirmTransferSceneViewModel {
     static func mock(
         request: ConfirmTransferRequest? = nil,
         data: GemTransferData = .mock(),
-        simulation: SimulationResult? = nil,
         load: Result<GemConfirmLoad, any Error>? = nil,
         execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], message: nil)),
         rows: ((Gemstone.AddressName?) -> [GemConfirmRowContent])? = nil,
@@ -51,7 +49,7 @@ public extension ConfirmTransferSceneViewModel {
             return [walletContent, recipient, network, memo, .details].compactMap(\.self)
         }
         return ConfirmTransferSceneViewModel(
-            request: request ?? .mock(data: data, simulation: simulation),
+            request: request ?? .mock(data: data),
             wallet: wallet,
             confirmation: confirmation ?? GemConfirmationMock(
                 state: .mock(transfer: data, feeAsset: data.feeAsset(), fee: nil),

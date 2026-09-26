@@ -12,7 +12,6 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.navigationPresenter) private var presenter
 
     @State private var navigationPath = NavigationPath()
     @State private var isPresentingAddressDetails: ChainAddress?
@@ -38,7 +37,6 @@ struct SelectedAssetNavigationStack: View {
                 case let .send(type):
                     RecipientNavigationView(
                         model: viewModelFactory.recipientScene(
-                            wallet: wallet,
                             asset: input.asset,
                             type: type,
                             recipient: input.recipient,

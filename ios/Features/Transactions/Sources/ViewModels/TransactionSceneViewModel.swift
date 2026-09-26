@@ -20,8 +20,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
-    private let wallet: Wallet
-    private let service: any GemTransactionDetailsServiceProtocol
     private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
@@ -41,8 +39,6 @@ public final class TransactionSceneViewModel {
         onAddContact: ((AddContactType) -> Void)? = nil,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
-        self.wallet = wallet
-        self.service = service
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         self.onSelectAddress = onSelectAddress

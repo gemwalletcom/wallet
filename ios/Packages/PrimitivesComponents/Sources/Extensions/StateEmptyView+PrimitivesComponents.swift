@@ -5,16 +5,4 @@ import Localization
 import Style
 import SwiftUI
 
-public extension StateEmptyView where Content == EmptyView {
-    static func noData() -> StateEmptyView<EmptyView> {
-        StateEmptyView(title: Localized.Common.notAvailable)
-    }
-
-    static func error(_ error: Error) -> StateEmptyView<EmptyView> {
-        StateEmptyView(
-            title: Localized.Errors.errorOccurred,
-            description: error.localizedDescription,
-            image: Images.ErrorContent.error,
-        )
-    }
-}
+public extension StateEmptyView where Content == EmptyView {}

@@ -27,15 +27,4 @@ public struct RateService: Sendable {
             }
         #endif
     }
-
-    @MainActor
-    @discardableResult
-    private func rate() -> Bool {
-        guard let scene = UIApplication.shared
-            .connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-        else { return false }
-        AppStore.requestReview(in: scene)
-        return true
-    }
 }

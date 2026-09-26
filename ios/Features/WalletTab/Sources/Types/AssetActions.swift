@@ -10,7 +10,6 @@ import PrimitivesComponents
 
 @MainActor
 protocol AssetActions: AnyObject {
-    var wallet: Wallet { get }
     var isPresentingToastMessage: ToastMessage? { get set }
     func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws

@@ -21,7 +21,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class RecipientSceneViewModel {
-    public let wallet: Wallet
     public let asset: Asset
     let type: GemRecipientType
 
@@ -46,7 +45,6 @@ public final class RecipientSceneViewModel {
     public let walletsQuery = ObservableQuery(WalletsQuery(isPinned: .none), initialValue: [Wallet]())
 
     public init(
-        wallet: Wallet,
         asset: Asset,
         service: any GemRecipientServiceProtocol,
         nameService: any GemNameServiceProtocol,
@@ -54,7 +52,6 @@ public final class RecipientSceneViewModel {
         recipient: GemPaymentRecipient? = .none,
         onNavigate: TransferRouteAction,
     ) {
-        self.wallet = wallet
         self.asset = asset
         self.service = service
         self.type = type
@@ -101,10 +98,6 @@ public final class RecipientSceneViewModel {
 
     var showMemo: Bool {
         asset.chain.isMemoSupported
-    }
-
-    var chain: Chain {
-        asset.chain
     }
 
     func listItem(for item: ListItemValue<GemRecipient>) -> ListItemModel {

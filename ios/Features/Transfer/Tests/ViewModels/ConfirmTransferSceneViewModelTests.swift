@@ -576,10 +576,6 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func walletConnectSectionsStructure() async {
-        let payload = [
-            SimulationPayloadField.mock(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
-            SimulationPayloadField.mock(kind: .method, value: "Approve", fieldType: .text, display: .primary),
-        ]
         let rows = [
             GemSimulationPayloadRow(
                 title: .contract,
@@ -593,10 +589,6 @@ struct ConfirmTransferSceneViewModelTests {
                 metadata: Primitives.ApplicationMetadata.mock().toGem(),
                 extra: .mock(to: "0x1111111111111111111111111111111111111111"),
             )),
-            simulation: .mock(
-                warnings: [.mock(severity: .warning, warning: .tokenApproval(.mock(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111").identifier)))],
-                payload: payload,
-            ),
             load: .success(.mock(
                 simulation: .mock(
                     warnings: [.notice(title: .unlimitedApproval, message: .unlimitedApprovalWarning, kind: .warning)],
@@ -628,7 +620,6 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func buttonDisabledWithCriticalWarnings() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            simulation: .mock(warnings: [.mock(severity: .critical, warning: .suspiciousSpender)]),
             load: .success(.mock(
                 simulation: .mock(simulation: .mock(hasCriticalWarning: true)),
             )),

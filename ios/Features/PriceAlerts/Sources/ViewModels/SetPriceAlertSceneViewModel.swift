@@ -16,7 +16,6 @@ import Style
 @MainActor
 @Observable
 public final class SetPriceAlertSceneViewModel {
-    private let asset: Primitives.Asset
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
     private let currency: Primitives.Currency
@@ -37,7 +36,6 @@ public final class SetPriceAlertSceneViewModel {
         service: any GemPriceAlertServiceProtocol,
         onComplete: StringAction,
     ) {
-        self.asset = asset
         self.service = service
         currency = service.getCurrency().toPrimitives()
         currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)

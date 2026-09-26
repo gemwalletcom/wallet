@@ -182,16 +182,3 @@ extension LockSceneViewModel {
         }
     }
 }
-
-// MARK: - Previews
-
-extension LockSceneViewModel {
-    static var preview: LockSceneViewModel {
-        LockSceneViewModel(
-            service: BiometryAuthenticationService(
-                keystorePassword: LocalKeystorePassword(),
-                securityService: GemSecurityService(),
-            ),
-        )
-    }
-}

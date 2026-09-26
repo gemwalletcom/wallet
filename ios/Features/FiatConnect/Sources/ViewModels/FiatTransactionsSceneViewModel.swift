@@ -18,7 +18,6 @@ import Store
 @MainActor
 public final class FiatTransactionsSceneViewModel {
     private let service: any GemFiatQuoteServiceProtocol
-    let walletId: WalletId
 
     public let query: ObservableQuery<MappedQuery<FiatTransactionsQuery, [ListSection<GemFiatTransactionRow>]>>
 
@@ -28,7 +27,6 @@ public final class FiatTransactionsSceneViewModel {
     }
 
     init(walletId: WalletId, service: any GemFiatQuoteServiceProtocol) {
-        self.walletId = walletId
         self.service = service
         query = ObservableQuery(
             MappedQuery(FiatTransactionsQuery(walletId: walletId)) {

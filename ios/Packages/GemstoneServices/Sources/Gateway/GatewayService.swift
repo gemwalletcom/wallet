@@ -27,10 +27,6 @@ public actor GatewayService: Sendable {
         )
     }
 
-    public nonisolated func with(provider: NativeProvider) -> GatewayService {
-        GatewayService(provider: provider, nodes: nodes, preferences: preferences, securePreferences: securePreferences)
-    }
-
     public nonisolated func chainSettingsService(nodes: GemNodeService, explorer: GemExplorerService) -> GemChainSettingsService {
         GemChainSettingsService(nodes: nodes, explorer: explorer, gateway: gateway)
     }

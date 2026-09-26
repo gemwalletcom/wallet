@@ -20,7 +20,6 @@ import SwiftUI
 @MainActor
 final class ImportWalletSceneViewModel {
     private let service: any GemWalletServiceProtocol
-    let preferences: ObservablePreferences
     let type: ImportWalletType
     private let importScreen: GemWalletImportScreen
 
@@ -52,13 +51,11 @@ final class ImportWalletSceneViewModel {
 
     init(
         service: any GemWalletServiceProtocol,
-        preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: VoidAction,
     ) {
         self.service = service
-        self.preferences = preferences
         self.type = type
         importScreen = service.importScreen(chain: type.chain?.toGem())
         self.onComplete = onComplete

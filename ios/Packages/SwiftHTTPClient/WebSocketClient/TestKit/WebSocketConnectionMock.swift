@@ -36,15 +36,11 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
         return 0.1
     }
 
-    public func send(_ data: Data) async throws {
+    public func send(_ text: String) async throws {
         guard state == .connected else {
             throw WebSocketError.notConnected
         }
-        sentData.append(data)
-    }
-
-    public func send(_ text: String) async throws {
-        try await send(Data(text.utf8))
+        sentData.append(Data(text.utf8))
     }
 
     // MARK: - Mock Control API

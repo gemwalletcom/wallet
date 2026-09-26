@@ -23,8 +23,6 @@ public actor ConnectivityService {
         subscribers.values.forEach { $0.finish() }
     }
 
-    public var status: ConnectivityState { state }
-
     public func start() {
         monitorTask?.cancel()
         let states = monitor.stateStream()

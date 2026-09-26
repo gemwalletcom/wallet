@@ -19,7 +19,6 @@ public extension RecipientSceneViewModel {
         onNavigate: TransferRouteAction = nil,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
-            wallet: .mock(),
             asset: asset,
             service: GemRecipientService.mock(),
             nameService: GemNameService.mock(),

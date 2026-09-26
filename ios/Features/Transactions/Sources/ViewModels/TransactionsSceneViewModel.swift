@@ -49,10 +49,6 @@ public final class TransactionsSceneViewModel {
         Localized.Activity.title
     }
 
-    public var walletId: WalletId {
-        wallet.id
-    }
-
     public var loadError: Error? {
         Gemstone.loadError(state: transactionsState, hasRows: !sections.isEmpty)
     }

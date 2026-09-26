@@ -9,8 +9,6 @@ import Style
 import SwiftUI
 
 struct AddNodeScene: View {
-    @Environment(\.dismiss) private var dismiss
-
     @State private var model: AddNodeSceneViewModel
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -117,10 +115,6 @@ extension AddNodeScene {
 // MARK: - Actions
 
 extension AddNodeScene {
-    private func onSelectDone() {
-        dismiss()
-    }
-
     private func onSubmitUrl() {
         focusedField = nil
         model.onSubmitInput()

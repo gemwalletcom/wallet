@@ -4,7 +4,6 @@ import Components
 import Foundation
 import struct Gemstone.GemChainRow
 import class Gemstone.GemChainService
-import protocol Gemstone.GemChainSettingsServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,11 +13,7 @@ import Style
 @Observable
 @MainActor
 public final class ChainListSettingsSceneViewModel {
-    private let service: any GemChainSettingsServiceProtocol
-
-    public init(service: any GemChainSettingsServiceProtocol) {
-        self.service = service
-    }
+    public init() {}
 
     var emptyContent: EmptyStateViewModel {
         EmptyStateViewModel(kind: .searchNetworks)

@@ -310,14 +310,12 @@ struct ServicesFactory {
         let navigationRouter = NavigationRouter(
             navigationState: navigation,
             presenter: navigationPresenter,
-            assetsService: assetsService,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
             pushNotificationService: pushNotificationService,
             deeplinkService: Gemstone.GemDeeplinkService(),
             navigationService: navigationService,
             paymentService: paymentService,
-            transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,
         )

@@ -23,14 +23,6 @@ public struct WebSocketConfiguration: Sendable {
     }
 
     public init(
-        request: URLRequest,
-        reconnection: any Reconnectable,
-        sessionConfiguration: URLSessionConfiguration = .default,
-    ) {
-        self.init(requestProvider: StaticRequestProvider(request: request), reconnection: reconnection, sessionConfiguration: sessionConfiguration)
-    }
-
-    public init(
         url: URL,
         reconnection: any Reconnectable,
         sessionConfiguration: URLSessionConfiguration = .default,

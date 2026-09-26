@@ -80,10 +80,6 @@ public final class ContactEditorSceneViewModel {
         }
     }
 
-    var buttonTitle: String {
-        Localized.Common.save
-    }
-
     var nameTitle: String {
         Localized.Wallet.name
     }

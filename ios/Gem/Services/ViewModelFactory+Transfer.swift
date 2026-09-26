@@ -54,7 +54,6 @@ public extension ViewModelFactory {
         ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
                 data: data,
-                simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
@@ -95,14 +94,12 @@ public extension ViewModelFactory {
 
     @MainActor
     func recipientScene(
-        wallet: Wallet,
         asset: Asset,
         type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
         onNavigate: TransferRouteAction,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
-            wallet: wallet,
             asset: asset,
             service: GemRecipientService(payments: paymentService, session: walletSessionService),
             nameService: nameService,
@@ -122,7 +119,6 @@ public extension ViewModelFactory {
             input: input,
             wallet: wallet,
             service: amountService,
-            stakeService: stakeService,
             onTransferAction: onTransferAction,
         )
     }

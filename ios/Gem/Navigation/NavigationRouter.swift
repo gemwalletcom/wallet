@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import protocol Gemstone.GemAssetsServiceProtocol
 import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
 import enum Gemstone.GemErrorText
@@ -13,7 +12,6 @@ import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.GemPaymentTarget
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
-import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import enum Gemstone.Payment
 import enum Gemstone.UrlAction
@@ -34,41 +32,35 @@ final class NavigationRouter: Sendable {
     private let navigationState: NavigationStateManager
     private let presenter: NavigationPresenter
 
-    private let assetsService: any GemAssetsServiceProtocol
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let deeplinkService: any GemDeeplinkServiceProtocol
     private let navigationService: any GemNavigationServiceProtocol
     private let paymentService: any GemPaymentServiceProtocol
-    private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any GemWalletSessionServiceProtocol
 
     init(
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
-        assetsService: any GemAssetsServiceProtocol,
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
         pushNotificationService: any GemPushNotificationServiceProtocol,
         deeplinkService: any GemDeeplinkServiceProtocol,
         navigationService: any GemNavigationServiceProtocol,
         paymentService: any GemPaymentServiceProtocol,
-        transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any GemWalletSessionServiceProtocol,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
-        self.assetsService = assetsService
         self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
         self.pushNotificationService = pushNotificationService
         self.deeplinkService = deeplinkService
         self.navigationService = navigationService
         self.paymentService = paymentService
-        self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }

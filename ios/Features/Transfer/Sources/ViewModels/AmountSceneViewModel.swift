@@ -62,7 +62,6 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: any GemAmountServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
@@ -78,7 +77,7 @@ public final class AmountSceneViewModel {
         case .withdraw: baseRequest = .transfer(transfer: .withdraw)
         case let .earn(earnType): baseRequest = .earn(earnType: earnType)
         case let .stake(type):
-            let model = AmountStakeViewModel(asset: input.asset, type: type, service: stakeService)
+            let model = AmountStakeViewModel(asset: input.asset, type: type)
             stake = model
             baseRequest = model.request
         case let .perpetual(action):

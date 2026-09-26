@@ -19,7 +19,6 @@ import UIKit
 @MainActor
 public final class InAppNotificationsSceneViewModel {
     private let service: any GemNotificationServiceProtocol
-    private let wallet: Wallet
     private let onOpenAction: ((UrlAction) -> Void)?
 
     private var loadState: GemLoadState = .loading
@@ -34,7 +33,6 @@ public final class InAppNotificationsSceneViewModel {
         service: any GemNotificationServiceProtocol,
         onOpenAction: ((UrlAction) -> Void)? = nil,
     ) {
-        self.wallet = wallet
         self.service = service
         self.onOpenAction = onOpenAction
         query = ObservableQuery(InAppNotificationsQuery(walletId: wallet.id.id), initialValue: [])

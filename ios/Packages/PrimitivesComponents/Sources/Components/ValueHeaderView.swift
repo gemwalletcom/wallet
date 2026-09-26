@@ -40,19 +40,6 @@ public struct ValueHeaderViewSpacing: Sendable {
         self.subtitleTop = subtitleTop
         self.subtitleBottom = subtitleBottom
     }
-
-    public init(
-        contentBottom: CGFloat,
-        subtitleTop: CGFloat = .zero,
-        subtitleBottom: CGFloat,
-    ) {
-        self.init(
-            assetImageBottom: contentBottom,
-            titleBottom: contentBottom,
-            subtitleTop: subtitleTop,
-            subtitleBottom: subtitleBottom,
-        )
-    }
 }
 
 public struct ValueHeaderView: View {

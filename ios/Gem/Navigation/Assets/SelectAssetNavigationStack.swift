@@ -59,7 +59,6 @@ struct SelectAssetNavigationStack: View {
                     case let .send(recipient):
                         RecipientNavigationView(
                             model: viewModelFactory.recipientScene(
-                                wallet: model.wallet,
                                 asset: input.asset,
                                 type: .asset(asset: input.asset.toGem()),
                                 recipient: recipient,

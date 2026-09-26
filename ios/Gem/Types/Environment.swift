@@ -8,7 +8,6 @@ import WalletConnectorService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
-    @Entry var observablePreferences: ObservablePreferences = AppResolver.main.services.observablePreferences
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationRouter: NavigationRouter = AppResolver.main.services.navigationRouter
     @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector

@@ -11,10 +11,6 @@ struct PriceWidgetView: View {
         viewModel = PriceWidgetViewModel(entry: entry, widgetFamily: widgetFamily)
     }
 
-    init(viewModel: PriceWidgetViewModel) {
-        self.viewModel = viewModel
-    }
-
     var body: some View {
         Group {
             switch viewModel.widgetFamily {

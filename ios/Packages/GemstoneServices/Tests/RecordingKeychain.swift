@@ -53,10 +53,6 @@ struct RecordingKeychain: Keychain {
         try storage.value(for: key).map { try $0.encodeString() }
     }
 
-    func getString(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String? {
-        try get(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
-    }
-
     func getData(_ key: String, ignoringAttributeSynchronizable _: Bool) throws -> Data? {
         storage.value(for: key)
     }

@@ -69,10 +69,6 @@ public actor WebSocketConnection: WebSocketConnectable {
         }
     }
 
-    public func send(_ data: Data) async throws {
-        try await send(message: .data(data))
-    }
-
     public func send(_ text: String) async throws {
         try await send(message: .string(text))
     }

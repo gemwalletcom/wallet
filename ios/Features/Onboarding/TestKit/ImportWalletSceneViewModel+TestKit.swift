@@ -14,7 +14,6 @@ extension ImportWalletSceneViewModel {
     ) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(
             service: service,
-            preferences: .mock(),
             nameService: nameService,
             type: .chain(.ethereum),
             onComplete: nil,
