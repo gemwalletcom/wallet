@@ -258,10 +258,6 @@ impl GemSelectAssetFlow {
             (false, false) => GemSelectAssetState::Empty,
         }
     }
-
-    pub fn applied_filters(&self, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
-        super::rules::applied_filters(self, chains, has_balance)
-    }
 }
 
 impl GemSelectAssetFlow {

@@ -5,6 +5,8 @@ import Foundation
 import func Gemstone.addressCopy
 import struct Gemstone.GemAssetSectionCounts
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemAssetsFilterSession
+import struct Gemstone.GemAssetsFilterView
 import struct Gemstone.GemCopy
 import struct Gemstone.GemPaymentRecipient
 import protocol Gemstone.GemPaymentServiceProtocol
@@ -48,7 +50,8 @@ public final class SelectAssetSceneViewModel {
     public var isPresentingAddToken: Bool = false
     public var route: SelectAssetRoute?
 
-    public var filterModel: AssetsFilterViewModel
+    private var filterSession: GemAssetsFilterSession
+    public private(set) var filterView: GemAssetsFilterView
     public var onSelectAssetAction: AssetAction
 
     public init(
@@ -69,20 +72,17 @@ public final class SelectAssetSceneViewModel {
         flow = walletFlow.flow
         onSelectAssetAction = selectAssetAction
 
-        let filter = AssetsFilterViewModel(
-            flow: flow,
-            model: ChainsFilterViewModel(
-                chains: walletFlow.chains.map { Chain(core: $0) },
-                selected: chains,
-            ),
-        )
-        filterModel = filter
+        let filterSession = flow.filterSession(chains: chains.map(\.rawValue))
+        let filterView = filterSession.viewState()
+        self.filterSession = filterSession
+        self.filterView = filterView
+        let filters = filterView.filters.map { $0.map() }
 
-        assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, scope: flow.requestScope, filters: filter.filters, limit: GemConstants.assetResultsLimit), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, scope: flow.requestScope, filters: filters, limit: GemConstants.assetResultsLimit), initialValue: [])
         recentModel = RecentAssetsViewModel(
             walletId: wallet.id,
             types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,
-            filters: filter.filters,
+            filters: filters,
             service: recentAssetsService,
         )
     }
@@ -122,6 +122,23 @@ public final class SelectAssetSceneViewModel {
 
     public var showFilter: Bool {
         walletFlow.showsChainFilter
+    }
+
+    var hasBalance: Bool {
+        get { filterView.hasBalance }
+        set { updateFilter(filterSession.onBalance(hasBalance: newValue)) }
+    }
+
+    var chainsTypeModel: ChainsFilterTypeViewModel {
+        ChainsFilterTypeViewModel(summary: filterView.chainsSummary)
+    }
+
+    var networksModel: NetworkSelectorViewModel {
+        NetworkSelectorViewModel(
+            state: .data(.plain(walletFlow.chains.map { Chain(core: $0) })),
+            selectedItems: filterView.selectedChains.map { Chain(core: $0) },
+            selectionType: .multiSelection,
+        )
     }
 
     var isNetworkSearchEnabled: Bool {
@@ -180,11 +197,6 @@ extension SelectAssetSceneViewModel {
         assetsQuery.request.searchBy = searchableQuery
         state = isNetworkSearchEnabled ? .loading : .noData
     }
-
-    func onChangeFilterModel(_: AssetsFilterViewModel, model: AssetsFilterViewModel) {
-        assetsQuery.request.filters = model.filters
-        recentModel.query.request.filters = model.filters
-    }
 }
 
 // MARK: - Actions
@@ -241,11 +253,28 @@ extension SelectAssetSceneViewModel {
     func onSelectAddCustomToken() {
         isPresentingAddToken.toggle()
     }
+
+    func onFinishChainsSelection(_ value: SelectionResult<Chain>) -> Bool {
+        updateFilter(filterSession.onChains(chains: value.items.map(\.rawValue)))
+        return value.isConfirmed
+    }
+
+    func onClearFilters() {
+        updateFilter(filterSession.onClear())
+    }
 }
 
 // MARK: - Private
 
 extension SelectAssetSceneViewModel {
+    private func updateFilter(_ session: GemAssetsFilterSession) {
+        filterSession = session
+        filterView = session.viewState()
+        let filters = filterView.filters.map { $0.map() }
+        assetsQuery.request.filters = filters
+        recentModel.query.request.filters = filters
+    }
+
     private func recordSelection(asset: Asset) {
         if flow.enablesPriceAlert {
             Task {

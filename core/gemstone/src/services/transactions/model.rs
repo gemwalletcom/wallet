@@ -47,7 +47,6 @@ pub enum GemTransactionsFilterSummary {
     Count { count: u32 },
 }
 
-#[uniffi::export]
 pub fn chains_filter_summary(chains: Vec<Chain>) -> GemChainsFilterSummary {
     match chains.as_slice() {
         [] => GemChainsFilterSummary::All,

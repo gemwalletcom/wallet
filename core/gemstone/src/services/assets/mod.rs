@@ -1,6 +1,7 @@
 pub mod add;
 pub mod config;
 pub mod details;
+pub mod filter;
 pub mod icon;
 pub mod model;
 pub mod rules;

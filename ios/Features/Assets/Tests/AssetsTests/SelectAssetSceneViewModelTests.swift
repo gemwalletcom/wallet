@@ -2,6 +2,7 @@
 
 @testable import Assets
 import AssetsTestKit
+import Components
 import enum Gemstone.GemSelectAssetState
 import enum Gemstone.GemServiceError
 import GemstonePrimitivesTestKit
@@ -25,9 +26,7 @@ struct SelectAssetSceneViewModelTests {
 
         #expect(model.recentModel.query.request.filters == [.enabled, .hasBalance, .chains([Chain.bitcoin.rawValue])])
 
-        var filter = model.filterModel
-        filter.chainsFilter.selectedChains = [.ethereum]
-        model.onChangeFilterModel(model.filterModel, model: filter)
+        _ = model.onFinishChainsSelection(SelectionResult(items: [.ethereum], isConfirmed: false))
 
         #expect(model.recentModel.query.request.filters == [.enabled, .hasBalance, .chains([Chain.ethereum.rawValue])])
     }

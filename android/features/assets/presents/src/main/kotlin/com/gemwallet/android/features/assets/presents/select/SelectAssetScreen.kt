@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
@@ -12,6 +13,7 @@ import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.screen.SceneTitle
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import kotlinx.collections.immutable.toImmutableList
@@ -29,8 +31,7 @@ fun SelectAssetScreen(
     viewModel: BaseSelectAssetViewModel,
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
-    val flow = viewModel.flowUIModel
-    val title = flow.title
+    val title = stringResource(viewModel.flow.title.stringRes())
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
@@ -43,8 +44,7 @@ fun SelectAssetScreen(
     val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val isChainFilterAvailable by viewModel.isChainFilterAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
-    val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
-    val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
+    val filter by viewModel.filterView.collectAsStateWithLifecycle()
 
     val selectAsset: ((Asset) -> Unit)? = onSelect?.let { select ->
         { asset ->
@@ -64,10 +64,8 @@ fun SelectAssetScreen(
         state = uiStates,
         empty = searchEmptyState,
         availableChains = availableChains,
-        chainsFilter = chainsFilter,
-        balanceFilter = balanceFilter,
+        filter = filter,
         showFilter = showFilter ?: isChainFilterAvailable,
-        showBalanceFilter = flow.showsBalanceFilter,
         onAction = { action ->
             when (action) {
                 is SelectAssetAction.ChainFilter -> viewModel.onChainFilter(action.chain)

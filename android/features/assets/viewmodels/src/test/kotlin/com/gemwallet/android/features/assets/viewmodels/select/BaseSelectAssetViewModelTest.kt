@@ -47,6 +47,7 @@ import org.junit.Test
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemAssetsFilterSession
 import uniffi.gemstone.GemSelectAssetFlow
 import uniffi.gemstone.GemSelectAssetScope
 import uniffi.gemstone.GemSelectAssetType
@@ -84,10 +85,7 @@ class BaseSelectAssetViewModelTest {
         every { recents } returns true
         every { networkSearch } returns false
         every { enablesPriceAlert } returns false
-        every { appliedFilters(any(), any()) } answers {
-            val chains = firstArg<List<String>>()
-            listOfNotNull(GemAssetFilter.Chains(chains).takeIf { chains.isNotEmpty() }, GemAssetFilter.HasBalance.takeIf { secondArg<Boolean>() })
-        }
+        every { filterSession(any()) } answers { GemAssetsFilterSession(filters = emptyList(), balanceFilter = true, selectedChains = firstArg(), hasBalance = false) }
     }
 
     private fun viewModel(
@@ -136,11 +134,10 @@ class BaseSelectAssetViewModelTest {
         assertEquals(listOf("Bitcoin"), model.unpinned.first { it.size == 1 }.map { it.asset.name })
 
         model.onBalanceFilter(true)
-        assertTrue(model.balanceFilter.value)
+        assertTrue(model.filterView.first { it.hasBalance }.isFiltered)
 
         model.onClearFilters()
-        assertEquals(emptyList<Chain>(), model.chainFilter.value)
-        assertTrue(!model.balanceFilter.value)
+        assertEquals(emptyList<String>(), model.filterView.first { !it.isFiltered }.selectedChains)
         assertEquals(2, model.unpinned.first { it.size == 2 }.size)
     }
 

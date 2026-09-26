@@ -468,18 +468,6 @@ pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular
     })
 }
 
-pub fn applied_filters(flow: &GemSelectAssetFlow, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
-    let chains = (!chains.is_empty()).then_some(GemAssetFilter::Chains { chains });
-    let balance = (has_balance && flow.balance_filter).then_some(GemAssetFilter::HasBalance);
-    let mut filters = flow.filters.clone();
-    for filter in chains.into_iter().chain(balance) {
-        if !filters.contains(&filter) {
-            filters.push(filter);
-        }
-    }
-    filters
-}
-
 pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
     let shown = counts.recents + counts.pinned_assets + counts.assets + counts.pinned_perpetuals + counts.perpetuals + counts.lists + counts.nfts;
     GemWalletSearchState {
@@ -1768,29 +1756,6 @@ mod tests {
         assert_eq!(alerts_row(Some(0.0), vec![auto.clone()]), None);
         assert_eq!(alerts_row(None, vec![auto]), None);
         assert_eq!(alerts_row(Some(1.0), vec![]), None);
-    }
-
-    #[test]
-    fn test_applied_filters_add_the_picked_chains_and_the_balance_only_where_the_flow_offers_it() {
-        let send = GemSelectAssetType::Send.flow();
-        let receive = GemSelectAssetType::Receive.flow();
-        let chains = vec![Chain::Ethereum, Chain::Solana];
-
-        assert_eq!(send.applied_filters(vec![], false), send.filters);
-        assert_eq!(
-            receive.applied_filters(chains.clone(), true),
-            [
-                receive.filters.clone(),
-                vec![GemAssetFilter::Chains { chains: chains.clone() }],
-                receive.balance_filter.then_some(GemAssetFilter::HasBalance).into_iter().collect(),
-            ]
-            .concat()
-        );
-        assert_eq!(
-            send.applied_filters(vec![], true).iter().filter(|filter| **filter == GemAssetFilter::HasBalance).count(),
-            1,
-            "a flow that already filters by balance does not add it twice"
-        );
     }
 
     #[test]

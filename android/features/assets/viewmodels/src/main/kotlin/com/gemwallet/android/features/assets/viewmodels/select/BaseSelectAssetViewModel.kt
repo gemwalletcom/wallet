@@ -22,9 +22,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectAssetFilters
-import com.gemwallet.android.features.assets.viewmodels.select.models.SelectAssetFlowUIModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
-import com.gemwallet.android.features.assets.viewmodels.select.models.uiModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
@@ -65,6 +63,7 @@ import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetSearchStep
 import uniffi.gemstone.GemAssetSectionCounts
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemAssetsFilterView
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateKind
@@ -87,12 +86,9 @@ open class BaseSelectAssetViewModel(
 
     val flow = service.flow(selectType)
 
-    val flowUIModel: SelectAssetFlowUIModel = flow.uiModel(context)
-
     fun reset() {
         queryState.clearText()
-        chainFilter.value = emptyList()
-        balanceFilter.value = false
+        filterSession.update { it.onClear() }
     }
 
     private val session = getSession()
@@ -106,8 +102,10 @@ open class BaseSelectAssetViewModel(
     private val isSearching = MutableStateFlow(false)
 
     val queryState = TextFieldState()
-    val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
-    val balanceFilter = MutableStateFlow(false)
+    private val filterSession = MutableStateFlow(flow.filterSession(emptyList()))
+    val filterView: StateFlow<GemAssetsFilterView> = filterSession
+        .map { it.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, filterSession.value.viewState())
 
     private val walletFlow = session
         .map { session -> session?.wallet?.let { service.walletFlow(selectType, it.toGem()) } }
@@ -125,15 +123,14 @@ open class BaseSelectAssetViewModel(
     private val filters = combine(
         session,
         currentQuery,
-        chainFilter,
-        balanceFilter,
-    ) { session, query, chainFilter, hasBalance ->
+        filterView,
+    ) { session, query, filterView ->
         SelectAssetFilters(
             session = session,
             query = query,
             limit = assetsSearchLimit(query),
             scope = flow.scope,
-            filters = flow.appliedFilters(chainFilter.map { it.string }, hasBalance),
+            filters = filterView.filters,
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -191,7 +188,7 @@ open class BaseSelectAssetViewModel(
         .map { it.unpinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.unpinned)
 
-    val recent = combine(currentQuery, chainFilter, balanceFilter) { query, chains, hasBalance -> query to assetFilters(chains, hasBalance) }
+    val recent = combine(currentQuery, filterView) { query, filterView -> query to filterView.filters.toSet() }
         .flatMapLatest { (query, filters) ->
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
@@ -264,26 +261,19 @@ open class BaseSelectAssetViewModel(
     }
 
     fun setChainFilter(chains: List<Chain>) {
-        chainFilter.value = chains
+        filterSession.update { it.onChains(chains.map { chain -> chain.string }) }
     }
 
     fun onChainFilter(chain: Chain) {
-        chainFilter.update {
-            val chains = it.toMutableList()
-            if (!chains.remove(chain)) {
-                chains.add(chain)
-            }
-            chains.toList()
-        }
+        filterSession.update { it.onChainToggled(chain.string) }
     }
 
     fun onBalanceFilter(onlyWithBalance: Boolean) {
-        balanceFilter.update { onlyWithBalance }
+        filterSession.update { it.onBalance(onlyWithBalance) }
     }
 
     fun onClearFilters() {
-        chainFilter.update { emptyList() }
-        balanceFilter.update { false }
+        filterSession.update { it.onClear() }
     }
 
     init {
@@ -323,9 +313,7 @@ open class BaseSelectAssetViewModel(
     val recentTypes: List<RecentActivityType>
         get() = flow.action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
 
-    fun assetFilters(): Set<GemAssetFilter> = assetFilters(chainFilter.value, balanceFilter.value)
-
-    private fun assetFilters(chains: List<Chain>, hasBalance: Boolean): Set<GemAssetFilter> = flow.appliedFilters(chains.map { it.string }, hasBalance).toSet()
+    fun assetFilters(): Set<GemAssetFilter> = filterView.value.filters.toSet()
 
     open fun assetsSearchLimit(query: String): Int = GemConstants.assetResultsLimit
 

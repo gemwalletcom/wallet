@@ -68,6 +68,7 @@ import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.drop
+import uniffi.gemstone.GemAssetsFilterView
 import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
@@ -85,9 +86,7 @@ fun SelectAssetScene(
     query: TextFieldState,
     empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
     availableChains: List<Chain> = emptyList(),
-    chainsFilter: List<Chain> = emptyList(),
-    balanceFilter: Boolean = false,
-    showBalanceFilter: Boolean = false,
+    filter: GemAssetsFilterView? = null,
     searchable: Boolean = true,
     onAction: (SelectAssetAction) -> Unit,
     closeIcon: Boolean = false,
@@ -114,9 +113,7 @@ fun SelectAssetScene(
         query = query,
         empty = empty,
         availableChains = availableChains,
-        chainsFilter = chainsFilter,
-        balanceFilter = balanceFilter,
-        showBalanceFilter = showBalanceFilter,
+        filter = filter,
         searchable = searchable,
         onAction = onAction,
         closeIcon = closeIcon,
@@ -139,9 +136,7 @@ fun SelectAssetScene(
     query: TextFieldState,
     empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
     availableChains: List<Chain> = emptyList(),
-    chainsFilter: List<Chain> = emptyList(),
-    balanceFilter: Boolean = false,
-    showBalanceFilter: Boolean = false,
+    filter: GemAssetsFilterView? = null,
     showFilter: Boolean = true,
     searchable: Boolean = true,
     onAction: (SelectAssetAction) -> Unit,
@@ -194,14 +189,14 @@ fun SelectAssetScene(
     Scene(
         titleContent = title,
         actions = {
-            if (showFilter && availableChains.isNotEmpty()) {
+            if (showFilter && filter != null && availableChains.isNotEmpty()) {
                 IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
                     Icon(
                         imageVector = AppIcons.FilterAlt,
-                        tint = if (chainsFilter.isEmpty() && !balanceFilter) {
-                            LocalContentColor.current
-                        } else {
+                        tint = if (filter.isFiltered) {
                             MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current
                         },
                         contentDescription = null,
                     )
@@ -256,17 +251,17 @@ fun SelectAssetScene(
         }
     }
 
-    AssetsFilter(
-        isVisible = showSelectNetworks,
-        availableChains = availableChains,
-        chainFilter = chainsFilter,
-        balanceFilter = balanceFilter,
-        showBalanceFilter = showBalanceFilter,
-        onDismissRequest = { showSelectNetworks = false },
-        onChainFilter = { onAction(SelectAssetAction.ChainFilter(it)) },
-        onBalanceFilter = { onAction(SelectAssetAction.BalanceFilter(it)) },
-        onClearFilters = { onAction(SelectAssetAction.ClearFilters) },
-    )
+    if (filter != null) {
+        AssetsFilter(
+            isVisible = showSelectNetworks,
+            availableChains = availableChains,
+            filter = filter,
+            onDismissRequest = { showSelectNetworks = false },
+            onChainFilter = { onAction(SelectAssetAction.ChainFilter(it)) },
+            onBalanceFilter = { onAction(SelectAssetAction.BalanceFilter(it)) },
+            onClearFilters = { onAction(SelectAssetAction.ClearFilters) },
+        )
+    }
 }
 
 private fun LazyListScope.assets(

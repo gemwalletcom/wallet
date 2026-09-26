@@ -38,7 +38,7 @@ struct SelectAssetNavigationStack: View {
                 if model.showFilter {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         FilterButton(
-                            isActive: model.filterModel.isAnyFilterSpecified,
+                            isActive: model.filterView.isFiltered,
                             action: onSelectFilter,
                         )
                     }
@@ -121,7 +121,7 @@ struct SelectAssetNavigationStack: View {
         }
         .sheet(isPresented: $isPresentingFilteringView) {
             NavigationStack {
-                AssetsFilterScene(model: $model.filterModel)
+                AssetsFilterScene(model: model)
             }
             .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
         }
