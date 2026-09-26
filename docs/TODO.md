@@ -43,7 +43,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM284 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM272, VM287 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM276, VM280, VM290 |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Texts composed in the apps
 
-- **VM272** **S** **Amount screen texts are composed in the apps.**
-  - **iOS:** `AmountSceneViewModel` composes "Balance: X" and "Reserved fees X".
-  - **Android:** `PropertyAssetInfoItem` composes the balance and `AmountScene` the reserved fees.
-  - **Expected:** the amount view state carries both texts (on `GemAmountSession`).
 - **VM274** **S** **Rewards invite and share texts are composed in the apps.**
   - **iOS:** `RewardsSceneViewModel` composes the invite description with bold points and the share text with the link.
   - **Android:** `RewardsHead` bolds the points and `RewardsScene` composes the share text.

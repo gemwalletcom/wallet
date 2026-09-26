@@ -190,6 +190,10 @@ public extension GemLocalizedText {
             pinned ? Localized.Common.pinnedAsset(name) : Localized.Common.unpinnedAsset(name)
         case let .priceAlertsToggled(name, enabled):
             enabled ? Localized.PriceAlerts.enabledFor(name) : Localized.PriceAlerts.disabledFor(name)
+        case let .amountBalance(balance):
+            Localized.Transfer.balance(balance.text())
+        case let .reservedFees(fee):
+            Localized.Transfer.reservedFees(fee.text())
         case let .currentPrice(price):
             [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):

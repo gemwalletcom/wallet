@@ -25,6 +25,7 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.providers.Amoun
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -155,11 +156,11 @@ class AmountViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val availableBalanceFormatted: StateFlow<String> = input.map { input ->
-        input?.balance?.text().orEmpty()
+        input?.balance?.string(context).orEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val reserveForFeeFormatted: StateFlow<String?> = entry.map { entry ->
-        entry?.reservedFee?.text()
+        entry?.reservedFee?.string(context)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val amountEquivalent: StateFlow<String> = entry.map { entry ->

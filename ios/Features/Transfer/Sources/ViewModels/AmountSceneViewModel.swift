@@ -161,7 +161,7 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        Localized.Transfer.balance(input.balance.text())
+        input.balance.text
     }
 
     var actionButtonState: ButtonState {
@@ -172,8 +172,7 @@ public final class AmountSceneViewModel {
     }
 
     var infoText: String? {
-        guard let reservedFee = entry.reservedFee else { return nil }
-        return Localized.Transfer.reservedFees(reservedFee.text())
+        entry.reservedFee?.text
     }
 
     var maxTitle: String {

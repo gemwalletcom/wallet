@@ -5,6 +5,7 @@ use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::precision::GemValueStyle;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
+use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::autoclose::GemAutocloseDraft;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
@@ -138,7 +139,7 @@ pub enum GemAmountPerpetualPosition {
 pub struct GemAmountInput {
     pub icon: crate::services::assets::icon::GemAssetIcon,
     pub available_value: GemBigInt,
-    pub balance: GemFormattedNumber,
+    pub balance: GemLocalizedText,
     pub max_value: GemBigInt,
     pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
@@ -195,7 +196,7 @@ pub struct GemAmountEntry {
     pub error: Option<GemAmountError>,
     pub equivalent: GemFormattedNumber,
     pub is_max: bool,
-    pub reserved_fee: Option<GemFormattedNumber>,
+    pub reserved_fee: Option<GemLocalizedText>,
 }
 
 #[uniffi::export]

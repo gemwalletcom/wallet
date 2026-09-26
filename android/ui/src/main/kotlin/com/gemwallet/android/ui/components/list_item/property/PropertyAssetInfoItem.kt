@@ -25,11 +25,11 @@ import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemFormattedNumber
 
 @Composable
-fun PropertyAssetInfoItem(asset: Asset, icon: GemAssetIcon, availableAmount: String, onMaxAmount: () -> Unit) {
+fun PropertyAssetInfoItem(asset: Asset, icon: GemAssetIcon, balance: String, onMaxAmount: () -> Unit) {
     ListItem(
         leading = { AssetIcon(icon) },
         title = { ListItemTitleText(asset.name) },
-        subtitle = { ListItemSupportText(stringResource(id = R.string.transfer_balance, availableAmount)) },
+        subtitle = { ListItemSupportText(balance) },
         listPosition = ListPosition.Single,
         trailing = {
             Button(

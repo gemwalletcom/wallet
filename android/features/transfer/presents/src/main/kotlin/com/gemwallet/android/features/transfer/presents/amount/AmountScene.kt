@@ -131,7 +131,7 @@ internal fun AmountScene(
                     PropertyAssetInfoItem(
                         asset = asset,
                         icon = icon ?: assetText(asset.toGem()).icon,
-                        availableAmount = availableBalance,
+                        balance = availableBalance,
                         onMaxAmount = { onAction(AmountAction.SetMaxAmount) },
                     )
                 }
@@ -175,7 +175,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
             tint = MaterialTheme.colorScheme.secondaryFaded,
         )
         Text(
-            text = stringResource(R.string.transfer_reserved_fees, reserveForFee),
+            text = reserveForFee,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
         )
