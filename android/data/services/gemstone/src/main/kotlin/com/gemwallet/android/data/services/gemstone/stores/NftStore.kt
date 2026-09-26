@@ -64,4 +64,6 @@ private fun NFTAsset.toDb() = DbNFTAsset(
     description = description,
     imageUrl = images.preview.url,
     attributes = attributes,
+    resourceUrl = resource.url,
+    resourceMimeType = resource.mimeType,
 )

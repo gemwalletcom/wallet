@@ -72,6 +72,8 @@ data class DbNFTAsset(
     @ColumnInfo(name = "contract_address") val contractAddress: String?,
     @ColumnInfo(name = "image_url") val imageUrl: String,
     val attributes: List<NFTAttribute>? = null,
+    @ColumnInfo(name = "resource_url", defaultValue = "") val resourceUrl: String = "",
+    @ColumnInfo(name = "resource_mime_type", defaultValue = "") val resourceMimeType: String = "",
 )
 
 @Entity(
@@ -121,7 +123,7 @@ fun DbNFTAsset.toAssetModel() = NFTAsset(
     name = name,
     description = description,
     chain = chain,
-    resource = NFTResource("", ""),
+    resource = NFTResource(resourceUrl, resourceMimeType),
     images = NFTImages(NFTResource(imageUrl, "")),
     attributes = attributes ?: emptyList(),
 )

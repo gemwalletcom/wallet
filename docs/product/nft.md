@@ -27,4 +27,3 @@ flowchart LR
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | The user opens an NFT's actions | "Save to Photos" is offered | "Save to Photos" is offered from Android 10 | Intentional: from Android 10, saving to the gallery needs no storage permission |
-| The user opens an NFT the wallet has stored | the NFT keeps its media file, with its link and type | the media file is lost when the NFT is stored, so it has none | Android matches iOS (BD299) |
