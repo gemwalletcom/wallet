@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.NameRecord
 import Foundation
+import struct Gemstone.NameRecord
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
-import GemstonePrimitivesTestKit
 
 @MainActor
 struct AddressInputViewModelTests {

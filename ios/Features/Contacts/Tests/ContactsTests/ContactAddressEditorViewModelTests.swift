@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Contacts
-import struct Gemstone.NameRecord
 import ContactsTestKit
 import class Gemstone.GemChainService
+import struct Gemstone.NameRecord
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
