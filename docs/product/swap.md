@@ -44,12 +44,7 @@ flowchart LR
 | The quote pays a deposit address | no Provider row on the confirmation screen | |
 | A max swap of a native coin | the network fee, and anything the provider attaches on top, stay out of the quoted amount | the confirmed amount is the one that can be sent |
 | A provider's minimum is then above that amount | the user is told the minimum, not "insufficient balance" | |
-
-## Platform differences
-
-| When | iOS | Android | Expected |
-|---|---|---|---|
-| The user taps 25%, 50% or 100%, or "Use minimum amount" | quotes are asked at once | quotes wait the same short pause as typing | Android matches iOS (BD374) |
+| The user taps 25%, 50% or 100%, or "Use minimum amount" | quotes are asked at once | typing waits a short pause for the amount to settle; a button's amount is already final |
 
 ## Rules
 

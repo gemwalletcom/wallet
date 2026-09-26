@@ -387,6 +387,24 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `a percentage button requests quotes at once while typing waits for the debounce`() = runTest(testDispatcher) {
+        every { swapQuoteService.amountForPercent(any(), any()) } returns BigInteger("500000000")
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        viewModel.setRefreshEnabled(true)
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("0.25")
+        Snapshot.sendApplyNotifications()
+        runCurrent()
+        coVerify(exactly = 0) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+
+        viewModel.onSelectPercent(50)
+        Snapshot.sendApplyNotifications()
+        runCurrent()
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), BigInteger("500000000"), any(), any()) }
+    }
+
+    @Test
     fun `picking the receive asset for a typed amount requests quotes at once`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState(to = null))
         advanceUntilIdle()

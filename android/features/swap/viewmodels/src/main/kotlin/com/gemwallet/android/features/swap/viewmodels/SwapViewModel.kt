@@ -100,6 +100,8 @@ class SwapViewModel @Inject constructor(
         .debounce(GemConstants.swapQuoteDebounce)
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
+    private var presetPayValue: String? = null
+
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
@@ -149,7 +151,8 @@ class SwapViewModel @Inject constructor(
                 return@flatMapLatest flowOf<GemSwapQuotesResult?>(null)
             }
 
-            val debounce = if (payValueFlow.value == settledPayValue.value) Duration.ZERO else GemConstants.swapQuoteDebounce
+            val isSettled = payValueFlow.value == settledPayValue.value || payValueFlow.value == presetPayValue
+            val debounce = if (isSettled) Duration.ZERO else GemConstants.swapQuoteDebounce
             quoteRefreshEnabled.flatMapLatest { isEnabled ->
                 if (!isEnabled) {
                     return@flatMapLatest emptyFlow()
@@ -276,8 +279,7 @@ class SwapViewModel @Inject constructor(
         val asset = payAsset.value ?: return
         val value = swapQuoteService.amountForPercent(asset.balance.available, percent.toUInt())
         val text = numberFormat().inputText(value.toString(), asset.asset.decimals.toUInt()) ?: return
-        payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(text)
+        setPresetPayValue(text)
     }
 
     fun refresh() {
@@ -374,6 +376,11 @@ class SwapViewModel @Inject constructor(
     private fun setMinimumAmount() {
         val asset = payAsset.value?.asset ?: return
         val text = session.value.minimumAmountText(asset.toGem(), numberFormat()) ?: return
+        setPresetPayValue(text)
+    }
+
+    private fun setPresetPayValue(text: String) {
+        presetPayValue = text
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(text)
     }
