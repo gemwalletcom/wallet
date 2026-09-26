@@ -20,8 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Unused code:** CLN318.
-3. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+2. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -61,7 +60,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175 |
-| Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
+| Unit tests, every platform | each module's test target | CLN319 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -197,16 +196,8 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 ## 11. Cleanup sweeps
 
-Two passes over the whole repository, Core, iOS and Android, run after the items above have moved their rules and deleted their models. Each goes one platform and one module family per change, builds and tests that module before moving on, and says in the commit what it removed. Neither pass removes something an open item already names (that item deletes it with its replacement), and neither touches a public contract: API routes and fields shipped apps or the website read (see X168), stored formats, database and keystore migrations, and deep link URLs stay until their own item retires them. Changes near key material, signing or transaction construction follow [security](../skills/security.md).
+A pass over the whole repository, Core, iOS and Android, run after the items above have moved their rules and deleted their models. It goes one platform and one module family per change, builds and tests that module before moving on, and says in the commit what it removed. It removes nothing an open item already names (that item deletes it with its replacement), and touches no public contract: API routes and fields shipped apps or the website read (see X168), stored formats, database and keystore migrations, and deep link URLs stay until their own item retires them. Changes near key material, signing or transaction construction follow [security](../skills/security.md).
 
-- **CLN318** **L** **Unused and redundant code is removed on every platform.** Dead code is still compiled, generated, reviewed and copied by the next change that reads nearby code.
-  - **Unused:** a declaration nothing in production reaches. One reached only by its own test, a mock or a preview counts as unused, and its test goes with it (as `String.words()` went). Find candidates per platform, then confirm each by search and a build:
-    - **Core:** `just core unused` (cargo machete) for dependencies; `pub` items with no caller outside their crate, which rustc does not flag; `scripts/check-ffi-surface.py` for exports no app calls, shrinking its `ALLOWED` list to entries that name an open item; generated model types neither app reads; unused `CacheKey` variants, config fields and features.
-    - **iOS:** a Periphery scan of the workspace for unused declarations, protocols and conformances; package dependencies in `Package.swift` no source imports; `Style` image assets nothing references.
-    - **Android:** Android Lint `UnusedResources`; top-level functions, extensions, DAO queries and classes with no caller; Gradle dependencies no module source uses. Keep what the manifest, Hilt, WorkManager or reflection reaches.
-    - **Both apps:** Fluent keys in `localization/` that neither app reads (a key is unused only when both apps drop it), then `just localize`.
-  - **Redundant:** two helpers, formatters, extensions or fixtures in one platform that do the same thing keep one, and callers move to it. The twin of a Core record belongs to its `VM` item, not here.
-  - **Done when:** each tool reports nothing, or every remaining hit is listed in the commit with the reason it stays.
 - **CLN319** **L** **Every unit test is reviewed, and the ones that protect no contract go.** Last in the order: before it, the `VM` items move rules into Core and the `GEN` items replace mocks, which changes which app tests still mean anything. Unit tests only; integration tests and Maestro flows keep their own rules ([testing-maestro](../skills/testing-maestro.md)).
   - **Delete a test that:** asserts a constant, static table or 1:1 enum mapping back at itself; tests generated code (generated models, `RemoteTypeMappers`, generated mocks), which the generator's golden tests cover; re-tests in an app a rule Core owns and tests (the app keeps a test only for wiring and visible output); repeats another test's case in the same platform with no new boundary; covers a getter, `copy`, equality or framework behaviour (SwiftUI, Compose, GRDB, Room) rather than ours; mocks the very code it claims to check; or still passes when the rule it names is inverted.
   - **Keep, and fix rather than delete:** a weak test that guards a real contract gets the assertion the contract needs. Signing, keystore, derivation, transaction construction, amounts and decimals, address validation, wire formats and migrations are never deleted without an equivalent test in the same change, whether in Core or the app.
