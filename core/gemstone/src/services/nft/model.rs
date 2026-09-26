@@ -57,7 +57,7 @@ pub struct GemNftRow {
 pub struct GemCollectibleDetails {
     pub is_verified: bool,
     pub header: GemHeaderActions,
-    pub actions: Vec<GemCollectibleAction>,
+    pub actions: Vec<GemCollectibleMenuRow>,
     pub image_actions: Vec<GemCollectibleAction>,
     pub sections: Vec<GemCollectibleSectionGroup>,
 }
@@ -74,6 +74,12 @@ pub enum GemCollectibleAction {
     SetAvatar,
     Refresh,
     Report,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemCollectibleMenuRow {
+    pub action: GemCollectibleAction,
+    pub is_destructive: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

@@ -68,7 +68,7 @@ public final class CollectibleSceneViewModel {
 
     func imageContextMenuItems(_ details: GemCollectibleDetails) -> [ContextMenuItemType] {
         guard isImageLoaded else { return [] }
-        return details.imageActions.compactMap(contextMenuItem)
+        return details.imageActions.map { .custom(title: $0.title, systemImage: $0.systemImage, action: onSelect($0)) }
     }
 
     var details: GemCollectibleDetails {
@@ -80,23 +80,17 @@ public final class CollectibleSceneViewModel {
     }
 
     func menuItems(_ details: GemCollectibleDetails) -> [ActionMenuItemType] {
-        details.actions.map(menuItem)
-    }
-
-    private func contextMenuItem(_ action: GemCollectibleAction) -> ContextMenuItemType? {
-        switch action {
-        case .saveImage: .custom(title: action.title, systemImage: action.systemImage, action: onSelectSaveToGallery)
-        case .setAvatar: .custom(title: action.title, systemImage: action.systemImage, action: onSelectSetAsAvatar)
-        case .refresh, .report: nil
+        details.actions.map { row in
+            .button(title: row.action.title, systemImage: row.action.systemImage, role: row.isDestructive ? .destructive : nil, action: onSelect(row.action))
         }
     }
 
-    private func menuItem(_ action: GemCollectibleAction) -> ActionMenuItemType {
+    private func onSelect(_ action: GemCollectibleAction) -> VoidAction {
         switch action {
-        case .saveImage: .button(title: action.title, systemImage: action.systemImage, action: onSelectSaveToGallery)
-        case .setAvatar: .button(title: action.title, systemImage: action.systemImage, action: onSelectSetAsAvatar)
-        case .refresh: .button(title: action.title, systemImage: action.systemImage, action: onSelectRefresh)
-        case .report: .button(title: action.title, systemImage: action.systemImage, role: .destructive, action: onSelectReport)
+        case .saveImage: onSelectSaveToGallery
+        case .setAvatar: onSelectSetAsAvatar
+        case .refresh: onSelectRefresh
+        case .report: onSelectReport
         }
     }
 

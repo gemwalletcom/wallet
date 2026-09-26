@@ -35,13 +35,13 @@ fun CollectibleScreen(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Uni
     val snackbar = remember { SnackbarHostState() }
     ToastEffect(viewModel.toastEvents, snackbar)
 
-    val model = assetData ?: return
+    val data = assetData ?: return
     var isReportVisible by remember { mutableStateOf(false) }
     CollectibleScene(
-        model = model,
+        data = data,
         snackbar = snackbar,
         onClose = { cancelAction() },
-        onSend = { onRecipient(model.asset) },
+        onSend = { onRecipient(data.asset) },
         onAction = { action ->
             when (action) {
                 GemCollectibleAction.REFRESH -> viewModel.refresh()

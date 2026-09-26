@@ -12,18 +12,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import com.gemwallet.android.domains.nft.NftAssetDetailsData
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
 import com.gemwallet.android.features.nft.presents.components.NftTitle
-import com.gemwallet.android.features.nft.viewmodels.models.CollectibleUIModel
-import com.gemwallet.android.features.nft.viewmodels.models.NftSectionUIModel
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -31,14 +33,19 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemCollectibleAction
+import uniffi.gemstone.GemCollectibleAttributeValue
+import uniffi.gemstone.GemCollectibleSection
+import uniffi.gemstone.GemListRow
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
-internal fun CollectibleScene(model: CollectibleUIModel, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
+internal fun CollectibleScene(data: NftAssetDetailsData, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     Scene(
         titleContent = {
             NftTitle(
-                name = model.asset.name,
-                isVerified = model.isVerified,
+                name = data.asset.name,
+                isVerified = data.details.isVerified,
                 iconSize = compactIconSize,
             )
         },
@@ -48,7 +55,7 @@ internal fun CollectibleScene(model: CollectibleUIModel, snackbar: SnackbarHostS
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 NftImage(
-                    source = model.asset.toImageSource(),
+                    source = data.asset.toImageSource(),
                     modifier = Modifier
                         .padding(horizontal = sceneContentPadding())
                         .fillMaxWidth()
@@ -64,32 +71,40 @@ internal fun CollectibleScene(model: CollectibleUIModel, snackbar: SnackbarHostS
                     contentAlignment = Alignment.Center,
                 ) {
                     NftHeaderActions(
-                        header = model.header,
-                        actions = model.actions,
+                        header = data.details.header,
+                        actions = data.details.actions,
                         onSend = onSend,
                         onAction = onAction,
                     )
                 }
             }
-            model.sections.forEach { section ->
-                when (section) {
-                    is NftSectionUIModel.Status -> verificationStatusItem(section.status)
+            data.details.sections.forEach { group ->
+                val title = group.title.titleRes()
+                when (val section = group.section) {
+                    is GemCollectibleSection.Status -> verificationStatusItem(section.status.toPrimitives())
 
-                    is NftSectionUIModel.Info -> itemsPositioned(section.rows) { position, row ->
-                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onOpenAddress(ChainAddress(model.asset.chain, it)) })
+                    is GemCollectibleSection.Info -> itemsPositioned(section.rows) { position, row ->
+                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onOpenAddress(ChainAddress(data.asset.chain, it)) })
                     }
 
-                    is NftSectionUIModel.Attributes -> {
-                        item { SubheaderItem(section.title) }
-                        itemsPositioned(section.rows) { position, row -> ListItem(model = row, listPosition = position) }
+                    is GemCollectibleSection.Attributes -> {
+                        title?.let { item { SubheaderItem(it) } }
+                        itemsPositioned(section.attributes) { position, attribute ->
+                            ListItem(model = ListItemModel(title = attribute.name, subtitle = attribute.value.text()), listPosition = position)
+                        }
                     }
 
-                    is NftSectionUIModel.Links -> {
-                        item { SubheaderItem(section.title) }
-                        item { GemListRowView(row = section.row, listPosition = ListPosition.Single) }
+                    is GemCollectibleSection.Links -> {
+                        title?.let { item { SubheaderItem(it) } }
+                        item { GemListRowView(row = GemListRow.Social(section.links), listPosition = ListPosition.Single) }
                     }
                 }
             }
         }
     }
+}
+
+private fun GemCollectibleAttributeValue.text(): String = when (this) {
+    is GemCollectibleAttributeValue.Text -> value
+    is GemCollectibleAttributeValue.Date -> DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(date))
 }

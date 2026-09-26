@@ -8,11 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
+import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.nft.viewmodels.models.CollectibleUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.uiModel
 import com.gemwallet.android.ui.R
@@ -49,13 +49,9 @@ class CollectibleViewModel @Inject constructor(
 
     private val nftAssetId = savedStateHandle.requireNftAssetId()
 
-    private val details = getNftAssetDetails(nftAssetId, canSaveImage = canSaveImageToGallery)
+    val nftAsset: StateFlow<NftAssetDetailsData?> = getNftAssetDetails(nftAssetId, canSaveImage = canSaveImageToGallery)
         .catch { Log.e(TAG, "Collectible details unavailable", it) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val nftAsset: StateFlow<CollectibleUIModel?> = details
-        .map { it?.uiModel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val reportReasons: List<ReportReasonUIModel> = ReportReason.entries.map { it.uiModel(context) }
@@ -66,13 +62,13 @@ class CollectibleViewModel @Inject constructor(
     }
 
     fun setAsAvatar() = viewModelScope.launch(ioDispatcher) {
-        val url = details.value?.asset?.images?.preview?.url ?: return@launch
+        val url = nftAsset.value?.asset?.images?.preview?.url ?: return@launch
         runCatchingCancellable { service.setWalletAvatar(url) }
             .toast(R.string.nft_set_as_avatar)
     }
 
     fun saveImage() = viewModelScope.launch(ioDispatcher) {
-        val asset = details.value?.asset ?: return@launch
+        val asset = nftAsset.value?.asset ?: return@launch
         runCatchingCancellable { context.saveImageToGallery(url = asset.images.preview.url, name = asset.name) }
             .toast(R.string.nft_save_to_photos)
     }

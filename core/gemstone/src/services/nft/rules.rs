@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
 use super::model::{
-    GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen, GemNftRow,
-    GemNftUnverifiedRow,
+    GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleMenuRow, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen,
+    GemNftRow, GemNftUnverifiedRow,
 };
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
@@ -173,7 +173,13 @@ pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_own
             ],
         },
         image_actions: actions.iter().copied().filter(|action| matches!(action, GemCollectibleAction::SaveImage | GemCollectibleAction::SetAvatar)).collect(),
-        actions,
+        actions: actions
+            .into_iter()
+            .map(|action| GemCollectibleMenuRow {
+                action,
+                is_destructive: action == GemCollectibleAction::Report,
+            })
+            .collect(),
         sections: [status, Some(info), attributes, links].into_iter().flatten().collect(),
     }
 }
@@ -398,11 +404,15 @@ mod tests {
     fn test_the_collectible_menu_only_offers_saving_an_image_where_the_app_can() {
         let data = NFTAssetData::mock();
 
-        assert_eq!(
-            collectible_details(&WalletType::Multicoin, &data, true, None, None, false).actions,
-            vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]
-        );
-        assert_eq!(collectible_details(&WalletType::Multicoin, &data, true, None, None, true).actions.first(), Some(&GemCollectibleAction::SaveImage));
+        let actions = |can_save_image: bool| {
+            collectible_details(&WalletType::Multicoin, &data, true, None, None, can_save_image)
+                .actions
+                .into_iter()
+                .map(|row| row.action)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(actions(false), vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]);
+        assert_eq!(actions(true).first(), Some(&GemCollectibleAction::SaveImage));
         assert_eq!(
             collectible_details(&WalletType::Multicoin, &data, true, None, None, false).image_actions,
             vec![GemCollectibleAction::SetAvatar],
@@ -412,6 +422,13 @@ mod tests {
             collectible_details(&WalletType::Multicoin, &data, true, None, None, true).image_actions,
             vec![GemCollectibleAction::SaveImage, GemCollectibleAction::SetAvatar]
         );
+    }
+
+    #[test]
+    fn test_only_reporting_a_collectible_is_destructive() {
+        let rows = collectible_details(&WalletType::Multicoin, &NFTAssetData::mock(), true, None, None, true).actions;
+
+        assert_eq!(rows.iter().filter(|row| row.is_destructive).map(|row| row.action).collect::<Vec<_>>(), vec![GemCollectibleAction::Report]);
     }
 
     #[test]
