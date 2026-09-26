@@ -44,12 +44,44 @@ fun GemAssetNetworkDestination?.navigation(): AssetAction.Navigation? = when (th
 
 fun GemRowTap.detailsAction(assetId: AssetId, network: AssetAction.Navigation?): AssetAction? = when (this) {
     GemRowTap.Price -> AssetAction.OpenChart(assetId)
+
     GemRowTap.Network -> network
+
     GemRowTap.Earn -> AssetAction.Earn(assetId)
+
     GemRowTap.Stake -> AssetAction.Stake(assetId)
+
     GemRowTap.PriceAlerts -> AssetAction.OpenPriceAlerts(assetId)
+
     GemRowTap.Pin -> AssetAction.Pin
+
     GemRowTap.AddToWallet -> AssetAction.Add
+
     is GemRowTap.Explorer -> AssetAction.OpenUrl(url)
-    else -> null
+
+    GemRowTap.Wallets,
+    GemRowTap.Security,
+    GemRowTap.Notifications,
+    GemRowTap.Preferences,
+    GemRowTap.WalletConnect,
+    GemRowTap.Support,
+    GemRowTap.Rewards,
+    GemRowTap.AboutUs,
+    GemRowTap.Developer,
+    GemRowTap.Currency,
+    GemRowTap.Language,
+    GemRowTap.Appearance,
+    GemRowTap.Networks,
+    GemRowTap.Contacts,
+    GemRowTap.Perpetuals,
+    GemRowTap.PerpetualLeverage,
+    GemRowTap.PerpetualTakeProfit,
+    GemRowTap.PerpetualStopLoss,
+    GemRowTap.PushNotifications,
+    GemRowTap.Authentication,
+    GemRowTap.LockPeriod,
+    GemRowTap.PrivacyLock,
+    GemRowTap.HideBalance,
+    GemRowTap.SetPriceAlert,
+    -> null
 }
