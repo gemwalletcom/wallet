@@ -18,12 +18,6 @@ interface PriceAlertsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun put(alerts: List<DbPriceAlert>)
 
-    @Query("SELECT * FROM price_alerts")
-    fun getAlerts(): Flow<List<DbPriceAlert>>
-
-    @Query("SELECT * FROM price_alerts WHERE assetId = :assetId")
-    fun getAlerts(assetId: String): Flow<List<DbPriceAlert>>
-
     @Transaction
     @Query("SELECT price_alerts.* FROM price_alerts JOIN asset ON asset.id = price_alerts.assetId ORDER BY asset.rank DESC")
     fun getAlertsWithAsset(): Flow<List<DbPriceAlertWithAsset>>

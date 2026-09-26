@@ -80,6 +80,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.material)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
