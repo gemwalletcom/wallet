@@ -62,6 +62,7 @@ fun GemListRowView(
     row: GemListRow,
     listPosition: ListPosition,
     modifier: Modifier = Modifier,
+    action: GemRowAction? = row.action(),
     onToggle: ((GemRowAction, Boolean) -> Unit)? = null,
     onSelect: ((GemRowAction) -> Unit)? = null,
     onSelectAddress: ((String) -> Unit)? = null,
