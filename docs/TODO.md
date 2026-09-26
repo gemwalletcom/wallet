@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM225 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM226 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -47,7 +47,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM227, VM228, VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM276, VM280, VM290 |
-| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
+| Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230, VM278, VM279; preserve exact atomic values |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Swap and fiat
 
-- **VM225** **S** **Fiat transaction rows are rebuilt by the apps.**
-  - **iOS:** `FiatTransactionViewModel` builds title from quote type, badge, amounts and provider image.
-  - **Android:** `FiatTransactionUIModel` does the same.
-  - **Expected:** the shared renderer draws `GemFiatTransactionRow`; both models go.
 - **VM226** **S** **The fiat screen state is twinned.**
   - **iOS:** `FiatProvidersViewModel` and `FiatCurrencyInputConfig` wrap view-state fields.
   - **Android:** `FiatUIState` copies `GemFiatViewState` and derives `retries` from the button action.

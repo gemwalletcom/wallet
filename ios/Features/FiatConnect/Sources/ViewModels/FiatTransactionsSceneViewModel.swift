@@ -2,9 +2,12 @@
 
 import Components
 import Foundation
+import func Gemstone.fiatTransactionRows
 import protocol Gemstone.GemFiatQuoteServiceProtocol
+import struct Gemstone.GemFiatTransactionRow
 import enum Gemstone.GemLoadState
 import func Gemstone.loadError
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -17,10 +20,10 @@ public final class FiatTransactionsSceneViewModel {
     private let service: any GemFiatQuoteServiceProtocol
     let walletId: WalletId
 
-    public let query: ObservableQuery<MappedQuery<FiatTransactionsQuery, [ListSection<FiatTransactionViewModel>]>>
+    public let query: ObservableQuery<MappedQuery<FiatTransactionsQuery, [ListSection<GemFiatTransactionRow>]>>
 
     private var loadState: GemLoadState = .loading
-    var sections: [ListSection<FiatTransactionViewModel>] {
+    var sections: [ListSection<GemFiatTransactionRow>] {
         query.value
     }
 
@@ -29,7 +32,7 @@ public final class FiatTransactionsSceneViewModel {
         self.service = service
         query = ObservableQuery(
             MappedQuery(FiatTransactionsQuery(walletId: walletId)) {
-                DateSectionBuilder(items: FiatTransactionViewModel.models($0), dateKeyPath: \.createdAt).build()
+                DateSectionBuilder(items: fiatTransactionRows(data: $0.map { $0.toGem() }), dateKeyPath: \.createdAt).build()
             },
             initialValue: [],
         )

@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -17,17 +16,18 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemFiatTransactionRow
 import uniffi.gemstone.GemListRow
 
 @Composable
-fun FiatTransactionsScene(transactions: List<FiatTransactionUIModel>, errorRow: GemListRow?, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
+fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, errorRow: GemListRow?, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.activity_title),
         onClose = onClose,
     ) {
         val uriHandler = LocalUriHandler.current
         val context = LocalContext.current
-        val sections = rememberDateSections(transactions) { it.data.createdAt }
+        val sections = rememberDateSections(transactions) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
@@ -46,8 +46,8 @@ fun FiatTransactionsScene(transactions: List<FiatTransactionUIModel>, errorRow: 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(
                         sections = sections,
-                        onTransactionClick = { info ->
-                            info.detailsUrl?.let { url ->
+                        onTransactionClick = { row ->
+                            row.detailsUrl?.let { url ->
                                 uriHandler.open(context, url)
                             }
                         },
