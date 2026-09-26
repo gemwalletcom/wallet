@@ -20,7 +20,6 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -60,7 +59,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175 |
-| Unit tests, every platform | each module's test target | CLN319 |
+| Unit tests, every platform | each module's test target | — |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -193,17 +192,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
-
-## 11. Cleanup sweeps
-
-A pass over the whole repository, Core, iOS and Android, run after the items above have moved their rules and deleted their models. It goes one platform and one module family per change, builds and tests that module before moving on, and says in the commit what it removed. It removes nothing an open item already names (that item deletes it with its replacement), and touches no public contract: API routes and fields shipped apps or the website read (see X168), stored formats, database and keystore migrations, and deep link URLs stay until their own item retires them. Changes near key material, signing or transaction construction follow [security](../skills/security.md).
-
-- **CLN319** **L** **Every unit test is reviewed, and the ones that protect no contract go.** Last in the order: before it, the `VM` items move rules into Core and the `GEN` items replace mocks, which changes which app tests still mean anything. Unit tests only; integration tests and Maestro flows keep their own rules ([testing-maestro](../skills/testing-maestro.md)).
-  - **Delete a test that:** asserts a constant, static table or 1:1 enum mapping back at itself; tests generated code (generated models, `RemoteTypeMappers`, generated mocks), which the generator's golden tests cover; re-tests in an app a rule Core owns and tests (the app keeps a test only for wiring and visible output); repeats another test's case in the same platform with no new boundary; covers a getter, `copy`, equality or framework behaviour (SwiftUI, Compose, GRDB, Room) rather than ours; mocks the very code it claims to check; or still passes when the rule it names is inverted.
-  - **Keep, and fix rather than delete:** a weak test that guards a real contract gets the assertion the contract needs. Signing, keystore, derivation, transaction construction, amounts and decimals, address validation, wire formats and migrations are never deleted without an equivalent test in the same change, whether in Core or the app.
-  - **Check:** for each test kept on a business rule, invert the rule, run the test, confirm it fails, and restore ([engineering principles](../skills/engineering-principles.md#tests)). A contract found with no test gets the smallest one at its owner.
-  - **Run:** `cd core && just test <CRATE>`, `cd ios && just test-package <Package>` (confirm the target is still in the test plan and the expected tests ran), `cd android && ./gradlew :<module>:testDebugUnitTest`. Record the test count per module before and after in the commit.
-  - **Done when:** every Core crate, iOS package and Android module has been reviewed once.
 
 ## Blocked upstream
 
