@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM183, VM186, VM196, VM194.
+1. **Small shared rules:** VM186, VM196, VM194.
 2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 3. **Models:** VM195.
 4. **Sessions:** VM185.
@@ -29,7 +29,7 @@ These need no further answer; work them in this order, one family per change.
 8. **Unused code:** CLN318.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -114,6 +114,7 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
   - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
   - **Expected:** Core owns both steps beside `phrase_suggestions`: one call takes the input and whether the cursor is at the end and returns the suggestions, one returns the input with the picked word applied.
+  - **Needs a decision:** [security](../skills/security.md) keeps phrase editing in the app and gives Core only the word being typed, while both calls above hand Core the whole phrase on every keystroke; either the rule or this design changes.
 - **VM185** **M** **What opening a link or a scanned code shows is decided in each app.** Core parses the code (`GemDeeplinkService.url_action`) and builds the target; the outcome around it is not shared.
   - **iOS:** `NavigationRouter.open(code:)` shows "Not supported" for any code without an action, shows a loading toast for a payment link, and shows every failure as an error alert.
   - **Android:** `PendingNavigationCoordinator.buildRoutes` holds the code until unlock and decides "handled" per source (an unmatched link from an intent is silent unless it is a payment; a scan is unhandled unless it has routes or is WalletConnect). The coordinator swallows every deep-link failure except `NoAccountForChain`, and `MainViewModel` shows a payment failure only while its loading state is up and a service failure only when the input had a code.
