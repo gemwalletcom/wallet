@@ -27,10 +27,12 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.routes
+import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AboutUsRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
+import com.gemwallet.android.ui.navigation.routes.AddToContactRoute
 import com.gemwallet.android.ui.navigation.routes.AddressDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
@@ -228,7 +230,8 @@ class WalletNavigator(
     fun openConnection(connectionId: String) = push(ConnectionRoute(connectionId))
     fun openCurrency() = push(CurrencyRoute)
     fun openContacts() = push(ContactsRoute)
-    fun openAddContact() = push(AddContactRoute)
+    fun openAddContact(draft: ContactAddressDraft? = null) = push(AddContactRoute(draft?.chain, draft?.address, draft?.memo))
+    fun openAddToContact(draft: ContactAddressDraft) = push(AddToContactRoute(draft.chain, draft.address, draft.memo))
     fun openContact(contactId: String) = push(EditContactRoute(contactId))
     fun openSecurity() = push(SecurityRoute)
     fun openDeveloper() = push(DeveloperRoute)

@@ -41,7 +41,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
         onClose = { onAction(ContactsAction.Cancel) },
         snackbar = snackbar,
         actions = {
-            IconButton(onClick = { onAction(ContactsAction.AddContact) }) {
+            IconButton(onClick = { onAction(ContactsAction.AddContact(viewModel.draft)) }) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
@@ -73,7 +73,12 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
                         ListItem(
                             model = item.model,
                             listPosition = itemPosition,
-                            modifier = Modifier.clickable { onAction(ContactsAction.OpenContact(item.contact.contact.id)) },
+                            modifier = Modifier.clickable {
+                                when (viewModel.draft) {
+                                    null -> onAction(ContactsAction.OpenContact(item.contact.contact.id))
+                                    else -> viewModel.addAddress(item.contact) { onAction(ContactsAction.Cancel) }
+                                }
+                            },
                             minHeight = ListItemDefaults.defaultMinHeight,
                             accessory = { DataBadgeChevron() },
                         )

@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListSection
+import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
@@ -50,6 +51,8 @@ internal fun TransactionScene(title: String, sections: List<ListSection<GemTrans
                         row = row.row,
                         listPosition = position,
                         onClick = { onAction(TransactionAction.OpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address))) },
+                        onCreateContact = { contact -> onAction(TransactionAction.CreateContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
+                        onAddToContact = { contact -> onAction(TransactionAction.AddToContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
                     )
 
                     is GemTransactionDetailRow.Fee -> GemListRowView(

@@ -238,6 +238,8 @@ fun WalletNavGraph(
                         is TransactionAction.OpenPerpetual -> navigator.openPerpetual(it.assetId)
                         is TransactionAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
                         is TransactionAction.OpenAddress -> navigator.openAddress(it.chainAddress)
+                        is TransactionAction.CreateContact -> navigator.openAddContact(it.draft)
+                        is TransactionAction.AddToContact -> navigator.openAddToContact(it.draft)
                     }
                 },
             )
@@ -273,7 +275,7 @@ fun WalletNavGraph(
                 onAction = { action ->
                     when (action) {
                         is ContactsAction.OpenContact -> navigator.openContact(action.contactId)
-                        ContactsAction.AddContact -> navigator.openAddContact()
+                        is ContactsAction.AddContact -> navigator.openAddContact(action.draft)
                         ContactsAction.Cancel -> onCancel()
                     }
                 },

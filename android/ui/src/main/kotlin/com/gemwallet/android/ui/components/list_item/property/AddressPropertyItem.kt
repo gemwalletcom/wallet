@@ -26,10 +26,11 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.BlockExplorerLink
 import uniffi.gemstone.GemAddressRow
+import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemRowMenuItem
 
 @Composable
-fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPosition.Middle, onClick: (() -> Unit)? = null) {
+fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPosition.Middle, onClick: (() -> Unit)? = null, onCreateContact: ((GemRecipient) -> Unit)? = null, onAddToContact: ((GemRecipient) -> Unit)? = null) {
     var isExpanded by remember { mutableStateOf(false) }
     var showsAddress by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -41,7 +42,7 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
     DropDownContextItem(
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
-        onLongClick = { isExpanded = row.menu.isNotEmpty() },
+        onLongClick = { isExpanded = row.menu.isNotEmpty() || (row.contact != null && onCreateContact != null) },
         onClick = select ?: { showsAddress = row.shortAddress != null && !showsAddress },
         content = { modifier ->
             PropertyItem(
@@ -87,6 +88,25 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
                         },
                     )
                 }
+            }
+            val contact = row.contact
+            if (contact != null && onCreateContact != null && onAddToContact != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.contacts_create_new_contact)) },
+                    trailingIcon = { Icon(AppIcons.Add, contentDescription = null) },
+                    onClick = {
+                        isExpanded = false
+                        onCreateContact(contact)
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.contacts_add_to_existing_contact)) },
+                    trailingIcon = { Icon(AppIcons.Person, contentDescription = null) },
+                    onClick = {
+                        isExpanded = false
+                        onAddToContact(contact)
+                    },
+                )
             }
         },
     )

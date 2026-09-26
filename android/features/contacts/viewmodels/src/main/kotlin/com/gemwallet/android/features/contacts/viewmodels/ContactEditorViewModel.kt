@@ -19,7 +19,9 @@ import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.AddressInputModel
+import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.optionalContactAddressDraft
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +55,7 @@ class ContactEditorViewModel @Inject constructor(
 ) : ViewModel() {
 
     private sealed interface Mode {
-        data object Add : Mode
+        data class Add(val draft: ContactAddressDraft?) : Mode
         data class Edit(val contactId: String) : Mode
     }
 
@@ -69,14 +71,20 @@ class ContactEditorViewModel @Inject constructor(
 
     private val mode: Mode = run {
         val editContactId = savedStateHandle.get<String>(RouteArgument.ContactId.key)
-        if (editContactId != null) Mode.Edit(editContactId) else Mode.Add
+        if (editContactId != null) Mode.Edit(editContactId) else Mode.Add(savedStateHandle.optionalContactAddressDraft())
     }
     private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     private val state = MutableStateFlow(
         ContactEditorState(
             session = service.newSession(null, emptyList()).let { session ->
-                (mode as? Mode.Edit)?.let { session.copy(id = it.contactId) } ?: session
+                when (val mode = mode) {
+                    is Mode.Edit -> session.copy(id = mode.contactId)
+
+                    is Mode.Add -> mode.draft?.let { draft ->
+                        session.onAddressSaved(GemContactAddressInput(contactId = session.id, chain = draft.chain.string, address = draft.address, memo = draft.memo, replacingId = null))
+                    } ?: session
+                }
             },
             isEdit = mode is Mode.Edit,
         ),
@@ -123,7 +131,7 @@ class ContactEditorViewModel @Inject constructor(
                 updateSession { service.newSession(data.contact.toGem(), data.addresses.map { address -> address.toGem() }) }
             }
 
-            Mode.Add -> Unit
+            is Mode.Add -> Unit
         }
     }
 

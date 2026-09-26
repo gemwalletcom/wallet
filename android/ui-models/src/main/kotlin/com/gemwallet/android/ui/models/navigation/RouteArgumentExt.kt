@@ -31,6 +31,12 @@ fun SavedStateHandle.optionalNft(argument: RouteArgument = RouteArgument.Nft): N
     return checkNotNull(unpackRoutePayload<NFTAsset>(value)) { "Invalid route argument ${argument.key}: $value" }
 }
 
+fun SavedStateHandle.optionalContactAddressDraft(): ContactAddressDraft? {
+    val chain = get<String>(RouteArgument.Chain.key)?.requireChain() ?: return null
+    val address = get<String>(RouteArgument.Address.key) ?: return null
+    return ContactAddressDraft(chain = chain, address = address, memo = get<String>(RouteArgument.Memo.key))
+}
+
 fun SavedStateHandle.optionalPaymentRecipient(argument: RouteArgument = RouteArgument.Payment): GemPaymentRecipient? {
     val value = get<String>(argument.key) ?: return null
     return checkNotNull(unpackRoutePayload<GemPaymentRecipient>(value)) { "Invalid route argument ${argument.key}: $value" }
