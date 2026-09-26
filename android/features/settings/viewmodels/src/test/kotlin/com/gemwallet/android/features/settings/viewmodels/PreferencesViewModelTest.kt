@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
@@ -36,7 +35,6 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
 import uniffi.gemstone.GemPickerOption
-import uniffi.gemstone.GemPreferencesInput
 import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemSettingsServiceInterface
 
@@ -46,7 +44,7 @@ class PreferencesViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val perpetualEnabled = MutableStateFlow(false)
     private val currency = MutableStateFlow(Currency.USD)
-    private val inputs = mutableListOf<GemPreferencesInput>()
+    private var sectionRequests = 0
     private val preferences = mockk<ObservablePreferences>(relaxed = true) {
         every { isPerpetualEnabled() } returns perpetualEnabled
         every { appearance() } returns MutableStateFlow(Appearance.System)
@@ -61,14 +59,13 @@ class PreferencesViewModelTest {
             stopLoss = listOf(GemPickerOption(0u, GemLocalizedText.None), GemPickerOption(10u, GemLocalizedText.Text("10%"))),
         )
         every { perpetualDefaults() } returns GemPerpetualDefaults(leverage = 2u, takeProfitPercent = 25u, stopLossPercent = 10u)
-        every { preferencesSections(any()) } answers {
-            val input = firstArg<GemPreferencesInput>()
-            inputs.add(input)
+        every { preferencesSections(any(), any()) } answers {
+            sectionRequests += 1
             listOf(
                 GemListSection(
                     GemListSectionTitle.NONE,
                     GemListSectionFooter.NONE,
-                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, input.currency.toString(), GemListRowIcon.CURRENCY, GemRowAction.Currency)),
+                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, null, GemListRowIcon.CURRENCY, GemRowAction.Currency)),
                 ),
             )
         }
@@ -95,14 +92,14 @@ class PreferencesViewModelTest {
     }
 
     @Test
-    fun `the sections follow the selected currency`() = runTest(testDispatcher) {
+    fun `a new currency asks core for the sections again`() = runTest(testDispatcher) {
         viewModel.sections.first { it.isNotEmpty() }
-        assertEquals(Currency.USD.toGem(), inputs.last().currency)
+        val requests = sectionRequests
 
         currency.value = Currency.GBP
         advanceUntilIdle()
 
-        assertEquals(Currency.GBP.toGem(), inputs.last().currency)
+        assertEquals(requests + 1, sectionRequests)
     }
 
     @Test
@@ -114,6 +111,6 @@ class PreferencesViewModelTest {
         advanceUntilIdle()
 
         verify { settingsService.setPerpetualDefaults(GemPerpetualDefaults(leverage = leverage.value, takeProfitPercent = 25u, stopLossPercent = 10u)) }
-        assertEquals(leverage.value, inputs.last().perpetualDefaults.leverage)
+        assertEquals(leverage.value, viewModel.perpetualDefaults.value.leverage)
     }
 }

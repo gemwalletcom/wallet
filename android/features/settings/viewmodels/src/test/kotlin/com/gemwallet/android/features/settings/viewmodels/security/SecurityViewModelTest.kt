@@ -51,7 +51,7 @@ class SecurityViewModelTest {
         every { isHideBalances() } returns flowOf(hideBalances)
     }
 
-    private fun settings() = mockk<GemSettingsServiceInterface>(relaxed = true) {
+    private fun settings(hideBalance: Boolean = false) = mockk<GemSettingsServiceInterface>(relaxed = true) {
         every { securitySections(any()) } answers {
             val input = firstArg<GemSecurityInput>()
             listOf(
@@ -61,7 +61,7 @@ class SecurityViewModelTest {
                         GemListRow.Picker(GemListRowTitle.LOCK_PERIOD, GemLocalizedText.Text(input.lockPeriod), GemListRowIcon.NONE, GemRowAction.LockPeriod).takeIf { input.authenticationEnabled },
                     ),
                 ),
-                section(listOf(GemListRow.Toggle(GemLocalizedText.RowTitle(GemListRowTitle.HIDE_BALANCE), GemListRowIcon.NONE, input.hideBalanceEnabled, GemRowAction.HideBalance))),
+                section(listOf(GemListRow.Toggle(GemLocalizedText.RowTitle(GemListRowTitle.HIDE_BALANCE), GemListRowIcon.NONE, hideBalance, GemRowAction.HideBalance))),
             )
         }
     }
@@ -78,7 +78,7 @@ class SecurityViewModelTest {
 
     @Test
     fun `the stored preferences are what the scene starts from`() = runTest(dispatcher) {
-        val model = SecurityViewModel(securityPreferences(authRequired = true, lockMinutes = 5), preferences(hideBalances = true), settings(), dispatcher, context())
+        val model = SecurityViewModel(securityPreferences(authRequired = true, lockMinutes = 5), preferences(hideBalances = true), settings(hideBalance = true), dispatcher, context())
         advanceUntilIdle()
 
         val rows = model.sections.value.flatMap { it.rows }

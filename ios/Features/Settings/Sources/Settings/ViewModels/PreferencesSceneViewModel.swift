@@ -7,7 +7,6 @@ import struct Gemstone.GemListSection
 import struct Gemstone.GemPerpetualDefaults
 import struct Gemstone.GemPerpetualPickers
 import struct Gemstone.GemPickerOption
-import struct Gemstone.GemPreferencesInput
 import enum Gemstone.GemRowAction
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
@@ -119,19 +118,8 @@ public final class PreferencesSceneViewModel {
 
 public extension PreferencesSceneViewModel {
     var sections: [GemListSection] {
-        settings.preferencesSections(
-            input: GemPreferencesInput(
-                currency: preferences.currency.toGem(),
-                language: languageValue,
-                appearance: appearanceValue,
-                perpetualsEnabled: isPerpetualEnabled,
-                perpetualDefaults: GemPerpetualDefaults(
-                    leverage: perpetualLeverage.value,
-                    takeProfitPercent: perpetualTakeProfit.value,
-                    stopLossPercent: perpetualStopLoss.value,
-                ),
-            ),
-        )
+        preferences.changes
+        return settings.preferencesSections(language: languageValue, appearance: appearanceValue)
     }
 }
 

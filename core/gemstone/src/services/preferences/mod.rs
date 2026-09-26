@@ -197,7 +197,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
+        self.set_observed(PERPETUAL_LEVERAGE, leverage.to_string())
     }
 
     pub fn get_perpetual_take_profit_percent(&self) -> u8 {
@@ -205,7 +205,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_TAKE_PROFIT, percent.to_string())
     }
 
     pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
@@ -213,7 +213,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_STOP_LOSS, percent.to_string())
     }
 
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {

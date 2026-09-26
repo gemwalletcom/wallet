@@ -10,7 +10,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
 import com.gemwallet.android.features.settings.viewmodels.models.value
 import com.gemwallet.android.ui.R
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPreferencesInput
 import uniffi.gemstone.GemSettingsServiceInterface
 import java.util.Locale
 import javax.inject.Inject
@@ -52,16 +50,8 @@ class PreferencesViewModel @Inject constructor(
 
     val perpetualOptions = settingsService.perpetualPickers()
 
-    val sections = combine(currency, isPerpetualEnabled, appearance, perpetualDefaults, language) { currency, perpetualsEnabled, appearance, defaults, language ->
-        settingsService.preferencesSections(
-            GemPreferencesInput(
-                currency = currency.toGem(),
-                language = language,
-                appearance = context.getString(appearance.stringRes()),
-                perpetualsEnabled = perpetualsEnabled,
-                perpetualDefaults = defaults,
-            ),
-        )
+    val sections = combine(currency, isPerpetualEnabled, appearance, perpetualDefaults, language) { _, _, appearance, _, language ->
+        settingsService.preferencesSections(language, context.getString(appearance.stringRes()))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setLanguage(configuration: Configuration) {

@@ -16,8 +16,8 @@ pub struct GemPerpetualDefaults {
     pub stop_loss_percent: u8,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPreferencesInput {
+#[derive(Debug, Clone, PartialEq)]
+pub struct PreferencesInput {
     pub currency: Currency,
     pub language: Option<String>,
     pub appearance: String,
@@ -81,10 +81,9 @@ pub struct GemSecurityInput {
     pub lock_period: String,
     pub privacy_lock_enabled: bool,
     pub privacy_lock_supported: bool,
-    pub hide_balance_enabled: bool,
 }
 
-pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
+pub fn preferences_sections(input: PreferencesInput) -> Vec<GemListSection> {
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemListRow::Link { title, value, icon, action };
     let picker = |title: GemListRowTitle, value: GemLocalizedText, action: GemRowAction| GemListRow::Picker {
         title,
@@ -153,7 +152,7 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
     ]
 }
 
-pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
+pub fn security_sections(input: GemSecurityInput, hide_balance_enabled: bool) -> Vec<GemListSection> {
     let toggle = |title: GemListRowTitle, is_on: bool, action: GemRowAction| GemListRow::toggle(title, GemListRowIcon::None, is_on, action);
     vec![
         GemListSection {
@@ -184,7 +183,7 @@ pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
         GemListSection {
             title: GemListSectionTitle::None,
             footer: GemListSectionFooter::None,
-            rows: vec![toggle(GemListRowTitle::HideBalance, input.hide_balance_enabled, GemRowAction::HideBalance)],
+            rows: vec![toggle(GemListRowTitle::HideBalance, hide_balance_enabled, GemRowAction::HideBalance)],
         },
     ]
 }
@@ -315,8 +314,8 @@ mod tests {
         assert!(matches!(notifications_sections(false)[0].rows[0], GemListRow::Toggle { is_on: false, .. }));
     }
 
-    fn preferences_input(perpetuals_enabled: bool, language: Option<&str>) -> GemPreferencesInput {
-        GemPreferencesInput {
+    fn preferences_input(perpetuals_enabled: bool, language: Option<&str>) -> PreferencesInput {
+        PreferencesInput {
             currency: Currency::GBP,
             language: language.map(str::to_string),
             appearance: "System".to_string(),
@@ -398,34 +397,36 @@ mod tests {
             lock_period: "Immediately".to_string(),
             privacy_lock_enabled: true,
             privacy_lock_supported: true,
-            hide_balance_enabled: false,
         };
 
         assert_eq!(
-            security_sections(input(false)).first().map(|section| section.rows.len()),
+            security_sections(input(false), false).first().map(|section| section.rows.len()),
             Some(1),
             "a device without authentication offers only the switch that turns it on"
         );
         assert!(
-            matches!(security_sections(input(true)).first().and_then(|section| section.rows.first()), Some(GemListRow::Toggle { label: GemLocalizedText::EnableValue { value }, .. }) if value == "Face ID"),
+            matches!(security_sections(input(true), false).first().and_then(|section| section.rows.first()), Some(GemListRow::Toggle { label: GemLocalizedText::EnableValue { value }, .. }) if value == "Face ID"),
             "the switch names the method it turns on"
         );
         assert_eq!(
-            security_sections(input(true)).first().map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
+            security_sections(input(true), false).first().map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
             Some(vec![GemListRowTitle::LockPeriod, GemListRowTitle::PrivacyLock])
         );
         assert_eq!(
-            security_sections(GemSecurityInput {
-                privacy_lock_supported: false,
-                ..input(true)
-            })
+            security_sections(
+                GemSecurityInput {
+                    privacy_lock_supported: false,
+                    ..input(true)
+                },
+                false
+            )
             .first()
             .map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
             Some(vec![GemListRowTitle::LockPeriod]),
             "a platform without a privacy lock drops that row"
         );
         assert_eq!(
-            security_sections(input(true)).last().map(|section| section.rows.clone()),
+            security_sections(input(true), false).last().map(|section| section.rows.clone()),
             Some(vec![GemListRow::toggle(GemListRowTitle::HideBalance, GemListRowIcon::None, false, GemRowAction::HideBalance)]),
             "hiding the balance is its own choice, not part of the lock"
         );
@@ -496,14 +497,16 @@ mod tests {
     #[test]
     fn test_a_row_names_what_tapping_it_does_and_a_plain_row_names_nothing() {
         let settings = sections(1, true, true, true, true);
-        let security = security_sections(GemSecurityInput {
-            authentication_enabled: true,
-            authentication_name: None,
-            lock_period: "Immediately".to_string(),
-            privacy_lock_enabled: false,
-            privacy_lock_supported: true,
-            hide_balance_enabled: false,
-        });
+        let security = security_sections(
+            GemSecurityInput {
+                authentication_enabled: true,
+                authentication_name: None,
+                lock_period: "Immediately".to_string(),
+                privacy_lock_enabled: false,
+                privacy_lock_supported: true,
+            },
+            false,
+        );
 
         assert_eq!(settings[0].rows[0].action(), Some(GemRowAction::Wallets));
         assert_eq!(settings.last().and_then(|section| section.rows.last()).and_then(GemListRow::action), Some(GemRowAction::Developer));

@@ -18,12 +18,9 @@ struct PreferencesSceneViewModelTests {
         settings.perpetualDefaultsValue = GemPerpetualDefaults(leverage: 10, takeProfitPercent: 25, stopLossPercent: 5)
         let model = PreferencesSceneViewModel.mock(settings: settings)
 
-        _ = model.sections
-
         #expect(model.perpetualLeverage.value == 10)
         #expect(model.perpetualTakeProfit.value == 25)
         #expect(model.perpetualStopLoss.value == 5)
-        #expect(settings.preferencesInputs.last?.perpetualDefaults == settings.perpetualDefaultsValue)
         #expect(model.perpetualLeverage.displayText == "10x")
         #expect(model.perpetualTakeProfit.displayText == "25%")
     }
@@ -67,19 +64,14 @@ struct PreferencesSceneViewModelTests {
     }
 
     @Test
-    func theSectionsAreAskedForWithThePerpetualToggle() {
-        let settings = GemSettingsServiceMock()
-        let model = PreferencesSceneViewModel.mock(settings: settings)
+    func thePerpetualToggleWritesThePreference() {
+        let model = PreferencesSceneViewModel.mock()
+
         model.onToggle(.perpetuals, false)
-
-        _ = model.sections
-
-        #expect(settings.preferencesInputs.last?.perpetualsEnabled == false)
+        #expect(model.isPerpetualEnabled == false)
 
         model.onToggle(.perpetuals, true)
-        _ = model.sections
-
-        #expect(settings.preferencesInputs.last?.perpetualsEnabled == true)
+        #expect(model.isPerpetualEnabled == true)
     }
 
     @Test

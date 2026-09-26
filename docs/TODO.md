@@ -56,7 +56,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM291; retain Android-only one-click auth |
@@ -141,10 +141,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Screen composition
 
-- **VM283** **S** **Settings screens hand Core the values its preference store holds.**
-  - **iOS:** `PreferencesSceneViewModel` builds `GemPreferencesInput` and `GemPerpetualDefaults` from stored values; `SecuritySceneViewModel` builds `GemSecurityInput`.
-  - **Android:** `PreferencesViewModel` and `SecurityViewModel` build the same inputs.
-  - **Expected:** the settings services read preferences through their store port and return sections; the inputs go.
 - **VM284** **S** **Recipients are built from contacts in each app.**
   - **iOS:** `RecipientSceneViewModel.contactRecipients` flattens contacts into `GemRecipient`s.
   - **Android:** `RecipientViewModel` does the same.

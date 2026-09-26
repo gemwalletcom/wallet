@@ -357,13 +357,11 @@ public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecke
 
     public private(set) var storedDefaults: [GemPerpetualDefaults] = []
     public private(set) var securitySectionsCalls: [GemSecurityInput] = []
-    public private(set) var preferencesInputs: [GemPreferencesInput] = []
 
     public init() {}
 
-    public func preferencesSections(input: GemPreferencesInput) -> [GemListSection] {
-        preferencesInputs.append(input)
-        return preferencesSectionsValue
+    public func preferencesSections(language _: String?, appearance _: String) -> [GemListSection] {
+        preferencesSectionsValue
     }
 
     public func perpetualDefaults() -> GemPerpetualDefaults {

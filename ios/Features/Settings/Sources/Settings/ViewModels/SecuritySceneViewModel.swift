@@ -64,14 +64,14 @@ public final class SecuritySceneViewModel {
 
 public extension SecuritySceneViewModel {
     var sections: [GemListSection] {
-        settings.securitySections(
+        preferences.changes
+        return settings.securitySections(
             input: GemSecurityInput(
                 authenticationEnabled: isEnabled,
                 authenticationName: authenticationName,
                 lockPeriod: storedLockPeriod.title,
                 privacyLockEnabled: isPrivacyLockEnabled,
                 privacyLockSupported: true,
-                hideBalanceEnabled: preferences.isHideBalanceEnabled,
             ),
         )
     }

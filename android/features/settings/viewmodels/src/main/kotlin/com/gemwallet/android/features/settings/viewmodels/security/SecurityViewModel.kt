@@ -38,19 +38,18 @@ class SecurityViewModel @Inject constructor(
 
     val lockInterval = securityPreferences.getLockInterval()
 
-    val sections = combine(authRequired, securityPreferences.getLockInterval(), preferences.isHideBalances()) { authRequired, lockInterval, hideBalances ->
-        sections(authRequired, lockInterval, hideBalances)
+    val sections = combine(authRequired, securityPreferences.getLockInterval(), preferences.isHideBalances()) { authRequired, lockInterval, _ ->
+        sections(authRequired, lockInterval)
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, sections(authRequired.value, lockPeriodFromMinutes(null).minutes().toInt(), false))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections(authRequired.value, lockPeriodFromMinutes(null).minutes().toInt()))
 
-    private fun sections(authRequired: Boolean, lockInterval: Int, hideBalances: Boolean): List<GemListSection> = settingsService.securitySections(
+    private fun sections(authRequired: Boolean, lockInterval: Int): List<GemListSection> = settingsService.securitySections(
         GemSecurityInput(
             authenticationEnabled = authRequired,
             authenticationName = null,
             lockPeriod = context.getString(lockPeriodFromMinutes(lockInterval.toUInt()).stringRes()),
             privacyLockEnabled = false,
             privacyLockSupported = false,
-            hideBalanceEnabled = hideBalances,
         ),
     )
 
