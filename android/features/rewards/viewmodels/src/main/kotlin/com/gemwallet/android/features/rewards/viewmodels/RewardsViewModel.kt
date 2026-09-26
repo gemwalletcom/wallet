@@ -10,10 +10,8 @@ import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
-import com.gemwallet.android.features.rewards.viewmodels.models.uiModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
@@ -35,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsAction
@@ -103,9 +102,9 @@ class RewardsViewModel @Inject constructor(
     val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }, null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val incomingCode: StateFlow<IncomingCodeUIModel> = combine(referralCode, availableWallets) { code, wallets ->
-        incomingReferralCode(code, wallets.map { it.toGem() }).uiModel()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, IncomingCodeUIModel())
+    val incomingCode: StateFlow<GemIncomingCode?> = combine(referralCode, availableWallets) { code, wallets ->
+        incomingReferralCode(code, wallets.map { it.toGem() })
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val selectedWallet = getSession()
         .filterNotNull()

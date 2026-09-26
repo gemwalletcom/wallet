@@ -36,7 +36,6 @@ import com.gemwallet.android.features.rewards.presents.components.rewardsHead
 import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
 import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
-import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -64,6 +63,7 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsRedemption
@@ -84,7 +84,7 @@ fun RewardsScene(
     sections: List<RewardsSectionUIModel>,
     redemptions: List<GemRewardsRedemption>,
     currentWallet: Wallet?,
-    incomingCode: IncomingCodeUIModel = IncomingCodeUIModel(),
+    incomingCode: GemIncomingCode? = null,
     onUsername: (String, (Throwable?) -> Unit) -> Unit,
     onCode: (String, (Throwable?) -> Unit) -> Unit,
     onCancelCode: () -> Unit,
@@ -100,8 +100,8 @@ fun RewardsScene(
     val shareTitle = stringResource(id = R.string.common_share, link)
 
     var getStartedDialogShow by remember(actions) { mutableStateOf(false) }
-    var codeDialogShow by remember(incomingCode, isLoading, isRefreshing) { mutableStateOf(incomingCode.confirm != null && !isLoading && !isRefreshing) }
-    val referralCode = incomingCode.confirm
+    var codeDialogShow by remember(incomingCode, isLoading, isRefreshing) { mutableStateOf(incomingCode is GemIncomingCode.Confirm && !isLoading && !isRefreshing) }
+    val referralCode = (incomingCode as? GemIncomingCode.Confirm)?.code
 
     val successStr = stringResource(R.string.common_done)
     val scope = rememberCoroutineScope()
@@ -122,7 +122,7 @@ fun RewardsScene(
     }
 
     LaunchedEffect(incomingCode) {
-        val code = incomingCode.activate ?: return@LaunchedEffect
+        val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
         onCancelCode()
         onCode(code, onCodeResult)
     }

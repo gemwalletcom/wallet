@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM258 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM259 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -53,7 +53,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM271, VM277 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM265, VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Assets, NFT, rewards, support
 
-- **VM258** **S** **The incoming referral code is twinned on Android.**
-  - **iOS:** `RewardsSceneViewModel` switches on `GemIncomingCode` directly.
-  - **Android:** `IncomingCodeUIModel` splits it into two nullable strings.
-  - **Expected:** Android reads `GemIncomingCode` like iOS; the twin goes.
 - **VM259** **S** **Support bubbles decide their side and flags.**
   - **iOS:** `SupportMessageBubbleViewModel` picks palette and alignment by sender and derives sending, failed and content flags.
   - **Android:** `SupportMessageBubble` does the same (`isUser` from the sender).

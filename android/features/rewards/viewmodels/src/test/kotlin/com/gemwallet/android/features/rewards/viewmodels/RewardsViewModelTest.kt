@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
-import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockGemRewardsResult
@@ -37,6 +36,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsServiceInterface
@@ -165,12 +165,12 @@ class RewardsViewModelTest {
 
         try {
             runCurrent()
-            assertEquals(IncomingCodeUIModel(activate = "friend"), viewModel.incomingCode.value)
+            assertEquals(GemIncomingCode.Activate("friend"), viewModel.incomingCode.value)
 
             walletsFlow.value = listOf(wallet, secondWallet)
             runCurrent()
 
-            assertEquals(IncomingCodeUIModel(confirm = "friend"), viewModel.incomingCode.value)
+            assertEquals(GemIncomingCode.Confirm("friend"), viewModel.incomingCode.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -183,7 +183,7 @@ class RewardsViewModelTest {
         try {
             runCurrent()
 
-            assertEquals(IncomingCodeUIModel(), viewModel.incomingCode.value)
+            assertNull(viewModel.incomingCode.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
