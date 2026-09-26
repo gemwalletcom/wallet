@@ -148,9 +148,9 @@ extension PriceRecordInfo {
         PriceData(
             asset: asset.mapToAsset(),
             price: price?.mapToPrice(),
-            priceAlerts: priceAlerts.or([]).map { $0.map() },
+            priceAlerts: priceAlerts.or([]).map { $0.toPriceAlert() },
             market: market?.mapToMarket(),
-            links: links.map(\.link),
+            links: links.map { $0.toAssetLink() },
         )
     }
 }
@@ -160,9 +160,9 @@ extension AssetRecordInfo {
         AssetData(
             asset: asset.mapToAsset(),
             balance: balance?.mapToBalance() ?? .zero,
-            account: account.mapToAccount(),
+            account: account.toAccount(),
             price: price?.mapToPrice(),
-            priceAlerts: priceAlerts.or([]).compactMap { $0.map() },
+            priceAlerts: priceAlerts.or([]).map { $0.toPriceAlert() },
             metadata: metadata,
             associations: asset.associations,
         )

@@ -2,6 +2,7 @@ mod constants;
 mod localization;
 mod mocks;
 mod models;
+mod record_mappers;
 mod remote_mappers;
 #[cfg(test)]
 mod testkit;
@@ -35,7 +36,14 @@ fn main() {
         fs::remove_file(&path).unwrap_or_else(|error| panic!("failed to remove {}: {error}", path.display()));
     }
     generate_remote_mappers(platform, &directory);
+    generate_record_mappers(platform, &directory);
     generate_constants(platform, &directory);
+}
+
+fn generate_record_mappers(platform: Platform, platform_directory_path: &str) {
+    let directory = Path::new(platform_directory_path);
+    let generator = record_mappers::Generator::load(Path::new("."), platform, directory);
+    write_generated(&generator.path(directory), generator.render());
 }
 
 fn generate_constants(platform: Platform, platform_directory_path: &str) {

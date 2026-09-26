@@ -3,7 +3,6 @@ package com.gemwallet.android.data.services.store.database.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
@@ -29,27 +28,6 @@ import com.wallet.core.primitives.VerificationStatus
     ],
     indices = [Index("chain"), Index("walletId")],
 )
-data class DbAddress(val chain: Chain, val address: String, val walletId: String?, val name: String, val type: AddressType, val status: VerificationStatus, val imageUrl: String? = null)
+data class DbAddress(val chain: Chain, val address: String, val walletId: String? = null, val name: String, val type: AddressType, val status: VerificationStatus, val imageUrl: String? = null)
 
 data class AddressNameUpdate(val address: DbAddress, val replacesTypes: List<AddressType>)
-
-fun AddressName.toRecord(): DbAddress = DbAddress(
-    chain = chain,
-    address = address,
-    walletId = null,
-    name = name,
-    type = type,
-    status = status,
-    imageUrl = imageUrl,
-)
-
-fun DbAddress.toDTO(): AddressName = AddressName(
-    chain = chain,
-    address = address,
-    name = name,
-    type = type,
-    status = status,
-    imageUrl = imageUrl,
-)
-
-fun List<AddressName>.toRecord(): List<DbAddress> = map { it.toRecord() }

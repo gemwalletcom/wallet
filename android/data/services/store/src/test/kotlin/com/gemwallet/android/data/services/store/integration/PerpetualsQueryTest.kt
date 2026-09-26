@@ -5,7 +5,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbSearch
-import com.gemwallet.android.data.services.store.database.entities.toDB
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.ext.toIdentifier
@@ -61,7 +60,7 @@ class PerpetualsQueryTest {
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
         listOf(bitcoin, ethereum, solana, doge).forEach { database.assetsDao().insert(it.asset.toRecord()) }
-        database.perpetualDao().insert(listOf(bitcoin, ethereum, solana, doge).map { it.perpetual.toDB(isPinned = it.metadata.isPinned) })
+        database.perpetualDao().insert(listOf(bitcoin, ethereum, solana, doge).map { it.perpetual.toRecord().copy(isPinned = it.metadata.isPinned) })
     }
 
     @After

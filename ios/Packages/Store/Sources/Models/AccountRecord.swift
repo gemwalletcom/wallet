@@ -20,7 +20,7 @@ struct AccountRecord: Codable, FetchableRecord, PersistableRecord {
     var chain: Chain
     var address: String
     var extendedPublicKey: String?
-    var index: Int
+    var index: Int = 0
     var derivationPath: String
 }
 
@@ -54,13 +54,4 @@ extension AccountRecord: CreateTable {
 
 extension AccountRecord {
     static let wallet = belongsTo(WalletRecord.self, using: ForeignKey(["walletId"], to: ["id"]))
-
-    func mapToAccount() -> Account {
-        Account(
-            chain: chain,
-            address: address,
-            derivationPath: derivationPath,
-            extendedPublicKey: extendedPublicKey,
-        )
-    }
 }

@@ -13,7 +13,6 @@ import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
@@ -21,8 +20,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.RecentActivityType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 @Entity(tableName = "asset", primaryKeys = ["id"])
 data class DbAsset(
@@ -210,20 +207,6 @@ fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
     rank = score.rank,
     hasImage = properties.hasImage,
 )
-
-fun List<AssetLink>.toAssetLinkRecord(assetId: AssetId) = map { it.toRecord(assetId) }
-
-fun AssetLink.toRecord(assetId: AssetId) = DbAssetLink(
-    assetId = assetId.toIdentifier(),
-    name = name,
-    url = url,
-)
-
-fun List<DbAssetLink>.toAssetLinksModel() = map { it.toDTO() }
-
-fun Flow<List<DbAssetLink>>.toAssetLinksModel() = map { it.toAssetLinksModel() }
-
-fun DbAssetLink.toDTO() = AssetLink(name = name, url = url)
 
 fun AssetMarket.toRecord(assetId: AssetId) = DbAssetMarket(
     assetId = assetId.toIdentifier(),

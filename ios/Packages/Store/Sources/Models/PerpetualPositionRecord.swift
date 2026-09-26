@@ -43,45 +43,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
     var stopLoss: PerpetualTriggerOrder?
     var pnl: Double
     var funding: Float?
-    var updatedAt: Date
-
-    init(
-        id: String,
-        walletId: String,
-        perpetualId: PerpetualId,
-        assetId: AssetId,
-        size: Double,
-        sizeValue: Double,
-        leverage: Int,
-        entryPrice: Double,
-        liquidationPrice: Double?,
-        marginType: PerpetualMarginType,
-        direction: PerpetualDirection,
-        marginAmount: Double,
-        takeProfit: PerpetualTriggerOrder?,
-        stopLoss: PerpetualTriggerOrder?,
-        pnl: Double,
-        funding: Float? = nil,
-        updatedAt: Date = Date(),
-    ) {
-        self.id = id
-        self.walletId = walletId
-        self.perpetualId = perpetualId
-        self.assetId = assetId
-        self.size = size
-        self.sizeValue = sizeValue
-        self.leverage = leverage
-        self.entryPrice = entryPrice
-        self.liquidationPrice = liquidationPrice
-        self.marginType = marginType
-        self.direction = direction
-        self.marginAmount = marginAmount
-        self.takeProfit = takeProfit
-        self.stopLoss = stopLoss
-        self.pnl = pnl
-        self.funding = funding
-        self.updatedAt = updatedAt
-    }
+    var updatedAt: Date = .init()
 
     // MARK: - Associations
 
@@ -120,48 +82,3 @@ extension PerpetualPositionRecord: CreateTable {
 }
 
 // MARK: - Mapping
-
-extension PerpetualPositionRecord {
-    func mapToPerpetualPosition() -> PerpetualPosition {
-        PerpetualPosition(
-            id: id,
-            perpetualId: perpetualId,
-            assetId: assetId,
-            size: size,
-            sizeValue: sizeValue,
-            leverage: UInt8(leverage),
-            entryPrice: entryPrice,
-            liquidationPrice: liquidationPrice,
-            marginType: marginType,
-            direction: direction,
-            marginAmount: marginAmount,
-            takeProfit: takeProfit,
-            stopLoss: stopLoss,
-            pnl: pnl,
-            funding: funding,
-        )
-    }
-}
-
-extension PerpetualPosition {
-    func record(walletId: String) -> PerpetualPositionRecord {
-        PerpetualPositionRecord(
-            id: id,
-            walletId: walletId,
-            perpetualId: perpetualId,
-            assetId: assetId,
-            size: size,
-            sizeValue: sizeValue,
-            leverage: Int(leverage),
-            entryPrice: entryPrice,
-            liquidationPrice: liquidationPrice,
-            marginType: marginType,
-            direction: direction,
-            marginAmount: marginAmount,
-            takeProfit: takeProfit,
-            stopLoss: stopLoss,
-            pnl: pnl,
-            funding: funding,
-        )
-    }
-}

@@ -22,7 +22,7 @@ extension PriceAlertAssetRecordInfo {
                 extendedPublicKey: nil,
             ),
             price: price?.mapToPrice(),
-            priceAlerts: priceAlerts.or([]).compactMap { $0.map() },
+            priceAlerts: priceAlerts.or([]).map { $0.toPriceAlert() },
             metadata: AssetMetaData(
                 isEnabled: true,
                 isBalanceEnabled: true,

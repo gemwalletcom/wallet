@@ -147,7 +147,7 @@ public struct AssetStore: Sendable {
     public func updateLinks(assetId: AssetId, _ links: [AssetLink]) throws {
         try db.write { db in
             for link in links {
-                try link.record(assetId: assetId).upsert(db)
+                try link.toRecord(assetId: assetId).upsert(db)
             }
         }
     }

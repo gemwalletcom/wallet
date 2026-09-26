@@ -12,7 +12,7 @@ struct PerpetualInfo: FetchableRecord, Codable {
 extension PerpetualInfo {
     func mapToPerpetualData() -> PerpetualData {
         PerpetualData(
-            perpetual: perpetual.mapToPerpetual(),
+            perpetual: perpetual.toPerpetual(),
             asset: asset.mapToAsset(),
             metadata: PerpetualMetadata(isPinned: perpetual.isPinned),
         )

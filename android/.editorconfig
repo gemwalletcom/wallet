@@ -26,5 +26,8 @@ ktlint = disabled
 [gemcore/src/main/kotlin/com/gemwallet/android/ext/GemConstants.kt]
 ktlint = disabled
 
+[data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/generated/EntityMappers.kt]
+ktlint = disabled
+
 [gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/GeneratedMocks.kt]
 ktlint = disabled

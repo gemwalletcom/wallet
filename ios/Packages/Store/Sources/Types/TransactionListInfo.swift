@@ -18,8 +18,8 @@ extension TransactionListInfo {
             transaction: transaction.mapToTransaction(),
             asset: asset.mapToAsset(),
             assets: assets.map { $0.mapToAsset() },
-            fromAddress: fromAddress?.mapToAddressName(),
-            toAddress: toAddress?.mapToAddressName(),
+            fromAddress: fromAddress?.toAddressName(),
+            toAddress: toAddress?.toAddressName(),
         )
     }
 }

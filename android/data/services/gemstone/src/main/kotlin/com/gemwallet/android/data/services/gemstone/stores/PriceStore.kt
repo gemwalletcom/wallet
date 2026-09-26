@@ -3,7 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.PricesDao
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
-import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toFiatRate
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -18,9 +18,9 @@ class GemstonePriceStore(private val pricesDao: PricesDao, private val assetsDao
 
     override suspend fun getPrices(assetIds: List<String>): List<AssetPrice> = pricesDao.getByAssets(assetIds).map { it.toAssetPrice() }
 
-    override suspend fun getRate(currency: uniffi.gemstone.Currency): uniffi.gemstone.FiatRate? = pricesDao.getRates(currency.toPrimitives()).firstOrNull()?.toDTO()?.toGem()
+    override suspend fun getRate(currency: uniffi.gemstone.Currency): uniffi.gemstone.FiatRate? = pricesDao.getRates(currency.toPrimitives()).firstOrNull()?.toFiatRate()?.toGem()
 
-    override suspend fun getRates(): List<uniffi.gemstone.FiatRate> = pricesDao.getRates().toDTO().map { it.toGem() }
+    override suspend fun getRates(): List<uniffi.gemstone.FiatRate> = pricesDao.getRates().map { it.toFiatRate().toGem() }
 
     override suspend fun saveRatesAndPrices(currency: uniffi.gemstone.Currency, rates: List<uniffi.gemstone.FiatRate>, conversion: uniffi.gemstone.FiatRate?, prices: List<GemPriceUpdate>) = pricesDao.saveRatesAndPrices(
         rates = rates.map { it.toPrimitives().toRecord() },

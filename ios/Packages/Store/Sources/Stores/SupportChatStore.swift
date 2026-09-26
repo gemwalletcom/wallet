@@ -14,7 +14,7 @@ public struct SupportChatStore: Sendable {
     public func addMessages(_ messages: [SupportMessage]) throws {
         try db.write { db in
             for message in messages {
-                try message.record.upsert(db)
+                try message.toRecord().upsert(db)
             }
         }
     }
@@ -31,7 +31,7 @@ public struct SupportChatStore: Sendable {
     public func replace(id: String, with message: SupportMessage) throws {
         try db.write { db in
             _ = try SupportMessageRecord.deleteOne(db, key: id)
-            try message.record.upsert(db)
+            try message.toRecord().upsert(db)
         }
     }
 }

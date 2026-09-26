@@ -67,7 +67,7 @@ class InAppNotificationsQueryTest {
 
     private fun notification(id: String, walletId: String, createdAt: Long, readAt: Long?) = DbInAppNotification(
         id = id,
-        walletId = walletId,
+        walletId = WalletId(walletId),
         readAt = readAt,
         createdAt = createdAt,
         item = CoreListItem(id = id, title = id, url = "gem://$id"),

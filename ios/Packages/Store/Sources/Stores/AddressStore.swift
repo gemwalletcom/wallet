@@ -28,7 +28,7 @@ public struct AddressStore: Sendable {
                         AddressRecord.Columns.status.set(to: addressName.status.rawValue),
                         AddressRecord.Columns.imageUrl.set(to: addressName.imageUrl),
                     ])
-                try addressName.record.insert(db, onConflict: .ignore)
+                try addressName.toRecord().insert(db, onConflict: .ignore)
             }
         }
     }

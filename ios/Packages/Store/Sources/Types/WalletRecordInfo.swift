@@ -17,7 +17,7 @@ extension WalletRecordInfo {
             name: wallet.name,
             index: wallet.index.asInt32,
             type: wallet.type,
-            accounts: accounts.map { $0.mapToAccount() },
+            accounts: accounts.map { $0.toAccount() },
             isPinned: wallet.isPinned,
             imageUrl: wallet.imageUrl,
             source: wallet.source,

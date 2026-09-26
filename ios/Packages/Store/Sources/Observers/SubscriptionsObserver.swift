@@ -16,7 +16,7 @@ public struct SubscriptionsObserver: Sendable {
             .tracking {
                 try AccountRecord
                     .fetchAll($0)
-                    .map { $0.mapToAccount() }
+                    .map { $0.toAccount() }
             }
             .values(in: db)
     }

@@ -44,7 +44,7 @@ public struct PriceStore: Sendable {
 
     private func saveRates(_ db: Database, rates: [FiatRate], conversion: FiatRate?) throws {
         for rate in rates {
-            try rate.record.upsert(db)
+            try rate.toRecord().upsert(db)
         }
         if let conversion {
             _ = try convertPrices(db, rate: conversion.rate)

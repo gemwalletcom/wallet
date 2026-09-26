@@ -48,9 +48,9 @@ class PriceAlertsQueryTest {
         )
         database.priceAlertsDao().put(
             listOf(
-                DbPriceAlert(id = "eth", assetId = "ethereum", currency = Currency.USD),
-                DbPriceAlert(id = "btc", assetId = "bitcoin", currency = Currency.USD),
-                DbPriceAlert(id = "sol", assetId = "solana", currency = Currency.USD),
+                DbPriceAlert(id = "eth", assetId = AssetId(Chain.Ethereum), currency = Currency.USD),
+                DbPriceAlert(id = "btc", assetId = AssetId(Chain.Bitcoin), currency = Currency.USD),
+                DbPriceAlert(id = "sol", assetId = AssetId(Chain.Solana), currency = Currency.USD),
             ),
         )
     }

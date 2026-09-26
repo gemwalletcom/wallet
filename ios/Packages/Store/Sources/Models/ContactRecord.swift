@@ -42,29 +42,3 @@ extension ContactRecord: CreateTable {
         }
     }
 }
-
-extension ContactRecord {
-    var contact: Contact {
-        Contact(
-            id: id,
-            name: name,
-            description: description,
-            imageUrl: imageUrl,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-        )
-    }
-}
-
-extension Contact {
-    var record: ContactRecord {
-        ContactRecord(
-            id: id,
-            name: name,
-            description: description,
-            imageUrl: imageUrl,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-        )
-    }
-}

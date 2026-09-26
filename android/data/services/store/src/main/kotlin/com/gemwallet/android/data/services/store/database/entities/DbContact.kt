@@ -7,8 +7,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Contact
-import com.wallet.core.primitives.ContactAddress
 import com.wallet.core.primitives.ContactData
 
 @Entity(tableName = "contacts")
@@ -35,41 +33,7 @@ data class DbContactWithAddresses(
     val addresses: List<DbContactAddress>,
 )
 
-fun Contact.toRecord(): DbContact = DbContact(
-    id = id,
-    name = name,
-    description = description,
-    imageUrl = imageUrl,
-    createdAt = createdAt,
-    updatedAt = updatedAt,
-)
-
-fun ContactAddress.toRecord(): DbContactAddress = DbContactAddress(
-    id = id,
-    contactId = contactId,
-    address = address,
-    chain = chain,
-    memo = memo,
-)
-
-fun DbContact.toModel(): Contact = Contact(
-    id = id,
-    name = name,
-    description = description,
-    imageUrl = imageUrl,
-    createdAt = createdAt,
-    updatedAt = updatedAt,
-)
-
-fun DbContactAddress.toModel(): ContactAddress = ContactAddress(
-    id = id,
-    contactId = contactId,
-    address = address,
-    chain = chain,
-    memo = memo,
-)
-
 fun DbContactWithAddresses.toModel(): ContactData = ContactData(
-    contact = contact.toModel(),
-    addresses = addresses.map { it.toModel() },
+    contact = contact.toContact(),
+    addresses = addresses.map { it.toContactAddress() },
 )

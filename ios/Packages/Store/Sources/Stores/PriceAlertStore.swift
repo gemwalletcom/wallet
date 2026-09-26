@@ -15,7 +15,7 @@ public struct PriceAlertStore: Sendable {
         try db.read { db in
             try PriceAlertRecord
                 .fetchAll(db)
-                .map { $0.map() }
+                .map { $0.toPriceAlert() }
         }
     }
 
@@ -24,7 +24,7 @@ public struct PriceAlertStore: Sendable {
             try PriceAlertRecord
                 .filter(PriceAlertRecord.Columns.assetId == assetId)
                 .fetchAll(db)
-                .map { $0.map() }
+                .map { $0.toPriceAlert() }
         }
     }
 
@@ -48,7 +48,7 @@ public struct PriceAlertStore: Sendable {
 
             for value in alerts {
                 try value.alert
-                    .mapToRecord(id: value.id)
+                    .toRecord(id: value.id)
                     .upsert(db)
             }
         }

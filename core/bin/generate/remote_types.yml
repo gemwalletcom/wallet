@@ -498,3 +498,70 @@ type_mappings:
     DateTime: SerializedDate
     Value: JsonValue
     u64: Long
+
+# The model each store record holds, for the record ↔ model mappers `just generate-models` writes
+# into both stores. A record field copies the model field of its name; `keys` are the record
+# fields the caller passes, `fields` binds a renamed or flattened record field to a model path,
+# and `defaults` gives a model path the record stores optional or not at all. A record field
+# outside all three needs a default in its declaration.
+record_aliases:
+  kotlin:
+    SerializedDate: Long
+
+records:
+  Account:
+    keys: [walletId]
+    ios: AccountRecord
+    android: DbAccount
+  AddressName:
+    ios: AddressRecord
+    android: DbAddress
+  AssetLink:
+    keys: [assetId]
+    ios: AssetLinkRecord
+    android: DbAssetLink
+  Contact:
+    ios: ContactRecord
+    android: DbContact
+  ContactAddress:
+    ios: ContactAddressRecord
+    android: DbContactAddress
+  FiatRate:
+    ios: FiatRateRecord
+    android:
+      record: DbFiatRate
+      fields:
+        currency: symbol
+  InAppNotification:
+    ios:
+      record: NotificationRecord
+      fields:
+        id: item.id
+    android:
+      record: DbInAppNotification
+      fields:
+        id: item.id
+  Perpetual:
+    ios: PerpetualRecord
+    android: DbPerpetual
+  PerpetualPosition:
+    keys: [walletId]
+    ios: PerpetualPositionRecord
+    android:
+      record: DbPerpetualPosition
+      fields:
+        takeProfitPrice: takeProfit.price
+        takeProfitType: takeProfit.order_type
+        takeProfitOrderId: takeProfit.order_id
+        stopLossPrice: stopLoss.price
+        stopLossType: stopLoss.order_type
+        stopLossOrderId: stopLoss.order_id
+      defaults:
+        entryPrice: "0.0"
+  PriceAlert:
+    keys: [id]
+    ios: PriceAlertRecord
+    android: DbPriceAlert
+  SupportMessage:
+    ios: SupportMessageRecord
+    android: DbSupportMessage

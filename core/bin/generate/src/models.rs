@@ -317,15 +317,89 @@ pub struct GeneratedModels {
 }
 
 pub fn generate(root: &Path, platform: Platform, output: &Path, mappings: &TypeMappings) -> GeneratedModels {
-    let sources = root.join(crate::remote_mappers::PRIMITIVES_SOURCE);
     let directory = output.join(match platform {
         Platform::IOS => SWIFT_DIRECTORY,
         Platform::Android => KOTLIN_DIRECTORY,
     });
-    let files = source_files(&sources)
+    let files = parsed_files(&root.join(crate::remote_mappers::PRIMITIVES_SOURCE))
+        .into_iter()
+        .map(|(relative, models)| {
+            let folders = folders(&relative);
+            let stem = relative.file_stem().expect("source file name").to_string_lossy().split('_').map(capitalized).collect::<String>();
+            match platform {
+                Platform::IOS => (
+                    directory.join(folders.iter().map(|folder| capitalized(folder)).collect::<PathBuf>()).join(format!("{stem}.swift")),
+                    swift_file(&models, mappings),
+                ),
+                Platform::Android => (
+                    directory.join(folders.iter().map(|folder| folder.to_lowercase()).collect::<PathBuf>()).join(format!("{stem}.kt")),
+                    kotlin_file(&models, &kotlin_package(&folders), mappings),
+                ),
+            }
+        })
+        .collect::<Vec<_>>();
+    let stale = source_files(&directory).into_iter().filter(|path| !files.iter().any(|(generated, _)| generated == path)).collect();
+    GeneratedModels { files, stale }
+}
+
+/// A struct app model as the store mappers read it: its Kotlin package and its fields.
+pub(crate) struct AppRecord {
+    pub(crate) kotlin_package: String,
+    pub(crate) fields: Vec<AppField>,
+}
+
+/// A field of a struct app model: its app name, its type in each language, and the model it holds.
+pub(crate) struct AppField {
+    pub(crate) name: String,
+    pub(crate) swift: String,
+    pub(crate) kotlin: String,
+    pub(crate) holds: Option<String>,
+}
+
+/// Every struct app model declared under `primitives`, by name.
+pub(crate) fn app_records(primitives: &Path, mappings: &TypeMappings) -> BTreeMap<String, AppRecord> {
+    parsed_files(primitives)
+        .into_iter()
+        .flat_map(|(relative, models)| {
+            let kotlin_package = kotlin_package(&folders(&relative));
+            models.into_iter().filter_map(move |model| match model.shape {
+                Shape::Record(fields) => Some((
+                    model.name.renamed,
+                    AppRecord {
+                        kotlin_package: kotlin_package.clone(),
+                        fields: fields
+                            .iter()
+                            .map(|field| {
+                                let nullable = if field.is_nullable() { "?" } else { "" };
+                                AppField {
+                                    name: undashed(&field.name.renamed),
+                                    swift: format!("{}{nullable}", field.ty.swift(&mappings.swift)),
+                                    kotlin: format!("{}{nullable}", field.ty.kotlin(&mappings.kotlin)),
+                                    holds: held_model(&field.ty),
+                                }
+                            })
+                            .collect(),
+                    },
+                )),
+                Shape::Choice(_) | Shape::Tagged { .. } => None,
+            })
+        })
+        .collect()
+}
+
+fn held_model(ty: &Type) -> Option<String> {
+    match ty {
+        Type::Named(name, parameters) if parameters.is_empty() => Some(name.clone()),
+        Type::Optional(inner) => held_model(inner),
+        _ => None,
+    }
+}
+
+fn parsed_files(sources: &Path) -> Vec<(PathBuf, Vec<Model>)> {
+    source_files(sources)
         .into_iter()
         .filter_map(|path| {
-            let relative = path.strip_prefix(&sources).expect("source file outside primitives").to_path_buf();
+            let relative = path.strip_prefix(sources).expect("source file outside primitives").to_path_buf();
             let file_name = relative.file_name()?.to_str()?.to_string();
             let source = fs::read_to_string(&path).expect("failed to read source file");
             match !SKIPPED_FILES.contains(&file_name.as_str()) && source.contains(DERIVE) {
@@ -334,26 +408,15 @@ pub fn generate(root: &Path, platform: Platform, output: &Path, mappings: &TypeM
             }
         })
         .filter(|(_, models)| !models.is_empty())
-        .map(|(relative, models)| {
-            let folders = relative.parent().map(|parent| parent.iter().map(|folder| folder.to_string_lossy().to_string()).collect::<Vec<_>>()).unwrap_or_default();
-            let stem = relative.file_stem().expect("source file name").to_string_lossy().split('_').map(capitalized).collect::<String>();
-            match platform {
-                Platform::IOS => (
-                    directory.join(folders.iter().map(|folder| capitalized(folder)).collect::<PathBuf>()).join(format!("{stem}.swift")),
-                    swift_file(&models, mappings),
-                ),
-                Platform::Android => {
-                    let package = [KOTLIN_PACKAGE.to_string()].into_iter().chain(folders.iter().map(|folder| folder.to_lowercase())).collect::<Vec<_>>().join(".");
-                    (
-                        directory.join(folders.iter().map(|folder| folder.to_lowercase()).collect::<PathBuf>()).join(format!("{stem}.kt")),
-                        kotlin_file(&models, &package, mappings),
-                    )
-                }
-            }
-        })
-        .collect::<Vec<_>>();
-    let stale = source_files(&directory).into_iter().filter(|path| !files.iter().any(|(generated, _)| generated == path)).collect();
-    GeneratedModels { files, stale }
+        .collect()
+}
+
+fn folders(relative: &Path) -> Vec<String> {
+    relative.parent().map(|parent| parent.iter().map(|folder| folder.to_string_lossy().to_string()).collect()).unwrap_or_default()
+}
+
+fn kotlin_package(folders: &[String]) -> String {
+    [KOTLIN_PACKAGE.to_string()].into_iter().chain(folders.iter().map(|folder| folder.to_lowercase())).collect::<Vec<_>>().join(".")
 }
 
 fn source_files(directory: &Path) -> Vec<PathBuf> {
@@ -643,7 +706,7 @@ fn variant_identifier(name: &str) -> String {
     }
 }
 
-fn swift_identifier(name: &str) -> String {
+pub(crate) fn swift_identifier(name: &str) -> String {
     match SWIFT_KEYWORDS.contains(&name) {
         true => format!("`{name}`"),
         false => name.to_string(),

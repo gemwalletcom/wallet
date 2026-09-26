@@ -49,3 +49,35 @@ declared:
   BigInt: GemBigInt
   BigUint: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>
+
+type_mappings:
+  swift:
+    DateTime: Date
+  kotlin:
+    DateTime: SerializedDate
+
+record_aliases:
+  kotlin:
+    SerializedDate: Long
+
+records:
+  Account:
+    keys: [walletId]
+    ios: AccountRecord
+    android: DbAccount
+  Position:
+    keys: [walletId]
+    ios:
+      record: PositionRecord
+      fields:
+        previewImageUrl: images.previewImageUrl
+      defaults:
+        state: .connected
+    android:
+      record: DbPosition
+      fields:
+        takeProfitPrice: takeProfit.price
+        takeProfitOrderId: takeProfit.orderId
+        previewImageUrl: images.previewImageUrl
+      defaults:
+        entryPrice: "0.0"

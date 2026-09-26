@@ -5,7 +5,6 @@ import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.toAssetBasic
 import com.gemwallet.android.data.services.store.database.entities.toAssetDataModels
-import com.gemwallet.android.data.services.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.database.entities.toUpdateRecord
@@ -48,7 +47,7 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
         val assetFull = asset.toPrimitives()
         assetsDao.upsertAssetMetadata(
             asset = assetFull.toRecord(),
-            links = assetFull.links.toAssetLinkRecord(assetFull.asset.id),
+            links = assetFull.links.map { it.toRecord(assetFull.asset.id.toIdentifier()) },
             market = null,
         )
     }

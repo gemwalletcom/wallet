@@ -41,27 +41,3 @@ extension ContactAddressRecord: CreateTable {
         }
     }
 }
-
-extension ContactAddressRecord {
-    var contactAddress: ContactAddress {
-        ContactAddress(
-            id: id,
-            contactId: contactId,
-            address: address,
-            chain: chain,
-            memo: memo,
-        )
-    }
-}
-
-extension ContactAddress {
-    var record: ContactAddressRecord {
-        ContactAddressRecord(
-            id: id,
-            contactId: contactId,
-            address: address,
-            chain: chain,
-            memo: memo,
-        )
-    }
-}

@@ -16,7 +16,7 @@ struct NotificationRecord: Codable, FetchableRecord, PersistableRecord {
     }
 
     var id: String
-    var walletId: String
+    var walletId: WalletId
     var readAt: Date?
     var createdAt: Date
     var item: CoreListItem
@@ -38,28 +38,5 @@ extension NotificationRecord: CreateTable {
             $0.column(Columns.item.name, .jsonText)
                 .notNull()
         }
-    }
-}
-
-extension NotificationRecord {
-    func mapToNotification() throws -> Primitives.InAppNotification {
-        try Primitives.InAppNotification(
-            walletId: WalletId.from(id: walletId),
-            readAt: readAt,
-            createdAt: createdAt,
-            item: item,
-        )
-    }
-}
-
-extension Primitives.InAppNotification {
-    func record() -> NotificationRecord {
-        NotificationRecord(
-            id: item.id,
-            walletId: walletId.id,
-            readAt: readAt,
-            createdAt: createdAt,
-            item: item,
-        )
     }
 }

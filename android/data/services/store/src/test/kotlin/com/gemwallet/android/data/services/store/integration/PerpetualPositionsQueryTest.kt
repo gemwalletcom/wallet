@@ -5,7 +5,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
-import com.gemwallet.android.data.services.store.database.entities.toDB
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.testkit.mockAsset
@@ -78,9 +77,9 @@ class PerpetualPositionsQueryTest {
             database.walletsDao().insert(DbWallet(id = id.id, name = id.id, domainName = null, type = WalletType.Multicoin, position = 0, pinned = false, index = 0, source = WalletSource.Import))
         }
         listOf(bitcoinAsset, ethereumAsset).forEach { database.assetsDao().insert(it.toRecord()) }
-        database.perpetualDao().insert(listOf(bitcoinMarket, ethereumMarket).map { it.toDB() })
+        database.perpetualDao().insert(listOf(bitcoinMarket, ethereumMarket).map { it.toRecord() })
         database.perpetualPositionDao().upsertPositions(
-            listOf(bitcoinLong.position.toDB(wallet1.id), ethereumShort.position.toDB(wallet1.id), otherWalletBitcoin.position.toDB(wallet2.id)),
+            listOf(bitcoinLong.position.toRecord(wallet1.id), ethereumShort.position.toRecord(wallet1.id), otherWalletBitcoin.position.toRecord(wallet2.id)),
         )
     }
 

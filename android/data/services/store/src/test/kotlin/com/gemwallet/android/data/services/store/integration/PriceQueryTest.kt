@@ -60,8 +60,8 @@ class PriceQueryTest {
         database.assetsDao().setMarket(DbAssetMarket(assetId = "ethereum", marketCap = 1234.0))
         database.priceAlertsDao().put(
             listOf(
-                DbPriceAlert(id = "eth", assetId = "ethereum", currency = Currency.USD, price = 2500.0),
-                DbPriceAlert(id = "btc", assetId = "bitcoin", currency = Currency.USD),
+                DbPriceAlert(id = "eth", assetId = AssetId(Chain.Ethereum), currency = Currency.USD, price = 2500.0),
+                DbPriceAlert(id = "btc", assetId = AssetId(Chain.Bitcoin), currency = Currency.USD),
             ),
         )
     }

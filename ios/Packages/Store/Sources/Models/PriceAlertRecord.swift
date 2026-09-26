@@ -42,30 +42,3 @@ extension PriceAlertRecord: CreateTable {
         }
     }
 }
-
-extension PriceAlertRecord {
-    func map() -> PriceAlert {
-        PriceAlert(
-            assetId: assetId,
-            currency: currency,
-            price: price,
-            pricePercentChange: pricePercentChange,
-            priceDirection: priceDirection,
-            lastNotifiedAt: lastNotifiedAt,
-        )
-    }
-}
-
-extension PriceAlert {
-    func mapToRecord(id: String) -> PriceAlertRecord {
-        PriceAlertRecord(
-            id: id,
-            assetId: assetId,
-            currency: currency,
-            priceDirection: priceDirection,
-            price: price,
-            pricePercentChange: pricePercentChange,
-            lastNotifiedAt: lastNotifiedAt,
-        )
-    }
-}

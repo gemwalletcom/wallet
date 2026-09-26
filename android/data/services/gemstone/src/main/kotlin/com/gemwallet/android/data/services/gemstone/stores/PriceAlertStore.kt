@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.services.store.database.PriceAlertsDao
-import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toPriceAlert
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -17,12 +17,12 @@ class GemstonePriceAlertStore(private val priceAlertsDao: PriceAlertsDao, privat
 
     override suspend fun getPriceAlerts(assetId: String?): List<uniffi.gemstone.PriceAlert> {
         val records = assetId?.let { priceAlertsDao.getAllPriceAlerts(it) } ?: priceAlertsDao.getAllPriceAlerts()
-        return records.map { it.toDTO().priceAlert.toGem() }
+        return records.map { it.toPriceAlert().toGem() }
     }
 
     override suspend fun updatePriceAlerts(alerts: List<uniffi.gemstone.PriceAlert>, deleteIds: List<String>) {
         priceAlertsDao.update(alerts.map { it.toPrimitives().toRecord(priceAlertFormatter.alertId(it)) }, deleteIds)
     }
 
-    fun observePriceAlerts(assetId: AssetId?): Flow<List<PriceAlertInfo>> = (assetId?.let { priceAlertsDao.getAlerts(it.toIdentifier()) } ?: priceAlertsDao.getAlerts()).map { it.toDTO() }
+    fun observePriceAlerts(assetId: AssetId?): Flow<List<PriceAlertInfo>> = (assetId?.let { priceAlertsDao.getAlerts(it.toIdentifier()) } ?: priceAlertsDao.getAlerts()).map { records -> records.map { PriceAlertInfo(it.toPriceAlert()) } }
 }

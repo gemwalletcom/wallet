@@ -41,7 +41,7 @@ extension PriceAlertInfo {
         PriceAlertData(
             asset: asset.mapToAsset(),
             price: price?.mapToPrice(),
-            priceAlert: priceAlert.map(),
+            priceAlert: priceAlert.toPriceAlert(),
             rankScore: asset.rank.asInt32,
         )
     }

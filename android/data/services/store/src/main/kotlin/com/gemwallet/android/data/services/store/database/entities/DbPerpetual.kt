@@ -7,7 +7,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMetadata
@@ -80,41 +79,10 @@ data class DbPerpetualData(
     val asset: DbAsset,
 )
 
-fun DbPerpetual.toDTO(): Perpetual = Perpetual(
-    id = id,
-    name = name,
-    provider = provider,
-    assetId = assetId,
-    identifier = identifier,
-    price = price,
-    pricePercentChange24h = pricePercentChange24h,
-    openInterest = openInterest,
-    volume24h = volume24h,
-    funding = funding,
-    maxLeverage = maxLeverage.toUByte(),
-    isIsolatedOnly = isIsolatedOnly,
-)
-
-fun Perpetual.toDB(isPinned: Boolean = false): DbPerpetual = DbPerpetual(
-    id = id,
-    name = name,
-    provider = provider,
-    assetId = assetId,
-    identifier = identifier,
-    price = price,
-    pricePercentChange24h = pricePercentChange24h,
-    openInterest = openInterest,
-    volume24h = volume24h,
-    funding = funding,
-    maxLeverage = maxLeverage.toInt(),
-    isIsolatedOnly = isIsolatedOnly,
-    isPinned = isPinned,
-)
-
 fun DbPerpetualData.toDTO(): PerpetualData? {
     val asset = asset.toDTO() ?: return null
     return PerpetualData(
-        perpetual = perpetual.toDTO(),
+        perpetual = perpetual.toPerpetual(),
         asset = asset,
         metadata = PerpetualMetadata(perpetual.isPinned),
     )
