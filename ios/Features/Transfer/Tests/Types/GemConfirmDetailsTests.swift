@@ -9,7 +9,6 @@ import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-@testable import Swap
 import Testing
 @testable import Transfer
 import TransferTestKit
@@ -22,7 +21,7 @@ struct GemConfirmDetailsTests {
             Issue.record("Expected .swapDetails")
             return
         }
-        #expect(details.allowSelectProvider == false)
+        #expect(details == quote)
     }
 
     @Test

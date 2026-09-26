@@ -17,7 +17,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
@@ -33,7 +32,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.swap.uiModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
@@ -66,7 +64,6 @@ import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmButton
 import uniffi.gemstone.GemConfirmButtonKind
-import uniffi.gemstone.GemConfirmDetails
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmHeader
@@ -195,7 +192,7 @@ class ConfirmTransferViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val detailElements = viewState.map { listOfNotNull(it?.details?.uiModel()) }
+    val detailElements = viewState.map { listOfNotNull(it?.details) }
         .distinctUntilChanged()
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -339,11 +336,5 @@ class ConfirmTransferViewModel @Inject constructor(
 }
 
 private val loadingButton = GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemButtonState.LOADING, GemKeystoreAuthentication.NONE)
-
-private fun GemConfirmDetails.uiModel(): ConfirmDetailsUIModel? = when (this) {
-    is GemConfirmDetails.Swap -> details.uiModel()?.let(ConfirmDetailsUIModel::SwapDetails)
-    is GemConfirmDetails.Perpetual -> ConfirmDetailsUIModel.PerpetualDetails(details)
-    is GemConfirmDetails.PerpetualAutoclose -> ConfirmDetailsUIModel.PerpetualModifyAutoclose(row)
-}
 
 private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.swap.viewmodels
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -24,13 +23,9 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteRequestParams
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
-import com.gemwallet.android.ui.components.swap.uiModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.swap.uiModel
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -66,6 +61,7 @@ import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSlippageSession
+import uniffi.gemstone.GemSlippageViewState
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteInput
@@ -89,7 +85,6 @@ class SwapViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(swapQuoteService.newSession())
@@ -109,8 +104,8 @@ class SwapViewModel @Inject constructor(
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
     private val slippageSession = MutableStateFlow<GemSlippageSession?>(null)
-    val slippage: StateFlow<SlippageStateUIModel?> = slippageSession
-        .map { it?.viewState()?.uiModel(context) }
+    val slippage: StateFlow<GemSlippageViewState?> = slippageSession
+        .map { it?.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
@@ -183,9 +178,6 @@ class SwapViewModel @Inject constructor(
         quoteSession.viewState(pay?.toGem(), receive?.toGem(), currency)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, null, currency))
-
-    val swapDetails = viewState.map { state -> state.details?.uiModel(state.providers, state.allowsProviderSelection) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
         viewModelScope.launch {
@@ -301,7 +293,7 @@ class SwapViewModel @Inject constructor(
         }
         when (val action = state.buttonAction) {
             GemSwapButtonAction.Swap -> {
-                if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
+                if (state.details?.summary?.priceImpactRow?.warning != null) {
                     onShowPriceImpactWarning()
                 } else {
                     authorize { swap(onConfirm) }

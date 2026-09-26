@@ -34,7 +34,6 @@ import com.gemwallet.android.features.transfer.presents.confirm.components.Confi
 import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDetails
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
 import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmTransferViewModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmDetailsUIModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
@@ -71,6 +70,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemConfirmDetails
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
@@ -121,7 +121,7 @@ fun ConfirmTransferScreen(
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var isVerificationInfoVisible by remember { mutableStateOf(false) }
-    var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailsUIModel?>(null) }
+    var selectedDetailElement by remember(input) { mutableStateOf<GemConfirmDetails?>(null) }
     val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
     val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
@@ -373,36 +373,36 @@ fun ConfirmTransferScreen(
 }
 
 @Composable
-private fun ConfirmDetailsRow(item: ConfirmDetailsUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+private fun ConfirmDetailsRow(item: GemConfirmDetails, listPosition: ListPosition, onClick: () -> Unit) {
     when (item) {
-        is ConfirmDetailsUIModel.SwapDetails -> SwapDetailsSummaryItem(
-            model = item.model,
-            onClick = onClick,
-            listPosition = listPosition,
-        )
-
-        is ConfirmDetailsUIModel.PerpetualDetails -> PerpetualDetailsSummaryItem(
+        is GemConfirmDetails.Swap -> SwapDetailsSummaryItem(
             details = item.details,
             onClick = onClick,
             listPosition = listPosition,
         )
 
-        is ConfirmDetailsUIModel.PerpetualModifyAutoclose -> GemListRowView(row = item.row, listPosition = listPosition)
+        is GemConfirmDetails.Perpetual -> PerpetualDetailsSummaryItem(
+            details = item.details,
+            onClick = onClick,
+            listPosition = listPosition,
+        )
+
+        is GemConfirmDetails.PerpetualAutoclose -> GemListRowView(row = item.row, listPosition = listPosition)
     }
 }
 
 @Composable
-private fun ConfirmDetailsSheet(item: ConfirmDetailsUIModel?, onDismiss: () -> Unit) {
+private fun ConfirmDetailsSheet(item: GemConfirmDetails?, onDismiss: () -> Unit) {
     SwapDetailsBottomSheet(
-        isVisible = item is ConfirmDetailsUIModel.SwapDetails,
+        isVisible = item is GemConfirmDetails.Swap,
         isLoading = false,
-        model = (item as? ConfirmDetailsUIModel.SwapDetails)?.model,
+        details = (item as? GemConfirmDetails.Swap)?.details,
         onDismiss = onDismiss,
         showProviderSectionHeader = true,
     )
     PerpetualDetailsBottomSheet(
-        isVisible = item is ConfirmDetailsUIModel.PerpetualDetails,
-        details = (item as? ConfirmDetailsUIModel.PerpetualDetails)?.details,
+        isVisible = item is GemConfirmDetails.Perpetual,
+        details = (item as? GemConfirmDetails.Perpetual)?.details,
         onDismiss = onDismiss,
     )
 }

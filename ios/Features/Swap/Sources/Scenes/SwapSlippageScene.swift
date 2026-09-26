@@ -38,7 +38,7 @@ public struct SwapSlippageScene: View {
                                 .fixedSize(horizontal: true, vertical: false)
                             InfoButton { model.onSelectInfo() }
                             SuffixTextField(
-                                placeholder: model.placeholder,
+                                placeholder: model.viewState.placeholder,
                                 suffix: "%",
                                 text: $model.input,
                                 field: Field.slippage,
@@ -46,7 +46,7 @@ public struct SwapSlippageScene: View {
                             )
                         }
                     } footer: {
-                        if let footer = model.footerText {
+                        if let footer = model.viewState.footer?.text {
                             Text(.init(footer))
                                 .foregroundStyle(Colors.red)
                         }
@@ -60,7 +60,7 @@ public struct SwapSlippageScene: View {
             .safeAreaView {
                 if focusedField == .slippage {
                     SuggestionsAccessoryView(
-                        suggestions: model.suggestions,
+                        suggestions: model.viewState.suggestions,
                         onSelect: { model.onSelect(suggestion: $0) },
                         onDone: { focusedField = nil },
                     )
@@ -73,7 +73,7 @@ public struct SwapSlippageScene: View {
                         model.confirm()
                         dismiss()
                     }
-                    .disabled(model.isConfirmEnabled == false)
+                    .disabled(model.viewState.allowsConfirm == false)
                 }
             }
             .onChange(of: model.isAuto) { _, isAuto in

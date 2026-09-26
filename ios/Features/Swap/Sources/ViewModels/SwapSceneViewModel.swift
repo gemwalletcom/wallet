@@ -9,6 +9,7 @@ import func Gemstone.formattedPercentage
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
 import enum Gemstone.GemSwapButtonAction
+import struct Gemstone.GemSwapDetails
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapQuoteInput
@@ -115,17 +116,20 @@ public final class SwapSceneViewModel {
         Localized.Errors.errorOccurred
     }
 
-    public var swapDetailsViewModel: SwapDetailsViewModel? {
-        let state = viewState
-        guard let details = state.details else { return nil }
-        return SwapDetailsViewModel(
-            state: providersState(state),
-            details: details,
-            allowSelectProvider: state.allowsProviderSelection,
-            swapProviderSelectAction: { [weak self] provider in
-                self?.onFinishSwapProviderSelection(provider)
-            },
-        )
+    var priceImpactWarningTitle: String {
+        Localized.Swap.PriceImpactWarning.title
+    }
+
+    public var swapDetails: GemSwapDetails? {
+        viewState.details
+    }
+
+    public var providers: StateViewType<[GemProviderRow]> {
+        providersState(viewState)
+    }
+
+    public var allowsProviderSelection: Bool {
+        viewState.allowsProviderSelection
     }
 
     var showsSlippageIndicator: Bool {
@@ -276,7 +280,7 @@ extension SwapSceneViewModel {
         isPresentingInfoSheet = .swapDetails
     }
 
-    func onFinishSwapProviderSelection(_ provider: SwapProvider) {
+    public func onFinishSwapProviderSelection(_ provider: SwapProvider) {
         session = session.onProviderSelected(provider: provider)
     }
 
@@ -430,7 +434,7 @@ extension SwapSceneViewModel {
         case .insufficientBalance: break
         case .useMinimumAmount: setMinimumAmount()
         case .swap:
-            if let warningText = swapDetailsViewModel?.highImpactWarningDescription {
+            if let warningText = viewState.details?.priceImpactWarning {
                 isPresentingPriceImpactConfirmation = warningText
                 return
             }

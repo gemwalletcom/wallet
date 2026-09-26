@@ -3,6 +3,9 @@
 import Components
 import Foundation
 import struct Gemstone.GemInfoSheet
+import struct Gemstone.GemProviderRow
+import struct Gemstone.GemSwapDetails
+import enum Gemstone.SwapProvider
 import InfoSheet
 import Localization
 import Primitives
@@ -12,19 +15,30 @@ import SwiftUI
 
 public struct SwapDetailsView: View {
     @Environment(\.dismiss) private var dismiss
-    private let model: SwapDetailsViewModel
+    private let details: GemSwapDetails
+    private let providers: StateViewType<[GemProviderRow]>
+    private let allowSelectProvider: Bool
+    private let onSelectProvider: ((SwapProvider) -> Void)?
 
     @State private var isPresentingProviderSelection = false
     @State private var isRateInverse = false
     @State private var infoSheet: GemInfoSheet?
 
-    public init(model: SwapDetailsViewModel) {
-        self.model = model
+    public init(
+        details: GemSwapDetails,
+        providers: StateViewType<[GemProviderRow]> = .data([]),
+        allowSelectProvider: Bool = false,
+        onSelectProvider: ((SwapProvider) -> Void)? = nil,
+    ) {
+        self.details = details
+        self.providers = providers
+        self.allowSelectProvider = allowSelectProvider
+        self.onSelectProvider = onSelectProvider
     }
 
     public var body: some View {
         VStack {
-            switch model.state {
+            switch providers {
             case .data: listView
             case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
@@ -45,9 +59,11 @@ public struct SwapDetailsView: View {
         }
         .sheet(isPresented: $isPresentingProviderSelection) {
             SelectableListNavigationStack(
-                model: model.swapProvidersViewModel,
+                model: ProvidersViewModel(state: providers.map { .plain($0) }),
                 onFinishSelection: {
-                    model.onFinishSwapProviderSelection(item: $0)
+                    if case let .swap(provider) = $0.first?.kind {
+                        onSelectProvider?(provider)
+                    }
                     isPresentingProviderSelection = false
                 },
                 listContent: { ListItemView(model: $0.listItem) },
@@ -58,8 +74,8 @@ public struct SwapDetailsView: View {
     private var listView: some View {
         List {
             Section {
-                let view = ListItemView(model: model.selectedProviderItem.listItem)
-                if model.allowSelectProvider {
+                let view = ListItemView(model: details.provider.listItem)
+                if allowSelectProvider {
                     NavigationCustomLink(
                         with: view,
                     ) {
@@ -69,19 +85,19 @@ public struct SwapDetailsView: View {
                     view
                 }
             } header: {
-                Text(model.providerTitle)
+                Text(Localized.Common.provider)
                     .listRowInsets(.horizontalMediumInsets)
             }
 
             Section {
-                if let rateText = model.rateText(isInverse: isRateInverse) {
+                if let rateText = details.rateText(isInverse: isRateInverse) {
                     ListItemRotateView(
-                        title: model.rateTitle,
+                        title: Localized.Buy.rate,
                         subtitle: rateText,
                         action: { isRateInverse.toggle() },
                     )
                 }
-                ForEach(Array(model.detailRows.enumerated()), id: \.offset) { _, row in
+                ForEach(Array(details.rows.enumerated()), id: \.offset) { _, row in
                     GemListRowView(row: row, onInfo: { infoSheet = $0.infoSheet })
                 }
             }

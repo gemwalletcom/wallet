@@ -15,14 +15,13 @@ struct SwapSlippageSceneViewModelTests {
 
         #expect(model.isAuto)
         #expect(model.input.isEmpty)
-        #expect(model.placeholder == model.viewState.placeholder)
-        #expect(model.placeholder.isEmpty == false)
+        #expect(model.viewState.placeholder.isEmpty == false)
 
         model.isAuto = false
 
         #expect(model.input.isEmpty)
-        #expect(model.isConfirmEnabled == false)
-        #expect(model.footerText == nil)
+        #expect(model.viewState.allowsConfirm == false)
+        #expect(model.viewState.footer == nil)
     }
 
     @Test
@@ -66,9 +65,9 @@ struct SwapSlippageSceneViewModelTests {
         model.isAuto = false
         model.input = input
 
-        #expect(model.footerText != nil)
+        #expect(model.viewState.footer != nil)
         #expect(model.viewState.footer != .warning)
-        #expect(model.isConfirmEnabled == false)
+        #expect(model.viewState.allowsConfirm == false)
     }
 
     @Test(arguments: ["", "0", "0.", "abc"])
@@ -77,36 +76,36 @@ struct SwapSlippageSceneViewModelTests {
         model.isAuto = false
         model.input = input
 
-        #expect(model.footerText == nil)
-        #expect(model.isConfirmEnabled == false)
+        #expect(model.viewState.footer == nil)
+        #expect(model.viewState.allowsConfirm == false)
     }
 
     @Test
     func confirmEnabledState() {
         let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: 100))
-        #expect(model.isConfirmEnabled)
+        #expect(model.viewState.allowsConfirm)
 
         model.input = "5"
-        #expect(model.isConfirmEnabled)
+        #expect(model.viewState.allowsConfirm)
 
         model.isAuto = true
         model.input = ""
-        #expect(model.isConfirmEnabled)
+        #expect(model.viewState.allowsConfirm)
     }
 
     @Test
     func suggestionsProvideExpectedValues() {
         let model = SwapSlippageSceneViewModel.mock()
 
-        #expect(model.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
-        #expect(model.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
+        #expect(model.viewState.suggestions.map(\.title) == ["0.3%", "0.5%", "3%"])
+        #expect(model.viewState.suggestions.map(\.inputValue) == ["0.3", "0.5", "3"])
     }
 
     @Test
     func onSelectSuggestionUpdatesInput() {
         let model = SwapSlippageSceneViewModel.mock()
         model.isAuto = false
-        model.onSelect(suggestion: model.suggestions[2])
+        model.onSelect(suggestion: model.viewState.suggestions[2])
 
         #expect(model.input == "3")
         #expect(model.viewState.selection == .manual(bps: 300))
@@ -120,6 +119,6 @@ struct SwapSlippageSceneViewModelTests {
         let model = SwapSlippageSceneViewModel.mock(slippage: .manual(bps: bps))
 
         #expect((model.viewState.footer == .warning) == expected)
-        #expect(model.isConfirmEnabled)
+        #expect(model.viewState.allowsConfirm)
     }
 }

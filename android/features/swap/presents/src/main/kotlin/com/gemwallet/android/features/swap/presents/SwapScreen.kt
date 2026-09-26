@@ -35,7 +35,6 @@ fun SwapScreen(
     val pay by viewModel.payAsset.collectAsStateWithLifecycle()
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
 
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
@@ -53,7 +52,6 @@ fun SwapScreen(
         viewState = viewState,
         pay = pay,
         receive = receive,
-        swapDetails = swapDetails,
         payValue = viewModel.payValue,
         receiveValue = viewModel.receiveValue,
         showsSlippageIndicator = selectedSlippage != null,
@@ -84,7 +82,7 @@ fun SwapScreen(
 
     PriceImpactWarningDialog(
         isVisible = isShowPriceImpactAlert,
-        priceImpact = swapDetails?.priceImpact,
+        priceImpact = viewState.details?.summary?.priceImpactRow,
         asset = pay?.asset,
         onDismiss = { isShowPriceImpactAlert = false },
         onContinue = { context.requestAuth(AuthRequest.Confirmation) { viewModel.swap(onConfirm) } },
@@ -92,8 +90,10 @@ fun SwapScreen(
 
     SwapDetailsBottomSheet(
         isVisible = isShowDetails,
-        isLoading = viewState.isQuoteLoading && swapDetails == null,
-        model = swapDetails,
+        isLoading = viewState.isQuoteLoading && viewState.details == null,
+        details = viewState.details,
+        providers = viewState.providers,
+        isProviderSelectable = viewState.allowsProviderSelection,
         onDismiss = { isShowDetails = false },
         expansion = SheetExpansion.Full,
         onProviderSelect = if (!viewState.isTransferLoading) viewModel::setProvider else null,

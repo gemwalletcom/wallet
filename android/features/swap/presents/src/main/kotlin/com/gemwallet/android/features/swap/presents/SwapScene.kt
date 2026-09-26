@@ -33,7 +33,6 @@ import com.gemwallet.android.ui.components.screen.MainActionWidth
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -43,16 +42,7 @@ import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemSwapViewState
 
 @Composable
-internal fun SwapScene(
-    viewState: GemSwapViewState,
-    pay: AssetData?,
-    receive: AssetData?,
-    swapDetails: SwapDetailsUIModel?,
-    payValue: TextFieldState,
-    receiveValue: TextFieldState,
-    showsSlippageIndicator: Boolean,
-    onAction: (SwapAction) -> Unit,
-) {
+internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: AssetData?, payValue: TextFieldState, receiveValue: TextFieldState, showsSlippageIndicator: Boolean, onAction: (SwapAction) -> Unit) {
     val focusManager = LocalFocusManager.current
     fun clearAmountFocus() {
         focusManager.clearFocus(force = true)
@@ -141,8 +131,8 @@ internal fun SwapScene(
                 )
             }
             item {
-                swapDetails?.let {
-                    SwapDetailsSummaryItem(model = it, onClick = { onAction(SwapAction.ShowDetails) })
+                viewState.details?.let {
+                    SwapDetailsSummaryItem(details = it, onClick = { onAction(SwapAction.ShowDetails) })
                 }
             }
 

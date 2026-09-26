@@ -30,9 +30,14 @@ struct SwapNavigationView: View {
                         ),
                     )
                 case .swapDetails:
-                    if let model = model.swapDetailsViewModel {
+                    if let details = model.swapDetails {
                         NavigationStack {
-                            SwapDetailsView(model: model)
+                            SwapDetailsView(
+                                details: details,
+                                providers: model.providers,
+                                allowSelectProvider: model.allowsProviderSelection,
+                                onSelectProvider: model.onFinishSwapProviderSelection,
+                            )
                         }
                         .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }

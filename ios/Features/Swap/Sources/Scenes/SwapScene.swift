@@ -39,7 +39,7 @@ public struct SwapScene: View {
         .safeAreaView {
             bottomActionView
                 .confirmationDialog(
-                    model.swapDetailsViewModel?.highImpactWarningTitle ?? "",
+                    model.priceImpactWarningTitle,
                     presenting: $model.isPresentingPriceImpactConfirmation,
                     sensoryFeedback: .warning,
                     actions: { _ in
@@ -150,9 +150,9 @@ extension SwapScene {
 
     private var additionalInfoSectionView: some View {
         Section {
-            if let swapDetailsViewModel = model.swapDetailsViewModel {
+            if let swapDetails = model.swapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(model: swapDetailsViewModel),
+                    with: SwapDetailsListView(details: swapDetails),
                     action: model.onSelectSwapDetails,
                 )
             }

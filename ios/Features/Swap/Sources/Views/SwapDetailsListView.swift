@@ -1,31 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemSwapDetails
 import Localization
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct SwapDetailsListView: View {
-    private let model: SwapDetailsViewModel
+    private let details: GemSwapDetails
 
-    public init(model: SwapDetailsViewModel) {
-        self.model = model
+    public init(details: GemSwapDetails) {
+        self.details = details
     }
 
     public var body: some View {
         HStack {
-            ListItemView(model: model.detailsListItem)
+            ListItemView(model: ListItemModel(title: Localized.Common.details))
 
             Spacer(minLength: .extraSmall)
 
-            if let rate = model.rateText(isInverse: false) {
+            if let rate = details.rateText(isInverse: false) {
                 HStack(spacing: .tiny) {
                     Text(rate)
                         .textStyle(.calloutSecondary)
-                    if model.shouldShowPriceImpactInDetails, let value = model.priceImpactValue {
+                    if let priceImpact = details.summaryPriceImpact {
                         HStack(spacing: .zero) {
                             Text("(").textStyle(.calloutSecondary)
-                            Text(value).textStyle(model.priceImpactStyle)
+                            Text(priceImpact.text()).textStyle(TextStyle(font: .callout, color: priceImpact.tone.color))
                             Text(")").textStyle(.calloutSecondary)
                         }
                     }

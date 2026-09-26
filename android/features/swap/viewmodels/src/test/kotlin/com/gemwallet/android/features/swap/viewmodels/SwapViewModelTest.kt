@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.swap.viewmodels
 
-import android.content.Context
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
@@ -136,11 +135,6 @@ class SwapViewModelTest {
         swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
         ioDispatcher = testDispatcher,
-        context = mockk<Context> {
-            every { getString(any()) } returns "Error"
-            every { getString(any(), *anyVararg()) } returns "Error"
-        },
-
     ).also { createdViewModels += it }
 
     private fun swapSavedState(from: String = solAsset.id.toIdentifier(), to: String? = usdcAsset.id.toIdentifier()) = SavedStateHandle(
@@ -371,7 +365,7 @@ class SwapViewModelTest {
         quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         advanceUntilIdle()
 
-        assertNull(viewModel.swapDetails.value)
+        assertNull(viewModel.viewState.value.details)
         assertEquals("", viewModel.receiveValue.text.toString())
     }
 
@@ -463,7 +457,7 @@ class SwapViewModelTest {
         seedReadyQuote(viewModel)
         assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
         assertNull(viewModel.viewState.value.error)
-        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
+        assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
 
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
@@ -475,7 +469,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.viewState.value.isTransferLoading)
-        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
+        assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
         assertEquals(0, confirmed.size)
 
         confirmInputGate.complete(Unit)
@@ -501,7 +495,7 @@ class SwapViewModelTest {
         awaitCondition { viewModel.viewState.value.error != null }
 
         assertEquals(GemInfoTopic.NoQuote.infoSheet(), viewModel.viewState.value.error?.info()?.infoSheet())
-        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
+        assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
     }
 
     @Test
@@ -523,7 +517,7 @@ class SwapViewModelTest {
         val state = viewModel.viewState.value
         assertEquals(R.string.wallet_swap, state.buttonAction.stringRes())
         assertEquals(ButtonState.Enabled, state.buttonState.buttonState())
-        assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
+        assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
 
         coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.account.address)
 

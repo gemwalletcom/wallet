@@ -144,7 +144,7 @@ struct SwapSceneViewModelTests {
         #expect(model.viewState.error == nil)
 
         model.session = try #require(model.session.startTransfer())
-        #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
+        #expect(model.allowsProviderSelection == false)
     }
 
     @Test
@@ -346,7 +346,7 @@ struct SwapSceneViewModelTests {
 
         #expect(model.viewState.isQuoteLoading)
         #expect(model.selectedSwapQuote != nil)
-        #expect(model.swapDetailsViewModel != nil)
+        #expect(model.swapDetails != nil)
     }
 
     @Test

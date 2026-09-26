@@ -42,10 +42,6 @@ public final class SwapSlippageSceneViewModel {
         Localized.Swap.slippageAutoDescription
     }
 
-    var placeholder: String {
-        viewState.placeholder
-    }
-
     var isAuto: Bool {
         get { viewState.isAuto }
         set { update(session.onAuto(isAuto: newValue)) }
@@ -54,18 +50,6 @@ public final class SwapSlippageSceneViewModel {
     var input: String {
         get { viewState.input }
         set { update(session.onInput(text: newValue)) }
-    }
-
-    var footerText: String? {
-        viewState.footer?.text
-    }
-
-    var isConfirmEnabled: Bool {
-        viewState.allowsConfirm
-    }
-
-    var suggestions: [GemSlippageSuggestion] {
-        viewState.suggestions
     }
 
     func onSelect(suggestion: GemSlippageSuggestion) {

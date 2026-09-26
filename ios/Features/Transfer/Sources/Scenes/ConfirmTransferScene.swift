@@ -61,9 +61,9 @@ extension ConfirmTransferScene {
                 isEnabled: selectable,
                 action: self.model.onSelectPaymentAsset,
             )
-        case let .swapDetails(model):
+        case let .swapDetails(details):
             NavigationCustomLink(
-                with: SwapDetailsListView(model: model),
+                with: SwapDetailsListView(details: details),
                 action: { self.model.onSelectSwapDetails() },
             )
         case let .perpetualDetails(model):
