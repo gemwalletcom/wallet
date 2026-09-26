@@ -194,11 +194,7 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
     let chain = data.asset.chain;
     let token_id = &data.asset.token_id;
     let contract = &data.collection.contract_address;
-    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemListRow::Identifier {
-        title: GemListRowTitle::Contract,
-        copy: address_copy(chain, contract.clone()),
-        explorer: contract_explorer,
-    });
+    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemListRow::identifier(GemListRowTitle::Contract, address_copy(chain, contract.clone()), contract_explorer));
     let token_text = if token_id.chars().count() > TOKEN_ID_ADDRESS_LENGTH {
         format_address(token_id, Some(chain), AddressFormatStyle::Short)
     } else {
@@ -215,15 +211,15 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
             name: asset_text(&Asset::from_chain(chain)).network_name,
         }),
         contract_row,
-        Some(GemListRow::Identifier {
-            title: GemListRowTitle::TokenId,
-            copy: GemCopy {
+        Some(GemListRow::identifier(
+            GemListRowTitle::TokenId,
+            GemCopy {
                 kind: GemCopyKind::Plain,
                 value: token_id.clone(),
                 display: token_text,
             },
-            explorer: token_explorer,
-        }),
+            token_explorer,
+        )),
     ]
     .into_iter()
     .flatten()
@@ -449,24 +445,24 @@ mod tests {
                     chain: Chain::Ethereum,
                     name: "Ethereum".to_string()
                 },
-                GemListRow::Identifier {
-                    title: GemListRowTitle::Contract,
-                    copy: GemCopy {
+                GemListRow::identifier(
+                    GemListRowTitle::Contract,
+                    GemCopy {
                         kind: GemCopyKind::Address { chain: Chain::Ethereum },
                         value: data.collection.contract_address.clone(),
                         display: "0xdAC17...31ec7".to_string(),
                     },
-                    explorer: Some(link.clone()),
-                },
-                GemListRow::Identifier {
-                    title: GemListRowTitle::TokenId,
-                    copy: GemCopy {
+                    Some(link.clone()),
+                ),
+                GemListRow::identifier(
+                    GemListRowTitle::TokenId,
+                    GemCopy {
                         kind: GemCopyKind::Plain,
                         value: "1".to_string(),
                         display: "#1".to_string(),
                     },
-                    explorer: Some(link),
-                },
+                    Some(link),
+                ),
             ]
         );
 

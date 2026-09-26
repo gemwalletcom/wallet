@@ -26,6 +26,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletSubtitle
@@ -65,36 +66,31 @@ class GemListRowUIModelTest {
     }
 
     @Test
-    fun `an app row opens only the website core gives`() {
-        val withWebsite = GemListRow.App(name = "PancakeSwap", iconUrl = null, websiteUrl = "https://pancakeswap.finance")
-        val withoutWebsite = GemListRow.App(name = "PancakeSwap", iconUrl = null, websiteUrl = null)
-
-        assertEquals(listOf(GemListRowMenuItem.Open("Visit Website", "https://pancakeswap.finance")), withWebsite.menu())
-        assertEquals(emptyList<GemListRowMenuItem>(), withoutWebsite.menu())
-    }
-
-    @Test
-    fun `a wallet row copies its address and opens the explorer`() {
+    fun `menu entries read their titles from core and copy reads Copy`() {
+        every { context.getString(R.string.common_wallet) } returns "Wallet"
+        val website = GemRowMenuItem.Open(title = GemLocalizedText.ViewOn("Etherscan"), url = "https://etherscan.io/address/0x1")
         val row = GemListRow.Wallet(
+            title = GemListRowTitle.WALLET,
             wallet = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin),
-            copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1"),
-            explorer = BlockExplorerLink(name = "Etherscan", link = "https://etherscan.io/address/0x1"),
+            menu = listOf(GemRowMenuItem.Copy(GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1")), website),
         )
 
+        val item = row.uiModel(context) as GemListRowUIModel.Item
+        assertEquals("Wallet", item.model.title)
         assertEquals(
             listOf(
-                GemListRowMenuItem.Copy("Copy Address", "0x1"),
+                GemListRowMenuItem.Copy("Copy", "0x1"),
                 GemListRowMenuItem.Open("View on Etherscan", "https://etherscan.io/address/0x1"),
             ),
-            row.menu(),
+            item.menu,
         )
     }
 
     @Test
-    fun `only a contract identifier opens its address`() {
+    fun `an identifier opens the address core names`() {
         val copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0xcontract", display = "0xcont...ract")
-        val contract = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
-        val tokenId = GemListRow.Identifier(title = GemListRowTitle.TOKEN_ID, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
+        val contract = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null, address = "0xcontract", menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
+        val tokenId = GemListRow.Identifier(title = GemListRowTitle.TOKEN_ID, copy = copy, explorer = null, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
 
         assertEquals("0xcontract", contract.address)
         assertEquals(null, tokenId.address)
@@ -106,12 +102,6 @@ class GemListRowUIModelTest {
 
         assertEquals("cosmosvaloper1", row.contract)
         assertEquals("Validator", row.model.subtitle)
-    }
-
-    @Test
-    fun `a memo row copies only a real memo`() {
-        assertEquals(listOf(GemListRowMenuItem.Copy("Copy", "12345")), GemListRow.Memo(value = "12345", copy = "12345").menu())
-        assertEquals(emptyList<GemListRowMenuItem>(), GemListRow.Memo(value = "-", copy = null).menu())
     }
 
     @Test
@@ -134,7 +124,7 @@ class GemListRowUIModelTest {
     fun `a ranked row carries its rank tag`() {
         every { context.getString(R.string.asset_market_cap) } returns "Market Cap"
 
-        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1.0), 7).uiModel(context) as GemListRowUIModel.Item).model
+        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1.0), "#7").uiModel(context) as GemListRowUIModel.Item).model
 
         assertEquals("Market Cap", model.title)
         assertEquals("#7", model.titleTag)
@@ -146,18 +136,13 @@ class GemListRowUIModelTest {
         val copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0xdAC17F958D2ee523a2206206994597C13D831ec7", display = "0xdAC1...1ec7")
         val explorer = BlockExplorerLink(name = "Etherscan", link = "https://etherscan.io/token/0xdAC17F958D2ee523a2206206994597C13D831ec7")
 
-        val linked = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = explorer).uiModel(context) as GemListRowUIModel.Item
-        val plain = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
+        val linked = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = explorer, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
+        val plain = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
 
         assertEquals("Contract", linked.model.title)
         assertEquals("0xdAC1...1ec7", linked.model.subtitle)
         assertEquals(explorer.link, linked.url)
-        assertEquals(
-            listOf(GemListRowMenuItem.Copy("Copy Address", copy.value), GemListRowMenuItem.Open("View on Etherscan", explorer.link)),
-            linked.menu,
-        )
         assertNull(plain.url)
-        assertEquals(listOf(GemListRowMenuItem.Copy("Copy Address", copy.value)), plain.menu)
     }
 
     @Test
@@ -188,6 +173,4 @@ class GemListRowUIModelTest {
     fun `a missing swap quote opens the no quote sheet`() {
         assertEquals(GemInfoTitle.NoQuote, GemInfoTopic.NoQuote.infoSheet().sheet.title)
     }
-
-    private fun GemListRow.menu(): List<GemListRowMenuItem> = (uiModel(context) as GemListRowUIModel.Item).menu
 }

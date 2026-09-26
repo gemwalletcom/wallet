@@ -17,7 +17,7 @@ import TransferTestKit
 struct ConfirmRowViewModelTests {
     @Test
     func sharedRowsPassThroughAndDetailsDrawNothing() {
-        let memo = GemListRow.memo(value: "test memo", copy: "test memo")
+        let memo = GemListRow.memo(title: .memo, value: "test memo", menu: [])
         guard case let .row(row) = ConfirmRowViewModel(content: .row(row: memo)).itemModel else {
             Issue.record("Expected a shared row")
             return

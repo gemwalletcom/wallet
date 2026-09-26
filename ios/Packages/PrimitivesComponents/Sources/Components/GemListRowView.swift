@@ -5,6 +5,7 @@ import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemRowAction
+import enum Gemstone.GemRowMenuItem
 import Localization
 import Primitives
 import Style
@@ -45,9 +46,9 @@ public struct GemListRowView: View {
 
     @ViewBuilder
     private var content: some View {
-        if case let .identifier(.contract, copy, _) = row, let onSelectAddress {
-            NavigationCustomLink(with: ListItemView(model: ListItemModel(title: GemListRowTitle.contract.text, subtitle: copy.display))) {
-                onSelectAddress(copy.value)
+        if case let .identifier(title, copy, _, address?, _) = row, let onSelectAddress {
+            NavigationCustomLink(with: ListItemView(model: ListItemModel(title: title.text, subtitle: copy.display))) {
+                onSelectAddress(address)
             }
         } else {
             itemContent
@@ -85,27 +86,26 @@ public struct GemListRowView: View {
             SafariNavigationLink(url: url) {
                 ListItemView(model: model)
             }
-        case let .explorerPage(model, context):
-            SafariNavigationLink(url: context.explorerLink.url) {
+        case let .explorerPage(model, url, menu):
+            SafariNavigationLink(url: url) {
                 ListItemView(model: model)
             }
-            .explorerContext(context)
+            .contextMenu(contextMenu(menu))
+            .safariSheet(url: isPresentingUrl)
         case let .external(model, url):
             NavigationCustomLink(with: ListItemView(model: model)) {
                 openURL(url)
             }
         case let .network(title, subtitle, image):
             ListItemImageView(title: title, subtitle: subtitle, assetImage: image)
-        case let .app(model, website):
+        case let .imageMenu(model, menu):
             ListItemImageView(model: model)
-                .contextMenu(website.map { url in [.url(title: Localized.Settings.website, onOpen: { presentation = .url(url) })] } ?? [])
+                .contextMenu(contextMenu(menu))
                 .safariSheet(url: isPresentingUrl)
-        case let .wallet(model, context):
-            ListItemImageView(model: model)
-                .explorerContext(context)
-        case let .memo(model, copy):
+        case let .menu(model, menu):
             ListItemView(model: model)
-                .contextMenu(copy.map { [.copy(value: $0)] } ?? [])
+                .contextMenu(contextMenu(menu))
+                .safariSheet(url: isPresentingUrl)
         case let .social(links):
             SocialLinksView(links: links)
         case let .icon(assetImage):
@@ -122,6 +122,15 @@ public struct GemListRowView: View {
 }
 
 extension GemListRowView {
+    private func contextMenu(_ menu: [GemRowMenuItem]) -> [ContextMenuItemType] {
+        menu.map { item in
+            switch item {
+            case let .copy(copy): .copy(value: copy.value)
+            case let .open(title, url): .url(title: title.text, onOpen: { presentation = URL(string: url).map { .url($0) } })
+            }
+        }
+    }
+
     private var isPresentingUrl: Binding<URL?> {
         Binding(
             get: {

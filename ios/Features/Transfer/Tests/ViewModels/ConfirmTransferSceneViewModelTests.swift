@@ -17,6 +17,7 @@ import enum Gemstone.GemConfirmRowContent
 import struct Gemstone.GemFeeRateRow
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemNameServiceProtocol
+import enum Gemstone.GemRowMenuItem
 import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemTransferData
 import struct Gemstone.PaymentInvoice
@@ -197,12 +198,13 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func appItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock(rows: { _ in [.row(row: .app(name: "Gem Wallet", iconUrl: nil, websiteUrl: "https://gemwallet.com"))] })
+        let website: GemRowMenuItem = .open(title: .rowTitle(title: .website), url: "https://gemwallet.com")
+        let model = ConfirmTransferSceneViewModel.mock(rows: { _ in [.row(row: .app(title: .app, name: "Gem Wallet", iconUrl: nil, menu: [website]))] })
         let appItem = model.itemModel(for: .row(0))
 
-        if case let .row(.app(name, _, websiteUrl)) = appItem {
+        if case let .row(.app(_, name, _, menu)) = appItem {
             #expect(name == "Gem Wallet")
-            #expect(websiteUrl == "https://gemwallet.com")
+            #expect(menu == [website])
         } else {
             Issue.record("Expected app row")
         }
@@ -222,7 +224,7 @@ struct ConfirmTransferSceneViewModelTests {
         let senderItem = model.itemModel(for: .row(0))
 
         let expected = Wallet.mock(accounts: [.mock(chain: GemTransferData.mock().chain)])
-        if case let .row(.wallet(wallet, copy, _)) = senderItem {
+        if case let .row(.wallet(_, wallet, menu)) = senderItem, case let .copy(copy) = menu.first {
             #expect(wallet.name == expected.name)
             #expect(copy.value == expected.accounts[0].address)
         } else {
@@ -543,9 +545,9 @@ struct ConfirmTransferSceneViewModelTests {
         )
         let memoItem = modelWithMemo.itemModel(for: .row(3))
 
-        if case let .row(.memo(value, copy)) = memoItem {
+        if case let .row(.memo(_, value, menu)) = memoItem, case let .copy(copy) = menu.first {
             #expect(value == "Test memo")
-            #expect(copy == "Test memo")
+            #expect(copy.value == "Test memo")
         } else {
             Issue.record("Expected memo row")
         }
@@ -662,11 +664,11 @@ struct ConfirmTransferSceneViewModelTests {
             )),
             rows: { _ in
                 [
-                    .row(row: .app(name: "Gem Wallet", iconUrl: nil, websiteUrl: nil)),
+                    .row(row: .app(title: .app, name: "Gem Wallet", iconUrl: nil, menu: [])),
                     .row(row: .wallet(
+                        title: .wallet,
                         wallet: walletRow(wallet: Wallet.mock().toGem()),
-                        copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1"),
-                        explorer: BlockExplorerLink.mock().toGem(),
+                        menu: [.copy(copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1"))],
                     )),
                     .row(row: .network(title: .network, chain: Chain.ethereum.rawValue, name: "Ethereum")),
                 ]

@@ -3,13 +3,13 @@
 import Components
 import Foundation
 import struct Gemstone.GemAssetIcon
-import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemNoticeKind
 import enum Gemstone.GemRowAction
+import enum Gemstone.GemRowMenuItem
 import struct Gemstone.GemSocialLink
 import enum Gemstone.GemUrlTarget
 import enum Gemstone.GemValueTone
@@ -31,12 +31,11 @@ enum GemListRowItem {
     case picker(ListItemModel, action: GemRowAction)
     case toggle(label: String, action: GemRowAction, isOn: Bool, imageStyle: ListItemImageStyle?)
     case page(ListItemModel, url: URL)
-    case explorerPage(ListItemModel, context: ExplorerContextData)
+    case explorerPage(ListItemModel, url: URL, menu: [GemRowMenuItem])
     case external(ListItemModel, url: URL)
     case network(title: String, subtitle: String, image: AssetImage)
-    case app(ListItemModel, website: URL?)
-    case wallet(ListItemModel, context: ExplorerContextData)
-    case memo(ListItemModel, copy: String?)
+    case imageMenu(ListItemModel, menu: [GemRowMenuItem])
+    case menu(ListItemModel, menu: [GemRowMenuItem])
     case icon(AssetImage)
     case address(AddressRowModel)
     case social([GemSocialLink])
@@ -80,11 +79,11 @@ extension GemListRow {
                     subtitleSuffixStyle: change.map { subtitleStyle($0.tone) } ?? ListItemModel.StyleDefaults.subtitleStyle,
                 ),
             )
-        case let .ranked(title, amount, rank):
+        case let .ranked(title, amount, tag):
             .listItem(
                 ListItemModel(
                     title: title.text,
-                    titleTag: " #\(rank) ",
+                    titleTag: " \(tag) ",
                     titleTagStyle: TextStyle(font: .system(.body), color: Colors.grayLight, background: Colors.grayVeryLight),
                     subtitle: amount.text(),
                 ),
@@ -125,28 +124,25 @@ extension GemListRow {
                 subtitle: name,
                 image: AssetImage(type: .text(.empty), placeholder: ChainImage(chain: Chain(core: chain)).image),
             )
-        case let .app(name, iconUrl, websiteUrl):
-            .app(
+        case let .app(title, name, iconUrl, menu):
+            .imageMenu(
                 ListItemModel(
-                    title: Localized.WalletConnect.app,
+                    title: title.text,
                     subtitle: name,
                     imageStyle: .list(assetImage: iconUrl.map { AssetImage(imageURL: URL(string: $0)) }),
                 ),
-                website: websiteUrl.flatMap { URL(string: $0) },
+                menu: menu,
             )
-        case let .wallet(wallet, copy, explorer):
-            .wallet(
-                ListItemModel(title: Localized.Common.wallet, subtitle: wallet.name, imageStyle: .list(assetImage: wallet.avatarImage)),
-                context: ExplorerContextData(copyValue: copy.copyValue, explorerLink: explorer.toPrimitives()),
-            )
-        case let .memo(value, copy):
-            .memo(ListItemModel(title: Localized.Transfer.memo, subtitle: value), copy: copy)
+        case let .wallet(title, wallet, menu):
+            .imageMenu(ListItemModel(title: title.text, subtitle: wallet.name, imageStyle: .list(assetImage: wallet.avatarImage)), menu: menu)
+        case let .memo(title, value, menu):
+            .menu(ListItemModel(title: title.text, subtitle: value), menu: menu)
         case let .link(title, value, icon, _):
             .listItem(listItem(title: title, value: value, icon: icon))
         case let .picker(title, value, icon, action):
             .picker(listItem(title: title, value: value.text, icon: icon), action: action)
-        case let .toggle(title, value, icon, isOn, action):
-            .toggle(label: toggleLabel(title: title, value: value), action: action, isOn: isOn, imageStyle: icon.imageStyle)
+        case let .toggle(label, icon, isOn, action):
+            .toggle(label: label.text, action: action, isOn: isOn, imageStyle: icon.imageStyle)
         case let .url(title, value, icon, url, target):
             urlItem(title: title, value: value, icon: icon, url: url, target: target)
         case let .social(links):
@@ -162,10 +158,10 @@ extension GemListRow {
                     infoAction: infoAction(info, onInfo: onInfo),
                 ),
             )
-        case let .identifier(title, copy, explorer):
-            identifierItem(title: title, copy: copy, explorer: explorer?.toPrimitives())
-        case let .explorer(name, url):
-            .page(ListItemModel(title: Localized.Transaction.viewOn(name)), url: URL(string: url) ?? BlockExplorerLink(name: name, link: url).url)
+        case let .identifier(title, copy, explorer, _, menu):
+            identifierItem(ListItemModel(title: title.text, subtitle: copy.display), explorer: explorer?.toPrimitives(), menu: menu)
+        case let .explorer(title, url):
+            URL(string: url).map { .page(ListItemModel(title: title.text), url: $0) } ?? .listItem(ListItemModel(title: title.text))
         case let .icon(icon, imageUrl):
             .icon(headerImage(icon: icon, imageUrl: imageUrl))
         case let .avatar(avatar):
@@ -190,21 +186,13 @@ extension GemListRow {
         topic.flatMap { topic in onInfo.map { onInfo in { onInfo(topic) } } }
     }
 
-    private func toggleLabel(title: GemListRowTitle, value: String?) -> String {
-        switch title {
-        case .authentication: value.map { Localized.Settings.enableValue($0) } ?? title.text
-        default: title.text
-        }
-    }
-
     private func listItem(title: GemListRowTitle, value: String?, icon: GemListRowIcon) -> ListItemModel {
         ListItemModel(title: title.text, subtitle: value, imageStyle: icon.imageStyle)
     }
 
-    private func identifierItem(title: GemListRowTitle, copy: GemCopy, explorer: BlockExplorerLink?) -> GemListRowItem {
-        let model = ListItemModel(title: title.text, subtitle: copy.display)
-        guard let explorer else { return .memo(model, copy: copy.value) }
-        return .explorerPage(model, context: ExplorerContextData(copyValue: copy.copyValue, explorerLink: explorer))
+    private func identifierItem(_ model: ListItemModel, explorer: BlockExplorerLink?, menu: [GemRowMenuItem]) -> GemListRowItem {
+        guard let explorer else { return .menu(model, menu: menu) }
+        return .explorerPage(model, url: explorer.url, menu: menu)
     }
 
     private func urlItem(title: GemListRowTitle, value: String?, icon: GemListRowIcon, url: String, target: GemUrlTarget) -> GemListRowItem {

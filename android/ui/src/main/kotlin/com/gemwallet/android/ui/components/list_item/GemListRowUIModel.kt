@@ -23,13 +23,13 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemCopy
-import uniffi.gemstone.GemCopyKind
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemRowAction
+import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemSocialLink
 import uniffi.gemstone.GemValueTone
 import java.time.ZoneId
@@ -96,7 +96,7 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
         ),
     )
 
-    is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = "#$rank"))
+    is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = tag))
 
     is GemListRow.AllTime -> GemListRowUIModel.Item(
         ListItemModel(
@@ -131,23 +131,20 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
     is GemListRow.Network -> GemListRowUIModel.Network(chain.requireChain(), name)
 
     is GemListRow.App -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.wallet_connect_app), subtitle = name),
+        ListItemModel(title = title.text(context), subtitle = name),
         trailingImage = iconUrl?.let { ListItemImage.Url(it) },
-        menu = listOfNotNull(websiteUrl?.let { GemListRowMenuItem.Open(context.getString(R.string.settings_website), it) }),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Wallet -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.common_wallet), subtitle = wallet.name),
+        ListItemModel(title = title.text(context), subtitle = wallet.name),
         trailingImage = wallet.listItemImage(),
-        menu = listOf(
-            GemListRowMenuItem.Copy(context.getString(R.string.wallet_copy_address), copy.value),
-            GemListRowMenuItem.Open(context.getString(R.string.transaction_view_on, explorer.name), explorer.link),
-        ),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Memo -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.transfer_memo), subtitle = value),
-        menu = listOfNotNull(copy?.let { GemListRowMenuItem.Copy(context.getString(R.string.common_copy), it) }),
+        ListItemModel(title = title.text(context), subtitle = value),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Link -> GemListRowUIModel.Item(listItemModel(context, title, value, icon), opensAnotherScreen = true)
@@ -166,14 +163,11 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
     is GemListRow.Identifier -> GemListRowUIModel.Item(
         ListItemModel(title = title.text(context), subtitle = copy.display),
         url = explorer?.link,
-        menu = listOfNotNull(
-            GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value),
-            explorer?.let { GemListRowMenuItem.Open(context.getString(R.string.transaction_view_on, it.name), it.link) },
-        ),
-        address = copy.value.takeIf { title == GemListRowTitle.CONTRACT },
+        menu = menu.map { it.uiModel(context) },
+        address = address,
     )
 
-    is GemListRow.Explorer -> GemListRowUIModel.Item(ListItemModel(title = context.getString(R.string.transaction_view_on, name)), url = url)
+    is GemListRow.Explorer -> GemListRowUIModel.Item(ListItemModel(title = title.string(context)), url = url)
 
     is GemListRow.Error -> GemListRowUIModel.Notice(title = GemListRowTitle.ERROR.text(context), message = error.errorText().text(context), kind = GemNoticeKind.ERROR)
 
@@ -186,10 +180,10 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
     is GemListRow.Address -> GemListRowUIModel.Address(
         address = address,
         copy = copy,
-        menu = listOf(GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value)),
+        menu = listOf(GemRowMenuItem.Copy(copy).uiModel(context)),
     )
 
-    is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), action, isOn)
+    is GemListRow.Toggle -> GemListRowUIModel.Toggle(ListItemModel(title = label.string(context), image = icon.image()), action, isOn)
 
     is GemListRow.Picker -> GemListRowUIModel.Picker(listItemModel(context, title, value.string(context), icon), action)
 
@@ -211,9 +205,9 @@ private fun listItemModel(context: Context, title: GemListRowTitle, value: Strin
     image = icon.image(),
 )
 
-private fun GemCopyKind.copyTitleRes(): Int = when (this) {
-    is GemCopyKind.Address -> R.string.wallet_copy_address
-    GemCopyKind.Plain, GemCopyKind.SecretPhrase, GemCopyKind.PrivateKey -> R.string.common_copy
+private fun GemRowMenuItem.uiModel(context: Context): GemListRowMenuItem = when (this) {
+    is GemRowMenuItem.Copy -> GemListRowMenuItem.Copy(context.getString(R.string.common_copy), copy.value)
+    is GemRowMenuItem.Open -> GemListRowMenuItem.Open(title.string(context), url)
 }
 
 private fun GemValueTone.subtitleStyle(): ListItemTextStyle = when (this) {

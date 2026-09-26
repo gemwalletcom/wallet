@@ -191,7 +191,7 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             })
         }),
         rows.participant.is_some().then_some(Participant),
-        rows.memo.clone().filter(|memo| !memo.is_empty()).map(|memo| list(GemListRow::Memo { value: memo.clone(), copy: Some(memo) })),
+        rows.memo.clone().filter(|memo| !memo.is_empty()).map(|memo| list(GemListRow::memo(memo.clone(), Some(memo)))),
         rows.resource.map(|resource| {
             list(GemListRow::Label {
                 title: GemListRowTitle::Resource,
@@ -241,10 +241,7 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
         rows.swap_again.is_some().then_some(SwapAgain).into_iter().collect(),
         details.into_iter().flatten().collect(),
         vec![Fee],
-        vec![list(GemListRow::Explorer {
-            name: rows.explorer.name.clone(),
-            url: rows.explorer.link.clone(),
-        })],
+        vec![list(GemListRow::explorer(&rows.explorer))],
     ]
     .into_iter()
     .filter(|rows| !rows.is_empty())

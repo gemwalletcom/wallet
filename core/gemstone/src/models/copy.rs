@@ -35,6 +35,16 @@ pub struct GemCopy {
     pub display: String,
 }
 
+impl GemCopy {
+    pub fn plain(value: String) -> Self {
+        Self {
+            kind: GemCopyKind::Plain,
+            display: value.clone(),
+            value,
+        }
+    }
+}
+
 impl fmt::Debug for GemCopy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.kind.is_sensitive() {

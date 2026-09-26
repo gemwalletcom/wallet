@@ -114,13 +114,7 @@ pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
         ),
         section(
             [
-                Some(GemListRow::Toggle {
-                    title: GemListRowTitle::Perpetuals,
-                    value: None,
-                    icon: GemListRowIcon::Perpetuals,
-                    is_on: input.perpetuals_enabled,
-                    action: GemRowAction::Perpetuals,
-                }),
+                Some(GemListRow::toggle(GemListRowTitle::Perpetuals, GemListRowIcon::Perpetuals, input.perpetuals_enabled, GemRowAction::Perpetuals)),
                 input
                     .perpetuals_enabled
                     .then(|| picker(GemListRowTitle::PerpetualLeverage, label(&pickers.leverage, input.perpetual_defaults.leverage), GemRowAction::PerpetualLeverage)),
@@ -149,13 +143,7 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
         rows: vec![row],
     };
     vec![
-        section(GemListRow::Toggle {
-            title: GemListRowTitle::Notifications,
-            value: None,
-            icon: GemListRowIcon::None,
-            is_on: push_enabled,
-            action: GemRowAction::PushNotifications,
-        }),
+        section(GemListRow::toggle(GemListRowTitle::Notifications, GemListRowIcon::None, push_enabled, GemRowAction::PushNotifications)),
         section(GemListRow::Link {
             title: GemListRowTitle::PriceAlerts,
             value: None,
@@ -166,21 +154,17 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
 }
 
 pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
-    let toggle = |title: GemListRowTitle, is_on: bool, action: GemRowAction| GemListRow::Toggle {
-        title,
-        value: None,
-        icon: GemListRowIcon::None,
-        is_on,
-        action,
-    };
+    let toggle = |title: GemListRowTitle, is_on: bool, action: GemRowAction| GemListRow::toggle(title, GemListRowIcon::None, is_on, action);
     vec![
         GemListSection {
             title: GemListSectionTitle::None,
             footer: GemListSectionFooter::Authentication,
             rows: [
                 Some(GemListRow::Toggle {
-                    title: GemListRowTitle::Authentication,
-                    value: input.authentication_name,
+                    label: match input.authentication_name {
+                        Some(value) => GemLocalizedText::EnableValue { value },
+                        None => GemLocalizedText::RowTitle { title: GemListRowTitle::Authentication },
+                    },
                     icon: GemListRowIcon::None,
                     is_on: input.authentication_enabled,
                     action: GemRowAction::Authentication,
@@ -319,13 +303,7 @@ mod tests {
         assert_eq!(
             sections.iter().map(|section| section.rows.clone()).collect::<Vec<_>>(),
             vec![
-                vec![GemListRow::Toggle {
-                    title: GemListRowTitle::Notifications,
-                    value: None,
-                    icon: GemListRowIcon::None,
-                    is_on: true,
-                    action: GemRowAction::PushNotifications,
-                }],
+                vec![GemListRow::toggle(GemListRowTitle::Notifications, GemListRowIcon::None, true, GemRowAction::PushNotifications)],
                 vec![GemListRow::Link {
                     title: GemListRowTitle::PriceAlerts,
                     value: None,
@@ -355,13 +333,7 @@ mod tests {
     fn test_the_perpetual_defaults_show_only_once_perpetuals_are_on() {
         assert_eq!(
             preferences_sections(preferences_input(false, Some("English"))).last().map(|section| section.rows.clone()),
-            Some(vec![GemListRow::Toggle {
-                title: GemListRowTitle::Perpetuals,
-                value: None,
-                icon: GemListRowIcon::Perpetuals,
-                is_on: false,
-                action: GemRowAction::Perpetuals,
-            }])
+            Some(vec![GemListRow::toggle(GemListRowTitle::Perpetuals, GemListRowIcon::Perpetuals, false, GemRowAction::Perpetuals)])
         );
         assert_eq!(
             preferences_sections(preferences_input(true, Some("English")))
@@ -434,9 +406,13 @@ mod tests {
             Some(1),
             "a device without authentication offers only the switch that turns it on"
         );
+        assert!(
+            matches!(security_sections(input(true)).first().and_then(|section| section.rows.first()), Some(GemListRow::Toggle { label: GemLocalizedText::EnableValue { value }, .. }) if value == "Face ID"),
+            "the switch names the method it turns on"
+        );
         assert_eq!(
             security_sections(input(true)).first().map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
-            Some(vec![GemListRowTitle::Authentication, GemListRowTitle::LockPeriod, GemListRowTitle::PrivacyLock])
+            Some(vec![GemListRowTitle::LockPeriod, GemListRowTitle::PrivacyLock])
         );
         assert_eq!(
             security_sections(GemSecurityInput {
@@ -445,18 +421,12 @@ mod tests {
             })
             .first()
             .map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
-            Some(vec![GemListRowTitle::Authentication, GemListRowTitle::LockPeriod]),
+            Some(vec![GemListRowTitle::LockPeriod]),
             "a platform without a privacy lock drops that row"
         );
         assert_eq!(
             security_sections(input(true)).last().map(|section| section.rows.clone()),
-            Some(vec![GemListRow::Toggle {
-                title: GemListRowTitle::HideBalance,
-                value: None,
-                icon: GemListRowIcon::None,
-                is_on: false,
-                action: GemRowAction::HideBalance,
-            }]),
+            Some(vec![GemListRow::toggle(GemListRowTitle::HideBalance, GemListRowIcon::None, false, GemRowAction::HideBalance)]),
             "hiding the balance is its own choice, not part of the lock"
         );
     }
@@ -562,13 +532,16 @@ mod tests {
             | GemListRow::Date { title, .. }
             | GemListRow::Network { title, .. }
             | GemListRow::Url { title, .. }
-            | GemListRow::Toggle { title, .. }
             | GemListRow::Picker { title, .. }
             | GemListRow::Lines { title, .. }
-            | GemListRow::Provider { title, .. } => Some(*title),
-            GemListRow::App { .. }
-            | GemListRow::Wallet { .. }
-            | GemListRow::Memo { .. }
+            | GemListRow::Provider { title, .. }
+            | GemListRow::App { title, .. }
+            | GemListRow::Wallet { title, .. }
+            | GemListRow::Memo { title, .. } => Some(*title),
+            GemListRow::Toggle {
+                label: GemLocalizedText::RowTitle { title }, ..
+            } => Some(*title),
+            GemListRow::Toggle { .. }
             | GemListRow::Social { .. }
             | GemListRow::Icon { .. }
             | GemListRow::Avatar { .. }

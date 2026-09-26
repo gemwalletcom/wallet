@@ -136,6 +136,8 @@ pub enum GemListRowTitle {
     AllTimeHigh,
     AllTimeLow,
     Wallet,
+    App,
+    Memo,
     Contract,
     TokenId,
     Collection,
@@ -311,7 +313,7 @@ pub enum GemListRow {
     Ranked {
         title: GemListRowTitle,
         amount: GemFormattedNumber,
-        rank: i32,
+        tag: String,
     },
     AllTime {
         title: GemListRowTitle,
@@ -342,18 +344,20 @@ pub enum GemListRow {
         name: String,
     },
     App {
+        title: GemListRowTitle,
         name: String,
         icon_url: Option<String>,
-        website_url: Option<String>,
+        menu: Vec<GemRowMenuItem>,
     },
     Wallet {
+        title: GemListRowTitle,
         wallet: GemWalletRow,
-        copy: GemCopy,
-        explorer: BlockExplorerLink,
+        menu: Vec<GemRowMenuItem>,
     },
     Memo {
+        title: GemListRowTitle,
         value: String,
-        copy: Option<String>,
+        menu: Vec<GemRowMenuItem>,
     },
     Link {
         title: GemListRowTitle,
@@ -369,8 +373,7 @@ pub enum GemListRow {
         target: GemUrlTarget,
     },
     Toggle {
-        title: GemListRowTitle,
-        value: Option<String>,
+        label: GemLocalizedText,
         icon: GemListRowIcon,
         is_on: bool,
         action: GemRowAction,
@@ -400,13 +403,15 @@ pub enum GemListRow {
         copy: GemCopy,
     },
     Explorer {
-        name: String,
+        title: GemLocalizedText,
         url: String,
     },
     Identifier {
         title: GemListRowTitle,
         copy: GemCopy,
         explorer: Option<BlockExplorerLink>,
+        address: Option<String>,
+        menu: Vec<GemRowMenuItem>,
     },
     Lines {
         title: GemListRowTitle,
@@ -417,6 +422,85 @@ pub enum GemListRow {
     Error {
         error: GemServiceError,
     },
+}
+
+/// An entry of a row's long-press menu; a copy entry reads "Copy" on both apps.
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemRowMenuItem {
+    Copy { copy: GemCopy },
+    Open { title: GemLocalizedText, url: String },
+}
+
+impl GemRowMenuItem {
+    fn view_on(explorer: &BlockExplorerLink) -> Self {
+        Self::Open {
+            title: GemLocalizedText::ViewOn { name: explorer.name.clone() },
+            url: explorer.link.clone(),
+        }
+    }
+}
+
+impl GemListRow {
+    pub fn app(name: String, icon_url: Option<String>, website_url: Option<String>) -> Self {
+        Self::App {
+            title: GemListRowTitle::App,
+            name,
+            icon_url,
+            menu: website_url
+                .map(|url| GemRowMenuItem::Open {
+                    title: GemLocalizedText::RowTitle { title: GemListRowTitle::Website },
+                    url,
+                })
+                .into_iter()
+                .collect(),
+        }
+    }
+
+    pub fn wallet(wallet: GemWalletRow, copy: GemCopy, explorer: BlockExplorerLink) -> Self {
+        Self::Wallet {
+            title: GemListRowTitle::Wallet,
+            wallet,
+            menu: vec![GemRowMenuItem::Copy { copy }, GemRowMenuItem::view_on(&explorer)],
+        }
+    }
+
+    pub fn memo(value: String, copy: Option<String>) -> Self {
+        Self::Memo {
+            title: GemListRowTitle::Memo,
+            value,
+            menu: copy.map(|value| GemRowMenuItem::Copy { copy: GemCopy::plain(value) }).into_iter().collect(),
+        }
+    }
+
+    pub fn identifier(title: GemListRowTitle, copy: GemCopy, explorer: Option<BlockExplorerLink>) -> Self {
+        Self::Identifier {
+            address: (title == GemListRowTitle::Contract).then(|| copy.value.clone()),
+            menu: [Some(GemRowMenuItem::Copy { copy: copy.clone() }), explorer.as_ref().map(GemRowMenuItem::view_on)].into_iter().flatten().collect(),
+            title,
+            copy,
+            explorer,
+        }
+    }
+
+    pub fn explorer(explorer: &BlockExplorerLink) -> Self {
+        Self::Explorer {
+            title: GemLocalizedText::ViewOn { name: explorer.name.clone() },
+            url: explorer.link.clone(),
+        }
+    }
+
+    pub fn ranked(title: GemListRowTitle, amount: GemFormattedNumber, rank: i32) -> Self {
+        Self::Ranked { title, amount, tag: format!("#{rank}") }
+    }
+
+    pub fn toggle(title: GemListRowTitle, icon: GemListRowIcon, is_on: bool, action: GemRowAction) -> Self {
+        Self::Toggle {
+            label: GemLocalizedText::RowTitle { title },
+            icon,
+            is_on,
+            action,
+        }
+    }
 }
 
 #[uniffi::export]

@@ -65,7 +65,7 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        guard case let .wallet(row, _, _) = viewModel.rows.first else {
+        guard case let .wallet(_, row, _) = viewModel.rows.first else {
             Issue.record("expected the wallet row first without a header")
             return
         }

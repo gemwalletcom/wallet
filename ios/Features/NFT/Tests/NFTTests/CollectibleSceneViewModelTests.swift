@@ -77,7 +77,7 @@ struct CollectibleSceneViewModelTests {
         #expect(sections.count == 4)
         #expect(sections.map(\.title) == [.none, .none, .properties, .socialLinks])
         #expect(model.details.isVerified == false)
-        guard case let .info(rows) = sections[1].section, case let .identifier(title, copy, explorer) = try #require(rows.last) else {
+        guard case let .info(rows) = sections[1].section, case let .identifier(title, copy, explorer, _, _) = try #require(rows.last) else {
             Issue.record("expected the token id row to close the info section")
             return
         }

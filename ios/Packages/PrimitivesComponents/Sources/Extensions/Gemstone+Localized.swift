@@ -125,6 +125,12 @@ public extension GemLocalizedText {
             }
         case let .text(text):
             text
+        case let .rowTitle(title):
+            title.text
+        case let .enableValue(value):
+            Localized.Settings.enableValue(value)
+        case let .viewOn(name):
+            Localized.Transaction.viewOn(name)
         case let .number(number):
             number.text()
         case .none:
@@ -837,6 +843,8 @@ public extension GemListRowTitle {
         case .allTimeHigh: Localized.Asset.allTimeHigh
         case .allTimeLow: Localized.Asset.allTimeLow
         case .wallet: Localized.Common.wallet
+        case .app: Localized.WalletConnect.app
+        case .memo: Localized.Transfer.memo
         case .contract: Localized.Asset.contract
         case .tokenId: Localized.Asset.tokenId
         case .collection: Localized.Nft.collection

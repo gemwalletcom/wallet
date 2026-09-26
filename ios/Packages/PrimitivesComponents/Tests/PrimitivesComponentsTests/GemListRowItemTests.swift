@@ -6,6 +6,7 @@ import func Gemstone.addressCopy
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
+import enum Gemstone.GemRowMenuItem
 import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -84,47 +85,43 @@ struct GemListRowItemTests {
     }
 
     @Test
-    func anAppRowOpensItsWebsite() {
-        guard case let .app(model, website) = GemListRow.app(name: "PancakeSwap", iconUrl: nil, websiteUrl: "https://pancakeswap.finance").item(onInfo: nil) else {
+    func anAppRowCarriesItsWebsiteMenu() {
+        let website: GemRowMenuItem = .open(title: .rowTitle(title: .website), url: "https://pancakeswap.finance")
+        guard case let .imageMenu(model, menu) = GemListRow.app(title: .app, name: "PancakeSwap", iconUrl: nil, menu: [website]).item(onInfo: nil) else {
             Issue.record("Expected an app row")
             return
         }
         #expect(model.title == Localized.WalletConnect.app)
         #expect(model.subtitle == "PancakeSwap")
-        #expect(website == URL(string: "https://pancakeswap.finance"))
+        #expect(menu == [website])
     }
 
     @Test
-    func aWalletRowCarriesItsExplorerContext() {
+    func aWalletRowCarriesItsMenu() {
         let wallet = Wallet.mock()
-        let row = GemListRow.wallet(
-            wallet: walletRow(wallet: wallet.toGem()),
-            copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1"),
-            explorer: BlockExplorerLink.mock().toGem(),
-        )
-        guard case let .wallet(model, context) = row.item(onInfo: nil) else {
+        let menu: [GemRowMenuItem] = [
+            .copy(copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1")),
+            .open(title: .viewOn(name: "Etherscan"), url: "https://etherscan.io/address/0x1"),
+        ]
+        guard case let .imageMenu(model, rowMenu) = GemListRow.wallet(title: .wallet, wallet: walletRow(wallet: wallet.toGem()), menu: menu).item(onInfo: nil) else {
             Issue.record("Expected a wallet row")
             return
         }
         #expect(model.title == Localized.Common.wallet)
         #expect(model.subtitle == wallet.name)
         #expect(model.imageStyle != nil)
-        #expect(context == ExplorerContextData(copyValue: .address(value: "0x1", chain: .ethereum), explorerLink: .mock()))
+        #expect(rowMenu == menu)
     }
 
     @Test
-    func aMemoRowCopiesOnlyARealMemo() {
-        guard case let .memo(model, copy) = GemListRow.memo(value: "12345", copy: "12345").item(onInfo: nil),
-              case let .memo(placeholder, noCopy) = GemListRow.memo(value: "-", copy: nil).item(onInfo: nil)
-        else {
-            Issue.record("Expected memo rows")
+    func aMemoRowReadsItsTitleFromCore() {
+        guard case let .menu(model, menu) = GemListRow.memo(title: .memo, value: "12345", menu: []).item(onInfo: nil) else {
+            Issue.record("Expected a memo row")
             return
         }
         #expect(model.title == Localized.Transfer.memo)
         #expect(model.subtitle == "12345")
-        #expect(copy == "12345")
-        #expect(placeholder.subtitle == "-")
-        #expect(noCopy == nil)
+        #expect(menu.isEmpty)
     }
 
     @Test
@@ -171,7 +168,7 @@ struct GemListRowItemTests {
         guard case let .listItem(model) = GemListRow.ranked(
             title: .marketCap,
             amount: .mock(value: 1_000_000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
-            rank: 7,
+            tag: "#7",
         ).item(onInfo: nil) else {
             Issue.record("Expected a list item")
             return
@@ -203,18 +200,19 @@ struct GemListRowItemTests {
     func anIdentifierOpensTheExplorerOnlyWhenCoreGivesALink() {
         let copy = addressCopy(chain: Chain.ethereum.rawValue, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7")
         let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/token/0xdAC17F958D2ee523a2206206994597C13D831ec7")
-        guard case let .explorerPage(model, context) = GemListRow.identifier(title: .contract, copy: copy, explorer: link.toGem()).item(onInfo: nil),
-              case let .memo(plain, copyValue) = GemListRow.identifier(title: .tokenId, copy: copy, explorer: nil).item(onInfo: nil)
+        let menu: [GemRowMenuItem] = [.copy(copy: copy)]
+        guard case let .explorerPage(model, url, _) = GemListRow.identifier(title: .contract, copy: copy, explorer: link.toGem(), address: copy.value, menu: menu).item(onInfo: nil),
+              case let .menu(plain, plainMenu) = GemListRow.identifier(title: .tokenId, copy: copy, explorer: nil, address: nil, menu: menu).item(onInfo: nil)
         else {
             Issue.record("Expected an explorer page and a copyable row")
             return
         }
         #expect(model.title == Localized.Asset.contract)
         #expect(model.subtitle == copy.display)
-        #expect(context.explorerLink == link)
+        #expect(url == link.url)
         #expect(plain.title == Localized.Asset.tokenId)
         #expect(plain.subtitle == copy.display)
-        #expect(copyValue == copy.value)
+        #expect(plainMenu == menu)
     }
 
     @Test

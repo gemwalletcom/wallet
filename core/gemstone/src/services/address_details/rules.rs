@@ -97,10 +97,7 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
             section(info),
         ])
         .chain(balances)
-        .chain(once(section(vec![GemListRow::Explorer {
-            name: details.link.name.clone(),
-            url: details.link.link.clone(),
-        }])))
+        .chain(once(section(vec![GemListRow::explorer(&details.link)])))
         .collect()
 }
 

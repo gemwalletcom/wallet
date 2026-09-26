@@ -225,6 +225,12 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.Text -> text
 
+    is GemLocalizedText.RowTitle -> title.text(context)
+
+    is GemLocalizedText.EnableValue -> context.getString(R.string.settings_enable_value, value)
+
+    is GemLocalizedText.ViewOn -> context.getString(R.string.transaction_view_on, name)
+
     is GemLocalizedText.Number -> number.text()
 
     GemLocalizedText.None -> context.getString(R.string.common_none)
@@ -735,6 +741,8 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.ALL_TIME_HIGH -> context.getString(R.string.asset_all_time_high)
     GemListRowTitle.ALL_TIME_LOW -> context.getString(R.string.asset_all_time_low)
     GemListRowTitle.WALLET -> context.getString(R.string.common_wallet)
+    GemListRowTitle.APP -> context.getString(R.string.wallet_connect_app)
+    GemListRowTitle.MEMO -> context.getString(R.string.transfer_memo)
     GemListRowTitle.CONTRACT -> context.getString(R.string.asset_contract)
     GemListRowTitle.TOKEN_ID -> context.getString(R.string.asset_token_id)
     GemListRowTitle.COLLECTION -> context.getString(R.string.nft_collection)

@@ -119,11 +119,7 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
     let rank = market.market_cap_rank.filter(|rank| (1..=MARKET_CAP_RANK_BADGE_LIMIT).contains(rank));
     available_rows([
         market.market_cap.map(|market_cap| match rank {
-            Some(rank) => GemListRow::Ranked {
-                title: GemListRowTitle::MarketCap,
-                amount: value(market_cap),
-                rank,
-            },
+            Some(rank) => GemListRow::ranked(GemListRowTitle::MarketCap, value(market_cap), rank),
             None => amount_row(GemListRowTitle::MarketCap, value(market_cap), None),
         }),
         market.market_cap_fdv.map(|fdv| amount_row(GemListRowTitle::FullyDilutedValuation, value(fdv), Some(GemInfoTopic::FullyDilutedValuation))),
@@ -133,11 +129,7 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
 
 fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<GemListRow> {
     let token_id = asset.id.token_id.clone()?;
-    Some(GemListRow::Identifier {
-        title: GemListRowTitle::Contract,
-        copy: address_copy(asset.chain(), token_id),
-        explorer,
-    })
+    Some(GemListRow::identifier(GemListRowTitle::Contract, address_copy(asset.chain(), token_id), explorer))
 }
 
 fn supply_section(market: &AssetMarket, symbol: &str) -> Vec<GemListRow> {
@@ -476,11 +468,7 @@ mod tests {
     }
 
     fn contract(token: &Asset, explorer: Option<BlockExplorerLink>) -> GemListRow {
-        GemListRow::Identifier {
-            title: GemListRowTitle::Contract,
-            copy: address_copy(token.chain(), token.id.token_id.clone().unwrap()),
-            explorer,
-        }
+        GemListRow::identifier(GemListRowTitle::Contract, address_copy(token.chain(), token.id.token_id.clone().unwrap()), explorer)
     }
 
     #[test]
@@ -499,7 +487,7 @@ mod tests {
                         GemListRow::Ranked {
                             title: GemListRowTitle::MarketCap,
                             amount: usd(100.0),
-                            rank: 1
+                            tag: "#1".to_string()
                         },
                         amount(GemListRowTitle::FullyDilutedValuation, usd(120.0), Some(GemInfoTopic::FullyDilutedValuation)),
                         amount(GemListRowTitle::TradingVolume, usd(10.0), None),
@@ -552,7 +540,7 @@ mod tests {
             GemListRow::Ranked {
                 title: GemListRowTitle::MarketCap,
                 amount: usd(100.0),
-                rank: 1000
+                tag: "#1000".to_string()
             }
         );
         assert_eq!(rank(MARKET_CAP_RANK_BADGE_LIMIT + 1), amount(GemListRowTitle::MarketCap, usd(100.0), None));

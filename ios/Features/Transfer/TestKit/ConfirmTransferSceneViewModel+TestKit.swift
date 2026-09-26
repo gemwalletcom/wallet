@@ -5,6 +5,7 @@ import struct Gemstone.AddressName
 import class Gemstone.GemAddressService
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmRowContent
+import struct Gemstone.GemCopy
 import enum Gemstone.GemSubmitResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
@@ -29,10 +30,14 @@ public extension ConfirmTransferSceneViewModel {
     ) -> ConfirmTransferSceneViewModel {
         let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
         let rows = rows ?? { addressName in
+            let explorer = BlockExplorerLink.mock()
             let walletContent: GemConfirmRowContent = .row(row: .wallet(
+                title: .wallet,
                 wallet: walletRow(wallet: wallet.toGem()),
-                copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address),
-                explorer: BlockExplorerLink.mock().toGem(),
+                menu: [
+                    .copy(copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address)),
+                    .open(title: .viewOn(name: explorer.name), url: explorer.link),
+                ],
             ))
             let recipient: GemConfirmRowContent = .recipient(
                 destination: .recipient(name: addressName?.name, address: data.recipient.address),
@@ -46,7 +51,7 @@ public extension ConfirmTransferSceneViewModel {
                 isSelectable: true,
             )
             let network: GemConfirmRowContent = .row(row: .network(title: .network, chain: data.chain.rawValue, name: data.chain.rawValue))
-            let memo: GemConfirmRowContent? = data.recipient.memo.map { .row(row: .memo(value: $0, copy: $0)) }
+            let memo: GemConfirmRowContent? = data.recipient.memo.map { .row(row: .memo(title: .memo, value: $0, menu: [.copy(copy: GemCopy(kind: .plain, value: $0, display: $0))])) }
             return [walletContent, recipient, network, memo, .details].compactMap(\.self)
         }
         return ConfirmTransferSceneViewModel(

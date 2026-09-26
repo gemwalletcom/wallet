@@ -1,5 +1,6 @@
 import Components
 import Foundation
+import struct Gemstone.GemCopy
 import enum Gemstone.GemListRow
 import enum Gemstone.GemTransactionDetailRow
 import enum Gemstone.GemTransactionHeaderAction
@@ -189,7 +190,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func memoItemModel() {
         let withMemo = listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "Test memo"))
-        #expect(withMemo.contains(.memo(value: "Test memo", copy: "Test memo")))
+        #expect(withMemo.contains(.memo(title: .memo, value: "Test memo", menu: [.copy(copy: GemCopy(kind: .plain, value: "Test memo", display: "Test memo"))])))
 
         #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: nil)).contains { kind($0) == "memo" } == false)
         #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "")).contains { kind($0) == "memo" } == false)
@@ -219,7 +220,7 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func explorerLinkItemModel() {
-        #expect(listRows(TransactionSceneViewModel.mock(id: .mock(hash: "1"))).contains(.explorer(name: "Blockchair", url: "https://blockchair.com/bitcoin/transaction/1")))
+        #expect(listRows(TransactionSceneViewModel.mock(id: .mock(hash: "1"))).contains(.explorer(title: .viewOn(name: "Blockchair"), url: "https://blockchair.com/bitcoin/transaction/1")))
     }
 
     @Test

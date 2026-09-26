@@ -587,19 +587,11 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                     _ => None,
                 };
                 GemConfirmRowContent::Row {
-                    row: GemListRow::App {
-                        name,
-                        icon_url: metadata.and_then(application::icon_url),
-                        website_url: metadata.map(|metadata| metadata.url.clone()).filter(|url| !url.is_empty()),
-                    },
+                    row: GemListRow::app(name, metadata.and_then(application::icon_url), metadata.map(|metadata| metadata.url.clone()).filter(|url| !url.is_empty())),
                 }
             }),
             GemConfirmRow::Sender => wallet.account(chain).map(|account| GemConfirmRowContent::Row {
-                row: GemListRow::Wallet {
-                    wallet: wallet_row(wallet.clone()),
-                    copy: address_copy(chain, account.address.clone()),
-                    explorer: address_url(chain, account.address.clone()),
-                },
+                row: GemListRow::wallet(wallet_row(wallet.clone()), address_copy(chain, account.address.clone()), address_url(chain, account.address.clone())),
             }),
             GemConfirmRow::Recipient => transfer.destination().map(|destination| {
                 let destination = destination.with_address_name(address_name.clone());
@@ -636,10 +628,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
             GemConfirmRow::Memo => {
                 let memo = transfer.recipient.memo.clone().filter(|memo| !memo.trim().is_empty());
                 Some(GemConfirmRowContent::Row {
-                    row: GemListRow::Memo {
-                        value: text_or_placeholder(memo.as_deref()),
-                        copy: memo,
-                    },
+                    row: GemListRow::memo(text_or_placeholder(memo.as_deref()), memo),
                 })
             }
             GemConfirmRow::Details => Some(GemConfirmRowContent::Details),
@@ -699,6 +688,8 @@ pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::copy::GemCopy;
+    use crate::models::list::GemRowMenuItem;
 
     #[test]
     fn test_the_confirm_screen_lists_its_blocks_in_one_order() {
@@ -1752,7 +1743,7 @@ mod tests {
         let contents = confirm_row_contents(&GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }), Wallet::mock(), None, link);
         assert!(matches!(
             &contents[0],
-            GemConfirmRowContent::Row { row: GemListRow::Wallet { copy, explorer, .. } } if copy.value == "address" && explorer.link == "address"
+            GemConfirmRowContent::Row { row: GemListRow::Wallet { menu, .. } } if matches!(menu.as_slice(), [GemRowMenuItem::Copy { copy }, GemRowMenuItem::Open { url, .. }] if copy.value == "address" && url == "address")
         ));
         assert!(matches!(&contents[1], GemConfirmRowContent::Recipient { link, chain: Chain::Ethereum, .. } if link.link == "recipient"));
         assert!(matches!(
@@ -1777,11 +1768,20 @@ mod tests {
         assert_eq!(
             memo_row(&solana),
             Some(GemListRow::Memo {
+                title: GemListRowTitle::Memo,
                 value: "memo".to_string(),
-                copy: Some("memo".to_string()),
+                menu: vec![GemRowMenuItem::Copy { copy: GemCopy::plain("memo".to_string()) }],
             })
         );
-        assert_eq!(memo_row(&without_memo), Some(GemListRow::Memo { value: "-".to_string(), copy: None }));
+        assert_eq!(
+            memo_row(&without_memo),
+            Some(GemListRow::Memo {
+                title: GemListRowTitle::Memo,
+                value: "-".to_string(),
+                menu: vec![]
+            }),
+            "a placeholder memo has nothing to copy"
+        );
 
         let dapp = confirm_row_contents(
             &GemTransferData::mock(TransactionInputType::Generic {
@@ -1795,7 +1795,7 @@ mod tests {
         );
         assert!(dapp.iter().any(|content| matches!(
             content,
-            GemConfirmRowContent::Row { row: GemListRow::App { website_url: Some(url), .. } } if url == "https://example.com"
+            GemConfirmRowContent::Row { row: GemListRow::App { menu, .. } } if matches!(menu.as_slice(), [GemRowMenuItem::Open { url, .. }] if url == "https://example.com")
         )));
     }
 

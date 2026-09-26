@@ -72,7 +72,7 @@ impl GemAddAssetSession {
                 text(GemListRowTitle::Decimals, asset.decimals.to_string()),
                 text(GemListRowTitle::Type, asset.asset_type.as_ref().to_string()),
             ]))
-            .chain(explorer.map(|link| section(vec![GemListRow::Explorer { name: link.name, url: link.link }])))
+            .chain(explorer.map(|link| section(vec![GemListRow::explorer(&link)])))
             .collect(),
             None if self.failed => vec![section(vec![GemListRow::Notice {
                 title: GemListRowTitle::Error,
@@ -310,7 +310,7 @@ mod tests {
                     text(GemListRowTitle::Type, "NATIVE"),
                 ]),
                 section(vec![GemListRow::Explorer {
-                    name: "Etherscan".to_string(),
+                    title: GemLocalizedText::ViewOn { name: "Etherscan".to_string() },
                     url: "https://etherscan.io/token/0xabc".to_string(),
                 }]),
             ]

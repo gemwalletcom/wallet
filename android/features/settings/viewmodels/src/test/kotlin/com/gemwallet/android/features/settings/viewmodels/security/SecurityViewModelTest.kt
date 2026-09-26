@@ -57,11 +57,11 @@ class SecurityViewModelTest {
             listOf(
                 section(
                     listOfNotNull(
-                        GemListRow.Toggle(GemListRowTitle.AUTHENTICATION, null, GemListRowIcon.NONE, input.authenticationEnabled, GemRowAction.Authentication),
+                        GemListRow.Toggle(GemLocalizedText.RowTitle(GemListRowTitle.AUTHENTICATION), GemListRowIcon.NONE, input.authenticationEnabled, GemRowAction.Authentication),
                         GemListRow.Picker(GemListRowTitle.LOCK_PERIOD, GemLocalizedText.Text(input.lockPeriod), GemListRowIcon.NONE, GemRowAction.LockPeriod).takeIf { input.authenticationEnabled },
                     ),
                 ),
-                section(listOf(GemListRow.Toggle(GemListRowTitle.HIDE_BALANCE, null, GemListRowIcon.NONE, input.hideBalanceEnabled, GemRowAction.HideBalance))),
+                section(listOf(GemListRow.Toggle(GemLocalizedText.RowTitle(GemListRowTitle.HIDE_BALANCE), GemListRowIcon.NONE, input.hideBalanceEnabled, GemRowAction.HideBalance))),
             )
         }
     }
