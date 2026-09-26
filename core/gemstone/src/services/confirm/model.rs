@@ -23,6 +23,7 @@ use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
+use swapper::Quote;
 
 pub type GemAccount = Account;
 
@@ -117,6 +118,7 @@ pub struct SendInput {
     pub value: GemBigInt,
     pub network_fee: GemBigInt,
     pub simulation: Option<SimulationResult>,
+    pub swap_quote: Option<Quote>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -279,6 +281,7 @@ pub struct GemConfirmFeeLoad {
 pub struct ConfirmState {
     pub load: GemConfirmLoad,
     pub confirm_data: Option<GemConfirmData>,
+    pub swap_quote: Option<Quote>,
 }
 
 impl ConfirmState {
@@ -564,6 +567,7 @@ mod tests {
                 fee_selection,
                 ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
             }),
+            swap_quote: None,
         };
 
         let picked = state(primitives::Chain::Bitcoin, GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(25) }).network_fee_screen(Currency::USD, format.clone());

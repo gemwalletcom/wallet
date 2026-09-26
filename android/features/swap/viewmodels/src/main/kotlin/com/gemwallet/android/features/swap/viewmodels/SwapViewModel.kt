@@ -288,7 +288,7 @@ class SwapViewModel @Inject constructor(
         refreshRequests.tryEmit(Unit)
     }
 
-    fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onShowPriceImpactWarning: () -> Unit, authorize: (() -> Unit) -> Unit) {
+    fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onShowPriceImpactWarning: () -> Unit) {
         val state = viewState.value
         if (state.buttonState != GemButtonState.ENABLED) {
             return
@@ -298,11 +298,11 @@ class SwapViewModel @Inject constructor(
                 if (state.details?.summary?.priceImpactRow?.warning != null) {
                     onShowPriceImpactWarning()
                 } else {
-                    authorize { swap(onConfirm) }
+                    swap(onConfirm)
                 }
             }
 
-            GemSwapButtonAction.RetryTransfer -> authorize { swap(onConfirm) }
+            GemSwapButtonAction.RetryTransfer -> swap(onConfirm)
 
             GemSwapButtonAction.RetryQuote -> refresh()
 

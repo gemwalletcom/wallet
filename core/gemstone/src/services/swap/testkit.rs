@@ -10,13 +10,11 @@ use super::quote::GemSwapQuoteService;
 use super::session::{GemSwapQuoteInput, GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
 use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
-use crate::keystore::GemKeystore;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::assets::GemAssetFilter;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
 use crate::services::stream::testkit::{MemoryStreamConnection, SubscriptionTestkit};
-use crate::services::wallet::testkit::MemoryKeystorePassword;
 use crate::testkit::TestAlienProvider;
 use primitives::Wallet;
 
@@ -51,12 +49,7 @@ impl GemSwapStore for MemorySwapStore {
 
 impl GemSwapService {
     pub fn mock(store: Arc<MemorySwapStore>) -> Self {
-        Self::new(
-            Arc::new(GemSwapper::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemNodeService::mock()))),
-            GemKeystore::new(std::env::temp_dir().to_string_lossy().to_string()).unwrap(),
-            Arc::new(MemoryKeystorePassword::default()),
-            store,
-        )
+        Self::new(Arc::new(GemSwapper::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemNodeService::mock()))), store)
     }
 }
 

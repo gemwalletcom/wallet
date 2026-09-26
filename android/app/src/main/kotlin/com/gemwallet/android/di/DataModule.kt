@@ -1,8 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
 import com.gemwallet.android.data.services.store.database.AssetsDao
@@ -35,7 +32,6 @@ import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSwapService
-import uniffi.gemstone.GemTransactionSigner
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
@@ -80,29 +76,6 @@ object DataModule {
         perpetualService,
         walletSessionService,
         swapService,
-    )
-
-    @Provides
-    @Singleton
-    fun provideGemConfirmTransferService(
-        confirmService: GemConfirmServiceInterface,
-        explorerService: GemExplorerService,
-        nameService: GemNameService,
-        signer: GemTransactionSigner,
-        passwordStore: PasswordStore,
-        deviceAuthentication: DeviceAuthentication,
-        recentActivity: GemRecentActivityService,
-        preferencesService: GemPreferencesService,
-        paymentService: GemPaymentService,
-    ): GemConfirmTransferService = GemConfirmTransferService(
-        confirmService as GemConfirmService,
-        explorerService,
-        nameService,
-        signer,
-        GemstoneKeystorePassword(passwordStore, deviceAuthentication),
-        recentActivity,
-        preferencesService,
-        paymentService,
     )
 
     @Provides

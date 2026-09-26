@@ -216,7 +216,7 @@ struct ServicesFactory {
             reconnection: connectionService,
         )
         let swapper = GemSwapper(rpcProvider: NativeProvider(), nodes: nodeService)
-        let swapService = storages.keystore.swapService(
+        let swapService = GemSwapService(
             swapper: swapper,
             store: GemstoneSwapStore(
                 assetStore: stores.assetStore,
@@ -344,14 +344,22 @@ struct ServicesFactory {
             transactionStateService: transactionStateService,
         )
 
-        let confirmService = gatewayService.confirmService(
-            simulation: transactionSimulationService,
-            scanner: scanService,
-            transactionState: transactionStateService,
-            balance: balanceService,
-            price: priceService,
-            assets: assetsService,
-            transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+        let confirmTransferService = storages.keystore.confirmTransferService(
+            confirm: gatewayService.confirmService(
+                simulation: transactionSimulationService,
+                scanner: scanService,
+                transactionState: transactionStateService,
+                balance: balanceService,
+                price: priceService,
+                assets: assetsService,
+                transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+            ),
+            explorer: explorerService,
+            names: nameService,
+            recentActivity: recentAssetsService,
+            preferences: preferencesService,
+            payment: paymentService,
+            swap: swapService,
         )
         let viewModelFactory = ViewModelFactory(
             addressDetailsService: Gemstone.GemAddressDetailsService(api: deviceApiClient, explorer: explorerService),
@@ -361,7 +369,7 @@ struct ServicesFactory {
             avatarService: avatarService,
             bannerService: bannerService,
             balanceService: balanceService,
-            confirmService: confirmService,
+            confirmTransferService: confirmTransferService,
             contactService: contactService,
             contactEditorService: Gemstone.GemContactEditorService(
                 contacts: contactService,
@@ -397,7 +405,6 @@ struct ServicesFactory {
                 keystorePassword: LocalKeystorePassword(),
                 securityService: Gemstone.GemSecurityService(),
             ),
-            keystore: storages.keystore,
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService, session: walletSessionService),

@@ -1,7 +1,6 @@
 use crate::{
-    AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode,
-    SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
-    thorchain, uniswap,
+    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across,
+    alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -228,9 +227,11 @@ impl GemSwapper {
         }
     }
 
-    pub async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
-        let provider = self.get_swapper_by_provider(&quote.data.provider.id)?;
-        provider.get_permit2_for_quote(quote).await
+    pub async fn get_quote_by_provider(&self, provider: &SwapperProvider, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        let swapper = self.get_swapper_by_provider(provider)?;
+        swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
+        let request = Self::quote_request_for_mode(swapper.amount_mode(request), request)?;
+        swapper.get_quote(&request).await
     }
 
     pub async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {

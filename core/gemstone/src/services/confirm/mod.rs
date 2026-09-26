@@ -6,7 +6,6 @@ pub(crate) mod header;
 mod model;
 pub(crate) mod rules;
 pub(crate) mod screen;
-mod signer;
 #[cfg(test)]
 mod testkit;
 mod transfer;
@@ -17,13 +16,13 @@ use std::time::Duration;
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
 pub use model::*;
-pub use signer::GemTransactionSigner;
 pub use transfer::GemConfirmTransferService;
 
+use crate::GemstoneError;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemTransactionData, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionData, GemTransactionLoadInput};
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
@@ -196,10 +195,10 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn sign(&self, input: &SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
+    fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
-        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
+        let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: GemSignerError::SigningError("no signed transactions".to_string()),

@@ -4,34 +4,42 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
 
+use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
+use crate::message::signer::MessageSigner;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
+use crate::services::confirm::error::{sign_error, swap_error};
 use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, submit_message};
-use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, GemTransactionSigner, SendInput};
+use crate::services::confirm::{GemConfirmData, GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::perpetual::rules::autoclose_row;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::swap::GemSwapService;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
 use primitives::AddressName;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
+use swapper::permit2_data::Permit2Data;
+use swapper::{FetchQuoteData, Quote};
+use zeroize::Zeroizing;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
     confirm: Arc<GemConfirmService>,
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
-    signer: Arc<dyn GemTransactionSigner>,
+    keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
     payment: Arc<GemPaymentService>,
+    swap: Arc<GemSwapService>,
 }
 
 #[uniffi::export]
@@ -41,21 +49,23 @@ impl GemConfirmTransferService {
         confirm: Arc<GemConfirmService>,
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
-        signer: Arc<dyn GemTransactionSigner>,
+        keystore: Arc<GemKeystore>,
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
         payment: Arc<GemPaymentService>,
+        swap: Arc<GemSwapService>,
     ) -> Self {
         Self {
             confirm,
             explorer,
             names,
-            signer,
+            keystore,
             password,
             recent_activity,
             preferences,
             payment,
+            swap,
         }
     }
 
@@ -97,9 +107,22 @@ impl GemConfirmTransferService {
         &self.confirm
     }
 
+    pub(super) async fn fresh_transfer(&self, wallet: &Wallet, transfer: GemTransferData) -> Result<(GemTransferData, Option<Quote>), GemConfirmError> {
+        match transfer.input_type {
+            TransactionInputType::Swap { .. } => {
+                let (quote, transfer) = self.swap.requote(wallet, &transfer).await.map_err(swap_error)?;
+                Ok((transfer, Some(quote)))
+            }
+            _ => Ok((transfer, None)),
+        }
+    }
+
     pub(super) async fn submit(&self, input: SendInput) -> Result<GemSubmitResult, GemConfirmError> {
+        let password = Zeroizing::new(decode_password(&self.password.get_password(false)?));
+        let keystore_id = keystore_id_for_wallet(input.wallet.id.id());
+        let input = self.signed_swap_input(input, &keystore_id, &password).await?;
         let input_type = &input.confirm.input.transfer.input_type;
-        let signed = self.confirm.sign(&input, self.signer.clone()).await?;
+        let signed = self.confirm.sign(&input, |chain, signer_input| self.keystore.sign(keystore_id, chain, signer_input, password.to_vec()))?;
         let (transactions, signatures): (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) = signed.into_iter().partition(|transaction| is_broadcast(input_type, transaction));
         let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
@@ -138,6 +161,33 @@ impl GemConfirmTransferService {
             self.confirm.store_pending(&record, &[hash], signatures).await;
         }
         warning
+    }
+
+    async fn signed_swap_input(&self, input: SendInput, keystore_id: &str, password: &[u8]) -> Result<SendInput, GemConfirmError> {
+        let Some(quote) = &input.swap_quote else {
+            return Ok(input);
+        };
+        let transfer = &input.confirm.input.transfer;
+        let data = match transfer.input_type.get_swap_data().ok().and_then(|swap| swap.data.permit2.clone()) {
+            Some(approval) => {
+                let chain = transfer.input_type.get_asset().chain();
+                let (permit_single, message) = self.swap.permit2_message(quote, &approval).map_err(swap_error)?;
+                let signature = MessageSigner::new(message)
+                    .sign_with_keystore(self.keystore.clone(), keystore_id.to_string(), password.to_vec())
+                    .map_err(|error| sign_error(chain, error))?;
+                let signature = primitives::hex::decode_hex(&signature).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+                FetchQuoteData::Permit2(Permit2Data { permit_single, signature })
+            }
+            None => FetchQuoteData::None,
+        };
+        let transfer = self.swap.rebuild(&input.wallet, quote, transfer, data).await.map_err(swap_error)?;
+        Ok(SendInput {
+            confirm: GemConfirmData {
+                input: GemConfirmInput { transfer, ..input.confirm.input },
+                ..input.confirm
+            },
+            ..input
+        })
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -187,5 +237,55 @@ impl GemConfirmTransferService {
             asset: Asset::from_chain(balance.asset_id.chain),
             requirement: None,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::{Account, Asset, Chain, TransactionInputType, Wallet, WalletId};
+
+    use super::super::testkit::ConfirmTestkit;
+    use crate::keystore::{GemImportType, decode_password};
+    use crate::models::transaction::GemTransactionLoadMetadata;
+    use crate::services::confirm::{GemConfirmData, GemConfirmError, GemConfirmInput, SendInput};
+    use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::services::wallet::testkit::TEST_PASSWORD;
+
+    #[test]
+    fn test_a_submit_signs_in_core_with_one_password_read() {
+        block_on(async {
+            let testkit = ConfirmTestkit::new(Wallet::mock_with_chains(&[Chain::Ethereum]), Wallet::mock_with_chains(&[Chain::Ethereum]));
+            let stored = testkit.keystore.create_store(GemImportType::mock_private_key(), decode_password(TEST_PASSWORD)).unwrap();
+            let address = stored.accounts[0].address.clone();
+            let wallet = Wallet {
+                id: WalletId::from_id(&stored.wallet_id).unwrap(),
+                ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, &address)])
+            };
+            let confirm = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() });
+            let input = SendInput {
+                wallet,
+                confirm: GemConfirmData {
+                    input: GemConfirmInput {
+                        from: Account::mock(Chain::Ethereum, &address),
+                        transfer: GemTransferData {
+                            recipient: GemRecipient::address(address.clone()),
+                            ..confirm.input.transfer
+                        },
+                    },
+                    metadata: GemTransactionLoadMetadata::Evm { nonce: 0, chain_id: 1, contract_call: None },
+                    ..confirm
+                },
+                ..SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() })
+            };
+
+            let error = testkit.service.submit(input).await.unwrap_err();
+
+            assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the password is read once for the whole submit");
+            assert!(
+                matches!(error, GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. }),
+                "signing succeeded and only the broadcast failed: {error:?}"
+            );
+        });
     }
 }

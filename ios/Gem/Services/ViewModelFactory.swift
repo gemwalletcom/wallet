@@ -11,7 +11,7 @@ import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemBannerService
 import class Gemstone.GemChainService
-import class Gemstone.GemConfirmService
+import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemContactEditorService
 import class Gemstone.GemContactService
 import class Gemstone.GemDeeplinkService
@@ -59,7 +59,7 @@ public struct ViewModelFactory: Sendable {
     let avatarService: GemAvatarService
     let bannerService: GemBannerService
     let balanceService: GemBalanceService
-    let confirmService: GemConfirmService
+    let confirmTransferService: GemConfirmTransferService
     let contactService: GemContactService
     let contactEditorService: GemContactEditorService
     let deeplinkService: GemDeeplinkService
@@ -90,7 +90,6 @@ public struct ViewModelFactory: Sendable {
     let inAppNotificationService: GemNotificationService
 
     let biometryService: any BiometryAuthenticatable
-    let keystore: any Keystore
     let observablePreferences: ObservablePreferences
     let recentAssetsService: GemRecentActivityService
     let amountService: GemAmountService

@@ -1488,7 +1488,7 @@ A fieldless Core rule object is the second exception. `GemAssetConfigService` an
 
 Prefer the [generated abstraction](#depend-on-the-generated-abstraction-not-the-concrete-object) wherever a test needs substitution: any unstubbed method on a mocked concrete UniFFI object can reach a native handle the mock does not have.
 
-The keystore is the one dependency a composition root does not pass around. `GemKeystore` unlocks a wallet's secrets given a password, so an app that holds one can sign without the service that decides whether signing is allowed. Each platform's keystore layer — [`GemstoneServices`](../ios/Packages/GemstoneServices) on iOS, [`data:services:gemstone`](../android/data/services/gemstone) on Android — builds the four services that need it (`GemWalletService`, `GemSwapService`, `GemSignMessageService`, `GemAuthService`) and hands out those, never the keystore. On iOS they come from [`LocalKeystore+Services.swift`](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore+Services.swift) and `gemKeystore` is `package`, so `ios/Gem` cannot name it; on Android they come from [`KeystoreModule`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/KeystoreModule.kt), the only module that injects the Hilt binding. `just check-boundaries` rejects a `GemKeystore` outside those two layers.
+The keystore is the one dependency a composition root does not pass around. `GemKeystore` unlocks a wallet's secrets given a password, so an app that holds one can sign without the service that decides whether signing is allowed. Each platform's keystore layer — [`GemstoneServices`](../ios/Packages/GemstoneServices) on iOS, [`data:services:gemstone`](../android/data/services/gemstone) on Android — builds the four services that need it (`GemWalletService`, `GemConfirmTransferService`, `GemSignMessageService`, `GemAuthService`) and hands out those, never the keystore. On iOS they come from [`LocalKeystore+Services.swift`](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore+Services.swift) and `gemKeystore` is `package`, so `ios/Gem` cannot name it; on Android they come from [`KeystoreModule`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/KeystoreModule.kt), the only module that injects the Hilt binding. `just check-boundaries` rejects a `GemKeystore` outside those two layers.
 
 ### Construction example: price alerts
 
@@ -1734,11 +1734,13 @@ Operations on the current wallet read the Core session through their owning serv
 
 Core futures progress while awaited; Gemstone has no async runtime of its own. Confirmation broadcasts, stores the pending transaction and returns its hashes. The `GemTransactionStatusService` foreign port schedules `GemTransactionStateService::track` off-thread; awaiting that poll would keep confirmation spinning until finality. Core decides what to track; the app supplies a lifetime and executor. Do not assume creating a future starts background work.
 
-The app translates SDK events and forwards them; Core owns shared authorization, chain/account selection, routing, and replies, because two apps that each reimplement those decisions drift. Platform ports remain appropriate for signing, secure storage, authentication, observation, and navigation under the current security contract; removing a dependency must not remove an auth gate.
+The app translates SDK events and forwards them; Core owns shared authorization, chain/account selection, routing, and replies, because two apps that each reimplement those decisions drift. Platform ports remain appropriate for secure storage, authentication, observation, and navigation under the current security contract; removing a dependency must not remove an auth gate. Signing is not a port: `GemConfirmTransferService` reads the keystore password once per submit and signs every message and transaction of that submit itself, so a flow that needs a second signature (a swap's Permit2 permit) adds it under the same read instead of a second prompt.
 
 ### Transfers and signed conventions
 
 Apps carry Core-built transfer and action records instead of reconstructing them between screens; reconstruction grows app-specific switches for accounts, recipient fields, direction, max flags, and amounts. Core owns the conversion from a domain action to confirm data; navigation preserves that result.
+
+A swap's confirm data is rebuilt by the confirm screen, not carried as final. `GemConfirmation::load` asks the chosen provider again through `GemSwapService::requote` and replaces the transfer with the fresh quote and data, so the existing refresh timer and Retry refresh the quote; `submit` rebuilds the data from the quote the screen holds, signing the Permit2 permit the data reports as pending, so what is signed is what was shown. The Swap tap builds the data once without any signature only so a complete `GemTransferData` crosses; a pending permit rides in `SwapQuoteData::permit2` and the EVM load takes the provider's gas limit for it, as it does for a pending approval, because unsigned calldata cannot be estimated.
 
 The signer's convention must be explicit and tested. HyperCore reduce orders interpret direction as the position direction; flipping it builds the wrong reduce-only side. Compare the signer and its vectors before resolving an app disagreement. Simplifying a record must preserve every transaction-critical input.
 
@@ -1873,7 +1875,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | `GemExplorerService` | composed by `address_details`, `assets`, `chart`, `confirm`, `nft`, `node`, `stake`, `transactions`, `wallet`, `wallet_connect` |
 | `GemPriceService` | composed by `assets`, `chart`, `confirm`, `currency`, `perpetual`, `portfolio`, `search`, `stream` |
 | `GemStreamSubscriptionService` | composed by `assets`, `balance`, `stream`, `swap` |
-| `GemSwapService` | composed by `assets` and `swap` |
+| `GemSwapService` | composed by `assets`, `confirm` and `swap` |
 | `GemSimulationService` | composed by `confirm` and `wallet_connect` |
 | `GemScanService` | composed by `confirm` |
 | `GemSearchService` | composed by `assets` |

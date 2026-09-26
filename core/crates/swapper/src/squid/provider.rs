@@ -168,6 +168,7 @@ where
             memo: None,
             approval: None,
             gas_limit: Some(tx.gas_limit),
+            permit2: None,
         })
     }
 

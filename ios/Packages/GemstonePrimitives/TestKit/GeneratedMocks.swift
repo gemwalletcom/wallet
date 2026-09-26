@@ -1448,6 +1448,24 @@ public extension Gemstone.PaymentQuote {
     }
 }
 
+public extension Gemstone.Permit2ApprovalData {
+    static func mock(
+        token: String = "",
+        spender: String = "",
+        value: BigUInt = 0,
+        permit2Contract: String = "",
+        permit2Nonce: UInt64 = 0,
+    ) -> Gemstone.Permit2ApprovalData {
+        Gemstone.Permit2ApprovalData(
+            token: token,
+            spender: spender,
+            value: value,
+            permit2Contract: permit2Contract,
+            permit2Nonce: permit2Nonce,
+        )
+    }
+}
+
 public extension Gemstone.PerpetualConfirmData {
     static func mock(
         direction: Gemstone.PerpetualDirection = .short,
@@ -1785,6 +1803,7 @@ public extension Gemstone.SwapQuoteData {
         memo: String? = nil,
         approval: Gemstone.ApprovalData? = nil,
         gasLimit: String? = nil,
+        permit2: Gemstone.Permit2ApprovalData? = nil,
     ) -> Gemstone.SwapQuoteData {
         Gemstone.SwapQuoteData(
             to: to,
@@ -1794,6 +1813,7 @@ public extension Gemstone.SwapQuoteData {
             memo: memo,
             approval: approval,
             gasLimit: gasLimit,
+            permit2: permit2,
         )
     }
 }

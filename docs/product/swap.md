@@ -19,7 +19,7 @@ flowchart LR
 2. The user types an amount or taps 25%, 50% or 100%; every provider that serves the pair is asked at once and You Receive shows the best quote.
 3. Details lists the Provider, the Rate, the Estimated Time, the Minimum Receive and the Slippage; Providers lets the user pick another provider.
 4. Slippage is Auto (`1%`, `3%` on Solana) or a chosen value between `0.1%` and `20%`.
-5. Swap prepares the trade with the chosen provider and opens the confirmation screen.
+5. Swap prepares the trade with the chosen provider and opens the confirmation screen, which asks that provider again whenever it loads and signs the trade with one authentication.
 
 ## Expected results
 
@@ -40,6 +40,10 @@ flowchart LR
 | The user changes Slippage | the choice is kept for later swaps | |
 | The price impact is `10%` or more | "High Price Impact" asks first | |
 | The swap needs a spending approval | the approval is signed together with the swap, with one fee for both | |
+| The confirmation screen loads, refreshes or retries | the chosen provider is asked again for the same amount and slippage, and You Receive shows its new answer | a quote left on the screen never goes stale |
+| The chosen provider no longer answers | the error row with Retry; the provider is never switched behind the user | |
+| The user taps Confirm | the trade is built again from the quote on screen and signed with one authentication | the amounts signed are the amounts shown |
+| The provider needs a Permit2 signature | it is signed at Confirm together with the swap, under that same authentication | nothing is signed before the confirmation screen |
 | The quote calls a contract | the confirmation screen shows the Provider with that contract, which opens its address details on the paying network; Swap Details names the provider only | |
 | The quote pays a deposit address | no Provider row on the confirmation screen | |
 | A max swap of a native coin | the network fee, and anything the provider attaches on top, stay out of the quoted amount | the confirmed amount is the one that can be sent |
@@ -50,3 +54,4 @@ flowchart LR
 
 - A quote is never cached: every eligible provider is asked again for the live amount; cached routes are only hints and every quote uses live chain state.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
+- Swap never signs anything: the confirmation screen holds the only authentication, and the swap data it signs was built after the user saw the quote.

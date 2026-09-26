@@ -2012,6 +2012,20 @@ fun mockPaymentQuote(
     value = value,
 )
 
+fun mockPermit2ApprovalData(
+    token: String = "",
+    spender: String = "",
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    permit2Contract: String = "",
+    permit2Nonce: ULong = 0u,
+) = uniffi.gemstone.Permit2ApprovalData(
+    token = token,
+    spender = spender,
+    value = value,
+    permit2Contract = permit2Contract,
+    permit2Nonce = permit2Nonce,
+)
+
 fun mockPerpetualConfirmData(
     direction: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
     marginType: uniffi.gemstone.PerpetualMarginType = uniffi.gemstone.PerpetualMarginType.CROSS,
@@ -2268,6 +2282,7 @@ fun mockSwapQuoteData(
     memo: String? = null,
     approval: uniffi.gemstone.ApprovalData? = null,
     gasLimit: String? = null,
+    permit2: uniffi.gemstone.Permit2ApprovalData? = null,
 ) = uniffi.gemstone.SwapQuoteData(
     to = to,
     dataType = dataType,
@@ -2276,6 +2291,7 @@ fun mockSwapQuoteData(
     memo = memo,
     approval = approval,
     gasLimit = gasLimit,
+    permit2 = permit2,
 )
 
 fun mockSwapperOptions(

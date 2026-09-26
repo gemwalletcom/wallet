@@ -57,24 +57,11 @@ public extension ViewModelFactory {
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
-            confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
+            confirmation: confirmTransferService.confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] result in
                 Task { toastPresenter.present(.transfer(result)) }
                 onComplete?()
             },
-        )
-    }
-
-    private func confirmTransferService() -> GemConfirmTransferService {
-        GemConfirmTransferService(
-            confirm: confirmService,
-            explorer: explorerService,
-            names: nameService,
-            signer: KeystoreTransactionSigner(keystore: keystore),
-            password: GemstoneKeystorePassword(keystore: keystore),
-            recentActivity: recentAssetsService,
-            preferences: preferencesService,
-            payment: paymentService,
         )
     }
 

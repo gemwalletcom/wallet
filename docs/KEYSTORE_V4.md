@@ -140,11 +140,11 @@ Boundaries:
 - Raw-key signers are not on the UniFFI surface: `ChainTransactionSigner`, `MessageSigner.sign(private_key)`, and `sign_auth_message_hash` are internal Rust only (used by `GemKeystore` and tests).
 - `export_private_key` and `export_recovery_phrase` remain for explicit reveal/backup only, never for routine signing. The raw `private_key` helper is Rust-test-only and is not exported over UniFFI.
 - The signing router (`ChainTransactionSigner`) lives in `gemstone`, over the per-chain `gem_*` signer crates. `gem_keystore` stays storage-only.
-- App-side password bytes are zeroized after each call (Android `withGemKeystore`, iOS `withV4Password`).
+- Password bytes are zeroized after each call: Core wraps them in `Zeroizing` for every keystore read, and iOS `withV4Password` does the same for the app-side export and migration calls.
 
 App entrypoints:
 
-- Transaction signing uses the platform `KeystoreTransactionSigner`: [iOS](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift) delegates to `LocalKeystore.sign`, while [Android](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/keystore/KeystoreTransactionSigner.kt) uses `withGemKeystore`.
+- Transaction signing is owned by [`GemConfirmTransferService`](../core/gemstone/src/services/confirm/transfer.rs): one password read per submit signs the transaction and, for a swap that needs one, its Permit2 permit. Neither app signs a transaction.
 - WalletConnect message signing is owned by [`GemSignMessageService`](../core/gemstone/src/services/wallet_connect/sign_message.rs).
 - Wallet authentication signing is owned by [`GemAuthService`](../core/gemstone/src/services/auth/mod.rs).
 
@@ -162,7 +162,6 @@ Keystore side:
 Source paths:
 
 - [Local keystore and Wallet legacy-id extension](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore.swift)
-- [Transaction signer adapter](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift)
 - [Core wallet service](../core/gemstone/src/services/wallet/mod.rs)
 - [Core GemKeystore API](../core/gemstone/src/keystore/keystore.rs)
 

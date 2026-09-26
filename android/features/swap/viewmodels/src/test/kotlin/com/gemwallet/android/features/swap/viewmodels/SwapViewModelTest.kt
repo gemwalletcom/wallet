@@ -543,7 +543,6 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(
             onConfirm = { confirmed = it.data },
             onShowPriceImpactWarning = {},
-            authorize = { it() },
         )
         awaitCondition { confirmed != null }
 
@@ -683,30 +682,6 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `onPrimaryAction does not build swap params until authorize runs`() = runTest(testDispatcher) {
-        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
-
-        var swapCalls = 0
-        stubBuildConfirmInput { swapCalls += 1 }
-
-        val viewModel = createViewModel(swapSavedState())
-        advanceUntilIdle()
-        seedReadyQuote(viewModel)
-
-        var authorized: (() -> Unit)? = null
-        viewModel.onPrimaryAction(
-            onConfirm = {},
-            onShowPriceImpactWarning = {},
-            authorize = { action -> authorized = action },
-        )
-        advanceUntilIdle()
-
-        assertNotNull("the swap must be handed to authorize, not run directly", authorized)
-        assertEquals(0, swapCalls)
-    }
-
-    @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
         every { assetQuery(walletId.id, solAsset.id) } returns flowOf(solInfo.copy(price = mockPrice(price = 100.0)))
         every { assetQuery(walletId.id, usdcAsset.id) } returns flowOf(usdcInfo.copy(price = mockPrice(price = 1.0)))
@@ -731,7 +706,6 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(
             onConfirm = { confirmCalls += 1 },
             onShowPriceImpactWarning = { showWarningCalls += 1 },
-            authorize = { it() },
         )
         advanceUntilIdle()
 
@@ -750,7 +724,7 @@ class SwapViewModelTest {
         failQuote(viewModel, SwapperException.InputAmountException("500000000"))
         awaitCondition { viewModel.viewState.value.buttonAction.stringRes() == R.string.swap_use_minimum_amount }
 
-        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
         advanceUntilIdle()
 
         assertEquals("0.5", viewModel.payValue.text.toString())
@@ -764,7 +738,7 @@ class SwapViewModelTest {
         failQuote(viewModel, SwapperException.InputAmountException("1"))
         awaitCondition { viewModel.viewState.value.buttonAction.stringRes() == R.string.swap_use_minimum_amount }
 
-        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
         advanceUntilIdle()
 
         assertEquals("0.000000001", viewModel.payValue.text.toString())

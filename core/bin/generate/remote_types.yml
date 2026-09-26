@@ -186,6 +186,7 @@ remote:
   - EarnType
   - SwapQuoteDataType
   - ApprovalData
+  - Permit2ApprovalData
   - SwapProviderData
   - SwapQuoteData
   - SwapQuote
@@ -386,6 +387,7 @@ mocks:
   - SwapperQuoteAsset
   - SwapperQuoteRequest
   - SwapperSlippage
+  - Permit2ApprovalData
   - SwapProviderData
   - SwapQuote
   - SwapQuoteData

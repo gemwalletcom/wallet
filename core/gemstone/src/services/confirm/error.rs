@@ -10,6 +10,7 @@ use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
+use swapper::SwapperError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemConfirmError {
@@ -385,6 +386,13 @@ impl From<GemServiceError> for GemConfirmError {
             GemServiceError::Offline => Self::Offline,
             error => Self::Load { msg: error.to_string() },
         }
+    }
+}
+
+pub(super) fn swap_error(error: SwapperError) -> GemConfirmError {
+    match error {
+        SwapperError::Offline => GemConfirmError::Offline,
+        error => GemConfirmError::Load { msg: error.to_string() },
     }
 }
 

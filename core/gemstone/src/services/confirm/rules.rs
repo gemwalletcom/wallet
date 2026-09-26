@@ -18,6 +18,7 @@ use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualT
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
+use swapper::Quote;
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
@@ -263,7 +264,7 @@ pub fn preload_simulation(request: Option<&SimulationResult>, confirm_data: &Gem
 }
 
 impl GemConfirmLoad {
-    pub(super) fn with_fee(self, fee: GemConfirmFeeLoad, requested: Option<GemConfirmSimulationState>) -> ConfirmState {
+    pub(super) fn with_fee(self, fee: GemConfirmFeeLoad, requested: Option<GemConfirmSimulationState>, swap_quote: Option<Quote>) -> ConfirmState {
         ConfirmState {
             load: Self {
                 fee_asset: fee.fee_asset,
@@ -273,6 +274,7 @@ impl GemConfirmLoad {
                 ..self
             },
             confirm_data: Some(fee.confirm_data),
+            swap_quote,
         }
     }
 }
@@ -1677,7 +1679,7 @@ mod tests {
             simulation: None,
         };
 
-        let ConfirmState { load: loaded, confirm_data } = screen.clone().with_fee(fee.clone(), None);
+        let ConfirmState { load: loaded, confirm_data, .. } = screen.clone().with_fee(fee.clone(), None, None);
         assert_eq!(loaded.fee_asset, btc);
         assert_eq!(loaded.metadata.asset_balance.available, GemBigUint::from(2u32));
         assert!(loaded.fee.is_some());
@@ -1692,6 +1694,7 @@ mod tests {
                 warnings: crate::services::simulation::warning_rows(&[SimulationWarning::validation_error("preload")]),
                 ..GemConfirmSimulationState::mock()
             }),
+            None,
         );
         assert_eq!(resimulated.load.simulation.warnings.len(), 1);
     }

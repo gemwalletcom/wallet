@@ -4,10 +4,7 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneSwapStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import com.gemwallet.android.data.services.store.database.AssetsDao
-import com.gemwallet.android.data.services.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,16 +12,21 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemAvatarService
+import uniffi.gemstone.GemConfirmService
+import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemSignMessageService
 import uniffi.gemstone.GemSwapService
-import uniffi.gemstone.GemSwapper
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSessionService
@@ -67,11 +69,27 @@ object KeystoreModule {
 
     @Provides
     @Singleton
-    fun provideGemSwapService(swapper: GemSwapper, keystore: GemKeystore, passwordStore: PasswordStore, deviceAuthentication: DeviceAuthentication, assetsDao: AssetsDao, transactionsDao: TransactionsDao): GemSwapService = GemSwapService(
-        swapper = swapper,
-        keystore = keystore,
-        password = GemstoneKeystorePassword(passwordStore, deviceAuthentication),
-        store = GemstoneSwapStore(assetsDao, transactionsDao),
+    fun provideGemConfirmTransferService(
+        confirmService: GemConfirmServiceInterface,
+        explorerService: GemExplorerService,
+        nameService: GemNameService,
+        keystore: GemKeystore,
+        passwordStore: PasswordStore,
+        deviceAuthentication: DeviceAuthentication,
+        recentActivity: GemRecentActivityService,
+        preferencesService: GemPreferencesService,
+        paymentService: GemPaymentService,
+        swapService: GemSwapServiceInterface,
+    ): GemConfirmTransferService = GemConfirmTransferService(
+        confirmService as GemConfirmService,
+        explorerService,
+        nameService,
+        keystore,
+        GemstoneKeystorePassword(passwordStore, deviceAuthentication),
+        recentActivity,
+        preferencesService,
+        paymentService,
+        swapService as GemSwapService,
     )
 
     @Provides
