@@ -10,19 +10,19 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
-import com.gemwallet.android.features.settings.currency.presents.CurrenciesScene
-import com.gemwallet.android.features.settings.develop.presents.DevelopScene
-import com.gemwallet.android.features.settings.develop.presents.PaymentsScene
-import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsAction
-import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsScene
-import com.gemwallet.android.features.settings.networks.presents.NetworksScreen
-import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertTargetNavScreen
-import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
-import com.gemwallet.android.features.settings.security.presents.SecurityScene
-import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
-import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
-import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
+import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
+import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScene
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertTargetNavScreen
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertsNavScreen
+import com.gemwallet.android.features.settings.presents.NotificationsScene
+import com.gemwallet.android.features.settings.presents.PreferencesScene
+import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
+import com.gemwallet.android.features.settings.presents.currency.CurrenciesScene
+import com.gemwallet.android.features.settings.presents.developer.DevelopScene
+import com.gemwallet.android.features.settings.presents.developer.PaymentsScene
+import com.gemwallet.android.features.settings.presents.networks.NetworksScreen
+import com.gemwallet.android.features.settings.presents.security.SecurityScene
+import com.gemwallet.android.features.support.presents.SupportChatNavScreen
 import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -73,12 +73,7 @@ data object PreferencesRoute : NavKey
 @Serializable
 data object NotificationsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.settingsScreen(
-    onAction: (SettingsAction) -> Unit,
-    onOpenUrl: (String) -> Boolean,
-    routeMessage: (NavKey) -> RouteMessage?,
-    onRouteMessageShown: (NavKey) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit, onOpenUrl: (String) -> Boolean, routeMessage: (NavKey) -> RouteMessage?, onRouteMessageShown: (NavKey) -> Unit) {
     val onCancel = { onAction(SettingsAction.Cancel) }
 
     entry<CurrenciesRoute> {

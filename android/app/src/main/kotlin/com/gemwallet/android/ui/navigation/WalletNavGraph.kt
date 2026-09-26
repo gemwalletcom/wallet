@@ -19,11 +19,11 @@ import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.features.assets.presents.select.assetsManageScreen
 import com.gemwallet.android.features.assets.viewmodels.details.models.AssetDetailsAction
+import com.gemwallet.android.features.contacts.presents.ContactsAction
 import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.onboarding.presents.create_wallet.createWalletScreen
 import com.gemwallet.android.features.onboarding.presents.import_wallet.importWalletScreen
 import com.gemwallet.android.features.onboarding.presents.terms.acceptTermsScreen
-import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
 import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.wallet_tab.presents.WalletSearchAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition

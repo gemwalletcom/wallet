@@ -38,7 +38,7 @@ For presentation-only Compose work, build the owning module first and avoid repe
 
 ```bash
 ./gradlew :features:assets:presents:assembleDebug
-./gradlew :features:settings:settings:presents:assembleDebug
+./gradlew :features:settings:presents:assembleDebug
 ./gradlew :ui:assembleDebug
 ```
 

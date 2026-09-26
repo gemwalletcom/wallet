@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.MessageToast
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
-import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
+import com.gemwallet.android.features.settings.presents.SettingsScene
 import com.gemwallet.android.features.transactions.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.wallet_tab.presents.AssetsAction
 import com.gemwallet.android.features.wallet_tab.presents.AssetsScreen

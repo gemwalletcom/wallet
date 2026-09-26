@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **Sessions:** VM185.
 5. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 6. **Generated mappers:** BD299, then GEN300.
-7. **Module layout:** MOD312, MOD313, then MOD315 to MOD317.
+7. **Module layout:** MOD313, then MOD315 to MOD317.
 8. **Unused code:** CLN318.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -657,10 +657,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
-- **MOD312** **M** **Settings is one module, and the areas with their own page leave it.**
-  - **iOS:** `Settings` holds settings, preferences, security, notifications, appearance, currency, networks (`ChainSettings`), about us and developer; `Contacts`, `PriceAlerts`, `InAppNotifications` and `Support` are packages of their own.
-  - **Android:** nine modules under `features/settings` (`aboutus`, `contacts`, `currency`, `develop`, `in_app_notifications`, `networks`, `price_alerts`, `security`, `settings`), with `SupportChatScene` inside `settings/settings`.
-  - **Expected:** Android `aboutus`, `currency`, `develop`, `networks`, `security` and `settings` become one `settings` module; `contacts`, `price_alerts` and `in_app_notifications` move to the top level; `SupportChatScene` moves to a `support` module.
 - **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
   - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `Wallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.

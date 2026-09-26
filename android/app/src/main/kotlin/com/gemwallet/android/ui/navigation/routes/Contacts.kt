@@ -2,9 +2,9 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.settings.contacts.presents.ContactEditorNavScreen
-import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
-import com.gemwallet.android.features.settings.contacts.presents.ContactsNavScreen
+import com.gemwallet.android.features.contacts.presents.ContactEditorNavScreen
+import com.gemwallet.android.features.contacts.presents.ContactsAction
+import com.gemwallet.android.features.contacts.presents.ContactsNavScreen
 import com.gemwallet.android.ui.navigation.contactIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import kotlinx.serialization.Serializable
