@@ -52,7 +52,7 @@ import com.gemwallet.android.ui.navigation.routes.DevelopRoute
 import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
-import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
+import com.gemwallet.android.ui.navigation.routes.FiatRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
 import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
@@ -303,7 +303,7 @@ class WalletNavigator(
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
-    fun openBuy(assetId: AssetId, amount: Int?) = push(FiatInputRoute(assetId, amount, FiatQuoteType.Buy))
+    fun openBuy(assetId: AssetId, amount: Int?) = push(FiatRoute(assetId, amount, FiatQuoteType.Buy))
     fun openGetAsset(action: GetAssetAction, assetId: AssetId) {
         when (action) {
             is GetAssetAction.Buy -> openBuy(assetId, amount = action.amount)

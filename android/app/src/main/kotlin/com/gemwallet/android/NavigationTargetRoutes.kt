@@ -5,7 +5,7 @@ import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.navigation.routes.AddressDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
-import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
+import com.gemwallet.android.ui.navigation.routes.FiatRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
@@ -21,7 +21,7 @@ internal fun GemNavigationTarget.destination(): PendingNavigation.Routes = Pendi
 internal fun GemNavigationTarget.routes(): List<NavKey> = when (this) {
     is GemNavigationTarget.Asset -> assetRoutes(asset.toPrimitives().id, isPerpetual)
     is GemNavigationTarget.Receive -> listOf(ReceiveRoute(asset.toPrimitives().id))
-    is GemNavigationTarget.Fiat -> listOf(FiatInputRoute(asset.toPrimitives().id, amount, quoteType.toPrimitives()))
+    is GemNavigationTarget.Fiat -> listOf(FiatRoute(asset.toPrimitives().id, amount, quoteType.toPrimitives()))
     is GemNavigationTarget.Swap -> listOf(SwapPairRoute(from.toPrimitives().id, to?.toPrimitives()?.id))
     GemNavigationTarget.Perpetuals -> listOf(PerpetualsRoute)
     is GemNavigationTarget.Rewards -> listOf(ReferralRoute(code = code))

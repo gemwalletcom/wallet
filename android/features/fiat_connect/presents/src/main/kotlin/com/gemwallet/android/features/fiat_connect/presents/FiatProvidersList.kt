@@ -10,7 +10,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.BuyFiatProviderUIModel
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatQuoteUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -26,7 +26,7 @@ import com.wallet.core.primitives.FiatProviderName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProviderList(isShow: MutableState<Boolean>, providers: List<BuyFiatProviderUIModel>, selectedProvider: BuyFiatProviderUIModel?, onProviderSelect: (FiatProviderName) -> Unit) {
+fun FiatProvidersList(isShow: MutableState<Boolean>, providers: List<FiatQuoteUIModel>, selectedProvider: FiatQuoteUIModel?, onProviderSelect: (FiatProviderName) -> Unit) {
     ModalBottomSheet(
         isVisible = isShow.value,
         onDismissRequest = { isShow.value = false },
@@ -49,7 +49,7 @@ fun ProviderList(isShow: MutableState<Boolean>, providers: List<BuyFiatProviderU
 }
 
 @Composable
-private fun FiatProviderListItemView(provider: BuyFiatProviderUIModel, listPosition: ListPosition, isSelected: Boolean, onProviderSelect: () -> Unit) {
+private fun FiatProviderListItemView(provider: FiatQuoteUIModel, listPosition: ListPosition, isSelected: Boolean, onProviderSelect: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable(onClick = onProviderSelect),
         listPosition = listPosition,

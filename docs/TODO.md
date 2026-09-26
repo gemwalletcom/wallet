@@ -24,7 +24,7 @@ These need no further answer; work them in this order, one family per change.
 3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 4. **Generated mappers:** BD299, then GEN300.
 5. **Unused code:** CLN318.
-6. **Names:** NAM362 to NAM372 in any order, one feature per change.
+6. **Names:** NAM363 to NAM372 in any order, one feature per change.
 7. **Parity:** BD342, BD343, BD345 to BD351.
 8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -247,15 +247,15 @@ The target for every item below: a model that only renames or regroups a Core re
 
 - **VM224** **S** **Provider rows are wrapped twice per app.**
   - **iOS:** `SwapProviderItem` and `FiatQuoteViewModel` each build a provider list item with a selected badge.
-  - **Android:** `BuyFiatProviderUIModel` and the provider rows of the swap details model do the same.
+  - **Android:** `FiatQuoteUIModel` and the provider rows of the swap details model do the same.
   - **Expected:** one Core provider row (name, amounts, icon kind, selected) rendered by one shared component; the wrappers go.
 - **VM225** **S** **Fiat transaction rows are rebuilt by the apps.**
   - **iOS:** `FiatTransactionViewModel` builds title from quote type, badge, amounts and provider image.
-  - **Android:** `FiatTransactionRowUIModel` does the same.
+  - **Android:** `FiatTransactionUIModel` does the same.
   - **Expected:** the shared renderer draws `GemFiatTransactionRow`; both models go.
 - **VM226** **S** **The fiat screen state is twinned.**
   - **iOS:** `FiatProvidersViewModel` and `FiatCurrencyInputConfig` wrap view-state fields.
-  - **Android:** `FiatUiState` copies `GemFiatViewState` and derives `retries` from the button action.
+  - **Android:** `FiatUIState` copies `GemFiatViewState` and derives `retries` from the button action.
   - **Expected:** the view state is used directly; the twins go.
 - **VM227** **S** **Swap side and button models decide small rules.**
   - **iOS:** `SwapTokenViewModel` picks "Select asset" or the symbol and an empty or zero placeholder; `SwapButtonViewModel` hides the button while the input is empty.
@@ -637,9 +637,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM362** **S** **Fiat: the screen is `Fiat` and a quote row `FiatQuote`.**
-  - **iOS:** `FiatTransactionsViewModel` → `FiatTransactionsSceneViewModel`; `FiatConnectNavigationView` follows the destination-host rule.
-  - **Android:** `BuyScene` → `FiatScene`; `FiatUiState`/`createFiatUiState` → `FiatUIState`/`createFiatUIState`; `BuyFiatProviderUIModel`/`toProviderUIModel`/`BuyFiatProviderUIModelTest` → `FiatQuoteUIModel`/`toQuoteUIModel`/`FiatQuoteUIModelTest`; `FiatTransactionRowUIModel` → `FiatTransactionUIModel`; `ProviderList` → `FiatProvidersList`; `FiatInputRoute` in `routes/Buy.kt` → `FiatRoute` in `Fiat.kt`.
 - **NAM363** **M** **WalletConnect: connections, proposal and request screens follow iOS.**
   - **iOS:** `ConnectionsViewModel`/`ConnectionProposalViewModel` (+ tests) → `…SceneViewModel`; the private `SignMessageNavigationView` follows the destination-host rule.
   - **Android:** `ConnectionsScene`/`ConnectionScene` (bind view models) → `ConnectionsScreen`/`ConnectionScreen`; `ConnectionRowUIModel` → `ConnectionUIModel`; `BridgeConnectionsRoute`/`BridgeConnectionDetailsRoute`/`bridgesScreen` (file `Bridge.kt`) → `ConnectionsRoute`/`ConnectionRoute`/`connectionsScreen` in `Connections.kt`; `ProposalScene`/`ProposalSceneViewModel`/`ProposalSceneState`/`ProposalSceneViewModelTest` → `ConnectionProposalScreen` + `ConnectionProposalScene`/`ConnectionProposalViewModel`/`ConnectionProposalUIState`/`ConnectionProposalViewModelTest`; `AuthRequestScene`/`WCAuthViewModel`/`AuthSceneState` → `AuthRequestScreen`/`AuthRequestViewModel`/`AuthRequestUIState`; `WalletConnectPayloadDetailsSheet`/`WalletConnectFullMessageSheet`/`WalletSelectionSheet` → `SignMessagePayloadDetailsSheet`/`TextMessageSheet`/`SelectWalletSheet`; `WalletConnectRequestRoute`/`WalletConnectRequestContent` → `WalletConnectorRequest…`; package `viewmodels.model` → `viewmodels.models`; `VerifyContext.kt` named after its contents.

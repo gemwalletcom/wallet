@@ -5,7 +5,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
+import com.gemwallet.android.ui.navigation.routes.FiatRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.wallet.core.primitives.Chain
@@ -85,7 +85,7 @@ class PendingNavigationCoordinatorTest {
         coordinator.buildRoutes(NoOpWalletConnect)
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
-        assertEquals(listOf(FiatInputRoute(asset.id, amount = 100, type = FiatQuoteType.Buy)), routes)
+        assertEquals(listOf(FiatRoute(asset.id, amount = 100, type = FiatQuoteType.Buy)), routes)
     }
 
     @Test

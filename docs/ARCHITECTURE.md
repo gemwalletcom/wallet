@@ -1217,7 +1217,7 @@ Compose screens collect a single state object, and the temptation is to declare 
 A UI state class is the **translation** of the Core view state into platform values. It holds no Core type. Every property is a `String`, a `Boolean`, a `@StringRes` id, or an app enum, and each one names what the view does with it rather than what Core called it.
 
 ```kotlin
-data class FiatUiState(
+data class FiatUIState(
     val isLoading: Boolean = false,
     val amountError: String? = null,
     val quotesMessage: String? = null,

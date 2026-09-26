@@ -15,13 +15,13 @@ import com.wallet.core.primitives.FiatTransactionAssetData
 import uniffi.gemstone.GemFiatTransactionRow
 import uniffi.gemstone.fiatTransactionRows
 
-data class FiatTransactionRowUIModel(val data: FiatTransactionAssetData, val model: ListItemModel)
+data class FiatTransactionUIModel(val data: FiatTransactionAssetData, val model: ListItemModel)
 
-internal fun List<FiatTransactionAssetData>.uiModels(context: Context): List<FiatTransactionRowUIModel> = zip(fiatTransactionRows(map { it.toGem() })) { data, row ->
+internal fun List<FiatTransactionAssetData>.uiModels(context: Context): List<FiatTransactionUIModel> = zip(fiatTransactionRows(map { it.toGem() })) { data, row ->
     data.uiModel(row, context)
 }
 
-private fun FiatTransactionAssetData.uiModel(row: GemFiatTransactionRow, context: Context): FiatTransactionRowUIModel = FiatTransactionRowUIModel(
+private fun FiatTransactionAssetData.uiModel(row: GemFiatTransactionRow, context: Context): FiatTransactionUIModel = FiatTransactionUIModel(
     data = this,
     model = ListItemModel(
         title = context.getString(row.quoteType.toPrimitives().actionRes()),

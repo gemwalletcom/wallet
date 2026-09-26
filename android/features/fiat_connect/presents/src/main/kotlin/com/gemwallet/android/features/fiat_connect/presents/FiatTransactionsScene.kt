@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionRowUIModel
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -21,7 +21,7 @@ import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 
 @Composable
-fun FiatTransactionsScene(transactions: List<FiatTransactionRowUIModel>, errorRow: GemListRow?, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
+fun FiatTransactionsScene(transactions: List<FiatTransactionUIModel>, errorRow: GemListRow?, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.activity_title),
         onClose = onClose,

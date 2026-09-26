@@ -24,7 +24,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.fiat_connect.viewmodels.FiatViewModel
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUiState
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
@@ -66,7 +66,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
     val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
     val currentAsset = currentAssetInfo.asset
 
-    BuyScene(
+    FiatScene(
         asset = currentAsset,
         assetInfo = currentAssetInfo,
         snackbar = snackbar,

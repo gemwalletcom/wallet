@@ -17,9 +17,9 @@ import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUiState
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.createFiatUiState
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.toProviderUIModel
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.createFiatUIState
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.toQuoteUIModel
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -121,17 +121,17 @@ class FiatViewModel @Inject constructor(
 
     val suggestedAmounts: List<GemFiatSuggestedAmount> = service.suggestedAmounts()
 
-    val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
-        state.toUiState()
+    val uiState: StateFlow<FiatUIState> = combine(viewState, assetInfoUIModel) { state, asset ->
+        state.toUIState()
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUiState())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUIState())
 
     val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { _, state ->
-        state.quoteRows.map { row -> row.toProviderUIModel() }
+        state.quoteRows.map { row -> row.toQuoteUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
-        asset?.let { state.selectedQuoteRow?.toProviderUIModel() }
+        asset?.let { state.selectedQuoteRow?.toQuoteUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providerListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->
@@ -224,7 +224,7 @@ class FiatViewModel @Inject constructor(
         }
     }
 
-    private fun GemFiatViewState.toUiState(): FiatUiState = createFiatUiState(
+    private fun GemFiatViewState.toUIState(): FiatUIState = createFiatUIState(
         state = this,
         amountError = amountError?.string(context),
         quotesMessage = quotesMessage(context),

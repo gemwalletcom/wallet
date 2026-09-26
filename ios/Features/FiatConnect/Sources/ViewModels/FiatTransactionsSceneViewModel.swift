@@ -13,7 +13,7 @@ import Store
 
 @Observable
 @MainActor
-public final class FiatTransactionsViewModel {
+public final class FiatTransactionsSceneViewModel {
     private let service: any GemFiatQuoteServiceProtocol
     let walletId: WalletId
 

@@ -251,8 +251,8 @@ extension FiatSceneViewModel {
 // MARK: - Private
 
 extension FiatSceneViewModel {
-    func fiatTransactionsModel() -> FiatTransactionsViewModel {
-        FiatTransactionsViewModel(walletId: wallet.id, service: service)
+    func fiatTransactionsModel() -> FiatTransactionsSceneViewModel {
+        FiatTransactionsSceneViewModel(walletId: wallet.id, service: service)
     }
 
     private func applyAmount(_ text: String, isImmediate: Bool) {

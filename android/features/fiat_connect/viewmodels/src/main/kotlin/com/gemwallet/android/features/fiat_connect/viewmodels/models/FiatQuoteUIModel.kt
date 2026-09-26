@@ -7,7 +7,7 @@ import com.wallet.core.primitives.FiatProviderName
 import uniffi.gemstone.GemFiatQuoteRow
 
 @Stable
-data class BuyFiatProviderUIModel(val row: GemFiatQuoteRow) {
+data class FiatQuoteUIModel(val row: GemFiatQuoteRow) {
 
     val provider: FiatProviderName by lazy { row.provider.toPrimitives() }
 
@@ -20,4 +20,4 @@ data class BuyFiatProviderUIModel(val row: GemFiatQuoteRow) {
     val fiatFormatted: String by lazy { row.fiatAmount.text() }
 }
 
-fun GemFiatQuoteRow.toProviderUIModel(): BuyFiatProviderUIModel = BuyFiatProviderUIModel(row = this)
+fun GemFiatQuoteRow.toQuoteUIModel(): FiatQuoteUIModel = FiatQuoteUIModel(row = this)

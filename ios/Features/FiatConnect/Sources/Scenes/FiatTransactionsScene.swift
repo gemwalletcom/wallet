@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 public struct FiatTransactionsScene: View {
-    @State private var model: FiatTransactionsViewModel
+    @State private var model: FiatTransactionsSceneViewModel
 
-    public init(model: FiatTransactionsViewModel) {
+    public init(model: FiatTransactionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

@@ -26,8 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.trailingValue
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.BuyFiatProviderUIModel
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUiState
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatQuoteUIModel
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
@@ -64,13 +64,13 @@ private val quotesMessagePadding = 20.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun BuyScene(
+fun FiatScene(
     asset: Asset,
     assetInfo: AssetInfoDataAggregate?,
-    uiState: FiatUiState,
+    uiState: FiatUIState,
     type: FiatQuoteType,
-    providers: List<BuyFiatProviderUIModel>,
-    selectedProvider: BuyFiatProviderUIModel?,
+    providers: List<FiatQuoteUIModel>,
+    selectedProvider: FiatQuoteUIModel?,
     providerListItem: ListItemModel?,
     rateRow: GemListRow?,
     fiatAmount: String,
@@ -187,7 +187,7 @@ fun BuyScene(
         }
     }
 
-    ProviderList(
+    FiatProvidersList(
         isShow = isShowProviders,
         providers = providers,
         selectedProvider = selectedProvider,

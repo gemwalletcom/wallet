@@ -9,7 +9,7 @@ import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatViewState
 
-data class FiatUiState(
+data class FiatUIState(
     val isLoading: Boolean = false,
     val amountError: String? = null,
     val quotesMessage: String? = null,
@@ -19,7 +19,7 @@ data class FiatUiState(
     val canSelectProvider: Boolean = false,
 )
 
-internal fun createFiatUiState(state: GemFiatViewState, amountError: String?, quotesMessage: String?) = FiatUiState(
+internal fun createFiatUIState(state: GemFiatViewState, amountError: String?, quotesMessage: String?) = FiatUIState(
     isLoading = state.phase is GemFiatQuotePhase.Loading,
     amountError = amountError,
     quotesMessage = quotesMessage,

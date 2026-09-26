@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.navigation.routes.CollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
-import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
+import com.gemwallet.android.ui.navigation.routes.FiatRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
@@ -372,7 +372,7 @@ class WalletNavigatorTest {
                 ReceiveSelectRoute,
                 ReceiveRoute(assetId),
                 FiatSelectRoute,
-                FiatInputRoute(assetId),
+                FiatRoute(assetId),
             ),
             navigator.backStack.toList(),
         )

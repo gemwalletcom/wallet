@@ -13,7 +13,7 @@ import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.formattedAmount
 import uniffi.gemstone.formattedCurrency
 
-class BuyFiatProviderUIModelTest {
+class FiatQuoteUIModelTest {
 
     @Test
     fun `the row's fiat amount is the one shown`() {
@@ -23,7 +23,7 @@ class BuyFiatProviderUIModelTest {
             providerName = "Mercuryo",
             cryptoAmount = formattedAmount(0.17, "BTC", GemValueStyle.AUTO),
             fiatAmount = formattedCurrency(48.8, "USD", GemCurrencyStyle.FIAT),
-        ).toProviderUIModel()
+        ).toQuoteUIModel()
 
         assertEquals(formattedCurrency(48.8, Currency.USD.string, GemCurrencyStyle.FIAT).text(), model.fiatFormatted)
     }
@@ -36,14 +36,14 @@ class BuyFiatProviderUIModelTest {
             providerName = "Mercuryo",
             cryptoAmount = formattedAmount(0.00077, "BTC", GemValueStyle.AUTO),
             fiatAmount = formattedCurrency(100.0, "USD", GemCurrencyStyle.FIAT),
-        ).toProviderUIModel()
+        ).toQuoteUIModel()
         val second = mockGemFiatQuoteRow(
             quoteId = "quote-1",
             provider = FiatProviderName.Mercuryo.toGem(),
             providerName = "Mercuryo",
             cryptoAmount = formattedAmount(0.0007578, "BTC", GemValueStyle.AUTO),
             fiatAmount = formattedCurrency(100.0, "USD", GemCurrencyStyle.FIAT),
-        ).toProviderUIModel()
+        ).toQuoteUIModel()
 
         assertNotEquals(first.cryptoText, second.cryptoText)
     }

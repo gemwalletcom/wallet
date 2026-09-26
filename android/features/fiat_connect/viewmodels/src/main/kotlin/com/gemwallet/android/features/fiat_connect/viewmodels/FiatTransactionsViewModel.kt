@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.FiatTransactionsQuery
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionRowUIModel
+import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatTransactionUIModel
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.uiModels
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -42,7 +42,7 @@ class FiatTransactionsViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
-    val transactions: StateFlow<List<FiatTransactionRowUIModel>> = getSession()
+    val transactions: StateFlow<List<FiatTransactionUIModel>> = getSession()
         .map { it?.wallet?.id?.id }
         .flatMapLatest { walletId -> walletId?.let { fiatTransactionsQuery(it) } ?: flowOf(emptyList()) }
         .map { items -> items.uiModels(context) }
