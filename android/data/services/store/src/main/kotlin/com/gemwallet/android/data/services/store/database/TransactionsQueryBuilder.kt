@@ -8,7 +8,7 @@ private fun TransactionsFilter?.toSqlClauses(): List<SqlClause> = if (this == nu
     emptyList()
 } else {
     listOfNotNull(
-        assetId?.toIdentifier()?.let { id -> SqlClause.raw("(tx.assetId = ? OR EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?))", id, id) },
+        assetId?.toIdentifier()?.let { id -> SqlClause.raw("EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?)", id) },
         SqlClause.inList("asset.chain", chains.map { it.string }),
         SqlClause.inList("tx.type", transactionTypes.map { it.name }),
         assetRankGreaterThan?.let { SqlClause.greaterThan("asset.rank", it) },

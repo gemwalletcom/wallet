@@ -15,6 +15,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -103,10 +104,10 @@ class AssetViewModel @Inject constructor(
 
     private val transactionsFilter = TransactionsFilter(assetId = assetId, chains = emptyList(), transactionTypes = emptyList(), states = emptyList())
 
-    val transactions = getTransactions.getTransactions(transactionsFilter)
+    val transactions = getTransactions.getTransactions(transactionsFilter, GemConstants.transactionsListLimit)
         .map { it.toImmutableList() }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter).toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit).toImmutableList())
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 

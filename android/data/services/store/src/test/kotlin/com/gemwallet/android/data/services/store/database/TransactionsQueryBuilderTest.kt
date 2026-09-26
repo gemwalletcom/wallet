@@ -68,17 +68,16 @@ class TransactionsQueryBuilderTest {
     }
 
     @Test
-    fun assetFilter_matchesMainAndTransactionAssets_bindsIdTwice() {
+    fun assetFilter_matchesTransactionAssetsOnly_bindsIdOnce() {
         val assetId = AssetId(chain = Chain.Ethereum, tokenId = "0xABC")
         val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filter = mockTransactionsFilter(assetId = assetId),
         )
-        assertTrue(
-            query.sql.contains("(tx.assetId = ? OR EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?))"),
-        )
-        assertEquals(listOf("ethereum_0xABC", "ethereum_0xABC"), query.args.drop(baseArgCount).take(2))
+        assertTrue(query.sql.contains("AND EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?)"))
+        assertFalse(query.sql.contains("tx.assetId = ?"))
+        assertEquals(listOf<Any>(walletId.id, "ethereum_0xABC", limit), query.args)
     }
 
     @Test

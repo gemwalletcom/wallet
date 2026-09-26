@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.GemTransactionRow
 
 interface GetTransactions {
-    fun getTransactions(filter: TransactionsFilter? = null): Flow<List<GemTransactionRow>>
+    fun getTransactions(filter: TransactionsFilter?, limit: Int): Flow<List<GemTransactionRow>>
 
-    fun stored(filter: TransactionsFilter? = null): List<GemTransactionRow>
+    fun stored(filter: TransactionsFilter?, limit: Int): List<GemTransactionRow>
 }

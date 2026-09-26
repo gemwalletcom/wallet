@@ -88,8 +88,8 @@ class PerpetualViewModelTest {
             every { this@mockk(any<AssetId>()) } returns perpetuals
         }
         val transactions: GetTransactions = mockk {
-            every { getTransactions(any()) } returns emptyFlow()
-            every { stored(any()) } returns emptyList()
+            every { getTransactions(any(), any()) } returns emptyFlow()
+            every { stored(any(), any()) } returns emptyList()
         }
         return PerpetualViewModel(
             perpetual,

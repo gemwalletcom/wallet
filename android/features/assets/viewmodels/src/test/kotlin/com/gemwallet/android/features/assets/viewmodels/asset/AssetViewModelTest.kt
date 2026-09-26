@@ -89,8 +89,8 @@ class AssetViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { chainAssetQuery(mockSession().wallet.id.id, asset.id) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
-        every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
-        every { getTransactions.stored(any()) } returns emptyList()
+        every { getTransactions.getTransactions(any(), any()) } returns MutableStateFlow(emptyList())
+        every { getTransactions.stored(any(), any()) } returns emptyList()
         every { bannersQuery(mockSession().wallet.id.id, asset.id) } returns banners
         every { priceAlertsQuery(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {

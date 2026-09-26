@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.transaction
 
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
@@ -19,8 +20,8 @@ class TransactionRowsTest {
 
     private val subject = TransactionRows()
     private val wallet = WalletId("wallet")
-    private val activity = activityFilters(emptyList(), emptyList()).toPrimitives()
-    private val asset = mockTransactionsFilter(chains = listOf(Chain.Bitcoin))
+    private val activity = TransactionsRequest(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit)
+    private val asset = TransactionsRequest(mockTransactionsFilter(chains = listOf(Chain.Bitcoin)), GemConstants.transactionsListLimit)
 
     private val first = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "first"), state = TransactionState.Confirmed))
     private val second = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "second")))
@@ -77,7 +78,7 @@ class TransactionRowsTest {
     @Test
     fun visitingManyFiltersKeepsOnlyTheRecentOnesAndTheActivity() {
         subject.rows(wallet, activity, listOf(first))
-        val chains = Chain.entries.take(RecentFilters.LIMIT * 2).map { mockTransactionsFilter(chains = listOf(it)) }
+        val chains = Chain.entries.take(RecentRequests.LIMIT * 2).map { TransactionsRequest(mockTransactionsFilter(chains = listOf(it)), GemConstants.transactionsListLimit) }
         chains.forEach { subject.rows(wallet, it, listOf(second)) }
 
         assertTrue(subject.stored(wallet, chains.first()).isEmpty())

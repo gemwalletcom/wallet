@@ -39,8 +39,8 @@ class TransactionsViewModelSyncTest {
         every { filterChains(any()) } returns emptyList()
     }
     private val getTransactions = mockk<GetTransactions> {
-        every { getTransactions(any()) } returns MutableStateFlow(emptyList<GemTransactionRow>())
-        every { stored(any()) } returns emptyList()
+        every { getTransactions(any(), any()) } returns MutableStateFlow(emptyList<GemTransactionRow>())
+        every { stored(any(), any()) } returns emptyList()
     }
     private val getSession = mockk<GetSession>(relaxed = true) {
         every { this@mockk() } returns session

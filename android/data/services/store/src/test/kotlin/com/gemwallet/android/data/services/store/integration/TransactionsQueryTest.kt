@@ -68,6 +68,7 @@ class TransactionsQueryTest {
         database.walletsDao().insert(otherWallet.toRecord())
         database.assetsDao().insert(listOf(bitcoin.toRecord().copy(rank = 100), ethereum.toRecord().copy(rank = 90), spam.toRecord().copy(rank = 5)))
         database.transactionsDao().insert(listOf(received, swap, airdrop, failed).toRecord(wallet.id) + listOf(otherWalletSend).toRecord(otherWallet.id))
+        database.transactionsDao().replaceTransactionAssets(listOf(received, swap, airdrop, failed, otherWalletSend).associate { it.id.identifier to listOf(it.assetId.toIdentifier()) })
     }
 
     @After
@@ -109,6 +110,13 @@ class TransactionsQueryTest {
         database.transactionsDao().replaceTransactionAssets(mapOf(swap.id.identifier to listOf(ethereum.id.toIdentifier(), bitcoin.id.toIdentifier())))
 
         assertEquals(listOf(swap, received).map { it.stored() }, query(wallet.id, mockTransactionsFilter(assetId = bitcoin.id), 1000).first().map { it.transaction })
+    }
+
+    @Test
+    fun theAssetFilterSkipsATransactionWhoseMainAssetHasNoAssetRow() = runBlocking(Dispatchers.IO) {
+        database.transactionsDao().replaceTransactionAssets(mapOf(swap.id.identifier to listOf(bitcoin.id.toIdentifier())))
+
+        assertEquals(listOf(failed.stored()), query(wallet.id, mockTransactionsFilter(assetId = ethereum.id), 1000).first().map { it.transaction })
     }
 
     @Test

@@ -134,11 +134,11 @@ class PerpetualViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
-        getTransactions.getTransactions(transactionsFilter),
+        getTransactions.getTransactions(transactionsFilter, GemConstants.transactionsListLimit),
         storedSync,
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit))
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 
