@@ -59,7 +59,7 @@ The same thing has the same base name on both apps; only the platform's suffix o
 | Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
 | Screen UI state | — (the view model) | `XUIState` | `LockUIState` |
 | User action | a view model method | `XAction` | `SwapAction` |
-| Component or row model | `XViewModel` | `XUIModel` | `SwapProvidersViewModel` / `PriceAlertItemUIModel` |
+| Component or row model | `XViewModel` | `XUIModel` | `ProvidersViewModel` / `ContactRowUIModel` |
 | Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
 | Destination host | `XNavigationView` hosts one scene's sheets and destinations inside a stack it does not own; a view whose body is a `NavigationStack` is `XNavigationStack` | the route's composable | `StakeNavigationView` |
 | Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |

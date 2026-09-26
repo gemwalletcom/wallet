@@ -2,6 +2,7 @@
 
 import Components
 import enum Gemstone.GemLoadState
+import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
@@ -56,12 +57,16 @@ public final class PriceAlertsSceneViewModel: Sendable {
         EmptyStateViewModel(kind: .priceAlerts)
     }
 
-    var sections: [ListItemValueSection<PriceAlertItemViewModel>] {
+    func chart(_ item: GemPriceAlertItem) -> Scenes.Chart {
+        Scenes.Chart(asset: item.data.asset.toPrimitives())
+    }
+
+    var sections: [ListItemValueSection<GemPriceAlertItem>] {
         PriceAlertFormatter.shared.sections(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem()).map { section in
             ListItemValueSection(
                 section: section.kind.title,
                 footer: section.kind.footer,
-                values: section.items.map { ListItemValue(value: PriceAlertItemViewModel(item: $0)) },
+                values: section.items.map { ListItemValue(value: $0) },
             )
         }
     }

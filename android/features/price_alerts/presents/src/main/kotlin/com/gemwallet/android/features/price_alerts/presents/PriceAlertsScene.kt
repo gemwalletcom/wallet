@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertItemUIModel
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
@@ -56,13 +56,14 @@ import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetPriceAlerts
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertToggle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PriceAlertsScene(
     asset: AssetInfoDataAggregate? = null,
-    sections: List<ListSection<PriceAlertItemUIModel>>,
+    sections: List<ListSection<GemPriceAlertItem>>,
     errorRow: GemListRow?,
     assetAlerts: GemAssetPriceAlerts?,
     showsEmpty: Boolean,
@@ -164,7 +165,7 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
     }
 }
 
-private fun LazyListScope.assets(revealable: MutableState<String?>, sections: List<ListSection<PriceAlertItemUIModel>>, onChart: ((AssetId) -> Unit)?, onExclude: (String) -> Unit) {
+private fun LazyListScope.assets(revealable: MutableState<String?>, sections: List<ListSection<GemPriceAlertItem>>, onChart: ((AssetId) -> Unit)?, onExclude: (String) -> Unit) {
     listSections(sections) { position, item ->
         var minActionWidth by remember { mutableStateOf(space0) }
         val density = LocalDensity.current
@@ -189,7 +190,7 @@ private fun LazyListScope.assets(revealable: MutableState<String?>, sections: Li
                 modifier = (
                     onChart?.let {
                         Modifier
-                            .clickable(onClick = { onChart(item.asset.id) })
+                            .clickable(onClick = { onChart(item.data.asset.toPrimitives().id) })
                     } ?: Modifier
                     )
                     .onSizeChanged {

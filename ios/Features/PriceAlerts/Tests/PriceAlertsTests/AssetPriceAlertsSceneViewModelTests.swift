@@ -22,7 +22,7 @@ struct AssetPriceAlertsSceneViewModelTests {
         let model = AssetPriceAlertsSceneViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
-        #expect(model.alerts(model.assetAlerts).map(\.data.priceAlert) == [alert3, alert2, alert1].map(\.priceAlert))
+        #expect(model.alerts(model.assetAlerts).map { $0.data.priceAlert.toPrimitives() } == [alert3, alert2, alert1].map(\.priceAlert))
         #expect(model.isAutoAlertEnabledBinding(model.assetAlerts).wrappedValue == true)
     }
 }

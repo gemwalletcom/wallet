@@ -46,6 +46,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetPriceAlerts
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertToggle
@@ -93,15 +94,15 @@ class PriceAlertsViewModel @Inject constructor(
 
     private val grouped = alerts.map { alerts ->
         priceAlertFormatter.sections(alerts.map { it.toGem() }, service.getCurrency())
-            .map { section -> section.kind to section.items.map(::PriceAlertItemUIModel) }
+            .map { section -> section.kind to section.items }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections: StateFlow<List<ListSection<PriceAlertItemUIModel>>> = combine(grouped, assetAlerts, assetId) { grouped, assetAlerts, assetId ->
+    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = combine(grouped, assetAlerts, assetId) { grouped, assetAlerts, assetId ->
         when (assetId) {
             null -> grouped.map { (kind, items) -> ListSection(id = kind.sectionId(), title = kind.title(), items = items, footer = kind.footer(context)) }
 
             else -> assetAlerts?.alerts.orEmpty().takeIf { it.isNotEmpty() }?.let { alerts ->
-                listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts.map(::PriceAlertItemUIModel)))
+                listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts))
             }.orEmpty()
         }
     }
@@ -164,7 +165,7 @@ class PriceAlertsViewModel @Inject constructor(
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
         val alert = grouped.value.flatMap { (_, items) -> items }.firstOrNull { it.id == priceAlertId } ?: return@launch
-        runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
+        runCatchingCancellable { service.deletePriceAlerts(listOf(alert.data.priceAlert)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

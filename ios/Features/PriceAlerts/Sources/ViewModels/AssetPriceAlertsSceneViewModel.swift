@@ -3,6 +3,7 @@
 import Components
 import struct Gemstone.GemAssetPriceAlerts
 import enum Gemstone.GemLoadState
+import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemServiceError
 import func Gemstone.loadError
@@ -62,8 +63,8 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
         )
     }
 
-    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [PriceAlertItemViewModel] {
-        assetAlerts.alerts.map(PriceAlertItemViewModel.init(item:))
+    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [GemPriceAlertItem] {
+        assetAlerts.alerts
     }
 
     func showsEmpty(_ assetAlerts: GemAssetPriceAlerts) -> Bool {
