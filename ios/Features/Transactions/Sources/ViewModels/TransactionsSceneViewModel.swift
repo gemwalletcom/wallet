@@ -6,7 +6,6 @@ import enum Gemstone.GemLoadState
 import struct Gemstone.GemTransactionRow
 import protocol Gemstone.GemTransactionsServiceProtocol
 import func Gemstone.loadError
-import func Gemstone.transactionsEmptyState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -18,7 +17,6 @@ import Store
 @MainActor
 public final class TransactionsSceneViewModel {
     private let service: any GemTransactionsServiceProtocol
-    private let type: TransactionsQueryType
 
     public let wallet: Wallet
 
@@ -39,7 +37,6 @@ public final class TransactionsSceneViewModel {
         type: TransactionsQueryType,
     ) {
         self.service = service
-        self.type = type
         self.wallet = wallet
         filterModel = TransactionsFilterSceneViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
     }
@@ -61,12 +58,7 @@ public final class TransactionsSceneViewModel {
     }
 
     public var emptyContentModel: EmptyStateViewModel {
-        let state = transactionsEmptyState(
-            chains: filterModel.chainsFilter.selectedChains.map(\.rawValue),
-            filters: filterModel.transactionTypesFilter.selectedTypes,
-            walletType: wallet.type.toGem(),
-        )
-        return EmptyStateViewModel(state: state) { [weak self] action in
+        EmptyStateViewModel(state: filterModel.viewState.emptyState) { [weak self] action in
             switch action {
             case .buy: self?.onSelectBuy()
             case .receive: self?.onSelectReceive()
@@ -93,7 +85,7 @@ public extension TransactionsSceneViewModel {
 
 extension TransactionsSceneViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterSceneViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
+        filterModel.onClear()
     }
 
     private func onSelectReceive() {

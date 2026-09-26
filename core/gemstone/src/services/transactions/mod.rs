@@ -1,4 +1,5 @@
 pub mod details;
+pub mod filter;
 pub mod model;
 pub mod rules;
 

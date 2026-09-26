@@ -712,6 +712,15 @@ fn perpetual_direction(transaction: &Transaction) -> Option<PerpetualDirection> 
     perpetual_metadata(transaction).map(|metadata| metadata.direction)
 }
 
+pub const TRANSACTION_FILTERS: &[GemTransactionFilter] = &[
+    GemTransactionFilter::Transfers,
+    GemTransactionFilter::Swaps,
+    GemTransactionFilter::Stake,
+    GemTransactionFilter::SmartContract,
+    GemTransactionFilter::Perpetuals,
+    GemTransactionFilter::Others,
+];
+
 pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> TransactionsFilter {
     let transaction_types = match filters.is_empty() {
         true => TransactionType::iter().collect(),
@@ -789,27 +798,8 @@ mod tests {
     }
 
     #[test]
-    fn test_an_empty_activity_list_reads_as_no_results_only_once_a_filter_is_on() {
-        use super::super::model::transactions_empty_state;
-        use crate::services::empty_state::{GemEmptyStateAction, GemEmptyStateText};
-
-        let empty = |chains, filters, wallet_type| transactions_empty_state(chains, filters, wallet_type);
-        let activity = empty(vec![], vec![], WalletType::Multicoin);
-        assert_eq!(activity.title, GemEmptyStateText::ActivityTitle);
-        assert_eq!(activity.actions, vec![GemEmptyStateAction::Buy, GemEmptyStateAction::Receive]);
-        let filtered = empty(vec![Chain::Ethereum], vec![], WalletType::Multicoin);
-        assert_eq!((filtered.title, filtered.actions), (GemEmptyStateText::SearchActivityTitle, vec![GemEmptyStateAction::ClearFilters]));
-        assert_eq!(
-            empty(vec![], vec![GemTransactionFilter::Swaps], WalletType::Multicoin).title,
-            GemEmptyStateText::SearchActivityTitle,
-            "a type filter hides activity just as a chain filter does"
-        );
-        let watching = empty(vec![], vec![], WalletType::View);
-        assert_eq!((watching.title, watching.actions), (GemEmptyStateText::WatchWalletTitle, vec![]), "a watch-only wallet explains itself and offers nothing");
-    }
-    #[test]
     fn test_every_transaction_type_belongs_to_exactly_one_filter_in_list_order() {
-        let filters = crate::constants::TRANSACTION_FILTERS;
+        let filters = TRANSACTION_FILTERS;
         assert_eq!(filters.len(), 6);
         let grouped: Vec<TransactionType> = filters.iter().flat_map(|filter| filter_transaction_types(*filter)).collect();
         assert_eq!(grouped.len(), TransactionType::all().len());

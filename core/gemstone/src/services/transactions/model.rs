@@ -10,8 +10,7 @@ use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
-use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
-use primitives::{BlockExplorerLink, WalletType};
+use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
 pub enum GemTransactionFilter {
@@ -56,28 +55,15 @@ pub fn chains_filter_summary(chains: Vec<Chain>) -> GemChainsFilterSummary {
     }
 }
 
-#[uniffi::export]
-pub fn transactions_filter_summary(filters: Vec<GemTransactionFilter>) -> GemTransactionsFilterSummary {
-    match filters.as_slice() {
-        [] => GemTransactionsFilterSummary::All,
-        [filter] => GemTransactionsFilterSummary::Filter { filter: *filter },
-        selected => GemTransactionsFilterSummary::Count { count: selected.len() as u32 },
-    }
-}
-
 #[cfg(test)]
 mod filter_summary_tests {
     use super::*;
 
     #[test]
-    fn test_a_filter_reads_as_all_its_one_choice_or_a_count() {
+    fn test_a_chain_filter_reads_as_all_its_one_chain_or_a_count() {
         assert_eq!(chains_filter_summary(vec![]), GemChainsFilterSummary::All);
         assert_eq!(chains_filter_summary(vec![Chain::Ethereum]), GemChainsFilterSummary::Chain { chain: Chain::Ethereum });
         assert_eq!(chains_filter_summary(vec![Chain::Ethereum, Chain::Bitcoin, Chain::Solana]), GemChainsFilterSummary::Count { count: 3 });
-
-        assert_eq!(transactions_filter_summary(vec![]), GemTransactionsFilterSummary::All);
-        assert_eq!(transactions_filter_summary(vec![GemTransactionFilter::Swaps]), GemTransactionsFilterSummary::Filter { filter: GemTransactionFilter::Swaps });
-        assert_eq!(transactions_filter_summary(vec![GemTransactionFilter::Swaps, GemTransactionFilter::Stake]), GemTransactionsFilterSummary::Count { count: 2 });
     }
 }
 
@@ -237,15 +223,6 @@ pub enum GemTransactionBadge {
     Incoming,
     Outgoing,
     Asset,
-}
-
-#[uniffi::export]
-pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>, wallet_type: WalletType) -> GemEmptyState {
-    let kind = match chains.is_empty() && filters.is_empty() {
-        true => GemEmptyStateKind::Activity,
-        false => GemEmptyStateKind::SearchActivity,
-    };
-    screen_empty_state(kind, wallet_type == WalletType::View, &[GemEmptyStateAction::Buy, GemEmptyStateAction::Receive, GemEmptyStateAction::ClearFilters])
 }
 
 #[uniffi::export]

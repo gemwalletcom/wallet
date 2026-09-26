@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.transactions.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
@@ -8,18 +7,12 @@ import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.ext.GemConstants
-import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionsFilterSummaryUIModel
-import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
-import com.gemwallet.android.ui.components.filters.transactionFilterOptions
-import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,25 +21,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.GemTransactionsFilterSession
+import uniffi.gemstone.GemTransactionsFilterView
 import uniffi.gemstone.GemTransactionsServiceInterface
-import uniffi.gemstone.activityFilters
-import uniffi.gemstone.chainsFilterSummary
 import uniffi.gemstone.loadError
-import uniffi.gemstone.transactionsEmptyState
-import uniffi.gemstone.transactionsFilterSummary
+import uniffi.gemstone.newTransactionsFilterSession
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,7 +48,6 @@ class TransactionsViewModel @Inject constructor(
     private val service: GemTransactionsServiceInterface,
     private val observeRefreshInterval: ObserveRefreshInterval,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     val refreshIntervalMillis: StateFlow<Long> = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.WALLET)
@@ -66,52 +56,31 @@ class TransactionsViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
-    val chainsFilter = MutableStateFlow<List<Chain>>(emptyList())
+    private val _filter = MutableStateFlow(newTransactionsFilterSession(emptyList(), WalletType.Multicoin.toGem()))
+    val filter: StateFlow<GemTransactionsFilterSession> = _filter
 
-    val typeFilter = MutableStateFlow<List<GemTransactionFilter>>(emptyList())
-
-    val typeFilterOptions: List<TransactionFilterUIModel> = transactionFilterOptions(context)
-
-    val filterSummary: StateFlow<TransactionsFilterSummaryUIModel> = combine(chainsFilter, typeFilter) { chains, types ->
-        TransactionsFilterSummaryUIModel(
-            chains = chainsFilterSummary(chains.map { it.string }).text(context),
-            types = transactionsFilterSummary(types).text(context),
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, TransactionsFilterSummaryUIModel("", ""))
-
-    val typeFilterRows: StateFlow<List<TransactionFilterUIModel>> = typeFilter
-        .map { selected -> typeFilterOptions.filter { it.filter in selected } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val filterView: StateFlow<GemTransactionsFilterView> = _filter
+        .map { it.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _filter.value.viewState())
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
-
-    val emptyState: StateFlow<GemEmptyState> = combine(chainsFilter, typeFilter, session.map { it?.wallet?.type ?: WalletType.Multicoin }) { chains, types, walletType ->
-        transactionsEmptyState(chains.map { it.string }, types, walletType.toGem())
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, transactionsEmptyState(emptyList(), emptyList(), WalletType.Multicoin.toGem()))
 
     val walletId: StateFlow<WalletId?> = session
         .map { it?.wallet?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableChains: StateFlow<List<Chain>> = session
-        .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
     private var syncedWalletId: WalletId? = null
     private var refreshJob: Job? = null
 
-    val transactions = combine(
-        chainsFilter,
-        typeFilter,
-    ) { chains, types ->
-        activityFilters(chains.map { it.string }, types).toPrimitives()
-    }
+    val transactions = filterView
+        .map { it.filter.toPrimitives() }
+        .distinctUntilChanged()
         .flatMapLatest { filter -> getTransactions.getTransactions(filter, GemConstants.transactionsListLimit) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(filterView.value.filter.toPrimitives(), GemConstants.transactionsListLimit).takeIf { it.isNotEmpty() },
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
@@ -125,11 +94,7 @@ class TransactionsViewModel @Inject constructor(
             session
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
-                .drop(1)
-                .collect {
-                    clearChainsFilter()
-                    clearTypeFilter()
-                }
+                .collect { _filter.value = newTransactionsFilterSession(service.filterChains(it.wallet.toGem()), it.wallet.type.toGem()) }
         }
     }
 
@@ -167,22 +132,14 @@ class TransactionsViewModel @Inject constructor(
     }
 
     fun setChainsFilter(chains: List<Chain>) {
-        chainsFilter.update { chains }
+        _filter.update { it.onChains(chains.map { chain -> chain.string }) }
     }
 
     fun setTypesFilter(types: List<GemTransactionFilter>) {
-        typeFilter.update { types }
+        _filter.update { it.onTypes(types) }
     }
 
-    fun clearChainsFilter() {
-        chainsFilter.update {
-            emptyList()
-        }
-    }
-
-    fun clearTypeFilter() {
-        typeFilter.update {
-            emptyList()
-        }
+    fun clearFilters() {
+        _filter.update { it.onClear() }
     }
 }

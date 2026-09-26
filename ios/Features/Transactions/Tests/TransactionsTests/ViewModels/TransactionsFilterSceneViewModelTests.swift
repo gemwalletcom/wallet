@@ -15,7 +15,8 @@ struct TransactionsFilterSceneViewModelTests {
         let confirmed = model.onFinishChainsSelection(SelectionResult(items: [.bitcoin], isConfirmed: true))
 
         #expect(confirmed)
-        #expect(model.chainsFilter.selectedChains == [.bitcoin])
+        #expect(model.networksModel.selectedItems == [.bitcoin])
+        #expect(model.query.request.base.filter?.chains == [.bitcoin])
         #expect(model.isAnyFilterSpecified)
     }
 
@@ -26,29 +27,33 @@ struct TransactionsFilterSceneViewModelTests {
         let confirmed = model.onFinishChainsSelection(SelectionResult(items: [.ethereum], isConfirmed: false))
 
         #expect(confirmed == false)
-        #expect(model.chainsFilter.selectedChains == [.ethereum])
+        #expect(model.networksModel.selectedItems == [.ethereum])
     }
 
     @Test
     func theTypesComeFromCore() {
         let model = TransactionsFilterSceneViewModel.mock()
 
-        #expect(model.transactionTypesFilter.allTransactionsTypes.isNotEmpty)
-        #expect(model.transactionTypesFilter.isAnySelected == false)
+        #expect(model.viewState.types.isNotEmpty)
+        #expect(model.isAnyFilterSpecified == false)
     }
 
     @Test
     func aTypeSelectionMapsToItsTransactionTypes() {
         let model = TransactionsFilterSceneViewModel.mock()
-        guard let filter = model.transactionTypesFilter.allTransactionsTypes.first else {
+        guard let filter = model.viewState.types.first else {
             Issue.record("core returned no transaction filters")
             return
         }
 
         _ = model.onFinishTypesSelection(SelectionResult(items: [filter], isConfirmed: true))
 
-        #expect(model.transactionTypesFilter.selectedTypes == [filter])
+        #expect(model.typesModel.selectedItems == [filter])
         #expect(model.isAnyFilterSpecified)
+
+        model.onClear()
+
+        #expect(model.isAnyFilterSpecified == false)
     }
 
     @Test

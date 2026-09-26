@@ -141,6 +141,5 @@ class TransactionsViewModelSyncTest {
         service = service,
         observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = dispatcher,
-        context = mockk(relaxed = true),
     )
 }

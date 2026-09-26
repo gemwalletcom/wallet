@@ -18,7 +18,7 @@ struct TransactionsSceneViewModelTests {
         let service = GemTransactionsServiceMock(filterChains: [Chain.bitcoin.rawValue, Chain.ethereum.rawValue])
         let model = TransactionsSceneViewModel.mock(service: service)
 
-        #expect(model.filterModel.chainsFilter.allChains == [.bitcoin, .ethereum])
+        #expect(model.filterModel.networksModel.items == [.bitcoin, .ethereum])
         #expect(model.filterModel.isAnyFilterSpecified == false)
     }
 
@@ -63,7 +63,7 @@ struct TransactionsSceneViewModelTests {
         let model = TransactionsSceneViewModel.mock(service: service)
         let unfiltered = model.emptyContentModel.title
 
-        model.filterModel.chainsFilter.selectedChains = [.bitcoin]
+        _ = model.filterModel.onFinishChainsSelection(SelectionResult(items: [.bitcoin], isConfirmed: true))
 
         #expect(model.emptyContentModel.title != unfiltered)
     }

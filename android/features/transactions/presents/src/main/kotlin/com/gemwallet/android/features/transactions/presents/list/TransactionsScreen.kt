@@ -15,12 +15,9 @@ import com.wallet.core.primitives.TransactionId
 fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Unit)? = null, onReceive: (() -> Unit)? = null, listState: LazyListState = rememberLazyListState(), viewModel: TransactionsViewModel = hiltViewModel()) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
-    val typeFilter by viewModel.typeFilterRows.collectAsStateWithLifecycle()
-    val filterSummary by viewModel.filterSummary.collectAsStateWithLifecycle()
-    val emptyState by viewModel.emptyState.collectAsStateWithLifecycle()
+    val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val filterView by viewModel.filterView.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
-    val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletId) {
@@ -34,21 +31,16 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
         isRefreshing = isRefreshing,
         transactions = transactions,
         errorRow = errorRow,
-        availableChains = availableChains,
-        chainsFilter = chainFilter,
-        typeFilter = typeFilter,
-        typeFilterOptions = viewModel.typeFilterOptions,
-        filterSummary = filterSummary,
-        emptyState = emptyState,
+        filter = filter,
+        filterView = filterView,
         listState = listState,
         onAction = { action ->
             when (action) {
                 TransactionsAction.Refresh -> viewModel.refresh()
                 is TransactionsAction.OpenTransaction -> onTransaction(action.transactionId)
                 is TransactionsAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
-                is TransactionsAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types.map { it.filter })
-                TransactionsAction.ClearChainsFilter -> viewModel.clearChainsFilter()
-                TransactionsAction.ClearTypesFilter -> viewModel.clearTypeFilter()
+                is TransactionsAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types)
+                TransactionsAction.ClearFilters -> viewModel.clearFilters()
                 TransactionsAction.Buy -> onBuy?.invoke()
                 TransactionsAction.Receive -> onReceive?.invoke()
             }

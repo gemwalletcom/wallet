@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -51,45 +53,46 @@ class TransactionsViewModelFiltersTest {
     private val first = mockWallet(id = WalletId("multicoin_0xabc"))
     private val second = mockWallet(id = WalletId("multicoin_0xdef"))
 
+    private val requested = mutableListOf<TransactionsFilter>()
+
     private fun viewModel(session: MutableStateFlow<Session?>): TransactionsViewModel {
         val service: GemTransactionsServiceInterface = mockk(relaxed = true) {
-            every { filterChains(any()) } returns emptyList()
+            every { filterChains(any()) } returns listOf(Chain.Bitcoin.string, Chain.Ethereum.string)
         }
         val transactions: GetTransactions = mockk {
-            every { getTransactions(any(), any()) } returns flowOf(emptyList<GemTransactionRow>())
+            every { getTransactions(capture(requested), any()) } returns flowOf(emptyList<GemTransactionRow>())
             every { stored(any(), any()) } returns emptyList()
         }
         val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }
-        return TransactionsViewModel(getSession, transactions, service, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+        return TransactionsViewModel(getSession, transactions, service, mockk(relaxed = true), dispatcher).also { models.add(it) }
     }
 
     @Test
     fun `switching wallets drops the filters the previous wallet had`() = runTest(dispatcher) {
         val session = MutableStateFlow<Session?>(mockSession(wallet = first))
         val model = viewModel(session)
-        model.walletId.first { it != null }
+        model.filter.first { it.chains.isNotEmpty() }
 
         model.setChainsFilter(listOf(Chain.Ethereum))
         model.setTypesFilter(listOf(GemTransactionFilter.SWAPS))
-        assertEquals(listOf(Chain.Ethereum), model.chainsFilter.value)
+        assertTrue(model.filterView.first { it.isFiltered }.isFiltered)
 
         session.value = mockSession(wallet = second)
 
-        assertTrue(model.chainsFilter.first { it.isEmpty() }.isEmpty())
-        assertTrue(model.typeFilter.first { it.isEmpty() }.isEmpty())
+        val cleared = model.filter.first { it.selectedChains.isEmpty() }
+        assertTrue(cleared.selectedTypes.isEmpty())
+        assertEquals(listOf(Chain.Bitcoin.string, Chain.Ethereum.string), cleared.chains)
     }
 
     @Test
-    fun `clearing a filter leaves the other one alone`() = runTest(dispatcher) {
+    fun `a chain selection reaches the activity query`() = runTest(dispatcher) {
         val model = viewModel(MutableStateFlow(mockSession(wallet = first)))
+        model.filter.first { it.chains.isNotEmpty() }
 
         model.setChainsFilter(listOf(Chain.Ethereum))
-        model.setTypesFilter(listOf(GemTransactionFilter.SWAPS))
+        advanceUntilIdle()
 
-        model.clearChainsFilter()
-
-        assertTrue(model.chainsFilter.value.isEmpty())
-        assertEquals(listOf(GemTransactionFilter.SWAPS), model.typeFilter.value)
+        assertEquals(listOf(Chain.Ethereum), requested.last().chains)
     }
 
     @Test

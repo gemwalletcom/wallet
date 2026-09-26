@@ -17,10 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionsFilterSummaryUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
@@ -30,11 +28,11 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
+import uniffi.gemstone.GemTransactionsFilterSession
+import uniffi.gemstone.GemTransactionsFilterView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,12 +40,8 @@ internal fun TransactionsScene(
     isRefreshing: Boolean,
     transactions: List<GemTransactionRow>?,
     errorRow: GemListRow?,
-    availableChains: List<Chain>,
-    chainsFilter: List<Chain>,
-    typeFilter: List<TransactionFilterUIModel>,
-    typeFilterOptions: List<TransactionFilterUIModel>,
-    filterSummary: TransactionsFilterSummaryUIModel,
-    emptyState: GemEmptyState,
+    filter: GemTransactionsFilterSession,
+    filterView: GemTransactionsFilterView,
     listState: LazyListState = rememberLazyListState(),
     onAction: (TransactionsAction) -> Unit,
 ) {
@@ -60,10 +54,10 @@ internal fun TransactionsScene(
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(
                     imageVector = AppIcons.FilterAlt,
-                    tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty()) {
-                        LocalContentColor.current
-                    } else {
+                    tint = if (filterView.isFiltered) {
                         MaterialTheme.colorScheme.primary
+                    } else {
+                        LocalContentColor.current
                     },
                     contentDescription = "Filter by networks",
                 )
@@ -85,18 +79,12 @@ internal fun TransactionsScene(
                 transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
-                            state = emptyState,
+                            state = filterView.emptyState,
                             onAction = { action ->
                                 when (action) {
                                     GemEmptyStateAction.BUY -> onAction(TransactionsAction.Buy)
-
                                     GemEmptyStateAction.RECEIVE -> onAction(TransactionsAction.Receive)
-
-                                    GemEmptyStateAction.CLEAR_FILTERS -> {
-                                        onAction(TransactionsAction.ClearChainsFilter)
-                                        onAction(TransactionsAction.ClearTypesFilter)
-                                    }
-
+                                    GemEmptyStateAction.CLEAR_FILTERS -> onAction(TransactionsAction.ClearFilters)
                                     GemEmptyStateAction.SWAP, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST -> Unit
                                 }
                             },
@@ -119,16 +107,11 @@ internal fun TransactionsScene(
     }
     TransactionsFilter(
         isVisible = showFilters,
-        availableChains = availableChains,
-        chainsFilter = chainsFilter,
-        typesFilter = typeFilter,
-        typeOptions = typeFilterOptions,
-        chainsSummary = filterSummary.chains,
-        typesSummary = filterSummary.types,
+        filter = filter,
+        view = filterView,
         onDismissRequest = { showFilters = false },
         onSelectChainsFilter = { onAction(TransactionsAction.SelectChainsFilter(it)) },
         onSelectTypesFilter = { onAction(TransactionsAction.SelectTypesFilter(it)) },
-        onClearChainsFilter = { onAction(TransactionsAction.ClearChainsFilter) },
-        onClearTypesFilter = { onAction(TransactionsAction.ClearTypesFilter) },
+        onClear = { onAction(TransactionsAction.ClearFilters) },
     )
 }

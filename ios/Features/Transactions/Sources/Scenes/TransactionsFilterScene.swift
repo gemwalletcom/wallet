@@ -18,11 +18,11 @@ public struct TransactionsFilterScene: View {
     public var body: some View {
         List {
             SelectFilterView(
-                typeModel: model.chainsFilter.typeModel,
+                typeModel: model.chainsTypeModel,
                 action: model.onSelectChainsFilter,
             )
             SelectFilterView(
-                typeModel: model.transactionTypesFilter.typeModel,
+                typeModel: model.typesTypeModel,
                 action: model.onSelectTypesFilter,
             )
         }
@@ -73,8 +73,7 @@ public struct TransactionsFilterScene: View {
 
 extension TransactionsFilterScene {
     private func onSelectClear() {
-        model.chainsFilter.selectedChains = []
-        model.transactionTypesFilter.selectedTypes = []
+        model.onClear()
     }
 
     private func onSelectDone() {

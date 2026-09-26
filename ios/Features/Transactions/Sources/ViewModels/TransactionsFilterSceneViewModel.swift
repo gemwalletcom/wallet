@@ -2,9 +2,11 @@
 
 import Components
 import Foundation
-import func Gemstone.activityFilters
 import enum Gemstone.GemTransactionFilter
 import struct Gemstone.GemTransactionRow
+import struct Gemstone.GemTransactionsFilterSession
+import struct Gemstone.GemTransactionsFilterView
+import func Gemstone.newTransactionsFilterSession
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,16 +16,8 @@ import Store
 @Observable
 @MainActor
 public final class TransactionsFilterSceneViewModel {
-    private let wallet: Wallet
-    private let type: TransactionsQueryType
-
-    public var chainsFilter: ChainsFilterViewModel {
-        didSet { query.request.base.filter = requestFilter }
-    }
-
-    public var transactionTypesFilter: TransactionTypesFilterViewModel {
-        didSet { query.request.base.filter = requestFilter }
-    }
+    private var session: GemTransactionsFilterSession
+    public private(set) var viewState: GemTransactionsFilterView
 
     public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
@@ -31,33 +25,36 @@ public final class TransactionsFilterSceneViewModel {
     var isPresentingTypes: Bool = false
 
     public init(wallet: Wallet, chains: [Chain], type: TransactionsQueryType) {
-        self.wallet = wallet
-        self.type = type
-
-        chainsFilter = ChainsFilterViewModel(chains: chains)
-        transactionTypesFilter = TransactionTypesFilterViewModel()
+        let session = newTransactionsFilterSession(chains: chains.map(\.rawValue), walletType: wallet.type.toGem())
+        let viewState = session.viewState()
+        self.session = session
+        self.viewState = viewState
 
         let request = TransactionsQuery(
             walletId: wallet.id,
             type: type,
-            filter: activityFilters(chains: [], filters: []).toPrimitives(),
+            filter: viewState.filter.toPrimitives(),
             limit: GemConstants.transactionsListLimit,
         )
         query = ObservableQuery(MappedQuery(request, transform: transactionListSections), initialValue: [])
     }
 
     public func onFinishChainsSelection(_ value: SelectionResult<Chain>) -> Bool {
-        chainsFilter.selectedChains = value.items
+        update(session.onChains(chains: value.items.map(\.rawValue)))
         return value.isConfirmed
     }
 
     public func onFinishTypesSelection(_ value: SelectionResult<GemTransactionFilter>) -> Bool {
-        transactionTypesFilter.selectedTypes = value.items
+        update(session.onTypes(types: value.items))
         return value.isConfirmed
     }
 
+    public func onClear() {
+        update(session.onClear())
+    }
+
     public var isAnyFilterSpecified: Bool {
-        chainsFilter.isAnySelected || transactionTypesFilter.isAnySelected
+        viewState.isFiltered
     }
 
     public var title: String {
@@ -72,27 +69,28 @@ public final class TransactionsFilterSceneViewModel {
         Localized.Common.done
     }
 
+    public var chainsTypeModel: ChainsFilterTypeViewModel {
+        ChainsFilterTypeViewModel(summary: viewState.chainsSummary)
+    }
+
+    public var typesTypeModel: TransactionsFilterTypeViewModel {
+        TransactionsFilterTypeViewModel(summary: viewState.typesSummary)
+    }
+
     public var networksModel: NetworkSelectorViewModel {
         NetworkSelectorViewModel(
-            state: .data(.plain(chainsFilter.allChains)),
-            selectedItems: chainsFilter.selectedChains,
+            state: .data(.plain(session.chains.map { Chain(core: $0) })),
+            selectedItems: session.selectedChains.map { Chain(core: $0) },
             selectionType: .multiSelection,
         )
     }
 
     public var typesModel: TransactionTypesSelectorViewModel {
         TransactionTypesSelectorViewModel(
-            state: .data(.plain(transactionTypesFilter.allTransactionsTypes)),
-            selectedItems: transactionTypesFilter.selectedTypes,
+            state: .data(.plain(viewState.types)),
+            selectedItems: session.selectedTypes,
             selectionType: .multiSelection,
         )
-    }
-
-    private var requestFilter: TransactionsFilter {
-        activityFilters(
-            chains: chainsFilter.selectedChains.map(\.rawValue),
-            filters: transactionTypesFilter.selectedTypes,
-        ).toPrimitives()
     }
 }
 
@@ -105,5 +103,15 @@ extension TransactionsFilterSceneViewModel {
 
     func onSelectTypesFilter() {
         isPresentingTypes = true
+    }
+}
+
+// MARK: - Private
+
+extension TransactionsFilterSceneViewModel {
+    private func update(_ session: GemTransactionsFilterSession) {
+        self.session = session
+        viewState = session.viewState()
+        query.request.base.filter = viewState.filter.toPrimitives()
     }
 }
