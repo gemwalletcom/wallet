@@ -8,6 +8,7 @@ The home screen: what the selected wallet holds, what it is worth, and the way i
 - The wallet and asset screens show at most one banner, the most important one; closing it brings up the next.
 - Send, Receive and Buy show for every wallet that can sign; Swap where a swap is possible; a watch-only wallet shows a notice instead of buttons, on the wallet and asset screens and in an empty transaction list.
 - Pinned assets come first, then the rest by value; a native coin is titled by its network.
+- The list shows only assets on networks the wallet has an address for, because a network without an address has nothing to send, receive or refresh.
 - One switch hides balances everywhere.
 - Pull-to-refresh fetches balances, discovers new tokens, and loads new transactions and NFTs, all as separate requests at the same time; prices arrive live, with no timer.
 - Switching wallet rebuilds the screen for the new wallet.

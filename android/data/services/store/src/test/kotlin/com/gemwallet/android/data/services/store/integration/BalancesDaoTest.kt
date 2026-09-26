@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.RoomStoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.entities.DbAccount
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
@@ -134,6 +135,11 @@ class BalancesDaoTest {
 
     @Test
     fun aBatchReachesAnObserverWholeOrNotAtAll() = runBlocking(Dispatchers.IO) {
+        database.accountsDao().insert(
+            listOf(Chain.Ethereum, Chain.Solana).map { chain ->
+                DbAccount(walletId = wallet, derivationPath = "", address = chain.string, chain = chain, extendedPublicKey = null)
+            },
+        )
         val runner = RoomStoreTransactionRunner(database)
         runner.run {
             database.balancesDao().insert(listOf(balance("ethereum"), balance("solana")))

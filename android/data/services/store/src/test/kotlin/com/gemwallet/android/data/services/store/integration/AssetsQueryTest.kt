@@ -85,6 +85,11 @@ class AssetsQueryTest {
 
     @Test
     fun visibleRankedAssetsArePinnedFirstThenByFiatValueThenByRank() = runBlocking(Dispatchers.IO) {
+        database.accountsDao().insert(
+            listOf(Chain.Bitcoin, Chain.Solana, Chain.Tron).map { chain ->
+                DbAccount(walletId = "wallet-1", derivationPath = "", address = chain.string, chain = chain, extendedPublicKey = null)
+            },
+        )
         val assets = query(WalletId("wallet-1")).first()
 
         assertEquals(
@@ -95,11 +100,16 @@ class AssetsQueryTest {
     }
 
     @Test
-    fun eachAssetCarriesTheWalletBalanceAndPrice() = runBlocking(Dispatchers.IO) {
-        val bitcoin = query(WalletId("wallet-1")).first().first { it.asset.id == AssetId(Chain.Bitcoin) }
+    fun theWalletListLeavesOutAssetsOfChainsWithoutAnAccount() = runBlocking(Dispatchers.IO) {
+        assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1")).first().map { it.asset.id })
+    }
 
-        assertEquals(BigInteger.valueOf(10_000_000), bitcoin.balance.available)
-        assertEquals(listOf(60000.0, -2.0), listOf(bitcoin.price?.price, bitcoin.price?.priceChangePercentage24h))
+    @Test
+    fun eachAssetCarriesTheWalletBalanceAndPrice() = runBlocking(Dispatchers.IO) {
+        val ethereum = query(WalletId("wallet-1")).first().first { it.asset.id == AssetId(Chain.Ethereum) }
+
+        assertEquals(BigInteger("2000000000000000000"), ethereum.balance.available)
+        assertEquals(listOf(2000.0, 1.5), listOf(ethereum.price?.price, ethereum.price?.priceChangePercentage24h))
     }
 
     @Test
