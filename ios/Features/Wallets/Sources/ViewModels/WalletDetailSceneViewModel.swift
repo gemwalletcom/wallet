@@ -1,10 +1,7 @@
 import Components
-import struct Gemstone.GemAddressRow
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletDetails
-import struct Gemstone.GemWalletRow
 import enum Gemstone.GemWalletSecret
-import enum Gemstone.GemWalletSecretKind
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -27,10 +24,9 @@ public final class WalletDetailSceneViewModel {
     var isPresentingDeleteConfirmation: Bool?
     var isPresentingExportWallet: GemWalletSecret?
 
-    public let walletQuery: ObservableQuery<MappedQuery<WalletQuery, WalletDetailsValue>>
-    public var wallet: Wallet {
-        walletQuery.value.wallet
-    }
+    private let wallet: Wallet
+
+    public let detailsQuery: ObservableQuery<MappedQuery<WalletQuery, GemWalletDetails>>
 
     public init(
         navigationPath: Binding<NavigationPath>,
@@ -41,46 +37,31 @@ public final class WalletDetailSceneViewModel {
         self.navigationPath = navigationPath
         self.service = service
         self.biometry = biometry
+        self.wallet = wallet
         nameInput = wallet.name
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
         isPresentingExportWallet = nil
-        let details: @Sendable (Wallet) -> WalletDetailsValue = { [service] in
-            WalletDetailsValue(wallet: $0, details: service.walletDetails(wallet: $0.toGem()))
+        let details: @Sendable (Wallet) -> GemWalletDetails = { [service] in
+            service.walletDetails(wallet: $0.toGem())
         }
-        walletQuery = ObservableQuery(MappedQuery(WalletQuery(walletId: wallet.id), transform: details), initialValue: details(wallet))
+        detailsQuery = ObservableQuery(MappedQuery(WalletQuery(walletId: wallet.id), transform: details), initialValue: details(wallet))
     }
 
     var details: GemWalletDetails {
-        walletQuery.value.details
-    }
-
-    var row: GemWalletRow {
-        details.row
+        detailsQuery.value
     }
 
     var name: String {
-        row.name
+        details.row.name
     }
 
     var title: String {
         Localized.Common.wallet
     }
 
-    func showSecretListItem(for secretKind: GemWalletSecretKind) -> ListItemModel {
-        ListItemModel(title: Localized.Common.show(secretKind.title))
-    }
-
-    var secretKind: GemWalletSecretKind? {
-        details.secretKind
-    }
-
-    var addressRow: GemAddressRow? {
-        details.address
-    }
-
     var avatarAssetImage: AssetImage {
-        let avatar = row.avatarImage
+        let avatar = details.row.avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,
@@ -146,9 +127,4 @@ extension WalletDetailSceneViewModel {
             return false
         }
     }
-}
-
-public struct WalletDetailsValue: Equatable, Sendable {
-    let wallet: Wallet
-    let details: GemWalletDetails
 }

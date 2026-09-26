@@ -10,8 +10,6 @@ import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
-import com.gemwallet.android.features.wallets.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.NftItemUIModel
@@ -31,6 +29,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletDetails
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
@@ -47,9 +46,8 @@ class WalletImageViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    val details: StateFlow<WalletDetailUIModel?> = walletQuery(walletId)
+    val details: StateFlow<GemWalletDetails?> = walletQuery(walletId)
         .mapLatest { wallet -> wallet?.let { walletService.walletDetails(it.toGem()) } }
-        .map { it?.uiModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val emojis: List<String> = AvatarEmoji.all

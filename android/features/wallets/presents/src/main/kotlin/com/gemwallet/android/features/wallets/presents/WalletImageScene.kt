@@ -28,7 +28,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.EmojiPickerGrid
 import com.gemwallet.android.ui.components.image.NftImage
@@ -36,19 +35,21 @@ import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.style.iconModel
 import com.gemwallet.android.ui.style.supportIcon
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
+import uniffi.gemstone.GemWalletDetails
 
 private const val NFT_COLUMNS = 2
 
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
 @Composable
-internal fun WalletImageScene(wallet: WalletDetailUIModel?, emojis: List<String>, nftImages: List<NftItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
+internal fun WalletImageScene(wallet: GemWalletDetails?, emojis: List<String>, nftImages: List<NftItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
@@ -64,12 +65,12 @@ internal fun WalletImageScene(wallet: WalletDetailUIModel?, emojis: List<String>
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             WalletAvatar(
-                imageUrl = wallet.avatar.imageUrl,
-                placeholder = wallet.avatar.placeholder,
+                imageUrl = wallet.row.imageUrl,
+                placeholder = wallet.row.placeholder.iconModel(),
                 size = extraLargeIconSize,
                 modifier = Modifier.padding(top = paddingDefault),
-                supportIcon = wallet.avatar.supportIcon,
-                onRemove = if (wallet.avatar.canRemove) {
+                supportIcon = wallet.row.supportIcon(),
+                onRemove = if (wallet.row.hasAvatar) {
                     { onAction(WalletImageAction.ResetToDefault) }
                 } else {
                     null

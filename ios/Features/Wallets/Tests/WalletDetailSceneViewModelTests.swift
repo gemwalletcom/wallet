@@ -21,14 +21,14 @@ struct WalletDetailSceneViewModelTests {
 
         #expect(model.name == "Main Wallet")
         #expect(model.nameInput == "Main Wallet")
-        #expect(model.row.name == "Main Wallet")
+        #expect(model.details.row.name == "Main Wallet")
     }
 
     @Test
     func aMulticoinWalletHasNoSingleAddressRow() {
         let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum)]))
 
-        #expect(model.addressRow == nil)
+        #expect(model.details.address == nil)
     }
 
     @Test
@@ -36,7 +36,7 @@ struct WalletDetailSceneViewModelTests {
         let account = Account.mock(chain: .ethereum, address: "0xabc")
         let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .single, accounts: [account]))
 
-        let address = try #require(model.addressRow)
+        let address = try #require(model.details.address)
         #expect(address.address == "0xabc")
         #expect(address.menu.contains { if case let .open(_, url) = $0 { url.contains("0xabc") } else { false } })
     }

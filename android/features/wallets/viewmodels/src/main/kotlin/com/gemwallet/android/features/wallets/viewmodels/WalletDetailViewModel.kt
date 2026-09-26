@@ -7,16 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.data.services.store.queries.WalletQuery
-import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretUIModel
-import com.gemwallet.android.features.wallets.viewmodels.models.uiModel
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -34,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
+import uniffi.gemstone.GemWalletDetails
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
@@ -49,18 +42,9 @@ class WalletDetailViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    private val wallet = walletQuery(walletId)
+    val details: StateFlow<GemWalletDetails?> = walletQuery(walletId)
         .mapLatest { wallet -> wallet?.let { service.walletDetails(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val details: StateFlow<WalletDetailUIModel?> = wallet.map { it?.uiModel() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val secret: StateFlow<WalletSecretUIModel?> = wallet.map { details ->
-        details?.secretKind?.let { kind ->
-            WalletSecretUIModel(WalletSecretInput(walletId, kind), ListItemModel(title = context.getString(R.string.common_show, context.getString(kind.stringRes()))))
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()

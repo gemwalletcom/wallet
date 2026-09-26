@@ -177,6 +177,7 @@ pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<String>) 
 pub struct GemWalletDetails {
     pub row: GemWalletRow,
     pub secret_kind: Option<GemWalletSecretKind>,
+    pub show_secret: Option<GemLocalizedText>,
     pub address: Option<GemAddressRow>,
 }
 

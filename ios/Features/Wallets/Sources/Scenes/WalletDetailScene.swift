@@ -42,17 +42,17 @@ public struct WalletDetailScene: View {
                         Spacer()
                     }
                 }
-                if let secretKind = model.secretKind {
+                if let secretKind = model.details.secretKind, let showSecret = model.details.showSecret {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(model: model.showSecretListItem(for: secretKind)),
+                            with: ListItemView(model: ListItemModel(title: showSecret.text)),
                             action: onShowSecret,
                         )
                     } header: {
                         Text(secretKind.title)
                     }
                 }
-                if let addressRow = model.addressRow {
+                if let addressRow = model.details.address {
                     Section {
                         AddressListItemView(row: addressRow)
                     }
@@ -72,7 +72,7 @@ public struct WalletDetailScene: View {
         .padding(.bottom, .scene.bottom)
         .background(Colors.grayBackground)
         .frame(maxWidth: .infinity)
-        .bindQuery(model.walletQuery)
+        .bindQuery(model.detailsQuery)
         .onChange(of: model.nameInput) { Task { await model.onChangeWalletName() } }
         .navigationTitle(model.title)
         .alert(

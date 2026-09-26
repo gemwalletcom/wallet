@@ -179,6 +179,7 @@ pub fn details(wallet: &Wallet, address_url: impl Fn(Chain, String) -> BlockExpl
     GemWalletDetails {
         row: row(wallet),
         secret_kind: secret_kind(wallet),
+        show_secret: secret_kind(wallet).map(|kind| GemLocalizedText::ShowSecret { kind }),
         address: match wallet.accounts.as_slice() {
             [account] => Some(GemAddressRow::new(
                 GemLocalizedText::RowTitle { title: GemListRowTitle::Address },
@@ -494,6 +495,7 @@ mod tests {
         let single_details = details(&single, link);
         assert_eq!(single_details.row.id, single.id.id());
         assert_eq!(single_details.secret_kind, Some(GemWalletSecretKind::Phrase));
+        assert_eq!(single_details.show_secret, Some(GemLocalizedText::ShowSecret { kind: GemWalletSecretKind::Phrase }));
         assert_eq!(single_details.address.map(|row| (row.chain, row.address)), Some((Chain::Ethereum, "address".to_string())));
         assert_eq!(details(&multicoin, link).address, None);
     }

@@ -4,6 +4,7 @@ use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
 use crate::services::perpetual::model::GemPerpetualChartLineKind;
 use crate::services::price_alert::rules::GemPriceAlertLabel;
+use crate::services::wallet::model::GemWalletSecretKind;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemLocalizedText {
@@ -38,6 +39,7 @@ pub enum GemLocalizedText {
     ChartLine { kind: GemPerpetualChartLineKind, price: GemFormattedNumber },
     ExpectedProfit,
     ExpectedLoss,
+    ShowSecret { kind: GemWalletSecretKind },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: GemFormattedNumber },

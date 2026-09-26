@@ -20,30 +20,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.wallets.presents.components.WalletAddress
 import com.gemwallet.android.features.wallets.presents.dialogs.ConfirmWalletDeleteDialog
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletDetailUIModel
-import com.gemwallet.android.features.wallets.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.iconModel
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletDetails
 
 @Composable
-internal fun WalletDetailScene(wallet: WalletDetailUIModel?, secret: WalletSecretUIModel?, snackbar: SnackbarHostState? = null, onAction: (WalletDetailAction) -> Unit) {
+internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHostState? = null, onAction: (WalletDetailAction) -> Unit) {
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    var walletName by remember(wallet.name) {
-        mutableStateOf(wallet.name)
+    var walletName by remember(wallet.row.name) {
+        mutableStateOf(wallet.row.name)
     }
     Scene(
         title = stringResource(id = R.string.common_wallet),
@@ -76,11 +81,13 @@ internal fun WalletDetailScene(wallet: WalletDetailUIModel?, secret: WalletSecre
                 },
                 singleLine = true,
             )
-            secret?.let {
+            val secretKind = wallet.secretKind
+            val showSecret = wallet.showSecret
+            if (secretKind != null && showSecret != null) {
                 ListItem(
-                    model = it.model,
+                    model = ListItemModel(title = showSecret.string(LocalContext.current)),
                     listPosition = ListPosition.Single,
-                    modifier = Modifier.clickable { onAction(WalletDetailAction.ShowPhrase(it.input)) },
+                    modifier = Modifier.clickable { onAction(WalletDetailAction.ShowPhrase(WalletSecretInput(WalletId(wallet.row.id), secretKind))) },
                     accessory = { DataBadgeChevron() },
                 )
             }
@@ -113,10 +120,10 @@ internal fun WalletDetailScene(wallet: WalletDetailUIModel?, secret: WalletSecre
 }
 
 @Composable
-private fun WalletAvatarHeader(wallet: WalletDetailUIModel, onClick: () -> Unit) {
+private fun WalletAvatarHeader(wallet: GemWalletDetails, onClick: () -> Unit) {
     WalletAvatar(
-        imageUrl = wallet.avatar.imageUrl,
-        placeholder = wallet.avatar.placeholder,
+        imageUrl = wallet.row.imageUrl,
+        placeholder = wallet.row.placeholder.iconModel(),
         size = extraLargeIconSize,
         modifier = Modifier.padding(vertical = paddingDefault),
         supportIcon = R.drawable.ic_edit_badge,
