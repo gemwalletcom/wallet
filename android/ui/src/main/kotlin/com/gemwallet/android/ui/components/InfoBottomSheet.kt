@@ -59,8 +59,8 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
         onDismissRequest = onClose,
     ) { shownItem ->
         val sheet = shownItem.sheet
-        val action = sheet.action
         val onAction = shownItem.onAction
+        val action = sheet.button(onAction != null)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,7 +87,7 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
-            if (action is GemInfoAction.LearnMore || (action != null && onAction != null)) {
+            if (action != null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

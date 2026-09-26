@@ -17,17 +17,6 @@ public enum InfoSheetButton: Sendable {
     case url(URL, title: String? = nil)
     case action(title: String, action: InfoSheetAction)
 
-    init?(action: GemInfoAction, onAction: InfoSheetActionHandler?) {
-        switch action {
-        case let .learnMore(url):
-            guard let url = URL(string: url) else { return nil }
-            self = .url(url)
-        case .buy, .acquire, .continue:
-            guard let onAction else { return nil }
-            self = .action(title: action.title, action: { onAction(action) })
-        }
-    }
-
     var title: String {
         switch self {
         case let .url(_, title): title ?? Localized.Common.learnMore
@@ -78,7 +67,12 @@ extension InfoSheetModel {
             title: sheet.title.text,
             description: sheet.description.text,
             image: sheet.image.sheetImage,
-            button: sheet.action.flatMap { InfoSheetButton(action: $0, onAction: onAction) },
+            button: sheet.button(handlesActions: onAction != nil).flatMap { action in
+                switch action {
+                case let .learnMore(url): URL(string: url).map { .url($0) }
+                case .buy, .acquire, .continue: onAction.map { onAction in .action(title: action.title, action: { onAction(action) }) }
+                }
+            },
         )
     }
 }

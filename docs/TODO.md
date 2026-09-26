@@ -60,7 +60,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM281, VM291; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM266 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | D175, VM288, BD299, GEN300 |
 | Unused code and unit tests, every platform | `scripts/check-ffi-surface.py`, `cargo machete`, each module's test target | CLN318, CLN319 |
@@ -129,10 +129,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
   - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
-- **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
-  - **iOS:** `InfoSheetModel` and `InfoSheetButton` copy `GemInfoSheet` and show the button for learn-more or when a handler exists.
-  - **Android:** `InfoSheetEntity` and `InfoBottomSheet` apply the same rule.
-  - **Expected:** the sheet views take `GemInfoSheet`; only the handler binding stays in the apps.
 - **VM267** **S** **Simulation payload fields are mapped twice.**
   - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
   - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
