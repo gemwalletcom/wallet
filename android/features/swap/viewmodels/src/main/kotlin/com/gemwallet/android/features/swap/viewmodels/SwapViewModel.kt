@@ -22,13 +22,10 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapQuoteRequestParams
-import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
-import com.gemwallet.android.features.swap.viewmodels.models.createSwapUIState
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
 import com.gemwallet.android.ui.components.swap.uiModel
-import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.uiModel
 import com.wallet.core.primitives.AssetId
@@ -65,6 +62,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSlippageSession
@@ -74,6 +72,7 @@ import uniffi.gemstone.GemSwapQuoteInput
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapQuotesResult
 import uniffi.gemstone.GemSwapRequest
+import uniffi.gemstone.GemSwapViewState
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.formattedPercentage
@@ -180,16 +179,13 @@ class SwapViewModel @Inject constructor(
 
     private val currency = swapQuoteService.getCurrency()
 
-    private val viewState = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
+    val viewState: StateFlow<GemSwapViewState> = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
         quoteSession.viewState(pay?.toGem(), receive?.toGem(), currency)
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, null, currency))
 
-    val swapDetails = viewState.map { state -> state?.details?.uiModel(state.providers, state.allowsProviderSelection) }
+    val swapDetails = viewState.map { state -> state.details?.uiModel(state.providers, state.allowsProviderSelection) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val uiState = viewState.map { state -> state?.let { createSwapUIState(it, context) } ?: SwapUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUIState())
 
     init {
         viewModelScope.launch {
@@ -201,7 +197,7 @@ class SwapViewModel @Inject constructor(
         quoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)
-        viewState.map { it?.receiveAmount?.text().orEmpty() }
+        viewState.map { it.receiveAmount?.text().orEmpty() }
             .distinctUntilChanged()
             .onEach(::setReceive)
             .launchIn(viewModelScope)
@@ -299,11 +295,11 @@ class SwapViewModel @Inject constructor(
     }
 
     fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onShowPriceImpactWarning: () -> Unit, authorize: (() -> Unit) -> Unit) {
-        val state = uiState.value
-        if (state.buttonState != ButtonState.Enabled) {
+        val state = viewState.value
+        if (state.buttonState != GemButtonState.ENABLED) {
             return
         }
-        when (val action = viewState.value?.buttonAction ?: return) {
+        when (val action = state.buttonAction) {
             GemSwapButtonAction.Swap -> {
                 if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
                     onShowPriceImpactWarning()
@@ -330,7 +326,7 @@ class SwapViewModel @Inject constructor(
     }
 
     fun swap(onConfirm: (ConfirmTransferInput) -> Unit) = viewModelScope.launch(ioDispatcher) {
-        val quote = viewState.value?.quote ?: return@launch
+        val quote = viewState.value.quote ?: return@launch
         val pay = payAsset.value ?: return@launch
         val receive = receiveAsset.value ?: return@launch
         val started = session.value.startTransfer() ?: return@launch

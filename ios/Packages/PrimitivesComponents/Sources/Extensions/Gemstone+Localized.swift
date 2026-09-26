@@ -186,6 +186,8 @@ public extension GemLocalizedText {
             Localized.Simulation.Header.unlimitedAsset(symbol)
         case .nftCollections:
             Localized.Nft.collections
+        case .selectAsset:
+            Localized.Assets.selectAsset
         case .nftUnverified:
             Localized.Asset.Verification.unverified
         case let .rewardsRedeemAsset(value):

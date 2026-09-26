@@ -30,7 +30,9 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -354,8 +356,8 @@ class SwapViewModelTest {
         requestQuote(viewModel, "0.25")
 
         coVerify(exactly = 2) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
-        assertTrue(viewModel.uiState.value.isQuoteLoading)
-        assertNull(viewModel.uiState.value.errorText)
+        assertTrue(viewModel.viewState.value.isQuoteLoading)
+        assertNull(viewModel.viewState.value.error)
     }
 
     @Test
@@ -387,7 +389,7 @@ class SwapViewModelTest {
         advanceTimeBy(GemConstants.swapQuoteDebounce.inWholeMilliseconds * 2)
 
         coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
     }
 
     @Test
@@ -429,7 +431,7 @@ class SwapViewModelTest {
         failQuote(viewModel, SwapperException.ComputeQuoteException("boom"))
 
         coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
-        assertNotNull(viewModel.uiState.value.errorText)
+        assertNotNull(viewModel.viewState.value.error)
     }
 
     @Test
@@ -459,20 +461,20 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         seedReadyQuote(viewModel)
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-        assertNull(viewModel.uiState.value.errorText)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
+        assertNull(viewModel.viewState.value.error)
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
         val confirmed = mutableListOf<ConfirmTransferInput>()
         viewModel.swap { confirmed += it }
-        awaitCondition { viewModel.uiState.value.isTransferLoading }
+        awaitCondition { viewModel.viewState.value.isTransferLoading }
 
         quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2600000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.isTransferLoading)
+        assertTrue(viewModel.viewState.value.isTransferLoading)
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
         assertEquals(0, confirmed.size)
 
@@ -496,9 +498,9 @@ class SwapViewModelTest {
         seedReadyQuote(viewModel)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.errorText != null }
+        awaitCondition { viewModel.viewState.value.error != null }
 
-        assertEquals(GemInfoTopic.NoQuote.infoSheet(), viewModel.uiState.value.errorInfo)
+        assertEquals(GemInfoTopic.NoQuote.infoSheet(), viewModel.viewState.value.error?.info()?.infoSheet())
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
     }
 
@@ -516,11 +518,11 @@ class SwapViewModelTest {
         seedReadyQuote(viewModel)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.errorText != null }
+        awaitCondition { viewModel.viewState.value.error != null }
 
-        val state = viewModel.uiState.value
-        assertEquals(R.string.wallet_swap, state.actionTitle)
-        assertEquals(ButtonState.Enabled, state.buttonState)
+        val state = viewModel.viewState.value
+        assertEquals(R.string.wallet_swap, state.buttonAction.stringRes())
+        assertEquals(ButtonState.Enabled, state.buttonState.buttonState())
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
         coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.account.address)
@@ -551,20 +553,20 @@ class SwapViewModelTest {
 
         seedReadyQuote(viewModel)
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.errorText != null }
+        awaitCondition { viewModel.viewState.value.error != null }
 
         viewModel.setProvider(SwapProvider.UNISWAP_V3)
         advanceUntilIdle()
 
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-        assertNull(viewModel.uiState.value.errorText)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
+        assertNull(viewModel.viewState.value.error)
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.errorText != null }
+        awaitCondition { viewModel.viewState.value.error != null }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
         Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.uiState.value.isQuoteLoading }
+        awaitCondition { viewModel.viewState.value.isQuoteLoading }
     }
 
     @Test
@@ -580,9 +582,9 @@ class SwapViewModelTest {
         runCurrent()
 
         viewModel.swap {}
-        awaitCondition { viewModel.uiState.value.isTransferLoading }
+        awaitCondition { viewModel.viewState.value.isTransferLoading }
         confirmInputGate.complete(Unit)
-        awaitCondition { viewModel.uiState.value.buttonState == ButtonState.Enabled && viewModel.uiState.value.errorText == null }
+        awaitCondition { viewModel.viewState.value.buttonState.buttonState() == ButtonState.Enabled && viewModel.viewState.value.error == null }
         advanceUntilIdle()
         coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
 
@@ -601,12 +603,12 @@ class SwapViewModelTest {
         requestQuote(viewModel, "1")
         quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-        assertNull(viewModel.uiState.value.errorText)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
+        assertNull(viewModel.viewState.value.error)
 
         advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.isQuoteLoading)
+        assertTrue(viewModel.viewState.value.isQuoteLoading)
         assertEquals("2.5", viewModel.receiveValue.text.toString())
     }
 
@@ -628,15 +630,15 @@ class SwapViewModelTest {
 
         var wasTransferLoadingOnConfirm = false
         viewModel.swap {
-            wasTransferLoadingOnConfirm = viewModel.uiState.value.isTransferLoading
+            wasTransferLoadingOnConfirm = viewModel.viewState.value.isTransferLoading
         }
-        awaitCondition { viewModel.uiState.value.isTransferLoading }
+        awaitCondition { viewModel.viewState.value.isTransferLoading }
         confirmInputGate.complete(Unit)
-        awaitCondition { !viewModel.uiState.value.isTransferLoading }
+        awaitCondition { !viewModel.viewState.value.isTransferLoading }
 
         assertTrue(wasTransferLoadingOnConfirm)
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-        assertNull(viewModel.uiState.value.errorText)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
+        assertNull(viewModel.viewState.value.error)
     }
 
     @Test
@@ -659,7 +661,7 @@ class SwapViewModelTest {
         viewModel.swap { input ->
             confirmInput = input.data
         }
-        awaitCondition { viewModel.uiState.value.isTransferLoading }
+        awaitCondition { viewModel.viewState.value.isTransferLoading }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
         confirmInputGate.complete(Unit)
@@ -724,8 +726,8 @@ class SwapViewModelTest {
         assertEquals(1, showWarningCalls)
         assertEquals(0, swapCalls)
         assertEquals(0, confirmCalls)
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-        assertNull(viewModel.uiState.value.errorText)
+        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
+        assertNull(viewModel.viewState.value.error)
     }
 
     @Test
@@ -734,7 +736,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         failQuote(viewModel, SwapperException.InputAmountException("500000000"))
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.swap_use_minimum_amount }
+        awaitCondition { viewModel.viewState.value.buttonAction.stringRes() == R.string.swap_use_minimum_amount }
 
         viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
         advanceUntilIdle()
@@ -748,7 +750,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         failQuote(viewModel, SwapperException.InputAmountException("1"))
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.swap_use_minimum_amount }
+        awaitCondition { viewModel.viewState.value.buttonAction.stringRes() == R.string.swap_use_minimum_amount }
 
         viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
         advanceUntilIdle()
@@ -797,6 +799,6 @@ class SwapViewModelTest {
         quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         testDispatcher.scheduler.runCurrent()
         viewModel.setRefreshEnabled(false)
-        awaitCondition { viewModel.uiState.value.buttonState == ButtonState.Enabled && viewModel.uiState.value.errorText == null }
+        awaitCondition { viewModel.viewState.value.buttonState.buttonState() == ButtonState.Enabled && viewModel.viewState.value.error == null }
     }
 }

@@ -24,7 +24,6 @@ import com.gemwallet.android.features.swap.presents.components.SwapButton
 import com.gemwallet.android.features.swap.presents.components.SwapError
 import com.gemwallet.android.features.swap.presents.components.SwapToken
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
-import com.gemwallet.android.features.swap.viewmodels.models.SwapUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.IndicatorButton
@@ -41,17 +40,13 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetData
-import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemSwapViewState
 
 @Composable
 internal fun SwapScene(
-    swapState: SwapUIState,
+    viewState: GemSwapViewState,
     pay: AssetData?,
     receive: AssetData?,
-    payEquivalent: String,
-    receiveEquivalent: String,
-    payBalance: GemLocalizedText?,
-    receiveBalance: GemLocalizedText?,
     swapDetails: SwapDetailsUIModel?,
     payValue: TextFieldState,
     receiveValue: TextFieldState,
@@ -63,7 +58,7 @@ internal fun SwapScene(
         focusManager.clearFocus(force = true)
     }
     val isKeyboardVisible = WindowInsets.isKeyboardVisible
-    val isPercentBarVisible = isKeyboardVisible && pay != null && swapState.isInputEmpty
+    val isPercentBarVisible = isKeyboardVisible && pay != null && viewState.isInputEmpty
 
     Scene(
         title = stringResource(id = R.string.wallet_swap),
@@ -88,9 +83,9 @@ internal fun SwapScene(
                         onAction(SwapAction.SelectPercent(it))
                     },
                 )
-            } else {
+            } else if (viewState.showsButton) {
                 SwapButton(
-                    swapState = swapState,
+                    viewState = viewState,
                     pay = pay,
                     onSwap = {
                         clearAmountFocus()
@@ -113,11 +108,8 @@ internal fun SwapScene(
             item {
                 SwapToken(
                     item = pay,
-                    icon = swapState.payIcon,
-                    balance = payBalance,
-                    equivalent = payEquivalent,
+                    side = viewState.pay,
                     state = payValue,
-                    interaction = swapState.payItemInteraction,
                     onBalanceClick = {
                         clearAmountFocus()
                         onAction(SwapAction.SelectPercent(100))
@@ -130,19 +122,16 @@ internal fun SwapScene(
             }
             item {
                 SwapReceiveHeader(
-                    enabled = swapState.isQuoteInteractionEnabled,
+                    enabled = !viewState.isTransferLoading,
                     onSwitch = { onAction(SwapAction.SwitchAssets) },
                 )
             }
             item {
                 SwapToken(
                     item = receive,
-                    icon = swapState.receiveIcon,
-                    balance = receiveBalance,
-                    equivalent = receiveEquivalent,
+                    side = viewState.receive,
                     state = receiveValue,
-                    calculating = swapState.isReceiveLoading,
-                    interaction = swapState.receiveItemInteraction,
+                    calculating = viewState.isReceiveLoading,
                     onBalanceClick = {},
                     onAssetSelect = {
                         clearAmountFocus()
@@ -158,7 +147,7 @@ internal fun SwapScene(
             }
 
             item {
-                SwapError(swapState)
+                SwapError(viewState)
             }
         }
     }

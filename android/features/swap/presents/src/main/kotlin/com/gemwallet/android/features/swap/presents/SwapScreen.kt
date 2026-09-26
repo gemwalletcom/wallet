@@ -34,7 +34,7 @@ fun SwapScreen(
     val context = LocalContext.current
     val pay by viewModel.payAsset.collectAsStateWithLifecycle()
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
-    val swapState by viewModel.uiState.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
 
@@ -50,14 +50,10 @@ fun SwapScreen(
     }
 
     SwapScene(
-        swapState = swapState,
+        viewState = viewState,
         pay = pay,
         receive = receive,
         swapDetails = swapDetails,
-        payEquivalent = swapState.payEquivalent,
-        receiveEquivalent = swapState.receiveEquivalent,
-        payBalance = swapState.payBalance,
-        receiveBalance = swapState.receiveBalance,
         payValue = viewModel.payValue,
         receiveValue = viewModel.receiveValue,
         showsSlippageIndicator = selectedSlippage != null,
@@ -71,7 +67,7 @@ fun SwapScreen(
 
                 SwapAction.ShowDetails -> isShowDetails = true
 
-                SwapAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
+                SwapAction.Slippage -> if (!viewState.isTransferLoading) {
                     viewModel.openSlippage()
                 }
 
@@ -96,11 +92,11 @@ fun SwapScreen(
 
     SwapDetailsBottomSheet(
         isVisible = isShowDetails,
-        isLoading = swapState.isQuoteLoading && swapDetails == null,
+        isLoading = viewState.isQuoteLoading && swapDetails == null,
         model = swapDetails,
         onDismiss = { isShowDetails = false },
         expansion = SheetExpansion.Full,
-        onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
+        onProviderSelect = if (!viewState.isTransferLoading) viewModel::setProvider else null,
     )
 
     val slippage by viewModel.slippage.collectAsStateWithLifecycle()

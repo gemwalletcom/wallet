@@ -16,6 +16,7 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
+import struct Gemstone.GemSwapSideState
 import struct Gemstone.GemSwapViewState
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
@@ -179,11 +180,10 @@ public final class SwapSceneViewModel {
         }
     }
 
-    func swapTokenModel(type: SelectAssetSwapType) -> SwapTokenViewModel {
-        let state = viewState
-        return switch type {
-        case .pay: SwapTokenViewModel(asset: fromAsset?.asset, side: state.pay)
-        case .receive: SwapTokenViewModel(asset: toAsset?.asset, side: state.receive)
+    func side(type: SelectAssetSwapType) -> GemSwapSideState {
+        switch type {
+        case .pay: viewState.pay
+        case .receive: viewState.receive
         }
     }
 }

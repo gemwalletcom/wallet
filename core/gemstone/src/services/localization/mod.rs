@@ -45,6 +45,7 @@ pub enum GemLocalizedText {
     UnlimitedAsset { symbol: String },
     StakeProvider { provider: StakeProviderType },
     NftCollections,
+    SelectAsset,
     NftUnverified,
     SignInWith { chain: Chain },
     ReviewRequest,

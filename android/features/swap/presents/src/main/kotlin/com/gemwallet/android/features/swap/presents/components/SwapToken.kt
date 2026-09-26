@@ -23,10 +23,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
@@ -42,24 +41,14 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.ui.theme.space2
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapSideInteraction
+import uniffi.gemstone.GemSwapSideState
 
 @Composable
-internal fun SwapToken(
-    item: AssetData?,
-    icon: GemAssetIcon?,
-    balance: GemLocalizedText?,
-    equivalent: String,
-    calculating: Boolean = false,
-    interaction: GemSwapSideInteraction,
-    state: TextFieldState = rememberTextFieldState(),
-    onBalanceClick: () -> Unit,
-    onAssetSelect: () -> Unit,
-) {
+internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Boolean = false, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -75,25 +64,26 @@ internal fun SwapToken(
         ) {
             SwapItemInput(
                 calculating = calculating,
-                interaction = interaction,
+                interaction = side.interaction,
                 state = state,
                 assetSelected = item != null,
+                placeholder = side.amountPlaceholder,
             )
-            SwapEquivalent(calculating = calculating, equivalent = equivalent)
+            SwapEquivalent(calculating = calculating, equivalent = side.fiat?.text().orEmpty())
         }
         Column(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(space2),
         ) {
             SwapItemLotInfo(
-                asset = item?.asset,
-                icon = icon,
-                enabled = interaction.isAssetSelectable,
+                title = side.title.string(LocalContext.current),
+                icon = side.icon,
+                enabled = side.interaction.isAssetSelectable,
                 onClick = onAssetSelect,
             )
             SwapBalance(
-                balance = balance,
-                interaction = interaction,
+                balance = side.balance,
+                interaction = side.interaction,
                 onBalanceClick = onBalanceClick,
             )
         }
@@ -101,16 +91,16 @@ internal fun SwapToken(
 }
 
 @Composable
-private fun SwapItemLotInfo(asset: Asset?, icon: GemAssetIcon?, enabled: Boolean, onClick: () -> Unit) {
-    if (asset == null || icon == null) {
-        SelectAssetInfo(enabled, onClick)
+private fun SwapItemLotInfo(title: String, icon: GemAssetIcon?, enabled: Boolean, onClick: () -> Unit) {
+    if (icon == null) {
+        SelectAssetInfo(title, enabled, onClick)
     } else {
-        AssetData(asset, icon, enabled, onClick)
+        AssetData(title, icon, enabled, onClick)
     }
 }
 
 @Composable
-private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
+private fun SelectAssetInfo(title: String, enabled: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
@@ -120,7 +110,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {
         Text(
-            text = stringResource(R.string.assets_select_asset),
+            text = title,
             style = MaterialTheme.typography.titleMedium,
         )
         AssetPickerChevron()
@@ -128,7 +118,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AssetData(asset: Asset, icon: GemAssetIcon, enabled: Boolean, onClick: () -> Unit) {
+private fun AssetData(title: String, icon: GemAssetIcon, enabled: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
@@ -139,7 +129,7 @@ private fun AssetData(asset: Asset, icon: GemAssetIcon, enabled: Boolean, onClic
     ) {
         AssetIcon(icon)
         Text(
-            text = asset.symbol,
+            text = title,
             style = MaterialTheme.typography.titleMedium,
         )
         AssetPickerChevron()
@@ -186,7 +176,7 @@ private fun SwapBalance(balance: GemLocalizedText?, interaction: GemSwapSideInte
 }
 
 @Composable
-private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, state: TextFieldState = rememberTextFieldState()) {
+private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
@@ -217,9 +207,9 @@ private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteract
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = decimalKeyboardOptions(),
                 decorator = { innerTextField ->
-                    if (assetSelected && state.text.isEmpty()) {
+                    if (placeholder.isNotEmpty() && state.text.isEmpty()) {
                         Text(
-                            text = "0",
+                            text = placeholder,
                             style = amountTextStyle,
                             color = MaterialTheme.colorScheme.secondary,
                         )

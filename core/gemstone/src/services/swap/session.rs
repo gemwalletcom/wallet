@@ -180,6 +180,8 @@ impl GemSwapErrorDisplay {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapSideState {
     pub interaction: GemSwapSideInteraction,
+    pub title: GemLocalizedText,
+    pub amount_placeholder: String,
     pub icon: Option<crate::services::assets::icon::GemAssetIcon>,
     pub balance: Option<GemLocalizedText>,
     pub fiat: Option<GemFormattedNumber>,
@@ -197,6 +199,7 @@ pub struct GemSwapViewState {
     pub is_transfer_loading: bool,
     pub allows_provider_selection: bool,
     pub is_input_empty: bool,
+    pub shows_button: bool,
     pub pay: GemSwapSideState,
     pub receive: GemSwapSideState,
     pub is_receive_loading: bool,
@@ -236,6 +239,17 @@ pub struct GemSwapSession {
     pub input: Option<GemSwapQuoteInput>,
     #[uniffi(default = None)]
     pub pay_value: Option<GemBigUint>,
+}
+
+fn side_title(data: Option<&AssetData>) -> GemLocalizedText {
+    match data {
+        Some(data) => GemLocalizedText::Text { text: data.asset.symbol.clone() },
+        None => GemLocalizedText::SelectAsset,
+    }
+}
+
+fn side_amount_placeholder(data: Option<&AssetData>) -> String {
+    data.map(|_| "0".to_string()).unwrap_or_default()
 }
 
 pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemProviderRow {
@@ -379,7 +393,10 @@ impl GemSwapSession {
             is_transfer_loading,
             allows_provider_selection: self.allows_provider_selection(),
             is_input_empty: self.is_input_empty(),
+            shows_button: !self.is_input_empty(),
             pay: GemSwapSideState {
+                title: side_title(pay.as_ref()),
+                amount_placeholder: side_amount_placeholder(pay.as_ref()),
                 icon: pay.as_ref().map(|pay| asset_icon(&pay.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: !is_transfer_loading,
@@ -393,6 +410,8 @@ impl GemSwapSession {
                     .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
             },
             receive: GemSwapSideState {
+                title: side_title(receive.as_ref()),
+                amount_placeholder: side_amount_placeholder(receive.as_ref()),
                 icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: false,
@@ -897,13 +916,23 @@ mod tests {
     }
 
     #[test]
+    fn test_a_side_without_an_asset_asks_for_one_and_shows_no_zero() {
+        let state = GemSwapSession::default().view_state(Some(mock_asset_data(Chain::Ethereum, 0)), None, Currency::USD);
+
+        assert_eq!((state.pay.title, state.pay.amount_placeholder.as_str()), (GemLocalizedText::Text { text: "ETH".to_string() }, "0"));
+        assert_eq!((state.receive.title, state.receive.amount_placeholder.as_str()), (GemLocalizedText::SelectAsset, ""));
+    }
+
+    #[test]
     fn test_view_state_carries_the_quote_and_button_at_once() {
         let idle = view(&GemSwapSession::default(), 0);
         assert!(idle.is_input_empty);
+        assert!(!idle.shows_button, "an empty amount hides the button");
         assert_eq!(idle.button_state, GemButtonState::Disabled);
 
         let session = GemSwapSession::mock_ready();
         let state = view(&session, 200);
+        assert!(state.shows_button);
         assert_eq!(state.quote, session.quote());
         assert_eq!(state.action, GemSwapSessionAction::Ready);
         assert_eq!(state.button_action, GemSwapButtonAction::Swap);
