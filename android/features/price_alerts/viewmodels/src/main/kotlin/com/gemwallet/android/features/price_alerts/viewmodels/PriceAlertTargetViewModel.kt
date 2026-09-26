@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,7 +46,6 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceAlertServiceInterface
-import uniffi.gemstone.GemPriceAlertSession
 import uniffi.gemstone.GemPriceAlertViewState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
@@ -77,31 +75,25 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetRow: StateFlow<GemAssetItemRow?> = assetInfo.map { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle)?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _direction = MutableStateFlow(PriceAlertDirection.Up)
-    val direction: StateFlow<PriceAlertDirection> = _direction
+    private val session = MutableStateFlow(service.newAlertSession(assetId.toIdentifier()))
 
-    private val _type = MutableStateFlow(PriceAlertNotificationType.Price)
-    val type: StateFlow<PriceAlertNotificationType> = _type
+    val direction: StateFlow<PriceAlertDirection> = session.map { it.selectedDirection.toPrimitives() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.selectedDirection.toPrimitives())
 
-    private val isSaving = MutableStateFlow(false)
-
-    private val session: StateFlow<GemPriceAlertSession> = combine(
-        snapshotFlow { value.text },
-        assetPrice,
-        _type,
-        _direction,
-        isSaving,
-    ) { text, price, type, selectedDirection, saving ->
-        service.newAlertSession(assetId.toIdentifier())
-            .onType(type.toGem())
-            .onDirection(selectedDirection.toGem())
-            .onInput(text.toString().parseInputNumberOrNull()?.toDouble())
-            .onPrice(price?.price, price?.priceChangePercentage24h)
-            .onSaving(saving)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, service.newAlertSession(assetId.toIdentifier()))
+    val type: StateFlow<PriceAlertNotificationType> = session.map { it.notificationType.toPrimitives() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.notificationType.toPrimitives())
 
     private val viewState: StateFlow<GemPriceAlertViewState> = session.map { it.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
+
+    init {
+        viewModelScope.launch {
+            snapshotFlow { value.text }.collect { text -> session.update { it.onInput(text.toString().parseInputNumberOrNull()?.toDouble()) } }
+        }
+        viewModelScope.launch {
+            assetPrice.collect { price -> session.update { it.onPrice(price?.price, price?.priceChangePercentage24h) } }
+        }
+    }
 
     @get:StringRes
     val prompt: StateFlow<Int> = viewState.map { it.prompt.stringRes() }
@@ -125,21 +117,21 @@ class PriceAlertTargetViewModel @Inject constructor(
     val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun onDirection(direction: PriceAlertDirection) {
-        _direction.update { direction }
+        session.update { it.onDirection(direction.toGem()) }
     }
 
     fun onType(type: PriceAlertNotificationType) {
-        _type.update { type }
+        session.update { it.onType(type.toGem()) }
     }
 
     fun onConfirm(onSaved: (String) -> Unit) {
         val priceAlert = session.value.alert() ?: return
-        isSaving.value = true
+        session.update { it.onSaving(true) }
         viewModelScope.launch {
             runCatchingCancellable { withContext(ioDispatcher) { service.enablePriceAlert(priceAlert) } }
                 .onSuccess { onSaved(viewState.value.savedMessage?.string(context).orEmpty()) }
                 .onFailure { errorState.value = it.errorText().text(context) }
-            isSaving.value = false
+            session.update { it.onSaving(false) }
         }
     }
 

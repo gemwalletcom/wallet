@@ -24,9 +24,9 @@ public final class SetPriceAlertViewModel {
     private let currency: Primitives.Currency
     private let currencyFormatter: CurrencyFormatter
 
-    var state: SetPriceAlertViewModelState
+    private var session: GemPriceAlertSession
+    private var amounts: [SetPriceAlertType: String] = [:]
     var isPresentingAlertMessage: AlertMessage?
-    private var isSaving = false
 
     public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
@@ -44,16 +44,29 @@ public final class SetPriceAlertViewModel {
         currency = service.getCurrency().toPrimitives()
         currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
-        state = SetPriceAlertViewModelState()
+        session = service.newAlertSession(assetId: asset.id.identifier)
         assetQuery = ObservableQuery(AssetQuery(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
     var viewState: GemPriceAlertViewState {
-        session.viewState()
+        pricedSession.viewState()
+    }
+
+    var type: SetPriceAlertType {
+        get { SetPriceAlertType(notificationType: session.notificationType.toPrimitives()) }
+        set { session = session.onType(notificationType: newValue.notificationType.toGem()).onInput(input: NumberInput.double(amounts[newValue, default: .empty])) }
+    }
+
+    var amount: String {
+        get { amounts[type, default: .empty] }
+        set {
+            amounts[type] = newValue
+            session = session.onInput(input: NumberInput.double(newValue))
+        }
     }
 
     func suggestions(_ viewState: GemPriceAlertViewState) -> [PriceSuggestion] {
-        let values = switch state.type {
+        let values = switch type {
         case .price: viewState.priceSuggestions
         case .percentage: viewState.percentageSuggestions
         }
@@ -65,29 +78,20 @@ public final class SetPriceAlertViewModel {
     }
 
     func confirmButtonState(_ viewState: GemPriceAlertViewState) -> ButtonState {
-        if isSaving {
+        if viewState.isSaving {
             return .loading(showProgress: true)
         }
         return viewState.canConfirm ? .normal : .disabled
     }
 
     func onSelectSuggestion(_ suggestion: some SuggestionViewable) {
-        state.amount = suggestion.inputValue
-    }
-
-    private var session: GemPriceAlertSession {
-        service.newAlertSession(assetId: asset.id.identifier)
-            .onType(notificationType: state.type.notificationType.toGem())
-            .onDirection(selectedDirection: state.selectedDirection.toGem())
-            .onInput(input: amountValue)
-            .onPrice(currentPrice: assetData.price?.price, priceChange: assetData.price?.priceChangePercentage24h)
-            .onSaving(isSaving: isSaving)
+        amount = suggestion.inputValue
     }
 
     func currencyInputConfig(_ viewState: GemPriceAlertViewState) -> any CurrencyInputConfigurable {
         SetPriceAlertCurrencyInputConfig(
-            type: state.type,
-            alertDirection: state.selectedDirection,
+            type: type,
+            alertDirection: session.selectedDirection.toPrimitives(),
             currentPrice: viewState.currentPrice,
             formatter: currencyFormatter,
             onTapActionButton: toggleAlertDirection,
@@ -98,29 +102,26 @@ public final class SetPriceAlertViewModel {
         assetListRow(input: assetData.rowInput(currency: currency), style: GemSelectAssetType.priceAlert.flow().rowStyle)
     }
 
-    func onChangeAlertType(_: SetPriceAlertType, type: SetPriceAlertType) {
-        state.type = type
-    }
-
     // MARK: - Private
-
-    private var amountValue: Double? {
-        NumberInput.double(state.amount)
-    }
 
     private var completeMessage: String {
         viewState.savedMessage?.text ?? .empty
     }
 
+    private var pricedSession: GemPriceAlertSession {
+        session.onPrice(currentPrice: assetData.price?.price, priceChange: assetData.price?.priceChangePercentage24h)
+    }
+
     private func priceAlert() -> Primitives.PriceAlert? {
-        session.alert().map { $0.toPrimitives() }
+        pricedSession.alert().map { $0.toPrimitives() }
     }
 
     private func toggleAlertDirection() {
-        state.selectedDirection = switch state.selectedDirection {
+        let direction: Primitives.PriceAlertDirection = switch session.selectedDirection.toPrimitives() {
         case .up: .down
         case .down: .up
         }
+        session = session.onDirection(selectedDirection: direction.toGem())
     }
 }
 
@@ -129,13 +130,13 @@ public final class SetPriceAlertViewModel {
 extension SetPriceAlertViewModel {
     func setPriceAlert() async {
         guard let alert = priceAlert() else { return }
-        isSaving = true
+        session = session.onSaving(isSaving: true)
         do {
             try await service.enable(priceAlert: alert)
             onComplete?(completeMessage)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
-        isSaving = false
+        session = session.onSaving(isSaving: false)
     }
 }

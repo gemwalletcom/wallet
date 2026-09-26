@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Screens:** VM191, VM190, VM192 with VM193.
+1. **Screens:** VM190, VM192 with VM193.
 2. **Models:** VM195.
 3. **Sessions:** VM185.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
@@ -55,7 +55,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230, VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM191, VM193, VM248, VM249, VM271, VM277 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM193, VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245, VM265, VM270 |
@@ -91,10 +91,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
   - **iOS:** `ConfirmTransferSceneViewModel.sections` orders header, notice, details, warnings, payload, balance changes, fee or verification, and error; it hides the load error while a notice shows. `ConfirmSimulationState` copies Core's simulation into default arrays.
   - **Android:** `ConfirmScreen` composes the same blocks in the same order; `ConfirmViewModel` hides the load error while a notice shows (`if (notice != null) return@combine null`) and picks verification over fee. `Simulation.kt` is the same twin as the iOS one.
   - **Expected:** the view state carries the ordered sections with their content; both apps render them, and both simulation twins go.
-- **VM191** **S** **The price-alert editor keeps its state in the app and rebuilds the session from it.** `GemPriceAlertSession` exists, but neither app holds one.
-  - **iOS:** `SetPriceAlertViewModel` keeps type, direction and input in `SetPriceAlertViewModelState` plus `isSaving`, and builds `newAlertSession(...).onType().onDirection().onInput().onPrice().onSaving()` on every read.
-  - **Android:** `PriceAlertTargetViewModel` keeps the same four values in flows and rebuilds the same chain in a `combine`.
-  - **Expected:** the view model holds one session and feeds each change to it, as swap does; the state struct and the flows go.
 - **VM192** **M** **The amount entry is driven by each app around Core's entry calls.** Core computes the entry (`GemAmountType.entry`, `GemAmountInput.max_entry`, `prefill`); the input handling around it is written twice.
   - **iOS:** `AmountSceneViewModel` keeps the text and input type, clears the text when the input type is toggled, applies `prefill` and `maxEntry` by setting the input type and converting the value with `NumberInput.format().inputText`, and rebuilds the entry on every change. It also builds the `GemAmountRequest` from its route input (`switch input.type`).
   - **Android:** `AmountViewModel` does the same (`switchInputType`, `prefillAmount`, `onMaxAmount`, `maxAmountText`) and builds the request from its route parameters (`when (params)`).
@@ -366,7 +362,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM249** **S** **The price-alert input is configured in the apps.**
   - **iOS:** `SetPriceAlertType` and `SetPriceAlertCurrencyInputConfig` pick placeholder "5", the "%" symbol, direction images and compose "Current price X".
   - **Android:** `PriceAlertTargetScene` shows "%" for percent alerts and composes "Current price **X**".
-  - **Expected:** the alert session returns placeholder, symbol and the current-price text (land with VM191).
+  - **Expected:** the alert session returns placeholder, symbol and the current-price text; the editor already holds one alert session.
 
 ### Assets, NFT, rewards, support
 

@@ -28,7 +28,7 @@ struct SetPriceAlertScene: View {
                         .textStyle(.subHeadline)
 
                     CurrencyInputView(
-                        text: $model.state.amount,
+                        text: $model.amount,
                         config: model.currencyInputConfig(viewState),
                     )
                     .focused($focusedField)
@@ -49,7 +49,6 @@ struct SetPriceAlertScene: View {
                 alertTypePickerView
             }
         }
-        .onChange(of: model.state.type, model.onChangeAlertType)
         .alertSheet($model.isPresentingAlertMessage)
         .onAppear {
             focusedField = true
@@ -61,7 +60,7 @@ struct SetPriceAlertScene: View {
 
 extension SetPriceAlertScene {
     var alertTypePickerView: some View {
-        Picker("", selection: $model.state.type) {
+        Picker("", selection: $model.type) {
             Text(Localized.Asset.price)
                 .tag(SetPriceAlertType.price)
             Text(Localized.Common.percentage)
@@ -73,7 +72,7 @@ extension SetPriceAlertScene {
 
     private func inputAccessoryView(_ viewState: GemPriceAlertViewState) -> some View {
         InputAccessoryView(
-            isEditing: focusedField && model.state.amount.isEmpty,
+            isEditing: focusedField && model.amount.isEmpty,
             suggestions: model.suggestions(viewState),
             onSelect: onSelectSuggestion,
             onDone: { focusedField = false },

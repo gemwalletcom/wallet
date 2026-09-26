@@ -17,7 +17,7 @@ struct SetPriceAlertViewModelTests {
 
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
         let prices = viewModel.suggestions(viewModel.viewState)
-        viewModel.state.type = .percentage
+        viewModel.type = .percentage
         let percentages = viewModel.suggestions(viewModel.viewState)
 
         #expect(percentages.isNotEmpty)
@@ -32,7 +32,7 @@ struct SetPriceAlertViewModelTests {
 
         viewModel.onSelectSuggestion(PriceSuggestion(title: "$67,000", value: 67000))
 
-        #expect(viewModel.state.amount == "67000")
+        #expect(viewModel.amount == "67000")
     }
 
     @Test
@@ -42,7 +42,7 @@ struct SetPriceAlertViewModelTests {
         #expect(viewModel.confirmButtonState(viewModel.viewState) == .disabled)
 
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
-        viewModel.state.amount = "2500"
+        viewModel.amount = "2500"
 
         #expect(viewModel.confirmButtonState(viewModel.viewState) == .normal)
     }
@@ -53,7 +53,7 @@ struct SetPriceAlertViewModelTests {
         let messages = MessageRecorder()
         let viewModel = SetPriceAlertViewModel.mock(service: service, onComplete: { messages.record($0) })
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
-        viewModel.state.amount = "2500"
+        viewModel.amount = "2500"
 
         await viewModel.setPriceAlert()
 
@@ -74,12 +74,19 @@ struct SetPriceAlertViewModelTests {
     }
 
     @Test
-    func changingTheAlertTypeKeepsTheChosenType() {
+    func eachAlertTypeKeepsItsOwnAmount() {
         let viewModel = SetPriceAlertViewModel.mock()
+        viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
 
-        viewModel.onChangeAlertType(.price, type: .percentage)
+        viewModel.amount = "2500"
+        viewModel.type = .percentage
+        #expect(viewModel.amount.isEmpty)
+        #expect(viewModel.confirmButtonState(viewModel.viewState) == .disabled, "the percentage alert has no amount yet")
 
-        #expect(viewModel.state.type == .percentage)
+        viewModel.amount = "10"
+        viewModel.type = .price
+        #expect(viewModel.amount == "2500")
+        #expect(viewModel.confirmButtonState(viewModel.viewState) == .normal)
     }
 }
 
