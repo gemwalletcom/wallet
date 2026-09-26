@@ -2,6 +2,8 @@ package com.gemwallet.android.features.support.viewmodels
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ui.format.gemDay
+import com.gemwallet.android.ui.format.localDate
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
 import uniffi.gemstone.GemSupportMessageOutcome
@@ -24,15 +26,11 @@ class SupportChatMessage(row: GemSupportMessageRow) {
     val id: String get() = message.id
 }
 
-fun buildSupportChatDays(messages: List<SupportMessage>): List<SupportChatDay> {
-    val zone = ZoneId.systemDefault()
-    return messages
-        .groupBy { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate() }
-        .toSortedMap()
-        .map { (date, dayMessages) ->
-            val groups = supportChatGroups(dayMessages.map { it.toGem() }).map { group ->
-                SupportChatGroup(sender = group.sender.toPrimitives(), messages = group.rows.map(::SupportChatMessage))
-            }
-            SupportChatDay(id = date.toString(), date = date, groups = groups)
+fun buildSupportChatDays(messages: List<SupportMessage>, zone: ZoneId = ZoneId.systemDefault()): List<SupportChatDay> =
+    LocalDate.now(zone).gemDay().boundaries().sections(messages.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate().gemDay() }, false).map { section ->
+        val date = section.day.localDate()
+        val groups = supportChatGroups(section.positions.map { messages[it.toInt()].toGem() }).map { group ->
+            SupportChatGroup(sender = group.sender.toPrimitives(), messages = group.rows.map(::SupportChatMessage))
         }
-}
+        SupportChatDay(id = date.toString(), date = date, groups = groups)
+    }

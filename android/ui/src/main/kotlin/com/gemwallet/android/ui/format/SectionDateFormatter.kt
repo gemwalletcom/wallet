@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-class SectionDateFormatter(private val todayLabel: String, private val yesterdayLabel: String, private val boundaries: GemDayBoundaries = LocalDate.now().gemDay().boundaries()) {
+class SectionDateFormatter(private val todayLabel: String, private val yesterdayLabel: String, val boundaries: GemDayBoundaries = LocalDate.now().gemDay().boundaries()) {
     constructor(todayLabel: String, yesterdayLabel: String, clock: Clock) : this(
         todayLabel = todayLabel,
         yesterdayLabel = yesterdayLabel,
@@ -62,5 +62,7 @@ class SectionDateFormatter(private val todayLabel: String, private val yesterday
 }
 
 fun LocalDate.gemDay(): GemDay = GemDay(year = year, month = monthValue.toUInt(), day = dayOfMonth.toUInt())
+
+fun GemDay.localDate(): LocalDate = LocalDate.of(year, month.toInt(), day.toInt())
 
 fun Context.rowDateFormatter(): SectionDateFormatter = SectionDateFormatter(getString(R.string.date_today), getString(R.string.date_yesterday))

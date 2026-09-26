@@ -20,6 +20,14 @@ pub enum GemDayLabel {
     Date,
 }
 
+/// The items that fall on one local day; positions index the list the app passed, in its order.
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemDaySection {
+    pub day: GemDay,
+    pub label: GemDayLabel,
+    pub positions: Vec<u32>,
+}
+
 #[uniffi::export]
 impl GemDayBoundaries {
     pub fn label(&self, day: GemDay) -> GemDayLabel {
@@ -28,6 +36,25 @@ impl GemDayBoundaries {
             day if day == self.yesterday => GemDayLabel::Yesterday,
             _ => GemDayLabel::Date,
         }
+    }
+
+    pub fn sections(&self, days: Vec<GemDay>, newest_first: bool) -> Vec<GemDaySection> {
+        let mut sections: Vec<GemDaySection> = vec![];
+        for (position, day) in days.into_iter().enumerate() {
+            match sections.iter_mut().find(|section| section.day == day) {
+                Some(section) => section.positions.push(position as u32),
+                None => sections.push(GemDaySection {
+                    day,
+                    label: self.label(day),
+                    positions: vec![position as u32],
+                }),
+            }
+        }
+        sections.sort_by_key(|section| (section.day.year, section.day.month, section.day.day));
+        if newest_first {
+            sections.reverse();
+        }
+        sections
     }
 }
 
@@ -62,6 +89,23 @@ impl From<NaiveDate> for GemDay {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_sections_group_every_item_by_day_in_either_order_and_keep_the_list_order_within_a_day() {
+        let boundaries = GemDay { year: 2026, month: 3, day: 2 }.boundaries();
+        let day = |day: u32| GemDay { year: 2026, month: 3, day };
+        let days = vec![day(2), day(1), day(2), day(1)];
+
+        let newest = boundaries.sections(days.clone(), true);
+        assert_eq!(
+            newest.iter().map(|section| (section.day, section.label, section.positions.clone())).collect::<Vec<_>>(),
+            vec![(day(2), GemDayLabel::Today, vec![0, 2]), (day(1), GemDayLabel::Yesterday, vec![1, 3])],
+            "a day seen twice is one section"
+        );
+        let oldest = boundaries.sections(days, false);
+        assert_eq!(oldest.first().map(|section| section.day), Some(day(1)), "a chat reads oldest first");
+        assert!(boundaries.sections(vec![], true).is_empty());
+    }
 
     #[test]
     fn test_yesterday_steps_back_over_a_month_and_a_year_boundary() {

@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM210 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM211 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -46,7 +46,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Activity
 
-- **VM210** **M** **Every dated list is grouped by day in the apps.**
-  - **iOS:** `DateSectionBuilder` (transactions, recents, notifications, fiat transactions) and `SupportChatDayBuilder` group by local day and sort.
-  - **Android:** `rememberDateSections`, `dateSectionLabels` and `SupportChatModels` (`groupBy` on local date) do the same, relying on pre-sorted input.
-  - **Expected:** Core returns sectioned lists given the device's day boundaries (`GemDayBoundaries`), labels included; the builders go.
 - **VM211** **S** **Transaction details carry the participant beside their sections.**
   - **iOS:** `TransactionSceneViewModel` fills the sections' `participant` marker from `rows.participant`.
   - **Android:** `TransactionItemUIModel` does the same.
@@ -314,7 +310,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM254** **S** **Recents are wrapped and grouped in the apps.**
   - **iOS:** `RecentAssetsViewModel`, `RecentsSceneViewModel` and `RecentAsset` hold and group recents.
   - **Android:** `RecentsUIState` and `RecentAsset` do the same and sort by date in the view.
-  - **Expected:** Core returns the recents list sectioned (with VM210); the models go.
+  - **Expected:** Core returns the recents list sectioned by day (`GemDayBoundaries.sections`); the models go.
 - **VM255** **S** **The collections grid is built in the app.**
   - **iOS:** `NFTGridPosterBuilder`, `GridPosterViewItem` and `CollectionsContent` map `GemNftEntry` to grid items and destinations.
   - **Android:** `CollectionsViewModel` builds the same grid.

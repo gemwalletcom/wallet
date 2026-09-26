@@ -14,15 +14,14 @@ struct SupportChatDayBuilder {
 
     func build() -> [SupportChatDay] {
         let boundaries = GemDayBoundaries.current
-        return Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
-            .sorted { $0.key < $1.key }
-            .map { day in
-                SupportChatDay(
-                    date: day.key,
-                    title: TransactionDateFormatter(date: day.key, boundaries: boundaries).section,
-                    groups: groups(from: day.value),
-                )
-            }
+        return boundaries.sections(days: messages.map(\.createdAt.gemDay), newestFirst: false).map { section in
+            let date = section.day.date
+            return SupportChatDay(
+                date: date,
+                title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
+                groups: groups(from: section.positions.map { messages[Int($0)] }),
+            )
+        }
     }
 }
 
