@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemwallet.android.features.transfer_amount.presents"
+    namespace = "com.gemwallet.android.features.stake.presents"
     compileSdk = 37
 
     defaultConfig {
@@ -37,7 +37,6 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
-
     buildFeatures {
         compose = true
     }
@@ -54,8 +53,10 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":features:transfer_amount:viewmodels"))
-    implementation(project(":features:stake:presents"))
+    implementation(project(":features:stake:viewmodels"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+
+    debugImplementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
 }

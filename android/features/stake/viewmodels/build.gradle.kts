@@ -3,12 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.gemwallet.android.features.transfer_amount.presents"
+    namespace = "com.gemwallet.android.features.stake.viewmodels"
     compileSdk = 37
 
     defaultConfig {
@@ -27,6 +26,11 @@ android {
             )
         }
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -36,10 +40,6 @@ android {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
-    }
-
-    buildFeatures {
-        compose = true
     }
     packaging {
         resources {
@@ -54,8 +54,17 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":features:transfer_amount:viewmodels"))
-    implementation(project(":features:stake:presents"))
+    implementation(project(":data:services:store"))
+    api(project(":ui-models"))
 
-    implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.savedstate)
+
+    testImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk.android)
 }

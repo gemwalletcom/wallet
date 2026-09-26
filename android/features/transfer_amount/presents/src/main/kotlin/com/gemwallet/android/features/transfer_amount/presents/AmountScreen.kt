@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.features.stake.presents.ValidatorsScene
 import com.gemwallet.android.features.transfer_amount.presents.dialogs.AmountAutocloseSheet
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
