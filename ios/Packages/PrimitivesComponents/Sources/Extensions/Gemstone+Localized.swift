@@ -24,6 +24,7 @@ import enum Gemstone.GemConfirmError
 import enum Gemstone.GemConfirmErrorDisplay
 import enum Gemstone.GemConfirmTitle
 import enum Gemstone.GemContactAddressField
+import struct Gemstone.GemCopy
 import enum Gemstone.GemCopyKind
 import enum Gemstone.GemCurrencySectionKind
 import enum Gemstone.GemCustomFeeCheck
@@ -860,6 +861,12 @@ extension GemCopyKind {
         case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
         case let .address(chain): Localized.Common.copied(String(format: "%@ (%@)", Chain(core: chain).networkName, display))
         }
+    }
+}
+
+public extension GemCopy {
+    var copiedMessage: String {
+        kind.copiedMessage(display: display)
     }
 }
 

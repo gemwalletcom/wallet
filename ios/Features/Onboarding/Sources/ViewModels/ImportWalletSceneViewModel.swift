@@ -167,7 +167,7 @@ extension ImportWalletSceneViewModel {
         inputCursor = nil
 
         if shouldProtectInput {
-            CopyTypeViewModel.clearClipboard()
+            Clipboard.clear()
         }
     }
 

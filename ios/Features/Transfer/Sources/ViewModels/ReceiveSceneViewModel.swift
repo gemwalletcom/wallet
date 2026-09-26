@@ -3,6 +3,7 @@ import Foundation
 import func Gemstone.addressCopy
 import func Gemstone.chainRow
 import struct Gemstone.GemChainRow
+import struct Gemstone.GemCopy
 import struct Gemstone.GemReceiveAssetState
 import struct Gemstone.GemReceiveNetworks
 import protocol Gemstone.GemReceiveServiceProtocol
@@ -88,8 +89,8 @@ public final class ReceiveSceneViewModel: Sendable {
             .joined(separator: " ")
     }
 
-    var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
+    var copy: GemCopy {
+        addressCopy(chain: asset.chain.toGem(), address: address)
     }
 
     var showNetworkSelector: Bool {

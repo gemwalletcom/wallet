@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
@@ -22,7 +23,7 @@ public struct GemListRowView: View {
     private let onSelect: ((GemRowAction) -> Void)?
     private let onSelectAddress: ((String) -> Void)?
     private let onInfo: ((GemInfoTopic) -> Void)?
-    private let onCopy: ((CopyTypeViewModel) -> Void)?
+    private let onCopy: ((GemCopy) -> Void)?
 
     public init(
         row: GemListRow,
@@ -30,7 +31,7 @@ public struct GemListRowView: View {
         onSelect: ((GemRowAction) -> Void)? = nil,
         onSelectAddress: ((String) -> Void)? = nil,
         onInfo: ((GemInfoTopic) -> Void)? = nil,
-        onCopy: ((CopyTypeViewModel) -> Void)? = nil,
+        onCopy: ((GemCopy) -> Void)? = nil,
     ) {
         self.row = row
         self.onToggle = onToggle
@@ -114,7 +115,7 @@ public struct GemListRowView: View {
                 .padding(.bottom, .small)
                 .cleanListRow()
         case let .address(model):
-            AddressRowView(model: model, onCopy: { onCopy?(model.copyModel) })
+            AddressRowView(model: model, onCopy: { onCopy?(model.copy) })
         case .loading:
             ListItemLoadingView()
         }

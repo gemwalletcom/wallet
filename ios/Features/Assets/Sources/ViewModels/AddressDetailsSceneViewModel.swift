@@ -4,6 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemAddressDetails
 import protocol Gemstone.GemAddressDetailsServiceProtocol
+import struct Gemstone.GemCopy
 import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import GemstonePrimitives
@@ -20,7 +21,7 @@ public final class AddressDetailsSceneViewModel {
 
     public let addressNameQuery: ObservableQuery<AddressNameQuery>
 
-    var copyToast: CopyTypeViewModel?
+    var copyToast: GemCopy?
 
     public init(
         chainAddress: ChainAddress,
@@ -49,7 +50,7 @@ extension AddressDetailsSceneViewModel {
         details = await service.refresh(details: details)
     }
 
-    func onCopy(_ model: CopyTypeViewModel) {
-        copyToast = model
+    func onCopy(_ copy: GemCopy) {
+        copyToast = copy
     }
 }

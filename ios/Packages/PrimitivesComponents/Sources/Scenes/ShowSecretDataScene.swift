@@ -45,7 +45,7 @@ public struct ShowSecretDataScene: View {
         .toolbarInfoButton(url: model.docsUrl)
         .navigationTitle(model.title)
         .copyToast(
-            model: model.copyModel,
+            copy: model.copy,
             isPresenting: $isPresentingCopyToast,
         )
         .detectScreenshots(docsUrl: model.docsUrl)

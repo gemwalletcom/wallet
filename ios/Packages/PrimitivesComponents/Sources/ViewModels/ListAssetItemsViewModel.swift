@@ -28,6 +28,6 @@ public struct ListAssetItemsViewModel {
     }
 
     public func copyMessage(chain: Chain, address: String) -> String {
-        CopyTypeViewModel(content: addressCopy(chain: chain.toGem(), address: address)).message
+        addressCopy(chain: chain.toGem(), address: address).copiedMessage
     }
 }

@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemCopy
 import enum Gemstone.GemWalletSecret
 import func Gemstone.privateKeyCopy
 import func Gemstone.secretPhraseCopy
@@ -37,10 +38,10 @@ public struct SecretDataViewModel {
         }
     }
 
-    var copyModel: CopyTypeViewModel {
+    var copy: GemCopy {
         switch secret {
-        case let .words(words): CopyTypeViewModel(content: secretPhraseCopy(words: words))
-        case let .privateKey(key): CopyTypeViewModel(content: privateKeyCopy(key: key))
+        case let .words(words): secretPhraseCopy(words: words)
+        case let .privateKey(key): privateKeyCopy(key: key)
         }
     }
 

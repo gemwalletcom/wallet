@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemAssetIcon
+import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowIcon
@@ -20,7 +21,7 @@ import Style
 
 struct AddressRowModel {
     let address: String
-    let copyModel: CopyTypeViewModel
+    let copy: GemCopy
 }
 
 enum GemListRowItem {
@@ -169,7 +170,7 @@ extension GemListRow {
         case let .walletAvatar(imageUrl, placeholder):
             .icon(AssetImage(imageURL: imageUrl.map { ImageSource($0).url }, placeholder: placeholder.image))
         case let .address(address, copy):
-            .address(AddressRowModel(address: address, copyModel: copy.copyModel))
+            .address(AddressRowModel(address: address, copy: copy))
         case .loading:
             .loading
         }

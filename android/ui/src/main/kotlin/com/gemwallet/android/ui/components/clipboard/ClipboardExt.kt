@@ -10,11 +10,14 @@ import android.os.Looper
 import android.os.PersistableBundle
 import android.widget.Toast
 import com.gemwallet.android.ui.R
+import uniffi.gemstone.GemCopy
 import java.util.UUID
 
 fun ClipboardManager.setPlainText(context: Context, data: String) = setClip(context, data, isSensitive = false, expirySeconds = null)
 
-internal fun ClipboardManager.setClip(context: Context, data: String, isSensitive: Boolean, expirySeconds: UInt?) {
+fun ClipboardManager.setCopy(context: Context, copy: GemCopy) = setClip(context, copy.value, isSensitive = copy.kind.isSensitive(), expirySeconds = copy.kind.clipboardExpirySeconds())
+
+private fun ClipboardManager.setClip(context: Context, data: String, isSensitive: Boolean, expirySeconds: UInt?) {
     val label = expirySeconds?.let { UUID.randomUUID().toString() }.orEmpty()
     val clip = ClipData.newPlainText(label, data).apply {
         if (isSensitive) {

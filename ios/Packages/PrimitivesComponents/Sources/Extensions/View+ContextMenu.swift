@@ -37,7 +37,7 @@ private struct ContextMenuItems: View {
                 title: title ?? Localized.Common.copy,
                 systemImage: SystemImage.copy,
             ) {
-                CopyTypeViewModel.copyToClipboard(value, expirationTime: expirationTime)
+                Clipboard.copy(value, expirationTime: expirationTime)
                 onCopied?(value)
             }
         case let .pin(isPinned, onPin):

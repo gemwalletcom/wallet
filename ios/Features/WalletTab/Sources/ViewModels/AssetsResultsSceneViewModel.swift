@@ -98,7 +98,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
             for: assetData,
             onCopy: { [weak self] in
                 self?.isPresentingToastMessage = .copy(
-                    CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message,
+                    addressCopy(chain: assetData.asset.chain.toGem(), address: $0).copiedMessage,
                 )
             },
             onPin: { [weak self] in

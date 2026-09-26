@@ -101,7 +101,7 @@ public struct ReceiveScene: View {
             }
         }
         .copyToast(
-            model: model.copyModel,
+            copy: model.copy,
             isPresenting: $model.isPresentingCopyToast,
         )
         .alertSheet($model.isPresentingAlertMessage)

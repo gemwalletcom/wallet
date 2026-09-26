@@ -5,6 +5,7 @@ import Foundation
 import func Gemstone.addressCopy
 import struct Gemstone.GemAssetSectionCounts
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemCopy
 import struct Gemstone.GemPaymentRecipient
 import protocol Gemstone.GemPaymentServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
@@ -41,7 +42,7 @@ public final class SelectAssetSceneViewModel {
         assetsQuery.value
     }
 
-    var copyToast: CopyTypeViewModel?
+    var copyToast: GemCopy?
     var isPresentingToastMessage: ToastMessage?
 
     public var isPresentingAddToken: Bool = false
@@ -198,7 +199,7 @@ extension SelectAssetSceneViewModel {
             }
         case .copy:
             let address = assetData.account.address
-            copyToast = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
+            copyToast = addressCopy(chain: asset.chain.toGem(), address: address)
             Task {
                 await setAssetEnabled(assetId: asset.id, enabled: true)
             }

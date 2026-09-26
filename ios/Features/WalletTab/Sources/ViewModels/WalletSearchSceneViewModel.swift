@@ -153,7 +153,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         AssetContextMenu.items(
             for: assetData,
             onCopy: { [weak self] in
-                self?.onSelectCopyAddress(CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message)
+                self?.onSelectCopyAddress(addressCopy(chain: assetData.asset.chain.toGem(), address: $0).copiedMessage)
             },
             onPin: { [weak self] in
                 self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
