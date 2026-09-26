@@ -11,4 +11,3 @@ public extension Array where Element: Hashable {
         indices.contains(index) ? self[index] : nil
     }
 }
-

@@ -15,4 +15,3 @@ extension DelegationBase: Identifiable {
         [assetId.identifier, validatorId, state.rawValue, delegationId].joined(separator: "_")
     }
 }
-

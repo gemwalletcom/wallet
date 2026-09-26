@@ -17,4 +17,3 @@ public extension Int {
         String(self)
     }
 }
-
