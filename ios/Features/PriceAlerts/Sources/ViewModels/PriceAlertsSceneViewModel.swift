@@ -1,12 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import enum Gemstone.GemRowAction
 import enum Gemstone.GemServiceError
 import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
+import func Gemstone.priceAlertsToggleRow
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -46,8 +49,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         service.getCurrency().toPrimitives()
     }
 
-    var enableTitle: String {
-        Localized.Settings.enableValue(Localized.Settings.PriceAlerts.title)
+    var toggleRow: GemListRow {
+        priceAlertsToggleRow(enabled: isPriceAlertsEnabled)
     }
 
     var loadError: Error? {
@@ -97,6 +100,10 @@ extension PriceAlertsSceneViewModel {
             debugLog("price alerts include asset error: \(error)")
             return nil
         }
+    }
+
+    func onToggle(_: GemRowAction, _ isOn: Bool) {
+        isPriceAlertsEnabled = isOn
     }
 
     func setAlertsEnabled(_ enabled: Bool) async {

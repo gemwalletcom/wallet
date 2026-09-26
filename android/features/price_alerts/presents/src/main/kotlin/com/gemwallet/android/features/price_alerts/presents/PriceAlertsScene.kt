@@ -40,7 +40,6 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
-import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -58,6 +57,7 @@ import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.priceAlertsToggleRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,10 +109,10 @@ internal fun PriceAlertsScene(
                     )
                 } else {
                     item {
-                        SwitchProperty(
-                            text = stringResource(R.string.settings_enable_value, stringResource(R.string.settings_price_alerts_title)),
-                            checked = enabled,
-                            onCheckedChange = { onAction(PriceAlertsAction.TogglePriceAlerts(it)) },
+                        GemListRowView(
+                            row = priceAlertsToggleRow(enabled),
+                            listPosition = ListPosition.Single,
+                            onToggle = { _, isOn -> onAction(PriceAlertsAction.TogglePriceAlerts(isOn)) },
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = paddingLarge),

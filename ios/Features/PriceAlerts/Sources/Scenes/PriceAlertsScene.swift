@@ -59,11 +59,7 @@ public struct PriceAlertsScene: View {
 private extension PriceAlertsScene {
     var toggleView: some View {
         Section {
-            Toggle(
-                model.enableTitle,
-                isOn: $model.isPriceAlertsEnabled,
-            )
-            .toggleStyle(AppToggleStyle())
+            GemListRowView(row: model.toggleRow, onToggle: model.onToggle)
         } footer: {
             Text(Localized.PriceAlerts.getNotifiedExplainMessage)
         }

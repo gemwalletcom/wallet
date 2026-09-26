@@ -52,7 +52,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM277 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | — |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
@@ -138,12 +138,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
   - **Expected:** Core emits only destinations the screen can open and each app keeps one banner routing function.
 
-### Texts composed in the apps
-
-- **VM277** **S** **The price-alerts toggle label is composed in the apps.**
-  - **iOS:** `PriceAlertsSceneViewModel` composes "Enable price alerts".
-  - **Android:** `PriceAlertsScene` composes the same.
-  - **Expected:** the price-alerts screen returns a toggle row from Core.
 
 ### Screen composition
 

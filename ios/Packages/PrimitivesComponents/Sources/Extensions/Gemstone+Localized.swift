@@ -879,6 +879,7 @@ public extension GemListRowTitle {
         case .unpin: Localized.Common.unpin
         case .addToWallet: Localized.Asset.addToWallet
         case .priceAlerts: Localized.Settings.PriceAlerts.title
+        case .enablePriceAlerts: Localized.Settings.enableValue(Localized.Settings.PriceAlerts.title)
         case .setPriceAlert: Localized.PriceAlerts.SetAlert.title
         case .energy: Localized.Stake.Resource.energy
         case .bandwidth: Localized.Stake.Resource.bandwidth

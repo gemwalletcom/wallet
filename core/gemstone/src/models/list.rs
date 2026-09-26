@@ -101,6 +101,7 @@ pub enum GemListRowTitle {
     Unpin,
     AddToWallet,
     PriceAlerts,
+    EnablePriceAlerts,
     SetPriceAlert,
     Energy,
     Bandwidth,

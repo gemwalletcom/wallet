@@ -4,6 +4,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemRowAction};
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::toast::GemToast;
@@ -87,6 +88,11 @@ impl GemPriceAlertService {
             }
         }
     }
+}
+
+#[uniffi::export]
+pub fn price_alerts_toggle_row(enabled: bool) -> GemListRow {
+    GemListRow::toggle(GemListRowTitle::EnablePriceAlerts, GemListRowIcon::None, enabled, GemRowAction::PriceAlerts)
 }
 
 impl GemPriceAlertService {
