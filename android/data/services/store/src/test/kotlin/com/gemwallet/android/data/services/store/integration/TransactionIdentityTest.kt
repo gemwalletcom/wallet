@@ -119,7 +119,7 @@ class TransactionIdentityTest {
                 assertNull(transactions.getTransaction(pending.id, wallet.id))
                 assertEquals(secondSource, transactions.getTransaction(pending.id, secondWallet.id))
                 assertEquals(secondTarget, transactions.getTransaction(finalId, secondWallet.id))
-                assertEquals(1, transactions.getTransactionListItems(wallet.id, emptyList(), 1000).first().size)
+                assertEquals(1, transactions.getTransactionListItems(wallet.id, null, 1000).first().size)
             } finally {
                 observer.cancel()
                 updates.close()

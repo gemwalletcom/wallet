@@ -38,7 +38,7 @@ class Migration_99_100Test {
         helper.createDatabase(testDb, 99).close()
 
         helper.runMigrationsAndValidate(testDb, 100, true, Migration_99_100).use { database ->
-            val history = buildTransactionListSql(WalletId("wallet-1"), emptyList(), GemConstants.transactionsListLimit)
+            val history = buildTransactionListSql(WalletId("wallet-1"), null, GemConstants.transactionsListLimit)
             database.query(SimpleSQLiteQuery("EXPLAIN QUERY PLAN ${history.sql}", history.args.toTypedArray())).use { cursor ->
                 val plan = buildList { while (cursor.moveToNext()) add(cursor.getString(cursor.getColumnIndexOrThrow("detail"))) }
                 assertTrue(plan.toString(), plan.any { it.contains("index_transactions_walletId_createdAt") })

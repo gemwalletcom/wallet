@@ -169,6 +169,7 @@ remote:
   - TotalFiatValue
   - TransactionState
   - TransactionType
+  - TransactionsFilter
   - TransferDataOutputAction
   - TransferDataOutputType
   - TransferDataExtra
@@ -388,6 +389,7 @@ mocks:
   - TransactionExtended
   - TransactionInputType
   - TransactionListItem
+  - TransactionsFilter
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet

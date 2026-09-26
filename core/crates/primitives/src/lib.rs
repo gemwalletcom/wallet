@@ -144,6 +144,8 @@ pub mod time;
 pub use self::time::{unix_milliseconds, unix_seconds, unix_timestamp};
 pub mod transaction_state;
 pub use self::transaction_state::TransactionState;
+pub mod transactions_filter;
+pub use self::transactions_filter::TransactionsFilter;
 pub mod job_configuration;
 pub use self::job_configuration::JobConfiguration;
 pub mod username_status;

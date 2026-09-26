@@ -8,7 +8,6 @@ import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.database.entities.DbAddress
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbTransaction
@@ -18,6 +17,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbTransaction
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -112,7 +112,7 @@ interface TransactionsDao {
     @Transaction
     fun getTransactionListItems(query: SupportSQLiteQuery): Flow<List<DbTransactionListItem>>
 
-    fun getTransactionListItems(walletId: WalletId, filters: List<TransactionsQueryFilter>, limit: Int): Flow<List<DbTransactionListItem>> = getTransactionListItems(buildTransactionListSql(walletId, filters, limit).toSupportSQLiteQuery())
+    fun getTransactionListItems(walletId: WalletId, filter: TransactionsFilter?, limit: Int): Flow<List<DbTransactionListItem>> = getTransactionListItems(buildTransactionListSql(walletId, filter, limit).toSupportSQLiteQuery())
 
     @RawQuery(
         observedEntities = [
@@ -122,7 +122,7 @@ interface TransactionsDao {
     )
     fun getTransactionsCount(query: SupportSQLiteQuery): Flow<Int?>
 
-    fun getTransactionsCount(walletId: WalletId, filters: List<TransactionsQueryFilter>): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
+    fun getTransactionsCount(walletId: WalletId, filter: TransactionsFilter?): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filter).toSupportSQLiteQuery())
 
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?> = flow {
         val recordId = getTransactionRecordId(walletId, id).onEach { if (it == null) emit(null) }.filterNotNull().first()

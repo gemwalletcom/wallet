@@ -2917,6 +2917,30 @@ public extension Primitives.TransactionUtxoInput {
     }
 }
 
+public extension Gemstone.TransactionsFilter {
+    func toPrimitives() -> Primitives.TransactionsFilter {
+        Primitives.TransactionsFilter(
+            assetId: assetId.map { Primitives.AssetId(core: $0) },
+            chains: chains.map { Primitives.Chain(core: $0) },
+            transactionTypes: transactionTypes.map { $0.toPrimitives() },
+            states: states.map { $0.toPrimitives() },
+            assetRankGreaterThan: assetRankGreaterThan,
+        )
+    }
+}
+
+public extension Primitives.TransactionsFilter {
+    func toGem() -> Gemstone.TransactionsFilter {
+        Gemstone.TransactionsFilter(
+            assetId: assetId.map { $0.identifier },
+            chains: chains.map { $0.rawValue },
+            transactionTypes: transactionTypes.map { $0.toGem() },
+            states: states.map { $0.toGem() },
+            assetRankGreaterThan: assetRankGreaterThan,
+        )
+    }
+}
+
 public extension Gemstone.Wallet {
     func toPrimitives() -> Primitives.Wallet {
         Primitives.Wallet(

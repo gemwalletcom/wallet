@@ -9,7 +9,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -34,6 +33,7 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.TransactionsFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -92,10 +92,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     val assetId = savedStateHandle.requireAssetId()
 
-    private val transactionFilters = listOf(
-        TransactionsQueryFilter.Asset(assetId),
-        TransactionsQueryFilter.Types(GemConstants.perpetualActivityTypes),
-    )
+    private val transactionsFilter = TransactionsFilter(assetId = assetId, chains = emptyList(), transactionTypes = GemConstants.perpetualActivityTypes, states = emptyList())
 
     private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
@@ -137,11 +134,11 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
-        getTransactions.getTransactions(transactionFilters),
+        getTransactions.getTransactions(transactionsFilter),
         storedSync,
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter))
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 

@@ -1963,6 +1963,22 @@ fun com.wallet.core.primitives.TransactionUtxoInput.toGem(): uniffi.gemstone.Tra
     value = java.math.BigInteger(value),
 )
 
+fun uniffi.gemstone.TransactionsFilter.toPrimitives(): com.wallet.core.primitives.TransactionsFilter = com.wallet.core.primitives.TransactionsFilter(
+    assetId = assetId?.let { com.wallet.core.primitives.AssetId(it) },
+    chains = chains.map { it.toChain() },
+    transactionTypes = transactionTypes.map { it.toPrimitives() },
+    states = states.map { it.toPrimitives() },
+    assetRankGreaterThan = assetRankGreaterThan,
+)
+
+fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.TransactionsFilter = uniffi.gemstone.TransactionsFilter(
+    assetId = assetId?.let { it.toIdentifier() },
+    chains = chains.map { it.toGem() },
+    transactionTypes = transactionTypes.map { it.toGem() },
+    states = states.map { it.toGem() },
+    assetRankGreaterThan = assetRankGreaterThan,
+)
+
 fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(
     id = com.wallet.core.primitives.WalletId(id),
     externalId = externalId,

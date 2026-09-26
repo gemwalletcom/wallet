@@ -39,11 +39,7 @@ struct TransactionsQueryTests {
                 TransactionsQuery(
                     walletId: walletId,
                     type: .asset(assetId: assetId),
-                    filters: [.types([
-                        TransactionType.perpetualOpenPosition.rawValue,
-                        TransactionType.perpetualClosePosition.rawValue,
-                        TransactionType.perpetualModifyPosition.rawValue,
-                    ])],
+                    filter: .mock(transactionTypes: [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]),
                     limit: 250,
                 ),
         )

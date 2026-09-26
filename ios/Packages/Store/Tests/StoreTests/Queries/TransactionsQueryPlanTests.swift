@@ -12,7 +12,7 @@ struct TransactionsQueryPlanTests {
         let plan = try DB.mock().dbQueue.read { db in
             var statements: [String] = []
             db.trace { statements.append($0.expandedDescription) }
-            _ = try TransactionsQuery.fetch(db, type: .all, filters: [], walletId: .multicoin(address: "wallet"), limit: 1000)
+            _ = try TransactionsQuery.fetch(db, type: .all, filter: nil, walletId: .multicoin(address: "wallet"), limit: 1000)
             db.trace(options: [], nil)
             return try Row.fetchAll(db, sql: "EXPLAIN QUERY PLAN \(statements.last { $0.contains("ORDER BY") } ?? "")").map { $0["detail"] as String }
         }

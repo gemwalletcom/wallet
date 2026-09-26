@@ -3,11 +3,12 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.queries.TransactionsQuery
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.TransactionListItem
+import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import uniffi.gemstone.GemTransactionRow
+import uniffi.gemstone.activityFilters
 import uniffi.gemstone.transactionRows
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -30,19 +32,19 @@ class GetTransactionsImpl(private val getSession: GetSession, private val getCur
     private val observations = RecentFilters<Flow<List<GemTransactionRow>>>()
 
     init {
-        getTransactions(TransactionsQueryFilter.activityDefaults()).launchIn(scope)
+        getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives()).launchIn(scope)
     }
 
-    override fun getTransactions(filters: List<TransactionsQueryFilter>): Flow<List<GemTransactionRow>> = observations.getOrPut(filters) {
+    override fun getTransactions(filter: TransactionsFilter?): Flow<List<GemTransactionRow>> = observations.getOrPut(filter) {
         getCurrentWalletId()
             .flatMapLatest { walletId ->
-                transactionsQuery(walletId, filters, GemConstants.transactionsListLimit).map { rowCache.rows(walletId, filters, it) }
+                transactionsQuery(walletId, filter, GemConstants.transactionsListLimit).map { rowCache.rows(walletId, filter, it) }
             }
             .flowOn(Dispatchers.IO)
             .shareIn(scope, SharingStarted.WhileSubscribed(replayExpirationMillis = 0), replay = 1)
     }
 
-    override fun stored(filters: List<TransactionsQueryFilter>): List<GemTransactionRow> = getSession().value?.wallet?.id?.let { rowCache.stored(it, filters) }.orEmpty()
+    override fun stored(filter: TransactionsFilter?): List<GemTransactionRow> = getSession().value?.wallet?.id?.let { rowCache.stored(it, filter) }.orEmpty()
 }
 
 internal class TransactionRows {
@@ -51,35 +53,35 @@ internal class TransactionRows {
 
     private val current = RecentFilters<FilterRows>()
 
-    fun rows(walletId: WalletId, filters: List<TransactionsQueryFilter>, items: List<TransactionListItem>): List<GemTransactionRow> = synchronized(this) {
+    fun rows(walletId: WalletId, filter: TransactionsFilter?, items: List<TransactionListItem>): List<GemTransactionRow> = synchronized(this) {
         val reused = HashMap<TransactionListItem, GemTransactionRow>()
         current.values().forEach { reused.putAll(it.items) }
         val missing = items.filterNot(reused::containsKey).distinct()
         val built = missing.zip(transactionRows(missing.map { it.toGem() })).toMap()
         val rows = items.mapNotNull { reused[it] ?: built[it] }
-        current.put(filters, FilterRows(walletId, items.zip(rows).toMap(), rows))
+        current.put(filter, FilterRows(walletId, items.zip(rows).toMap(), rows))
         rows
     }
 
-    fun stored(walletId: WalletId, filters: List<TransactionsQueryFilter>): List<GemTransactionRow> = synchronized(this) {
-        current.get(filters)?.takeIf { it.walletId == walletId }?.rows.orEmpty()
+    fun stored(walletId: WalletId, filter: TransactionsFilter?): List<GemTransactionRow> = synchronized(this) {
+        current.get(filter)?.takeIf { it.walletId == walletId }?.rows.orEmpty()
     }
 }
 
 internal class RecentFilters<T>(private val limit: Int = LIMIT) {
 
-    private val entries = LinkedHashMap<List<TransactionsQueryFilter>, T>(limit, 0.75f, true)
-    private val pinned = TransactionsQueryFilter.activityDefaults()
+    private val entries = LinkedHashMap<TransactionsFilter?, T>(limit, 0.75f, true)
+    private val pinned = activityFilters(emptyList(), emptyList()).toPrimitives()
 
     @Synchronized
-    fun get(filters: List<TransactionsQueryFilter>): T? = entries[filters]
+    fun get(filter: TransactionsFilter?): T? = entries[filter]
 
     @Synchronized
-    fun getOrPut(filters: List<TransactionsQueryFilter>, create: () -> T): T = entries[filters] ?: create().also { put(filters, it) }
+    fun getOrPut(filter: TransactionsFilter?, create: () -> T): T = entries[filter] ?: create().also { put(filter, it) }
 
     @Synchronized
-    fun put(filters: List<TransactionsQueryFilter>, value: T) {
-        entries[filters] = value
+    fun put(filter: TransactionsFilter?, value: T) {
+        entries[filter] = value
         while (entries.size > limit) {
             entries.keys.firstOrNull { it != pinned }?.let(entries::remove) ?: break
         }

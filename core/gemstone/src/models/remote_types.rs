@@ -16,9 +16,9 @@ use primitives::{
     RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
     SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender,
     SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType,
-    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
-    TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType,
-    YieldProvider,
+    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction,
+    TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus,
+    WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
 
@@ -1814,6 +1814,15 @@ pub struct TransactionListItem {
 pub struct TransactionUtxoInput {
     pub address: String,
     pub value: GemBigUint,
+}
+
+#[uniffi::remote(Record)]
+pub struct TransactionsFilter {
+    pub asset_id: Option<primitives::AssetId>,
+    pub chains: Vec<Chain>,
+    pub transaction_types: Vec<TransactionType>,
+    pub states: Vec<TransactionState>,
+    pub asset_rank_greater_than: Option<i32>,
 }
 
 #[uniffi::remote(Record)]

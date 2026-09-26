@@ -5,13 +5,13 @@ use strum::IntoEnumIterator;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionListItem, TransactionNFTTransferMetadata,
-    TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, WalletType,
+    TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransactionsFilter, TransferDataOutputAction, WalletType,
 };
 
 use super::model::{
-    GemActivityFilters, GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
-    GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow,
-    GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails,
+    GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
+    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -692,7 +692,7 @@ fn perpetual_direction(transaction: &Transaction) -> Option<PerpetualDirection> 
     perpetual_metadata(transaction).map(|metadata| metadata.direction)
 }
 
-pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> TransactionsFilter {
     let transaction_types = match filters.is_empty() {
         true => TransactionType::iter().collect(),
         false => {
@@ -705,11 +705,19 @@ pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) 
             types
         }
     };
-    GemActivityFilters {
-        asset_rank_greater_than: crate::models::asset::default_token_rank(),
+    TransactionsFilter {
+        asset_id: None,
         chains,
         transaction_types,
-        pending_states: TransactionState::pending(),
+        states: vec![],
+        asset_rank_greater_than: Some(crate::models::asset::default_token_rank()),
+    }
+}
+
+pub fn pending_activity_filters() -> TransactionsFilter {
+    TransactionsFilter {
+        states: TransactionState::pending(),
+        ..activity_filters(vec![], vec![])
     }
 }
 
@@ -1546,12 +1554,21 @@ mod tests {
 
         assert_eq!(unfiltered.chains, vec![]);
         assert_eq!(unfiltered.transaction_types.len(), TransactionType::iter().count(), "no filter means every type, not no type filter");
-        assert_eq!(unfiltered.asset_rank_greater_than, crate::models::asset::default_token_rank());
+        assert_eq!(unfiltered.asset_rank_greater_than, Some(crate::models::asset::default_token_rank()));
+        assert_eq!(unfiltered.states, vec![], "the list shows every state");
 
         let swaps = activity_filters(vec![Chain::Ethereum], vec![GemTransactionFilter::Swaps]);
 
         assert_eq!(swaps.chains, vec![Chain::Ethereum]);
         assert_eq!(swaps.transaction_types, filter_transaction_types(GemTransactionFilter::Swaps));
+    }
+
+    #[test]
+    fn test_the_pending_badge_counts_the_activity_list_while_unfinished() {
+        let pending = pending_activity_filters();
+
+        assert_eq!(pending.states, TransactionState::pending());
+        assert_eq!(TransactionsFilter { states: vec![], ..pending }, activity_filters(vec![], vec![]));
     }
 
     #[test]

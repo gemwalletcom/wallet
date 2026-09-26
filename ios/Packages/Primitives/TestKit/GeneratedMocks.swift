@@ -1009,6 +1009,24 @@ public extension TransactionSwapMetadata {
     }
 }
 
+public extension TransactionsFilter {
+    static func mock(
+        assetId: AssetId? = nil,
+        chains: [Chain] = [],
+        transactionTypes: [TransactionType] = [],
+        states: [TransactionState] = [],
+        assetRankGreaterThan: Int32? = nil,
+    ) -> TransactionsFilter {
+        TransactionsFilter(
+            assetId: assetId,
+            chains: chains,
+            transactionTypes: transactionTypes,
+            states: states,
+            assetRankGreaterThan: assetRankGreaterThan,
+        )
+    }
+}
+
 public extension WCPairingProposal {
     static func mock(
         pairingId: String = "",

@@ -3,15 +3,16 @@ package com.gemwallet.android.data.services.store.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.TransactionsQuery
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
+import com.gemwallet.android.testkit.mockTransactionsFilter
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -29,6 +30,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.activityFilters
+import uniffi.gemstone.pendingActivityFilters
 
 @RunWith(AndroidJUnit4::class)
 class TransactionsQueryTest {
@@ -72,7 +75,7 @@ class TransactionsQueryTest {
 
     @Test
     fun theActivityListsTheWalletTransactionsNewestFirstWithoutLowRankAssets() = runBlocking(Dispatchers.IO) {
-        val items = query(wallet.id, TransactionsQueryFilter.activityDefaults(), 1000).first()
+        val items = query(wallet.id, activityFilters(emptyList(), emptyList()).toPrimitives(), 1000).first()
 
         assertEquals(listOf(swap, failed, received).map { it.stored() }, items.map { it.transaction })
         assertEquals(listOf(ethereum, ethereum, bitcoin), items.map { it.asset })
@@ -80,48 +83,48 @@ class TransactionsQueryTest {
 
     @Test
     fun withoutFiltersEveryWalletTransactionIsListed() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(airdrop, swap, failed, received).map { it.stored() }, query(wallet.id, emptyList(), 1000).first().map { it.transaction })
+        assertEquals(listOf(airdrop, swap, failed, received).map { it.stored() }, query(wallet.id, null, 1000).first().map { it.transaction })
     }
 
     @Test
     fun anotherWalletSeesOnlyItsOwnTransactions() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(otherWalletSend.stored()), query(otherWallet.id, TransactionsQueryFilter.activityDefaults(), 1000).first().map { it.transaction })
+        assertEquals(listOf(otherWalletSend.stored()), query(otherWallet.id, activityFilters(emptyList(), emptyList()).toPrimitives(), 1000).first().map { it.transaction })
     }
 
     @Test
     fun theChainAndTypeFiltersNarrowTheActivity() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(received.stored()), query(wallet.id, TransactionsQueryFilter.activity(listOf(Chain.Bitcoin), emptyList()), 1000).first().map { it.transaction })
-        assertEquals(listOf(swap.stored()), query(wallet.id, TransactionsQueryFilter.activity(emptyList(), listOf(GemTransactionFilter.SWAPS)), 1000).first().map { it.transaction })
-        assertEquals(listOf(failed.stored(), received.stored()), query(wallet.id, TransactionsQueryFilter.activity(emptyList(), listOf(GemTransactionFilter.TRANSFERS)), 1000).first().map { it.transaction })
+        assertEquals(listOf(received.stored()), query(wallet.id, activityFilters(listOf(Chain.Bitcoin).map { it.string }, emptyList()).toPrimitives(), 1000).first().map { it.transaction })
+        assertEquals(listOf(swap.stored()), query(wallet.id, activityFilters(emptyList(), listOf(GemTransactionFilter.SWAPS)).toPrimitives(), 1000).first().map { it.transaction })
+        assertEquals(listOf(failed.stored(), received.stored()), query(wallet.id, activityFilters(emptyList(), listOf(GemTransactionFilter.TRANSFERS)).toPrimitives(), 1000).first().map { it.transaction })
     }
 
     @Test
     fun theAssetFilterListsTheTransactionsOfThatAssetOnly() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(swap, failed).map { it.stored() }, query(wallet.id, listOf(TransactionsQueryFilter.Asset(ethereum.id)), 1000).first().map { it.transaction })
-        assertEquals(listOf(airdrop.stored()), query(wallet.id, listOf(TransactionsQueryFilter.Asset(spam.id)), 1000).first().map { it.transaction })
+        assertEquals(listOf(swap, failed).map { it.stored() }, query(wallet.id, mockTransactionsFilter(assetId = ethereum.id), 1000).first().map { it.transaction })
+        assertEquals(listOf(airdrop.stored()), query(wallet.id, mockTransactionsFilter(assetId = spam.id), 1000).first().map { it.transaction })
     }
 
     @Test
     fun theAssetFilterIncludesTransactionsThatTouchTheAsset() = runBlocking(Dispatchers.IO) {
         database.transactionsDao().replaceTransactionAssets(mapOf(swap.id.identifier to listOf(ethereum.id.toIdentifier(), bitcoin.id.toIdentifier())))
 
-        assertEquals(listOf(swap, received).map { it.stored() }, query(wallet.id, listOf(TransactionsQueryFilter.Asset(bitcoin.id)), 1000).first().map { it.transaction })
+        assertEquals(listOf(swap, received).map { it.stored() }, query(wallet.id, mockTransactionsFilter(assetId = bitcoin.id), 1000).first().map { it.transaction })
     }
 
     @Test
     fun theStateFilterKeepsOnlyThoseStates() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(swap.stored()), query(wallet.id, TransactionsQueryFilter.pendingActivity(), 1000).first().map { it.transaction })
-        assertEquals(listOf(failed.stored()), query(wallet.id, listOf(TransactionsQueryFilter.States(listOf(TransactionState.Failed))), 1000).first().map { it.transaction })
+        assertEquals(listOf(swap.stored()), query(wallet.id, pendingActivityFilters().toPrimitives(), 1000).first().map { it.transaction })
+        assertEquals(listOf(failed.stored()), query(wallet.id, mockTransactionsFilter(states = listOf(TransactionState.Failed)), 1000).first().map { it.transaction })
     }
 
     @Test
     fun theLimitKeepsTheNewestTransactions() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(airdrop, swap).map { it.stored() }, query(wallet.id, emptyList(), 2).first().map { it.transaction })
+        assertEquals(listOf(airdrop, swap).map { it.stored() }, query(wallet.id, null, 2).first().map { it.transaction })
     }
 
     @Test
     fun aConfirmedTransactionLeavesThePendingActivity() = runBlocking(Dispatchers.IO) {
-        val pending = TransactionsQueryFilter.pendingActivity()
+        val pending = pendingActivityFilters().toPrimitives()
         assertEquals(listOf(swap.stored()), query(wallet.id, pending, 1000).first().map { it.transaction })
 
         database.transactionsDao().updateTransactionState(swap.id, wallet.id, TransactionState.Confirmed, fee = null, blockNumber = null, metadata = null, confirmationEtaSeconds = null)

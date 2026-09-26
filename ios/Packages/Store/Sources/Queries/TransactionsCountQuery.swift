@@ -7,20 +7,20 @@ import Primitives
 public struct TransactionsCountQuery: DatabaseQueryable {
     public var walletId: WalletId
     private let type: TransactionsQueryType
-    private let filters: [TransactionsQueryFilter]
+    private let filter: TransactionsFilter?
 
     public init(
         walletId: WalletId,
         type: TransactionsQueryType,
-        filters: [TransactionsQueryFilter] = [],
+        filter: TransactionsFilter? = nil,
     ) {
         self.walletId = walletId
         self.type = type
-        self.filters = filters
+        self.filter = filter
     }
 
     public func fetch(_ db: Database) throws -> Int {
-        try TransactionsQuery.query(walletId: walletId, type: type, filters: filters)
+        try TransactionsQuery.query(walletId: walletId, type: type, filter: filter)
             .fetchCount(db)
     }
 }

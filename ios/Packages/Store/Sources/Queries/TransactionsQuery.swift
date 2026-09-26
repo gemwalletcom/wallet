@@ -9,32 +9,32 @@ public struct TransactionsQuery: DatabaseQueryable {
     private let type: TransactionsQueryType
     private let limit: Int?
 
-    public var filters: [TransactionsQueryFilter] = []
+    public var filter: TransactionsFilter?
 
     public init(
         walletId: WalletId,
         type: TransactionsQueryType,
-        filters: [TransactionsQueryFilter] = [],
+        filter: TransactionsFilter? = nil,
         limit: Int? = nil,
     ) {
         self.walletId = walletId
         self.type = type
-        self.filters = filters
+        self.filter = filter
         self.limit = limit
     }
 
     public func fetch(_ db: Database) throws -> [TransactionListItem] {
-        try Self.fetch(db, type: type, filters: filters, walletId: walletId, limit: limit)
+        try Self.fetch(db, type: type, filter: filter, walletId: walletId, limit: limit)
     }
 
     public static func fetch(
         _ db: Database,
         type: TransactionsQueryType,
-        filters: [TransactionsQueryFilter],
+        filter: TransactionsFilter?,
         walletId: WalletId,
         limit: Int? = nil,
     ) throws -> [TransactionListItem] {
-        let request = query(walletId: walletId, type: type, filters: filters)
+        let request = query(walletId: walletId, type: type, filter: filter)
         return try fetch(db, request: limit.map { request.limit($0) } ?? request)
     }
 
@@ -70,7 +70,7 @@ public struct TransactionsQuery: DatabaseQueryable {
     static func query(
         walletId: WalletId,
         type: TransactionsQueryType,
-        filters: [TransactionsQueryFilter],
+        filter: TransactionsFilter?,
     ) -> QueryInterfaceRequest<TransactionRecord> {
         var request = TransactionRecord
             .filter(TransactionRecord.Columns.walletId == walletId.id)
@@ -85,30 +85,31 @@ public struct TransactionsQuery: DatabaseQueryable {
             break
         }
 
-        for filter in filters {
-            request = Self.filtered(request: request, filter)
-        }
-
-        return request
+        return filter.map { Self.filtered(request: request, $0) } ?? request
     }
 }
 
 // MARK: - Private
 
 extension TransactionsQuery {
-    static func filtered(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsQueryFilter) -> QueryInterfaceRequest<TransactionRecord> {
-        switch filter {
-        case let .chains(chains):
-            guard !chains.isEmpty else { return request }
-            return request.filter(chains.contains(TransactionRecord.Columns.chain))
-        case let .types(types):
-            guard !types.isEmpty else { return request }
-            return request.filter(types.contains(TransactionRecord.Columns.type))
-        case let .assetRankGreaterThan(rank):
-            return request.joining(required: TransactionRecord.asset.filter(AssetRecord.Columns.rank > rank))
-        case let .states(states):
-            return request.filter(states.contains(TransactionRecord.Columns.state))
+    static func filtered(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsFilter) -> QueryInterfaceRequest<TransactionRecord> {
+        var request = request
+        if let assetId = filter.assetId {
+            request = request.joining(required: TransactionRecord.assetsAssociation.filter(TransactionAssetAssociationRecord.Columns.assetId == assetId.identifier))
         }
+        if filter.chains.isNotEmpty {
+            request = request.filter(filter.chains.map(\.rawValue).contains(TransactionRecord.Columns.chain))
+        }
+        if filter.transactionTypes.isNotEmpty {
+            request = request.filter(filter.transactionTypes.map(\.rawValue).contains(TransactionRecord.Columns.type))
+        }
+        if filter.states.isNotEmpty {
+            request = request.filter(filter.states.map(\.rawValue).contains(TransactionRecord.Columns.state))
+        }
+        if let rank = filter.assetRankGreaterThan {
+            request = request.joining(required: TransactionRecord.asset.filter(AssetRecord.Columns.rank > Int(rank)))
+        }
+        return request
     }
 }
 

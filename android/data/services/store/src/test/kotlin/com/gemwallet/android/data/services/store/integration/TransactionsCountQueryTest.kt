@@ -3,10 +3,10 @@ package com.gemwallet.android.data.services.store.integration
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.TransactionsCountQuery
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
@@ -25,6 +25,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.pendingActivityFilters
 
 @RunWith(AndroidJUnit4::class)
 class TransactionsCountQueryTest {
@@ -33,7 +34,7 @@ class TransactionsCountQueryTest {
         GemDatabase::class.java,
     ).build()
     private val query = TransactionsCountQuery(database.transactionsDao())
-    private val pending = TransactionsQueryFilter.pendingActivity()
+    private val pending = pendingActivityFilters().toPrimitives()
     private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val otherWallet = mockWallet(id = WalletId("wallet-2"))
     private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
@@ -65,7 +66,7 @@ class TransactionsCountQueryTest {
 
     @Test
     fun withoutFiltersEveryWalletTransactionIsCounted() = runBlocking(Dispatchers.IO) {
-        assertEquals(5, query(wallet.id, emptyList()).first())
+        assertEquals(5, query(wallet.id, null).first())
     }
 
     @Test

@@ -1,11 +1,11 @@
 package com.gemwallet.android.application.transactions.cases
 
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
+import com.wallet.core.primitives.TransactionsFilter
 import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.GemTransactionRow
 
 interface GetTransactions {
-    fun getTransactions(filters: List<TransactionsQueryFilter> = emptyList()): Flow<List<GemTransactionRow>>
+    fun getTransactions(filter: TransactionsFilter? = null): Flow<List<GemTransactionRow>>
 
-    fun stored(filters: List<TransactionsQueryFilter> = emptyList()): List<GemTransactionRow>
+    fun stored(filter: TransactionsFilter? = null): List<GemTransactionRow>
 }

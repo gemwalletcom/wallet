@@ -19,15 +19,14 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM194.
-2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
-3. **Models:** VM195.
-4. **Sessions:** VM185.
-5. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
-6. **Generated mappers:** BD299, then GEN300.
-7. **Module layout:** MOD313, then MOD315 to MOD317.
-8. **Unused code:** CLN318.
-9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+1. **Screens:** VM189, VM191, VM190, VM192 with VM193.
+2. **Models:** VM195.
+3. **Sessions:** VM185.
+4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+5. **Generated mappers:** BD299, then GEN300.
+6. **Module layout:** MOD313, then MOD315 to MOD317.
+7. **Unused code:** CLN318.
+8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -50,7 +49,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM190, VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228, VM295 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM194, VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
@@ -106,10 +105,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
 
 The same product rule written in both apps, or in one app while the other reads Core ([the app maps; it does not decide](ARCHITECTURE.md#5-the-app-maps-it-does-not-decide), [a view never names a Core type](ARCHITECTURE.md#a-view-never-names-a-core-type)). Where the two apps answer differently today the item says how.
 
-- **VM194** **S** **Both apps turn Core's activity filters into their own request filter the same way.** Core returns `GemActivityFilters` (`activity_filters`); each app keeps the selected chains and types and converts them.
-  - **iOS:** `TransactionsQueryFilter+Activity.swift` builds `activity`, `activityDefaults` and `pendingActivity` into the Store's `TransactionsQueryFilter` enum.
-  - **Android:** the `TransactionsQueryFilter` companion (`gemcore/.../transactions/values/TransactionsQueryFilter.kt`) builds the same three into its own enum.
-  - **Expected:** the native activity queries read `GemActivityFilters` (plus the asset and state filters they add) directly; both enums and both conversions go.
 - **VM183** **S** **Phrase suggestions are cut and applied by each app.** Core returns suggestions for one word (`phrase_suggestions`, `core/gemstone/src/mnemonic.rs`); the input handling around it is written twice.
   - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
   - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
@@ -216,7 +211,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM213** **S** **Transaction filter screens keep their options and state in the apps.**
   - **iOS:** `TransactionsFilterViewModel`, `TransactionTypesFilterViewModel`, `TransactionTypesSelectorViewModel`, `TransactionsFilterTypeViewModel` and `ChainsFilterViewModel` hold the selections and titles.
   - **Android:** `TransactionFilterUIModel` builds options from `GemConstants.transactionFilters`; `TransactionsViewModel` holds the selections.
-  - **Expected:** a Core filter session holds the selections and returns option rows and summaries (land with VM194).
+  - **Expected:** a Core filter session holds the selections and returns option rows, summaries and the `TransactionsFilter` the activity queries read.
 
 ### Transfer and confirm
 

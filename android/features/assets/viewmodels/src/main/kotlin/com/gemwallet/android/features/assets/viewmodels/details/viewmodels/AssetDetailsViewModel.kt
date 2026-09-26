@@ -12,7 +12,6 @@ import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
@@ -37,6 +36,7 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.TransactionsFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.toImmutableList
@@ -102,12 +102,12 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId()
 
-    private val transactionFilters = listOf(TransactionsQueryFilter.Asset(assetId))
+    private val transactionsFilter = TransactionsFilter(assetId = assetId, chains = emptyList(), transactionTypes = emptyList(), states = emptyList())
 
-    val transactions = getTransactions.getTransactions(transactionFilters)
+    val transactions = getTransactions.getTransactions(transactionsFilter)
         .map { it.toImmutableList() }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters).toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter).toImmutableList())
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 

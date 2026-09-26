@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockTransactionListItem
+import com.gemwallet.android.testkit.mockTransactionsFilter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -13,13 +13,14 @@ import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.activityFilters
 
 class TransactionRowsTest {
 
     private val subject = TransactionRows()
     private val wallet = WalletId("wallet")
-    private val activity = TransactionsQueryFilter.activityDefaults()
-    private val asset = listOf(TransactionsQueryFilter.Chains(listOf(Chain.Bitcoin)))
+    private val activity = activityFilters(emptyList(), emptyList()).toPrimitives()
+    private val asset = mockTransactionsFilter(chains = listOf(Chain.Bitcoin))
 
     private val first = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "first"), state = TransactionState.Confirmed))
     private val second = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "second")))
@@ -76,7 +77,7 @@ class TransactionRowsTest {
     @Test
     fun visitingManyFiltersKeepsOnlyTheRecentOnesAndTheActivity() {
         subject.rows(wallet, activity, listOf(first))
-        val chains = Chain.entries.take(RecentFilters.LIMIT * 2).map { listOf(TransactionsQueryFilter.Chains(listOf(it))) }
+        val chains = Chain.entries.take(RecentFilters.LIMIT * 2).map { mockTransactionsFilter(chains = listOf(it)) }
         chains.forEach { subject.rows(wallet, it, listOf(second)) }
 
         assertTrue(subject.stored(wallet, chains.first()).isEmpty())

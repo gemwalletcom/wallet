@@ -7,9 +7,9 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.values.TransactionsQueryFilter
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.transactionFilterOptions
 import com.gemwallet.android.ui.localization.text
@@ -39,6 +39,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionsServiceInterface
+import uniffi.gemstone.activityFilters
 import uniffi.gemstone.chainsFilterSummary
 import uniffi.gemstone.loadError
 import uniffi.gemstone.transactionsEmptyState
@@ -101,13 +102,13 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter,
         typeFilter,
     ) { chains, types ->
-        TransactionsQueryFilter.activity(chains, types)
+        activityFilters(chains.map { it.string }, types).toPrimitives()
     }
-        .flatMapLatest { filters -> getTransactions.getTransactions(filters) }
+        .flatMapLatest { filter -> getTransactions.getTransactions(filter) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(TransactionsQueryFilter.activityDefaults()).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(activityFilters(emptyList(), emptyList()).toPrimitives()).takeIf { it.isNotEmpty() },
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)

@@ -4,7 +4,7 @@ use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
 use crate::services::empty_state::GemEmptyStateKind;
@@ -20,17 +20,14 @@ pub enum GemTransactionFilter {
     Others,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemActivityFilters {
-    pub asset_rank_greater_than: i32,
-    pub chains: Vec<Chain>,
-    pub transaction_types: Vec<TransactionType>,
-    pub pending_states: Vec<TransactionState>,
+#[uniffi::export]
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> TransactionsFilter {
+    rules::activity_filters(chains, filters)
 }
 
 #[uniffi::export]
-pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
-    rules::activity_filters(chains, filters)
+pub fn pending_activity_filters() -> TransactionsFilter {
+    rules::pending_activity_filters()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.activityFilters
 import enum Gemstone.GemTransactionFilter
 import GemstonePrimitives
 import Localization
@@ -16,11 +17,11 @@ public final class TransactionsFilterViewModel {
     private let type: TransactionsQueryType
 
     public var chainsFilter: ChainsFilterViewModel {
-        didSet { query.request.base.filters = requestFilters }
+        didSet { query.request.base.filter = requestFilter }
     }
 
     public var transactionTypesFilter: TransactionTypesFilterViewModel {
-        didSet { query.request.base.filters = requestFilters }
+        didSet { query.request.base.filter = requestFilter }
     }
 
     public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<TransactionViewModel>]>>
@@ -38,7 +39,7 @@ public final class TransactionsFilterViewModel {
         let request = TransactionsQuery(
             walletId: wallet.id,
             type: type,
-            filters: TransactionsQueryFilter.activity(chains: [], filters: []),
+            filter: activityFilters(chains: [], filters: []).toPrimitives(),
             limit: GemConstants.transactionsListLimit,
         )
         query = ObservableQuery(MappedQuery(request, transform: TransactionViewModel.sections), initialValue: [])
@@ -86,11 +87,11 @@ public final class TransactionsFilterViewModel {
         )
     }
 
-    private var requestFilters: [TransactionsQueryFilter] {
-        TransactionsQueryFilter.activity(
-            chains: chainsFilter.selectedChains,
+    private var requestFilter: TransactionsFilter {
+        activityFilters(
+            chains: chainsFilter.selectedChains.map(\.rawValue),
             filters: transactionTypesFilter.selectedTypes,
-        )
+        ).toPrimitives()
     }
 }
 

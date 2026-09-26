@@ -98,6 +98,7 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
+import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WCPairingProposal
 import com.wallet.core.primitives.Wallet
@@ -904,6 +905,20 @@ fun mockTransactionSwapMetadata(
     toAsset = toAsset,
     toValue = toValue,
     provider = provider,
+)
+
+fun mockTransactionsFilter(
+    assetId: AssetId? = null,
+    chains: List<Chain> = emptyList(),
+    transactionTypes: List<TransactionType> = emptyList(),
+    states: List<TransactionState> = emptyList(),
+    assetRankGreaterThan: Int? = null,
+) = TransactionsFilter(
+    assetId = assetId,
+    chains = chains,
+    transactionTypes = transactionTypes,
+    states = states,
+    assetRankGreaterThan = assetRankGreaterThan,
 )
 
 fun mockWcPairingProposal(
