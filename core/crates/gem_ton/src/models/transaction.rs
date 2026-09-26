@@ -15,6 +15,7 @@ pub struct DecodedBody {
     pub text: Option<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MessageTransactions {
     pub transactions: Vec<TransactionMessage>,

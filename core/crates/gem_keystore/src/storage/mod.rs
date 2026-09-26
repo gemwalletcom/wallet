@@ -15,4 +15,4 @@ mod types;
 #[cfg(feature = "v3")]
 pub(crate) use file_io::read_capped;
 pub use keystore::Keystore;
-pub use types::{FileKeystore, KeystoreEntryError, KeystoreInspection, SecretKind, StoredSecretMeta};
+pub use types::{FileKeystore, KeystoreEntryError, SecretKind, StoredSecretMeta};

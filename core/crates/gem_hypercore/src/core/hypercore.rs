@@ -13,11 +13,6 @@ fn spot_send_typed_data(spot_send: SpotSend) -> Result<String, String> {
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:SpotSend", eip712::spot_send_types())
 }
 
-fn usd_class_transfer_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
-    let action_value = serde_json::to_value(&usd_class_transfer).map_err(|error| error.to_string())?;
-    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdClassTransfer", eip712::usd_class_transfer_types())
-}
-
 // L1 payload
 pub fn place_order_typed_data(order: PlaceOrder, nonce: u64) -> Result<String, String> {
     let action_value = serde_json::to_value(&order).map_err(|error| error.to_string())?;
@@ -66,19 +61,6 @@ pub fn transfer_to_hyper_evm_typed_data(spot_send: SpotSend) -> Result<String, S
 
 pub fn send_spot_token_to_address_typed_data(spot_send: SpotSend) -> Result<String, String> {
     spot_send_typed_data(spot_send)
-}
-
-pub fn send_perps_usd_to_address_typed_data(usd_send: UsdSend) -> Result<String, String> {
-    let action_value = serde_json::to_value(&usd_send).map_err(|error| error.to_string())?;
-    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdSend", eip712::usd_send_types())
-}
-
-pub fn transfer_spot_to_perps_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
-    usd_class_transfer_typed_data(usd_class_transfer)
-}
-
-pub fn transfer_perps_to_spot_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
-    usd_class_transfer_typed_data(usd_class_transfer)
 }
 
 // User signed payload
@@ -291,64 +273,6 @@ mod tests {
         let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_eip712_spot_send_l1.json")).unwrap();
 
         assert_eq!(parsed, expected);
-    }
-
-    #[test]
-    fn test_eip712_usd_send() {
-        let usd_send = UsdSend::new("1".to_string(), "0xe51d0862078098c84346b6203b50b996f7dafe28".to_string(), 1754987223323);
-
-        let eip712_json = send_perps_usd_to_address_typed_data(usd_send).unwrap();
-
-        // Parse both generated and expected JSON for comparison
-        let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
-        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_eip712_perp_send_l1.json")).unwrap();
-
-        assert_eq!(parsed, expected);
-    }
-
-    #[test]
-    fn test_eip712_usd_class_transfer_perp_to_spot() {
-        let usd_class_transfer = UsdClassTransfer::new(
-            "10".to_string(),
-            false, // perp to spot
-            1754986301493,
-        );
-
-        let eip712_json = transfer_perps_to_spot_typed_data(usd_class_transfer).unwrap();
-
-        // Parse both generated and expected JSON for comparison
-        let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
-        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_eip712_perp_to_spot.json")).unwrap();
-
-        assert_eq!(parsed, expected);
-    }
-
-    #[test]
-    fn test_eip712_usd_class_transfer_spot_to_perp_structure() {
-        // Test the spot to perp transfer structure (no corresponding test file yet)
-        let usd_class_transfer = UsdClassTransfer::new(
-            "10".to_string(),
-            true, // spot to perp
-            1754986567194,
-        );
-
-        let eip712_json = transfer_spot_to_perps_typed_data(usd_class_transfer).unwrap();
-
-        // Parse and verify structure
-        let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
-
-        // Verify domain
-        assert_eq!(parsed["domain"]["name"], "HyperliquidSignTransaction");
-        assert_eq!(parsed["domain"]["version"], "1");
-        assert_eq!(parsed["primaryType"], "HyperliquidTransaction:UsdClassTransfer");
-
-        // Verify message
-        assert_eq!(parsed["message"]["type"], "usdClassTransfer");
-        assert_eq!(parsed["message"]["amount"], "10");
-        assert_eq!(parsed["message"]["toPerp"], true);
-        assert_eq!(parsed["message"]["nonce"], 1754986567194u64);
-        assert_eq!(parsed["message"]["signatureChainId"], "0xa4b1");
-        assert_eq!(parsed["message"]["hyperliquidChain"], "Mainnet");
     }
 
     #[test]

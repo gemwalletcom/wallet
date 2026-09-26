@@ -23,10 +23,6 @@ fn transfer_with_program_id(source: &Pubkey, destination: &Pubkey, owner: &Pubke
     }
 }
 
-pub fn transfer_checked(source: &Pubkey, mint: &Pubkey, destination: &Pubkey, owner: &Pubkey, amount: u64, decimals: u8) -> Instruction {
-    transfer_checked_with_program_id(source, mint, destination, owner, amount, decimals, &token_program())
-}
-
 pub fn transfer_checked_with_program_id(source: &Pubkey, mint: &Pubkey, destination: &Pubkey, owner: &Pubkey, amount: u64, decimals: u8, token_program_id: &Pubkey) -> Instruction {
     let mut data = Vec::with_capacity(10);
     data.push(TRANSFER_CHECKED_DISCRIMINANT);
