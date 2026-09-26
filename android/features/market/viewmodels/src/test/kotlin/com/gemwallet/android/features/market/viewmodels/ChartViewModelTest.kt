@@ -1,258 +1,147 @@
 package com.gemwallet.android.features.market.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockChartDateValue
-import com.gemwallet.android.testkit.mockGemChart
-import com.gemwallet.android.ui.models.StateViewType
-import com.gemwallet.android.ui.models.dataOrNull
+import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetLink
+import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockGemFormattedNumber
+import com.gemwallet.android.testkit.mockGemSocialLink
+import com.gemwallet.android.testkit.mockPrice
+import com.gemwallet.android.testkit.mockPriceAlert
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PriceData
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemChartService
-import uniffi.gemstone.GemChartSession
-import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemChartServiceInterface
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemListSectionTitle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChartViewModelTest {
-
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
-    private val currencyFlow = MutableStateFlow(Currency.USD)
     private val viewModels = mutableListOf<ViewModel>()
 
+    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList()))
+    private val currencyFlow = MutableStateFlow(Currency.USD)
+
+    private val priceQuery = mockk<PriceQuery>(relaxed = true)
+    private val walletAssetsFlow = MutableStateFlow<List<AssetInfo>>(emptyList())
+    private val getWalletAssets = mockk<GetWalletAssets>(relaxed = true) {
+        every { this@mockk.invoke() } returns walletAssetsFlow
+    }
+    private val chartService = mockk<GemChartServiceInterface>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
-    private val chartService = mockk<GemChartService>(relaxed = true)
-    private var savedPeriod = ChartPeriod.Day
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { chartService.newSession() } answers {
-            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
-        }
+        every { priceQuery(asset.id) } returns priceDataFlow
+        coEvery { chartService.sections(any(), any(), any(), any(), any()) } returns emptyList()
     }
 
     @After
     fun tearDown() {
-        viewModels.forEach { viewModel ->
-            val job = viewModel.viewModelScope.coroutineContext.job
-            job.cancel()
-            while (!job.isCompleted) {
-                testDispatcher.scheduler.advanceUntilIdle()
-            }
-        }
+        viewModels.forEach { it.viewModelScope.cancel() }
         viewModels.clear()
         Dispatchers.resetMain()
     }
 
     @Test
-    fun `historical chart renders when token info flow emits null`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 10.0).toGem(), mockChartDateValue(date = 61000L, value = 12.0).toGem(), mockChartDateValue(date = 121000L, value = 14.0).toGem()), baseValue = 10.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+    fun `a stored asset gives the scene its title before any flow emits and its sections once core builds them`() = runTest(testDispatcher) {
+        walletAssetsFlow.value = listOf(mockAssetInfo(asset = asset))
+        coEvery { chartService.sections(asset.toGem(), any(), null, any(), any()) } returns listOf(
+            section(listOf(GemListRow.Text(GemListRowTitle.TYPE, "SPL"))),
+        )
 
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
+        assertEquals(asset.name, viewModel.title.value)
 
-        assertEquals(chart.values.size, uiModel.chart.values.size)
-        assertEquals(14.0, uiModel.chart.header?.value?.value)
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+        advanceUntilIdle()
+        assertEquals(1, viewModel.sections.value.size)
     }
 
     @Test
-    fun `current point overlay is skipped when local price info is missing`() = runTest(testDispatcher) {
-        val chart =
-            mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 100.0).toGem(), mockChartDateValue(date = 61000L, value = 105.0).toGem(), mockChartDateValue(date = 121000L, value = 110.0).toGem()), baseValue = 100.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
-
+    fun `an asset the wallet does not hold leaves the scene empty until it loads`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
 
-        assertEquals(chart.values.size, uiModel.chart.values.size)
-        assertEquals(110.0, uiModel.chart.header?.value?.value)
+        assertTrue(viewModel.sections.value.isEmpty())
+        assertEquals("", viewModel.title.value)
+        assertEquals(asset.name, viewModel.title.first { it.isNotBlank() })
     }
 
     @Test
-    fun `initial request uses currency flow without waiting for session object`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
-
+    fun `repo updates populate the sections without changing bootstrap asset`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
+        advanceUntilIdle()
 
-        coVerify(exactly = 1) {
-            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem())
-        }
-        assertEquals(chart.values.size, uiModel.chart.values.size)
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+        val market = mockAssetMarket(marketCap = 1234.0)
+        val link = mockAssetLink()
+        coEvery { chartService.sections(asset.toGem(), any(), market.toGem(), any(), listOf(link.toGem())) } returns listOf(
+            section(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1234.0), null))),
+            section(listOf(GemListRow.Social(listOf(mockGemSocialLink()))), GemListSectionTitle.SOCIAL_LINKS),
+        )
+        priceDataFlow.value = priceDataFlow.value?.copy(market = market, links = listOf(link))
+        currencyFlow.value = Currency.EUR
+
+        val sections = viewModel.sections.first { it.size == 2 }
+
+        assertEquals(listOf(GemListRow.Amount(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1234.0), null)), sections.first().rows)
+        assertEquals(GemListSectionTitle.SOCIAL_LINKS, sections.last().title)
     }
 
     @Test
-    fun `initial request uses saved chart period`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
-        savedPeriod = ChartPeriod.Month
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns chart
+    fun `the stored price and alerts reach core untouched`() = runTest(testDispatcher) {
+        val alert = mockPriceAlert(assetId = asset.id)
+        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), links = emptyList())
 
-        val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }
+        createViewModel()
+        advanceUntilIdle()
 
-        assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
-        coVerify(exactly = 1) {
-            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem())
-        }
-    }
-
-    @Test
-    fun `selecting period stores chart period`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-
-        viewModel.setPeriod(ChartPeriod.Month)
-        val state = viewModel.chartUIState.first { it.period == ChartPeriod.Month }
-
-        assertEquals(ChartPeriod.Month, state.period)
-        verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toGem()) }
-    }
-
-    @Test
-    fun `selecting a period loads the chart without the refresh indicator`() = runTest(testDispatcher) {
-        val day = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
-        val week = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 3.0).toGem(), mockChartDateValue(date = 61000L, value = 4.0).toGem(), mockChartDateValue(date = 121000L, value = 5.0).toGem()), baseValue = 3.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns day
-
-        val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
-        backgroundScope.launch { viewModel.isRefreshing.collect {} }
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        val inFlight = CompletableDeferred<Unit>()
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Week.toGem()) } coAnswers {
-            inFlight.await()
-            week
-        }
-        viewModel.setPeriod(ChartPeriod.Week)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(ChartPeriod.Week, viewModel.chartUIState.value.period)
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Loading)
-        assertEquals(false, viewModel.isRefreshing.value)
-
-        inFlight.complete(Unit)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(false, viewModel.isRefreshing.value)
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
-    }
-
-    @Test
-    fun `opening the chart loads it without the refresh indicator`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
-        val inFlight = CompletableDeferred<Unit>()
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
-            inFlight.await()
-            chart
-        }
-
-        val viewModel = createViewModel()
-        backgroundScope.launch { viewModel.isRefreshing.collect {} }
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Loading)
-        assertEquals(false, viewModel.isRefreshing.value)
-
-        inFlight.complete(Unit)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
-        assertEquals(false, viewModel.isRefreshing.value)
-    }
-
-    @Test
-    fun `a pull to refresh keeps the chart that is already drawn`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem(), mockChartDateValue(date = 121000L, value = 3.0).toGem()), baseValue = 1.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
-
-        val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
-        backgroundScope.launch { viewModel.isRefreshing.collect {} }
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        val inFlight = CompletableDeferred<Unit>()
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
-            inFlight.await()
-            chart
-        }
-        viewModel.refresh()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(true, viewModel.isRefreshing.value)
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
-
-        inFlight.complete(Unit)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(false, viewModel.isRefreshing.value)
-        coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
-    }
-
-    @Test
-    fun `a failed refresh leaves the loaded chart alone`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem(), mockChartDateValue(date = 121000L, value = 3.0).toGem()), baseValue = 1.0)
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
-
-        val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
-
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
-        backgroundScope.launch { viewModel.isRefreshing.collect {} }
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } throws GemServiceException.Api("offline")
-        viewModel.refresh()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
-        assertEquals(false, viewModel.isRefreshing.value)
+        coVerify { chartService.sections(asset.toGem(), 2.5, null, listOf(alert.toGem()), emptyList()) }
     }
 
     private fun createViewModel(): ChartViewModel = ChartViewModel(
-        getCurrentCurrency = getCurrentCurrency,
-        priceQuery = mockk { every { this@mockk(asset.id) } returns flowOf(null) },
+        priceQuery = priceQuery,
+        getWalletAssets = getWalletAssets,
         chartService = chartService,
-        assetId = asset.id,
-        observeRefreshInterval = mockk(relaxed = true),
+        getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = testDispatcher,
-        context = mockk(relaxed = true),
+        assetId = asset.id,
     ).also(viewModels::add)
+
+    private fun section(rows: List<GemListRow>, title: GemListSectionTitle = GemListSectionTitle.NONE) = GemListSection(title, GemListSectionFooter.NONE, rows)
 }

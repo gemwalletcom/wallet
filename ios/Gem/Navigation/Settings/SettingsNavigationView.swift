@@ -63,7 +63,7 @@ struct SettingsNavigationView: View {
                 model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
-        .navigationDestination(for: Scenes.Price.self) { scene in
+        .navigationDestination(for: Scenes.Chart.self) { scene in
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,

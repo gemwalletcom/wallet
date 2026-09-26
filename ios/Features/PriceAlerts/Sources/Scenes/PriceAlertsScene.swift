@@ -28,7 +28,7 @@ public struct PriceAlertsScene: View {
             ListItemValueSectionList(
                 list: model.sections,
                 content: { item in
-                    NavigationLink(value: Scenes.Price(asset: item.data.asset)) {
+                    NavigationLink(value: Scenes.Chart(asset: item.data.asset)) {
                         PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
                     }
                 },

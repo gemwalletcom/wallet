@@ -33,9 +33,9 @@ import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.addressDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.amount
-import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
+import com.gemwallet.android.ui.navigation.routes.chartScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
 import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
@@ -120,7 +120,7 @@ fun WalletNavGraph(
                         is AssetAction.Buy -> navigator.openBuy(action.assetId)
                         is AssetAction.Swap -> navigator.openSwap(action.fromAssetId, action.toAssetId)
                         is AssetAction.OpenTransaction -> navigator.openTransaction(action.transactionId)
-                        is AssetAction.OpenChart -> navigator.openAssetChart(action.assetId)
+                        is AssetAction.OpenChart -> navigator.openChart(action.assetId)
                         is AssetAction.OpenNetwork -> navigator.openAsset(action.assetId)
                         is AssetAction.OpenNetworkAssets -> navigator.openNetworkAssets(action.chain)
                         is AssetAction.Stake -> navigator.openStake(action.assetId)
@@ -137,7 +137,7 @@ fun WalletNavGraph(
                 onCancel = onCancel,
             )
 
-            assetChartScreen(
+            chartScreen(
                 onPriceAlerts = navigator::openPriceAlerts,
                 onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
                 onOpenAddress = navigator::openAddress,
@@ -256,7 +256,7 @@ fun WalletNavGraph(
                         SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
                         is SettingsAction.AddPriceAlertTarget -> navigator.openAddPriceAlertTarget(action.assetId)
                         is SettingsAction.PriceAlertTargetComplete -> navigator.popWithToast(action.message)
-                        is SettingsAction.Chart -> navigator.openAssetChart(action.assetId)
+                        is SettingsAction.Chart -> navigator.openChart(action.assetId)
                         SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
                         SettingsAction.DeveloperPayments -> navigator.openDeveloperPayments()
                         is SettingsAction.Payment -> currentOnPayment(action.payload)

@@ -95,7 +95,7 @@ public enum Scenes {
         }
     }
 
-    public struct Price: Hashable, Codable {
+    public struct Chart: Hashable, Codable {
         public let asset: Primitives.Asset
 
         public init(asset: Primitives.Asset) {

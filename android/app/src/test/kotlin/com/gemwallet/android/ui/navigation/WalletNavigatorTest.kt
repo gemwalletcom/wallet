@@ -23,9 +23,9 @@ import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
-import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
+import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
@@ -583,7 +583,7 @@ class WalletNavigatorTest {
     fun popWithToast_scopesMessageToPreviousRoute() {
         val assetId = mockAssetId(Chain.Solana)
         val target = AssetPriceAlertsRoute(assetId)
-        val otherTarget = AssetChartRoute(assetId)
+        val otherTarget = ChartRoute(assetId)
         val navigator = navigatorWith(
             WalletRootRoute,
             target,

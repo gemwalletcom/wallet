@@ -1,150 +1,81 @@
 package com.gemwallet.android.features.market.viewmodels
 
-import android.content.Context
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.store.queries.PriceQuery
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
-import com.gemwallet.android.features.market.viewmodels.models.StopTimeoutMillis
-import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.models.StateViewType
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.PriceData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import uniffi.gemstone.AssetPrice
-import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemChartServiceInterface
-import uniffi.gemstone.GemRefreshKind
-import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemListSection
 import javax.inject.Inject
 
 @HiltViewModel
 class ChartViewModel internal constructor(
-    getCurrentCurrency: GetCurrentCurrency,
     priceQuery: PriceQuery,
+    getWalletAssets: GetWalletAssets,
     private val chartService: GemChartServiceInterface,
-    private val assetId: AssetId,
-    observeRefreshInterval: ObserveRefreshInterval,
+    getCurrentCurrency: GetCurrentCurrency,
     private val ioDispatcher: CoroutineDispatcher,
-    private val context: Context,
+    val assetId: AssetId,
 ) : ViewModel() {
-    private val session = MutableStateFlow(chartService.newSession())
 
-    val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CHART)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+    private val storedAssetInfo: AssetInfo? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
-    init {
-        viewModelScope.launch {
-            getCurrentCurrency.getCurrency().collect { currency -> session.update { it.onCurrency(currency.toGem()) } }
-        }
-        viewModelScope.launch {
-            session.collectLatest { current ->
-                if (current.isLoading || current.isRefreshing) load()
-            }
-        }
-    }
+    private val priceData = priceQuery(assetId)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    private val price = priceQuery(assetId)
-        .map { data ->
-            data?.price?.let { price ->
-                AssetPrice(
-                    assetId = assetId.toIdentifier(),
-                    price = price.price,
-                    priceChangePercentage24h = price.priceChangePercentage24h,
-                    updatedAt = price.updatedAt,
-                )
-            }
-        }
+    val title = priceData
+        .map { it?.asset?.name.orEmpty() }
         .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, storedAssetInfo?.asset?.name.orEmpty())
 
-    private val viewState = combine(session, price) { session, price -> session.viewState(price) }
+    val sections = combine(priceData, getCurrentCurrency.getCurrency()) { data, _ -> sections(data) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), session.value.viewState(null))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isRefreshing: StateFlow<Boolean> = viewState.map { it.isRefreshing }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
-
-    val chartUIState = viewState.map { state ->
-        ChartUIModel.State(
-            period = state.period.toPrimitives(),
-            chart = when (val phase = state.phase) {
-                GemChartPhase.Loading -> StateViewType.Loading
-                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
-                GemChartPhase.NoData -> StateViewType.NoData
-                is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
-            },
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
-
-    fun setPeriod(period: ChartPeriod) {
-        if (period.toGem() == session.value.period) {
-            return
-        }
-        viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { chartService.setChartPeriod(period.toGem()) }
-                .onFailure { Log.e(TAG, "saving the chart period failed", it) }
-        }
-        session.update { it.onSelectPeriod(period.toGem()) }
-    }
-
-    fun refresh() {
-        session.update { it.onRefresh() }
-    }
-
-    private suspend fun load() {
-        val period = session.value.period
-        try {
-            val chart = withContext(ioDispatcher) { chartService.syncCharts(assetId.toIdentifier(), period) }
-            session.update { it.onLoaded(chart, period) }
-        } catch (e: GemServiceException) {
-            session.update { it.onFailed(e, period) }
-        }
-    }
+    private suspend fun sections(data: PriceData?): List<GemListSection> = data?.let {
+        runCatchingCancellable {
+            chartService.sections(
+                asset = it.asset.toGem(),
+                price = it.price?.price,
+                market = it.market?.toGem(),
+                priceAlerts = it.priceAlerts.map { alert -> alert.toGem() },
+                links = it.links.map { link -> link.toGem() },
+            )
+        }.getOrNull()
+    }.orEmpty()
 
     @Inject
     constructor(
-        getCurrentCurrency: GetCurrentCurrency,
         priceQuery: PriceQuery,
+        getWalletAssets: GetWalletAssets,
         chartService: GemChartServiceInterface,
-        savedStateHandle: SavedStateHandle,
-        observeRefreshInterval: ObserveRefreshInterval,
+        getCurrentCurrency: GetCurrentCurrency,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @ApplicationContext context: Context,
+        savedStateHandle: SavedStateHandle,
     ) : this(
-        getCurrentCurrency = getCurrentCurrency,
         priceQuery = priceQuery,
+        getWalletAssets = getWalletAssets,
         chartService = chartService,
-        assetId = savedStateHandle.requireAssetId(),
-        observeRefreshInterval = observeRefreshInterval,
+        getCurrentCurrency = getCurrentCurrency,
         ioDispatcher = ioDispatcher,
-        context = context,
+        assetId = savedStateHandle.requireAssetId(),
     )
 }
-
-private const val TAG = "Chart"

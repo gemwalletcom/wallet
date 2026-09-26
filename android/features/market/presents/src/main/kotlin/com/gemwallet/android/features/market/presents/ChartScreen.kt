@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.market.viewmodels.AssetChartViewModel
+import com.gemwallet.android.features.market.viewmodels.ChartValuesViewModel
 import com.gemwallet.android.features.market.viewmodels.ChartViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.list_item.gemListSections
@@ -23,22 +23,22 @@ import uniffi.gemstone.GemRowTap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssetChartScene(
+fun ChartScreen(
     onCancel: () -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
     message: RouteMessage?,
     onMessageShown: () -> Unit,
-    viewModel: AssetChartViewModel = hiltViewModel(),
-    chartViewModel: ChartViewModel = hiltViewModel(),
+    viewModel: ChartViewModel = hiltViewModel(),
+    valuesViewModel: ChartValuesViewModel = hiltViewModel(),
 ) {
-    val refreshIntervalMillis by chartViewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
-    RefreshOnTimer(refreshIntervalMillis, chartViewModel::refresh)
+    val refreshIntervalMillis by valuesViewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, valuesViewModel::refresh)
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
-    val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isChartRefreshing by valuesViewModel.isRefreshing.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     Scene(
@@ -49,12 +49,12 @@ fun AssetChartScene(
         PullToRefreshBox(
             isRefreshing = isChartRefreshing,
             onRefresh = {
-                chartViewModel.refresh()
+                valuesViewModel.refresh()
             },
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item { Chart(chartViewModel) }
+                item { Chart(valuesViewModel) }
                 gemListSections(sections, onSelectAddress = { onOpenAddress(ChainAddress(viewModel.assetId.chain, it)) }) { tap ->
                     when (tap) {
                         GemRowTap.PriceAlerts -> onPriceAlerts(viewModel.assetId)

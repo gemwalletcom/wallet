@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.market.viewmodels.ChartViewModel
+import com.gemwallet.android.features.market.viewmodels.ChartValuesViewModel
 import com.gemwallet.android.features.market.viewmodels.models.ChartUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.chart.ChartStateView
@@ -20,7 +20,7 @@ import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
-fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
+fun Chart(viewModel: ChartValuesViewModel = hiltViewModel()) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
 
     ChartSection(state = state, onPeriodSelect = viewModel::setPeriod)

@@ -145,7 +145,7 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.unverifiedCollectionsScene(wallet: model.wallet),
             )
         }
-        .navigationDestination(for: Scenes.Price.self) {
+        .navigationDestination(for: Scenes.Chart.self) {
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: $0.asset,

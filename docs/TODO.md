@@ -25,7 +25,7 @@ These need no further answer; work them in this order, one family per change.
 4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 5. **Generated mappers:** BD299, then GEN300.
 6. **Unused code:** CLN318.
-7. **Names:** NAM355 to NAM372 in any order, one feature per change.
+7. **Names:** NAM356 to NAM372 in any order, one feature per change.
 8. **Parity:** BD342, BD343, BD345 to BD351.
 9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -643,9 +643,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM355** **S** **Market: the chart screen is `Chart`.**
-  - **iOS:** route `Scenes.Price` → `Scenes.Chart`.
-  - **Android:** first the chart component `ChartViewModel`(`Test`) → `ChartValuesViewModel`(`Test`), as iOS; then `AssetChartScene` (binds view models) → `ChartScreen`, `AssetChartViewModel`(`Test`) → `ChartViewModel`(`Test`), `AssetChartRoute`/`assetChartScreen()` → `ChartRoute`/`chartScreen()`.
 - **NAM356** **M** **Transfer: confirmation is `ConfirmTransfer`, the get-asset sheet `GetAsset`.**
   - **iOS:** `ReceiveViewModel` → `ReceiveSceneViewModel`; `RecipientNavigationView`, `AmountNavigationView`, `ConfirmTransferNavigationView` follow the destination-host rule.
   - **Android:** `ConfirmScreen`/`ConfirmViewModel`/`ConfirmRoute` → `ConfirmTransferScreen`/`ConfirmTransferViewModel`/`ConfirmTransferRoute`; `RecipientInputRoute` (file `RecipientInput.kt`) → `RecipientRoute` in `Recipient.kt`; route file `TransferAmount.kt` → `Amount.kt`; the stateless `RecipientScreen` overload → `RecipientScene`; `AmountUiState` → `AmountUIState`; `RecipientState` → `RecipientUIState`; `AcquireAssetAction`/`AcquireOptionUIModel`/`GetAssetBottomSheet` → `GetAssetAction`/`GetAssetOptionUIModel`/`GetAssetSheet`; `ConfirmDetailElement` → `ConfirmDetailsUIModel`; `ValidatorPickerUIModel` → `ValidatorSelectUIModel`; `NetworkFeeCustomViewModel` → `NetworkFeeCustomUIModel`; `PropertyDestination.kt` → `AddressRow.kt`; `FeeRateUIModelTest` and `FeeDetailsModelTest` move to `gemcore` tests, where their types live.
