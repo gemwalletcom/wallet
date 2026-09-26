@@ -19,7 +19,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.FiatUIState
 import com.gemwallet.android.features.fiat_connect.viewmodels.models.createFiatUIState
-import com.gemwallet.android.features.fiat_connect.viewmodels.models.toQuoteUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -127,13 +126,11 @@ class FiatViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUIState())
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { _, state ->
-        state.quoteRows.map { row -> row.toQuoteUIModel() }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { _, state -> state.providerRows }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
-        asset?.let { state.selectedQuoteRow?.toQuoteUIModel() }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state -> asset?.let { state.selectedQuoteRow } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providerListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->
         provider?.let {

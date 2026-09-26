@@ -6,6 +6,7 @@ import Formatters
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
+import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapErrorDisplay
@@ -314,11 +315,11 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
-    private func providersState(_ state: GemSwapViewState) -> StateViewType<[SwapProviderItem]> {
+    private func providersState(_ state: GemSwapViewState) -> StateViewType<[GemProviderRow]> {
         switch state.quotesState {
         case .loading: .loading
         case let .failed(error): .error(error)
-        case .quotes: .data(state.providers.map(SwapProviderItem.init(row:)))
+        case .quotes: .data(state.providers)
         case .empty: .noData
         }
     }

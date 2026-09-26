@@ -437,6 +437,22 @@ pub enum GemListRow {
     },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemProviderKind {
+    Swap { provider: swapper::SwapperProvider },
+    Fiat { provider: primitives::FiatProviderName },
+}
+
+/// A swap or fiat provider offering an amount: the name, what it gives and its value, and whether it is the one picked.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemProviderRow {
+    pub kind: GemProviderKind,
+    pub name: String,
+    pub amount: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+    pub is_selected: bool,
+}
+
 /// An address a screen shows: the text it reads, the short address a tap reveals when the text is a name, and its long-press menu.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddressRow {

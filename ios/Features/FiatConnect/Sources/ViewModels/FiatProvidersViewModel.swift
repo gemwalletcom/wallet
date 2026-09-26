@@ -2,18 +2,19 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemProviderRow
 import Localization
 import Primitives
 
 struct FiatProvidersViewModel: SelectableListAdoptable {
-    typealias Item = FiatQuoteViewModel
-    let state: StateViewType<SelectableListType<FiatQuoteViewModel>>
-    var selectedItems: Set<FiatQuoteViewModel>
+    typealias Item = GemProviderRow
+    let state: StateViewType<SelectableListType<GemProviderRow>>
+    var selectedItems: Set<GemProviderRow>
     let selectionType: SelectionType
 
     init(
-        state: StateViewType<SelectableListType<FiatQuoteViewModel>>,
-        selectedItems: [FiatQuoteViewModel] = [],
+        state: StateViewType<SelectableListType<GemProviderRow>>,
+        selectedItems: [GemProviderRow] = [],
         selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state

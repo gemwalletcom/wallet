@@ -9,6 +9,7 @@ import struct Gemstone.FiatQuote
 import func Gemstone.formattedAmount
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
+import struct Gemstone.GemProviderRow
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Localization
@@ -175,7 +176,7 @@ final class FiatSceneViewModelTests {
         #expect(model.amountError(model.viewState) == nil)
         #expect(model.viewState.buttonState.state == .normal)
 
-        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak, cryptoAmount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiatAmount: formattedCurrency(value: 0, code: "USD", style: .fiat)))])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
 
         #expect(model.viewState.selectedQuoteRow?.quoteId == unaffordable.id)
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
@@ -385,7 +386,7 @@ final class FiatSceneViewModelTests {
         model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
-        model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak, cryptoAmount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiatAmount: formattedCurrency(value: 0, code: "USD", style: .fiat)))])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
         #expect(model.loadTrigger == trigger)
     }
 

@@ -6,6 +6,7 @@ import func Gemstone.addressCopy
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
+import struct Gemstone.GemProviderRow
 import enum Gemstone.GemRowMenuItem
 import enum Gemstone.GemValueTone
 import func Gemstone.walletRow
@@ -19,6 +20,22 @@ import Style
 import Testing
 
 struct GemListRowItemTests {
+    @Test
+    func aProviderRowReadsItsAmountsAndMarksThePickedOne() {
+        let row = GemProviderRow(
+            kind: .fiat(provider: .moonPay),
+            name: "MoonPay",
+            amount: .mock(value: 0.000488, unit: .symbol(symbol: "BTC"), display: .number(precision: .fraction(min: 0, max: 8)), notation: .plain, tone: .plain, rounding: .toNearest),
+            fiat: .mock(value: 48.8, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
+            isSelected: true,
+        )
+
+        #expect(row.listItem.title == "MoonPay")
+        #expect(row.listItem.subtitle == "0.000488 BTC")
+        #expect(row.listItem.subtitleExtra == "$48.80")
+        #expect(row.id == .fiat(provider: .moonPay))
+    }
+
     @Test
     func anAssetChangeReadsItsSignedAmountInItsTone() {
         let change = { (value: Double, tone: GemValueTone) -> ListItemModel? in

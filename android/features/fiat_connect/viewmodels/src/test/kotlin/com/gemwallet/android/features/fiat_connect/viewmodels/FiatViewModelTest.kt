@@ -495,7 +495,7 @@ class FiatViewModelTest {
             runCurrent()
 
             val provider = viewModel.providers.value.first()
-            assertEquals(formattedCurrency(200.0 * provider.row.cryptoAmount.value, Currency.USD.string, GemCurrencyStyle.FIAT).text(), provider.fiatFormatted)
+            assertEquals(formattedCurrency(200.0 * provider.amount.value, Currency.USD.string, GemCurrencyStyle.FIAT).text(), provider.fiat?.text())
         } finally {
             viewModel.viewModelScope.cancel()
         }

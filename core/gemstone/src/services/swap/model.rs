@@ -6,9 +6,10 @@ use primitives::{Asset, AssetId, Currency};
 use swapper::SwapperError;
 
 use super::rules;
-use super::session::{GemSwapProviderRow, provider_row};
+use super::session::provider_row;
 use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::GemProviderRow;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::swap::GemSwapValue;
 use crate::percentage::GemPercentageStyle;
@@ -105,7 +106,7 @@ impl GemSwapQuoteSummary {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapDetails {
     pub summary: GemSwapQuoteSummary,
-    pub provider: GemSwapProviderRow,
+    pub provider: GemProviderRow,
     pub rows: Vec<GemListRow>,
 }
 

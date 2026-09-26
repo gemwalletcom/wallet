@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemListRow
+import struct Gemstone.GemProviderRow
 import struct Gemstone.GemSwapDetails
 import enum Gemstone.SwapProvider
 import GemstonePrimitives
@@ -12,13 +13,13 @@ import PrimitivesComponents
 import Style
 
 public struct SwapDetailsViewModel {
-    let state: StateViewType<[SwapProviderItem]>
+    let state: StateViewType<[GemProviderRow]>
     private let details: GemSwapDetails
     let allowSelectProvider: Bool
     private let swapProviderSelectAction: ((SwapProvider) -> Void)?
 
     public init(
-        state: StateViewType<[SwapProviderItem]> = .data([]),
+        state: StateViewType<[GemProviderRow]> = .data([]),
         details: GemSwapDetails,
         allowSelectProvider: Bool = true,
         swapProviderSelectAction: ((SwapProvider) -> Void)? = nil,
@@ -43,8 +44,8 @@ public struct SwapDetailsViewModel {
 
     // MARK: - Provider
 
-    var selectedProviderItem: SwapProviderItem {
-        SwapProviderItem(row: details.provider)
+    var selectedProviderItem: GemProviderRow {
+        details.provider
     }
 
     var swapProvidersViewModel: SwapProvidersViewModel {
@@ -87,8 +88,8 @@ public struct SwapDetailsViewModel {
 // MARK: - Actions
 
 extension SwapDetailsViewModel {
-    func onFinishSwapProviderSelection(item: [SwapProviderItem]) {
-        guard let provider = item.first?.row.provider else { return }
+    func onFinishSwapProviderSelection(item: [GemProviderRow]) {
+        guard case let .swap(provider) = item.first?.kind else { return }
         swapProviderSelectAction?(provider)
     }
 }

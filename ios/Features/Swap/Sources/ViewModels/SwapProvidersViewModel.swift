@@ -2,19 +2,20 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemProviderRow
 import Localization
 import Primitives
 
 struct SwapProvidersViewModel: SelectableListAdoptable {
-    typealias Item = SwapProviderItem
+    typealias Item = GemProviderRow
 
-    var state: StateViewType<SelectableListType<SwapProviderItem>>
-    var selectedItems: Set<SwapProviderItem>
+    var state: StateViewType<SelectableListType<GemProviderRow>>
+    var selectedItems: Set<GemProviderRow>
     var selectionType: SelectionType
 
     init(
         state: StateViewType<SelectableListType<Item>>,
-        selectedItems: [SwapProviderItem] = [],
+        selectedItems: [GemProviderRow] = [],
         selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state

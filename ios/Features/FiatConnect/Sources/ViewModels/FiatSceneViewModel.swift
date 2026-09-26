@@ -8,12 +8,12 @@ import func Gemstone.assetListRow
 import enum Gemstone.FiatProviderName
 import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemFiatAmountCheck
-import struct Gemstone.GemFiatQuoteRow
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
+import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSelectAssetType
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -84,11 +84,11 @@ public final class FiatSceneViewModel {
         viewState.amountError.map { AnyError($0.text(locale: locale)) }
     }
 
-    func quotesState(_ viewState: GemFiatViewState) -> StateViewType<[GemFiatQuoteRow]> {
+    func quotesState(_ viewState: GemFiatViewState) -> StateViewType<[GemProviderRow]> {
         switch viewState.phase {
         case .noInput, .invalidInput, .invalid, .noQuotes: .noData
         case .loading: .loading
-        case .ready: .data(viewState.quoteRows)
+        case .ready: .data(viewState.providerRows)
         case let .failed(error): .error(error)
         }
     }
@@ -154,23 +154,12 @@ public final class FiatSceneViewModel {
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {
-        let viewState = viewState
-        let selected = viewState.selectedQuoteRow
-        return FiatProvidersViewModel(state: quotesState(viewState).map { items in
-            .plain(items.map {
-                FiatQuoteViewModel(
-                    row: $0,
-                    isSelected: $0.provider == selected?.provider,
-                    locale: locale,
-                )
-            })
-        })
+        FiatProvidersViewModel(state: quotesState(viewState).map { .plain($0) })
     }
 
     func cryptoAmountValue(_ viewState: GemFiatViewState) -> String {
         guard let quote = viewState.selectedQuoteRow else { return " " }
-        let model = FiatQuoteViewModel(row: quote, locale: locale)
-        return model.row.cryptoEstimateText(formattedValue: model.amountText)
+        return quote.cryptoEstimateText(formattedValue: quote.cryptoAmount.text(locale: locale))
     }
 
     func providerAssetImage(_ provider: Gemstone.FiatProviderName) -> AssetImage? {
@@ -233,9 +222,9 @@ extension FiatSceneViewModel {
         isPresentingFiatProvider = true
     }
 
-    func onSelectQuotes(_ quotes: [FiatQuoteViewModel]) {
-        guard let quoteModel = quotes.first else { return }
-        session = session.onProviderSelected(provider: quoteModel.row.provider)
+    func onSelectQuotes(_ rows: [GemProviderRow]) {
+        guard case let .fiat(provider) = rows.first?.kind else { return }
+        session = session.onProviderSelected(provider: provider)
         isPresentingFiatProvider = false
     }
 
