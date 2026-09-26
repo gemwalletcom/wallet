@@ -3,6 +3,7 @@ import Foundation
 import struct Gemstone.GemWalletRow
 import struct Gemstone.GemWalletSection
 import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
 import GemstoneServices
@@ -59,6 +60,10 @@ public final class WalletsSceneViewModel {
 
     func wallet(for row: GemWalletRow) -> Wallet? {
         walletsQuery.value.first { $0.id.id == row.id }
+    }
+
+    var walletDeletePrompt: String {
+        walletDelete.map { walletRow(wallet: $0.toGem()).deletePrompt.text } ?? ""
     }
 }
 

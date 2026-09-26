@@ -169,6 +169,7 @@ pub struct GemWalletRow {
     pub is_current: bool,
     pub has_avatar: bool,
     pub image_url: Option<String>,
+    pub delete_prompt: GemLocalizedText,
 }
 
 #[uniffi::export]

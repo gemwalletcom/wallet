@@ -43,6 +43,7 @@ pub enum GemLocalizedText {
     SecretKind { kind: GemWalletSecretKind },
     NewWallet,
     NewTag,
+    DeleteConfirmation { name: String },
     CurrentPrice { price: GemFormattedNumber },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },

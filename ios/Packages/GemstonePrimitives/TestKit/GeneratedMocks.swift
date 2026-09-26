@@ -1499,6 +1499,7 @@ public extension Gemstone.GemWalletRow {
         isCurrent: Bool = false,
         hasAvatar: Bool = false,
         imageUrl: String? = nil,
+        deletePrompt: Gemstone.GemLocalizedText = .mock(),
     ) -> Gemstone.GemWalletRow {
         Gemstone.GemWalletRow(
             id: id,
@@ -1510,6 +1511,7 @@ public extension Gemstone.GemWalletRow {
             isCurrent: isCurrent,
             hasAvatar: hasAvatar,
             imageUrl: imageUrl,
+            deletePrompt: deletePrompt,
         )
     }
 }

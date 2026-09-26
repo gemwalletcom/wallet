@@ -184,6 +184,8 @@ public extension GemLocalizedText {
             Localized.Wallet.New.title
         case .newTag:
             Localized.Assets.Tags.new
+        case let .deleteConfirmation(name):
+            Localized.Common.deleteConfirmation(name)
         case let .currentPrice(price):
             [Localized.PriceAlerts.SetAlert.currentPrice, price.text()].joined(separator: " ")
         case let .pnl(amount, percent):

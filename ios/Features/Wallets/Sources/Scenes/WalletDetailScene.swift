@@ -76,7 +76,7 @@ public struct WalletDetailScene: View {
         .onChange(of: model.nameInput) { Task { await model.onChangeWalletName() } }
         .navigationTitle(model.title)
         .alert(
-            Localized.Common.deleteConfirmation(model.name),
+            model.details.row.deletePrompt.text,
             presenting: $model.isPresentingDeleteConfirmation,
             sensoryFeedback: .warning,
             actions: { _ in

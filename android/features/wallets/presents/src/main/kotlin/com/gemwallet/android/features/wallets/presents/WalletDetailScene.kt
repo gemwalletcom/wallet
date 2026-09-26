@@ -110,7 +110,7 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
 
     if (showDeleteDialog) {
         ConfirmWalletDeleteDialog(
-            walletName = walletName,
+            prompt = wallet.row.deletePrompt.string(LocalContext.current),
             onConfirm = {
                 showDeleteDialog = false
                 onAction(WalletDetailAction.Delete)

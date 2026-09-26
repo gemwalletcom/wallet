@@ -2191,6 +2191,7 @@ fun mockGemWalletRow(
     isCurrent: Boolean = false,
     hasAvatar: Boolean = false,
     imageUrl: String? = null,
+    deletePrompt: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
 ) = uniffi.gemstone.GemWalletRow(
     id = id,
     name = name,
@@ -2201,6 +2202,7 @@ fun mockGemWalletRow(
     isCurrent = isCurrent,
     hasAvatar = hasAvatar,
     imageUrl = imageUrl,
+    deletePrompt = deletePrompt,
 )
 
 fun mockNameRecord(

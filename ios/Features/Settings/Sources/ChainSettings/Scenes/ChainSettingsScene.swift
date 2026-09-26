@@ -26,7 +26,7 @@ public struct ChainSettingsScene: View {
             await model.load()
         }
         .alert(
-            model.deleteConfirmationTitle(for: model.nodeDelete?.host ?? ""),
+            model.nodeDelete?.deletePrompt.text ?? "",
             presenting: $model.nodeDelete,
             sensoryFeedback: .warning,
             actions: { _ in
@@ -72,7 +72,7 @@ public struct ChainSettingsScene: View {
                 .if(row.canDelete) {
                     $0.swipeActions(edge: .trailing) {
                         Button(model.deleteButtonTitle, role: .destructive) {
-                            model.onSelectNodeForDeletion(row.node)
+                            model.onSelectNodeForDeletion(row)
                         }
                         .tint(Colors.red)
                     }

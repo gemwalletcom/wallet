@@ -67,7 +67,7 @@ public struct WalletsScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .alertSheet($model.isPresentingAlertMessage)
         .alert(
-            Localized.Common.deleteConfirmation(model.walletDelete?.name ?? ""),
+            model.walletDeletePrompt,
             presenting: $model.walletDelete,
             sensoryFeedback: .warning,
             actions: { wallet in

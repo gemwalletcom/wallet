@@ -6,6 +6,7 @@ use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, Gem
 use super::rules;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
+use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAddNodePhase {
@@ -225,6 +226,7 @@ impl GemNodeListSession {
                     subtitle: status.subtitle(),
                     latency_status: status.latency_status(),
                     can_delete: rules::can_delete_node(self.chain, &node.url),
+                    delete_prompt: GemLocalizedText::DeleteConfirmation { name: node.host.clone() },
                     node: node.clone(),
                 }
             })
@@ -330,6 +332,7 @@ mod node_list_tests {
         );
         assert!(!rows[0].can_delete);
         assert!(rows[1].can_delete);
+        assert_eq!(rows[1].delete_prompt, GemLocalizedText::DeleteConfirmation { name: added.host });
     }
 
     #[test]

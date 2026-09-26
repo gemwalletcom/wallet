@@ -13,7 +13,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.requestAuth
 
 @Composable
-fun ConfirmWalletDeleteDialog(walletName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ConfirmWalletDeleteDialog(prompt: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -23,7 +23,7 @@ fun ConfirmWalletDeleteDialog(walletName: String, onConfirm: () -> Unit, onDismi
         },
         text = {
             Text(
-                text = stringResource(R.string.common_delete_confirmation, walletName),
+                text = prompt,
                 style = MaterialTheme.typography.bodyLarge,
             )
         },

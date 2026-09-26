@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -18,6 +19,7 @@ import com.gemwallet.android.features.wallets.presents.dialogs.ConfirmWalletDele
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
@@ -52,7 +54,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 
     deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
-            walletName = sections.flatMap { it.rows }.firstOrNull { it.id == pendingDeleteWalletId.id }?.name.orEmpty(),
+            prompt = sections.flatMap { it.rows }.firstOrNull { it.id == pendingDeleteWalletId.id }?.deletePrompt?.string(LocalContext.current).orEmpty(),
             onConfirm = {
                 deleteWalletId = null
                 viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)

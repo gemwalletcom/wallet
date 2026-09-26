@@ -167,6 +167,7 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
         is_current: false,
         has_avatar: wallet.image_url.as_ref().is_some_and(|url| !url.is_empty()),
         image_url: wallet.image_url.clone(),
+        delete_prompt: GemLocalizedText::DeleteConfirmation { name: wallet.name.clone() },
     };
     match &wallet.id {
         WalletId::Multicoin(_) => common(GemWalletSubtitle::Multicoin, GemWalletPlaceholder::Multicoin, false),
@@ -553,6 +554,7 @@ mod tests {
 
         let single = row(&Wallet::mock_with_id(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), &[Chain::Bitcoin]));
         assert!(!single.shows_watch_badge);
+        assert_eq!(single.delete_prompt, GemLocalizedText::DeleteConfirmation { name: single.name.clone() }, "deleting asks about the wallet by name");
     }
 
     #[test]

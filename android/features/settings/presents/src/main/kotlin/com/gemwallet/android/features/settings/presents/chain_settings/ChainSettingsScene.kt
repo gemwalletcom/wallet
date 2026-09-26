@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.ext.networkName
@@ -38,6 +39,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -119,7 +121,7 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
 
     nodeDelete?.let { pendingNode ->
         ConfirmNodeDeleteDialog(
-            nodeName = pendingNode.node.host,
+            prompt = pendingNode.deletePrompt.string(LocalContext.current),
             onConfirm = {
                 onAction(ChainSettingsAction.DeleteNode(pendingNode.node.url))
                 nodeDelete = null
@@ -144,7 +146,7 @@ private fun BlockExplorerItem(explorer: GemExplorerRow, listPosition: ListPositi
 }
 
 @Composable
-private fun ConfirmNodeDeleteDialog(nodeName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun ConfirmNodeDeleteDialog(prompt: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -153,7 +155,7 @@ private fun ConfirmNodeDeleteDialog(nodeName: String, onConfirm: () -> Unit, onD
         },
         text = {
             Text(
-                text = stringResource(R.string.common_delete_confirmation, nodeName),
+                text = prompt,
                 style = MaterialTheme.typography.bodyLarge,
             )
         },

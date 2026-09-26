@@ -55,7 +55,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM270 |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
@@ -140,10 +140,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Texts composed in the apps
 
-- **VM270** **S** **Delete confirmations are composed in the apps.**
-  - **iOS:** `ChainSettingsSceneViewModel`, `WalletDetailScene` and `WalletsScene` compose "Delete X?".
-  - **Android:** `ChainSettingsScene` and `ConfirmWalletDeleteDialog` compose the same.
-  - **Expected:** Core returns the prompt as a `GemLocalizedText` with the name; the mapper renders it.
 - **VM271** **S** **Toast texts are composed in the apps.**
   - **iOS:** `ToastMessage+PrimitivesComponents` composes pinned/unpinned asset, price alerts enabled/disabled for an asset, and copied value.
   - **Android:** `AssetToasts` composes pinned/unpinned; `PriceAlertsScreen` composes "Price alerts enabled for X".
