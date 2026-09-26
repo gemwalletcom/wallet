@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import enum Gemstone.GemLoadState
-import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
 import func Gemstone.loadError
 import GemstonePrimitives
@@ -19,7 +18,6 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
-    private let notifications: any GemNotificationsServiceProtocol
     private let typing: ObservableSupportTyping
     public let query: ObservableQuery<SupportMessagesQuery>
     var previewURL: URL?
@@ -27,9 +25,8 @@ public final class SupportChatSceneViewModel {
 
     private var loadState: GemLoadState = .loading
 
-    public init(service: any GemSupportServiceProtocol, notifications: any GemNotificationsServiceProtocol, typing: ObservableSupportTyping) {
+    public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
-        self.notifications = notifications
         self.typing = typing
         query = ObservableQuery(SupportMessagesQuery(), initialValue: [])
     }
@@ -61,7 +58,7 @@ public final class SupportChatSceneViewModel {
     }
 
     func enableNotificationsForSupport() async {
-        guard case let .notRegistered(error) = await notifications.enableForSupport()?.result else { return }
+        guard case let .notRegistered(error) = await service.enableNotifications()?.result else { return }
         isPresentingAlertMessage = AlertMessage(message: error.text)
     }
 

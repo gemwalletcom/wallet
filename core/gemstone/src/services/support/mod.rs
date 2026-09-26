@@ -17,6 +17,7 @@ use uuid::Uuid;
 use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::file::{GemFileStore, download};
+use crate::services::notifications::{GemNotificationsService, GemPushState};
 
 pub use model::{GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
 pub use store::GemSupportStore;
@@ -27,20 +28,26 @@ pub struct GemSupportService {
     store: Arc<dyn GemSupportStore>,
     files: Arc<dyn GemFileStore>,
     provider: Arc<dyn AlienProvider>,
+    notifications: Arc<GemNotificationsService>,
     sending: Mutex<HashSet<String>>,
 }
 
 #[uniffi::export]
 impl GemSupportService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemSupportStore>, files: Arc<dyn GemFileStore>, provider: Arc<dyn AlienProvider>) -> Self {
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemSupportStore>, files: Arc<dyn GemFileStore>, provider: Arc<dyn AlienProvider>, notifications: Arc<GemNotificationsService>) -> Self {
         Self {
             api,
             store,
             files,
             provider,
+            notifications,
             sending: Mutex::new(HashSet::new()),
         }
+    }
+
+    pub async fn enable_notifications(&self) -> Option<GemPushState> {
+        self.notifications.enable_for_support().await
     }
 
     pub async fn image_file(&self, url: String) -> Result<String, GemServiceError> {

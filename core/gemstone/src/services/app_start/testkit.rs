@@ -59,7 +59,16 @@ impl AppStartTestkit {
                 Arc::new(MemoryDevicePlatform),
                 preferences,
             )),
-            Arc::new(GemSupportService::new(device_api, support_store.clone(), Arc::new(NoopFileStore), provider.clone())),
+            Arc::new(GemSupportService::new(
+                device_api,
+                support_store.clone(),
+                Arc::new(NoopFileStore),
+                provider.clone(),
+                Arc::new(crate::services::notifications::GemNotificationsService::mock(
+                    provider.clone(),
+                    Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+                )),
+            )),
         );
         Self {
             service,

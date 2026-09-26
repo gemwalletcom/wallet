@@ -182,7 +182,14 @@ struct ServicesFactory {
             store: GemstoneFiatStore(store: stores.fiatTransactionStore),
         )
         let gemstoneSupportStore = GemstoneSupportStore(store: stores.supportChatStore)
-        let supportService = Gemstone.GemSupportService(api: deviceApiClient, store: gemstoneSupportStore, files: gemstoneFileStore, provider: nativeProvider)
+        let notificationsService = Gemstone.GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions)
+        let supportService = Gemstone.GemSupportService(
+            api: deviceApiClient,
+            store: gemstoneSupportStore,
+            files: gemstoneFileStore,
+            provider: nativeProvider,
+            notifications: notificationsService,
+        )
         let inAppNotificationService = Gemstone.GemNotificationService(
             api: deviceApiClient,
             store: gemstoneNotificationStore,
@@ -440,7 +447,7 @@ struct ServicesFactory {
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
-            notificationsService: Gemstone.GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
+            notificationsService: notificationsService,
             walletConnectorPresenter: walletConnectorPresenter,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,

@@ -1,3 +1,6 @@
+#[cfg(test)]
+pub(crate) mod testkit;
+
 use std::sync::Arc;
 
 use crate::services::banner::GemNotificationPermissions;
@@ -86,19 +89,10 @@ mod tests {
 
     use async_trait::async_trait;
     use futures::executor::block_on;
-    use primitives::Wallet;
 
     use super::*;
-    use crate::api::GemDeviceApiClient;
-    use crate::services::GemSubscriptionService;
-    use crate::services::device::GemDeviceKeyService;
-    use crate::services::device::testkit::MemoryDevicePlatform;
     use crate::services::error::GemServiceError;
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
-    use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::services::wallet_session::GemWalletSessionService;
-    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-    use crate::testkit::{EmptyPreferences, TestAlienProvider};
+    use crate::testkit::TestAlienProvider;
 
     #[derive(Default)]
     struct TestPermissions {
@@ -120,22 +114,7 @@ mod tests {
     }
 
     fn service(status: u16, permissions: Arc<TestPermissions>) -> GemNotificationsService {
-        let provider = Arc::new(TestAlienProvider::with_status(status));
-        let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
-        let device_api = Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
-        let wallets = Arc::new(MemoryWalletStore {
-            wallets: std::sync::Mutex::new(vec![Wallet::mock()]),
-            ..Default::default()
-        });
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
-        let device = Arc::new(GemDeviceService::new(
-            device_api.clone(),
-            Arc::new(GemSubscriptionService::new(device_api, session.clone())),
-            session,
-            Arc::new(MemoryDevicePlatform),
-            preferences.clone(),
-        ));
-        GemNotificationsService::new(device, preferences, permissions)
+        GemNotificationsService::mock(Arc::new(TestAlienProvider::with_status(status)), permissions)
     }
 
     #[test]

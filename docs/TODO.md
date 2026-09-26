@@ -182,7 +182,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
-- **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
 - **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
 

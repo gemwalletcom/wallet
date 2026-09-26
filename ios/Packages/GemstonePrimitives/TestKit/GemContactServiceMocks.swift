@@ -143,8 +143,15 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public private(set) var retriedMessageIds: [String] = []
     public private(set) var requestedImageUrls: [String] = []
     public private(set) var recoveredInterrupted = 0
+    public var pushState: GemPushState?
+    public private(set) var enableNotificationsCalls = 0
 
     public init() {}
+
+    public func enableNotifications() async -> GemPushState? {
+        enableNotificationsCalls += 1
+        return pushState
+    }
 
     public func imageFile(url: String) async throws -> String {
         requestedImageUrls.append(url)

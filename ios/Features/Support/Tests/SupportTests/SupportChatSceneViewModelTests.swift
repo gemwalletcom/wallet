@@ -18,13 +18,13 @@ import Testing
 struct SupportChatSceneViewModelTests {
     @Test
     func aFailedPushRegistrationShowsOnTheChat() async {
-        let notifications = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline)))
-        notifications.offersForSupport = true
-        let model = SupportChatSceneViewModel.mock(notifications: notifications)
+        let service = GemSupportServiceMock()
+        service.pushState = GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline))
+        let model = SupportChatSceneViewModel.mock(service: service)
 
         await model.enableNotificationsForSupport()
 
-        #expect(notifications.requested == [true])
+        #expect(service.enableNotificationsCalls == 1)
         #expect(model.isPresentingAlertMessage?.message == GemErrorText.networkOffline.text)
     }
 

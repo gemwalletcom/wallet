@@ -63,7 +63,11 @@ impl super::GemSupportService {
             Arc::new(crate::api::GemDeviceApiClient::new(provider.clone(), device_key)),
             store,
             Arc::new(crate::services::file::testkit::NoopFileStore),
-            provider,
+            provider.clone(),
+            Arc::new(crate::services::notifications::GemNotificationsService::mock(
+                provider,
+                Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+            )),
         )
     }
 }

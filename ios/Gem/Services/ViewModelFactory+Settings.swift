@@ -108,7 +108,6 @@ public extension ViewModelFactory {
     func supportChatScene() -> SupportChatSceneViewModel {
         SupportChatSceneViewModel(
             service: supportService,
-            notifications: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
             typing: supportTyping,
         )
     }
