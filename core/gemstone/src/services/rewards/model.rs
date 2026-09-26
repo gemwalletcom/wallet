@@ -55,6 +55,7 @@ pub struct GemRewardsRedemption {
     pub can_redeem: bool,
     pub points: GemFormattedNumber,
     pub value: GemFormattedNumber,
+    pub confirmation: GemLocalizedText,
 }
 
 impl Default for GemRewardsState {

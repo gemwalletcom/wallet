@@ -1017,6 +1017,7 @@ public extension Gemstone.GemRewardsRedemption {
         canRedeem: Bool = false,
         points: Gemstone.GemFormattedNumber = .mock(),
         value: Gemstone.GemFormattedNumber = .mock(),
+        confirmation: Gemstone.GemLocalizedText = .mock(),
     ) -> Gemstone.GemRewardsRedemption {
         Gemstone.GemRewardsRedemption(
             id: id,
@@ -1026,6 +1027,7 @@ public extension Gemstone.GemRewardsRedemption {
             canRedeem: canRedeem,
             points: points,
             value: value,
+            confirmation: confirmation,
         )
     }
 }

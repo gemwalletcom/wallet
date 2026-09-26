@@ -120,12 +120,17 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
             let asset = option.asset.as_ref()?;
             let value = BigNumberFormatter::f64_value(&option.value, asset.decimals as u32);
             let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
+            let points = points_number(option.points);
             Some(GemRewardsRedemption {
                 id: option.id.clone(),
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
                 title: GemLocalizedText::RewardsRedeemAsset { value: value.clone() },
-                points: points_number(option.points),
+                confirmation: GemLocalizedText::RewardsConfirmRedeem {
+                    value: value.clone(),
+                    points: points.clone(),
+                },
+                points,
                 value,
                 can_redeem: can_redeem(rewards, option),
             })
@@ -309,6 +314,14 @@ mod tests {
         assert!(
             redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
             "the row title names the value it pays out"
+        );
+        assert!(
+            redemptions.iter().all(|redemption| redemption.confirmation
+                == GemLocalizedText::RewardsConfirmRedeem {
+                    value: redemption.value.clone(),
+                    points: redemption.points.clone(),
+                }),
+            "the confirmation names what it pays out and what it costs"
         );
     }
 

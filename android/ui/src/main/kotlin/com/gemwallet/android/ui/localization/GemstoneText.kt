@@ -323,6 +323,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.RewardsRedeemAsset -> context.getString(R.string.rewards_ways_spend_asset_title, value.text())
 
+    is GemLocalizedText.RewardsConfirmRedeem -> context.getString(R.string.rewards_confirm_redeem, value.text(), points.text())
+
     is GemLocalizedText.PriceAlertAddedPriceOver -> context.getString(R.string.price_alerts_added_price_over, value.text())
 
     is GemLocalizedText.PriceAlertAddedPriceUnder -> context.getString(R.string.price_alerts_added_price_under, value.text())

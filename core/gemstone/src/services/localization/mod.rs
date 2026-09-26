@@ -61,6 +61,7 @@ pub enum GemLocalizedText {
     ReviewRequest,
     EnableDeveloper,
     RewardsRedeemAsset { value: GemFormattedNumber },
+    RewardsConfirmRedeem { value: GemFormattedNumber, points: GemFormattedNumber },
     PriceAlertAddedPriceOver { value: GemFormattedNumber },
     PriceAlertAddedPriceUnder { value: GemFormattedNumber },
     PriceAlertAddedIncreasesBy { value: GemFormattedNumber },

@@ -11,7 +11,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
 import com.gemwallet.android.features.rewards.viewmodels.models.uiModel
@@ -92,7 +91,7 @@ class RewardsViewModel @Inject constructor(
     val sections: StateFlow<List<RewardsSectionUIModel>> = rewardsState.map { it.sectionModels(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val redemptions: StateFlow<List<RewardRedemptionOptionUIModel>> = rewardsState.map { state -> state.redemptions.map { it.uiModel(context) } }
+    val redemptions: StateFlow<List<GemRewardsRedemption>> = rewardsState.map { state -> state.redemptions }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val referralLink = rewardsState.mapLatest { it.referralLink }

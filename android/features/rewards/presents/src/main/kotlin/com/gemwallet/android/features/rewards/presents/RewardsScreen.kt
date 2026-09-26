@@ -73,12 +73,12 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         onRefresh = viewModel::sync,
         onWallet = { isShowSelectWallets = true },
         onRedeem = {
-            if (!it.redemption.canRedeem) {
+            if (!it.canRedeem) {
                 showMessageDialog = insufficientPointsMessage
                 return@RewardsScene
             }
             scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
-            viewModel.redeem(it.redemption) { err ->
+            viewModel.redeem(it) { err ->
                 if (err == null) {
                     scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
                 } else {

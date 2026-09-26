@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemRewardsRedemption
 import enum Gemstone.GemServiceError
 import Localization
 import Primitives
@@ -184,9 +185,9 @@ public struct RewardsScene: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func redemptionOptionsSection(options: [RewardRedemptionOptionViewModel]) -> some View {
+    private func redemptionOptionsSection(options: [GemRewardsRedemption]) -> some View {
         Section {
-            ForEach(options) { option in
+            ForEach(options, id: \.id) { option in
                 NavigationCustomLink(
                     with: ListItemView(model: option.listItem),
                 ) {

@@ -111,8 +111,8 @@ public final class RewardsSceneViewModel: Sendable {
         rewardsState.referralLink
     }
 
-    var redemptionOptions: [RewardRedemptionOptionViewModel] {
-        rewardsState.redemptions.map { RewardRedemptionOptionViewModel(redemption: $0) }
+    var redemptionOptions: [GemRewardsRedemption] {
+        rewardsState.redemptions
     }
 
     var rewardsState: GemRewardsState {
@@ -209,18 +209,17 @@ public final class RewardsSceneViewModel: Sendable {
         }
     }
 
-    func onSelectRedemption(_ option: RewardRedemptionOptionViewModel) {
-        if option.canRedeem {
-            showRedemptionAlert(for: option.redemption)
+    func onSelectRedemption(_ redemption: GemRewardsRedemption) {
+        if redemption.canRedeem {
+            showRedemptionAlert(for: redemption)
         } else {
             showError(Localized.Rewards.insufficientPoints)
         }
     }
 
     func showRedemptionAlert(for redemption: GemRewardsRedemption) {
-        let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
         isPresentingAlert = AlertMessage(
-            title: viewModel.confirmationMessage,
+            title: redemption.confirmation.text,
             message: "",
             actions: [
                 AlertAction(title: Localized.Transfer.confirm, isDefaultAction: true) { [weak self] in

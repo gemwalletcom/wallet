@@ -210,6 +210,8 @@ public extension GemLocalizedText {
             Localized.Asset.Verification.unverified
         case let .rewardsRedeemAsset(value):
             Localized.Rewards.WaysSpend.Asset.title(value.text())
+        case let .rewardsConfirmRedeem(value, points):
+            Localized.Rewards.confirmRedeem(value.text(), points.text())
         case let .priceAlertAddedPriceOver(value):
             Localized.PriceAlerts.addedPriceOver(value.text())
         case let .priceAlertAddedPriceUnder(value):

@@ -12,18 +12,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemRewardsRedemption
 
-internal fun LazyListScope.rewardsInfo(sections: List<RewardsSectionUIModel>, redemptions: List<RewardRedemptionOptionUIModel>, onRedeem: (RewardRedemptionOptionUIModel) -> Unit) {
+internal fun LazyListScope.rewardsInfo(sections: List<RewardsSectionUIModel>, redemptions: List<GemRewardsRedemption>, onRedeem: (GemRewardsRedemption) -> Unit) {
     sections.forEach { section ->
         item {
             section.title?.let { SubheaderItem(it) }
@@ -42,12 +46,13 @@ internal fun LazyListScope.rewardsInfo(sections: List<RewardsSectionUIModel>, re
 }
 
 @Composable
-private fun RewardRedemptionOptionItem(item: RewardRedemptionOptionUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+private fun RewardRedemptionOptionItem(item: GemRewardsRedemption, listPosition: ListPosition, onClick: () -> Unit) {
+    val context = LocalContext.current
     var showConfirm by remember { mutableStateOf(false) }
     ListItem(
-        model = item.model,
+        model = ListItemModel(title = item.title.string(context), subtitle = item.points.text(), image = ListItemImage.Asset(item.icon)),
         listPosition = listPosition,
-        modifier = Modifier.clickable { if (item.redemption.canRedeem) showConfirm = true else onClick() },
+        modifier = Modifier.clickable { if (item.canRedeem) showConfirm = true else onClick() },
         accessory = { DataBadgeChevron() },
     )
 
@@ -58,7 +63,7 @@ private fun RewardRedemptionOptionItem(item: RewardRedemptionOptionUIModel, list
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Text(
-                text = item.confirmationMessage,
+                text = item.confirmation.string(context),
                 style = MaterialTheme.typography.bodyLarge,
             )
         },

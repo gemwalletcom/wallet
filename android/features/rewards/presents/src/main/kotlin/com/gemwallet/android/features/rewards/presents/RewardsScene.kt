@@ -37,7 +37,6 @@ import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
 import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -67,6 +66,7 @@ import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemRewardsAction
+import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemServiceException
 
 private val referralCodeMaxWidth = 250.dp
@@ -82,7 +82,7 @@ fun RewardsScene(
     notices: List<GemListRow>,
     inviteRewardPoints: String,
     sections: List<RewardsSectionUIModel>,
-    redemptions: List<RewardRedemptionOptionUIModel>,
+    redemptions: List<GemRewardsRedemption>,
     currentWallet: Wallet?,
     incomingCode: IncomingCodeUIModel = IncomingCodeUIModel(),
     onUsername: (String, (Throwable?) -> Unit) -> Unit,
@@ -90,7 +90,7 @@ fun RewardsScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (RewardRedemptionOptionUIModel) -> Unit,
+    onRedeem: (GemRewardsRedemption) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {

@@ -1817,6 +1817,7 @@ fun mockGemRewardsRedemption(
     canRedeem: Boolean = false,
     points: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
     value: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    confirmation: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
 ) = uniffi.gemstone.GemRewardsRedemption(
     id = id,
     assetId = assetId,
@@ -1825,6 +1826,7 @@ fun mockGemRewardsRedemption(
     canRedeem = canRedeem,
     points = points,
     value = value,
+    confirmation = confirmation,
 )
 
 fun mockGemRewardsResult(

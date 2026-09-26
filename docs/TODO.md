@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM257 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM258 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Assets, NFT, rewards, support
 
-- **VM257** **S** **Redemption rows compose the confirmation text.**
-  - **iOS:** `RewardRedemptionOptionViewModel` composes the confirmation with `Localized.Rewards.confirmRedeem(value, points)`.
-  - **Android:** `RewardRedemptionOptionUIModel` composes it with `R.string.rewards_confirm_redeem`.
-  - **Expected:** `GemRewardsRedemption` carries the confirmation text; both models go.
 - **VM258** **S** **The incoming referral code is twinned on Android.**
   - **iOS:** `RewardsSceneViewModel` switches on `GemIncomingCode` directly.
   - **Android:** `IncomingCodeUIModel` splits it into two nullable strings.
