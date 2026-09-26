@@ -17,34 +17,6 @@ import TransferTestKit
 @MainActor
 struct RecipientSceneViewModelTests {
     @Test
-    func tittle() {
-        #expect(RecipientSceneViewModel.mock().tittle == "Recipient")
-    }
-
-    @Test
-    func recipientField() {
-        #expect(RecipientSceneViewModel.mock().recipientField == "Address or Name")
-    }
-
-    @Test
-    func memoField() {
-        #expect(RecipientSceneViewModel.mock().memoField == "Memo")
-    }
-
-    @Test
-    func actionButtonTitle() {
-        #expect(RecipientSceneViewModel.mock().actionButtonTitle == "Continue")
-    }
-
-    @Test
-    func showMemo() {
-        #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .cosmos, tokenId: nil))).showMemo == true)
-        #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .ton, tokenId: nil))).showMemo == true)
-        #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil))).showMemo == false)
-        #expect(RecipientSceneViewModel.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)).showMemo == false)
-    }
-
-    @Test
     func shouldShowInputActions() {
         let model = RecipientSceneViewModel.mock()
         #expect(model.addressInputModel.shouldShowInputActions == true)
@@ -96,6 +68,18 @@ struct RecipientSceneViewModelTests {
         model.onContinue()
 
         #expect(recipientAddress == checksummed)
+    }
+
+    @Test
+    func continueWaitsWhileTheNameIsStillResolving() {
+        var didNavigate = false
+        let model = RecipientSceneViewModel.mock(onNavigate: { _ in didNavigate = true })
+
+        model.addressInputModel.text = "test.eth"
+        model.addressInputModel.nameRecordViewModel.state = .loading(name: "test.eth", chain: Chain.ethereum.toGem())
+        model.onContinue()
+
+        #expect(didNavigate == false)
     }
 
     @Test

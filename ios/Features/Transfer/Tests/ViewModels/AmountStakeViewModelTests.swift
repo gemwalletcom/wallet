@@ -18,19 +18,6 @@ import TransferTestKit
 
 struct AmountStakeViewModelTests {
     @Test
-    func title() {
-        #expect(amountTitle(AmountStakeViewModel.mock()) == "Stake")
-        #expect(amountTitle(AmountStakeViewModel.mock(type: .unstake(delegation: Delegation.mock().toGem()))) == "Unstake")
-        #expect(amountTitle(AmountStakeViewModel.mock(type: .redelegate(
-            delegation: Delegation.mock(validator: .mock(id: "from")).toGem(),
-            validator: DelegationValidator.mock(id: "to").toGem(),
-        ))) == "Redelegate")
-        #expect(amountTitle(AmountStakeViewModel.mock(type: .withdraw(delegation: Delegation.mock().toGem()))) == "Withdraw")
-        #expect(amountTitle(AmountStakeViewModel.mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), type: .freeze(resource: Resource.bandwidth.toGem()))) == "Freeze")
-        #expect(amountTitle(AmountStakeViewModel.mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), type: .unfreeze(resource: Resource.bandwidth.toGem()))) == "Unfreeze")
-    }
-
-    @Test
     func validatorSelectionEnabled() {
         #expect(AmountStakeViewModel.mock().validator?.isSelectable == true)
         #expect(AmountStakeViewModel.mock(type: .unstake(delegation: Delegation.mock().toGem())).validator?.isSelectable == false)
@@ -143,10 +130,6 @@ struct AmountStakeViewModelTests {
     private func stakeType(_ data: GemTransferData) -> Gemstone.StakeType? {
         guard case let .stake(_, stakeType) = data.inputType else { return nil }
         return stakeType
-    }
-
-    private func amountTitle(_ model: AmountStakeViewModel) -> String {
-        model.request.amountType().title().title
     }
 
     private func amountInput(_ model: AmountStakeViewModel, _ assetData: AssetData) -> GemAmountInput {

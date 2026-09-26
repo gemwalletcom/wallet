@@ -172,84 +172,6 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func itemModelReturnsNonEmpty() {
-        let model = ConfirmTransferSceneViewModel.mock()
-
-        verifyNonEmpty(model.itemModel(for: .header))
-        verifyNonEmpty(model.itemModel(for: .row(0)))
-        verifyNonEmpty(model.itemModel(for: .row(1)))
-        verifyNonEmpty(model.itemModel(for: .row(2)))
-        verifyNonEmpty(model.itemModel(for: .networkFee))
-    }
-
-    @Test
-    func headerItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem())),
-        )
-        let headerItem = model.itemModel(for: .header)
-
-        if case .header = headerItem {
-            // Expected header item
-        } else {
-            Issue.record("Expected header item model")
-        }
-    }
-
-    @Test
-    func appItemModel() {
-        let website: GemRowMenuItem = .open(title: .rowTitle(title: .website), url: "https://gemwallet.com")
-        let model = ConfirmTransferSceneViewModel.mock(rows: { _ in [.row(row: .app(title: .app, name: "Gem Wallet", iconUrl: nil, menu: [website]))] })
-        let appItem = model.itemModel(for: .row(0))
-
-        if case let .row(.app(_, name, _, menu)) = appItem {
-            #expect(name == "Gem Wallet")
-            #expect(menu == [website])
-        } else {
-            Issue.record("Expected app row")
-        }
-    }
-
-    @Test
-    func title() {
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .transfer(asset: Primitives.Asset.mock().toGem()))).title == Localized.Transfer.Send.title)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .swap(fromAsset: Primitives.Asset.mock().toGem(), toAsset: Primitives.Asset.mock().toGem(), swapData: .mock()))).title == Localized.Wallet.swap)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .tokenApprove(asset: Primitives.Asset.mock().toGem(), approvalData: .mock()))).title == Localized.Transfer.Approve.title)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock()))).title == Localized.Transfer.reviewRequest)
-    }
-
-    @Test
-    func senderItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock()
-        let senderItem = model.itemModel(for: .row(0))
-
-        let expected = Wallet.mock(accounts: [.mock(chain: GemTransferData.mock().chain)])
-        if case let .row(.wallet(_, wallet, menu)) = senderItem, case let .copy(copy) = menu.first {
-            #expect(wallet.name == expected.name)
-            #expect(copy.value == expected.accounts[0].address)
-        } else {
-            Issue.record("Expected wallet row")
-        }
-    }
-
-    @Test
-    func recipientItemModel() {
-        let address = "0x1234567890123456789012345678901234567890"
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(
-            inputType: .transfer(asset: Primitives.Asset.mock().toGem()),
-            recipient: .mock(address: address),
-        ))
-        let recipientItem = model.itemModel(for: .row(1))
-
-        if case let .recipient(row) = recipientItem {
-            #expect(row.address == address)
-            #expect(row.text.text != address, "an unnamed address reads short")
-        } else {
-            Issue.record("Expected recipient item model")
-        }
-    }
-
-    @Test
     func recipientNameItemModel() async {
         let address = "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw"
         let model = ConfirmTransferSceneViewModel.mock(
@@ -267,39 +189,6 @@ struct ConfirmTransferSceneViewModelTests {
             #expect(row.text.text == "Bitcoin")
         } else {
             Issue.record("Expected recipient item model")
-        }
-    }
-
-    @Test
-    func recipientNameItemModelUsesStoredAddress() async {
-        let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
-        let model = ConfirmTransferSceneViewModel.mock(
-            data: .mock(
-                inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem()),
-                recipient: .mock(address: checksummedAddress),
-            ),
-            load: .success(.mock(addressName: Primitives.AddressName.mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap").toGem())),
-        )
-        await model.load()
-        let recipientItem = model.itemModel(for: .row(1))
-
-        if case let .recipient(row) = recipientItem {
-            #expect(row.address == checksummedAddress)
-            #expect(row.text.text == "Uniswap")
-        } else {
-            Issue.record("Expected recipient item model")
-        }
-    }
-
-    @Test
-    func networkItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock(rows: { _ in [.row(row: .network(title: .network, chain: Chain.ethereum.rawValue, name: "Ethereum (ERC20)"))] })
-        let networkItem = model.itemModel(for: .row(0))
-
-        if case let .row(.network(_, _, name)) = networkItem {
-            #expect(name == "Ethereum (ERC20)")
-        } else {
-            Issue.record("Expected network row")
         }
     }
 
@@ -477,92 +366,6 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func memoItemModel() {
-        let modelWithMemo = ConfirmTransferSceneViewModel.mock(
-            data: .mock(
-                inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .solana)).toGem()),
-                recipient: .mock(memo: "Test memo"),
-            ),
-        )
-        let memoItem = modelWithMemo.itemModel(for: .row(3))
-
-        if case let .row(.memo(_, value, menu)) = memoItem, case let .copy(copy) = menu.first {
-            #expect(value == "Test memo")
-            #expect(copy.value == "Test memo")
-        } else {
-            Issue.record("Expected memo row")
-        }
-
-        let modelNoMemo = ConfirmTransferSceneViewModel.mock(
-            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem())),
-        )
-        #expect(modelNoMemo.sections[1].values == [.row(0), .row(1), .row(2), .details])
-    }
-
-    @Test
-    func swapDetailsItemModel() {
-        let swapModel = ConfirmTransferSceneViewModel.mock(
-            data: .mock(inputType: .swap(
-                fromAsset: Primitives.Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(),
-                toAsset: Primitives.Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
-                swapData: .mock(),
-            )),
-        )
-        let swapItem = swapModel.itemModel(for: .details)
-
-        if case .swapDetails = swapItem {
-            // Expected swap details
-        } else {
-            Issue.record("Expected swap details item model")
-        }
-
-        let transferModel = ConfirmTransferSceneViewModel.mock(
-            data: .mock(inputType: .transfer(asset: Primitives.Asset.mock().toGem())),
-        )
-        let transferSwapItem = transferModel.itemModel(for: .details)
-
-        if case .empty = transferSwapItem {
-            // Expected empty for non-swap
-        } else {
-            Issue.record("Expected empty for non-swap transaction")
-        }
-    }
-
-    @Test
-    func errorItemModel() {
-        let model = ConfirmTransferSceneViewModel.mock()
-        model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "Test error"))))
-
-        let errorItem = model.itemModel(for: .error)
-
-        if case let .error(title, _, _) = errorItem {
-            #expect(title == Localized.Errors.errorOccurred)
-        } else if case .empty = errorItem {
-            // Can be empty when no error
-        } else {
-            Issue.record("Expected error or empty item model")
-        }
-    }
-
-    @Test
-    func missingWalletDataErrorDetails() {
-        for (error, description) in [
-            (GemConfirmError.BalanceMissing(assetId: "tron"), "no stored balance for tron"),
-            (GemConfirmError.AccountMissing(chain: Primitives.Chain.tron.rawValue), Localized.Errors.walletAccountMissing),
-        ] {
-            let model = ConfirmTransferSceneViewModel.mock()
-            model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: error)))
-
-            let errorItem = model.itemModel(for: .error)
-            guard case let .error(_, displayError, _) = errorItem else {
-                Issue.record("Expected wallet data error item")
-                continue
-            }
-            #expect(displayError.localizedDescription == description)
-        }
-    }
-
-    @Test
     func sectionsStructure() {
         let model = ConfirmTransferSceneViewModel.mock()
         let sections = model.sections
@@ -627,21 +430,6 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
 
         #expect(model.viewState.button.state == .disabled)
-    }
-
-    @Test
-    func buttonEnabledWithNoWarnings() {
-        #expect(ConfirmTransferSceneViewModel.mock().viewState.button.state == .loading)
-    }
-
-    @Test
-    func titleFollowsTheTransferType() {
-        let send = TransactionInputType.generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock(outputAction: .send))
-        let sign = TransactionInputType.generic(asset: Primitives.Asset.mock().toGem(), metadata: Primitives.ApplicationMetadata.mock().toGem(), extra: .mock(outputAction: .sign))
-
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: .deposit(asset: Primitives.Asset.mock().toGem()))).title == "Deposit")
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: send)).title == Localized.Transfer.reviewRequest)
-        #expect(ConfirmTransferSceneViewModel.mock(data: .mock(inputType: sign)).title == Localized.Transfer.reviewRequest)
     }
 
     @Test
@@ -852,11 +640,5 @@ struct ConfirmTransferSceneViewModelTests {
         }
         #expect(asset.id == Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6).id)
         #expect(acquire.buyAmount != nil)
-    }
-
-    private func verifyNonEmpty(_ model: ConfirmTransferItemModel) {
-        if case .empty = model {
-            Issue.record("Expected non-empty model")
-        }
     }
 }

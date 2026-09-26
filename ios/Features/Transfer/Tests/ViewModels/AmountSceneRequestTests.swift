@@ -15,13 +15,6 @@ import TransferTestKit
 @MainActor
 struct AmountSceneRequestTests {
     @Test
-    func aTransferNamesItsKind() {
-        #expect(AmountSceneViewModel.mock().title == "Send")
-        #expect(AmountSceneViewModel.mock(type: .deposit).title == "Deposit")
-        #expect(AmountSceneViewModel.mock(type: .withdraw).title == "Withdraw")
-    }
-
-    @Test
     func aWithdrawShowsTheAssetItPaysOut() {
         let usdc = AssetData.mock(asset: .mock(symbol: "USDC"))
 

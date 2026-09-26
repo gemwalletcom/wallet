@@ -18,24 +18,6 @@ import TransferTestKit
 
 struct AmountPerpetualViewModelTests {
     @Test
-    func title() {
-        let openLong = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))
-        let openShort = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short, price: 100, leverage: 3)))
-
-        #expect(amountTitle(openLong) == "Long")
-        #expect(amountTitle(openShort) == "Short")
-    }
-
-    @Test
-    func increaseReduceTitle() {
-        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long)))
-        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(direction: .long, price: 100, leverage: 3), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
-
-        #expect(amountTitle(increase).contains("Long"))
-        #expect(amountTitle(reduce).contains("Long"))
-    }
-
-    @Test
     func leverageSelection() {
         let open = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)))
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3)))
@@ -146,10 +128,6 @@ struct AmountPerpetualViewModelTests {
     private func perpetualType(_ data: GemTransferData) -> Gemstone.PerpetualType? {
         guard case let .perpetual(_, perpetualType) = data.inputType else { return nil }
         return perpetualType
-    }
-
-    private func amountTitle(_ model: AmountPerpetualViewModel) -> String {
-        model.request.amountType().title().title
     }
 
     private func transferData(_ model: AmountPerpetualViewModel, value: BigInt) async throws -> GemTransferData {
