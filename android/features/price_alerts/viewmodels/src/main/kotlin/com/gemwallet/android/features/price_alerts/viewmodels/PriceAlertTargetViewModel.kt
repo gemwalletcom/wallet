@@ -44,9 +44,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetItemRow
-import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertViewState
+import uniffi.gemstone.GemPriceSuggestion
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
@@ -75,7 +75,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetRow: StateFlow<GemAssetItemRow?> = assetInfo.map { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle)?.row }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val session = MutableStateFlow(service.newAlertSession(assetId.toIdentifier()))
+    private val session = MutableStateFlow(service.newAlertSession(assetId.toIdentifier(), numberFormat()))
 
     val direction: StateFlow<PriceAlertDirection> = session.map { it.selectedDirection.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.selectedDirection.toPrimitives())
@@ -111,7 +111,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     val percentageSuggestions: StateFlow<List<Pair<String, String>>> = viewState.map { state -> state.percentageSuggestions.map { it.suggestion() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private fun GemFormattedNumber.suggestion(): Pair<String, String> = text() to numberFormat().valueText(value)
+    private fun GemPriceSuggestion.suggestion(): Pair<String, String> = label.text() to inputText
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()

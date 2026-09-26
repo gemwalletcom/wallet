@@ -30,7 +30,7 @@ struct SetPriceAlertViewModelTests {
     func pickingASuggestionFillsTheAmount() {
         let viewModel = SetPriceAlertViewModel.mock()
 
-        viewModel.onSelectSuggestion(PriceSuggestion(title: "$67,000", value: 67000))
+        viewModel.onSelectSuggestion(PriceSuggestion(title: "$67,000", inputValue: "67000"))
 
         #expect(viewModel.amount == "67000")
     }

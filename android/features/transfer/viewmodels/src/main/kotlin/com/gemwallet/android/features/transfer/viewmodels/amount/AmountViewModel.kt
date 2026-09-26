@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,7 +24,6 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.models.Validato
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountStakeProvider
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
@@ -67,11 +65,12 @@ import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountSession
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemStakeServiceInterface
-import java.math.BigInteger
+import uniffi.gemstone.newAmountSession
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -132,10 +131,13 @@ class AmountViewModel @Inject constructor(
         .map { type -> (type as? GemAmountType.Earn)?.let { AmountExtrasUIModel.EarnProvider(it.provider) } ?: AmountExtrasUIModel.None }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
+    private val session = MutableStateFlow(newAmountSession(numberFormat()))
+
     var amount by mutableStateOf("")
         private set
 
-    val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
+    val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
     private val amountError = MutableStateFlow<Throwable?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
@@ -144,17 +146,11 @@ class AmountViewModel @Inject constructor(
         inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET.amountSymbol("", currency))
 
-    private val entry: StateFlow<GemAmountEntry?> = combine(
-        snapshotFlow { amount },
-        amountInputType,
-        assetInfo,
-        amountType,
-        input,
-    ) { text, inputType, current, amountType, input ->
+    private val entry: StateFlow<GemAmountEntry?> = combine(session, assetInfo, amountType, input) { session, current, amountType, input ->
         if (current == null || amountType == null || input == null) {
             null
         } else {
-            amountType.entry(current.asset.toGem(), input, current.price?.price?.price, inputType, text.plainInputNumber(), currency.toGem())
+            session.entry(amountType, current.asset.toGem(), input, current.price?.price?.price, currency.toGem())
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -236,30 +232,28 @@ class AmountViewModel @Inject constructor(
     }
 
     private fun prefillAmount(input: GemAmountInput) {
-        val prefill = input.prefill ?: return
         val current = assetInfo.value ?: return
-        val text = maxAmountText(current.asset, prefill.value) ?: return
-        amountInputType.value = prefill.inputType
-        updateAmount(text)
+        showSession(session.value.onPrefill(input, current.asset.toGem()))
     }
 
     fun updateAmount(input: String) {
         amount = input
+        session.update { it.onText(input) }
     }
 
     fun onMaxAmount() {
         val current = assetInfo.value ?: return
-        val max = input.value?.maxEntry() ?: return
-        val text = maxAmountText(current.asset, max.value) ?: return
-        amountInputType.value = max.inputType
-        updateAmount(text)
+        val input = input.value ?: return
+        showSession(session.value.onMax(input, current.asset.toGem()))
     }
 
-    private fun maxAmountText(asset: Asset, value: BigInteger): String? = numberFormat().inputText(value.toString(), asset.decimals.toUInt())
-
     fun switchInputType() {
-        amountInputType.update { it.toggled() }
-        amount = ""
+        showSession(session.value.onToggle())
+    }
+
+    private fun showSession(next: GemAmountSession) {
+        session.value = next
+        amount = next.text
     }
 
     fun onNext(onConfirm: (ConfirmTransferInput) -> Unit) {

@@ -8,7 +8,7 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::autoclose::GemAutocloseDraft;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
-use primitives::{Asset, Delegation, PerpetualDirection, Resource};
+use primitives::{Asset, Currency, Delegation, PerpetualDirection, Resource};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -264,16 +264,82 @@ impl GemNumberFormat {
         super::rules::input_text(&self.decimal_separator, &value, decimals)
     }
 
-    pub fn value_text(&self, value: f64) -> String {
-        super::rules::value_text(&self.decimal_separator, value)
-    }
-
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
     }
 
     pub fn value(&self, input: String, decimals: u32) -> Result<GemBigInt, GemAmountError> {
         super::rules::value_from_input(&self.decimal_separator, &input, decimals)
+    }
+}
+
+impl GemNumberFormat {
+    pub fn value_text(&self, value: f64) -> String {
+        super::rules::value_text(&self.decimal_separator, value)
+    }
+}
+
+/// The amount field: its text and whether it is typed in the asset or in fiat.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountSession {
+    pub text: String,
+    pub input_type: GemAmountInputType,
+    pub format: GemNumberFormat,
+}
+
+#[uniffi::export]
+pub fn new_amount_session(format: GemNumberFormat) -> GemAmountSession {
+    GemAmountSession {
+        text: String::new(),
+        input_type: GemAmountInputType::Asset,
+        format,
+    }
+}
+
+#[uniffi::export]
+impl GemAmountSession {
+    pub fn on_text(&self, text: String) -> Self {
+        Self { text, ..self.clone() }
+    }
+
+    pub fn on_toggle(&self) -> Self {
+        Self {
+            input_type: self.input_type.toggled(),
+            text: String::new(),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_clear(&self) -> Self {
+        self.on_text(String::new())
+    }
+
+    pub fn on_max(&self, input: GemAmountInput, asset: Asset) -> Self {
+        self.filled(input.max_entry(), &asset)
+    }
+
+    pub fn on_prefill(&self, input: GemAmountInput, asset: Asset) -> Self {
+        match input.prefill {
+            Some(prefill) => self.filled(prefill, &asset),
+            None => self.clone(),
+        }
+    }
+
+    pub fn entry(&self, amount_type: GemAmountType, asset: Asset, input: GemAmountInput, price: Option<f64>, currency: Currency) -> GemAmountEntry {
+        amount_type.entry(&asset, &input, price, self.input_type, self.format.plain(self.text.clone()), currency)
+    }
+}
+
+impl GemAmountSession {
+    fn filled(&self, entry: GemAmountMaxEntry, asset: &Asset) -> Self {
+        match self.format.input_text(entry.value.to_string(), asset.decimals as u32) {
+            Some(text) => Self {
+                text,
+                input_type: entry.input_type,
+                ..self.clone()
+            },
+            None => self.clone(),
+        }
     }
 }
 
@@ -288,6 +354,25 @@ mod tests {
     use super::*;
     use crate::formatted_number::GemNumberUnit;
     use primitives::Chain;
+
+    #[test]
+    fn test_the_amount_field_fills_max_and_prefill_in_the_callers_separator_and_a_toggle_clears_it() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let input = GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ",".to_string() });
+
+        let max = session.on_text("0,1".to_string()).on_max(input.clone(), asset.clone());
+        assert_eq!(max.text, "1,5");
+        assert_eq!(max.input_type, GemAmountInputType::Asset);
+        assert_eq!(
+            max.entry(GemAmountType::Transfer, asset.clone(), input.clone(), None, primitives::Currency::USD).value,
+            Some(GemBigInt::from(1_500_000_000_000_000_000u64))
+        );
+
+        let toggled = max.on_toggle();
+        assert_eq!((toggled.text.as_str(), toggled.input_type), ("", GemAmountInputType::Fiat), "switching sides starts over");
+        assert_eq!(session.on_prefill(input, asset).text, "", "a transfer the user types has nothing to prefill");
+    }
 
     #[test]
     fn test_the_input_type_toggles_between_the_asset_and_the_fiat_side() {

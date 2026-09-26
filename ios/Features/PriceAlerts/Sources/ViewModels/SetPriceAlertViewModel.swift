@@ -44,7 +44,7 @@ public final class SetPriceAlertViewModel {
         currency = service.getCurrency().toPrimitives()
         currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
-        session = service.newAlertSession(assetId: asset.id.identifier)
+        session = service.newAlertSession(assetId: asset.id.identifier, format: NumberInput.format())
         assetQuery = ObservableQuery(AssetQuery(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
@@ -70,7 +70,7 @@ public final class SetPriceAlertViewModel {
         case .price: viewState.priceSuggestions
         case .percentage: viewState.percentageSuggestions
         }
-        return values.map { PriceSuggestion(title: $0.text(), value: $0.value) }
+        return values.map { PriceSuggestion(title: $0.label.text(), inputValue: $0.inputText) }
     }
 
     func directionTitle(_ viewState: GemPriceAlertViewState) -> String {

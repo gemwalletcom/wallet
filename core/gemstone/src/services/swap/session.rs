@@ -265,6 +265,11 @@ pub(super) fn provider_row(provider: SwapperProvider, title: String, to_value: &
 
 #[uniffi::export]
 impl GemSwapSession {
+    pub fn minimum_amount_text(&self, pay_asset: Asset, format: GemNumberFormat) -> Option<String> {
+        let minimum = rules::minimum_amount(self.quote_error().as_ref())?;
+        format.input_text(minimum.to_string(), pay_asset.decimals as u32)
+    }
+
     pub fn on_input_changed(&self, amount: String, pay_asset: Option<Asset>, receive_asset: Option<Asset>, available_value: GemBigInt, slippage_bps: Option<u32>, format: GemNumberFormat) -> GemSwapSession {
         let input = match (&pay_asset, &receive_asset) {
             (Some(pay), Some(receive)) => rules::quote_input(pay, receive, &amount, &available_value, slippage_bps, &format),
@@ -553,6 +558,32 @@ mod tests {
 
     fn view(session: &GemSwapSession, available: u64) -> GemSwapViewState {
         session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, available)), Some(GemSwapAssetData::mock(Chain::Solana, 0)), Currency::USD)
+    }
+
+    #[test]
+    fn test_the_minimum_amount_is_typed_in_the_pay_assets_decimals_and_the_callers_separator() {
+        let request = GemSwapRequest {
+            pay_asset_id: AssetId::from_chain(Chain::Ethereum),
+            receive_asset_id: AssetId::from_chain(Chain::Solana),
+            value: GemBigUint::from(1u32),
+            slippage_bps: None,
+        };
+        let failed = |min_amount: Option<&str>| GemSwapSession {
+            quote_phase: GemSwapQuotePhase::Failed {
+                request: request.clone(),
+                error: SwapperError::InputAmountError { min_amount: min_amount.map(str::to_string) },
+            },
+            ..GemSwapSession::default()
+        };
+        let asset = Asset {
+            decimals: 6,
+            ..Asset::from_chain(Chain::Ethereum)
+        };
+        let format = GemNumberFormat { decimal_separator: ",".to_string() };
+
+        assert_eq!(failed(Some("1500000")).minimum_amount_text(asset.clone(), format.clone()), Some("1,5".to_string()));
+        assert_eq!(failed(None).minimum_amount_text(asset.clone(), format.clone()), None);
+        assert_eq!(GemSwapSession::default().minimum_amount_text(asset, format), None);
     }
 
     #[test]

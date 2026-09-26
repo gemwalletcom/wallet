@@ -173,10 +173,12 @@ class AmountViewModelTest {
         viewModel.setAmount("1")
 
         viewModel.switchInputType()
+        runCurrent()
         assertEquals(GemAmountInputType.FIAT, viewModel.amountInputType.value)
         assertEquals("", viewModel.amount)
 
         viewModel.switchInputType()
+        runCurrent()
         assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
     }
 

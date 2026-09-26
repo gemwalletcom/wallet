@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import Gemstone
 import enum Gemstone.GemNameInputStep
+import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
@@ -19,7 +20,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         self.setEnabledError = setEnabledError
     }
 
-    public func newAlertSession(assetId: Gemstone.AssetId) -> GemPriceAlertSession {
+    public func newAlertSession(assetId: Gemstone.AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
         GemPriceAlertSession(
             assetId: assetId,
             currency: getCurrency(),
@@ -29,6 +30,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
             currentPrice: nil,
             priceChange: nil,
             isSaving: false,
+            format: format,
         )
     }
 

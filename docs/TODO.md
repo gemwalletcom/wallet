@@ -19,15 +19,14 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Screens:** VM192 with VM193.
-2. **Models:** VM195.
-3. **Sessions:** VM185.
-4. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
-5. **Generated mappers:** BD299, then GEN300.
-6. **Unused code:** CLN318.
-7. **Names:** NAM358 to NAM372 in any order, one feature per change.
-8. **Parity:** BD342, BD343, BD345 to BD351.
-9. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
+1. **Models:** VM195.
+2. **Sessions:** VM185.
+3. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+4. **Generated mappers:** BD299, then GEN300.
+5. **Unused code:** CLN318.
+6. **Names:** NAM358 to NAM372 in any order, one feature per change.
+7. **Parity:** BD342, BD343, BD345 to BD351.
+8. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -47,16 +46,16 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM232 |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185, VM284 |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM192, VM222, VM223, VM272, VM287 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM222, VM223, VM272, VM287 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM201, VM214, VM215, VM216, VM217, VM218, VM219, VM220, VM221, VM267 |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM193, VM224, VM227, VM228, VM295 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM224, VM227, VM228, VM295 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM207, VM209, VM210, VM211, VM212, VM213, VM276, VM280, VM290 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM225, VM226 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM282, VM289 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM231, VM233, VM234, VM235 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM229, VM230, VM278, VM279; preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM255, VM256 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM193, VM248, VM249, VM271, VM277 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM208, VM246 |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM199, VM244, VM245, VM265, VM270 |
@@ -88,10 +87,6 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
 
 A screen whose state changes is a session, and a screen that reads gets one record ([a screen whose state changes is a session](ARCHITECTURE.md#a-screen-whose-state-changes-is-a-session), [one phase enum](ARCHITECTURE.md#a-screens-state-is-one-phase-enum-never-a-bag-of-flags), [sections, actions and destinations are records](ARCHITECTURE.md#sections-actions-and-destinations-are-records-too)). Each item below is a screen that still makes several Core calls per render or emission, or rebuilds a phase from flags Core hands back separately.
 
-- **VM192** **M** **The amount entry is driven by each app around Core's entry calls.** Core computes the entry (`GemAmountType.entry`, `GemAmountInput.max_entry`, `prefill`); the input handling around it is written twice.
-  - **iOS:** `AmountSceneViewModel` keeps the text and input type, clears the text when the input type is toggled, applies `prefill` and `maxEntry` by setting the input type and converting the value with `NumberInput.format().inputText`, and rebuilds the entry on every change. It also builds the `GemAmountRequest` from its route input (`switch input.type`).
-  - **Android:** `AmountViewModel` does the same (`switchInputType`, `prefillAmount`, `onMaxAmount`, `maxAmountText`) and builds the request from its route parameters (`when (params)`).
-  - **Expected:** an amount session owns the text and input type and answers toggle, prefill and max with the new text and entry; the apps only bind the field.
 
 
 ## 3. Decisions the apps still make
@@ -112,7 +107,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
-- **VM193** **S** **Values Core hands back are turned into input text by the apps.** Swap's "use minimum amount" (iOS `SwapSceneViewModel.setFromValue(minimum:)`, Android `SwapViewModel.setPayValue`) and the price-alert suggestions (iOS `PriceSuggestion.inputValue`, Android `PriceAlertTargetViewModel.suggestion`) each convert the value with `NumberInput`/`numberFormat().inputText` or `valueText`. The owning session returns the text (the swap session for its minimum, the alert session for its suggestions). Land with VM192, which does the same for amount prefill and max.
 
 
 ## 5. Twins, adapters, redundant models and dead code
@@ -243,11 +237,11 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM222** **S** **The amount field's symbol and placement are decided in the apps.**
   - **iOS:** `AmountInputConfig` puts the asset symbol trailing and the currency leading, and picks the keyboard from `usesWholeAmounts`.
   - **Android:** `AmountSymbolUIModel` and `AmountUIState` make the same choices.
-  - **Expected:** the amount view state carries symbol, placement and keyboard kind (land with VM192).
+  - **Expected:** the amount view state carries symbol, placement and keyboard kind (on `GemAmountSession`).
 - **VM223** **S** **Amount extras are chosen by the apps.**
   - **iOS:** `AmountStakeViewModel` and `AmountPerpetualViewModel` supply validator, resources, leverage and autoclose rows.
   - **Android:** `AmountExtrasUIModel`, `AmountStakeProvider` and `AmountPerpetualProvider` do the same, and `AmountViewModel` picks `EarnProvider` for an earn type.
-  - **Expected:** the amount session returns the extras record (land with VM192).
+  - **Expected:** the amount session returns the extras record (on `GemAmountSession`).
 
 ### Swap and fiat
 
@@ -456,7 +450,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM272** **S** **Amount screen texts are composed in the apps.**
   - **iOS:** `AmountSceneViewModel` composes "Balance: X" and "Reserved fees X".
   - **Android:** `PropertyAssetInfoItem` composes the balance and `AmountScene` the reserved fees.
-  - **Expected:** the amount view state carries both texts (land with VM192).
+  - **Expected:** the amount view state carries both texts (on `GemAmountSession`).
 - **VM274** **S** **Rewards invite and share texts are composed in the apps.**
   - **iOS:** `RewardsViewModel` composes the invite description with bold points and the share text with the link.
   - **Android:** `ReferralHead` bolds the points and `ReferralScene` composes the share text.
@@ -518,7 +512,7 @@ The target for every item below: a model that only renames or regroups a Core re
 - **VM287** **S** **Amount routes twin `GemAmountRequest`.**
   - **iOS:** `AmountType` and `AmountInput` are rebuilt into a request in `AmountSceneViewModel`.
   - **Android:** `AmountParams` (and `toAmountParams`) is rebuilt into a request in `AmountViewModel`.
-  - **Expected:** routes carry `GemAmountRequest` (land with VM192).
+  - **Expected:** routes carry `GemAmountRequest` (on `GemAmountSession`).
 - **VM288** **M** **iOS re-wraps Core service methods to take Primitives types.**
   - **iOS:** `GemstonePrimitives/Sources/Services/*.swift` (wallet, wallet session, WalletConnect, contacts, wallet home, perpetual details, swap quote, and others) and `GemConfirmMetadata+GemstonePrimitives` wrap Core calls with conversions.
   - **Android:** calls Core with `toGem()` at each call site.

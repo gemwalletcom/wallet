@@ -77,7 +77,6 @@ impl GemAmountType {
     }
 }
 
-#[uniffi::export]
 impl GemAmountInput {
     pub fn max_entry(&self) -> GemAmountMaxEntry {
         GemAmountMaxEntry {

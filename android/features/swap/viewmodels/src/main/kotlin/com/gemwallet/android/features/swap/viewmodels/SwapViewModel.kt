@@ -311,7 +311,7 @@ class SwapViewModel @Inject constructor(
 
             GemSwapButtonAction.RetryQuote -> refresh()
 
-            is GemSwapButtonAction.UseMinimumAmount -> setPayValue(action.value)
+            is GemSwapButtonAction.UseMinimumAmount -> setMinimumAmount()
 
             GemSwapButtonAction.InsufficientBalance -> Unit
         }
@@ -378,9 +378,9 @@ class SwapViewModel @Inject constructor(
         session.update { it.onQuoteResults(results) }
     }
 
-    private fun setPayValue(amount: BigInteger) {
+    private fun setMinimumAmount() {
         val asset = payAsset.value?.asset ?: return
-        val text = numberFormat().inputText(amount.toString(), asset.decimals.toUInt()) ?: return
+        val text = session.value.minimumAmountText(asset.toGem(), numberFormat()) ?: return
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(text)
     }

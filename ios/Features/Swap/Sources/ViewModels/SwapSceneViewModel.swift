@@ -355,8 +355,8 @@ extension SwapSceneViewModel {
         amountInputModel.text = text
     }
 
-    private func setFromValue(minimum value: BigInt) {
-        guard let fromAsset, let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(fromAsset.asset.decimals)) else { return }
+    private func setMinimumAmount() {
+        guard let fromAsset, let text = session.minimumAmountText(payAsset: fromAsset.asset.toGem(), format: NumberInput.format()) else { return }
         amountInputModel.text = text
         updateSessionInput()
         setLoadTrigger(isImmediate: true)
@@ -429,7 +429,7 @@ extension SwapSceneViewModel {
             setLoadTrigger(isImmediate: true)
         case .retryTransfer: swap()
         case .insufficientBalance: break
-        case let .useMinimumAmount(value): setFromValue(minimum: value)
+        case .useMinimumAmount: setMinimumAmount()
         case .swap:
             if let warningText = swapDetailsViewModel?.highImpactWarningDescription {
                 isPresentingPriceImpactConfirmation = warningText

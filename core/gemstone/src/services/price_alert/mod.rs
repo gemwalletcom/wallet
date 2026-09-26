@@ -11,6 +11,7 @@ use std::sync::Arc;
 use primitives::{AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::banner::GemNotificationPermissions;
 use crate::services::preferences::GemPreferencesService;
 use session::GemPriceAlertSession;
@@ -49,8 +50,8 @@ impl GemPriceAlertService {
         self.preferences.set_price_alerts_enabled(enabled)
     }
 
-    pub fn new_alert_session(&self, asset_id: AssetId) -> GemPriceAlertSession {
-        GemPriceAlertSession::new(asset_id, self.get_currency())
+    pub fn new_alert_session(&self, asset_id: AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
+        GemPriceAlertSession::new(asset_id, self.get_currency(), format)
     }
 
     pub fn get_currency(&self) -> Currency {
