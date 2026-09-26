@@ -129,8 +129,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
             item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
-                viewModel.dismissExistingWallet()
-                onImported()
+                viewModel.continueExistingWallet(onImported)
             },
             onClose = {
                 viewModel.dismissExistingWallet()

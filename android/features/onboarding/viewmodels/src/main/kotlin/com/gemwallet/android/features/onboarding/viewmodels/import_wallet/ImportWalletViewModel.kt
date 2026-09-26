@@ -151,6 +151,12 @@ class ImportWalletViewModel @Inject constructor(
     fun dismissExistingWallet() {
         state.update { it.copy(existingWalletName = null) }
     }
+
+    fun continueExistingWallet(onImported: () -> Unit) {
+        dismissExistingWallet()
+        enablePushForNewWallet.enablePushForNewWallet()
+        onImported()
+    }
 }
 
 data class ImportWalletUIState(

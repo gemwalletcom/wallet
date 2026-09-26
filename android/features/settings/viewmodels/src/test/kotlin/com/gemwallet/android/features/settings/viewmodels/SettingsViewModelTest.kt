@@ -16,6 +16,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -26,11 +27,14 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemErrorText
@@ -55,8 +59,9 @@ class SettingsViewModelTest {
         every { this@mockk() } returns wallets
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
+    private val pushEnabled = MutableStateFlow(true)
     private val getPushEnabled = object : GetPushEnabled {
-        override fun getPushEnabled() = MutableStateFlow(true)
+        override fun getPushEnabled() = pushEnabled
     }
 
     private lateinit var viewModel: SettingsViewModel
@@ -82,6 +87,24 @@ class SettingsViewModelTest {
 
         coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false) }
         assertNull(viewModel.error.value)
+    }
+
+    @Test
+    fun `the push switch moves at once, then follows Core's answer`() = runTest(testDispatcher) {
+        pushEnabled.value = false
+        advanceUntilIdle()
+        val answer = CompletableDeferred<GemPushState>()
+        coEvery { switchPushEnabled.switchPushEnabled(true) } coAnswers { answer.await() }
+
+        viewModel.enableNotifications()
+        runCurrent()
+
+        assertTrue(viewModel.pushEnabled.value)
+
+        answer.complete(GemPushState(isEnabled = false, result = GemPushResult.PermissionDenied))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.pushEnabled.value)
     }
 
     @Test

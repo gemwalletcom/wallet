@@ -7,7 +7,7 @@ Reach the wallets, protect the app, tune currency, language and appearance, choo
 - Security: "Enable Face ID" (or Touch ID, or "Enable Passcode"), then "Require authentication" after Immediately, 1 minute, 5, 15, 1 hour or 6 hours; on iOS also Privacy Lock. Hide Balance masks balances everywhere with no prompt.
 - Networks: a Status row with the API, the Stream and each Gem Wallet Node with its latency; per network, the node in use (Gem Wallet Node per region, or one the user added) and the block explorer.
 - Settings, Notifications holds one switch for push and a link to Price Alerts; the app asks the system for permission when the switch is turned on.
-- The app offers push right after a wallet is created or imported, and asks again no sooner than 30 days later unless the user turned push off.
+- The app offers push right after a wallet is created or imported, including a wallet that was already on the device, and asks again no sooner than 30 days later unless the user turned push off.
 - Pushes cover the wallet's transactions, its Price Alerts and support replies; tapping one opens the transaction, the asset or the chat, switching first to the wallet the push belongs to.
 
 ```mermaid

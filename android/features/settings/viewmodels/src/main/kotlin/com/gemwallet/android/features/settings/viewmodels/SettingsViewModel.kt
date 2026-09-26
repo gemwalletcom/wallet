@@ -15,12 +15,14 @@ import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -55,7 +57,9 @@ class SettingsViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val pushEnabled = getPushEnabled.getPushEnabled()
+    private val switchedPush = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+
+    val pushEnabled = merge(getPushEnabled.getPushEnabled(), switchedPush)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val notificationsSections: StateFlow<List<GemListSection>> = pushEnabled
@@ -76,8 +80,10 @@ class SettingsViewModel @Inject constructor(
     fun clearError() = errorState.update { null }
 
     private fun switchNotifications(enabled: Boolean) {
+        switchedPush.tryEmit(enabled)
         viewModelScope.launch(ioDispatcher) {
             val state = switchPushEnabled.switchPushEnabled(enabled)
+            switchedPush.emit(state.isEnabled)
             errorState.value = (state.result as? GemPushResult.NotRegistered)?.error?.text(context)
         }
     }

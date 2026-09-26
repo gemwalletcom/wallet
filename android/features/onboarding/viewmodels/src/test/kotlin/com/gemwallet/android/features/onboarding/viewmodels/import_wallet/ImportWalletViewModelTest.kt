@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.onboarding.viewmodels.import_wallet
 
 import android.content.Context
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.NameServiceMock
@@ -13,6 +14,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNameRecordState
@@ -48,16 +51,17 @@ class ImportWalletViewModelTest {
         )
     }
 
-    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service()) = ImportWalletViewModel(
-        service = service,
-        nameService = nameService,
-        enablePushForNewWallet = mockk(relaxed = true),
-        ioDispatcher = ioDispatcher,
-        context = mockk<Context> {
-            every { getString(any()) } returns "Wallet"
-            every { getString(any(), *anyVararg()) } returns "Wallet"
-        },
-    )
+    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service(), enablePushForNewWallet: EnablePushForNewWallet = mockk(relaxed = true)) =
+        ImportWalletViewModel(
+            service = service,
+            nameService = nameService,
+            enablePushForNewWallet = enablePushForNewWallet,
+            ioDispatcher = ioDispatcher,
+            context = mockk<Context> {
+                every { getString(any()) } returns "Wallet"
+                every { getString(any(), *anyVararg()) } returns "Wallet"
+            },
+        )
 
     @After
     fun tearDown() {
@@ -113,6 +117,32 @@ class ImportWalletViewModelTest {
         coVerify { service.importWallet(capture(request)) }
         assertEquals("Wallet", request.captured.defaultName)
         assertEquals("abandon ability", request.captured.input)
+    }
+
+    @Test
+    fun continuingWithAnExistingWalletOffersPush() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val service = service()
+        coEvery { service.importWallet(any()) } returns GemWalletImportResult.Existing(mockWallet(name = "Main").toGem())
+        val enablePush = mockk<EnablePushForNewWallet>(relaxed = true)
+        val onImported = mockk<() -> Unit>(relaxed = true)
+        val viewModel = viewModel(NameServiceMock(), dispatcher, service, enablePush)
+
+        viewModel.importSelect(ImportType(GemWalletImportKind.PHRASE, chain))
+        viewModel.onInput("abandon ability", 15)
+        viewModel.import(onImported)
+        advanceUntilIdle()
+
+        assertEquals("Main", viewModel.uiState.value.existingWalletName)
+        verify(exactly = 0) { enablePush.enablePushForNewWallet() }
+
+        viewModel.continueExistingWallet(onImported)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.existingWalletName)
+        verify(exactly = 1) { enablePush.enablePushForNewWallet() }
+        verify(exactly = 1) { onImported() }
     }
 
     @Test
