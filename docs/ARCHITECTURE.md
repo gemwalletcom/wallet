@@ -11,13 +11,14 @@ Read the contract and the named implementation, then the actual owner and caller
 | Pure feature rule | [§ 1](#1-rules-are-pure-and-have-a-test-that-flips), [§ 6](#6-where-derived-domain-answers-live) | [`price_alert/rules.rs`](../core/gemstone/src/services/price_alert/rules.rs), including its tests |
 | Service orchestration and store port | [§ 2](#2-the-service-orchestrates-it-owns-its-store-and-depends-on-services), [§ 4](#4-the-store-trait-is-the-apps-only-persistence-obligation) | [`price_alert/mod.rs`](../core/gemstone/src/services/price_alert/mod.rs), [`store.rs`](../core/gemstone/src/services/price_alert/store.rs) |
 | Screen state, list rows, or what a view may name | [§ 3](#3-return-one-record-that-answers-the-whole-question), [§ 5](#5-the-app-maps-it-does-not-decide) | [`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs), [`assets/model.rs`](../core/gemstone/src/services/assets/model.rs) |
-| App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
+| App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-observed-reads-are-queries), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | List rows and sections | [§ 5](#a-list-row-renders-from-one-shared-row-model) | [`ListItemModel.swift`](../ios/Packages/Components/Sources/Types/ListItemModel.swift), [`ListItemModel.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListItemModel.kt), [`ListSections.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListSections.kt) |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
 | REST or JSON-RPC client | [§ 12](#12-a-clients-requests-are-one-enum-the-client-only-sends) | [`AptosClient`](../core/crates/gem_aptos/src/rpc/client.rs) for direct sends, [`TronGridClient`](../core/crates/gem_tron/src/rpc/trongrid/client.rs) for shared credentials, [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for RPC |
 | Tests and fixtures | [§ 10](#10-tests) and the platform testing guide | The owner's existing tests, [`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) for fixtures, [`gem_client/testkit.rs`](../core/crates/gem_client/src/testkit.rs) for wire behavior |
 | Async result freshness | [Session contract](#a-screen-whose-state-changes-is-a-session), [Performance](PERFORMANCE.md) | [Fiat session](../core/gemstone/src/services/fiat/session.rs), [retained confirmation](../core/gemstone/src/services/confirm/confirmation.rs) |
 | Atomic writes and retries | [Store contract](#atomic-changes-concurrent-publication-and-query-contracts), [command outcomes](#a-command-names-its-commit-and-recovery-behavior) | [Native balance update](../ios/Packages/Store/Sources/Stores/BalanceStore.swift), [Android transaction runner](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/PerpetualStore.kt); `BalanceStoreTests` and `BalancesDaoTest` are the paired adapter tests (MIG6) |
+| Name a screen, view model, query or port | [Names](#names) | The same kind in the sibling app |
 | Choose and complete a migration item | [Working one item](TODO.md#working-one-item), [screen coverage](TODO.md#screen-coverage-and-existing-infrastructure) | [Service map](#screen-services), [closing checks](../skills/quality-checks.md#closing-matrix) |
 
 For a service change, follow the price-alert example through [Core](#service-example-price-alerts), [store adapters](#store-adapter-example-price-alerts), [construction](#construction-example-price-alerts) and [screen calls](#direct-service-calls-and-observed-reads). Use the [service map](#service-map) to find existing owners and callers. Read [§ 13](#13-shapes-that-were-tried-and-reverted) only for rejected-design rationale; subsystem contracts remain in their own documents.
@@ -46,6 +47,43 @@ core/gemstone/src/services/<feature>/
 ```
 
 Only the files the feature needs. A feature with no persistence has no `store.rs`.
+
+## Names
+
+The same thing has the same base name on both apps; only the platform's suffix or form differs, and each app uses its one form for every instance of a kind. When the base names differ, iOS is the reference. A feature module and its product page share a name ([Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md)).
+
+| Kind | iOS | Android | Example |
+|---|---|---|---|
+| Feature module | `Features/<Name>` | `features/<name>` | `PriceAlerts` / `price_alerts` |
+| Screen | `XScene` | `XScreen` binds the view model, `XScene` is stateless | `SwapScene` / `SwapScreen` + `SwapScene` |
+| Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
+| Screen UI state | — (the view model) | `XUIState` | `LockUIState` |
+| User action | a view model method | `XAction` | `SwapAction` |
+| Component or row model | `XViewModel` | `XUIModel` | `ProvidersViewModel` / `ContactRowUIModel` |
+| Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
+| Destination host | `XNavigationView` hosts one scene's sheets and destinations inside a stack it does not own; a view whose body is a `NavigationStack` is `XNavigationStack` | the route's composable | `StakeNavigationView` |
+| Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |
+| Core service held by a view model | `service: any GemXServiceProtocol` | `service: GemXServiceInterface` | `GemPriceAlertServiceProtocol` / `GemPriceAlertServiceInterface` |
+| Platform port | a protocol, implemented in the app | an interface in `gemcore/application/<area>/cases/`, implemented as `XImpl` or `XCoordinator` | `ObservablePreferences` |
+| Test and mock | `XTests`, `X.mock()` in `TestKit` | `XTest`, `mockX()` in `testFixtures` | `SwapSceneViewModelTests` / `SwapViewModelTest` |
+
+A file is named after its main type, one main type per file. Android spells `UIModel` and `UIState` with a capital `UI`, keeps `models` plural, and names a composable `XScreen` only when it binds a view model. A screen, its view model, route, action, state and tests all share the screen's base name.
+
+```swift
+public struct SwapScene: View {
+    @State private var model: SwapSceneViewModel
+    ...
+}
+```
+
+```kotlin
+@Composable
+fun SwapScreen(..., viewModel: SwapViewModel = hiltViewModel()) {
+    val pay by viewModel.payAsset.collectAsStateWithLifecycle()
+    ...
+    SwapScene(pay = pay, ...)
+}
+```
 
 ## 1. Rules are pure and have a test that flips
 
@@ -179,13 +217,13 @@ Node selection illustrates this boundary: `GemChainSettingsService.check_node` o
 
 ### No trivial exports
 
-An export earns its place by making a decision. A function that looks up a constant for a variant, or wraps a value the app already holds so the app can ask for it back, is not a decision — it is a second spelling of a `match` the app will write anyway, plus an FFI crossing per call. An icon name per row key and a title per enum case are the two usual forms; both belong on the enum as data the screen record already carries, resolved once in the app's [module mapper](#one-mapper-per-module-names-every-core-key-it-renders).
+An export earns its place by making a decision. A function that looks up a constant for a variant, or wraps a value the app already holds so the app can ask for it back, is not a decision — it is a second spelling of a `match` the app will write anyway, plus an FFI crossing per call. An icon name per row key and a title per enum case are the two usual forms; both belong on the enum as data the screen record already carries, resolved once in the app's [mapper](#one-mapper-per-app-names-every-core-key-it-renders).
 
 The test is what the caller could not have worked out: if the answer depends only on the variant, the variant is the answer and the app maps it. If it depends on state, configuration, a chain rule or several values at once, it is a decision and Core owns it.
 
 The one exception is a [projection](#a-row-is-projected-from-its-value-never-fetched-from-a-service).
 
-**A fixed value is a generated constant, not an export.** A debounce, a timeout, a limit or a fixed list of options takes no input, so asking Core for it is a crossing per read. It lives in [`constants.rs`](../core/gemstone/src/constants.rs), which Core's own code reads, and `just generate-models` writes it to both apps as `GemConstants`. A constant is a plain value: a number, a string, a duration (Swift `Duration`, Kotlin `kotlin.time.Duration`) or a list of enum cases (a TypeShare enum as the app's own type). A record is not a constant; its fields are, and whoever needs the record builds it. A generator test fails when a checked-in constants file is stale. A value that depends on an input (a chain, a locale, a wallet) or is built by a formatter stays a function.
+**A fixed value is a generated constant, not an export.** A debounce, a timeout, a limit or a fixed list of options takes no input, so asking Core for it is a crossing per read. It lives in [`constants.rs`](../core/gemstone/src/constants.rs), which Core's own code reads, and `just generate-models` writes it to both apps as `GemConstants`. A constant is a plain value: a number, a string, a duration (Swift `Duration`, Kotlin `kotlin.time.Duration`) or a list of enum cases (a generated model enum as the app's own type). A record is not a constant; its fields are, and whoever needs the record builds it. A generator test fails when a checked-in constants file is stale. A value that depends on an input (a chain, a locale, a wallet) or is built by a formatter stays a function.
 
 **An export also loses its place when the last app caller goes**, because the generated interface, the wrapper and the mock requirement stay behind on both apps. `just check-ffi` reports every exported function and method of an exported `impl` that no app calls outside its tests, mocks and previews; a function Core still uses keeps its body and loses only the export, one nothing uses is deleted. The composition services are where this happens most, and `GemExplorerService` is the finished shape: only its constructor is exported, because the composition root builds the object, while `get_address_url` and `get_transaction_link` sit in a plain `impl` block that the screen services call — every screen reads its explorer link through [its own screen service](#composition-services-are-reached-through-the-screen-service).
 
@@ -390,7 +428,7 @@ Four things make this work, and all four are load-bearing:
 1. **A screen's record returns `Vec<GemListSection>`** and declares no section or row type of its own. `GemAddressDetails::sections()` is the reference; a screen with no section header uses `GemListSectionTitle::None`.
 2. **The row carries the finished value.** `Text` carries printed text, `Amount` carries a `GemFormattedNumber` each app renders through its existing formatter, and `Address` carries the [copy model](#one-copy-model-for-every-address-phrase-and-key) with the shortened display already computed. A row that owns its title answers it in Core (`GemBalanceRow::title()`).
 3. **Titles are two shared enums**, `GemListRowTitle` and `GemListSectionTitle`, resolved in the one shared localization file per app — iOS `PrimitivesComponents/Extensions/Gemstone+Localized.swift`, Android `ui/localization/GemstoneText.kt`. A new title is a case there, never a per-feature mapper. A title that interpolates a value stays app-side (`Explorer` carries the explorer's name and the app composes "View on …").
-4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` plus `LazyListScope.gemListSections(sections:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner, and the info button. A row that has an explanation carries a `GemInfoTopic`; iOS reports it through `GemListRowView(row:onInfo:)` for the screen to present its sheet, and Android maps it to the `InfoSheetEntity` the row opens itself. A screen is then:
+4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` plus `LazyListScope.gemListSections(sections:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner, and the info button. A row that has an explanation carries a `GemInfoTopic`, and `GemInfoTopic::sheet(platform)` composes its sheet — the title and description keys with their finished arguments, the image, and the action (a docs link, buy, acquire or continue) — so each app maps one `GemInfoSheet` and wires only the action closure. iOS reports the topic through `GemListRowView(row:onInfo:)` for the screen to present, and Android opens the `InfoSheetEntity` itself. A confirm error composes its sheet through `GemConfirmErrorInfo::sheet(platform)`, which keeps the topic that every row carries small. A screen is then:
 
 ```swift
 ListSectionView(provider: model) { row in
@@ -416,6 +454,7 @@ A row that acts carries what the act needs, and Core decides it: `Url` says whet
 
 | Family | Record | Lists that read it |
 |---|---|---|
+| Asset | [`GemAssetItemRow`](../core/gemstone/src/services/assets/model.rs) | wallet, network assets, search, select asset, buy, price alerts, perpetual markets and positions, fee assets |
 | Transaction | [`GemTransactionRow`](../core/gemstone/src/services/transactions/model.rs) | activity, asset details, perpetual position |
 | Wallet | [`GemWalletRow`](../core/gemstone/src/services/wallet/model.rs) | wallets list, wallet detail, confirm sender |
 | Validator | [`GemValidatorRow`](../core/gemstone/src/services/stake/model.rs) | stake, earn, delegation |
@@ -423,7 +462,7 @@ A row that acts carries what the act needs, and Core decides it: `Url` says whet
 
 A shared rich row lives with the service that owns its domain, not in `models/list.rs`, because its payload is that domain's type (`Asset`, `TransactionId`). The rich record does not contain a `GemListRow`: a plain row's title is a case of `GemListRowTitle`, while an asset or transaction row's title is data the row carries. A plain section can still hold one rich row, which is what `GemListRow::Wallet` does on confirm and sign-message. What a rich row reuses is the smaller shared pieces — `GemFormattedNumber` for an amount, `GemCopy` for a copyable value, `GemListRowTitle` for a labelled sub-field, `GemLoadState` for its list's state.
 
-A `Gem…Row` record carries **one row's data**. Which fields a shared row shows on a given screen is a different decision and a different type, named `…Style` and never `Row`: [`GemAssetRowStyle`](../core/gemstone/src/services/assets/model.rs) says whether the asset row titles itself with the asset, its canonical name or its network, whether it repeats the symbol, and what its subtitle and trailing hold. The app keeps the store record (`AssetData` on iOS, `AssetInfo` on Android) and projects it through `asset_list_row`, which returns the title, symbol, network, amount, fiat and price as [`GemAssetListRow`](../core/gemstone/src/services/assets/model.rs). Pin, balance privacy and the account address stay on the app record. A screen reads the style from the flow it is in (`GemSelectAssetFlow.row_style`, `GemWalletHomeService::asset_row_style()`) and passes it to the one row view; it never re-declares the style enums app-side.
+A `Gem…Row` record carries **one row's data**. Which fields a shared row shows on a given screen is a different decision and a different type, named `…Style` and never `Row`: [`GemAssetRowStyle`](../core/gemstone/src/services/assets/model.rs) says whether the asset row titles itself with the asset, its canonical name or its network, whether it repeats the symbol, and what its subtitle and trailing hold. The app keeps the store record (the generated `AssetData`) and passes it with the currency to `asset_list_rows` with the style of the flow it is in (`GemSelectAssetFlow.row_style`), or to `wallet_asset_rows` for the wallet lists, which applies the wallet style in Core. Both return [`GemAssetItemRow`](../core/gemstone/src/services/assets/model.rs): the icon, a title with an extra, a subtitle with an extra and a trailing `Value`, `Toggle`, `Copy` or `None`, each text a `GemLocalizedText` with its `GemValueTone`, plus `masks_balance` for the rows the balance privacy switch hides. Price alerts, perpetual markets, positions and orders being opened, and fee assets return the same record next to their identity, so each app draws every asset-like list with one renderer. Pin and the account address stay on the app record; the app never re-declares the style enums.
 
 **3. Per-screen rich rows — one screen, one layout.** The transaction header, swap progress and the confirm recipient row are drawn one way on one screen, so the record stays with that screen ([a row that a screen only ever draws one way](#a-row-that-a-screen-only-ever-draws-one-way-keeps-its-shape-app-side)). If a second screen starts drawing it, it has become family 2 and moves.
 
@@ -494,23 +533,23 @@ Core shortens the address (`address_copy` calls `format_address`), so the toast 
 
 `GemAssetRowStyle` carries the layout because the same asset row is drawn four ways: the wallet list prices it, select-asset names its network, manage-tokens toggles it, receive copies it. The choice varies, so Core makes it once and both apps switch on `subtitle` and `trailing`.
 
-The rows that do not vary keep their shape in the app. A perpetual market row always shows its price under the name and its volume at the end; a position row always shows direction and leverage under the name. Their records (`GemPerpetualMarketRow`, `GemPerpetualPositionRow`) carry the finished values, and the slot each value lands in stays in the view: a subtitle-and-accessory layout enum that every row carried would add redundant per-row payload and type surface without settling a variable decision — the cost [Keep the crossings few](#keep-the-crossings-few) warns about, paid for a decision no one is making twice.
+The rows that do not vary keep their shape in the app. The transaction header and the swap progress row are drawn one way on one screen, so their records carry the finished values and the slot each value lands in stays in the view: a layout enum that every row carried would add redundant per-row payload and type surface without settling a variable decision — the cost [Keep the crossings few](#keep-the-crossings-few) warns about, paid for a decision no one is making twice. A row that draws another row's slots is not one of these: a perpetual market, a position, a price alert and a fee asset fill the asset row's slots, so they return `GemAssetItemRow` and share its renderer.
 
 The test is whether the same row is drawn differently somewhere: if it is, the shape is a choice and belongs in the record; if it is not, it is layout and belongs in the view.
 
 ### A row is projected from its value, never fetched from a service
 
-`walletRow(wallet)`, `walletRows(wallets)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
+`walletRow(wallet)`, `walletSections(wallets, currentWalletId)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
 
 A view model that already owns the screen's service still asks that service for anything the *screen* decides. The line is whether the answer depends on state the service holds.
 
 ### The row carries the whole answer; the view model only reads it
 
-Once Core owns the row, the app-side model has nothing left to decide. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `hasAvatar` and `imageUrl`, and each app maps it once, in a row extension, to the platform model its view takes: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `GemWalletRow.uiModel(context)` builds the `WalletRowUIModel` that `WalletItem` draws. Where a model still stands between the row and the view, it is [the row and nothing else](#an-app-row-model-stores-the-row-and-nothing-else).
+Once Core owns the row, the app-side model has nothing left to decide. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `isCurrent`, `hasAvatar` and `imageUrl`, and each app draws it directly: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `WalletItem` takes the row itself, and the avatar image comes from the style mapper on both. Where a model still stands between the row and the view, it is [the row and nothing else](#an-app-row-model-stores-the-row-and-nothing-else).
 
 Two things a record cannot carry are a localized string and a bundled image asset, and both have one home per platform.
 
-**Every Core case that becomes localized text maps in the module's mapper file** ([one mapper per module](#one-mapper-per-module-names-every-core-key-it-renders)): Core returns the case, the file returns the string. Never push the app's string catalog into Core through a foreign localizer — that trades a maintained translation for an FFI crossing per row. Text Core composes itself, such as a default wallet name, is a `GemLocalizedText` case (`WalletDefaultName { index }`) that the mapper renders like any other.
+**Every Core case that becomes localized text maps in the app's mapper file** ([one mapper per app](#one-mapper-per-app-names-every-core-key-it-renders)): Core returns the case, the file returns the string. Never push the app's string catalog into Core through a foreign localizer — that trades a maintained translation for an FFI crossing per row. Text Core composes itself, such as a default wallet name, is a `GemLocalizedText` case (`WalletDefaultName { index }`) that the mapper renders like any other.
 
 **A Core case that becomes a bundled image maps in the module's style mapper**, beside the colours: `GemEmptyStateImage.image` in iOS `Gemstone+Style.swift` and `GemEmptyStateImage.image()` in Android `style/GemstoneStyle.kt` are that mapping, one place per platform, read by every screen.
 
@@ -523,25 +562,26 @@ A row is shaped for a list, and a details screen of the same value always needs 
 pub struct GemWalletDetails {
     pub row: GemWalletRow,
     pub secret_kind: Option<GemWalletSecretKind>,
-    pub address: Option<ChainAddress>,
+    pub show_secret: Option<GemLocalizedText>,
+    pub address: Option<GemAddressRow>,
 }
 ```
 
-Android's `GemWalletDetails.uiModel()` and iOS's `WalletDetailViewModel.details` then read it, and neither keeps the `Wallet` for anything the record answers:
+Both screens read the record itself, and neither keeps the `Wallet` for anything the record answers:
 
 ```kotlin
-internal fun GemWalletDetails.uiModel() = WalletDetailsUIModel(
-    walletId = WalletId(row.id),
-    name = row.name,
-    address = address?.toPrimitives(),
-    addressExplorer = addressExplorer?.toPrimitives(),
-)
+val details: StateFlow<GemWalletDetails?> = walletQuery(walletId)
+    .mapLatest { wallet -> wallet?.let { service.walletDetails(it.toGem()) } }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
 
 ```swift
-var addressModel: AddressListItemViewModel? {
-    guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
-    return AddressListItemViewModel(title: Localized.Common.address, account: SimpleAccount(...), mode: .auto(addressStyle: .short), addressLink: link)
+if let secretKind = model.details.secretKind, let showSecret = model.details.showSecret {
+    Section {
+        NavigationCustomLink(with: ListItemView(model: ListItemModel(title: showSecret.text)), action: onShowSecret)
+    } header: {
+        Text(secretKind.title)
+    }
 }
 ```
 
@@ -635,7 +675,7 @@ This is as far as a view model should move into Core, and the limits are the poi
 - **What the session cannot know is an argument to `view_state`, not stored state.** The asset price and whether a URL is opening are the app's facts, so they are parameters. That keeps the session a function of its own events and keeps its tests free of setup.
 - **One `view_state` call returning one record.** Ten getters are ten crossings per render; one record is one, [derived once and passed down](#a-screen-derives-its-record-once-and-passes-it-down).
 - **A `Record`, not an `Object`.** Value semantics let a state flow skip an unchanged state and let a Rust test assert a whole screen state as one literal.
-- **One session per screen**, the same rule as [one Core service per screen](#7-at-most-one-core-service-on-ios-narrow-cases-on-android). A view model holding two sessions is describing two screens.
+- **One session per screen**, the same rule as [one Core service per screen](#7-at-most-one-core-service-observed-reads-are-queries). A view model holding two sessions is describing two screens.
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
@@ -675,10 +715,10 @@ impl GemChartSession {
 ```
 
 ```swift
-var chartState: StateViewType<ChartValuesViewModel> {
+var chartState: StateViewType<GemChartData> {
     switch session.viewState(price: currentPrice).phase {
     case .loading: .loading
-    case let .data(data): .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
+    case let .data(data): .data(data)
     case .noData: .noData
     case let .failed(error): .error(error)
     }
@@ -687,19 +727,19 @@ var chartState: StateViewType<ChartValuesViewModel> {
 
 ```kotlin
 val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
-    ChartUIModel.State(
+    ChartUIState(
         period = state.period.toPrimitives(),
         chart = when (val phase = state.phase) {
             GemChartPhase.Loading -> StateViewType.Loading
-            is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
+            is GemChartPhase.Data -> StateViewType.Data(phase.data)
             GemChartPhase.NoData -> StateViewType.NoData
-            is GemChartPhase.Failed -> StateViewType.Error
+            is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
         },
     )
 }
 ```
 
-The Android excerpt shows the current phase mapping; its payload-free `StateViewType.Error` loses the error detail. VM141 carries the mapped error to the Android chart error UI. Preserve the error when implementing a new screen rather than copying that omission.
+The chart data carries its bounds and date style, and `GemChartData.selection(index)` answers the header and date under a finger, so neither view keeps a chart model of its own.
 
 Four rules keep the collapse honest:
 
@@ -803,29 +843,27 @@ Currency symbols and placement come from the platform's locale renderer. Shared 
 
 ### An app row model stores the row and nothing else
 
-A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it. A model still earns its place when a list protocol demands one, or when it owns something the record cannot — formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data — but one stored property is the whole of it.
+A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it. A model still earns its place when it owns something the record cannot — formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data — but one stored property is the whole of it. No view protocol forces a model per record: a shared view takes the Core record, or the one `ListItemModel` or `ValueHeader` a mapper extension builds from it, so a model that would only pass fields through is not written.
 
 The test is what the model carries that the record cannot, not how much they overlap. A screen input that holds two app assets and a max-amount flag and *projects* the Core request from them is not a twin, however many field names rhyme; a record that carries the same fields re-typed, so that both have to move together, is one whatever it is called. Holding the domain object *and* the row is the twin this rule exists to prevent: the model then has two places to answer the same question, and the two apps answer it differently.
 
 ```swift
-struct ChainNodeViewModel {
-    let row: GemNodeRow
-
-    var url: String { row.node.url }
-    var canDelete: Bool { row.canDelete }
+extension GemNodeRow {
+    var listItem: ListItemModel {
+        latencyStatus.listItem(title: title.text(gemNodeLabel: Localized.Nodes.gemWalletNode), titleExtra: subtitle.text)
+    }
 }
 ```
 
-`GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so the model stores the row and every member reads through it. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A view-facing UI model that turns the row into platform values for a composable (Android's `GemNodeRow.uiModel(context)`) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no Core type.
+`GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so no model stands between it and the view: the scene reads `row.node.url` and `row.canDelete` and draws `row.listItem`. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A composable that turns the row into platform values (Android's `ChainNodeItem`, which builds its list item from the row) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no copy of the row.
 
-The type that conforms to a list protocol reads the same way:
+A shared view reads the record through the same kind of extension:
 
 ```swift
-struct PriceAlertItemViewModel: ListAssetItemViewable {
-    private let row: GemPriceAlertRow
-
-    var name: String { row.title }
-    var symbol: String? { row.symbol }
+extension GemValueHeader {
+    public var valueHeader: ValueHeader {
+        ValueHeader(assetImage: icon?.assetImage, title: title.text, subtitle: subtitle?.text.text, buttons: actions?.headerButtons ?? [])
+    }
 }
 ```
 
@@ -845,33 +883,36 @@ Four questions settle where a member goes, in order:
 
 1. **Is it a decision?** Which label, which order, which style, whether a thing is shown — it goes in the Core row. Never recompute it from the domain object the row was built from.
 2. **Is it a displayed number?** Approximate quantities use `GemFormattedNumber` and the existing `text()` renderer. Exact atomic amounts retain their typed value, decimals and display policy as specified above. Reuse the corresponding renderer; add a shared number shape only for a real missing display requirement.
-3. **Is it which slot a value lands in?** Whether a row shows a label on the left and a price on the right, or a price and a percentage, is a decision. Core names the slots — `prefix` and `suffix` carrying a text key, a number, or nothing — so neither app switches on the kind to lay the row out.
-4. **Is it a platform value?** A `Color`, an `Image`, a Compose or SwiftUI value — these are the only things the apps decide, and they go on a row extension in the module's mapper files, never inline in the row model. The model reads `row.directionColor`; it never switches on a Core enum itself.
+3. **Is it which slot a value lands in?** Whether a row shows a label on the left and a price on the right, or a price and a percentage, is a decision. Core names the slots — `GemAssetItemRow`'s `subtitle`, `subtitle_extra` and `trailing`, each a `GemLocalizedText` with its tone — so neither app switches on the kind to lay the row out.
+4. **Is it a platform value?** A `Color`, an `Image`, a Compose or SwiftUI value — these are the only things the apps decide, and they go on an extension in the module's mapper files, never inline in the row model. The view reads `text.tone.color`; it never switches on a Core enum itself.
 
 A row model whose body is anything but `row.` lookups has taken back a decision Core had already made. If you are writing `switch row.kind` in an app, the row is missing a field.
 
 ```swift
 // Gemstone+Style.swift
-extension GemPriceAlertRow {
-    public var directionColor: Color { direction?.color ?? Colors.gray }
+extension GemValueTone {
+    public var color: Color { ... }
 }
 
 // Gemstone+Localized.swift
-extension GemPriceAlertRow {
-    public var prefixText: String { prefix.text }
+extension GemLocalizedText {
+    public var text: String {
+        switch self {
+        case let .priceAlertLabel(label): label.text
+        ...
+        }
+    }
 }
 ```
 
 ```kotlin
-@Composable
-internal fun GemPriceAlertText.string(): String = when (this) {
-    is GemPriceAlertText.Empty -> EMPTY
-    is GemPriceAlertText.Number -> value.text()
-    is GemPriceAlertText.Label -> label.string()
+fun GemLocalizedText.string(context: Context): String = when (this) {
+    is GemLocalizedText.PriceAlertLabel -> context.getString(label.stringRes())
+    ...
 }
 ```
 
-Those extensions live in the module's [two mapper files](#one-mapper-per-module-names-every-core-key-it-renders), never in one file per type. A number's text never belongs in either — it comes from `GemFormattedNumber.text()`, which both apps already have once.
+Those extensions live in the app's [two mapper files](#one-mapper-per-app-names-every-core-key-it-renders), never in one file per type. A number's text never belongs in either — it comes from `GemFormattedNumber.text()`, which both apps already have once.
 
 ### Keep the crossings few
 
@@ -935,7 +976,7 @@ private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session,
 
 ### Field types
 
-- Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of typeshare models and database columns, which are strings by generation.
+- Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of generated models and database columns, which are strings by generation.
 - `amount` is for `f64`. `value` is for big integers. Do not mix them.
 - Full domain words, per the shared [naming rule](../skills/engineering-principles.md#clean-code-principles).
 
@@ -953,11 +994,11 @@ pub trait GemPerpetualStore: Send + Sync {
 }
 ```
 
-An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**. Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
+An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**. Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a mapper file beside the adapter (`StoreModels.kt`) or beside the row it reads (`DbNFT.kt`).
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
 
-**The native store speaks primitives only.** `ios/Packages/Store` and `android/data/services/store` never reference Gemstone, and a Core store trait is implemented only in the adapter layer (`GemstoneServices`, `data/services/gemstone`). Core types stop at the adapter, which maps them to primitives or store-owned types (`AssetsRequestFilter`) and passes Core values such as `transactionsListLimit()` in as parameters.
+**The native store speaks primitives only.** `ios/Packages/Store` and `android/data/services/store` never reference Gemstone, and a Core store trait is implemented only in the adapter layer (`GemstoneServices`, `data/services/gemstone`). Core types stop at the adapter, which maps them to primitives or store-owned types (`AssetsQueryFilter`) and passes Core values such as `transactionsListLimit()` in as parameters.
 
 **Migrations fail loudly.** iOS `run()` only creates tables or recreates a cache; a column change belongs in `runChanges()`, which also runs on fresh installs, so each step checks what exists instead of `try?`. A cache of server data is dropped and recreated, not migrated. The Room version ships with its exported schema and a registered migration, and never falls back to a destructive migration.
 
@@ -1016,24 +1057,24 @@ Both implement the same conflict, missing-row and changed-only write semantics. 
 
 Core computes a complete domain change; one feature-store operation commits related fields and rows in a native transaction. Moving policy out of an adapter must preserve its existing atomicity. A conditional update carries its condition or expected state into the write, so another writer cannot invalidate a Core pre-read. Use focused store operations and the existing transaction runners, not a generic unit-of-work framework.
 
-The existing hide/unpin adapters are the atomic-write example: [iOS balance updates](../ios/Packages/Store/Sources/Stores/BalanceStore.swift) and [Android asset configuration](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/AssetsDao.kt) update both fields together. Core sends one asset-configuration patch, so separate hide and unpin calls would weaken the contract. Address-name replacement stays conditional, and perpetual collateral clearing stays one transaction.
+The existing hide/unpin adapters are the atomic-write example: [iOS balance updates](../ios/Packages/Store/Sources/Stores/BalanceStore.swift) and [Android asset configuration](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/AssetsDao.kt) update both fields together. Core sends one asset-configuration patch, so separate hide and unpin calls would weaken the contract. Address-name replacement stays conditional, and perpetual collateral clearing stays one transaction.
 
-Atomicity of one batch does not order overlapping operations. The [balance publication contract](#publish-a-multi-source-refresh-as-one-batch) is how stale responses and different balance-kind updates publish without overwriting newer data. Preserve explicit wallet/asset identity and independent requests; a global lock is not a default solution.
+Atomicity of one batch does not order overlapping operations. The [balance publication contract](#publish-each-source-of-a-refresh-as-it-answers) is how stale responses and different balance-kind updates publish without overwriting newer data. Preserve explicit wallet/asset identity and independent requests; a global lock is not a default solution.
 
 Observed queries stay native. Their product contract specifies wallet scope, inclusion, ordering, limits and missing rows; paired adapter/query fixtures verify those semantics. Do not solve query parity by copying an unbounded wallet across FFI and sorting it on every emission. `BalanceStoreTests` and `BalancesDaoTest` are those contract tests, through the real GRDB/Room adapters (MIG6).
 
-### Publish a multi-source refresh as one batch
+### Publish each source of a refresh as it answers
 
-A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently — publishes **one** store write carrying every source that answered. The contract each app's observers rely on:
+A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently, and on each chain the coin, staking, token and earn balances separately — writes each chain as soon as that chain has answered, so the fastest network shows first ([product/wallet_tab.md](product/wallet_tab.md)). The contract each app's observers rely on:
 
-- **One write per refresh, and it is atomic.** Both adapters write the batch inside a single database transaction, so an observed query never sees a wallet half updated and a portfolio total never mixes rows from two different refreshes of the same call.
-- **A source that fails holds nothing back.** The sources that answered are written; the first failure in request order is returned after the write, so the caller can report it without discarding good data. `published_balances` owns that split and is tested on its own.
+- **One write per chain, and it is atomic.** Both adapters write a chain's batch inside a single database transaction, so an observed query never sees a chain half updated.
+- **A source that fails holds nothing back.** On a chain, the components that answered are written even when another failed; across chains, one chain's failure never delays another's write. The first failure in request order is returned after every chain has finished, so the caller can report it without discarding good data. `published_balances` owns the component split and is tested on its own.
 - **A source that fails leaves its rows as they were.** There is no "unknown" state: the previous values stay and stay visible, so a total computed while one chain is offline is a total of older values for that chain, not a total missing it.
 - **The wallet is named, not implied.** Every write is keyed by the `WalletId` the refresh was asked for, so a response that lands after the user switched wallets writes the wallet it belongs to and never the one on screen.
 - **Only rows whose values differ are written.** The refresh reads the stored rows, folds its updates onto them by kind — a stake answer does not clear a coin's available balance — and drops the rows that come back equal.
 - **Overlapping refreshes publish in order, one wallet at a time.** Each refresh takes a sequence number when its fetch starts and holds that wallet's publication lane for its read-fold-write, so a concurrent coin and stake answer cannot lose each other and a response that arrives after a newer one for the same asset and kind is dropped instead of written. Other wallets and the price socket lane stay concurrent.
 
-Per-source publication would increase observer notifications and mixed-age totals; preserve the batch contract until the owner defines and tests a replacement.
+A write per chain notifies the observers once per chain, and a total read between two writes mixes the new values of one chain with the older values of another for that moment; the owner chose that over holding every chain back for the slowest.
 
 ## 5. The app maps; it does not decide
 
@@ -1051,25 +1092,20 @@ Core → app mappings live in `GemstonePrimitives` as extensions. A mapping onto
 
 ### Android
 
-Commands and point reads call the generated service interface directly. For an observed read, keep a narrow case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/` and injected by Hilt. Its `Flow` feeds each relevant emission to the Core projection:
+Commands and point reads call the generated service interface directly. An observed read is a query in `data/services/store/queries/`, the counterpart of an iOS `Store/Queries` type with the same name: one Room query that returns primitives, injected into the view model, which feeds each emission to the Core projection. [`PriceAlertsQuery`](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/queries/PriceAlertsQuery.kt) is the example, paired with iOS [`PriceAlertsQuery`](../ios/Packages/Store/Sources/Queries/PriceAlertsQuery.swift):
 
 ```kotlin
-override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = combine(
-    getSession().filterNotNull(),
-    getTransaction(id),
-) { session, data -> Pair(session, data) }
-    .mapNotNull { (session, data) ->
-        data?.let {
-            TransactionDetailsAggregateImpl(
-                transactionDetailsService.detailRows(it.toGem(), session.wallet.type.toGem()),
-                session.currency,
-            )
-        }
-    }
-    .flowOn(Dispatchers.IO)
+class PriceAlertsQuery @Inject constructor(private val priceAlertsDao: PriceAlertsDao) {
+
+    operator fun invoke(assetId: AssetId? = null): Flow<List<PriceAlertData>> =
+        (assetId?.let { priceAlertsDao.getAlertsWithAsset(it.toIdentifier()) } ?: priceAlertsDao.getAlertsWithAsset())
+            .map { rows -> rows.mapNotNull { it.toDTO() } }
+}
 ```
 
-One Core call answers the whole screen, so the case has nothing to assemble.
+A query selects and joins rows; it neither decides nor calls Core. A case — an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/` and bound by Hilt — exists only for the ports and shared in-memory state listed below; a new observed read is a query.
+
+What stays a case is a platform port or Android-only state held in memory, never a read or a forward. The ports are `PasswordStore`, `ShowSystemNotification`, `NotificationPermissionRequests`, `AuthRequester`, `WalletConnectClient`, `PerpetualObserver`, `ObserveRefreshInterval`, `ObservablePreferences` (the Android side of iOS `ObservablePreferences`), `SecurityPreferences` (authentication and the lock interval) and the support typing state (`GetSupportTyping`, `ClearSupportTyping`). The Android-only state is the start-up update offer shared by the store prompt and the universal-APK banner (`SyncAppUpdate`, `ObserveAppUpdateOffer`, `SkipAppUpdate`); the push-enabled state shared by Settings, support, new wallets and `FCM`, and the push token (`GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet`, `SetPushToken`, `RequestPushToken`); the WalletConnect SDK session commands, the counterpart of iOS `WalletConnectorService` (`IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication`, `RespondWalletConnectRequest`); the transaction rows shared by the activity, asset and perpetual screens, warmed at start and cached per filter and limit (`GetTransactions`, reading `TransactionsQuery`); the sorted wallet rows kept from the first open of the wallet list (`GetAllWallets`, reading `WalletsQuery`); the wallet's asset rows, list rows and header kept from start for the stored first frame (`GetWalletAssets`, reading `AssetsQuery`, `GetActiveAssetsInfo`, and `GetWalletSummary`, reading `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`); the session, current wallet and currency in one eagerly shared `StateFlow` (`GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency`, `SetCurrentCurrency`); and `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`. A feature module depends on neither `:data:services:gemstone` nor `:data:coordinators` and holds no store; `just check-boundaries` rejects both.
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
@@ -1080,7 +1116,7 @@ A navigation stack matches a pushed value, or a route key, to its destination by
 ```swift
 // iOS scene: the row pushes the app's validator, the selection maps Core's row
 NavigationLink(value: validatorSelection.selectedValidator) {
-    ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
+    ValidatorView(row: validatorSelection.selected)
 }
 
 public extension SelectionState where T == GemValidatorRow {
@@ -1136,7 +1172,7 @@ var amountError: (any Error)? {
 // composable
 error = uiState.amountError ?: ""
 
-// the module's localization/GemstoneText.kt, called from the view model: the Core enum stops here
+// ui/localization/GemstoneText.kt, called from the view model: the Core enum stops here
 fun GemFiatViewState.amountErrorText(context: Context): String? = when (val phase = phase) {
     GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
     is GemFiatQuotePhase.Invalid -> phase.check.string(context)
@@ -1149,30 +1185,28 @@ Naming a Core type is not the test; deciding from one is. A view that iterates a
 
 The shapes that close a leak are a row model with an app kind or destination where a view would switch on a Core row key, a model the view model vends where a Core record would pass through to a child view, and a closure typed by the view model where a view would declare a Core-typed callback; navigation payloads are the app's inputs (`ConfirmTransferInput`, `AmountInput`).
 
-What to grep for is a view that interprets a domain answer outside its mapper: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the module's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
+What to grep for is a view that interprets a domain answer outside its mapper: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the app's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
 
 ```
-rg -tkotlin -U 'when \([^)]*\)\s*\{[^}]*(stringResource|R\.string)' android/features --glob '**/presents/**' --glob '!**/localization/**'
+rg -tkotlin -U 'when \([^)]*\)\s*\{[^}]*(stringResource|R\.string)' android/features --glob '**/presents/**'
 ```
 
-and its Swift equivalent over `Sources/Scenes/` and `Sources/Views/`, excluding the module's `Gemstone+Localized.swift`. The pattern also matches switches over app enums; a hit over a Core type is a decision that has to move one layer down, and everything else the type-name grep finds is the contract working.
+and its Swift equivalent over `Sources/Scenes/` and `Sources/Views/`. The pattern also matches switches over app enums; a hit over a Core type is a decision that has to move one layer down, and everything else the type-name grep finds is the contract working.
 
-### One mapper per module names every Core key it renders
+### One mapper per app names every Core key it renders
 
-Every Core value a module turns into an app value goes into one of exactly two files, and a new `SomeGemType+Module.swift` is always the wrong answer:
+Every Core value an app turns into a platform value goes into one of exactly two files per app, and a new `SomeGemType+Module.swift` or a feature-level mapper is always the wrong answer:
 
 | | iOS | Android |
 |---|---|---|
-| Core key → localized text | `Gemstone+Localized.swift` | `localization/GemstoneText.kt` |
-| Core enum → colour, image, or other platform value | `Gemstone+Style.swift` | `style/GemstoneStyle.kt` |
+| Core key → localized text | `PrimitivesComponents/Sources/Extensions/Gemstone+Localized.swift` | `ui/src/main/kotlin/.../ui/localization/GemstoneText.kt` |
+| Core enum → colour, image, or other platform value | `PrimitivesComponents/Sources/Extensions/Gemstone+Style.swift` | `ui/src/main/kotlin/.../ui/style/GemstoneStyle.kt` |
 
-On iOS they usually sit in the module's `Types/` folder (`Sources/Extensions/` in `PrimitivesComponents`); on Android in the `presents` or `viewmodels` module that renders the key, or in `:ui` for the shared ones. A view model, a scene or a composable that maps a key somewhere else has taken the module's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels.
+Every feature already imports `PrimitivesComponents` or depends on `:ui`, so a feature reads the shared mapping and never writes its own; the members are public. One file per app means one Core enum has one mapping per app: a feature that needs a second phrasing of the same key — a tab title and a field label — adds it to that file under a different name, the way Android's `tabStringRes` and `fieldStringRes` do. A view model, a scene or a composable that maps a key somewhere else has taken the app's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels. A service that turns a Core failure into an `Error` is not a presentation mapper and stays with the service (`GemWalletConnectFailure+WalletConnectorService.swift`).
 
-The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` parses each app's `Gemstone+Localized.swift` and `GemstoneText.kt` files into variant → key, resolves both keys to their English text, and fails on every variant the two apps resolve differently. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file.
+The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` reads the two localization files into variant → key, resolves both keys to their English text, fails on every variant the two apps resolve differently, and fails on any other `Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt` or `GemstoneStyle.kt`. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file.
 
-The mapper check compares variants found in both mapper sets; it does not prove coverage or domain parity. `just check-boundaries` is the structural gate (MIG5): a rule joins it when a regex can decide it exactly and stays a review lead when it cannot. Treat a census hit as a review lead and explicitly exempt shared renderers, native ports, DI and legitimate child dependencies.
-
-Two files per module, no exceptions: if a screen needs a second phrasing of the same key — a tab title and a field label — both live in that one file under different names, the way Android's `tabStringRes` and `fieldStringRes` do.
+The mapper check compares variants found in both mapper files; it does not prove coverage or domain parity. `just check-boundaries` is the structural gate (MIG5): a rule joins it when a regex can decide it exactly and stays a review lead when it cannot. Treat a census hit as a review lead and explicitly exempt shared renderers, native ports, DI and legitimate child dependencies.
 
 Chain and asset icons come from Core: `ChainConfig.icon_chain` supplies the chain logo; `GemAssetConfigService::asset_icon` chooses the asset image and badge. An EVM layer 2's native coin uses Ethereum's image only when it is ETH; the family alone does not decide its gas coin.
 
@@ -1183,7 +1217,7 @@ Compose screens collect a single state object, and the temptation is to declare 
 A UI state class is the **translation** of the Core view state into platform values. It holds no Core type. Every property is a `String`, a `Boolean`, a `@StringRes` id, or an app enum, and each one names what the view does with it rather than what Core called it.
 
 ```kotlin
-data class FiatUiState(
+data class FiatUIState(
     val isLoading: Boolean = false,
     val amountError: String? = null,
     val quotesMessage: String? = null,
@@ -1207,17 +1241,17 @@ The same rule reads on iOS as: the view model exposes `String`, `Bool` and app e
 
 Both apps draw a plain list row from one component model: `ListItemModel` in iOS `Components` and `android/ui`. It carries the finished title, the title tag, the extra line under the title, the value on the right with its extra line, the leading image and the info sheet, each with a style the view resolves to a font and colour. A sectioned screen returns `ListSection<T>` — an id, an optional title and the items — and the scene renders it with one call: `ForEach` over the sections on iOS, `listSections` on Android.
 
-The view model builds the model and the scene only renders it: `ListItemView(model: model.listItem(for: row))` and `ListItem(model = row.model, listPosition = position)`. A row that also acts carries the app action beside the model — `AcquireOptionUIModel(action, model)` — and the scene reads the action, never the row key. An address row carries the prepared display/copy information and explorer link; the existing shared address renderer may use its dedicated adapter, but feature scenes do not call an address service or reconstruct shortening rules. A switch or a picker renders the same model with the control in the accessory slot; a dropdown picker keeps its options beside the model. Every model row draws its title in the regular body weight on both apps (iOS `.body`, Android `bodyLarge`) whether or not it carries an image or an extra line; a heavier title belongs to a rich composite, never to the shared renderer. Line limits match as well: the title is one line and the line under it wraps unless the row sets `titleLineLimit` or `titleExtraLineLimit`, the same fields on both apps. Moving a row onto the model starts from its iOS twin: a twin that is a `ListItemModel` moves onto the model, a twin that is a composite (the error and info notices, for example) keeps the matching composite on Android or moves to a shared `GemListRow` variant on both apps; before and after, compare the old view's text styles, line limits and slots with the renderer path it lands on, on a device. A trailing image — the wallet icon beside a confirm value — is an accessory, not the model's image (Android's `GemListRowView` draws it through `DataBadgeChevron`), so the model's `image` stays the leading slot on both apps.
+The view model builds the model and the scene only renders it: `ListItemView(model: model.listItem(for: row))` and `ListItem(model = row.model, listPosition = position)`. A row that also acts carries the app action beside the model — `GetAssetOptionUIModel(action, model)` — and the scene reads the action, never the row key. An address row carries the prepared display/copy information and explorer link; the existing shared address renderer may use its dedicated adapter, but feature scenes do not call an address service or reconstruct shortening rules. A switch or a picker renders the same model with the control in the accessory slot; a dropdown picker keeps its options beside the model. Every model row draws its title in the regular body weight on both apps (iOS `.body`, Android `bodyLarge`) whether or not it carries an image or an extra line; a heavier title belongs to a rich composite, never to the shared renderer. Line limits match as well: the title is one line and the line under it wraps unless the row sets `titleLineLimit` or `titleExtraLineLimit`, the same fields on both apps. Moving a row onto the model starts from its iOS twin: a twin that is a `ListItemModel` moves onto the model, a twin that is a composite (the error and info notices, for example) keeps the matching composite on Android or moves to a shared `GemListRow` variant on both apps; before and after, compare the old view's text styles, line limits and slots with the renderer path it lands on, on a device. A trailing image — the wallet icon beside a confirm value — is an accessory, not the model's image (Android's `GemListRowView` draws it through `DataBadgeChevron`), so the model's `image` stays the leading slot on both apps.
 
-Three kinds of row stay outside the model on purpose. The row primitives themselves (`PropertyItem`, `LinkItem`, `ListItem`) are what the model renders through. Rich rows with their own layout stay composites on both apps, named in pairs so a new screen reuses the pair instead of rebuilding it: asset — iOS `ListAssetItemView`, Android `AssetListItem`; recent assets — iOS `RecentsSceneViewModel.listItem`, Android `AssetListItem`; wallet — `WalletListItemView`, `WalletItem`; chain — `ChainView`, `ChainItem`; NFT — `GridPosterView`, `NftListItem`; transaction — `TransactionView`, `TransactionItem`; delegation — iOS `DelegationViewModel.listItem`, Android `DelegationItem`; validator — `ValidatorView`, `ValidatorItem`; swap provider — the provider row of iOS `SwapDetailsView`, Android `SwapProviderListItemView`; network — iOS `ListItemImageView` with the chain image, Android `PropertyNetworkItem`; balance — iOS `AssetBalanceView`, Android `PropertyAssetBalanceItem`. None becomes a `ListItemModel` variant, because each carries what the plain model does not: a semibold title, a badge, a status tag or a two-line trailing value. The iOS recents and delegation rows reach that weight through the row primitive's explicit title style, which is the rich family's iOS form rather than a plain model row, so the regular-weight rule above does not apply to them. Developer screens keep inline rows on both apps. Vector icons never reach a view model: Android carries `ListItemImage.Symbol` and resolves it to `AppIcons` in the image view. The toast a view model emits is the same `ToastMessage(title, image)` on both apps.
+Three kinds of row stay outside the model on purpose. The row primitives themselves (`PropertyItem`, `LinkItem`, `ListItem`) are what the model renders through. Rich rows with their own layout stay composites on both apps, named in pairs so a new screen reuses the pair instead of rebuilding it: asset — iOS `ListAssetItemView`, Android `AssetListItem`; recent assets — iOS `RecentsSceneViewModel.listItem`, Android `AssetListItem`; wallet — `WalletListItemView`, `WalletItem`; chain — `ChainView`, `ChainItem`; NFT — `GridPosterView`, `NftListItem`; transaction — `TransactionView`, `TransactionItem`; delegation — iOS `GemDelegationListRow.listItem`, Android `DelegationItem`; validator — `ValidatorView`, `ValidatorItem`; swap provider — the provider row of iOS `SwapDetailsView`, Android `SwapProviderListItemView`; network — iOS `ListItemImageView` with the chain image, Android `PropertyNetworkItem`; balance — iOS `AssetBalanceView`, Android `PropertyAssetBalanceItem`. None becomes a `ListItemModel` variant, because each carries what the plain model does not: a semibold title, a badge, a status tag or a two-line trailing value. The iOS recents and delegation rows reach that weight through the row primitive's explicit title style, which is the rich family's iOS form rather than a plain model row, so the regular-weight rule above does not apply to them. Developer screens keep inline rows on both apps. Vector icons never reach a view model: Android carries `ListItemImage.Symbol` and resolves it to `AppIcons` in the image view. The toast a view model emits is the same `ToastMessage(title, image)` on both apps.
 
-What this replaces is the row assembled in the body: `ListItemView(title:subtitle:imageStyle:)` with values read off the view model one by one, and `PropertyItem`/`LinkItem` calls with a title id, a value and an icon passed as separate arguments. Both restate the row's shape on every screen, and the two apps then drift a field at a time. Copy [`ContactsViewModel.listItemModel(for:)`](../ios/Features/Contacts/Sources/ViewModels/ContactsViewModel.swift) and [`ContactsViewModel.listItem`](../android/features/settings/contacts/viewmodels/src/main/kotlin/com/gemwallet/android/features/settings/contacts/viewmodels/ContactsViewModel.kt) for a row, [`PriceAlertViewModel`](../android/features/settings/price_alerts/viewmodels/src/main/kotlin/com/gemwallet/android/features/settings/price_alerts/viewmodels/PriceAlertViewModel.kt) for sections, and [`RecipientViewModel`](../android/features/recipient/viewmodels/src/main/kotlin/com/gemwallet/android/features/recipient/viewmodel/RecipientViewModel.kt) for sections whose rows format an address through Core.
+What this replaces is the row assembled in the body: `ListItemView(title:subtitle:imageStyle:)` with values read off the view model one by one, and `PropertyItem`/`LinkItem` calls with a title id, a value and an icon passed as separate arguments. Both restate the row's shape on every screen, and the two apps then drift a field at a time. Copy [`ContactsSceneViewModel.listItemModel(for:)`](../ios/Features/Contacts/Sources/ViewModels/ContactsSceneViewModel.swift) and [`ContactsViewModel.listItem`](../android/features/contacts/viewmodels/src/main/kotlin/com/gemwallet/android/features/contacts/viewmodels/ContactsViewModel.kt) for a row, [`PriceAlertsViewModel`](../android/features/price_alerts/viewmodels/src/main/kotlin/com/gemwallet/android/features/price_alerts/viewmodels/PriceAlertsViewModel.kt) for sections, and [`RecipientViewModel`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/recipient/RecipientViewModel.kt) for sections whose rows format an address through Core.
 
 The NFT list, fiat transaction row and curated asset list use title left, secondary value trailing and chevron last. iOS `ListItemModel.subtitle` names that trailing slot, not a second title line. The NFT verified badge belongs to the grid (`GemNftRow.is_verified`), not the list; details use the collection status already held.
 
 ### Dispatch Core work that can block
 
-The `flowOn` above is not decoration. A synchronous Core call such as `transactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI polls the Rust future on the calling thread — so without it the read lands on main, where Room throws before any work happens.
+The `flowOn` above is not decoration. A synchronous Core call such as `GemTransactionDetailsService.detailRows` can read store callbacks that block on Room, and UniFFI polls the Rust future on the calling thread — so without it the read lands on main, where Room throws before any work happens.
 
 The coordinator dispatches; it does not leave that to its caller. Whether a Core method touches a store is Core's business and can change without the call site noticing.
 
@@ -1227,15 +1261,22 @@ Cheap pure projections and synchronous in-memory/preference reads can stay on th
 
 ```kotlin
 // suspend: move the call
-override suspend fun setCurrentWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
-    walletSessionService.setCurrentWalletId(walletId.id)
+override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
+    walletSessionService.getCurrentWallet()?.toPrimitives()
 }
 
 // Flow: flowOn after the operator that calls Core
-override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = observed(id)
-    .mapNotNull { (session, data) -> transactionDetailsService.detailRows(data.toGem(), session.wallet.type.toGem()) ... }
-    .flowOn(Dispatchers.IO)
+val data: StateFlow<GemTransactionDetailRows?> = combine(
+    walletQuery(walletId).map { it?.type }.distinctUntilChanged(),
+    transactionQuery(walletId, transactionId),
+) { walletType, transaction ->
+    walletType?.let { type -> transaction?.let { service.detailRows(it.toGem(), type.toGem()) } }
+}
+    .flowOn(ioDispatcher)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
+
+The Flow example is [`TransactionViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionViewModel.kt): `WalletQuery` and `TransactionQuery` supply the wallet it was opened for and the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
 
 ## 6. Where derived domain answers live
 
@@ -1257,7 +1298,7 @@ Do not manufacture a receiver by choosing the first parameter. The type is hones
 
 ### Ownership is not transport
 
-A receiver method on a Gemstone-local UniFFI record or enum can cross FFI. Export it only when an app calls it. A TypeShare type defined in a repository-owned Core crate can own canonical inherent Rust behavior there, but TypeShare does not generate that method in Swift or Kotlin. A type merely declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose a structural field projection when transport omits it, but it must not copy product policy.
+A receiver method on a Gemstone-local UniFFI record or enum can cross FFI. Export it only when an app calls it. A generated model type defined in a repository-owned Core crate can own canonical inherent Rust behavior there, but `just generate-models` does not generate that method in Swift or Kotlin. A type merely declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose a structural field projection when transport omits it, but it must not copy product policy.
 
 When mobile needs behavior that cannot cross on its honest receiver, prefer folding the answer into an existing aggregate operation. If the UI genuinely needs a standalone pure projection, add it to an existing cohesive FFI adapter such as `GemSimulationFormatter`; do not put it on an I/O service whose dependencies it ignores and do not create a one-method object. `SimulationResult.asset_ids()` is the folded case: it lives in `primitives`, and the confirm and WalletConnect flows call it inside their own loads (`ensure_simulation_assets`), so no app needs it and no app copies it.
 
@@ -1267,15 +1308,15 @@ A stateless exported object is acceptable only as a cohesive FFI codec or format
 
 `#[uniffi::export]` on an `impl` processes every function in that block regardless of Rust visibility. `pub(crate)` does not remove a method from generated bindings. Put only intended FFI methods in the exported block; move helpers to a separate unannotated `impl` and give them the narrowest Rust visibility. Derive `uniffi::Record`/`uniffi::Enum` only for types that actually cross FFI. After changing an exported member or type, regenerate bindings and build both apps — one platform may never have called the method the other still needs.
 
-The generated code mapper crashing on an unknown `Chain` or `Currency` is not the same problem and is not wire handling: the app's enum is typeshare-generated from the same Core enum in the same build, so the two cannot disagree at runtime, and a crash there reports a broken generation rather than a server value. The one path that can reach it is a downgrade reading a store a newer build wrote; that is not a supported install path, and widening the mapper would hide the generation bug it exists to catch.
+The generated code mapper crashing on an unknown `Chain` or `Currency` is not the same problem and is not wire handling: the app's enum is generated from the same Core enum in the same build, so the two cannot disagree at runtime, and a crash there reports a broken generation rather than a server value. The one path that can reach it is a downgrade reading a store a newer build wrote; that is not a supported install path, and widening the mapper would hide the generation bug it exists to catch.
 
 Use tolerant entry decoding only where the payload contract permits independent entries to be skipped. The price/rate stream uses `deserialize_known_entries`, so one unknown currency does not discard all prices. This is not a blanket rule for transaction, wallet recovery or authorization payloads: required inputs must remain complete and fail closed under the [security contract](../skills/security.md).
 
-An app's persisted aggregate is not a typeshare candidate just because Core has one of the same name. `AssetData` is the standing example: typeshare renders a `BigUint` as a `String`, so the ten big-integer fields of Core's `Balance` would reach both apps as text to parse; Android's `Balance<T>` is a generic container it instantiates with `BigInteger` and with `Double`, which typeshare cannot express; and the two apps' `AssetData` differ from each other — iOS carries price alerts, Android a wallet id — as well as from Core's. Both are persisted, which is where a twin belongs. Revisit a shape like this only if it keeps the atomic values numeric.
+A store read that both apps compose is a generated model once every atomic value stays typed. `AssetData` is the example: `primitives` declares it with its `Balance` fields generated as `BigIntValue` (a `BigInt` on iOS, a `BigInteger` on Android), both store adapters fill it, and Core's asset rows and its amount, swap, stake and asset-details inputs take it as it is, so neither app keeps a twin or converts it into `GemAssetBalance`. A composite whose generated form would reach the apps as text to parse (a plain `BigUint` renders as `String`) stays app-side until the generator keeps it numeric.
 
 A generated mapper names its direction on both apps: `toPrimitives()` reads a Core value into the app's type and `toGem()` sends one back. An untyped `map()` on both sides made a diff unreadable and let a reviewer miss a crossing going the wrong way. A mapper between two app types keeps `map()` — the directional names mark the FFI boundary and nothing else.
 
-Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remote_types.yml` lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural mappers on both apps; `codes` are string-backed enums that cross as their code and get `Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS, the `X(identifier)` constructor / `toIdentifier()` on Android). Before adding a `remote` type, verify that the generator can represent its full shape and inspect both generated mappers. It handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of `primitives/src` declares them; a `#[typeshare(skip)]` field travels Core → app only and is filled with its empty value on the way back (scalars, `Option`, `Vec` and `String` have one; anything else fails generation). A data-carrying enum maps too when it keeps a twin, as long as each variant carries at most one unnamed payload — a twin renders a named or multi-field variant as a type of its own, which the generator will not invent. A type an app never looks inside does not need a model on either side: pass the wire text and let Core own the format. Never add a second app-side model or copy policy to avoid a gap in the generator; close the gap.
+Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remote_types.yml` lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural mappers on both apps; `codes` are string-backed enums that cross as their code and get `Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier` on iOS, the `X(identifier)` constructor / `toIdentifier()` on Android); `mocks` are the types it writes one test mock for on both apps: the generated model where primitives declares one, otherwise the UniFFI record or enum gemstone exports (`GeneratedMocks.swift` in `Primitives/TestKit` and `GemstonePrimitives/TestKit`, `GeneratedMocks.kt`; rules in the apps' testing guides). Before adding a `remote` type, verify that the generator can represent its full shape and inspect both generated mappers. It handles fieldless enums and records whose fields are scalars, `DateTime<Utc>`, other remote types, codes or identifiers, plain or wrapped in `Option` / `Vec`, whatever subdirectory of `primitives/src` declares them; a `#[model(skip)]` field travels Core → app only and is filled with its empty value on the way back (scalars, `Option`, `Vec` and `String` have one; anything else fails generation). A data-carrying enum maps too when it keeps a twin, as long as each variant carries at most one unnamed payload — a twin renders a named or multi-field variant as a type of its own, which the generator will not invent. A type an app never looks inside does not need a model on either side: pass the wire text and let Core own the format. Never add a second app-side model or copy policy to avoid a gap in the generator; close the gap.
 
 ### Identifiers and structural records at the boundary
 
@@ -1285,11 +1326,11 @@ Rust signatures use domain types (`WalletId`, `AssetId`, `Chain`, `Currency`). T
 
 The identifier string matches native database storage. Mapping the binding directly to an app wrapper would also break Android's dependency direction: its primitives live in `:gemcore`, which depends on the standalone `:gemstone` artifact. Swift's ability to name `Primitives.WalletId` through UniFFI does not make that bridge symmetric. Revisit only if the module boundary changes.
 
-## 7. At most one Core service on iOS; narrow cases on Android
+## 7. At most one Core service; observed reads are queries
 
-An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the observed reads the screen watches as narrow application cases (a Room `Flow` behind `GetPriceAlerts`, `GetTransactions`, `GetWalletAssets`) and `GetSession`. A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the queries the screen observes (`PriceAlertsQuery`, `TransactionQuery`) and the session and preference observation ports (`GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency`, `ObservablePreferences`), the Android side of what iOS observes through `ObservablePreferences` and the current wallet passed down from `RootSceneViewModel`. A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, the `ObservablePreferences.isPerpetualEnabled()` port on Android — and the answer comes from the service.
 
-**Native observation is intentional.** iOS holds `ObservableQuery<Request>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a narrow case returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
+**Native observation is intentional.** iOS holds `ObservableQuery<Query>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a query returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
 
 **A value model may need no service.** `NetworkFeeSceneViewModel` renders `GemConfirmFeeSelection`, `GemFeeRateRows` and `GemFeeOptionItem` with callbacks. Injecting a service into a model that only reads those answers adds no behavior. Judge ownership by decisions, not member counts.
 
@@ -1298,11 +1339,11 @@ This limit does not count explicit platform ports such as a signer, keystore, ob
 A store is not one of those ports. A store is the database side of a Core service, and a view model that holds one has reached past the service into what the service owns — the same coupling a second service would be, by a shorter path, and the operations it reaches for then exist on one platform only. The developer screen's clear actions are `GemDeveloperStore` operations its service exports, so both apps offer them from the one service each view model holds:
 
 ```swift
-DeveloperViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
+DeveloperSceneViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
 ```
 
 ```kotlin
-class DevelopViewModel @Inject constructor(
+class DeveloperViewModel @Inject constructor(
     private val service: GemDeveloperServiceInterface,
     private val getSession: GetSession,
     val notificationsAvailable: NotificationsAvailable,
@@ -1357,7 +1398,7 @@ public final class SupportChatSceneViewModel {
 
 `ViewModelFactory.supportChatScene()` supplies these dependencies; feature packages never read app-level environment service keys. A class implementing a Core store or platform trait is an adapter. A class that merely re-exposes Core calls is a redundant wrapper.
 
-Android likewise calls the service directly for commands and point reads. [`PriceAlertViewModel`](../android/features/settings/price_alerts/viewmodels/src/main/kotlin/com/gemwallet/android/features/settings/price_alerts/viewmodels/PriceAlertViewModel.kt) rereads persisted state after the command, including on failure:
+Android likewise calls the service directly for commands and point reads. [`PriceAlertsViewModel`](../android/features/price_alerts/viewmodels/src/main/kotlin/com/gemwallet/android/features/price_alerts/viewmodels/PriceAlertsViewModel.kt) rereads persisted state after the command, including on failure:
 
 ```kotlin
 private val alertsEnabled = MutableStateFlow(service.isEnabled())
@@ -1369,9 +1410,9 @@ fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
 }
 ```
 
-[`GetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/GetPriceAlertsImpl.kt) separately observes through `GemstonePriceAlertStore`; it does not wrap commands. Core classifies each alert through `alert_kind` and `PriceAlertFormatter`; this observer selects and groups the stored rows.
+[`PriceAlertsQuery`](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/queries/PriceAlertsQuery.kt) separately observes the stored alerts with their asset and price; it does not wrap commands. Core classifies each alert through `alert_kind` and `PriceAlertFormatter`; the query only selects and joins the stored rows.
 
-For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses a case in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation.
+For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`; that is the only thing a case is for. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation, which both apps read through `RecentActivityQuery`.
 
 ### Composition services are reached through the screen service
 
@@ -1390,7 +1431,7 @@ A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` �
 ```swift
 // wrong — the view assembles the child from the parent's internals
 ContactAddressEditorScene(
-    model: ContactAddressEditorViewModel(
+    model: ContactAddressEditorSceneViewModel(
         defaultChain: model.defaultChain,
         nameService: model.nameService,
         addressService: model.addressService,
@@ -1405,8 +1446,8 @@ ContactAddressEditorScene(model: model.addressModel(mode: mode))
 Where the child is a different screen with its own service, the parent cannot build it — feature modules cannot see the composition root. The app passes the builder in:
 
 ```swift
-public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
-    ContactsViewModel(service: contactService, contactEditor: contactEditorScene, mode: mode)
+public func contactsScene(mode: ContactsSceneViewModel.Mode = .list) -> ContactsSceneViewModel {
+    ContactsSceneViewModel(service: contactService, contactEditor: contactEditorScene, mode: mode)
 }
 ```
 
@@ -1443,7 +1484,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
 
 Dependency-free FFI transport adapters are the exception: `GemSimulationFormatter` and `PriceAlertFormatter` may be constructed locally because they have no state to substitute. Do not extend that exception to a service, store, client or a type whose behavior can cross on its honest receiver.
 
-A fieldless Core rule object is the second exception. `GemAssetConfigService` and `GemConnectionService` carry no state, no store and no client, so a module-level lazy instance is not a second instance of anything — there is nothing to substitute and nothing to keep in step. Keep them there only while they back top-level extensions on a primitive that neither a composable nor a constructor can reach (`Chain.asset()`, `AssetId.icon()`, `ConnectionStatus.refreshInterval(kind)`); a caller that already has a view model asks its service instead. The same holds for the iOS `.shared` accessors in `Config.swift`: a leaf value model a view builds from a value — a row, a formatted address, a search predicate — has no constructor the composition root controls, so it reads the fieldless object directly. `ImportWalletTypeViewModel` is that shape: it reads `GemChainService.shared` itself, so its parent vends it with no argument. What is never acceptable is a flow parent reaching for one to hand to a child: the parent takes the child's vendor from the factory, the way `ViewModelFactory` hands `ContactsViewModel` its `ContactEditorViewModel` builder. The composable reading one still [may not call it from its body](#keep-the-crossings-few).
+A fieldless Core rule object is the second exception. `GemAssetConfigService` and `GemConnectionService` carry no state, no store and no client, so a module-level lazy instance is not a second instance of anything — there is nothing to substitute and nothing to keep in step. Keep them there only while they back top-level extensions on a primitive that neither a composable nor a constructor can reach (`Chain.asset()`, `AssetId.icon()`, `ConnectionStatus.refreshInterval(kind)`); a caller that already has a view model asks its service instead. The same holds for the iOS `.shared` accessors in `Config.swift`: a leaf value model a view builds from a value — a row, a formatted address, a search predicate — has no constructor the composition root controls, so it reads the fieldless object directly. `ImportWalletTypeSceneViewModel` is that shape: it reads `GemChainService.shared` itself, so its parent vends it with no argument. What is never acceptable is a flow parent reaching for one to hand to a child: the parent takes the child's vendor from the factory, the way `ViewModelFactory` hands `ContactsSceneViewModel` its `ContactEditorSceneViewModel` builder. The composable reading one still [may not call it from its body](#keep-the-crossings-few).
 
 Prefer the [generated abstraction](#depend-on-the-generated-abstraction-not-the-concrete-object) wherever a test needs substitution: any unstubbed method on a mocked concrete UniFFI object can reach a native handle the mock does not have.
 
@@ -1527,7 +1568,7 @@ State what has been saved when a later step fails, whether the action can be ret
 
 Wallet price requests use USD. `GemPriceService` applies the selected fiat rate once and preserves the USD price for later conversion; never pass server-converted prices into that path. The independent widget pricing path may request its display currency directly.
 
-[Price updates](../core/gemstone/src/services/price/mod.rs) use one `GemPriceStore.save_rates(rates, conversion)` transaction: Core selects the optional current-currency conversion, and each adapter commits it with the changed rates. A failed repricing rolls back the rates so an identical-rate retry still applies. [Price-alert commands](../core/gemstone/src/services/price_alert/mod.rs) write locally first: an API refusal rolls the added or deleted row back, and `set_enabled` only stores the preference. Device registration reads that preference when it looks for changes, so an identical toggle has no unfinished device effect to retry. Add a durable queue only if a later recovery requirement needs it.
+[Price updates](../core/gemstone/src/services/price/mod.rs) commit a stream tick with one `GemPriceStore.save_rates_and_prices(currency, rates, conversion, prices)` transaction: Core selects the optional current-currency conversion and converts the tick's prices at that rate, and each adapter commits the changed rates, the repricing and the prices together, so screens observe one change per tick. A failed write rolls the whole tick back so an identical-rate retry still applies. [Price-alert commands](../core/gemstone/src/services/price_alert/mod.rs) write locally first: an API refusal rolls the added or deleted row back, and `set_enabled` only stores the preference. Device registration reads that preference when it looks for changes, so an identical toggle has no unfinished device effect to retry. Add a durable queue only if a later recovery requirement needs it.
 
 Cancellation after an irreversible effect does not prove that the effect did not happen. Security exceptions, including scanner fail-open, remain explicit subsystem policy rather than incidental error handling.
 
@@ -1598,9 +1639,9 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 ```
 
 ```kotlin
-// worth keeping — the query the adapter runs, which Core cannot reach
+// worth keeping — the rows the query selects, which Core cannot reach
 database.bannersDao().addBanners(listOf(warning.copy(id = "other-wallet", walletId = "wallet-2")))
-val banners = database.bannersDao().observeAssetBanners("wallet-1", tokenId, assetId).first().map { it.toDTO() }
+val banners = BannersQuery(database.bannersDao())("wallet-1", tokenId).first()
 
 assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature), banners.map { it.event }.toSet())
 ```
@@ -1725,9 +1766,21 @@ Understand the rationale before changing one of these. Code-style exceptions bel
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
-### TypeShare + UniFFI for code generation
+### iOS has three Gemstone packages, one per layer
 
-TypeShare generates shared model types; UniFFI generates FFI bindings. Both run from `just generate`. Two tools are used because TypeShare handles pure data models efficiently while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.
+Each package is one layer, and Android has the same three:
+
+| Layer | iOS | Android | Depends on |
+|---|---|---|---|
+| Generated UniFFI bindings | `Gemstone` (generated `Gemstone.swift`, pinned to Swift 5 mode by X163) | `:gemstone` | nothing app-side |
+| Core ↔ app mappings, formatters, conveniences on the generated service protocols | `GemstonePrimitives` | `gemcore` | bindings + `Primitives` |
+| Adapters: Core store traits over the native store, keystore and signer, device, push, gateway, stream observers | `GemstoneServices` | `data/services/gemstone` | mappings + `Store`, `Keychain`, `SystemServices`, `NativeProviderService` |
+
+They stay separate. Hand-written code in `Gemstone` would compile in its Swift 5 mode and sit beside a 100,000-line file that is regenerated. Folding the mappings into the adapters would make every screen and `PrimitivesComponents` depend on the keystore, the store and the network, and the keystore stays in its layer (`scripts/check-boundaries.py`). A feature takes the bindings and mappings; from the adapter layer it takes only the observation ports (`ObservablePreferences`, `PerpetualObservable`, `ObservableSupportTyping`, `BiometryAuthenticatable`), and the store adapters are built only in `ServicesFactory`.
+
+### Generated models + UniFFI for code generation
+
+`just generate-models` writes the Swift and Kotlin models for the primitives types that derive `Model` (`core/bin/generate/src/models.rs`); UniFFI generates FFI bindings. Both run from `just generate`. The models cover pure data the apps store and pass around, while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.
 
 ### Android distribution channels come from one matrix
 
@@ -1747,7 +1800,7 @@ Developer machines use kache as the `rustc` wrapper (see `core/skills/setup.md`)
 
 Amount strings come from two sources that must be parsed differently. Confusing them silently corrupts amounts on locales that group thousands with a dot (de, it, es, nl, pt-BR, da), where `"1.234"` means 1234, not 1.234. Pick the parser by the source of the string, never by convenience.
 
-- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` and `value` methods own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input` in the amount rules). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double/.value` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
+- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` method and the amount rules own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input`). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
 - **Machine strings** (QR/payment-link amounts, API/exchange payloads, anything the app did not get from a keyboard) never reach the input parser: Core decodes them and hands the apps typed values. If one has to be read app-side, parse it locale-independently — a machine string always uses `.` as the decimal point.
 - **Writing into a field.** Text in an editable number field is human input the moment it lands there, so whatever the app puts into one — a payment-link amount, the max, a suggestion — is written in the device's format. Core hands over a number (an atomic `GemBigInt`, as `GemAmountInput.prefill` carries, or an `f64`), and the app renders it with `GemNumberFormat`'s `input_text` or `value_text` (iOS `NumberInput.format()`, Android `numberFormat()`). A machine string never goes into a field as is, and Core returns text meant for a field only when it took the separator (`GemAutocloseSession::input_text`). A `"0.001"` placed in a comma-decimal field reads back as 1: #727 fixed the scan-to-confirm parse, but the amount-screen prefill wrote the raw string until it crossed as a number.
 - **Amounts Core formats for notifications** (`number_formatter::ValueFormatter`, `ValueStyle::Auto`, used by the daemon pusher, the staking rewards notifier and in-app notifications) keep two decimals above one and four significant digits below it, dust included: a push title has no room for `0.000040036032429186 ETH` (issue #1155), so it reads `0.00004003 ETH`. The app list formatters keep full precision for dust on purpose; that is a screen with room, not a title.
@@ -1770,48 +1823,48 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAddAssetService` | — | `AddAssetSceneViewModel` | `AddAssetViewModel` |
 | `GemAddressDetailsService` | — | `AddressDetailsSceneViewModel` | `AddressDetailsViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
-| `GemAppUpdateService` | — | `AboutUsViewModel` | `AppUpdateCoordinator` (adds the Play vs universal-APK delivery channel) |
-| `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
-| `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
-| `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel`, `AddAssetViewModel` |
-| `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
-| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` | `ChartViewModel` |
-| `GemCollectibleService` | — | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails` observed read) |
-| `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmViewModel` |
-| `GemContactService` | — | `ContactsViewModel` | `ContactsViewModel` |
-| `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
+| `GemAppUpdateService` | — | `AboutUsSceneViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
+| `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetViewModel` |
+| `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
+| `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
+| `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
+| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
+| `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
+| `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
+| `GemContactService` | — | `ContactsSceneViewModel` | `ContactsViewModel` |
+| `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrencyViewModel` (+ `GetCurrentCurrency`); `SessionCoordinator` behind `SetCurrentCurrency` (calls `set_currency` and updates the in-memory currency the session combines, which iOS hears through the `GemPreferencesObserver` that Android's `UserConfig`, behind the `ObservablePreferences` port, holds) |
 | `GemDeviceService` | — | `RootSceneViewModel`, `AppLifecycleService`, `CurrencySceneViewModel` | `DeviceObserverService`, `DevicePushSettings` |
-| `GemDeveloperService` | — | `DeveloperViewModel` | `DevelopViewModel` |
+| `GemDeveloperService` | — | `DeveloperSceneViewModel` | `DeveloperViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
-| `GemContactEditorService` | — | `ContactEditorViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
-| `GemNftService` | — | `CollectionsViewModel` | `NftListViewModels` |
-| `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
-| `GemNotificationsService` | — | `NotificationsViewModel` | `DevicePushSettings` (the push cases `SettingsViewModel` calls) |
-| `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
-| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity) |
-| `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |
-| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertViewModel` | `PriceAlertViewModel`, `PriceAlertTargetViewModel` |
-| `GemReceiveService` | — | `ReceiveViewModel` | `ReceiveViewModel` |
-| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsModel` vended by `SelectAssetViewModel` and `PerpetualsSceneViewModel` | `RecentsSheetViewModel` |
+| `GemContactEditorService` | — | `ContactEditorSceneViewModel` (+ `nameService`) | `ContactEditorViewModel` (+ `GemNameServiceInterface`) |
+| `GemNftService` | — | `CollectionsSceneViewModel` | `CollectionsViewModel` (+ `NFTQuery`) |
+| `GemNotificationService` | — | `InAppNotificationsSceneViewModel` | `InAppNotificationsViewModel` |
+| `GemNotificationsService` | — | `NotificationsSceneViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
+| `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
+| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
+| `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
+| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `SetPriceAlertViewModel` |
+| `GemReceiveService` | — | `ReceiveSceneViewModel` | `ReceiveViewModel` |
+| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
-| `GemRewardsService` | — | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
-| `GemServiceStatus` | — | `ServiceStatusViewModel` | `ServiceStatusViewModel` |
-| `GemSettingsService` | — | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
-| `GemSignMessageService` | — | `SignMessageSceneViewModel` | `WCRequestViewModel` |
+| `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |
+| `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
+| `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
+| `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel` |
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
-| `GemSupportService` | — | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
+| `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatViewModel` (+ `SupportMessagesQuery`) |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
-| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `GetTransactionDetailsImpl` (observed read + links) |
-| `GemTransactionsService` | — | `TransactionsViewModel` | `TransactionsViewModel` |
-| `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsViewModel` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel`, `ConnectionsViewModel`, `ConnectionViewModel` |
-| `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
-| `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageViewModel` for the avatar (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletsViewModel`, `WalletViewModel` (`rename`), `WalletSecretDataViewModel` (`export_secret`), `WalletImageViewModel`, wallet cases |
-| `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationRouter` | `SessionCoordinator` (+ the services it composes) |
+| `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `WalletQuery`, `TransactionQuery`) |
+| `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |
+| `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsSceneViewModel` (+ `ConnectionsQuery`) | `WalletConnectorRequestViewModel`, `SignMessageViewModel`, `ConnectionProposalViewModel`, `AuthRequestViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
+| `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletSummary` (keeps the wallet header, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`, in memory from start for `AssetsViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `AssetsViewModel`) |
+| `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportWalletViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the Core wallet sections, read through `WalletsQuery`, in memory for `WalletsViewModel`) |
+| `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationRouter` | `AppViewModel`, `NotificationNavigation`; `SessionCoordinator` behind `GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency` and `SetCurrentCurrency` (keeps the current wallet, observed through the stored wallet id and `WalletQuery`, and the currency set up from `GemPreferencesService` in one eagerly shared `StateFlow` that screens and coordinators read synchronously) |
 | `GemWidgetService` | — | — (the iOS widget never links Gemstone; see [the iOS project overview](../ios/skills/project-overview.md)) | `WidgetCoinUIModel` and `WidgetPriceSyncWorker` through `WidgetEntryPoint` |
 
 ### Composition and lifecycle services
 
-These primarily serve Core composition or native lifecycle integration. Reuse them through the owning screen service where they supply a domain answer. Dependency-free rule objects, launch hosts and explicit platform/component ports retain [§ 7](#7-at-most-one-core-service-on-ios-narrow-cases-on-android)'s exceptions; judge the responsibility and actual calls rather than the number of fields.
+These primarily serve Core composition or native lifecycle integration. Reuse them through the owning screen service where they supply a domain answer. Dependency-free rule objects, launch hosts and explicit platform/component ports retain [§ 7](#7-at-most-one-core-service-observed-reads-are-queries)'s exceptions; judge the responsibility and actual calls rather than the number of fields.
 
 | Core service | Held by |
 | --- | --- |
@@ -1834,8 +1887,8 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | `GemDeviceKeyService` | composed by `auth` and the device signer |
 | `GemSubscriptionService` | composed by `device` |
 | `GemAppStartService` | iOS `OnstartService`, Android `MainViewModel` — launch orchestration, not a screen |
-| `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `RefreshInterval` |
-| `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps |
+| `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `ConnectionStatusObserver`, whose refresh intervals view models observe through the `ObserveRefreshInterval` port |
+| `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps; Android view models subscribe through its `PerpetualObserver` port |
 | `GemPushNotificationService` | iOS `NavigationRouter`, Android notification routing |
 | `GemTransactionStateService` | composed by `confirm`; tracked off-thread by the `TransactionStatusService` port on both apps |
 | `GemSecurityService` | iOS `BiometryAuthenticationService` (used by `LockSceneViewModel`), Android `LockTimer` |
@@ -1872,7 +1925,6 @@ These choices explain apparent parity gaps. They do not authorize copying shared
 | Area | Contract |
 |---|---|
 | Authentication | Privacy lock is iOS-only; WalletConnect one-click auth is Android-only. Android gates secret reads at each call site, while iOS gates the secret read itself. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
-| Autoclose | One app enables confirmation on a pending change and displays validation after tapping; the other enables only a buildable change. Both consume the same Core outcome from `GemAutocloseSession`, including the Android open-position sheet through `AmountPerpetualProvider`. |
 | Refresh | Wallet home receives socket prices and refreshes on pull; it intentionally has no interval timer. Socket reconnect delay is capped at 30 seconds. `debugLog` and stream diagnostic logging compile out in release. |
 | One-sided features | iOS support-image previews use `image_file`; Android uses post-search `sync_assets` and invalid-mnemonic highlighting. Developer tools may differ (`deeplink_url` on iOS, `platform_store` on Android). Add the counterpart only when the feature is required. |
 | Equivalent integration | Both apps choose the collectible receive network through `GemSelectAssetType::ReceiveCollection`. Payment prefills reach iOS through `GemAmountTransfer::prefilled_amount` and Android through Core-built `GemRecipientNext::Amount` carried in navigation. Perpetual banners use native navigation on each app; both observable preference adapters call `GemPreferencesService.set_perpetual_enabled`. |

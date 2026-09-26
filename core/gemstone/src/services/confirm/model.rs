@@ -1,25 +1,28 @@
-use super::error::GemConfirmError;
+use super::error::{GemConfirmError, GemConfirmErrorSheet};
 use super::rules::approval_value_from;
+use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::list::GemListRow;
+use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use crate::services::assets::model::GemFeeAmount;
+use crate::precision::GemValueStyle;
+use crate::services::amount::model::GemNumberFormat;
+use crate::services::assets::icon::asset_icon;
+use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
 use crate::services::balance::GemAssetBalance;
-use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
+use crate::services::perpetual::model::GemPerpetualConfirmDetails;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
-use crate::services::swap::model::GemSwapPairSelection;
+use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
-use crate::services::transfer::model::{GemConfirmDestination, GemConfirmTitle};
+use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::BlockExplorerLink;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
-use primitives::{AssetPrice, PaymentVerification};
+use primitives::{AssetPrice, Currency, PaymentVerification};
 
 pub type GemAccount = Account;
 
@@ -35,16 +38,8 @@ pub enum GemConfirmFeeSelection {
     Custom { gas_price: GemBigInt },
 }
 
-#[uniffi::export]
 impl GemConfirmFeeSelection {
-    pub fn selected_priority(&self) -> Option<FeePriority> {
-        match self {
-            Self::Priority { priority } => Some(*priority),
-            Self::Custom { .. } => None,
-        }
-    }
-
-    pub fn custom_gas_price(&self) -> Option<GemBigInt> {
+    pub(super) fn custom_gas_price(&self) -> Option<GemBigInt> {
         match self {
             Self::Priority { .. } => None,
             Self::Custom { gas_price } => Some(gas_price.clone()),
@@ -133,8 +128,16 @@ pub enum GemAcquireAssetFlow {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAcquireAsset {
     pub flow: GemAcquireAssetFlow,
+    pub options: Vec<GemAcquireOption>,
     pub buy_amount: Option<i32>,
     pub swap_pair: GemSwapPairSelection,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
+pub enum GemAcquireOption {
+    Buy,
+    Swap,
+    Receive,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -159,13 +162,40 @@ impl GemConfirmMetadata {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemFeeRateKind {
+    Priority { priority: FeePriority },
+    Custom,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRow {
-    pub priority: FeePriority,
+    pub kind: GemFeeRateKind,
+    pub title: GemListRowTitle,
+    pub emoji: String,
     pub fee: Option<GemBigInt>,
     pub amount: Option<GemFeeAmount>,
-    pub value: GemLocalizedText,
+    pub value: Option<GemLocalizedText>,
     pub is_selected: bool,
+}
+
+impl GemFeeRateRow {
+    pub(super) fn new(kind: GemFeeRateKind, fee: Option<GemBigInt>, value: Option<GemLocalizedText>, is_selected: bool) -> Self {
+        let (title, emoji) = match kind {
+            GemFeeRateKind::Priority { priority: FeePriority::Normal } => (GemListRowTitle::NormalFee, "💎"),
+            GemFeeRateKind::Priority { priority: FeePriority::Fast } => (GemListRowTitle::FastFee, "⚡️"),
+            GemFeeRateKind::Custom => (GemListRowTitle::CustomFee, "⚙️"),
+        };
+        Self {
+            kind,
+            title,
+            emoji: emoji.to_string(),
+            fee,
+            amount: None,
+            value,
+            is_selected,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -174,10 +204,8 @@ pub struct GemFeeRateRows {
     pub shows_options: bool,
     pub unit_type: FeeUnitType,
     pub unit_decimals: u32,
-    pub supports_custom_fee: bool,
     pub selected_total: Option<GemBigInt>,
     pub normal_total: Option<GemBigInt>,
-    pub custom_rate: Option<GemLocalizedText>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -185,6 +213,7 @@ pub struct GemFeeAsset {
     pub asset: Asset,
     pub balance: GemAssetBalance,
     pub price: Option<AssetPrice>,
+    pub row: GemAssetItemRow,
 }
 
 impl GemConfirmSimulation {
@@ -250,6 +279,66 @@ pub struct ConfirmState {
     pub confirm_data: Option<GemConfirmData>,
 }
 
+impl ConfirmState {
+    pub(super) fn fee_rate_rows(&self, currency: Currency) -> Option<GemFeeRateRows> {
+        let price = self.load.metadata.fee_price().map(|price| price.price);
+        Some(self.confirm_data.as_ref()?.fee_rate_rows(&self.load.fee_asset, price, currency))
+    }
+
+    pub(super) fn network_fee_screen(&self, currency: Currency, format: GemNumberFormat) -> GemNetworkFeeScreen {
+        let load = &self.load;
+        let rates = self.fee_rate_rows(currency.clone());
+        let custom_rate = self.confirm_data.as_ref().and_then(|data| data.fee_selection.custom_gas_price());
+        let custom = rates.clone().filter(|rates| rates.rows.iter().any(|row| row.kind == GemFeeRateKind::Custom)).map(|rates| {
+            GemCustomFeeSession::new(
+                load.fee_asset.clone(),
+                format,
+                rates,
+                load.fee.as_ref().map(|fee| fee.value.clone()),
+                load.metadata.fee_price().map(|price| price.price),
+                currency.clone(),
+                custom_rate.as_ref(),
+            )
+        });
+        GemNetworkFeeScreen {
+            fee: load.fee.as_ref().map(|fee| fee.formatted.clone()),
+            additional_fees: load.fee.as_ref().map(|fee| fee.additional_fees.clone()).unwrap_or_default(),
+            rates,
+            fee_asset: load.shows_fee_assets().then(|| GemFeeAsset {
+                asset: load.fee_asset.clone(),
+                balance: load.metadata.fee_asset_balance.clone(),
+                price: load.metadata.fee_price(),
+                row: load.fee_asset_row(currency),
+            }),
+            fee_assets: load.fee_assets.clone(),
+            custom,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemNetworkFeeScreen {
+    pub fee: Option<GemFeeAmount>,
+    pub additional_fees: Vec<GemFeeOptionItem>,
+    pub rates: Option<GemFeeRateRows>,
+    pub fee_asset: Option<GemFeeAsset>,
+    pub fee_assets: Vec<GemFeeAsset>,
+    pub custom: Option<GemCustomFeeSession>,
+}
+
+impl GemNetworkFeeScreen {
+    pub fn fee(fee: GemFeeAmount) -> Self {
+        Self {
+            fee: Some(fee),
+            additional_fees: vec![],
+            rates: None,
+            fee_asset: None,
+            fee_assets: vec![],
+            custom: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemApprovalValue {
     Exact { value: GemBigUint },
@@ -260,24 +349,29 @@ pub enum GemApprovalValue {
 pub struct GemSimulationValue {
     pub asset: Asset,
     pub value: GemApprovalValue,
+    pub header: GemValueHeader,
 }
 
 impl GemSimulationValue {
+    pub fn new(asset: Asset, value: GemApprovalValue) -> Self {
+        let title = match &value {
+            GemApprovalValue::Unlimited => GemLocalizedText::UnlimitedAsset { symbol: asset.symbol.clone() },
+            GemApprovalValue::Exact { value } => GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), &asset, GemValueStyle::Full),
+            },
+        };
+        Self {
+            header: GemValueHeader::asset(asset_icon(&asset.id), title, None),
+            asset,
+            value,
+        }
+    }
+
     pub(crate) fn from_simulation(simulation: &SimulationResult, assets: &[Asset]) -> Option<Self> {
         let header = simulation.valid_header()?;
         let asset = assets.iter().find(|asset| asset.id == header.asset_id)?.clone();
-        Some(Self {
-            asset,
-            value: approval_value_from(header.value.as_ref(), header.is_unlimited),
-        })
+        Some(Self::new(asset, approval_value_from(header.value.as_ref(), header.is_unlimited)))
     }
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemSimulationBalanceChange {
-    pub asset: Asset,
-    pub icon: crate::services::assets::icon::GemAssetIcon,
-    pub amount: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -285,7 +379,7 @@ pub struct GemConfirmSimulation {
     pub primary_fields: Vec<GemSimulationPayloadRow>,
     pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub header: Option<GemSimulationValue>,
-    pub balance_changes: Vec<GemSimulationBalanceChange>,
+    pub balance_changes: Vec<GemListRow>,
     pub has_critical_warning: bool,
 }
 
@@ -316,6 +410,8 @@ pub struct GemConfirmScreen {
     pub failure: Option<GemConfirmFailure>,
     #[uniffi(default = true)]
     pub has_fee: bool,
+    #[uniffi(default = None)]
+    pub shown_sheet: Option<GemConfirmErrorSheet>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -335,39 +431,148 @@ pub enum GemConfirmButtonKind {
 pub struct GemConfirmButton {
     pub kind: GemConfirmButtonKind,
     pub state: GemButtonState,
+    pub icon: GemKeystoreAuthentication,
 }
 
-#[uniffi::export]
+impl GemConfirmButton {
+    pub(super) fn authenticated(self, authentication: GemKeystoreAuthentication) -> Self {
+        let icon = match (self.kind, self.state) {
+            (GemConfirmButtonKind::Confirm, GemButtonState::Enabled) => authentication,
+            _ => GemKeystoreAuthentication::None,
+        };
+        Self { icon, ..self }
+    }
+}
+
 impl GemConfirmLoad {
-    pub fn shows_fee_assets(&self) -> bool {
+    pub(super) fn fee_asset_row(&self, currency: Currency) -> GemAssetItemRow {
+        super::rules::fee_asset_row(&self.fee_asset, &self.metadata.fee_asset_balance, self.metadata.fee_price().map(|price| price.price), &currency)
+    }
+
+    pub(super) fn shows_fee_assets(&self) -> bool {
         let fee_asset_ids: Vec<AssetId> = self.fee_assets.iter().map(|fee_asset| fee_asset.asset.id.clone()).collect();
         super::rules::shows_fee_assets(&fee_asset_ids, Some(&self.fee_asset.id))
     }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemConfirmFeeRow {
+#[allow(clippy::large_enum_variant)]
+pub enum GemConfirmFeeValue {
     Loading,
-    Ready,
+    Ready { text: GemFeeText },
     Unavailable { text: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmFeeRow {
+    pub title: GemListRowTitle,
+    pub value: GemConfirmFeeValue,
+    pub info: GemInfoTopic,
+    pub opens_details: bool,
+}
+
+impl GemConfirmFeeRow {
+    pub(super) fn new(value: GemConfirmFeeValue, fee_asset: Asset, opens_details: bool) -> Self {
+        Self {
+            title: GemListRowTitle::NetworkFee,
+            opens_details: opens_details && !matches!(value, GemConfirmFeeValue::Unavailable { .. }),
+            value,
+            info: GemInfoTopic::NetworkFee { asset: fee_asset },
+        }
+    }
+}
+
+/// One block of the confirm screen, in the order the screen shows them.
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemConfirmSection {
+    Header,
+    Notice { row: GemListRow },
+    Details { rows: Vec<GemConfirmRowContent> },
+    Warnings { rows: Vec<GemListRow> },
+    Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
+    BalanceChanges { rows: Vec<GemListRow> },
+    NetworkFee,
+    Verification,
+    Error { error: GemConfirmError },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemConfirmDetails {
+    Swap { details: GemSwapDetails },
+    Perpetual { details: GemPerpetualConfirmDetails },
+    PerpetualAutoclose { row: GemListRow },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmViewState {
     pub button: GemConfirmButton,
     pub fee_row: GemConfirmFeeRow,
-    pub fee_rates: Option<GemFeeRateRows>,
-    pub row_contents: Vec<GemConfirmRowContent>,
-    pub simulation_warnings: Vec<GemListRow>,
+    pub details: Option<GemConfirmDetails>,
     pub title: GemConfirmTitle,
     pub verification: Option<PaymentVerification>,
-    pub authentication: GemKeystoreAuthentication,
-    pub notice: Option<GemListRow>,
+    pub sections: Vec<GemConfirmSection>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_only_an_enabled_confirm_button_shows_how_it_authenticates() {
+        let icon = |kind, state| {
+            GemConfirmButton {
+                kind,
+                state,
+                icon: GemKeystoreAuthentication::None,
+            }
+            .authenticated(GemKeystoreAuthentication::Biometrics)
+            .icon
+        };
+
+        assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Enabled), GemKeystoreAuthentication::Biometrics);
+        assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Loading), GemKeystoreAuthentication::None);
+        assert_eq!(icon(GemConfirmButtonKind::Retry, GemButtonState::Enabled), GemKeystoreAuthentication::None);
+    }
+
+    #[test]
+    fn test_the_fee_row_opens_details_only_while_it_has_a_fee_to_show() {
+        let asset = Asset::mock_eth();
+        let reloading = GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset.clone(), true);
+
+        assert!(reloading.opens_details, "a reload keeps the fee sheet reachable");
+        assert_eq!((reloading.title, reloading.info), (GemListRowTitle::NetworkFee, GemInfoTopic::NetworkFee { asset: asset.clone() }));
+        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Unavailable { text: "-".to_string() }, asset.clone(), true).opens_details);
+        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset, false).opens_details, "nothing loaded, nothing to open");
+    }
+
+    #[test]
+    fn test_the_network_fee_screen_opens_a_custom_field_only_where_a_custom_row_is_offered() {
+        let format = GemNumberFormat { decimal_separator: ".".to_string() };
+        let fee = GemConfirmFee::mock(GemTransferAmountResult::mock());
+        let state = |chain: primitives::Chain, fee_selection: GemConfirmFeeSelection| ConfirmState {
+            load: GemConfirmLoad {
+                fee_asset: Asset::from_chain(chain),
+                fee: Some(fee.clone()),
+                ..GemConfirmLoad::mock()
+            },
+            confirm_data: Some(GemConfirmData {
+                fee_rates: vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)],
+                fee_selection,
+                ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
+            }),
+        };
+
+        let picked = state(primitives::Chain::Bitcoin, GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(25) }).network_fee_screen(Currency::USD, format.clone());
+        assert_eq!(picked.fee, Some(fee.formatted.clone()));
+        assert_eq!(picked.custom.map(|custom| custom.input), Some("2.5".to_string()), "a picked custom rate reopens in the field");
+
+        let preset = state(primitives::Chain::Ethereum, GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }).network_fee_screen(Currency::USD, format);
+        assert!(preset.rates.is_some());
+        assert!(preset.custom.is_none(), "no custom row, no custom field");
+        assert!(preset.fee_asset.is_none(), "one fee asset is nothing to pick");
+    }
 
     #[test]
     fn test_metadata_pairs_each_balance_with_its_own_price() {
@@ -452,33 +657,16 @@ mod tests {
         let priority = GemConfirmFeeSelection::Priority { priority: FeePriority::Fast };
         let custom = GemConfirmFeeSelection::Custom { gas_price: 7.into() };
 
-        assert_eq!(priority.selected_priority(), Some(FeePriority::Fast));
         assert_eq!(priority.custom_gas_price(), None);
-        assert_eq!(custom.selected_priority(), None);
         assert_eq!(custom.custom_gas_price(), Some(7.into()));
     }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemConfirmRowContent {
-    Row {
-        row: GemListRow,
-    },
-    Recipient {
-        destination: GemConfirmDestination,
-        name: Option<String>,
-        text: String,
-        address: String,
-        memo: Option<String>,
-        chain: Chain,
-        link: BlockExplorerLink,
-        avatar: Option<GemAvatar>,
-        is_selectable: bool,
-    },
+    Row { row: GemListRow },
+    Recipient { row: GemAddressRow },
     Details,
-    PaymentAsset {
-        symbol: String,
-        selectable: bool,
-        asset_ids: Vec<AssetId>,
-    },
+    PaymentAsset { title: GemListRowTitle, symbol: String, selectable: bool, asset_ids: Vec<AssetId> },
 }

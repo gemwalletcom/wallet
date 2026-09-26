@@ -377,6 +377,10 @@ public enum Localized {
     }
   }
   public enum Date {
+    /// %@, %@
+    public static func dayTime(_ p1: Any, _ p2: Any) -> String {
+      return Localized.tr("Localizable", "date.day_time", String(describing: p1), String(describing: p2), fallback: "%@, %@")
+    }
     /// Today
     public static let today = Localized.tr("Localizable", "date.today", fallback: "Today")
     /// Yesterday

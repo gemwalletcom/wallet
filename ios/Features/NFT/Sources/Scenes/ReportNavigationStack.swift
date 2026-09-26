@@ -5,9 +5,9 @@ import Primitives
 import SwiftUI
 
 public struct ReportNavigationStack: View {
-    @State private var model: ReportNftViewModel
+    @State private var model: ReportNftSceneViewModel
 
-    public init(model: ReportNftViewModel) {
+    public init(model: ReportNftSceneViewModel) {
         _model = State(initialValue: model)
     }
 

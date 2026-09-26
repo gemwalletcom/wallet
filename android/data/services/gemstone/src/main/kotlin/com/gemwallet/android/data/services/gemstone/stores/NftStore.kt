@@ -1,13 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.NftDao
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
-import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.data.services.gemstone.nft.toAssetModel
-import com.gemwallet.android.data.services.gemstone.nft.toAssetModels
-import com.gemwallet.android.data.services.gemstone.nft.toCollectionModel
-import com.gemwallet.android.data.services.gemstone.nft.toCollectionModels
+import com.gemwallet.android.data.services.store.database.NftDao
+import com.gemwallet.android.data.services.store.database.entities.DbNFTAsset
+import com.gemwallet.android.data.services.store.database.entities.DbNFTAssociation
+import com.gemwallet.android.data.services.store.database.entities.DbNFTCollection
+import com.gemwallet.android.data.services.store.database.entities.toAssetModel
+import com.gemwallet.android.data.services.store.database.entities.toCollectionModel
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toNftAssetId
 import com.gemwallet.android.ext.toPrimitives
@@ -15,10 +13,6 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTCollection
-import com.wallet.core.primitives.NFTCollectionId
-import com.wallet.core.primitives.NFTData
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import uniffi.gemstone.GemNftStore
 
@@ -46,20 +40,6 @@ class GemstoneNftStore(private val nftDao: NftDao) : GemNftStore {
         val assetData = data.toPrimitives()
         nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
     }
-
-    fun observeNftData(walletId: String): Flow<List<NFTData>> = combine(
-        nftDao.getCollections(walletId),
-        nftDao.getAssets(walletId),
-    ) { collectionEntities, assetEntities ->
-        val assets = assetEntities.toAssetModels().groupBy { it.collectionId }
-        collectionEntities.toCollectionModels().map { collection -> NFTData(collection, assets[collection.id] ?: emptyList()) }
-    }
-
-    fun observeAsset(assetId: NFTAssetId): Flow<DbNFTAsset?> = nftDao.getAsset(assetId)
-
-    fun observeAssetOwnership(walletId: String, assetId: NFTAssetId): Flow<Boolean> = nftDao.isAssetOwned(walletId, assetId)
-
-    fun observeCollection(collectionId: NFTCollectionId): Flow<DbNFTCollection?> = nftDao.getCollection(collectionId)
 }
 
 private fun NFTCollection.toDb() = DbNFTCollection(

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.assetText
 import Primitives
 import PrimitivesComponents
 import Store
@@ -31,7 +32,7 @@ public struct RecipientScene: View {
                 Group {
                     switch model.type {
                     case let .asset(asset):
-                        AssetPreviewView(model: AssetViewModel(asset: asset.toPrimitives()))
+                        AssetPreviewView(model: assetText(asset: asset))
                     case let .nft(nftAsset):
                         NftPreviewView(
                             assetImage: model.nftAssetImage(for: nftAsset.toPrimitives()),

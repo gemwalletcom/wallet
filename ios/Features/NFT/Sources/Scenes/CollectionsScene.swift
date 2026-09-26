@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNftEntry
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -10,31 +11,30 @@ import Style
 import SwiftUI
 
 public struct CollectionsScene: View {
-    @State private var model: CollectionsViewModel
+    @State private var model: CollectionsSceneViewModel
 
-    public init(model: CollectionsViewModel) {
+    public init(model: CollectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
         let screen = model.screen
-        let content = CollectionsContent(screen)
         return GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: .zero) {
-                    if content.items.isNotEmpty {
+                    if screen.items.isNotEmpty {
                         LazyVGrid(columns: model.columns) {
-                            collectionsView(content.items)
+                            collectionsView(screen.items)
                         }
                         .padding(.horizontal, Spacing.medium + Spacing.tiny)
 
                         Spacer(minLength: .medium)
                     }
 
-                    if let unverifiedItem = content.unverifiedListItem {
+                    if let unverifiedRow = screen.unverifiedRow {
                         List {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
-                                ListItemView(model: unverifiedItem)
+                                ListItemView(model: unverifiedRow.listItem)
                             }
                         }
                         .contentMargins(.top, .zero, for: .scrollContent)
@@ -77,10 +77,10 @@ public struct CollectionsScene: View {
 // MARK: - UI
 
 extension CollectionsScene {
-    private func collectionsView(_ items: [GridPosterViewItem]) -> some View {
-        ForEach(items) { item in
-            NavigationLink(value: item.destination) {
-                GridPosterView(model: item.model)
+    private func collectionsView(_ entries: [GemNftEntry]) -> some View {
+        ForEach(entries, id: \.row.id) { entry in
+            NavigationLink(value: entry.destination) {
+                GridPosterView(model: entry.posterModel)
             }
         }
     }

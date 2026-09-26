@@ -37,7 +37,7 @@ struct SupportChatStoreTests {
 
     private func statuses(_ db: DB) throws -> [String: SupportMessageStatus] {
         try db.dbQueue
-            .read { try SupportMessagesRequest().fetch($0) }
+            .read { try SupportMessagesQuery().fetch($0) }
             .reduce(into: [:]) { $0[$1.id] = $1.status }
     }
 }

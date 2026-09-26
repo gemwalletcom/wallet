@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, Chain, RecentActivityType, WalletId};
+use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::{Quote, SwapperProvider};
 
 use super::GemSwapService;
@@ -99,6 +99,10 @@ impl GemSwapQuotesResult {
             error: None,
         }
     }
+}
+
+pub fn mock_asset_data(chain: Chain, available: u64) -> AssetData {
+    AssetData::mock(Asset::from_chain(chain), Balance::coin_balance(available.into()))
 }
 
 impl GemSwapSession {

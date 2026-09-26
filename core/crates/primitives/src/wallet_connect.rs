@@ -3,7 +3,7 @@ use serde_serializers::deserialize_option_u64_from_str_or_int;
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, UInt64, WALLET_CONNECT_URL_SCHEME};
+use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
 
 const WALLET_CONNECT_HOST: &str = "wc";
 
@@ -15,7 +15,7 @@ const QUERY_REQUEST_ID: &str = "requestId";
 #[serde(rename_all = "camelCase")]
 pub struct WCEthereumTransaction {
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
-    pub chain_id: Option<UInt64>,
+    pub chain_id: Option<u64>,
     pub from: String,
     pub to: String,
     pub value: Option<String>,

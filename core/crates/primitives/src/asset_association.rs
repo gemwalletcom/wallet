@@ -1,11 +1,11 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 use crate::AssetId;
 
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetAssociation {
     pub asset_id: AssetId,
@@ -13,8 +13,8 @@ pub struct AssetAssociation {
     pub association_type: AssetAssociationType,
 }
 
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum AssetAssociationType {

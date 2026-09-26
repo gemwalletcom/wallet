@@ -308,6 +308,7 @@
   <string name="charts_price_change">Wijziging</string>
   <string name="date_today">Vandaag</string>
   <string name="date_yesterday">Gisteren</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Verbinding</string>
   <string name="wallet_connect_disconnect">Verbreek de verbinding</string>

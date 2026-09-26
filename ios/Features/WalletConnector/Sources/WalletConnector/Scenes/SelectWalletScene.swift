@@ -23,7 +23,7 @@ struct SelectWalletScene: View {
                 dismiss()
             },
             listContent: {
-                SimpleListItemView(model: $0)
+                ListItemView(model: $0.nameListItem)
             },
         )
         .navigationTitle(model.title)

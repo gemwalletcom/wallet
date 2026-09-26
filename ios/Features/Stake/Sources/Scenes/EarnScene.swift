@@ -16,7 +16,7 @@ public struct EarnScene: View {
     public var body: some View {
         let earn = model.earnView
         List {
-            ListAssetHeaderView(model: model.assetModel)
+            ListAssetHeaderView(model: earn.asset)
 
             switch model.providersState(earn) {
             case .noData:
@@ -45,7 +45,7 @@ public struct EarnScene: View {
             Section(model.positionsSectionTitle(earn)) {
                 if earn.positions.isNotEmpty {
                     ForEach(earn.positions) { item in
-                        NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
+                        NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
                             model.onSelect(item: item)
                         }
                     }

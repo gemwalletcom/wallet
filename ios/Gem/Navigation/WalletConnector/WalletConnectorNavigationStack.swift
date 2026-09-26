@@ -45,7 +45,7 @@ struct WalletConnectorNavigationStack: View {
                     )
                 case let .connectionProposal(data):
                     ConnectionProposalScene(
-                        model: ConnectionProposalViewModel(
+                        model: ConnectionProposalSceneViewModel(
                             confirmTransferDelegate: data.delegate,
                             pairingProposal: data.payload,
                         ),

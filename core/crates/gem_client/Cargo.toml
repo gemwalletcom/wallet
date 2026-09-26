@@ -19,4 +19,4 @@ hex = { workspace = true }
 tokio = { workspace = true, features = ["time"], optional = true }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt"] }
+tokio = { workspace = true, features = ["macros", "rt", "test-util"] }

@@ -673,6 +673,8 @@ charts_price_change = Change
 date_today = Today
 # Used in date labels for the yesterday label.
 date_yesterday = Yesterday
+# Used in date rows to join the day label and the time, as in "Today, 10:30".
+date_day_time = %@, %@
 
 # Wallet Connect
 

@@ -1,8 +1,8 @@
 package com.gemwallet.android.application.wallet.cases
 
-import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import kotlinx.coroutines.flow.StateFlow
+import uniffi.gemstone.GemWalletSection
 
 interface GetAllWallets {
-    fun getAllWallets(): StateFlow<List<WalletDataAggregate>>
+    fun getAllWallets(): StateFlow<List<GemWalletSection>>
 }

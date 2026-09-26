@@ -308,6 +308,7 @@
   <string name="charts_price_change">Perubahan</string>
   <string name="date_today">Hari ini</string>
   <string name="date_yesterday">Semalam</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Sambungan</string>
   <string name="wallet_connect_disconnect">Putuskan sambungan</string>

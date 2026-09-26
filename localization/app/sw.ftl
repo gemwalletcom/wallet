@@ -356,6 +356,7 @@ charts_price_change = Mabadiliko
 
 date_today = Leo
 date_yesterday = Jana
+date_day_time = %@, %@
 
 # Wallet Connect
 

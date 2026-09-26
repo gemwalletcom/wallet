@@ -24,7 +24,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aListScopeSearchesByItsTag() {
-        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.asset]))
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.asset]))
 
         #expect(model.searchQuery.request.searchKey == "tag:trending")
     }
@@ -55,8 +55,8 @@ struct AssetsResultsSceneViewModelTests {
     func assetsAndPinnedAssetsSplitOnTheirMetadata() {
         let model = AssetsResultsSceneViewModel.mock()
         model.searchQuery.value = .mock(assets: [
-            .mock(asset: .mockEthereum(), metadata: .mock(isPinned: true)),
-            .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), metadata: .mock(isPinned: true)),
+            .mock(asset: .mock(id: .mock(chain: .bitcoin)), metadata: .mock(isPinned: false)),
         ])
 
         #expect(model.state.showsPinned)
@@ -69,7 +69,7 @@ struct AssetsResultsSceneViewModelTests {
     @Test
     func perpetualsAreOfferedOnlyInAListScopeAndOnlyWhenCoreAllowsThem() {
         let service = GemAssetSelectionServiceMock()
-        let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
+        let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         listModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
 
         #expect(listModel.state.showsPerpetuals)
@@ -84,7 +84,7 @@ struct AssetsResultsSceneViewModelTests {
 
     @Test
     func aPinnedPerpetualStaysInTheListResult() {
-        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchQuery(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         model.searchQuery.value = .mock(perpetuals: [
             .mock(metadata: .mock(isPinned: true)),
             .mock(metadata: .mock(isPinned: false)),
@@ -112,11 +112,11 @@ struct AssetsResultsSceneViewModelTests {
             onSetAssetPinned: { id, value in calls.record(assetId: id, pinned: value) },
         )
         let model = AssetsResultsSceneViewModel.mock(service: service)
-        let assetId = AssetId.mock(.ethereum)
+        let assetId = AssetId.mock(chain: .ethereum)
 
-        try await model.setAssetPinned(assetId, pinned: true)
+        _ = try await model.setAssetPinned(.mock(id: assetId), pinned: true)
         try await model.setAssetsEnabled([assetId], enabled: false)
-        try await model.setPerpetualPinned(PerpetualId(provider: .hypercore, symbol: "BTC"), pinned: true)
+        _ = try await model.setPerpetualPinned(.mock(), pinned: true)
 
         #expect(calls.pinned == [true])
         #expect(calls.enabled == [false])

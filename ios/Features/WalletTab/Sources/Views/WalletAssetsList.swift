@@ -37,18 +37,18 @@ struct WalletAssetsList: View {
     }
 
     var body: some View {
-        ForEach(Array(zip(assets, itemsModel.items(assets, showBalancePrivacy: $showBalancePrivacy))), id: \.0.id) { asset, model in
+        ForEach(Array(zip(assets, itemsModel.rows(assets))), id: \.0.id) { asset, row in
             NavigationLink(value: Scenes.Asset(asset: asset.asset)) {
-                ListAssetItemView(model: model)
-                    .contextMenu(
+                ListAssetItemView(row: row, isPrivacyEnabled: $showBalancePrivacy)
+                    .contextMenuOnOpen {
                         AssetContextMenu.items(
                             for: asset,
                             onCopy: { onCopyAddress?(itemsModel.copyMessage(chain: asset.asset.chain, address: $0)) },
                             onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
                             onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
                             onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },
-                        ),
-                    )
+                        )
+                    }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             onHideAsset?(asset.asset.id)

@@ -1,5 +1,6 @@
 use crate::duration_formatter::countdown_parts;
 use crate::precision::GemValueStyle;
+use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
@@ -22,7 +23,7 @@ pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomi
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
         return GemRewardsState {
-            invite_reward_points: points_number(Rewards::default().invite_reward_points),
+            invite_description: invite_description(Rewards::default().invite_reward_points),
             ..GemRewardsState::default()
         };
     };
@@ -35,8 +36,9 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let can_invite = has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution);
     let used_referral_code = rewards.used_referral_code.clone().filter(|code| !code.is_empty());
     let pending_code = (has_pending_referral && !is_unverified).then(|| used_referral_code.clone()).flatten();
+    let can_use_referral_code = !has_referral_code && !has_used_referral_code && rewards.use_referral_code_until.is_none_or(|until| now < until);
     GemRewardsState {
-        actions: actions(has_referral_code, can_invite, !has_referral_code && !has_used_referral_code, pending_code, can_activate_pending_referral),
+        actions: actions(has_referral_code, can_invite, can_use_referral_code, pending_code, can_activate_pending_referral),
         error_notice: rewards.disable_reason.clone().map(|reason| GemListRow::Notice {
             title: GemListRowTitle::Error,
             message: Some(GemLocalizedText::Text { text: reason }),
@@ -47,12 +49,17 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
             has_referral_code || has_used_referral_code,
             info_rows(referral_code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref()),
         ),
-        invite_reward_points: points_number(rewards.invite_reward_points),
+        invite_description: invite_description(rewards.invite_reward_points),
         referral_code: referral_code.clone(),
         referral_link: referral_code.as_deref().map(get_referral_url),
+        share_text: referral_code.as_deref().map(|code| GemLocalizedText::RewardsShareText { link: get_referral_url(code) }),
         used_referral_code,
         redemptions: redemptions(rewards),
     }
+}
+
+fn invite_description(points: i32) -> GemLocalizedText {
+    GemLocalizedText::RewardsInviteDescription { points: points_number(points) }
 }
 
 fn actions(has_referral_code: bool, can_invite: bool, can_use_referral_code: bool, pending_code: Option<String>, can_activate_pending: bool) -> Vec<GemRewardsAction> {
@@ -118,11 +125,17 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
             let asset = option.asset.as_ref()?;
             let value = BigNumberFormatter::f64_value(&option.value, asset.decimals as u32);
             let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
+            let points = points_number(option.points);
             Some(GemRewardsRedemption {
                 id: option.id.clone(),
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: GemLocalizedText::RewardsRedeemAsset { value: value.clone() },
-                points: points_number(option.points),
+                confirmation: GemLocalizedText::RewardsConfirmRedeem {
+                    value: value.clone(),
+                    points: points.clone(),
+                },
+                points,
                 value,
                 can_redeem: can_redeem(rewards, option),
             })
@@ -219,6 +232,7 @@ mod tests {
         let with_code = super::state(Some(&rewards), Utc::now());
         assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
         assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+        assert_eq!(with_code.share_text, Some(GemLocalizedText::RewardsShareText { link: get_referral_url("abc123") }), "the invite shares the link");
 
         let without_code = super::state(Some(&Rewards::default()), Utc::now());
         assert_eq!(without_code.referral_code, None);
@@ -307,6 +321,14 @@ mod tests {
             redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
             "the row title names the value it pays out"
         );
+        assert!(
+            redemptions.iter().all(|redemption| redemption.confirmation
+                == GemLocalizedText::RewardsConfirmRedeem {
+                    value: redemption.value.clone(),
+                    points: redemption.points.clone(),
+                }),
+            "the confirmation names what it pays out and what it costs"
+        );
     }
 
     #[test]
@@ -316,7 +338,7 @@ mod tests {
         assert_eq!(
             state,
             GemRewardsState {
-                invite_reward_points: points_number(100),
+                invite_description: invite_description(100),
                 ..GemRewardsState::default()
             },
             "a wallet whose rewards failed to load still reads the invite pitch"
@@ -349,7 +371,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![(GemListRowTitle::Referrals, 5.0), (GemListRowTitle::Points, 250.0)]
         );
-        assert_eq!(state.invite_reward_points.value, 150.0);
+        assert_eq!(state.invite_description, GemLocalizedText::RewardsInviteDescription { points: points_number(150) });
         assert_eq!(
             state.error_notice,
             Some(GemListRow::Notice {
@@ -375,6 +397,21 @@ mod tests {
         assert_eq!(state.actions, vec![GemRewardsAction::CreateCode, GemRewardsAction::UseReferralCode]);
         assert!(state.sections.is_empty(), "a wallet with nothing to show has no info section");
         assert_eq!(state.status_notice, None);
+    }
+
+    #[test]
+    fn test_state_offers_a_code_only_while_the_device_and_wallet_are_eligible() {
+        let eligible = Rewards {
+            use_referral_code_until: Some(now() + TimeDelta::days(1)),
+            ..Rewards::mock(Some(""), RewardStatus::Unverified)
+        };
+        assert!(state(Some(&eligible), now()).actions.contains(&GemRewardsAction::UseReferralCode));
+
+        let expired = Rewards {
+            use_referral_code_until: Some(now()),
+            ..eligible
+        };
+        assert_eq!(state(Some(&expired), now()).actions, vec![GemRewardsAction::CreateCode]);
     }
 
     #[test]

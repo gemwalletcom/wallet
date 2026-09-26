@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.NameRecord
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
@@ -11,18 +12,19 @@ import Testing
 struct NameRecordViewModelTests {
     @Test
     func keepsTheResolvedStateAndSkipsARepeatedName() async {
-        let record = NameRecord.mock()
+        let chain = Chain.ethereum
+        let record = NameRecord.mock(name: "test.eth", chain: chain.rawValue, address: "0x1234567890123456789012345678901234567890")
         let nameService = GemNameServiceMock(nameRecord: record)
         let model = NameRecordViewModel(nameService: nameService)
 
-        model.getNameRecord(name: record.name, chain: record.chain)
+        model.getNameRecord(name: record.name, chain: chain)
         await model.nameRecordTask?.value
 
-        #expect(model.state == .complete(record: record.toGem()))
+        #expect(model.state == .complete(record: record))
 
-        model.getNameRecord(name: record.name, chain: record.chain)
+        model.getNameRecord(name: record.name, chain: chain)
 
-        #expect(model.state == .complete(record: record.toGem()))
+        #expect(model.state == .complete(record: record))
         #expect(nameService.requestedNames == [record.name])
     }
 

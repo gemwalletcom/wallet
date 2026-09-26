@@ -2,10 +2,10 @@
 
 import class Gemstone.GemSignMessageService
 import struct Gemstone.GemWalletConnectMessageRequest
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import WalletConnector
 import WalletConnectorService
-import WalletConnectorServiceTestKit
 
 public extension SignMessageSceneViewModel {
     @MainActor

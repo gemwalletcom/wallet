@@ -356,6 +356,7 @@ charts_price_change = Wijziging
 
 date_today = Vandaag
 date_yesterday = Gisteren
+date_day_time = %@, %@
 
 # Wallet Connect
 

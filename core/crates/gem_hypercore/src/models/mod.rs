@@ -15,5 +15,3 @@ pub mod token;
 pub mod transaction_id;
 pub mod user;
 pub mod websocket;
-
-pub type UInt64 = u64;

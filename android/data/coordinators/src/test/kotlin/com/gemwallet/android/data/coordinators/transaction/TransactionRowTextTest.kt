@@ -5,17 +5,15 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetEthereumUSDT
-import com.gemwallet.android.testkit.mockAssetSmartChain
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
-import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockTransactionId
+import com.gemwallet.android.testkit.mockTransactionListItem
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
+import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -72,11 +70,11 @@ class TransactionRowTextTest {
         System.clearProperty(gemstoneLibraryOverrideProperty)
     }
 
-    private val btcAsset = mockAsset()
+    private val btcAsset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
 
-    private val ethAsset = mockAssetEthereum()
+    private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
 
-    private fun row(transaction: TransactionExtended): GemTransactionRow = transactionRows(listOf(transaction.toGem())).first()
+    private fun row(transaction: TransactionListItem): GemTransactionRow = transactionRows(listOf(transaction.toGem())).first()
 
     @Test
     fun testBasicPropertyDelegation() {
@@ -87,8 +85,8 @@ class TransactionRowTextTest {
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
+        val row = row(item)
 
         assertEquals(TransactionId(Chain.Bitcoin, "test-id-123"), TransactionId(row.id))
         assertEquals(btcAsset, row.asset.toPrimitives())
@@ -106,8 +104,8 @@ class TransactionRowTextTest {
             from = "bc1qsender",
             to = "bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l",
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction)
+        val row = row(item)
 
         assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qx2...tpd9l"), row.subtitle)
     }
@@ -121,8 +119,8 @@ class TransactionRowTextTest {
             from = "bc1qsender",
             to = "bc1qreceiver",
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction)
+        val row = row(item)
 
         assertEquals(GemTransactionRowSubtitle.FromAddress("bc1qsender"), row.subtitle)
     }
@@ -136,8 +134,8 @@ class TransactionRowTextTest {
             from = "bc1qsender",
             to = "bc1qsender",
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction)
+        val row = row(item)
 
         assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qsender"), row.subtitle)
     }
@@ -148,8 +146,8 @@ class TransactionRowTextTest {
             type = TransactionType.Swap,
             direction = TransactionDirection.Outgoing,
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction)
+        val row = row(item)
 
         assertEquals(GemTransactionRowSubtitle.None, row.subtitle)
     }
@@ -161,8 +159,8 @@ class TransactionRowTextTest {
             type = TransactionType.StakeDelegate,
             direction = TransactionDirection.Outgoing,
         )
-        val extended = mockTransactionExtended(transaction)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction)
+        val row = row(item)
 
         assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qre...eiver"), row.subtitle)
     }
@@ -174,8 +172,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "100000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = btcAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
+        val row = row(item)
 
         assertEquals("-1 BTC", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -188,8 +186,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Incoming,
             value = "50000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = btcAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
+        val row = row(item)
 
         assertEquals("+0.5 BTC", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -202,8 +200,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.SelfTransfer,
             value = "25000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = btcAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
+        val row = row(item)
 
         assertEquals("0.25 BTC", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -216,8 +214,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "1000000000000000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = ethAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = ethAsset)
+        val row = row(item)
 
         assertEquals("1 ETH", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -230,8 +228,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Incoming,
             value = "2000000000000000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = ethAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = ethAsset)
+        val row = row(item)
 
         assertEquals("2 ETH", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -244,8 +242,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Incoming,
             value = "500000000000000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = ethAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = ethAsset)
+        val row = row(item)
 
         assertEquals("+0.5 ETH", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -258,8 +256,9 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "1000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = mockAssetEthereumUSDT())
-        val row = row(extended)
+        val item =
+            mockTransactionListItem(transaction, asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20))
+        val row = row(item)
 
         assertEquals("USDT", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -272,8 +271,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "1000000000000000000",
         )
-        val extended = mockTransactionExtended(transaction, asset = ethAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = ethAsset)
+        val row = row(item)
 
         assertEquals("1 ETH", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -281,10 +280,9 @@ class TransactionRowTextTest {
 
     @Test
     fun testValue_swap() {
-        val bnbAsset = mockAssetSmartChain()
+        val bnbAsset = mockAsset(id = mockAssetId(chain = Chain.SmartChain), name = "BNB", symbol = "BNB", decimals = 18)
         val tonAsset = mockAsset(
-            chain = Chain.SmartChain,
-            tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
+            id = mockAssetId(chain = Chain.SmartChain, tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f"),
             name = "Ton",
             symbol = "TON",
             decimals = 9,
@@ -306,12 +304,12 @@ class TransactionRowTextTest {
             value = "90000000000000000",
             metadata = metadata,
         )
-        val extended = mockTransactionExtended(
+        val item = mockTransactionListItem(
             transaction = transaction,
             asset = bnbAsset,
             assets = listOf(bnbAsset, tonAsset),
         )
-        val row = row(extended)
+        val row = row(item)
 
         assertEquals(row.value.text().orEmpty(), "+19 TON")
         assertEquals(row.equivalentValue.text(), "-0.09 BNB")
@@ -325,8 +323,8 @@ class TransactionRowTextTest {
             value = "90000000000000000",
             metadata = null,
         )
-        val extended = mockTransactionExtended(transaction, asset = ethAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = ethAsset)
+        val row = row(item)
 
         assertEquals("", row.value.text().orEmpty())
         assertNull(row.equivalentValue.text())
@@ -346,7 +344,7 @@ class TransactionRowTextTest {
             metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
         )
         val row = row(
-            mockTransactionExtended(
+            mockTransactionListItem(
                 transaction = transaction,
                 assets = listOf(btcAsset, ethAsset),
             ),
@@ -363,8 +361,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "1345",
         )
-        val extended = mockTransactionExtended(transaction, asset = btcAsset)
-        val row = row(extended)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
+        val row = row(item)
 
         assertEquals("-<0.0001 BTC", row.value.text().orEmpty())
     }

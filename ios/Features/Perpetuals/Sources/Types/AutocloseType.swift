@@ -4,7 +4,7 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 
-public typealias AutocloseCompletion = (AutocloseSelection) -> Void
+public typealias AutocloseCompletion = (_ takeProfit: String, _ stopLoss: String) -> Void
 
 public enum AutocloseType {
     case modify(PerpetualPositionData, onTransferAction: TransferDataAction)

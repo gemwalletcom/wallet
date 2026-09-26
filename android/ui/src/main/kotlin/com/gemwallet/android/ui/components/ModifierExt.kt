@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.clickable as foundationClickable
 
 @Composable
@@ -17,4 +18,12 @@ fun Modifier.clickable(enabled: Boolean, onClick: () -> Unit, shape: Shape? = nu
         .clip(resolvedShape)
         .then(this)
         .foundationClickable(enabled = enabled, onClick = onClick)
+}
+
+fun Modifier.consumeAllPointerEvents(): Modifier = pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) {
+            awaitPointerEvent().changes.forEach { it.consume() }
+        }
+    }
 }

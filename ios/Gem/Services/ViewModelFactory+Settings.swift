@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import Foundation
 import class Gemstone.GemCurrencyService
 import class Gemstone.GemNotificationsService
@@ -11,6 +10,7 @@ import InAppNotifications
 import PriceAlerts
 import Primitives
 import PrimitivesComponents
+import Rewards
 import Settings
 import Store
 import Support
@@ -20,26 +20,26 @@ import WalletConnectorService
 
 public extension ViewModelFactory {
     @MainActor
-    func notificationsScene() -> NotificationsViewModel {
-        NotificationsViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
+    func notificationsScene() -> NotificationsSceneViewModel {
+        NotificationsSceneViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
     }
 
     @MainActor
-    func settingsScene() -> SettingsViewModel {
-        SettingsViewModel(
+    func settingsScene() -> SettingsSceneViewModel {
+        SettingsSceneViewModel(
             service: GemSettingsService(preferences: preferencesService),
             observablePreferences: observablePreferences,
         )
     }
 
     @MainActor
-    func appearanceScene() -> AppearanceViewModel {
-        AppearanceViewModel(preferences: observablePreferences)
+    func appearanceScene() -> AppearanceSceneViewModel {
+        AppearanceSceneViewModel(preferences: observablePreferences)
     }
 
     @MainActor
-    func preferencesScene() -> PreferencesViewModel {
-        PreferencesViewModel(
+    func preferencesScene() -> PreferencesSceneViewModel {
+        PreferencesSceneViewModel(
             settings: GemSettingsService(preferences: preferencesService),
             preferences: observablePreferences,
         )
@@ -49,8 +49,8 @@ public extension ViewModelFactory {
     func connectionsScene(
         connector: any WalletConnectorServiceable,
         walletConnectorPresenter: WalletConnectorPresenter,
-    ) -> ConnectionsViewModel {
-        ConnectionsViewModel(
+    ) -> ConnectionsSceneViewModel {
+        ConnectionsSceneViewModel(
             connector: connector,
             service: walletConnectService,
             walletConnectorPresenter: walletConnectorPresenter,
@@ -58,18 +58,18 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func aboutUsScene() -> AboutUsViewModel {
-        AboutUsViewModel(preferences: observablePreferences, service: appUpdateService)
+    func aboutUsScene() -> AboutUsSceneViewModel {
+        AboutUsSceneViewModel(preferences: observablePreferences, service: appUpdateService)
     }
 
     @MainActor
-    func chainListSettingsScene() -> ChainListSettingsViewModel {
-        ChainListSettingsViewModel(service: gatewayService.chainSettingsService(nodes: nodeService, explorer: explorerService))
+    func chainListSettingsScene() -> ChainListSettingsSceneViewModel {
+        ChainListSettingsSceneViewModel(service: gatewayService.chainSettingsService(nodes: nodeService, explorer: explorerService))
     }
 
     @MainActor
-    func serviceStatusScene() -> ServiceStatusViewModel {
-        ServiceStatusViewModel(service: serviceStatusService)
+    func serviceStatusScene() -> ServiceStatusSceneViewModel {
+        ServiceStatusSceneViewModel(service: serviceStatusService)
     }
 
     @MainActor
@@ -78,19 +78,19 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func assetPriceAlertsScene(walletId: WalletId, asset: Asset) -> AssetPriceAlertsViewModel {
-        AssetPriceAlertsViewModel(service: priceAlertService, walletId: walletId, asset: asset)
+    func assetPriceAlertsScene(walletId: WalletId, asset: Asset) -> AssetPriceAlertsSceneViewModel {
+        AssetPriceAlertsSceneViewModel(service: priceAlertService, walletId: walletId, asset: asset)
     }
 
     @MainActor
-    func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertViewModel {
-        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
+    func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertSceneViewModel {
+        SetPriceAlertSceneViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
     }
 
     @MainActor
-    func inAppNotificationsScene() -> InAppNotificationsViewModel? {
+    func inAppNotificationsScene() -> InAppNotificationsSceneViewModel? {
         currentWallet(in: currentWallets()).map {
-            InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) { action in
+            InAppNotificationsSceneViewModel(wallet: $0, service: inAppNotificationService) { action in
                 Task { await AppResolver.main.services.navigationRouter.open(action: action) }
             }
         }
@@ -114,8 +114,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func developerScene(walletId: WalletId) -> DeveloperViewModel {
-        DeveloperViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
+    func developerScene(walletId: WalletId) -> DeveloperSceneViewModel {
+        DeveloperSceneViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
     }
 
     @MainActor
@@ -124,8 +124,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func securityScene() -> SecurityViewModel {
-        SecurityViewModel(
+    func securityScene() -> SecuritySceneViewModel {
+        SecuritySceneViewModel(
             service: biometryService,
             settings: GemSettingsService(preferences: preferencesService),
             preferences: observablePreferences,
@@ -133,9 +133,9 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func rewardsScene(activateCode: String?) -> RewardsViewModel? {
+    func rewardsScene(activateCode: String?) -> RewardsSceneViewModel? {
         let wallets = currentWallets()
-        return RewardsViewModel(
+        return RewardsSceneViewModel(
             service: rewardsService,
             wallets: wallets,
             currentWallet: currentWallet(in: wallets),

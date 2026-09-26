@@ -13,10 +13,10 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProp
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
@@ -28,7 +28,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -53,7 +52,7 @@ class WalletConnectCoordinator(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
-    GetWalletConnections,
+    SyncWalletConnectSessions,
     DisconnectWalletConnection,
     ApproveWalletConnection,
     ApproveWalletConnectAuthentication,
@@ -92,10 +91,6 @@ class WalletConnectCoordinator(
     }
 
     override fun isWalletConnectEnabled(): Boolean = walletConnectClient.isEnabled
-
-    override fun observeConnections(): Flow<List<WalletConnection>> = connectionStore.observeConnections()
-
-    override fun observeConnection(connectionId: String): Flow<WalletConnection?> = connectionStore.observeConnection(connectionId)
 
     override suspend fun syncSessions() = sync()
 

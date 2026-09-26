@@ -7,10 +7,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,7 +43,6 @@ class DevicePushSettings(
     EnablePushForSupport,
     EnablePushForNewWallet,
     GetPushEnabled,
-    GetPushToken,
     SetPushToken {
 
     private val Context.dataStore by preferencesDataStore(name = "device_config")
@@ -83,7 +81,7 @@ class DevicePushSettings(
         scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
     }
 
-    override suspend fun getPushToken(): String = configStore.getString(PUSH_TOKEN)
+    suspend fun getPushToken(): String = configStore.getString(PUSH_TOKEN)
 
     private suspend fun migratePushEnabled() {
         val stored = context.dataStore.data.map { it[LegacyPushEnabled] }.firstOrNull() ?: return

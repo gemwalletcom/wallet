@@ -1,0 +1,408 @@
+package com.gemwallet.android.features.assets.presents.select
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.filters.AssetsFilter
+import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
+import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
+import com.gemwallet.android.ui.components.list_item.AssetItemAction
+import com.gemwallet.android.ui.components.list_item.AssetListItem
+import com.gemwallet.android.ui.components.list_item.AssetSectionHeaderItem
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.drop
+import uniffi.gemstone.GemAssetSectionKind
+import uniffi.gemstone.GemAssetsFilterView
+import uniffi.gemstone.GemEmptyState
+import uniffi.gemstone.GemEmptyStateAction
+import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemSelectAssetState
+import uniffi.gemstone.emptyState
+
+@Composable
+fun SelectAssetScene(
+    title: String,
+    popular: ImmutableList<AssetInfoDataAggregate>,
+    pinned: ImmutableList<AssetInfoDataAggregate>,
+    unpinned: ImmutableList<AssetInfoDataAggregate>,
+    recent: ImmutableList<Asset>,
+    state: GemSelectAssetState,
+    query: TextFieldState,
+    empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
+    availableChains: List<Chain> = emptyList(),
+    filter: GemAssetsFilterView? = null,
+    searchable: Boolean = true,
+    onAction: (SelectAssetAction) -> Unit,
+    closeIcon: Boolean = false,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    contextActions: AssetContextActions = AssetContextActions.Empty,
+    recentsSheetEnabled: Boolean = false,
+    snackbar: SnackbarHostState? = null,
+) {
+    SelectAssetScene(
+        title = {
+            Text(
+                modifier = Modifier,
+                text = title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        popular = popular,
+        pinned = pinned,
+        unpinned = unpinned,
+        recent = recent,
+        state = state,
+        query = query,
+        empty = empty,
+        availableChains = availableChains,
+        filter = filter,
+        searchable = searchable,
+        onAction = onAction,
+        closeIcon = closeIcon,
+        onItemAction = onItemAction,
+        actions = actions,
+        contextActions = contextActions,
+        recentsSheetEnabled = recentsSheetEnabled,
+        snackbar = snackbar,
+    )
+}
+
+@Composable
+fun SelectAssetScene(
+    title: @Composable () -> Unit,
+    popular: ImmutableList<AssetInfoDataAggregate>,
+    pinned: ImmutableList<AssetInfoDataAggregate>,
+    unpinned: ImmutableList<AssetInfoDataAggregate>,
+    recent: ImmutableList<Asset>,
+    state: GemSelectAssetState,
+    query: TextFieldState,
+    empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS),
+    availableChains: List<Chain> = emptyList(),
+    filter: GemAssetsFilterView? = null,
+    showFilter: Boolean = true,
+    searchable: Boolean = true,
+    onAction: (SelectAssetAction) -> Unit,
+    closeIcon: Boolean = false,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    contextActions: AssetContextActions = AssetContextActions.Empty,
+    recentsSheetEnabled: Boolean = false,
+    pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = emptyList(),
+    perpetualsContent: (LazyListScope.() -> Unit)? = null,
+    listsContent: (LazyListScope.() -> Unit)? = null,
+    nftsContent: (LazyListScope.() -> Unit)? = null,
+    assetsHeaderRes: Int? = null,
+    assetsHeaderClickable: Boolean = false,
+    snackbar: SnackbarHostState? = null,
+) {
+    val onSelect: (Asset) -> Unit = { onAction(SelectAssetAction.Select(it)) }
+    val onSelectRecent: (Asset) -> Unit = { onAction(SelectAssetAction.SelectRecent(it)) }
+    val onOpenRecentsSheet: (() -> Unit)? = if (recentsSheetEnabled) {
+        { onAction(SelectAssetAction.OpenRecentsSheet) }
+    } else {
+        null
+    }
+    val onAssetsHeaderClick: (() -> Unit)? = if (assetsHeaderClickable) {
+        { onAction(SelectAssetAction.ShowAllAssets) }
+    } else {
+        null
+    }
+    val listState = rememberLazyListState()
+    var isReturnToTop by remember { mutableStateOf(false) }
+
+    var showSelectNetworks by remember { mutableStateOf(false) }
+    val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { query.text.toString() }
+            .drop(1)
+            .collect { isReturnToTop = it.isEmpty() }
+    }
+
+    LaunchedEffect(pinned, unpinned) {
+        if (isReturnToTop) {
+            if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
+                listState.animateScrollToItem(0)
+            }
+            isReturnToTop = false
+        }
+    }
+
+    Scene(
+        titleContent = title,
+        actions = {
+            if (showFilter && filter != null && availableChains.isNotEmpty()) {
+                IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
+                    Icon(
+                        imageVector = AppIcons.FilterAlt,
+                        tint = if (filter.isFiltered) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            LocalContentColor.current
+                        },
+                        contentDescription = null,
+                    )
+                }
+            }
+            actions()
+        },
+        snackbar = snackbar,
+        onClose = { onAction(SelectAssetAction.Cancel) },
+        closeIcon = closeIcon,
+    ) {
+        if (searchable) {
+            SearchBar(query = query)
+        }
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            state = listState,
+        ) {
+            recent(recent, onSelectRecent, onOpenRecentsSheet)
+            assets(popular, GemAssetSectionKind.POPULAR, onSelect, onItemAction, longPressedAsset, contextActions)
+            if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
+                item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
+                val pinnedTotal = pinnedPerpetualRows.size + pinned.size
+                itemsPositioned(pinnedPerpetualRows, totalCount = pinnedTotal) { position, row ->
+                    row(position)
+                }
+                assetRows(
+                    pinned,
+                    onSelect,
+                    onItemAction,
+                    longPressedAsset,
+                    contextActions,
+                    indexOffset = pinnedPerpetualRows.size,
+                    totalCount = pinnedTotal,
+                )
+            }
+            listsContent?.invoke(this)
+            perpetualsContent?.invoke(this)
+            nftsContent?.invoke(this)
+            if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
+                item {
+                    SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
+                }
+            }
+            assets(unpinned, GemAssetSectionKind.ASSETS, onSelect, onItemAction, longPressedAsset, contextActions)
+            searchState(
+                state = state,
+                empty = empty,
+                topOffset = 0,
+                onAddAsset = { onAction(SelectAssetAction.AddAsset) },
+            )
+        }
+    }
+
+    if (filter != null) {
+        AssetsFilter(
+            isVisible = showSelectNetworks,
+            availableChains = availableChains,
+            filter = filter,
+            onDismissRequest = { showSelectNetworks = false },
+            onChainFilter = { onAction(SelectAssetAction.ChainFilter(it)) },
+            onBalanceFilter = { onAction(SelectAssetAction.BalanceFilter(it)) },
+            onClearFilters = { onAction(SelectAssetAction.ClearFilters) },
+        )
+    }
+}
+
+private fun LazyListScope.assets(
+    items: List<AssetInfoDataAggregate>,
+    group: GemAssetSectionKind,
+    onSelect: ((Asset) -> Unit)?,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)?,
+    longPressedAsset: MutableState<AssetId?>,
+    contextActions: AssetContextActions,
+) {
+    if (items.isEmpty()) return
+
+    item { AssetSectionHeaderItem(group) }
+
+    assetRows(items, onSelect, onItemAction, longPressedAsset, contextActions)
+}
+
+fun LazyListScope.assetRows(
+    items: List<AssetInfoDataAggregate>,
+    onSelect: ((Asset) -> Unit)?,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
+    longPressedAsset: MutableState<AssetId?>,
+    contextActions: AssetContextActions,
+    indexOffset: Int = 0,
+    totalCount: Int = items.size,
+) {
+    itemsPositioned(items, indexOffset = indexOffset, totalCount = totalCount) { position, item ->
+        SelectAssetRow(
+            position = position,
+            item = item,
+            onItemAction = onItemAction,
+            longPressedAsset = longPressedAsset,
+            onSelect = onSelect,
+            contextActions = contextActions,
+        )
+    }
+}
+
+@Composable
+fun SelectAssetRow(
+    position: ListPosition,
+    item: AssetInfoDataAggregate,
+    onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)?,
+    longPressedAsset: MutableState<AssetId?>,
+    onSelect: ((Asset) -> Unit)?,
+    contextActions: AssetContextActions,
+) {
+    AssetContextMenuRow(
+        assetId = item.asset.id,
+        address = item.accountAddress,
+        isPinned = item.pinned,
+        isBalanceEnabled = item.balanceEnabled,
+        longPressed = longPressedAsset,
+        actions = contextActions,
+        onClick = { onSelect?.invoke(item.asset) },
+    ) { rowModifier ->
+        AssetListItem(
+            modifier = rowModifier,
+            listPosition = position,
+            asset = item,
+            onAction = onItemAction?.let { handler -> { action -> handler(item, action) } },
+        )
+    }
+}
+
+fun LazyListScope.searchState(state: GemSelectAssetState, empty: GemEmptyState = emptyState(GemEmptyStateKind.SEARCH_ASSETS), topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
+    when (state) {
+        GemSelectAssetState.LOADING -> item {
+            Box(
+                modifier = Modifier
+                    .animateItem()
+                    .fillMaxWidth()
+                    .defaultPadding(),
+            ) {
+                CircularProgressIndicator16(Modifier.align(Alignment.Center))
+            }
+        }
+
+        GemSelectAssetState.EMPTY -> item {
+            EmptyContentView(
+                state = empty,
+                onAction = { action ->
+                    when (action) {
+                        GemEmptyStateAction.ADD_CUSTOM_TOKEN -> onAddAsset?.invoke()
+                        GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.RECEIVE, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                    }
+                },
+                modifier = Modifier
+                    .animateItem()
+                    .fillParentMaxSize()
+                    .offset { IntOffset(0, -topOffset) },
+            )
+        }
+
+        GemSelectAssetState.IDLE -> Unit
+    }
+}
+
+private fun LazyListScope.recent(items: List<Asset>, onSelect: ((Asset) -> Unit)?, onOpenRecentsSheet: (() -> Unit)? = null) {
+    if (items.isEmpty()) {
+        return
+    }
+    item {
+        SubheaderItem(R.string.recent_activity_title, onOpenRecentsSheet)
+    }
+    item {
+        LazyRow(
+            modifier = Modifier.padding(top = paddingHalfSmall, start = paddingDefault, bottom = paddingSmall, end = paddingDefault),
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+        ) {
+            items(items) { asset ->
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(paddingDefault))
+                        .background(MaterialTheme.colorScheme.background)
+                        .clickable(onClick = { onSelect?.invoke(asset) })
+                        .padding(paddingSmall),
+                    horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AssetIcon(asset, size = smallIconSize)
+                    Text(asset.symbol)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+@Preview
+fun PreviewAssetScreenUI() {
+    MaterialTheme {
+        SelectAssetScene(
+            pinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+            unpinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+            popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+            recent = emptyList<Asset>().toImmutableList(),
+            state = GemSelectAssetState.IDLE,
+            title = "Send",
+            query = rememberTextFieldState(),
+            onAction = {},
+        )
+    }
+}

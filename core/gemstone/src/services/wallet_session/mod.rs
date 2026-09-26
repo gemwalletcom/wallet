@@ -59,10 +59,6 @@ impl GemWalletSessionService {
         self.wallets.get_wallets().await
     }
 
-    pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
-        self.wallets.get_wallet(wallet_id).await
-    }
-
     pub async fn require_current_wallet(&self) -> Result<Wallet, GemServiceError> {
         self.require_wallet(self.current_wallet_id()?).await
     }
@@ -75,6 +71,10 @@ impl GemWalletSessionService {
 }
 
 impl GemWalletSessionService {
+    pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
+        self.wallets.get_wallet(wallet_id).await
+    }
+
     pub fn current_wallet_id(&self) -> Result<WalletId, GemServiceError> {
         self.store.get_current_wallet_id()?.ok_or_else(|| GemServiceError::NotFound { msg: "no current wallet".to_string() })
     }

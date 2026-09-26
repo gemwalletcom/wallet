@@ -87,7 +87,7 @@ public enum Scenes {
         }
     }
 
-    public struct WalletSelectImage: Hashable, Codable {
+    public struct WalletImage: Hashable, Codable {
         public let wallet: Wallet
 
         public init(wallet: Wallet) {
@@ -95,7 +95,7 @@ public enum Scenes {
         }
     }
 
-    public struct Price: Hashable, Codable {
+    public struct Chart: Hashable, Codable {
         public let asset: Primitives.Asset
 
         public init(asset: Primitives.Asset) {
@@ -167,7 +167,7 @@ public enum Scenes {
         }
     }
 
-    public struct Referral: Hashable, Codable {
+    public struct Rewards: Hashable, Codable {
         public let code: String?
 
         public init(code: String? = nil) {

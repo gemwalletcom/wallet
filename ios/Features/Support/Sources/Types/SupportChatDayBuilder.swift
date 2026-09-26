@@ -9,31 +9,15 @@ import PrimitivesComponents
 
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]
-    let retryAction: (SupportMessage) -> Void
-    let imageAction: (SupportMessageImage) -> Void
 
     func build() -> [SupportChatDay] {
         let boundaries = GemDayBoundaries.current
-        return Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
-            .sorted { $0.key < $1.key }
-            .map { day in
-                SupportChatDay(
-                    date: day.key,
-                    title: TransactionDateFormatter(date: day.key, boundaries: boundaries).section,
-                    groups: groups(from: day.value),
-                )
-            }
-    }
-}
-
-// MARK: - Private
-
-private extension SupportChatDayBuilder {
-    func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
-        supportChatGroups(messages: messages.map { $0.toGem() }).map { group in
-            SupportChatGroup(
-                sender: group.sender.toPrimitives(),
-                messages: group.rows.map { SupportMessageBubbleViewModel(row: $0, retryAction: retryAction, imageAction: imageAction) },
+        return boundaries.sections(days: messages.map(\.createdAt.gemDay), newestFirst: false).map { section in
+            let date = section.day.date
+            return SupportChatDay(
+                date: date,
+                title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
+                groups: supportChatGroups(messages: section.positions.map { messages[Int($0)].toGem() }),
             )
         }
     }

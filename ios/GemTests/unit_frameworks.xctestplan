@@ -16,13 +16,6 @@
   "testTargets": [
     {
       "target": {
-        "containerPath": "container:Gem.xcodeproj",
-        "identifier": "C30952C0299C39D80004C0F9",
-        "name": "GemTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features/NFT",
         "identifier": "NFTTests",
         "name": "NFTTests"
@@ -54,13 +47,6 @@
         "containerPath": "container:Features/FiatConnect",
         "identifier": "FiatConnectTests",
         "name": "FiatConnectTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/AppLock",
-        "identifier": "AppLockTests",
-        "name": "AppLockTests"
       }
     },
     {
@@ -198,7 +184,7 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/Settings",
+        "containerPath": "container:Features/Rewards",
         "identifier": "RewardsTests",
         "name": "RewardsTests"
       }
@@ -240,9 +226,9 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/ManageWallets",
-        "identifier": "ManageWalletsTests",
-        "name": "ManageWalletsTests"
+        "containerPath": "container:Features/Wallets",
+        "identifier": "WalletsTests",
+        "name": "WalletsTests"
       }
     },
     {

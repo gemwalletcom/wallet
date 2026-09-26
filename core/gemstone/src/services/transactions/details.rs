@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Currency, TransactionExtended, WalletType};
+use primitives::{TransactionExtended, WalletType};
 
 use super::model::GemTransactionDetailRows;
 use super::rules;
@@ -20,10 +20,6 @@ impl GemTransactionDetailsService {
         Self { explorer, preferences }
     }
 
-    pub fn get_currency(&self) -> Currency {
-        self.preferences.get_currency()
-    }
-
     pub fn detail_rows(&self, transaction: TransactionExtended, wallet_type: WalletType) -> GemTransactionDetailRows {
         let chain = transaction.transaction.asset_id.chain;
         let participant = rules::participant(&transaction, |address| self.explorer.get_address_url(chain, address.to_string()));
@@ -34,6 +30,6 @@ impl GemTransactionDetailsService {
             Some(transaction.transaction.to.clone()),
             transaction.transaction.memo.clone(),
         );
-        rules::detail_rows(&transaction, wallet_type, participant, explorer, self.get_currency())
+        rules::detail_rows(&transaction, wallet_type, participant, explorer, self.preferences.get_currency())
     }
 }

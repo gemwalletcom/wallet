@@ -1,8 +1,8 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetFiatValue {
     pub amount: f64,

@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import enum Gemstone.GemAddNodeError
 import enum Gemstone.GemAddNodePhase
 import struct Gemstone.GemAddNodeSession
+import struct Gemstone.GemChainRow
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import enum Gemstone.GemServiceError
 import Localization
@@ -36,9 +38,13 @@ final class AddNodeSceneViewModel {
         switch session.viewState().phase {
         case .idle: .noData
         case .checking: .loading
-        case let .ready(check): .data(check.rows().map { ListItemField(title: $0.title, value: $0.text) })
+        case let .ready(rows): .data(rows.map { ListItemField(title: $0.title, value: $0.text) })
         case let .failed(error): .error(AnyError(error.text))
         }
+    }
+
+    var showsWarning: Bool {
+        session.viewState().showsWarning
     }
 
     var title: String {
@@ -57,8 +63,8 @@ final class AddNodeSceneViewModel {
         Localized.Errors.errorOccurred
     }
 
-    var chainModel: ChainViewModel {
-        ChainViewModel(chain: chain)
+    var chainModel: GemChainRow {
+        chainRow(chain: chain.rawValue)
     }
 
     var warningModel: ListItemModel {

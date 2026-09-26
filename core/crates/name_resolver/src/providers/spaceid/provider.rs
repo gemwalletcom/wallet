@@ -1,4 +1,7 @@
 use std::error::Error;
+use std::str::FromStr;
+
+use alloy_primitives::Address;
 
 use async_trait::async_trait;
 use gem_client::ReqwestClient;
@@ -39,6 +42,6 @@ impl NameResolver for SpaceIdProvider {
         if record.code != CODE_OK {
             return Err(format!("Space ID request failed with code: {}", record.code).into());
         }
-        Ok(Some(record.address))
+        Ok((!Address::from_str(&record.address)?.is_zero()).then_some(record.address))
     }
 }

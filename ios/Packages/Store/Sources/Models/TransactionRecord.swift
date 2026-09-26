@@ -86,7 +86,6 @@ extension TransactionRecord: CreateTable {
                 .indexed()
             $0.column(Columns.walletId.name, .text)
                 .notNull()
-                .indexed()
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.transactionId.name, .text)
                 .notNull()
@@ -119,7 +118,6 @@ extension TransactionRecord: CreateTable {
             $0.column(Columns.sequence.name, .numeric)
                 .notNull()
             $0.column(Columns.date.name, .date)
-                .indexed()
                 .notNull()
             $0.column(Columns.state.name, .text)
                 .notNull()
@@ -137,6 +135,7 @@ extension TransactionRecord: CreateTable {
                 Columns.transactionId.name,
             ])
         }
+        try db.create(indexOn: databaseTableName, columns: [Columns.walletId.name, Columns.date.name])
     }
 }
 

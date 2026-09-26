@@ -1,15 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAddressRow
+import Localization
+import Primitives
+import Style
 import SwiftUI
 
 public struct AddressListItemView: View {
     @State private var isPresentingUrl: URL? = nil
     @State private var showAddress: Bool = false
-    private let model: AddressListItemViewModel
+    private let row: GemAddressRow
+    private let onSelect: (@MainActor @Sendable () -> Void)?
+    private let onAddContact: ((AddContactType) -> Void)?
 
-    public init(model: AddressListItemViewModel) {
-        self.model = model
+    public init(
+        row: GemAddressRow,
+        onSelect: (@MainActor @Sendable () -> Void)? = nil,
+        onAddContact: ((AddContactType) -> Void)? = nil,
+    ) {
+        self.row = row
+        self.onSelect = onSelect
+        self.onAddContact = onAddContact
     }
 
     public var body: some View {
@@ -20,12 +32,12 @@ public struct AddressListItemView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let onSelect = model.onSelect {
+        if row.isSelectable, let onSelect {
             NavigationCustomLink(with: listItem, action: onSelect)
         } else {
             listItem
                 .onTap {
-                    if model.canToggleAddress {
+                    if row.shortAddress != nil {
                         showAddress.toggle()
                     }
                 }
@@ -34,28 +46,25 @@ public struct AddressListItemView: View {
 
     private var listItem: some View {
         ListItemImageView(
-            title: model.title,
-            subtitle: showAddress ? model.addressSubtitle : model.subtitle,
-            assetImage: model.assetImage,
+            title: row.title.text,
+            subtitle: showAddress ? row.shortAddress ?? row.text.text : row.text.text,
+            assetImage: row.avatar?.assetImage,
         )
     }
 
     private var contextMenuItems: [ContextMenuItemType] {
-        var items: [ContextMenuItemType] = [
-            .copy(value: model.account.address),
-            .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl }),
-        ]
-        if let onAddContact = model.onAddContact {
-            let recipient = model.addContactRecipient
+        var items = row.menu.contextMenuItems { isPresentingUrl = $0 }
+        if let contact = row.contact, let onAddContact {
+            let chain = Chain(core: row.chain)
             items.append(.custom(
-                title: model.createContactTitle,
-                systemImage: model.createContactImage,
-                action: { onAddContact(.new(recipient, chain: model.account.chain)) },
+                title: Localized.Contacts.createNewContact,
+                systemImage: SystemImage.personBadgePlus,
+                action: { onAddContact(.new(contact, chain: chain)) },
             ))
             items.append(.custom(
-                title: model.addToExistingContactTitle,
-                systemImage: model.addToExistingContactImage,
-                action: { onAddContact(.existing(recipient, chain: model.account.chain)) },
+                title: Localized.Contacts.addToExistingContact,
+                systemImage: SystemImage.personCircle,
+                action: { onAddContact(.existing(contact, chain: chain)) },
             ))
         }
         return items

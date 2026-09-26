@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 public struct FiatTransactionsScene: View {
-    @State private var model: FiatTransactionsViewModel
+    @State private var model: FiatTransactionsSceneViewModel
 
-    public init(model: FiatTransactionsViewModel) {
+    public init(model: FiatTransactionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -26,14 +26,14 @@ public struct FiatTransactionsScene: View {
             }
             ForEach(sections) { section in
                 Section {
-                    ForEach(section.values) { viewModel in
-                        if let url = viewModel.detailsUrl {
+                    ForEach(section.values) { row in
+                        if let url = row.detailsURL {
                             SafariNavigationLink(url: url) {
-                                ListItemView(model: viewModel.listItemModel)
+                                ListItemView(model: row.listItemModel)
                             }
                         } else {
                             NavigationCustomLink(
-                                with: ListItemView(model: viewModel.listItemModel),
+                                with: ListItemView(model: row.listItemModel),
                                 action: {},
                             )
                         }

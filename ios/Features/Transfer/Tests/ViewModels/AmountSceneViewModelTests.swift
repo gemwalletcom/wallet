@@ -14,7 +14,7 @@ import TransferTestKit
 struct AmountSceneViewModelTests {
     @Test
     func maxButton() {
-        let model = AmountSceneViewModel.mock()
+        let model = AmountSceneViewModel.mock(assetData: .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), balance: .mock(available: 200_000_000)))
         #expect(model.amountInputModel.error == nil)
 
         model.onSelectMaxButton()
@@ -32,7 +32,7 @@ struct AmountSceneViewModelTests {
     @Test
     func fiatInputConvertsWithThePrice() {
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 5_000_000_000_000_000_000),
             price: .mock(price: 2.5),
         )
@@ -50,11 +50,11 @@ struct AmountSceneViewModelTests {
     @Test
     func stakingReservedFeesText() {
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().toGem()], validator: nil)),
+            type: .stake(.stake(validator: DelegationValidator.mock().toGem())),
             assetData: assetData,
         )
 
@@ -70,7 +70,7 @@ struct AmountSceneViewModelTests {
     @Test
     func unfreezeResourceSwitch() {
         let assetData = AssetData.mock(
-            asset: .mockTron(),
+            asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6),
             balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
@@ -78,17 +78,12 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        guard let stake = model.stake,
-              case let .resource(resourceSelection) = stake.selection else { return }
-
-        resourceSelection.selected = .energy
-        model.onChangeResource(.bandwidth, .energy)
+        model.onSelectResource(.energy)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.error == nil)
 
-        resourceSelection.selected = .bandwidth
-        model.onChangeResource(.energy, .bandwidth)
+        model.onSelectResource(.bandwidth)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.error != nil)
@@ -99,11 +94,11 @@ struct AmountSceneViewModelTests {
         let validator1 = DelegationValidator.mock(id: "1")
         let validator2 = DelegationValidator.mock(id: "2")
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [validator1.toGem(), validator2.toGem()], validator: nil)),
+            type: .stake(.stake(validator: validator1.toGem())),
             assetData: assetData,
         )
 
@@ -112,11 +107,16 @@ struct AmountSceneViewModelTests {
         model.onValidatorSelected(.mock(validator: validator2.toGem()))
 
         #expect(model.amountInputModel.text == "1.5")
+        guard case let .validator(row, _) = model.extras else {
+            Issue.record("Expected a validator selection")
+            return
+        }
+        #expect(row.validator.id == "2")
     }
 
     @Test
     func actionButtonState() {
-        let model = AmountSceneViewModel.mock()
+        let model = AmountSceneViewModel.mock(assetData: .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), balance: .mock(available: 200_000_000)))
 
         #expect(model.actionButtonState == .disabled)
 
@@ -132,7 +132,7 @@ struct AmountSceneViewModelTests {
     @Test
     func aFixedValueFillsItself() {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
-        let assetData = AssetData.mock(asset: .mockBNB())
+        let assetData = AssetData.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         let model = AmountSceneViewModel.mock(
             type: .stake(.withdraw(delegation: delegation.toGem())),
             assetData: assetData,
@@ -147,7 +147,7 @@ struct AmountSceneViewModelTests {
 
     @Test
     func buyWithoutAccountDoesNotPresentSheet() {
-        let assetData = AssetData.mock(asset: .mockBNB())
+        let assetData = AssetData.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         let model = AmountSceneViewModel.mock(assetData: assetData)
         model.onSelectBuy()
         #expect(model.isPresentingSheet == nil)

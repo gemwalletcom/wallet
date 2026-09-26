@@ -1,44 +1,112 @@
 package com.gemwallet.android.ui.style
 
+import android.content.Context
 import androidx.annotation.DrawableRes
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.gemwallet.android.ext.requireChain
+import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
-import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.image.supportIconModel
+import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.SwapProgressMarkerUIModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Emoji
 import com.gemwallet.android.ui.theme.pendingColor
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.ChainAddress
+import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
-import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemAmountField
+import uniffi.gemstone.GemAmountKeyboard
+import uniffi.gemstone.GemAmountSymbol
+import uniffi.gemstone.GemAmountSymbolPlacement
+import uniffi.gemstone.GemAssetMenuIcon
+import uniffi.gemstone.GemAssetSectionKind
+import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
-import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemInfoImage
+import uniffi.gemstone.GemKeystoreAuthentication
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNoticeKind
+import uniffi.gemstone.GemNotificationIcon
+import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSupportBubbleSide
+import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressStep
+import uniffi.gemstone.GemToastIcon
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemVerificationLevel
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
+
+data class SupportBubbleColors(val bubble: Color, val text: Color, val meta: Color, val link: Color)
+
+@Composable
+fun GemSupportBubbleSide.colors(): SupportBubbleColors = when (this) {
+    GemSupportBubbleSide.OUTGOING -> SupportBubbleColors(
+        bubble = MaterialTheme.colorScheme.primary,
+        text = Color.White,
+        meta = Color.White.copy(alpha = 0.7f),
+        link = MaterialTheme.colorScheme.onPrimary,
+    )
+
+    GemSupportBubbleSide.INCOMING -> SupportBubbleColors(
+        bubble = MaterialTheme.colorScheme.surfaceContainerHighest,
+        text = MaterialTheme.colorScheme.onSurface,
+        meta = MaterialTheme.colorScheme.secondary,
+        link = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
+fun GemAssetSectionKind.icon(): ImageVector? = when (this) {
+    GemAssetSectionKind.POPULAR -> AppIcons.StarOutlined
+    GemAssetSectionKind.PINNED -> AppIcons.PushPin
+    GemAssetSectionKind.ASSETS -> null
+}
+
+@DrawableRes
+fun GemToastIcon.iconRes(): Int = when (this) {
+    GemToastIcon.PIN -> R.drawable.ic_push_pin
+    GemToastIcon.UNPIN -> R.drawable.keep_off
+    GemToastIcon.PRICE_ALERT -> R.drawable.ic_notifications
+}
+
+@DrawableRes
+fun GemAssetMenuIcon.iconRes(): Int = when (this) {
+    GemAssetMenuIcon.PIN -> R.drawable.ic_push_pin
+    GemAssetMenuIcon.UNPIN -> R.drawable.keep_off
+    GemAssetMenuIcon.HIDE -> R.drawable.ic_visibility_off
+    GemAssetMenuIcon.ADD_TO_WALLET -> R.drawable.ic_add_circle_outlined
+    GemAssetMenuIcon.COPY -> R.drawable.ic_content_copy
+}
 
 @DrawableRes
 fun GemHeaderButtonKind.iconRes(): Int = when (this) {
@@ -85,6 +153,22 @@ fun GemValueTone.textStyle(): ListItemTextStyle = when (this) {
 fun GemNoticeKind.color(): Color = when (this) {
     GemNoticeKind.ERROR -> MaterialTheme.colorScheme.error
     GemNoticeKind.WARNING, GemNoticeKind.INFO -> pendingColor
+}
+
+fun GemAcquireOption.image(): ListItemImage = ListItemImage.Symbol(
+    when (this) {
+        GemAcquireOption.BUY -> ListItemSymbol.Buy
+        GemAcquireOption.SWAP -> ListItemSymbol.Swap
+        GemAcquireOption.RECEIVE -> ListItemSymbol.Receive
+    },
+    style = ListItemImageStyle.Action,
+)
+
+@Composable
+fun GemKeystoreAuthentication.icon(): ImageVector? = when (this) {
+    GemKeystoreAuthentication.BIOMETRICS -> AppIcons.Fingerprint
+    GemKeystoreAuthentication.PASSCODE -> AppIcons.Lock
+    GemKeystoreAuthentication.NONE -> null
 }
 
 @Composable
@@ -187,27 +271,146 @@ fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
     GemEmptyStateImage.WALLET -> EmptyStateImage.Vector(R.drawable.ic_wallet)
 }
 
-fun GemNameRecordState.indicator(): NameResolveIndicatorUIModel? = when (this) {
-    is GemNameRecordState.Loading -> NameResolveIndicatorUIModel.Loading
-    GemNameRecordState.Error -> NameResolveIndicatorUIModel.Icon(ListItemSymbol.Error, ListItemTextStyle.Negative, R.string.errors_error_occurred)
-    is GemNameRecordState.Complete -> NameResolveIndicatorUIModel.Icon(ListItemSymbol.CheckCircle, ListItemTextStyle.Positive, null)
-    GemNameRecordState.None -> null
+fun GemNameIndicator.symbol(): ListItemSymbol = when (this) {
+    GemNameIndicator.ERROR -> ListItemSymbol.Error
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> ListItemSymbol.CheckCircle
+}
+
+fun GemNameIndicator.style(): ListItemTextStyle = when (this) {
+    GemNameIndicator.ERROR -> ListItemTextStyle.Negative
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> ListItemTextStyle.Positive
 }
 
 fun GemAddressServiceInterface.formatShort(address: String, chain: String?): String = format(address, chain, GemAddressFormatStyle.Short)
 
 fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<String> = formatAll(addresses, GemAddressFormatStyle.Short)
 
-fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): AmountSymbolUIModel = when (this) {
-    GemAmountInputType.ASSET -> AmountSymbolUIModel(assetSymbol, AmountSymbolPlacement.Trailing)
-    GemAmountInputType.FIAT -> AmountSymbolUIModel(java.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
+fun GemAmountField.amountSymbol(): AmountSymbolUIModel = AmountSymbolUIModel(
+    symbol = when (val symbol = symbol) {
+        is GemAmountSymbol.Asset -> symbol.symbol
+        is GemAmountSymbol.Currency -> java.util.Currency.getInstance(symbol.currency.toPrimitives().string).symbol
+    },
+    placement = when (placement) {
+        GemAmountSymbolPlacement.LEADING -> AmountSymbolPlacement.Leading
+        GemAmountSymbolPlacement.TRAILING -> AmountSymbolPlacement.Trailing
+    },
+)
+
+fun GemAmountKeyboard.keyboardType(): KeyboardType = when (this) {
+    GemAmountKeyboard.DECIMAL -> KeyboardType.Decimal
+    GemAmountKeyboard.WHOLE -> KeyboardType.Number
+}
+
+@Composable
+fun GemBannerButton.colors(): ButtonColors = when (this) {
+    GemBannerButton.BUY -> ButtonDefaults.buttonColors()
+    GemBannerButton.RECEIVE -> secondaryActionButtonColors()
 }
 
 fun GemBannerIcon.image(): ListItemImage = when (this) {
     GemBannerIcon.MoneyBag -> ListItemImage.Emoji(Emoji.moneyBag)
-    is GemBannerIcon.Network -> ListItemImage.Asset(AssetId(chain.requireChain()))
+    is GemBannerIcon.Network -> ListItemImage.Asset(chain)
     GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
     GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Banner)
     GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
     GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals, style = ListItemImageStyle.Banner)
+}
+
+fun GemInfoImage.iconModel(): Any? = when (this) {
+    GemInfoImage.Logo -> R.drawable.ic_splash
+
+    GemInfoImage.NetworkFee -> R.drawable.ic_network_fee
+
+    GemInfoImage.WatchWallet -> R.drawable.watch_badge
+
+    is GemInfoImage.AssetStatus -> when (status) {
+        uniffi.gemstone.VerificationStatus.VERIFIED -> null
+        uniffi.gemstone.VerificationStatus.UNVERIFIED -> R.drawable.unverified
+        uniffi.gemstone.VerificationStatus.SUSPICIOUS -> R.drawable.suspicious
+    }
+
+    is GemInfoImage.SwapProvider -> provider.iconModel()
+
+    is GemInfoImage.Asset -> icon.iconModel()
+
+    is GemInfoImage.TransactionState -> icon.iconModel()
+}
+
+fun GemInfoImage.badgeIconModel(): Any? = when (this) {
+    is GemInfoImage.Asset -> icon.supportIconModel()
+    is GemInfoImage.TransactionState -> tone.badgeIconRes()
+    GemInfoImage.Logo, GemInfoImage.NetworkFee, GemInfoImage.WatchWallet, is GemInfoImage.AssetStatus, is GemInfoImage.SwapProvider -> null
+}
+
+val GemInfoImage.placeholder: String?
+    get() = when (this) {
+        is GemInfoImage.Asset -> icon.placeholder
+        is GemInfoImage.TransactionState -> icon.placeholder
+        GemInfoImage.Logo, GemInfoImage.NetworkFee, GemInfoImage.WatchWallet, is GemInfoImage.AssetStatus, is GemInfoImage.SwapProvider -> null
+    }
+
+fun GemSwapProgressMarker.markerUIModel(): SwapProgressMarkerUIModel = when (this) {
+    GemSwapProgressMarker.CHECK -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Check)
+    GemSwapProgressMarker.CROSS -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Close)
+    GemSwapProgressMarker.SWAP -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Swap)
+    GemSwapProgressMarker.SPINNER -> SwapProgressMarkerUIModel.Spinner
+    GemSwapProgressMarker.DOTS -> SwapProgressMarkerUIModel.Dots
+}
+
+fun GemPriceAlertToggle.symbol(): ListItemSymbol = when (this) {
+    GemPriceAlertToggle.ENABLED -> ListItemSymbol.Notifications
+    GemPriceAlertToggle.DISABLED -> ListItemSymbol.NotificationsOutlined
+}
+
+fun GemSecurityReminderItem.emoji(): String = when (this) {
+    GemSecurityReminderItem.KEEP_SAFE -> Emoji.lock
+    GemSecurityReminderItem.DO_NOT_SHARE -> Emoji.warning
+    GemSecurityReminderItem.NO_RECOVERY -> Emoji.gem
+}
+
+@Composable
+fun GemPerpetualChartLineKind.color(): Color = when (this) {
+    GemPerpetualChartLineKind.ENTRY -> MaterialTheme.colorScheme.outline
+    GemPerpetualChartLineKind.LIQUIDATION -> MaterialTheme.colorScheme.error
+    GemPerpetualChartLineKind.STOP_LOSS -> pendingColor
+    GemPerpetualChartLineKind.TAKE_PROFIT -> MaterialTheme.colorScheme.tertiary
+}
+
+@Composable
+fun GemValueTone.buttonColor(): Color = when (this) {
+    GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
+    GemValueTone.PLAIN, GemValueTone.NEUTRAL, GemValueTone.WARNING -> MaterialTheme.colorScheme.primary
+}
+
+fun VerificationStatus.badgeIconRes(): Int? = when (this) {
+    VerificationStatus.Verified -> null
+    VerificationStatus.Unverified -> R.drawable.unverified
+    VerificationStatus.Suspicious -> R.drawable.suspicious
+}
+
+fun GemWalletRow.iconModel(context: Context): Any? = walletImageModel(context, imageUrl) ?: placeholder.iconModel()
+
+fun GemWalletRow.listItemImage(): ListItemImage = walletListItemImage(imageUrl, placeholder)
+
+fun walletListItemImage(imageUrl: String?, placeholder: GemWalletPlaceholder): ListItemImage = imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it) } ?: when (placeholder) {
+    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, style = ListItemImageStyle.Avatar)
+    is GemWalletPlaceholder.Chain -> ListItemImage.Asset(placeholder.chain)
+}
+
+fun GemWalletPlaceholder.iconModel(): Any? = when (this) {
+    GemWalletPlaceholder.Multicoin -> R.drawable.multicoin_wallet
+    is GemWalletPlaceholder.Chain -> chain.toChain().iconModel()
+}
+
+fun GemWalletRow.supportIcon(): String? = if (showsWatchBadge) {
+    "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
+} else {
+    null
+}
+
+fun GemNotificationIcon.listItemImage(): ListItemImage = when (this) {
+    is GemNotificationIcon.Emoji -> ListItemImage.Emoji(glyph)
+    is GemNotificationIcon.Image -> ListItemImage.Url(url)
+    is GemNotificationIcon.Asset -> ListItemImage.Asset(icon)
 }

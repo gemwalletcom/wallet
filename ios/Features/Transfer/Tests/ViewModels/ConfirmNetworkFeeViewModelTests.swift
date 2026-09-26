@@ -1,86 +1,37 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmFeeRow
+import struct Gemstone.GemFeeText
+import enum Gemstone.GemInfoTopic
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
-import PrimitivesComponentsTestKit
-import PrimitivesTestKit
 import Testing
 @testable import Transfer
 
 struct ConfirmNetworkFeeViewModelTests {
     @Test
-    func loaded() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
+    func readyPrintsTheFeeTextCoreBuilt() {
+        let text = GemFeeText.mock(value: .mock(value: 0.0001446, unit: .symbol(symbol: "BNB")), extra: .text(text: "$0.11"))
         let model = ConfirmNetworkFeeViewModel(
-            feeRow: .ready,
-            feeModel: feeModel,
-            infoAction: {},
+            feeRow: .mock(title: .networkFee, value: .ready(text: text), opensDetails: true),
+            onInfo: { _ in },
         )
 
-        guard case let .networkFee(item, selectable) = model.itemModel else { return }
-        #expect(item.subtitle == feeModel.fiatValue)
-        #expect(item.subtitle != feeModel.value)
-        #expect(selectable == true)
-    }
-
-    @Test
-    func loadedWithoutFiat() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAmount: 1_000_000_000_000_000)
-        let model = ConfirmNetworkFeeViewModel(
-            feeRow: .ready,
-            feeModel: feeModel,
-            infoAction: {},
-        )
-
-        guard case let .networkFee(item, selectable) = model.itemModel else { return }
-        #expect(feeModel.fiatValue == nil)
-        #expect(item.subtitle == feeModel.value)
-        #expect(selectable == true)
-    }
-
-    @Test
-    func loadedWithSelectableFeeAssetShowsSymbolOnRight() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
-        let feeModel = NetworkFeeSceneViewModel.mock(
-            feeAsset: pathUSD.asset,
-            feeAssetPrice: .mock(price: 1),
-            feeAmount: 1,
-            feeAssets: [pathUSD, usdc],
-            showsFeeAssets: true,
-            onSelectFeeAsset: { _ in },
-        )
-        let model = ConfirmNetworkFeeViewModel(
-            feeRow: .ready,
-            feeModel: feeModel,
-            infoAction: {},
-        )
-
-        guard case let .networkFee(item, _) = model.itemModel else {
+        guard case let .networkFee(item, selectable) = model.itemModel else {
             Issue.record("Expected network fee item")
             return
         }
-        #expect(item.titleExtra == nil)
-        #expect(item.subtitle == feeModel.fiatValue)
-        #expect(item.subtitleExtra == pathUSD.asset.symbol)
+        #expect(item.subtitle == text.value.text())
+        #expect(item.subtitleExtra == "$0.11")
+        #expect(selectable)
     }
 
     @Test
-    func error() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+    func unavailablePrintsItsTextAndStaysClosed() {
         let model = ConfirmNetworkFeeViewModel(
-            feeRow: .unavailable(text: "-"),
-            feeModel: .mock(
-                feeAsset: pathUSD.asset,
-                feeAssetPrice: .mock(price: 1),
-                feeAmount: 1,
-                feeAssets: [pathUSD, usdc],
-                showsFeeAssets: true,
-                onSelectFeeAsset: { _ in },
-            ),
-            infoAction: {},
+            feeRow: .mock(title: .networkFee, value: .unavailable(text: "-"), opensDetails: false),
+            onInfo: { _ in },
         )
 
         guard case let .networkFee(item, selectable) = model.itemModel else {
@@ -90,20 +41,5 @@ struct ConfirmNetworkFeeViewModelTests {
         #expect(item.subtitle == "-")
         #expect(item.subtitleExtra == nil)
         #expect(selectable == false)
-    }
-
-    @Test
-    func calculatorError() {
-        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
-        let model = ConfirmNetworkFeeViewModel(
-            feeRow: .ready,
-            feeModel: feeModel,
-            infoAction: {},
-        )
-
-        guard case let .networkFee(item, selectable) = model.itemModel else { return }
-        #expect(item.subtitle == feeModel.fiatValue)
-        #expect(item.subtitleExtra == nil)
-        #expect(selectable == true)
     }
 }

@@ -1,9 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.device
 
-import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -18,9 +19,9 @@ import uniffi.gemstone.GemDeviceService
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceObserverServiceTest {
 
-    private val wallet = mockWallet(id = "wallet-1", accounts = listOf(mockAccount(chain = Chain.Ethereum)))
+    private val wallet = mockWallet(id = WalletId("wallet-1"), accounts = listOf(mockAccount(chain = Chain.Ethereum)))
     private val wallets = MutableStateFlow(listOf(wallet))
-    private val getWallets = mockk<GetWallets> {
+    private val walletsQuery = mockk<WalletsQuery> {
         every { this@mockk() } returns wallets
     }
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
@@ -39,7 +40,7 @@ class DeviceObserverServiceTest {
     }
 
     private fun TestScope.service() = DeviceObserverService(
-        getWallets = getWallets,
+        walletsQuery = walletsQuery,
         deviceService = deviceService,
         scope = this,
     )

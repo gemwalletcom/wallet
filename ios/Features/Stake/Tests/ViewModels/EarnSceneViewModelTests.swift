@@ -13,7 +13,7 @@ import Testing
 struct EarnSceneViewModelTests {
     @Test
     func depositNavigatesToTheAmountOfTheFirstProvider() {
-        let provider = DelegationValidator.mock(.ethereum, providerType: .earn)
+        let provider = DelegationValidator.mock(chain: .ethereum, providerType: .earn)
         var route: StakeRoute?
         let model = EarnSceneViewModel.mock(
             stakeService: GemStakeServiceMock(validators: [provider.toGem()]),

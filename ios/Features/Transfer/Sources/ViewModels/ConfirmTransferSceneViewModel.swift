@@ -6,13 +6,14 @@ import struct Gemstone.GemAcquireAsset
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmError
-import enum Gemstone.GemConfirmFeeRow
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemConfirmLoadOptions
 import enum Gemstone.GemConfirmRowContent
-import struct Gemstone.GemConfirmSimulationState
+import enum Gemstone.GemConfirmSection
 import struct Gemstone.GemConfirmViewState
 import struct Gemstone.GemFeeRateRows
+import enum Gemstone.GemInfoAction
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
@@ -26,6 +27,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import Style
 import Swap
 import SwiftUI
 import WalletConnector
@@ -65,7 +67,6 @@ public final class ConfirmTransferSceneViewModel {
         let loadOptions = confirmation.loadOptions()
         let state = ConfirmTransferState(
             transfer: request.data,
-            simulation: ConfirmSimulationState(),
             screen: confirmation.screen(),
         )
         self.loadOptions = loadOptions
@@ -90,105 +91,138 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var simulationWarnings: [GemListRow] {
-        viewState.simulationWarnings
+        viewState.sections.lazy.compactMap { section -> [GemListRow]? in
+            guard case let .warnings(rows) = section else { return nil }
+            return rows
+        }.first ?? []
     }
 
-    public var primaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.primaryFields }
-    public var secondaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.secondaryFields }
+    public var primaryPayloadFields: [GemSimulationPayloadRow] { payload.primary }
+    public var secondaryPayloadFields: [GemSimulationPayloadRow] { payload.secondary }
+
+    private var payload: (primary: [GemSimulationPayloadRow], secondary: [GemSimulationPayloadRow]) {
+        viewState.sections.lazy.compactMap { section -> ([GemSimulationPayloadRow], [GemSimulationPayloadRow])? in
+            guard case let .payload(primary, secondary) = section else { return nil }
+            return (primary, secondary)
+        }.first ?? ([], [])
+    }
+
+    private var rowContents: [GemConfirmRowContent] {
+        viewState.sections.lazy.compactMap { section -> [GemConfirmRowContent]? in
+            guard case let .details(rows) = section else { return nil }
+            return rows
+        }.first ?? []
+    }
+
+    private var notice: GemListRow? {
+        viewState.sections.lazy.compactMap { section -> GemListRow? in
+            guard case let .notice(row) = section else { return nil }
+            return row
+        }.first
+    }
+
+    private var loadError: GemConfirmError? {
+        viewState.sections.lazy.compactMap { section -> GemConfirmError? in
+            guard case let .error(error) = section else { return nil }
+            return error
+        }.first
+    }
 
     var transfer: GemTransferData { state.transfer }
 
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             button: viewState.button,
-            authentication: viewState.authentication,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }
 
-    public var detailsViewModel: ConfirmDetailsViewModel {
-        ConfirmDetailsViewModel(
-            type: transfer.inputType,
-            metadata: state.metadata,
-            confirmation: confirmation,
-        )
+    public var detailsItemModel: ConfirmTransferItemModel {
+        viewState.details?.itemModel ?? .empty
     }
 
-    var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
-        state.simulation.balanceChanges.map(ConfirmBalanceChangeViewModel.init)
+    var balanceChangeRows: [GemListRow] {
+        viewState.sections.lazy.compactMap { section -> [GemListRow]? in
+            guard case let .balanceChanges(rows) = section else { return nil }
+            return rows
+        }.first ?? []
     }
 
     public var feeModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
-            feeAsset: state.feeAsset,
-            currency: confirmation.currency,
-            selection: loadOptions.feeSelection,
-            feeRates: viewState.feeRates,
-            feeAssetPrice: state.metadata?.feePrice,
-            feeAmount: state.fee?.value,
-            fee: state.fee?.formatted,
-            additionalFees: state.fee?.additionalFees ?? [],
-            feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
-            showsFeeAssets: state.load?.showsFeeAssets() ?? false,
+            screen: confirmation.networkFeeScreen(format: NumberInput.format()),
             onSelect: { [weak self] in self?.changeFeeSelection($0) },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )
     }
 }
 
-// MARK: - ListSectionProvideable
+// MARK: - Sections
 
-extension ConfirmTransferSceneViewModel: ListSectionProvideable {
+extension ConfirmTransferSceneViewModel {
     public var sections: [ListSection<ConfirmTransferItem>] {
-        [
-            ListSection(type: .header, [.header]),
-            viewState.notice == nil ? nil : ListSection(type: .notice, [.notice]),
-            ListSection(type: .details, detailItems),
-            simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
-            balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [viewState.verification == nil ? .networkFee : .verification]),
-            ListSection(type: .error, [.error]),
-        ].compactMap(\.self)
+        viewState.sections.map { section in
+            switch section {
+            case .header: ListSection(type: .header, [.header])
+            case .notice: ListSection(type: .notice, [.notice])
+            case let .details(rows): ListSection(type: .details, rows.indices.map { rows[$0].item(at: $0) })
+            case .warnings: ListSection(type: .warnings, [.warnings])
+            case .payload: ListSection(type: .payload, [.payload])
+            case let .balanceChanges(rows): ListSection(type: .balanceChanges, rows.indices.map(ConfirmTransferItem.balanceChange))
+            case .networkFee: ListSection(type: .fee, [.networkFee])
+            case .verification: ListSection(type: .fee, [.verification])
+            case .error: ListSection(type: .error, [.error])
+            }
+        }
     }
 
-    private var detailItems: [ConfirmTransferItem] {
-        viewState.rowContents.indices.map { viewState.rowContents[$0].item(at: $0) }
-    }
-
-    public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
+    public func itemModel(for item: ConfirmTransferItem) -> ConfirmTransferItemModel {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen))
+            .header(confirmation.header(screen: state.screen))
         case .notice:
-            viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
+            notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:
-            ConfirmTransferItemModel.warnings(simulationWarnings)
+            .warnings(simulationWarnings)
         case let .row(index):
-            ConfirmRowViewModel(
-                content: viewState.rowContents[index],
-                onSelectAddress: { [weak self] in self?.onSelectAddress($0) },
-            )
+            rowContents[index].itemModel
         case .verification:
-            ConfirmVerificationViewModel(infoAction: onSelectVerificationInfo)
+            verificationItem
         case .details:
-            detailsViewModel
+            detailsItemModel
         case .payload:
-            ConfirmTransferItemModel.payload(fieldModels(for: primaryPayloadFields))
+            .payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):
-            ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
+            .row(balanceChangeRows[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 feeRow: viewState.feeRow,
-                feeModel: feeModel,
-                infoAction: onSelectNetworkFeeInfo,
-            )
+                onInfo: { [weak self] in self?.onInfo($0) },
+            ).itemModel
         case .error:
-            ConfirmErrorViewModel(
-                error: viewState.notice == nil ? state.loadError : nil,
-                onSelectListError: onSelectListError,
-            )
+            errorItem(loadError)
         }
+    }
+
+    private var verificationItem: ConfirmTransferItemModel {
+        .verification(
+            ListItemModel(
+                title: Localized.Info.paymentVerificationTitle,
+                subtitle: "",
+                subtitleStyle: TextStyle(font: .body, color: Colors.orange),
+                subtitleTagType: .image(Image(systemName: SystemImage.clockBadgeExclamationmark)),
+                infoAction: onSelectVerificationInfo,
+            ),
+        )
+    }
+
+    private func errorItem(_ error: GemConfirmError?) -> ConfirmTransferItemModel {
+        guard let error else { return .empty }
+        return .error(
+            title: Localized.Errors.errorOccurred,
+            error: error,
+            onInfoAction: error.display().hasInfoSheet() ? { [weak self] in self?.onSelectListError(error: error) } : nil,
+        )
     }
 }
 
@@ -197,14 +231,16 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 extension ConfirmTransferSceneViewModel {
     func onSelectListError(error: GemConfirmError) {
         guard let info = confirmation.errorInfo(error: error) else { return }
-        isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
-            for: info,
-            onGetAsset: { [weak self] asset, acquire in self?.onSelectGetAsset(asset, acquire: acquire) },
-        ))
+        isPresentingSheet = .info(info.infoSheet)
     }
 
-    func onSelectNetworkFeeInfo() {
-        isPresentingSheet = .info(.networkFee(state.feeAsset))
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingSheet = .info(topic.infoSheet)
+    }
+
+    public func onInfoAction(_ action: GemInfoAction) {
+        guard case let .acquire(asset, acquire) = action else { return }
+        onSelectGetAsset(asset.toPrimitives(), acquire: acquire)
     }
 
     public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
@@ -222,8 +258,8 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectPaymentAsset() {
-        let assetIds = viewState.rowContents.lazy.compactMap { content -> [String]? in
-            guard case let .paymentAsset(_, selectable, assetIds) = content, selectable else { return nil }
+        let assetIds = rowContents.lazy.compactMap { content -> [String]? in
+            guard case let .paymentAsset(_, _, selectable, assetIds) = content, selectable else { return nil }
             return assetIds
         }.first
         guard let assetIds else { return }
@@ -241,7 +277,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectVerificationInfo() {
-        isPresentingSheet = .info(.paymentVerification)
+        isPresentingSheet = .info(GemInfoTopic.paymentVerification.infoSheet)
     }
 
     public func onPaymentVerified() {
@@ -285,6 +321,9 @@ extension ConfirmTransferSceneViewModel {
             let load = try await confirmation.load(options: loadOptions)
             state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch let error as GemConfirmError {
+            if case .Cancelled = error {
+                return
+            }
             guard !Task.isCancelled else { return }
             state.transfer = confirmation.transfer()
             state.screen = state.screen.onLoadFailed(error: error)

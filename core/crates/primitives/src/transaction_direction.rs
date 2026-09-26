@@ -1,8 +1,8 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum TransactionDirection {
     #[serde(rename = "self")]

@@ -9,12 +9,29 @@ flowchart LR
     D -- no --> G[Marked failed] --> H[Retry a text]
 ```
 
-- Opening Support asks for notification permission when push is off and the system can still ask, so a reply can reach the user; it never asks twice. If the device cannot register for push, the chat says so.
-- A new conversation shows "How can we help?"; a sent message appears at once, then as sent; a photo is resized before it goes and opens full-size on tap.
-- Messages are grouped by day with a typing indicator while an agent writes; a failed text can be retried from the message.
-- A Gem Wallet link in a reply opens the right screen inside the app; any other link opens in the browser.
-- A support push opens the chat.
+1. The user opens Support in Settings.
+2. The user writes a message or attaches a photo; it appears at once, then as sent.
+3. Messages are grouped by day, with a typing indicator while an agent writes.
+4. A reply arrives, and a support push opens the chat.
+
+## Expected results
+
+| When | Expected | Why |
+|---|---|---|
+| Support opens while push is off and the system can still ask | it asks for notification permission, never twice | it lets a reply reach the user |
+| The device cannot register for push | the chat says so | |
+| A new conversation | "How can we help?" | |
+| The user attaches a photo | it is resized before it goes | |
+| The user taps a photo | it opens full-size | |
+| A message fails | it is marked failed, not removed; a failed text can be retried from the message | |
+| A reply has a Gem Wallet link | it opens the right screen inside the app | |
+| Any other link | it opens in the browser | |
+| The app loses the live connection | the typing indicator goes away | it lives only as long as the live connection, so it never stays under a reply that already arrived |
+
+## Platform differences
+
+None recorded.
 
 ## Rules
 
-- A message the user sends shows at once and never disappears; a failure marks it, it does not remove it.
+- A message the user sends never disappears.

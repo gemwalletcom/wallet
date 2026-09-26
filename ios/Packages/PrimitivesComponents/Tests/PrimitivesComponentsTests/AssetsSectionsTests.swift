@@ -10,10 +10,10 @@ struct AssetsSectionsTests {
     func popularEnabledRemovesPopularFromAssets() {
         let sections = AssetsSections.from(
             [
-                .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
-                .mock(asset: .mock(id: .mock(.ethereum)), metadata: .mock(isPinned: false)),
-                .mock(asset: .mock(id: .mock(.solana)), metadata: .mock(isPinned: false)),
-                .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .bitcoin)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .ethereum)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .solana)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .smartChain)), metadata: .mock(isPinned: false)),
             ],
             showsPopular: true,
         )
@@ -25,8 +25,8 @@ struct AssetsSectionsTests {
     @Test
     func popularDisabledKeepsPopularInAssets() {
         let sections = AssetsSections.from([
-            .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
-            .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .bitcoin)), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .smartChain)), metadata: .mock(isPinned: false)),
         ])
 
         #expect(sections.popular.isEmpty)
@@ -37,9 +37,9 @@ struct AssetsSectionsTests {
     func pinnedAssetsStaySeparateFromPopularAndAssets() {
         let sections = AssetsSections.from(
             [
-                .mock(asset: .mock(id: .mock(.smartChain)), metadata: .mock(isPinned: true)),
-                .mock(asset: .mock(id: .mock(.ethereum)), metadata: .mock(isPinned: false)),
-                .mock(asset: .mock(id: .mock(.tron)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .smartChain)), metadata: .mock(isPinned: true)),
+                .mock(asset: .mock(id: .mock(chain: .ethereum)), metadata: .mock(isPinned: false)),
+                .mock(asset: .mock(id: .mock(chain: .tron)), metadata: .mock(isPinned: false)),
             ],
             showsPopular: true,
         )

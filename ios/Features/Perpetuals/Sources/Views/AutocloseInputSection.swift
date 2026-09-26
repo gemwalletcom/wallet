@@ -1,47 +1,52 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAutocloseFieldState
+import GemstonePrimitives
+import Localization
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct AutocloseInputSection<Field: Hashable>: View {
-    @Binding var inputModel: InputValidationViewModel
-    let sectionModel: AutocloseViewModel
+    @Binding var text: String
+    let state: GemAutocloseFieldState
     let field: Field
     var focusedField: FocusState<Field?>.Binding
 
     public init(
-        inputModel: Binding<InputValidationViewModel>,
-        sectionModel: AutocloseViewModel,
+        text: Binding<String>,
+        state: GemAutocloseFieldState,
         field: Field,
         focusedField: FocusState<Field?>.Binding,
     ) {
-        _inputModel = inputModel
-        self.sectionModel = sectionModel
+        _text = text
+        self.state = state
         self.field = field
         self.focusedField = focusedField
     }
 
     public var body: some View {
         Section {
-            InputValidationField(
-                model: $inputModel,
-                placeholder: sectionModel.priceTitle,
-                allowClean: true,
-            )
-            .keyboardType(.decimalPad)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            .focused(focusedField, equals: field)
+            FloatTextField(Localized.Asset.price, text: $text, allowClean: true)
+                .keyboardType(.decimalPad)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused(focusedField, equals: field)
+
+            if let message = state.validation.errorDescription {
+                Text(.init(message))
+                    .textStyle(TextStyle(font: .footnote, color: Colors.red))
+                    .transition(.opacity)
+            }
         } header: {
-            Text(sectionModel.title)
+            Text(state.tpslType.toPrimitives().autocloseTitle)
         } footer: {
             HStack {
-                Text(sectionModel.profitTitle)
+                Text(state.estimateTitle.text)
                 Spacer()
-                Text(sectionModel.expectedPnL)
-                    .foregroundStyle(sectionModel.roeColor)
+                Text(state.estimate?.text ?? Placeholder.empty)
+                    .foregroundStyle(state.tone.color)
             }
             .font(.subheadline)
             .fontWeight(.semibold)

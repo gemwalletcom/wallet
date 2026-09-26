@@ -1,0 +1,129 @@
+package com.gemwallet.android.features.transfer.viewmodels.receive
+
+import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetData
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemChainRow
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.AssetData
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import uniffi.gemstone.GemReceiveAssetState
+import uniffi.gemstone.GemReceiveNetwork
+import uniffi.gemstone.GemReceiveNetworks
+import uniffi.gemstone.GemReceiveServiceInterface
+import uniffi.gemstone.GemReceiveWarning
+import uniffi.gemstone.assetText
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class ReceiveViewModelTest {
+
+    private val dispatcher = StandardTestDispatcher()
+    private val models = mutableListOf<androidx.lifecycle.ViewModel>()
+
+    @Before
+    fun setUp() = Dispatchers.setMain(dispatcher)
+
+    @After
+    fun tearDown() {
+        models.forEach { it.viewModelScope.cancel() }
+        models.clear()
+        Dispatchers.resetMain()
+    }
+
+    private val bitcoin = mockAsset()
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val wallet = mockWallet(
+        id = WalletId("multicoin_0xabc"),
+        accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1q"), mockAccount(chain = Chain.Ethereum, address = "0xabc")),
+    )
+
+    private fun receiveModel(service: GemReceiveServiceInterface, assets: Map<com.wallet.core.primitives.AssetId, AssetData> = mapOf(bitcoin.id to mockAssetData(asset = bitcoin))): ReceiveViewModel {
+        val assetQuery: AssetQueryOptional = mockk {
+            every { this@mockk.invoke(wallet.id.id, any()) } answers { flowOf(assets[secondArg()]) }
+        }
+        val walletAssets: GetWalletAssets = mockk {
+            every { this@mockk.invoke() } returns MutableStateFlow(assets.values.toList())
+        }
+        val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
+        return ReceiveViewModel(bitcoin.id, assetQuery, walletAssets, service, session, dispatcher, mockk(relaxed = true)).also { models.add(it) }
+    }
+
+    @Test
+    fun `the networks and the warnings both come from Core`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns
+                GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow()), GemReceiveNetwork(ethereum.id.toIdentifier(), row = mockGemChainRow())), showsSelector = true)
+            every { assetState(any()) } answers { GemReceiveAssetState(assetText(firstArg()), listOf(GemReceiveWarning.NoMemoRequired)) }
+        }
+        val model = receiveModel(service)
+
+        assertEquals(listOf(bitcoin.id.toIdentifier(), ethereum.id.toIdentifier()), model.networks.first { it.showsSelector }.networks.map { it.assetId })
+        assertEquals(listOf(GemReceiveWarning.NoMemoRequired), model.assetState(bitcoin).warnings)
+        assertEquals(bitcoin.name, model.assetState(bitcoin).asset.asset.name)
+    }
+
+    @Test
+    fun `picking another network swaps the asset the screen shows`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow())), showsSelector = false)
+        }
+        val model = receiveModel(
+            service,
+            assets = mapOf(bitcoin.id to mockAssetData(asset = bitcoin), ethereum.id to mockAssetData(asset = ethereum)),
+        )
+        model.asset.first { it?.asset?.id == bitcoin.id }
+
+        model.selectAsset(ethereum.id)
+
+        assertEquals(ethereum.id, model.asset.first { it?.asset?.id == ethereum.id }?.asset?.id)
+    }
+
+    @Test
+    fun `an asset without a stored account receives on the session wallet account`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow())), showsSelector = false)
+        }
+        val model = receiveModel(service, assets = mapOf(bitcoin.id to mockAssetData(asset = bitcoin)))
+
+        assertEquals("bc1q", model.asset.first { it?.account?.address?.isNotEmpty() == true }?.account?.address)
+        assertEquals("bc1q", model.shareAddress())
+    }
+
+    @Test
+    fun `showing the screen enables the asset for the wallet`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow())), showsSelector = false)
+        }
+        val model = receiveModel(service)
+        model.asset.first { it != null }
+
+        model.setVisible().join()
+
+        coVerify { service.enableAsset(wallet.id.id, bitcoin.id.toIdentifier()) }
+    }
+}

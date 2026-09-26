@@ -308,6 +308,7 @@
   <string name="charts_price_change">Forandring</string>
   <string name="date_today">I dag</string>
   <string name="date_yesterday">I går</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Forbindelse</string>
   <string name="wallet_connect_disconnect">Afbryd forbindelsen</string>

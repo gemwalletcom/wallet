@@ -24,8 +24,4 @@ public extension GemWalletHomeServiceProtocol {
     func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {
         try await setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
-
-    func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {
-        try await setAssetPinned(assetId: assetId.identifier, pinned: pinned)
-    }
 }

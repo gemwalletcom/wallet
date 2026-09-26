@@ -43,7 +43,7 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var isVisible: Bool {
-        !state.isInputEmpty
+        state.showsButton
     }
 
     func action() {

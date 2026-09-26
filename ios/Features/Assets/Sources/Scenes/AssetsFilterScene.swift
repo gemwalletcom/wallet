@@ -1,45 +1,46 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
+import Localization
 import Primitives
 import PrimitivesComponents
-import Store
 import Style
 import SwiftUI
 
 public struct AssetsFilterScene: View {
     @Environment(\.dismiss) var dismiss
-    @Binding var model: AssetsFilterViewModel
+    @Bindable var model: SelectAssetSceneViewModel
 
     @State private var isPresentingChains: Bool = false
 
-    public init(model: Binding<AssetsFilterViewModel>) {
-        _model = model
+    public init(model: SelectAssetSceneViewModel) {
+        self.model = model
     }
 
     public var body: some View {
         List {
             SelectFilterView(
-                typeModel: model.chainsFilter.typeModel,
+                typeModel: model.chainsTypeModel,
                 action: onSelectChainsFilter,
             )
 
-            if model.showHasBalanceToggle {
+            if model.filterView.showsBalanceToggle {
                 ListItemToggleView(
                     isOn: $model.hasBalance,
-                    title: model.hasBalanceTitle,
-                    imageStyle: model.hasBalanceImageStyle,
+                    title: Localized.Filter.hasBalance,
+                    imageStyle: .settings(assetImage: .image(Images.Filters.balance)),
                 )
             }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listStyle(.insetGrouped)
-        .navigationTitle(model.title)
+        .navigationTitle(Localized.Filter.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if model.isAnyFilterSpecified {
+            if model.filterView.isFiltered {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(model.clear, action: onSelectClear)
+                    Button(Localized.Filter.clear, action: model.onClearFilters)
                         .bold()
                 }
             }
@@ -49,7 +50,7 @@ public struct AssetsFilterScene: View {
             SelectableSheet(
                 model: model.networksModel,
                 onFinishSelection: onFinishSelection(value:),
-                listContent: { ChainView(model: ChainViewModel(chain: $0)) },
+                listContent: { ChainView(model: chainRow(chain: $0.rawValue)) },
             )
         }
     }
@@ -58,18 +59,8 @@ public struct AssetsFilterScene: View {
 // MARK: - Actions
 
 extension AssetsFilterScene {
-    private func onSelectClear() {
-        model.chainsFilter.selectedChains = []
-        model.hasBalance = false
-    }
-
-    private func onSelectDone() {
-        dismiss()
-    }
-
     private func onFinishSelection(value: SelectionResult<Chain>) {
-        model.chainsFilter.selectedChains = value.items
-        if value.isConfirmed {
+        if model.onFinishChainsSelection(value) {
             dismiss()
         }
     }

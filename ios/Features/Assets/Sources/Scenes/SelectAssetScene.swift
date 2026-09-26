@@ -3,15 +3,14 @@ import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
-import Recents
 import Style
 import SwiftUI
 
 public struct SelectAssetScene: View {
-    @State private var model: SelectAssetViewModel
+    @State private var model: SelectAssetSceneViewModel
 
     public init(
-        model: SelectAssetViewModel,
+        model: SelectAssetSceneViewModel,
     ) {
         _model = State(wrappedValue: model)
     }
@@ -35,18 +34,10 @@ public struct SelectAssetScene: View {
                 if listState == .loading {
                     LoadingView()
                 } else if listState != .idle {
-                    EmptyContentView(
-                        model: EmptyContentTypeViewModel(
-                            type: EmptyContentType(
-                                .searchAssets,
-                                actions: [.addCustomToken: model.showAddToken ? { model.onSelectAddCustomToken() } : nil],
-                            ),
-                        ),
-                    )
+                    EmptyContentView(model: model.emptyModel)
                 }
             }
             .bindQuery(model.assetsQuery, model.recentModel.query)
-            .onChange(of: model.filterModel, model.onChangeFilterModel)
             .onChange(of: model.searchableQuery, model.updateRequest)
             .copyToast($model.copyToast)
             .toast(message: $model.isPresentingToastMessage)
@@ -63,32 +54,15 @@ public struct SelectAssetScene: View {
                 )
             }
 
-            if sections.popular.isNotEmpty {
+            ForEach(sections.sections, id: \.kind) { section in
                 Section {
-                    assetsList(assets: sections.popular, assetItems: assetItems)
+                    assetsList(assets: section.assets, assetItems: assetItems)
                 } header: {
-                    HStack {
-                        model.popularImage
-                        Text(model.popularTitle)
+                    if let title = section.kind.title {
+                        SectionHeaderView(title: title, image: section.kind.image)
+                    } else {
+                        Text(model.assetsTitle)
                     }
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if sections.pinned.isNotEmpty {
-                Section {
-                    assetsList(assets: sections.pinned, assetItems: assetItems)
-                } header: {
-                    PinnedSectionHeader()
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if sections.assets.isNotEmpty {
-                Section {
-                    assetsList(assets: sections.assets, assetItems: assetItems)
-                } header: {
-                    Text(model.assetsTitle)
                 }
                 .listRowInsets(.assetListRowInsets)
             }
@@ -98,9 +72,9 @@ public struct SelectAssetScene: View {
     }
 
     func assetsList(assets: [AssetData], assetItems: ListAssetItemsViewModel) -> some View {
-        let items = assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
-        return ForEach(Array(zip(assets, items)), id: \.0.id) { assetData, item in
-            let itemView = ListAssetItemView(model: item)
+        let rows = assetItems.rows(assets.map(model.displayAssetData))
+        return ForEach(Array(zip(assets, rows)), id: \.0.id) { assetData, row in
+            let itemView = ListAssetItemView(row: row) { model.onAssetAction(action: $0, assetData: assetData) }
             switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {

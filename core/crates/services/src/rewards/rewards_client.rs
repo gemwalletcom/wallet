@@ -9,7 +9,7 @@ use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
 use pusher::PusherClient;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError};
-use storage::{Database, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
+use storage::{Database, DatabaseClient, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
 
 use super::ip_security_client::IpSecurityClient;
@@ -75,9 +75,19 @@ impl RewardsClient {
         RewardsError::Username(error.localize(locale))
     }
 
-    pub async fn get_rewards_by_wallet_id(&self, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
+    pub async fn get_rewards_by_wallet_id(&self, device: &DeviceRecord, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
-        match self.db.run(move |client| rewards_by_wallet_id(client, wallet_id, &rules)).await {
+        let eligibility_days = self.referral_eligibility_days().await?;
+        let (device_id, device_created_at) = (device.id, device.created_at);
+        let summary = move |client: &mut DatabaseClient| -> Result<Rewards, DatabaseError> {
+            let rewards = rewards_by_wallet_id(client, wallet_id, &rules)?;
+            let facts = referral_use_facts(client, wallet_id, device_id)?;
+            Ok(Rewards {
+                use_referral_code_until: Some(facts.eligibility_ends_at(device_created_at, eligibility_days).and_utc()),
+                ..rewards
+            })
+        };
+        match self.db.run(summary).await {
             Ok(rewards) => Ok(Rewards {
                 disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
                 ..rewards
@@ -220,6 +230,10 @@ impl RewardsClient {
         }
     }
 
+    async fn referral_eligibility_days(&self) -> Result<i64, DatabaseError> {
+        Ok((self.config.get_duration(ConfigKey::ReferralEligibility).await?.as_secs() / 86400) as i64)
+    }
+
     async fn validate_and_score_referral(&self, device: &DeviceRecord, wallet_id: i32, referrer_username: &str, ip_address: &str, user_agent: &str) -> ReferralProcessResult {
         match self.validate_and_score_referral_inner(device, wallet_id, referrer_username, ip_address, user_agent).await {
             Ok(result) => result,
@@ -246,8 +260,7 @@ impl RewardsClient {
         let current = now();
         let cooldown = self.config.get_duration(ConfigKey::ReferralCooldown).await.map_err(ReferralError::internal)?;
         let limits = self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await.map_err(ReferralError::internal)?;
-        let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility).await.map_err(ReferralError::internal)?;
-        let eligibility_days = (eligibility.as_secs() / 86400) as i64;
+        let eligibility_days = self.referral_eligibility_days().await.map_err(ReferralError::internal)?;
 
         let username = referrer_username.to_string();
         let referrer_wallet_id = referrer_info.wallet_id;

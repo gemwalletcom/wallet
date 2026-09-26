@@ -113,15 +113,11 @@ impl GemWalletService {
     }
 
     pub fn wallet_details(&self, wallet: Wallet) -> GemWalletDetails {
-        let details = model::wallet_details(wallet);
-        GemWalletDetails {
-            address_explorer: details.address.as_ref().map(|address| self.explorer.get_address_url(address.chain, address.address.clone())),
-            ..details
-        }
+        rules::details(&wallet, |chain, address| self.explorer.get_address_url(chain, address))
     }
 
     pub fn create_wallet(&self) -> Result<Vec<String>, GemServiceError> {
-        Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
+        Ok(Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })?.to_vec())
     }
 
     pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemLocalizedText, GemServiceError> {
@@ -255,10 +251,6 @@ impl GemWalletService {
         })?;
         self.store.set_name(wallet_id, name.clone()).await?;
         self.names.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
-    }
-
-    pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
-        rules::sorted_wallets(wallets)
     }
 
     pub async fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
@@ -397,13 +389,15 @@ mod tests {
         let details = testkit.service.wallet_details(wallet.clone());
 
         assert_eq!(details.address.as_ref().map(|address| address.address.as_str()), Some("0xabc"));
-        assert!(details.address_explorer.is_some(), "the screen does not ask a second service for the link");
+        assert!(
+            details.address.as_ref().is_some_and(|address| address.menu.iter().any(|item| matches!(item, crate::models::list::GemRowMenuItem::Open { .. }))),
+            "the screen does not ask a second service for the link"
+        );
 
         let multiple = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::Bitcoin], "0xabc"));
         let details = testkit.service.wallet_details(multiple);
 
-        assert!(details.address.is_none());
-        assert!(details.address_explorer.is_none(), "no single address means no link");
+        assert!(details.address.is_none(), "no single address means no link");
     }
     use std::fs;
 

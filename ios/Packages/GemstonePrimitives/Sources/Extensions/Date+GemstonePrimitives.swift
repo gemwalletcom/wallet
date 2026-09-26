@@ -21,6 +21,12 @@ public extension Date {
     }
 }
 
+public extension GemDay {
+    var date: Date {
+        Calendar.current.date(from: DateComponents(year: Int(year), month: Int(month), day: Int(day))) ?? .now
+    }
+}
+
 public extension GemDayBoundaries {
     static var current: GemDayBoundaries {
         Date.now.gemDay.boundaries()

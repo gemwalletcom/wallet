@@ -1,15 +1,15 @@
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use strum::{AsRefStr, Display, EnumString};
-use typeshare::typeshare;
 
 use crate::stake_provider_type::StakeProviderType;
 use crate::{AssetId, Chain, Price, StakeValidator};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
     pub base: DelegationBase,
@@ -17,20 +17,20 @@ pub struct Delegation {
     pub price: Option<Price>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationBase {
     pub asset_id: AssetId,
     pub state: DelegationState,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
-    #[typeshare(serialized_as = "BigIntValue")]
+    #[model(serialized_as = "BigIntValue")]
     pub balance: BigUint,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
-    #[typeshare(serialized_as = "BigIntValue")]
+    #[model(serialized_as = "BigIntValue")]
     pub shares: BigUint,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
-    #[typeshare(serialized_as = "BigIntValue")]
+    #[model(serialized_as = "BigIntValue")]
     pub rewards: BigUint,
     pub completion_date: Option<DateTime<Utc>>,
     pub delegation_id: String,
@@ -57,8 +57,8 @@ impl From<DelegationValidator> for StakeValidator {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationValidator {
     pub chain: Chain,
@@ -95,8 +95,8 @@ impl DelegationValidator {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Display, AsRefStr, EnumString, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Display, AsRefStr, EnumString, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum DelegationState {

@@ -36,7 +36,7 @@ public struct TransactionNavigationView: View {
             case .feeDetails:
                 NetworkFeeSheet(model: model.feeDetailsViewModel)
             case let .info(infoType):
-                InfoSheetScene(type: infoType)
+                InfoSheetScene(sheet: infoType)
             }
         }
     }

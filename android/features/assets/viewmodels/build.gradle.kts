@@ -36,6 +36,9 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
+    testFixtures {
+        enable = true
+    }
     packaging {
         resources {
             excludes += "META-INF/*"
@@ -50,14 +53,13 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    implementation(project(":data:services:gemstone"))
-    implementation(project(":features:asset_select:viewmodels"))
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    implementation(project(":data:services:store"))
 
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)

@@ -1,7 +1,8 @@
 use std::fmt;
 
+use crate::models::list::GemAddressRow;
 use crate::services::localization::GemLocalizedText;
-use primitives::{BlockExplorerLink, Chain, ChainAddress, NameRecord, Wallet, WalletSource};
+use primitives::{Chain, NameRecord, Wallet, WalletSource};
 
 use super::rules;
 
@@ -125,6 +126,26 @@ pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
     rules::secret_phrase_rows(word_count)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSecretWarning {
+    DoNotShare,
+    SaveSafely,
+}
+
+/// What the secret screen shows around the secret, never the secret itself: the words stay in the app and
+/// fill `rows` by index, so this record is built from the kind and the word count alone.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSecretScreen {
+    pub title: GemLocalizedText,
+    pub warning: GemSecretWarning,
+    pub rows: Vec<GemSecretPhraseRow>,
+}
+
+#[uniffi::export]
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+    rules::secret_screen(kind, word_count, is_new)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletSubtitle {
     Multicoin,
@@ -145,18 +166,15 @@ pub struct GemWalletRow {
     pub placeholder: GemWalletPlaceholder,
     pub shows_watch_badge: bool,
     pub is_pinned: bool,
+    pub is_current: bool,
     pub has_avatar: bool,
     pub image_url: Option<String>,
+    pub delete_prompt: GemLocalizedText,
 }
 
 #[uniffi::export]
 pub fn wallet_row(wallet: Wallet) -> GemWalletRow {
     rules::row(&wallet)
-}
-
-#[uniffi::export]
-pub fn wallet_rows(wallets: Vec<Wallet>) -> Vec<GemWalletRow> {
-    rules::rows(&wallets)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -172,20 +190,16 @@ pub struct GemWalletSection {
 }
 
 #[uniffi::export]
-pub fn wallet_sections(wallets: Vec<Wallet>) -> Vec<GemWalletSection> {
-    rules::sections(&wallets)
+pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<String>) -> Vec<GemWalletSection> {
+    rules::sections(wallets, current_wallet_id.as_deref())
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletDetails {
     pub row: GemWalletRow,
     pub secret_kind: Option<GemWalletSecretKind>,
-    pub address: Option<ChainAddress>,
-    pub address_explorer: Option<BlockExplorerLink>,
-}
-
-pub fn wallet_details(wallet: Wallet) -> GemWalletDetails {
-    rules::details(&wallet)
+    pub show_secret: Option<GemLocalizedText>,
+    pub address: Option<GemAddressRow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

@@ -1,0 +1,141 @@
+import Components
+import Foundation
+import struct Gemstone.GemWalletRow
+import struct Gemstone.GemWalletSection
+import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
+import func Gemstone.walletSections
+import GemstonePrimitives
+import GemstoneServices
+import Localization
+import Primitives
+import PrimitivesComponents
+import Store
+import SwiftUI
+
+@Observable
+@MainActor
+public final class WalletsSceneViewModel {
+    private let service: any GemWalletServiceProtocol
+    private let biometry: any BiometryAuthenticatable
+    private let isPresentingCreateWalletSheet: Binding<Bool>
+    private let isPresentingImportWalletSheet: Binding<Bool>
+    private let navigationPath: Binding<NavigationPath>
+
+    var isPresentingAlertMessage: AlertMessage?
+    var walletDelete: Wallet?
+
+    var currentWalletId: WalletId? {
+        service.currentWalletId
+    }
+
+    let walletsQuery: ObservableQuery<WalletsQuery>
+
+    var hasWallets: Bool { walletsQuery.value.isNotEmpty }
+
+    public init(
+        navigationPath: Binding<NavigationPath>,
+        walletService: any GemWalletServiceProtocol,
+        biometry: any BiometryAuthenticatable,
+        isPresentingCreateWalletSheet: Binding<Bool>,
+        isPresentingImportWalletSheet: Binding<Bool>,
+    ) {
+        self.navigationPath = navigationPath
+        service = walletService
+        self.biometry = biometry
+        isPresentingAlertMessage = nil
+        walletDelete = nil
+        self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
+        self.isPresentingImportWalletSheet = isPresentingImportWalletSheet
+        walletsQuery = ObservableQuery(WalletsQuery(isPinned: nil), initialValue: [])
+    }
+
+    var title: String {
+        Localized.Wallets.title
+    }
+
+    var sections: [GemWalletSection] {
+        walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId?.id)
+    }
+
+    func wallet(for row: GemWalletRow) -> Wallet? {
+        walletsQuery.value.first { $0.id.id == row.id }
+    }
+
+    var walletDeletePrompt: String {
+        walletDelete.map { walletRow(wallet: $0.toGem()).deletePrompt.text } ?? ""
+    }
+}
+
+// MARK: - Business Logic
+
+extension WalletsSceneViewModel {
+    func setCurrent(_ walletId: WalletId) {
+        do {
+            try service.setCurrentWalletId(walletId: walletId.id)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
+        }
+    }
+
+    func onEdit(wallet: Wallet) {
+        navigationPath.wrappedValue.append(Scenes.WalletDetail(wallet: wallet))
+    }
+
+    private func delete(_ wallet: Wallet) async throws {
+        _ = try await service.delete(wallet)
+    }
+
+    private func pin(_ wallet: Wallet) async throws {
+        if wallet.isPinned {
+            try await service.unpin(wallet: wallet)
+        } else {
+            try await service.pin(wallet: wallet)
+        }
+    }
+}
+
+// MARK: - Actions
+
+extension WalletsSceneViewModel {
+    func onSelectCreateWallet() {
+        isPresentingCreateWalletSheet.wrappedValue.toggle()
+    }
+
+    func onSelectImportWallet() {
+        isPresentingImportWalletSheet.wrappedValue.toggle()
+    }
+
+    func onSelect(wallet: Wallet, dismiss: DismissAction) {
+        setCurrent(wallet.id)
+        dismiss()
+    }
+
+    func onChangeWallets(dismiss: DismissAction) {
+        guard !hasWallets else { return }
+        dismiss()
+    }
+
+    func onDelete(wallet: Wallet) {
+        walletDelete = wallet
+    }
+
+    func onPin(wallet: Wallet) async {
+        do {
+            try await pin(wallet)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
+        }
+    }
+
+    func onDeleteConfirmed(wallet: Wallet) async {
+        do {
+            guard try await biometry.authenticateIfRequired(reason: Localized.Settings.Security.authentication) else {
+                return
+            }
+            try await delete(wallet)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
+        }
+    }
+}

@@ -30,7 +30,7 @@ struct WalletServiceTests {
     @Test
     func deleteLastWalletNotifiesObservers() async throws {
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore.mock(db: db)
         let session = GemWalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
@@ -51,7 +51,7 @@ struct WalletServiceTests {
     @Test
     func passwordCreatedOnFirstImport() async throws {
         let mockPassword = MockKeystorePassword()
-        let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
+        let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mock(chains: [.ethereum]))
 
         #expect(try mockPassword.getPassword().isEmpty)
 
@@ -62,7 +62,7 @@ struct WalletServiceTests {
 
     @Test
     func concurrentImportAndDelete() async throws {
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore.mock(db: db)
         let service = GemWalletService.mock(
             keystore: LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password)),

@@ -1,44 +1,34 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
-import enum Gemstone.GemAmountInputType
+import struct Gemstone.GemAmountField
 import struct Gemstone.GemNumberFormat
 import GemstonePrimitives
-import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct AmountInputConfig: CurrencyInputConfigurable {
+    let field: GemAmountField
     let canSwitchInputType: Bool
-    let inputType: GemAmountInputType
-    let asset: Asset
-    let currencyFormatter: CurrencyFormatter
     let numberFormat: GemNumberFormat
     let secondaryText: String
     let onTapActionButton: (() -> Void)?
-    let usesWholeAmounts: Bool
 
     var placeholder: String {
         .zero
     }
 
     var keyboardType: UIKeyboardType {
-        usesWholeAmounts ? .numberPad : .decimalPad
+        field.keyboard.keyboardType
     }
 
     var currencyPosition: CurrencyTextField.CurrencyPosition {
-        switch inputType {
-        case .asset: .trailing
-        case .fiat: .leading
-        }
+        field.placement.position
     }
 
     var currencySymbol: String {
-        switch inputType {
-        case .asset: asset.symbol
-        case .fiat: currencyFormatter.symbol
-        }
+        field.symbol.text
     }
 
     var actionStyle: CurrencyInputActionStyle? {

@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import func Gemstone.paymentVerificationOutcome
 import InfoSheet
 import Localization
@@ -12,7 +14,7 @@ public final class PaymentVerificationSceneViewModel {
     private static let messageHandlerName = "payDataCollectionComplete"
     private static let messageType = "type"
 
-    var isPresentingInfoSheet: InfoSheetType?
+    var isPresentingInfoSheet: GemInfoSheet?
 
     let url: URL
 
@@ -38,7 +40,7 @@ public final class PaymentVerificationSceneViewModel {
 
 extension PaymentVerificationSceneViewModel {
     func onSelectInfo() {
-        isPresentingInfoSheet = .paymentVerification
+        isPresentingInfoSheet = GemInfoTopic.paymentVerification.infoSheet
     }
 
     func onMessage(_ payload: [String: Any]) {

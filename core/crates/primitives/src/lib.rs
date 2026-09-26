@@ -1,7 +1,5 @@
 // lib.rs
 
-pub type UInt64 = u64;
-
 mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
@@ -136,12 +134,16 @@ pub mod transaction_type;
 pub use self::transaction_type::TransactionType;
 pub mod transaction_extended;
 pub use self::transaction_extended::TransactionExtended;
+pub mod transaction_list_item;
+pub use self::transaction_list_item::TransactionListItem;
 pub mod tag_visibility;
 pub use self::tag_visibility::TagVisibility;
 pub mod time;
 pub use self::time::{unix_milliseconds, unix_seconds, unix_timestamp};
 pub mod transaction_state;
 pub use self::transaction_state::TransactionState;
+pub mod transactions_filter;
+pub use self::transactions_filter::TransactionsFilter;
 pub mod job_configuration;
 pub use self::job_configuration::JobConfiguration;
 pub mod username_status;
@@ -260,6 +262,8 @@ pub mod support;
 pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
+pub mod asset_data;
+pub use self::asset_data::{AssetData, ChainAssetData, RecentAsset};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;

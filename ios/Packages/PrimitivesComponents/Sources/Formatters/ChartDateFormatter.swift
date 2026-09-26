@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.chartDateStyle
 import enum Gemstone.GemChartDateStyle
 import GemstonePrimitives
 import Primitives
@@ -18,8 +17,8 @@ public struct ChartDateFormatter: Sendable {
         self.timeZone = timeZone
     }
 
-    public func string(for date: Date, period: ChartPeriod) -> String {
-        switch chartDateStyle(period: period.toGem()) {
+    public func string(for date: Date, style: GemChartDateStyle) -> String {
+        switch style {
         case .relative: TransactionDateFormatter(date: date, boundaries: .current(in: timeZone), locale: locale, timeZone: timeZone).row
         case .dayTime: date.formatted(dateTime.month(.abbreviated).day().hour().minute())
         case .day: date.formatted(dateTime.year().month(.abbreviated).day())

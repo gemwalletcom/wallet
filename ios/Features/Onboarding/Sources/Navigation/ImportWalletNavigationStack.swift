@@ -32,7 +32,7 @@ public struct ImportWalletNavigationStack: View {
         if model.isAcceptTermsCompleted {
             importWalletTypeScene
         } else {
-            AcceptTermsScene(model: AcceptTermsViewModel(preferences: model.preferences, onNext: { navigate(to: .importWalletType) }))
+            AcceptTermsScene(model: AcceptTermsSceneViewModel(preferences: model.preferences, onNext: { navigate(to: .importWalletType) }))
         }
     }
 

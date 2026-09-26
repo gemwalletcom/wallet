@@ -5,6 +5,7 @@ use primitives::{NFTAssetData, NFTData, VerificationStatus};
 use crate::config::social::GemSocialLink;
 use crate::models::list::{GemListRow, GemListSectionTitle};
 use crate::services::assets::model::GemHeaderActions;
+use crate::services::empty_state::GemEmptyState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNftList {
@@ -36,6 +37,7 @@ pub struct GemNftEntry {
 pub struct GemNftListScreen {
     pub title: GemLocalizedText,
     pub offers_receive: bool,
+    pub empty_state: GemEmptyState,
     pub syncs_on_appear: bool,
     pub items: Vec<GemNftEntry>,
     pub unverified_row: Option<GemNftUnverifiedRow>,
@@ -55,7 +57,7 @@ pub struct GemNftRow {
 pub struct GemCollectibleDetails {
     pub is_verified: bool,
     pub header: GemHeaderActions,
-    pub actions: Vec<GemCollectibleAction>,
+    pub actions: Vec<GemCollectibleMenuRow>,
     pub image_actions: Vec<GemCollectibleAction>,
     pub sections: Vec<GemCollectibleSectionGroup>,
 }
@@ -72,6 +74,12 @@ pub enum GemCollectibleAction {
     SetAvatar,
     Refresh,
     Report,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemCollectibleMenuRow {
+    pub action: GemCollectibleAction,
+    pub is_destructive: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

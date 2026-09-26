@@ -1,20 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemNftEntry
 import Style
 import SwiftUI
 
 public struct CollectionsPreviewView: View {
-    private let content: CollectionsContent
+    private let entries: [GemNftEntry]
 
-    public init(content: CollectionsContent) {
-        self.content = content
+    public init(entries: [GemNftEntry]) {
+        self.entries = entries
     }
 
     public var body: some View {
-        ForEach(content.items) { item in
-            NavigationLink(value: item.destination) {
-                ListItemView(model: item.model.listItem)
+        ForEach(entries, id: \.row.id) { entry in
+            NavigationLink(value: entry.destination) {
+                ListItemView(model: entry.posterModel.listItem)
             }
         }
     }

@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemSimulationBalanceChange
+import enum Gemstone.GemListRow
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
@@ -63,26 +62,28 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = GemSimulationPayloadRow(title: .contract, value: .text(text: "0x1"))
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(primaryFields: [primary]),
+            simulation: .mock(simulation: .mock(primaryFields: [primary])),
         )))
         await model.load()
 
-        let state = model.state.simulation
-
-        #expect(state.primaryFields.count == 1)
-        #expect(state.primaryFields.first?.title == .contract)
-        #expect(state.secondaryFields.isEmpty)
+        #expect(model.primaryPayloadFields.count == 1)
+        #expect(model.primaryPayloadFields.first?.title == .contract)
+        #expect(model.secondaryPayloadFields.isEmpty)
     }
 
     @Test
     func simulationStateMapsBalanceChanges() async {
-        let usdt = Asset.mockEthereumUSDT()
+        let change = GemListRow.assetChange(
+            name: "Tether",
+            icon: .mock(),
+            amount: .mock(value: 1, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+        )
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())]),
+            simulation: .mock(simulation: .mock(balanceChanges: [change])),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())])
+        #expect(model.viewState.sections.contains(.balanceChanges(rows: [change])))
     }
 }
 

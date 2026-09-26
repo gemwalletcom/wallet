@@ -31,13 +31,14 @@ ALLOWED = {
     "GemKeystore.create_store": "VM181",
     "GemKeystore.export_private_key": "VM181",
     "GemKeystore.export_recovery_phrase": "VM181",
-    "GemConfirmation.fee_rate_rows": DOUBLE,
     "GemConfirmation.row_contents": DOUBLE,
     "GemConfirmScreen.button": DOUBLE,
-    "GemConfirmScreen.fee_row": DOUBLE,
+    "GemConfirmScreen.fee_value": DOUBLE,
     "confirm_error_info": DOUBLE,
     "delegation_list_rows": DOUBLE,
     "fee_amount": DOUBLE,
+    "perpetual_confirm_details": DOUBLE,
+    "swap_quote_details": DOUBLE,
 }
 
 

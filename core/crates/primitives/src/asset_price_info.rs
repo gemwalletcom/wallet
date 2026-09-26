@@ -1,13 +1,10 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::portfolio::ChartValuePercentage;
 use crate::{AssetId, AssetMarket, AssetPrice, Price};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
-#[typeshare(skip)]
 pub struct AssetPriceInfo {
     pub asset_id: AssetId,
     pub price: Price,

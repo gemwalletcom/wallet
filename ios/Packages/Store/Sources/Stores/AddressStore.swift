@@ -55,6 +55,6 @@ public struct AddressStore: Sendable {
     }
 
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
-        try db.read { try AddressNameRequest(chain: chain, address: address).fetch($0) }
+        try db.read { try AddressNameQuery(chain: chain, address: address).fetch($0) }
     }
 }

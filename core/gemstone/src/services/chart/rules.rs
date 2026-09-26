@@ -6,7 +6,7 @@ use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::copy::address_copy;
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::price::rules::has_price;
@@ -102,11 +102,13 @@ fn price_alert_section(price: Option<f64>, price_alerts: Vec<PriceAlert>) -> Opt
             title: GemListRowTitle::SetPriceAlert,
             value: None,
             icon: GemListRowIcon::None,
+            action: GemRowAction::SetPriceAlert,
         },
         count => GemListRow::Link {
             title: GemListRowTitle::PriceAlerts,
             value: Some(count.to_string()),
             icon: GemListRowIcon::None,
+            action: GemRowAction::PriceAlerts,
         },
     };
     Some(section(GemListSectionTitle::None, vec![row]))
@@ -117,11 +119,7 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
     let rank = market.market_cap_rank.filter(|rank| (1..=MARKET_CAP_RANK_BADGE_LIMIT).contains(rank));
     available_rows([
         market.market_cap.map(|market_cap| match rank {
-            Some(rank) => GemListRow::Ranked {
-                title: GemListRowTitle::MarketCap,
-                amount: value(market_cap),
-                rank,
-            },
+            Some(rank) => GemListRow::ranked(GemListRowTitle::MarketCap, value(market_cap), rank),
             None => amount_row(GemListRowTitle::MarketCap, value(market_cap), None),
         }),
         market.market_cap_fdv.map(|fdv| amount_row(GemListRowTitle::FullyDilutedValuation, value(fdv), Some(GemInfoTopic::FullyDilutedValuation))),
@@ -131,11 +129,7 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
 
 fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<GemListRow> {
     let token_id = asset.id.token_id.clone()?;
-    Some(GemListRow::Identifier {
-        title: GemListRowTitle::Contract,
-        copy: address_copy(asset.chain(), token_id),
-        explorer,
-    })
+    Some(GemListRow::identifier(GemListRowTitle::Contract, address_copy(asset.chain(), token_id), explorer))
 }
 
 fn supply_section(market: &AssetMarket, symbol: &str) -> Vec<GemListRow> {
@@ -196,7 +190,7 @@ pub fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBo
     }
 }
 
-pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartData> {
+pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
     let base = chart.base_value;
     let current = chart.current;
     let values: Vec<ChartDateValue> = chart.values.into_iter().chain(current.as_ref().map(|current| ChartDateValue { date: current.date, value: current.value })).collect();
@@ -208,9 +202,11 @@ pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartD
         value_type: GemChartValueType::Price,
         base,
         shows_secondary_value: false,
+        bounds: chart_bounds(&values, currency.clone()),
         currency,
         values,
         header: None,
+        date_style: date_style(period),
     };
     let header = match &current {
         Some(current) => header(&data, current.value, Some(current.change_percentage)),
@@ -219,7 +215,7 @@ pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartD
     Some(GemChartData { header: Some(header), ..data })
 }
 
-pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: bool, currency: Currency) -> Option<GemChartData> {
+pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: bool, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
     if values.len() < MIN_CHART_POINTS || !has_variation(&values) {
         return None;
     }
@@ -229,31 +225,36 @@ pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: boo
         value_type: GemChartValueType::PriceChange,
         base,
         shows_secondary_value,
+        bounds: chart_bounds(&values, currency.clone()),
         currency,
         values,
         header: None,
+        date_style: date_style(period),
     };
     let header = header(&data, last, None);
     Some(GemChartData { header: Some(header), ..data })
 }
 
 pub fn header(data: &GemChartData, value: f64, change_percentage: Option<f64>) -> GemChartHeader {
-    let value_type = data.value_type;
-    let change_percentage = change_percentage.unwrap_or_else(|| PriceChangeCalculator::percentage(data.base, value));
+    series_header(data.value_type, data.base, data.shows_secondary_value, &data.currency, value, change_percentage)
+}
+
+pub fn series_header(value_type: GemChartValueType, base: f64, shows_secondary_value: bool, currency: &Currency, value: f64, change_percentage: Option<f64>) -> GemChartHeader {
+    let change_percentage = change_percentage.unwrap_or_else(|| PriceChangeCalculator::percentage(base, value));
     let (display_value, secondary_value) = match value_type {
         GemChartValueType::Price => (value, None),
-        GemChartValueType::PriceChange => (value - data.base, data.shows_secondary_value.then_some(value)),
+        GemChartValueType::PriceChange => (value - base, shows_secondary_value.then_some(value)),
     };
     let shows_change = display_value != 0.0
         && match value_type {
             GemChartValueType::Price => true,
             GemChartValueType::PriceChange => secondary_value.is_some() && change_percentage != 0.0,
         };
-    let price = |value: f64| GemFormattedNumber::currency(value, data.currency.clone(), GemCurrencyStyle::Currency);
+    let price = |value: f64| GemFormattedNumber::currency(value, currency.clone(), GemCurrencyStyle::Currency);
     GemChartHeader {
         value: match value_type {
             GemChartValueType::Price => price(display_value),
-            GemChartValueType::PriceChange => GemFormattedNumber::signed_currency(display_value, data.currency.clone(), GemCurrencyStyle::Currency),
+            GemChartValueType::PriceChange => GemFormattedNumber::signed_currency(display_value, currency.clone(), GemCurrencyStyle::Currency),
         },
         secondary_value: secondary_value.map(price),
         change: shows_change.then(|| match value_type {
@@ -287,6 +288,7 @@ mod tests {
                 title: GemListRowTitle::SetPriceAlert,
                 value: None,
                 icon: GemListRowIcon::None,
+                action: GemRowAction::SetPriceAlert,
             }],
         )
     }
@@ -305,8 +307,8 @@ mod tests {
 
     #[test]
     fn test_price_chart_data_needs_two_points() {
-        assert_eq!(price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0)]), Currency::USD), None);
-        assert_eq!(price_chart_data(GemChart::mock(vec![]), Currency::USD), None);
+        assert_eq!(price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0)]), ChartPeriod::Day, Currency::USD), None);
+        assert_eq!(price_chart_data(GemChart::mock(vec![]), ChartPeriod::Day, Currency::USD), None);
     }
 
     #[test]
@@ -320,7 +322,7 @@ mod tests {
             current: Some(current),
             ..GemChart::mock(vec![ChartDateValue::mock(1_000, 100.0)])
         };
-        let data = price_chart_data(chart, Currency::USD).expect("data");
+        let data = price_chart_data(chart, ChartPeriod::Day, Currency::USD).expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::Price);
         assert_eq!(data.base, 100.0);
@@ -337,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_price_chart_data_header_falls_back_to_the_last_point() {
-        let data = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 150.0)]), Currency::USD).expect("data");
+        let data = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 150.0)]), ChartPeriod::Day, Currency::USD).expect("data");
 
         assert_eq!(
             data.header,
@@ -351,13 +353,16 @@ mod tests {
 
     #[test]
     fn test_change_chart_data_needs_a_series_that_moves() {
-        assert_eq!(change_chart_data(vec![ChartDateValue::mock(1, 5.0), ChartDateValue::mock(2, 5.0), ChartDateValue::mock(3, 5.0)], true, Currency::USD), None);
-        assert_eq!(change_chart_data(vec![ChartDateValue::mock(1, 5.0)], true, Currency::USD), None);
+        assert_eq!(
+            change_chart_data(vec![ChartDateValue::mock(1, 5.0), ChartDateValue::mock(2, 5.0), ChartDateValue::mock(3, 5.0)], true, ChartPeriod::Day, Currency::USD),
+            None
+        );
+        assert_eq!(change_chart_data(vec![ChartDateValue::mock(1, 5.0)], true, ChartPeriod::Day, Currency::USD), None);
     }
 
     #[test]
     fn test_change_chart_data_header_is_the_distance_from_the_first_value() {
-        let data = change_chart_data(vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0), ChartDateValue::mock(3, 15.0)], true, Currency::USD).expect("data");
+        let data = change_chart_data(vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0), ChartDateValue::mock(3, 15.0)], true, ChartPeriod::Day, Currency::USD).expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::PriceChange);
         assert_eq!(data.base, 10.0);
@@ -369,28 +374,30 @@ mod tests {
                 change: Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Unsigned).in_parentheses().toned()),
             })
         );
-        assert_eq!(data.header_at(12.0).value.value, 2.0);
+        assert_eq!(data.selection(1).map(|selection| (selection.header.value.value, selection.date)), Some((2.0, ChartDateValue::mock(2, 12.0).date)));
+        assert_eq!(data.selection(3), None, "a selection past the last point answers nothing");
+        assert_eq!(data.date_style, GemChartDateStyle::Relative);
     }
 
     #[test]
     fn test_change_chart_data_hides_the_percentage_without_a_secondary_value() {
         let values = vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0)];
 
-        assert_eq!(change_chart_data(values.clone(), false, Currency::USD).unwrap().header.unwrap().change, None);
+        assert_eq!(change_chart_data(values.clone(), false, ChartPeriod::Day, Currency::USD).unwrap().header.unwrap().change, None);
         assert_eq!(
-            change_chart_data(values, true, Currency::USD).unwrap().header.unwrap().change,
+            change_chart_data(values, true, ChartPeriod::Day, Currency::USD).unwrap().header.unwrap().change,
             Some(GemFormattedNumber::percentage(20.0, GemPercentageStyle::Unsigned).in_parentheses().toned())
         );
     }
 
     #[test]
     fn test_a_price_headline_is_plain_and_a_change_headline_carries_its_direction() {
-        let price = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)]), Currency::USD).expect("data");
+        let price = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)]), ChartPeriod::Day, Currency::USD).expect("data");
         let price_header = price.header.expect("header");
         assert_eq!(price_header.value.tone, GemValueTone::Plain);
         assert_eq!(price_header.change.expect("change").tone, GemValueTone::Negative);
 
-        let change = change_chart_data(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)], true, Currency::USD).expect("data");
+        let change = change_chart_data(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)], true, ChartPeriod::Day, Currency::USD).expect("data");
         let change_header = change.header.expect("header");
         assert_eq!(change_header.value.tone, GemValueTone::Negative);
         assert_eq!(change_header.change.expect("change").tone, GemValueTone::Negative, "the parenthesised percentage follows the headline");
@@ -472,11 +479,7 @@ mod tests {
     }
 
     fn contract(token: &Asset, explorer: Option<BlockExplorerLink>) -> GemListRow {
-        GemListRow::Identifier {
-            title: GemListRowTitle::Contract,
-            copy: address_copy(token.chain(), token.id.token_id.clone().unwrap()),
-            explorer,
-        }
+        GemListRow::identifier(GemListRowTitle::Contract, address_copy(token.chain(), token.id.token_id.clone().unwrap()), explorer)
     }
 
     #[test]
@@ -495,7 +498,7 @@ mod tests {
                         GemListRow::Ranked {
                             title: GemListRowTitle::MarketCap,
                             amount: usd(100.0),
-                            rank: 1
+                            tag: "#1".to_string()
                         },
                         amount(GemListRowTitle::FullyDilutedValuation, usd(120.0), Some(GemInfoTopic::FullyDilutedValuation)),
                         amount(GemListRowTitle::TradingVolume, usd(10.0), None),
@@ -548,7 +551,7 @@ mod tests {
             GemListRow::Ranked {
                 title: GemListRowTitle::MarketCap,
                 amount: usd(100.0),
-                rank: 1000
+                tag: "#1000".to_string()
             }
         );
         assert_eq!(rank(MARKET_CAP_RANK_BADGE_LIMIT + 1), amount(GemListRowTitle::MarketCap, usd(100.0), None));
@@ -578,7 +581,8 @@ mod tests {
                 vec![GemListRow::Link {
                     title: GemListRowTitle::PriceAlerts,
                     value: Some("1".to_string()),
-                    icon: GemListRowIcon::None
+                    icon: GemListRowIcon::None,
+                    action: GemRowAction::PriceAlerts,
                 }]
             ))
         );

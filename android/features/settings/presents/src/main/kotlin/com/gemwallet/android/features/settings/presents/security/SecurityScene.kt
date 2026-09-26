@@ -1,0 +1,90 @@
+package com.gemwallet.android.features.settings.presents.security
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.settings.viewmodels.security.models.LockPeriodOption
+import com.gemwallet.android.features.settings.viewmodels.security.models.SecurityRowAction
+import com.gemwallet.android.features.settings.viewmodels.security.models.securityAction
+import com.gemwallet.android.model.AuthRequest
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.theme.Spacer4
+import com.gemwallet.android.ui.theme.compactIconSize
+import uniffi.gemstone.GemListSection
+
+@Composable
+fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, onAuthRequired: (Boolean) -> Unit, onHideBalances: () -> Unit, onLockInterval: (Int) -> Unit, onCancel: () -> Unit) {
+    val context = LocalContext.current
+    var isShowLockPeriods by remember { mutableStateOf(false) }
+
+    Scene(
+        title = stringResource(id = (R.string.settings_security)),
+        onClose = onCancel,
+    ) {
+        LazyColumn {
+            sections.forEach { section ->
+                itemsPositioned(section.rows) { position, row ->
+                    GemListRowView(
+                        row = row,
+                        listPosition = position,
+                        onToggle = { action, isOn ->
+                            when (action.securityAction()) {
+                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
+                                SecurityRowAction.HideBalance -> onHideBalances()
+                                null -> Unit
+                            }
+                        },
+                        onSelect = { isShowLockPeriods = true },
+                        accessory = {
+                            DropdownMenu(
+                                expanded = isShowLockPeriods,
+                                onDismissRequest = { isShowLockPeriods = false },
+                                containerColor = MaterialTheme.colorScheme.background,
+                            ) {
+                                for (option in lockPeriods) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                if (option.minutes == lockInterval) {
+                                                    Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
+                                                } else {
+                                                    Spacer(modifier = Modifier.size(compactIconSize))
+                                                }
+                                                Spacer4()
+                                                Text(stringResource(option.title))
+                                            }
+                                        },
+                                        {
+                                            onLockInterval(option.minutes)
+                                            isShowLockPeriods = false
+                                        },
+                                    )
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+        }
+    }
+}

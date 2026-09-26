@@ -1,46 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemAcquireOption
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct GetAssetScene: View {
     private let asset: Asset
-    private let onSelect: (GetAssetAction) -> Void
+    private let options: [GemAcquireOption]
+    private let onSelect: (GemAcquireOption) -> Void
 
     public init(
         asset: Asset,
-        onSelect: @escaping (GetAssetAction) -> Void,
+        options: [GemAcquireOption],
+        onSelect: @escaping (GemAcquireOption) -> Void,
     ) {
         self.asset = asset
+        self.options = options
         self.onSelect = onSelect
     }
 
     public var body: some View {
         List {
-            option(
-                action: .buy,
-                title: Localized.Wallet.buy,
-                subtitle: Localized.Wallet.payWithCardOrBank,
-                image: Images.System.plus,
-                color: Colors.blue,
-            )
-            option(
-                action: .swap,
-                title: Localized.Wallet.swap,
-                subtitle: Localized.Wallet.fromYourWalletAssets,
-                image: Images.System.arrowSwap,
-                color: Colors.green,
-            )
-            option(
-                action: .receive,
-                title: Localized.Wallet.receive,
-                subtitle: Localized.Wallet.transferFromAnotherWallet,
-                image: Image(systemName: "arrow.down"),
-                color: Color.purple,
-            )
+            ForEach(options) { option($0) }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listStyle(.insetGrouped)
@@ -60,21 +45,15 @@ public struct GetAssetScene: View {
 // MARK: - UI Components
 
 extension GetAssetScene {
-    private func option(
-        action: GetAssetAction,
-        title: String,
-        subtitle: String,
-        image: Image,
-        color: Color,
-    ) -> some View {
+    private func option(_ option: GemAcquireOption) -> some View {
         NavigationCustomLink(
             with: row(
-                title: title,
-                subtitle: subtitle,
-                image: image,
-                color: color,
+                title: option.title,
+                subtitle: option.subtitle,
+                image: option.image,
+                color: option.color,
             ),
-            action: { onSelect(action) },
+            action: { onSelect(option) },
         )
         .listRowInsets(.assetListRowInsets)
     }

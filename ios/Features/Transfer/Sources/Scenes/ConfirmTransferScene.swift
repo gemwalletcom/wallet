@@ -19,10 +19,9 @@ public struct ConfirmTransferScene: View {
     }
 
     public var body: some View {
-        ListSectionView(
-            provider: model,
-            content: content(for:),
-        )
+        ListSectionView(sections: model.sections) { item in
+            content(for: model.itemModel(for: item))
+        }
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
         .safeAreaButton {
@@ -49,22 +48,22 @@ extension ConfirmTransferScene {
     @ViewBuilder
     private func content(for itemModel: ConfirmTransferItemModel) -> some View {
         switch itemModel {
-        case let .header(headerType, isReserved):
-            TransactionHeaderListItemView(headerType: headerType)
-                .isVisible(!isReserved)
+        case let .header(header):
+            TransactionHeaderListItemView(header: header.header)
+                .isVisible(!header.isReserved)
         case let .row(row):
             GemListRowView(row: row)
-        case let .recipient(model):
-            AddressListItemView(model: model)
+        case let .recipient(row):
+            AddressListItemView(row: row, onSelect: { model.onSelectAddress(ChainAddress(chain: Chain(core: row.chain), address: row.address)) })
         case let .paymentAsset(model, selectable):
             NavigationCustomLink(
                 with: ListItemView(model: model),
                 isEnabled: selectable,
                 action: self.model.onSelectPaymentAsset,
             )
-        case let .swapDetails(model):
+        case let .swapDetails(details):
             NavigationCustomLink(
-                with: SwapDetailsListView(model: model),
+                with: SwapDetailsListView(details: details),
                 action: { self.model.onSelectSwapDetails() },
             )
         case let .perpetualDetails(model):
@@ -73,9 +72,7 @@ extension ConfirmTransferScene {
                 action: { self.model.onSelectPerpetualDetails(model) },
             )
         case let .perpetualModifyPosition(row):
-            if let row {
-                GemListRowView(row: row)
-            }
+            GemListRowView(row: row, onInfo: model.onInfo)
         case let .networkFee(model, selectable):
             if selectable {
                 NavigationCustomLink(
@@ -92,8 +89,6 @@ extension ConfirmTransferScene {
             )
         case let .warnings(rows):
             ForEach(rows, id: \.self) { GemListRowView(row: $0) }
-        case let .balanceChange(model):
-            ListItemView(model: model.listItem)
         case let .payload(models):
             Group {
                 SimulationPayloadFieldsContent(models: models)

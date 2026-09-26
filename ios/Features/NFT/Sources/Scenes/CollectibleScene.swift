@@ -12,9 +12,9 @@ import Style
 import SwiftUI
 
 public struct CollectibleScene: View {
-    @State private var model: CollectibleViewModel
+    @State private var model: CollectibleSceneViewModel
 
-    public init(model: CollectibleViewModel) {
+    public init(model: CollectibleSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -68,7 +68,7 @@ public struct CollectibleScene: View {
             ReportNavigationStack(model: model.reportModel())
         }
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))
+            InfoSheetScene(sheet: $0)
         }
         .bindQuery(model.query)
     }
@@ -87,7 +87,7 @@ extension CollectibleScene {
         } header: {
             Spacer()
         } footer: {
-            HeaderButtonsView(buttons: model.headerButtons(details), action: model.onSelectHeaderButton(type:))
+            HeaderButtonsView(buttons: details.header.headerButtons, menuTitle: model.title, menuItems: model.menuItems(details), action: model.onSelectHeaderButton)
                 .padding(.top, .medium)
                 .padding(.bottom, .small)
         }

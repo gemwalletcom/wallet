@@ -5,7 +5,7 @@ use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext
 use crate::address::validate_address;
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::custom_types::GemBigInt;
-use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentRecipient};
+use crate::payment::{GemPaymentRecipient, GemPaymentStep};
 use crate::services::name::GemNameRecordState;
 use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -61,19 +61,15 @@ fn error_display(chain: Chain, input: &str, is_valid: bool) -> Option<GemRecipie
     })
 }
 
-pub fn scan_route(destination: GemPaymentDestination, recipient_type: &GemRecipientType, transfer_data: impl FnOnce(GemPaymentConfirmTransfer) -> GemTransferData) -> Result<GemRecipientScan, GemRecipientError> {
-    match destination {
-        GemPaymentDestination::Confirm { transfer } => {
-            let transfer = transfer_data(transfer);
-            Ok(match recipient_type {
-                GemRecipientType::Asset { .. } => GemRecipientScan::Confirm { transfer },
-                GemRecipientType::Nft { .. } => GemRecipientScan::Recipient {
-                    payment: GemPaymentRecipient { recipient: transfer.recipient, amount: None },
-                },
-            })
-        }
-        GemPaymentDestination::Recipient { payment, .. } => Ok(GemRecipientScan::Recipient { payment }),
-        GemPaymentDestination::SelectAsset { .. } | GemPaymentDestination::Unsupported => Err(GemRecipientError::InvalidAddress { chain: recipient_type.asset().chain() }),
+pub fn scan_route(step: GemPaymentStep, recipient_type: &GemRecipientType) -> GemRecipientScan {
+    match step {
+        GemPaymentStep::Confirm { transfer } => match recipient_type {
+            GemRecipientType::Asset { .. } => GemRecipientScan::Confirm { transfer },
+            GemRecipientType::Nft { .. } => GemRecipientScan::Recipient {
+                payment: GemPaymentRecipient { recipient: transfer.recipient, amount: None },
+            },
+        },
+        GemPaymentStep::Amount { payment } | GemPaymentStep::Recipient { payment } => GemRecipientScan::Recipient { payment },
     }
 }
 
@@ -303,51 +299,32 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_confirms_an_asset_payment_and_only_fills_an_nft_recipient() {
-        let destination = GemPaymentDestination::Confirm {
-            transfer: GemPaymentConfirmTransfer {
-                asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
-                address: ADDRESS.to_string(),
-                value: 5u32.into(),
-                memo: None,
-                references: vec![],
-            },
-        };
+    fn test_scan_confirms_an_asset_payment_and_otherwise_fills_the_recipient() {
         let asset = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Ethereum) };
         let nft = GemRecipientType::Nft { nft_asset: primitives::NFTAsset::mock() };
-
-        assert!(
-            matches!(scan_route(destination.clone(), &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Confirm { transfer }) if transfer.recipient.address == ADDRESS)
-        );
-        assert!(
-            matches!(scan_route(destination, &nft, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment }) if payment.recipient.address == ADDRESS && payment.amount.is_none())
-        );
-    }
-
-    #[test]
-    fn test_scan_fills_a_recipient_and_rejects_the_rest() {
-        let asset = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Ethereum) };
+        let confirm = || GemPaymentStep::Confirm {
+            transfer: GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }),
+        };
         let payment = GemPaymentRecipient {
             recipient: GemRecipient::address(ADDRESS.to_string()),
             amount: Some("1.5".to_string()),
         };
-        let recipient = GemPaymentDestination::Recipient {
-            asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
-            payment: payment.clone(),
-        };
 
-        assert!(matches!(scan_route(recipient, &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment: found }) if found == payment));
-        assert!(matches!(
-            scan_route(GemPaymentDestination::Unsupported, &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))),
-            Err(GemRecipientError::InvalidAddress { .. })
-        ));
-        assert!(matches!(
-            scan_route(GemPaymentDestination::SelectAsset { payment, chains: vec![] }, &asset, |transfer| crate::payment::transfer_data(
-                &transfer,
-                Asset::from_chain(Chain::Ethereum)
-            )),
-            Err(GemRecipientError::InvalidAddress { .. })
-        ));
+        let GemRecipientScan::Confirm { transfer } = scan_route(confirm(), &asset) else { panic!("an asset payment confirms") };
+        assert_eq!(transfer.recipient.address, "recipient");
+
+        let GemRecipientScan::Recipient { payment: filled } = scan_route(confirm(), &nft) else {
+            panic!("an NFT only takes the recipient")
+        };
+        assert_eq!(filled.recipient.address, "recipient");
+        assert_eq!(filled.amount, None);
+
+        for step in [GemPaymentStep::Amount { payment: payment.clone() }, GemPaymentStep::Recipient { payment: payment.clone() }] {
+            let GemRecipientScan::Recipient { payment: filled } = scan_route(step, &asset) else {
+                panic!("a partial payment fills the recipient")
+            };
+            assert_eq!(filled, payment);
+        }
     }
 
     #[test]

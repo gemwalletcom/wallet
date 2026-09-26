@@ -1,11 +1,11 @@
 use crate::{Account, AddressChains, Chain, WalletId, WalletType};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, EnumString, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, EnumString, AsRefStr, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum WalletSource {
@@ -14,8 +14,8 @@ pub enum WalletSource {
     Import,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct Wallet {
     pub id: WalletId,

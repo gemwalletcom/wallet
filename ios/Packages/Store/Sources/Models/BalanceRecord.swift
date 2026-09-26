@@ -161,8 +161,8 @@ extension BalanceRecord {
             pendingUnconfirmed: BigInt(stringLiteral: pendingUnconfirmed),
             rewards: BigInt(stringLiteral: rewards),
             reserved: BigInt(stringLiteral: reserved),
-            withdrawable: BigInt(stringLiteral: withdrawable),
             earn: BigInt(stringLiteral: earn),
+            withdrawable: BigInt(stringLiteral: withdrawable),
             metadata: metadata,
         )
     }

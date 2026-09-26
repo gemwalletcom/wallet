@@ -1,16 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemSupportMessageRow
+import Primitives
 import Style
 import SwiftUI
 
 struct SupportAgentMessageGroup: View {
-    let messages: [SupportMessageBubbleViewModel]
+    let rows: [GemSupportMessageRow]
+    let onRetry: (SupportMessage) -> Void
+    let onImage: (SupportMessageImage) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: .tiny) {
-            ForEach(messages) { message in
+            ForEach(rows, id: \.message.id) { row in
                 HStack(spacing: .zero) {
-                    SupportMessageBubble(model: message)
+                    SupportMessageBubble(row: row, onRetry: onRetry, onImage: onImage)
                     Spacer(minLength: .space32)
                 }
             }

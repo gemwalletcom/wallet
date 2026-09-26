@@ -28,7 +28,7 @@ let package = Package(
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
-        .package(name: "InfoSheet", path: "../InfoSheet"),
+        .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
         .package(name: "Style", path: "../../Packages/Style"),
     ],

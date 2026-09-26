@@ -3,7 +3,7 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemFeeAmount
+import struct Gemstone.GemAddressRow
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
@@ -27,7 +27,7 @@ public final class TransactionSceneViewModel {
     private let onAddContact: ((AddContactType) -> Void)?
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    public let query: ObservableQuery<MappedRequest<TransactionRequest, TransactionDetails>>
+    public let query: ObservableQuery<MappedQuery<TransactionQuery, TransactionDetails>>
     var transactionExtended: TransactionExtended {
         query.value.transaction
     }
@@ -52,7 +52,7 @@ public final class TransactionSceneViewModel {
             TransactionDetails(transaction: $0, rows: service.detailRows(transaction: $0.toGem(), walletType: walletType))
         }
         query = ObservableQuery(
-            MappedRequest(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), transform: details),
+            MappedQuery(TransactionQuery(walletId: wallet.id, recordId: transaction.recordId), transform: details),
             initialValue: details(transaction),
         )
     }
@@ -71,49 +71,38 @@ public final class TransactionSceneViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
+// MARK: - Sections
 
-extension TransactionSceneViewModel: ListSectionProvideable {
+extension TransactionSceneViewModel {
     public var sections: [ListSection<GemTransactionDetailRow>] {
         transactionDetailSections(rows: rows).map(ListSection.init)
     }
 
-    public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
+    public func itemModel(for row: GemTransactionDetailRow) -> TransactionItemModel {
         switch row {
         case .header: headerItem
         case .swapProgress: swapProgressItem
-        case .swapAgain: rows.swapAgain == nil ? TransactionItemModel.empty : .swapAgain(text: Localized.Transaction.swapAgain)
-        case .participant: TransactionParticipantViewModel(
-                participant: rows.participant,
-                chain: transactionExtended.transaction.assetId.chain,
-                memo: transactionExtended.transaction.memo,
-                onAddContact: onAddContact,
-                onSelectAddress: onSelectAddress,
-            )
+        case .swapAgain: rows.swapAgain == nil ? .empty : .swapAgain(text: Localized.Transaction.swapAgain)
+        case let .participant(row): .participant(row)
         case .fee: feeItem
-        case let .row(row): TransactionItemModel.row(row)
+        case let .row(row): .row(row)
         }
     }
 
     private var headerItem: TransactionItemModel {
-        .header(rows.header.headerType)
+        .header(rows.header)
     }
 
     private var swapProgressItem: TransactionItemModel {
-        guard let progress = rows.swapProgress else { return .empty }
-        return .swapProgress(TransactionSwapProgressItemModel(
-            transfer: .init(title: Localized.Transfer.title, subtitle: "\(progress.amount.text()) (\(progress.network))", state: progress.transfer),
-            swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
-            estimatedTime: progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) },
-        ))
+        rows.swapProgress.map(TransactionItemModel.swapProgress) ?? .empty
     }
 
     private var feeItem: TransactionItemModel {
         let fee = rows.feeRow
         return .fee(ListItemModel(
             title: fee.title.text,
-            subtitle: fee.amount.text(),
-            subtitleExtra: fee.fiat?.text(),
+            subtitle: fee.text.value.text(),
+            subtitleExtra: fee.text.extra?.text,
             infoAction: { [weak self] in self?.onInfo(fee.info) },
         ))
     }
@@ -122,6 +111,16 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 // MARK: - Actions
 
 extension TransactionSceneViewModel {
+    var addContactAction: ((AddContactType) -> Void)? {
+        onAddContact
+    }
+
+    func selectAction(_ row: GemAddressRow) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        let chainAddress = ChainAddress(chain: Chain(core: row.chain), address: row.address)
+        return { onSelectAddress(chainAddress) }
+    }
+
     private func onHeaderTap(_ tap: TransactionHeaderTap) {
         guard let onHeaderAction, let headerAction = rows.headerAction else { return }
         switch tap {
@@ -152,7 +151,7 @@ extension TransactionSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingTransactionSheet = .info(InfoSheetType(topic: topic, assetImage: TransactionViewModel(transaction: transactionExtended).assetImage))
+        isPresentingTransactionSheet = .info(topic.infoSheet)
     }
 }
 
@@ -164,12 +163,7 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        NetworkFeeSceneViewModel(
-            feeAsset: rows.fee.asset.toPrimitives(),
-            currency: service.getCurrency().toPrimitives(),
-            selection: .priority(priority: .normal),
-            fee: GemFeeAmount(amount: rows.feeRow.amount, fiat: rows.feeRow.fiat),
-        )
+        NetworkFeeSceneViewModel(screen: rows.feeRow.screen())
     }
 }
 

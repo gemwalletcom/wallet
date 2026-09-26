@@ -2,7 +2,11 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAddressRow
+import struct Gemstone.GemConfirmHeader
 import enum Gemstone.GemListRow
+import struct Gemstone.GemSwapDetails
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -41,26 +45,19 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 }
 
 public enum ConfirmTransferItemModel {
-    case header(TransactionHeaderType, isReserved: Bool)
+    case header(GemConfirmHeader)
     case row(GemListRow)
-    case recipient(AddressListItemViewModel)
+    case recipient(GemAddressRow)
     case paymentAsset(ListItemModel, selectable: Bool)
     case verification(ListItemModel)
-    case swapDetails(SwapDetailsViewModel)
+    case swapDetails(GemSwapDetails)
     case networkFee(ListItemModel, selectable: Bool)
     case perpetualDetails(PerpetualDetailsViewModel)
-    case perpetualModifyPosition(GemListRow?)
+    case perpetualModifyPosition(GemListRow)
     case warnings([GemListRow])
     case payload([SimulationPayloadFieldViewModel])
-    case balanceChange(ConfirmBalanceChangeViewModel)
     case error(title: String, error: Error, onInfoAction: VoidAction)
     case empty
-}
-
-extension ConfirmTransferItemModel: ItemModelProvidable {
-    public var itemModel: ConfirmTransferItemModel {
-        self
-    }
 }
 
 extension ListSection where T == ConfirmTransferItem {

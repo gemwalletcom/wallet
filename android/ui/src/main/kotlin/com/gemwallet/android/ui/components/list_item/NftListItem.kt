@@ -12,19 +12,19 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemNftRow
 
 @Composable
-fun NftListItem(model: NftItemUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+fun NftListItem(row: GemNftRow, listPosition: ListPosition, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
         minHeight = ListItemDefaults.iconMinHeight,
         leading = {
             NftImage(
-                source = model.toImageSource(),
+                source = row.toImageSource(),
                 modifier = Modifier
                     .size(listItemIconSize)
                     .clip(RoundedCornerShape(paddingSmall)),
@@ -32,13 +32,13 @@ fun NftListItem(model: NftItemUIModel, listPosition: ListPosition, onClick: () -
         },
         title = {
             Text(
-                text = model.name,
+                text = row.title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         },
         trailing = {
-            model.countText?.let { countText ->
+            row.countText?.let { countText ->
                 Text(
                     text = countText,
                     color = MaterialTheme.colorScheme.secondary,

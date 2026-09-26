@@ -1,0 +1,221 @@
+package com.gemwallet.android.features.transfer.viewmodels.confirm
+
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.domains.confirm.asset
+import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockGemAssetBalance
+import com.gemwallet.android.testkit.mockGemConfirmLoad
+import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
+import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemConfirmSimulationState
+import com.gemwallet.android.testkit.mockGemTransferData
+import com.gemwallet.android.testkit.mockPaymentInvoice
+import com.gemwallet.android.testkit.mockPaymentMerchant
+import com.gemwallet.android.testkit.mockPaymentQuote
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockTransferDataExtra
+import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.TransactionType
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import uniffi.gemstone.GemConfirmLoad
+import uniffi.gemstone.GemConfirmLoadOptions
+import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PaymentLink
+import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class ConfirmTransferViewModelPaymentAssetTest {
+
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
+    private val account = mockAccount(chain = Chain.Ethereum)
+    private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
+    private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()
+    private var model: ConfirmTransferViewModel? = null
+
+    @Before
+    fun setUp() = Dispatchers.setMain(testDispatcher)
+
+    @After
+    fun tearDown() = runTest(testDispatcher) {
+        model?.viewModelScope?.coroutineContext?.job?.cancelAndJoin()
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun thePaymentAssetRowOffersTheAssetsCorePicked() = runTest(testDispatcher) {
+        every { confirmation.rowContents(any()) } returns listOf(
+            GemConfirmRowContent.PaymentAsset(title = GemListRowTitle.PAY_WITH, symbol = ethereum.symbol, selectable = true, assetIds = listOf(ethereum.id.toIdentifier(), usdt.id.toIdentifier())),
+        )
+        val viewModel = viewModel(payment(ethereum)).also { model = it }
+
+        val row = viewModel.transactionRows.first { rows -> rows.any { it is GemConfirmRowContent.PaymentAsset } }
+            .filterIsInstance<GemConfirmRowContent.PaymentAsset>().single()
+        assertEquals(listOf(ethereum.id.toIdentifier(), usdt.id.toIdentifier()), row.assetIds)
+    }
+
+    @Test
+    fun changingTheAssetReloadsWithItAndTheHeaderFollowsTheLoadedTransfer() = runTest(testDispatcher) {
+        val viewModel = viewModel(payment(ethereum)).also { model = it }
+        assertEquals(symbolHeader(ethereum), viewModel.awaitHeader())
+
+        viewModel.changePaymentAsset(usdt.id)
+        advanceUntilIdle()
+
+        coVerify { confirmation.load(match<GemConfirmLoadOptions> { it.assetId == usdt.id.toIdentifier() }) }
+        assertEquals(symbolHeader(usdt), viewModel.header.first { it == symbolHeader(usdt) })
+    }
+
+    @Test
+    fun returningToTheSameTransferKeepsTheSelectedPaymentAsset() = runTest(testDispatcher) {
+        val transfer = payment(ethereum)
+        val viewModel = viewModel(transfer).also { model = it }
+        viewModel.awaitHeader()
+        viewModel.changePaymentAsset(usdt.id)
+        advanceUntilIdle()
+
+        clearMocks(confirmation, answers = false)
+        viewModel.init(transfer)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { confirmation.load(any()) }
+    }
+
+    @Test
+    fun reselectingTheCurrentAssetDoesNotReload() = runTest(testDispatcher) {
+        val viewModel = viewModel(payment(ethereum)).also { model = it }
+        viewModel.awaitHeader()
+
+        viewModel.changePaymentAsset(ethereum.id)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { confirmation.load(match<GemConfirmLoadOptions> { it.assetId != null }) }
+    }
+
+    @Test
+    fun changingTheAssetBackWhileTheFirstLoadRunsStillReloads() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val viewModel = viewModel(payment(ethereum), gate).also { model = it }
+        viewModel.awaitHeader()
+
+        viewModel.changePaymentAsset(usdt.id)
+        advanceUntilIdle()
+        viewModel.changePaymentAsset(ethereum.id)
+        advanceUntilIdle()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        coVerify { confirmation.load(match<GemConfirmLoadOptions> { it.assetId == ethereum.id.toIdentifier() }) }
+    }
+
+    private fun payment(asset: Asset) = mockGemTransferData(
+        inputType = TransactionInputType.Payment(
+            asset = asset.toGem(),
+            invoice = mockPaymentInvoice(
+                link = PaymentLink.SolanaPay("https://example.com/pay"),
+                merchant = mockPaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
+                quotes = listOf(ethereum, usdt).map {
+                    mockPaymentQuote(id = it.id.toIdentifier(), assetId = it.id.toIdentifier(), value = java.math.BigInteger.ONE)
+                },
+            ),
+            extra = mockTransferDataExtra(
+                to = "recipient",
+                outputType = uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION,
+                outputAction = uniffi.gemstone.TransferDataOutputAction.SEND,
+                transactionType = TransactionType.Transfer.toGem(),
+            ),
+        ),
+        recipient = GemRecipient(address = "recipient"),
+        value = BigInteger.ONE,
+    )
+
+    private suspend fun ConfirmTransferViewModel.awaitHeader() = header.first { it != null }
+
+    private fun viewModel(transfer: GemTransferData, gate: CompletableDeferred<Unit>? = null): ConfirmTransferViewModel {
+        every { confirmService.confirmation(any(), any(), any()) } returns confirmation
+        every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
+        every { confirmation.getCurrency() } returns Currency.USD.toGem()
+        var loaded: GemConfirmLoad? = null
+        every { confirmation.header(any()) } answers { symbolHeader((loaded?.transfer ?: transfer).asset) }
+        coEvery { confirmation.state() } returns
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(ethereum.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = ethereum.id.chain).toGem(),
+                feeAsset = ethereum.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = ethereum.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = ethereum.id.chain.string),
+            ).copy(transfer = transfer)
+        coEvery { confirmation.load(any()) } coAnswers {
+            val options = firstArg<GemConfirmLoadOptions>()
+            if (options.assetId == usdt.id.toIdentifier()) {
+                gate?.await()
+            }
+            val asset = if (options.assetId == usdt.id.toIdentifier()) usdt else ethereum
+            mockGemConfirmLoad(
+                transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE),
+                sender = mockAccount(chain = asset.id.chain).toGem(),
+                feeAsset = asset.toGem(),
+                metadata = mockGemConfirmMetadata(assetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true), feeAssetBalance = mockGemAssetBalance(assetId = asset.id.toIdentifier(), isActive = true)),
+                simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
+            ).copy(transfer = payment(asset)).also {
+                loaded =
+                    it
+            }
+        }
+        return ConfirmTransferViewModel(
+            getSession = mockk<GetSession> {
+                every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(account))))
+            },
+            confirmService = confirmService,
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            observeRefreshInterval = mockk(relaxed = true),
+            ioDispatcher = testDispatcher,
+            context = mockk<Context> {
+                every { getString(any()) } returns "Error"
+                every { getString(any(), *anyVararg()) } returns "Error"
+            },
+        )
+    }
+}

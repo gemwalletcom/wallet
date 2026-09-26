@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import func Gemstone.pendingActivityFilters
+import GemstonePrimitives
 import Primitives
 import Store
 import Transactions
@@ -9,7 +11,7 @@ import Transactions
 @Observable
 @MainActor
 final class MainTabViewModel {
-    let transactionsQuery: ObservableQuery<TransactionsCountRequest>
+    let transactionsQuery: ObservableQuery<TransactionsCountQuery>
 
     var transactions: Int {
         transactionsQuery.value
@@ -19,7 +21,7 @@ final class MainTabViewModel {
 
     init(wallet: Wallet) {
         transactionsQuery = ObservableQuery(
-            TransactionsCountRequest(walletId: wallet.id, type: .all, filters: TransactionsRequestFilter.pendingActivity),
+            TransactionsCountQuery(walletId: wallet.id, type: .all, filter: pendingActivityFilters().toPrimitives()),
             initialValue: 0,
         )
     }

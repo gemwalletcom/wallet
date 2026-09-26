@@ -4,7 +4,6 @@ use primitives::{BannerEvent, Currency, TransactionType};
 
 use crate::services::onboarding::{GemAcceptTermsItem, GemSecurityReminderItem};
 use crate::services::security::GemLockPeriod;
-use crate::services::transactions::GemTransactionFilter;
 
 pub const SEARCH_DEBOUNCE: Duration = Duration::from_millis(250);
 pub const NODE_CHECK_DEBOUNCE: Duration = Duration::from_millis(250);
@@ -31,14 +30,6 @@ pub const WALLET_BANNER_EVENTS: &[BannerEvent] = &[BannerEvent::AccountBlockedMu
 pub const PERPETUAL_ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition];
 pub const ACCEPT_TERMS_ITEMS: &[GemAcceptTermsItem] = &[GemAcceptTermsItem::SelfCustody, GemAcceptTermsItem::Recovery, GemAcceptTermsItem::Responsibility];
 pub const SECURITY_REMINDER_ITEMS: &[GemSecurityReminderItem] = &[GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery];
-pub const TRANSACTION_FILTERS: &[GemTransactionFilter] = &[
-    GemTransactionFilter::Transfers,
-    GemTransactionFilter::Swaps,
-    GemTransactionFilter::Stake,
-    GemTransactionFilter::SmartContract,
-    GemTransactionFilter::Perpetuals,
-    GemTransactionFilter::Others,
-];
 pub const LOCK_PERIODS: &[GemLockPeriod] = &[
     GemLockPeriod::Immediate,
     GemLockPeriod::OneMinute,

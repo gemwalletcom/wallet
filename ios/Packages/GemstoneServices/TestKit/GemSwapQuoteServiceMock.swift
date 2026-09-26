@@ -14,6 +14,8 @@ import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapProviderData
+import struct Gemstone.SwapQuote
 import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -21,7 +23,7 @@ import Primitives
 import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
-    private let quotes: @Sendable (BigInt) -> [SwapperQuote]
+    private let quotes: @Sendable (BigInt) async throws -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
@@ -30,7 +32,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public private(set) var balanceUpdates: [[AssetId]] = []
 
     public init(
-        quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
+        quotes: @escaping @Sendable (BigInt) async throws -> [SwapperQuote],
         quoteData: Gemstone.SwapQuoteData = .mock(),
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
@@ -79,10 +81,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         available * BigInt(percent) / BigInt(100)
     }
 
-    public func slippagePercent(bps: UInt32) -> Double {
-        Double(bps) / 100
-    }
-
     public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
         switch side {
         case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)
@@ -100,7 +98,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         if let quotesError {
             throw quotesError
         }
-        return quotes(BigInt(value))
+        return try await quotes(BigInt(value))
     }
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
@@ -115,5 +113,21 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func suggestPair(payAssetId _: AssetId?) async -> GemSwapPairSuggestion? {
         pairSuggestion
+    }
+}
+
+private extension SwapperQuote {
+    var swapQuote: SwapQuote {
+        SwapQuote(
+            fromAddress: request.walletAddress,
+            fromValue: fromValue,
+            minFromValue: minFromValue,
+            toAddress: request.destinationAddress,
+            toValue: toValue,
+            providerData: SwapProviderData(provider: data.provider.id, name: data.provider.name, protocolName: data.provider.protocol),
+            slippageBps: data.slippageBps,
+            etaInSeconds: etaInSeconds,
+            useMaxAmount: request.options.useMaxAmount,
+        )
     }
 }

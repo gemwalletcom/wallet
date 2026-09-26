@@ -12,6 +12,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconResource
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -45,17 +46,20 @@ fun ValidatorItem(data: GemValidatorRow, listPosition: ListPosition, isSelected:
     )
 }
 
+val GemValidatorRow.icon: Any
+    get() = provider?.iconResource() ?: imageUrl
+
 @Composable
 private fun ValidatorIcon(data: GemValidatorRow, isSelected: Boolean) {
     if (isSelected) {
         IconWithBadge(
-            icon = data.imageUrl,
+            icon = data.icon,
             placeholder = data.placeholder,
             badge = { SelectionCheckmark() },
         )
     } else {
         IconWithBadge(
-            icon = data.imageUrl,
+            icon = data.icon,
             placeholder = data.placeholder,
         )
     }

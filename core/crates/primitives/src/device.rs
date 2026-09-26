@@ -1,10 +1,10 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{DeviceLocale, PlatformStore, currency::Currency, platform::Platform};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Device {
     pub id: String,

@@ -35,7 +35,7 @@ struct WalletSearchSceneViewModelTests {
     @Test
     func hasMoreAssetsCountsOnlyTheAssetsThePreviewShows() {
         let model = WalletSearchSceneViewModel.mock()
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock() })
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock(metadata: .mock(isPinned: true)) })
 
         #expect(model.derived.previewAssets.isEmpty)
         #expect(model.derived.view.hasMoreAssets == false)
@@ -76,8 +76,10 @@ struct WalletSearchSceneViewModelTests {
         let list = AssetList(id: "stocks", name: "Stocks", count: 2)
         model.searchQuery.value = .mock(lists: [list])
 
+        let row = model.derived.sections.lists[0]
         #expect(model.derived.view.state.showsLists == true)
-        #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
+        #expect(row.listItem.subtitle == "2")
+        #expect(model.listDestination(for: row) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
     @Test
@@ -85,10 +87,10 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        service.nftSearchItems = (0 ..< 3).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
+        service.nftSearchItems = (0 ..< 3).map { .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "\($0)", isVerified: true)) }
         #expect(model.derived.view.hasMoreNfts == false)
 
-        service.nftSearchItems = (0 ..< 4).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
+        service.nftSearchItems = (0 ..< 4).map { .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "\($0)", isVerified: true)) }
         #expect(model.derived.view.hasMoreNfts == true)
     }
 
@@ -100,12 +102,12 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.derived.view.state.showsNfts == false)
 
         service.nftSearchItems = [
-            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem())),
-            .mock(item: .asset(data: NFTAssetData.mock().toGem())),
+            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()), row: .mock(id: "collection", isVerified: true)),
+            .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "asset", isVerified: true)),
         ]
 
         #expect(model.derived.view.state.showsNfts == true)
-        #expect(model.derived.collectionsContent.items.count == 2)
+        #expect(model.derived.previewNFTs.count == 2)
     }
 
     @Test
@@ -123,13 +125,13 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        #expect(model.derived.view.showsAddToken == false, "there is no chain to add a token to")
+        #expect(model.derived.view.emptyState.actions.isEmpty, "there is no chain to add a token to")
 
         service.filterChainsResult = [Primitives.Chain.ethereum.toGem()]
-        #expect(model.derived.view.showsAddToken)
+        #expect(model.derived.view.emptyState.actions == [.addCustomToken])
 
         service.tokensSupported = false
-        #expect(model.derived.view.showsAddToken == false)
+        #expect(model.derived.view.emptyState.actions.isEmpty)
     }
 
     @Test

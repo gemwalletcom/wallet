@@ -2,8 +2,8 @@
 
 import Components
 import Foundation
-import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
+import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
 import protocol Gemstone.GemNavigationServiceProtocol
 import enum Gemstone.GemNavigationTab
@@ -109,20 +109,17 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func open(code: String) async {
-        guard let action = deeplinkService.urlAction(url: code) else {
-            return showError(AnyError(Localized.Errors.notSupported))
-        }
-        await open(action: action)
+        await open(outcome: navigationService.openCode(code: code))
     }
 
     @MainActor
     func open(action: UrlAction) async {
-        do {
-            try await openURLAction(action)
-        } catch {
-            toastPresenter.toastMessage = nil
-            showError(error)
-        }
+        await open(outcome: navigationService.openAction(action: action))
+    }
+
+    @MainActor
+    func openAsset(_ asset: Asset) {
+        navigationState.openAsset(target: navigationService.assetTarget(asset: asset.toGem()))
     }
 
     @MainActor
@@ -131,28 +128,31 @@ final class NavigationRouter: Sendable {
         Task { await open(action: action) }
         return true
     }
+
+    @MainActor
+    private func open(outcome: GemCodeOutcome) async {
+        do {
+            switch outcome {
+            case let .open(target): try await open(target: target)
+            case let .walletConnect(link): await openWalletConnect(link)
+            case let .payment(payment, showsLoading): try await openPayment(payment, showsLoading: showsLoading)
+            case let .failure(text): showError(message: text.text)
+            }
+        } catch {
+            toastPresenter.toastMessage = nil
+            showError(error)
+        }
+    }
 }
 
-// MARK: - UrlAction
+// MARK: - Target
 
 @MainActor
 extension NavigationRouter {
-    private func openURLAction(_ action: UrlAction) async throws {
-        switch action {
-        case let .deeplink(deeplink): try await openDeeplink(deeplink)
-        case let .payment(payment): try await openPayment(payment)
-        case let .walletConnect(link): await openWalletConnect(link)
-        }
-    }
-
-    private func openDeeplink(_ deeplink: Deeplink) async throws {
-        try await open(target: navigationService.openDeeplink(deeplink: deeplink))
-    }
-
     private func open(target: GemNavigationTarget) async throws {
         switch target {
-        case let .asset(asset, walletId, _):
-            try openTarget(path: getPath(for: asset.toPrimitives()), walletId: walletId)
+        case let .asset(asset, walletId, isPerpetual):
+            try openTarget(path: [NavigationStateManager.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual)], walletId: walletId)
         case let .receive(asset):
             try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
         case let .fiat(asset, amount, quoteType):
@@ -167,14 +167,14 @@ extension NavigationRouter {
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
         case let .rewards(code):
-            navigationState.settings.append(Scenes.Referral(code: code))
+            navigationState.settings.append(Scenes.Rewards(code: code))
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
         case let .address(chain, address):
             presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
-        case let .transaction(asset, walletId, transaction, _):
+        case let .transaction(asset, walletId, transaction, isPerpetual):
             let stored = try transactionStore.getTransaction(walletId: Primitives.WalletId.from(id: walletId), transactionId: transaction.toPrimitives().id)
-            try openTarget(path: getPath(for: asset.toPrimitives(), transactionId: stored.transaction.id), walletId: walletId)
+            try openTarget(path: transactionPath(asset: asset.toPrimitives(), isPerpetual: isPerpetual, transactionId: stored.transaction.id), walletId: walletId)
         case .none:
             break
         }
@@ -193,9 +193,9 @@ extension NavigationRouter {
 
 @MainActor
 extension NavigationRouter {
-    private func openPayment(_ payment: Gemstone.Payment) async throws {
+    private func openPayment(_ payment: Gemstone.Payment, showsLoading: Bool) async throws {
         let wallet = try await walletSessionService.requireCurrentWallet()
-        if case .link = payment {
+        if showsLoading {
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
         }
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)
@@ -212,6 +212,8 @@ extension NavigationRouter {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .verify(url, link: link)
+        case let .amount(asset, payment):
+            return .amount(AmountInput(type: .transfer(recipient: payment), asset: asset.toPrimitives()))
         case let .recipient(asset, payment):
             let asset = asset.toPrimitives()
             guard let assetData = try assetStore.getAssetsData(walletId: wallet.id, filters: [.chainsOrAssets([], [asset.id.identifier])]).first else {
@@ -293,17 +295,10 @@ extension NavigationRouter {
         navigationState.pendingWalletPath = path
     }
 
-    private func getPath(for asset: Asset) -> [any Hashable & Codable] {
-        switch asset.type {
-        case .perpetual: [Scenes.Perpetual(asset)]
-        default: [Scenes.Asset(asset: asset)]
-        }
-    }
-
-    private func getPath(for asset: Asset, transactionId: TransactionId) -> [any Hashable & Codable] {
-        switch asset.type {
-        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
-        default: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
+    private func transactionPath(asset: Asset, isPerpetual: Bool, transactionId: TransactionId) -> [any Hashable & Codable] {
+        switch isPerpetual {
+        case true: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
+        case false: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
         }
     }
 

@@ -130,7 +130,7 @@ localize:
 generate: generate-models
 
 generate-models:
-    @echo "==> Generate typeshare for Android"
+    @echo "==> Generate models for Android"
     @cd ../core && cargo run --package generate --bin generate android ../android/gemcore/src/main/kotlin/com/wallet/core
 
 generate-stone:

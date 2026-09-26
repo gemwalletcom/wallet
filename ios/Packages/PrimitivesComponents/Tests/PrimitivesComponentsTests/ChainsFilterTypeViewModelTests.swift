@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemChainsFilterSummary
 import Localization
 import Primitives
 @testable import PrimitivesComponents
@@ -8,21 +9,21 @@ import Testing
 struct ChainsFilterTypeViewModelTests {
     @Test
     func noSelectionReadsAsAll() {
-        let model = ChainsFilterViewModel(chains: [], selected: []).typeModel
+        let model = ChainsFilterTypeViewModel(summary: .all)
 
         #expect(model.value == Localized.Common.all)
     }
 
     @Test
     func oneChainReadsAsItsName() {
-        let model = ChainsFilterViewModel(chains: [], selected: [.ethereum]).typeModel
+        let model = ChainsFilterTypeViewModel(summary: .chain(chain: Chain.ethereum.rawValue))
 
         #expect(model.value == "Ethereum")
     }
 
     @Test
     func severalChainsReadAsACount() {
-        let model = ChainsFilterViewModel(chains: [], selected: [.ethereum, .bitcoin, .solana]).typeModel
+        let model = ChainsFilterTypeViewModel(summary: .count(count: 3))
 
         #expect(model.value == "3")
     }

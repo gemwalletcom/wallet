@@ -53,10 +53,6 @@ impl GemRewardsSession {
         }
     }
 
-    pub fn request(&self) -> Option<WalletId> {
-        self.wallet_id.clone()
-    }
-
     pub fn view_state(&self, now: DateTime<Utc>) -> GemRewardsViewState {
         GemRewardsViewState {
             state: self.state.clone(),
@@ -159,7 +155,7 @@ mod tests {
         assert_eq!(shown.on_select_wallet(wallet()), shown);
         let switched = shown.on_select_wallet(WalletId::Multicoin("0x2".to_string()));
         assert_eq!(switched.view_state(now()).state, GemLoadState::Loading);
-        assert_eq!(switched.request(), Some(WalletId::Multicoin("0x2".to_string())));
+        assert_eq!(switched.wallet_id, Some(WalletId::Multicoin("0x2".to_string())));
     }
 
     #[test]

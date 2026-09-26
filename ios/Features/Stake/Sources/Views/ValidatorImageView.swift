@@ -1,27 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemValidatorRow
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct ValidatorImageView: View {
-    private let model: ValidatorViewModel
+    private let row: GemValidatorRow
 
-    public init(model: ValidatorViewModel) {
-        self.model = model
+    public init(row: GemValidatorRow) {
+        self.row = row
     }
 
     public var body: some View {
-        if let providerImage = model.providerImage {
-            providerImage
+        if let image = row.provider?.image {
+            image
                 .resizable()
                 .frame(width: Sizing.image.asset, height: Sizing.image.asset)
                 .clipShape(Circle())
         } else {
             AsyncImageView(
-                url: model.row.imageUrl.asURL,
+                url: row.imageUrl.asURL,
                 size: .image.asset,
-                placeholder: .letter(model.row.placeholder.first ?? " "),
+                placeholder: .letter(row.placeholder.first ?? " "),
             )
         }
     }

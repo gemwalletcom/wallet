@@ -14,10 +14,10 @@ public struct NameRecordView: View {
 
     public var body: some View {
         VStack(alignment: .center, spacing: .zero) {
-            if model.isResolving {
-                LoadingView()
-            } else if let image = model.resolveImage {
-                image
+            switch model.state.indicator() {
+            case .loading: LoadingView()
+            case let .some(indicator): indicator.image
+            case .none: EmptyView()
             }
         }.frame(width: .space16, height: .space16)
     }

@@ -98,6 +98,9 @@ impl GemStreamService {
 
     pub async fn disconnected(&self) {
         self.subscriptions.reset().await;
+        if let Err(error) = self.support.clear_typing() {
+            error!(%error, "stream support typing reset failed");
+        }
     }
 
     pub async fn decode_event(&self, event: String) -> Result<GemStreamEvent, GemServiceError> {
@@ -110,8 +113,8 @@ impl GemStreamService {
             GemStreamEvent::Prices { .. } | GemStreamEvent::Notification { .. } | GemStreamEvent::SupportMessage { .. } | GemStreamEvent::SupportTyping { .. } => Ok(()),
             GemStreamEvent::Balances { wallet_id, asset_ids } => self.balance.update(wallet_id, asset_ids).await,
             GemStreamEvent::Transactions { wallet_id, asset_ids, .. } => {
-                self.transactions.sync_wallet(wallet_id.clone(), None).await?;
-                self.balance.update(wallet_id, asset_ids).await
+                let (transactions, balances) = futures::join!(self.transactions.sync_wallet(wallet_id.clone(), None), self.balance.sync_assets_and_update(wallet_id, asset_ids));
+                transactions.and(balances)
             }
             GemStreamEvent::PriceAlerts { .. } => self.price_alert.sync(None).await,
             GemStreamEvent::Nft { wallet_id } => self.nft.sync_wallet(wallet_id).await.map(|_| ()),
@@ -137,8 +140,7 @@ impl GemStreamService {
                     prices: payload.prices.len() as u32,
                     rates: payload.rates.len() as u32,
                 };
-                self.price.update_rates(payload.rates).await?;
-                self.price.update_prices(payload.prices).await?;
+                self.price.update_rates_and_prices(payload.rates, payload.prices).await?;
                 Ok(handled)
             }
             StreamEvent::Balances(update) => Ok(GemStreamEvent::Balances {

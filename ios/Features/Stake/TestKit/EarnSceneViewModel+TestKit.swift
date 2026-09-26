@@ -9,7 +9,7 @@ import PrimitivesTestKit
 public extension EarnSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
-        asset: Asset = .mockEthereum(),
+        asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
         onNavigate: StakeRouteAction = nil,
     ) -> EarnSceneViewModel {

@@ -38,7 +38,7 @@ public struct FiatConnectNavigationView: View {
             SelectableListNavigationStack(
                 model: model.fiatProviderViewModel,
                 onFinishSelection: model.onSelectQuotes,
-                listContent: { SimpleListItemView(model: $0) },
+                listContent: { ListItemView(model: $0.listItem) },
             )
         }
     }

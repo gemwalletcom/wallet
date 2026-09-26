@@ -6,15 +6,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
+import com.gemwallet.android.features.nft.viewmodels.CollectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.NftListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
+import com.gemwallet.android.ui.models.target
 
 @Composable
-fun CollectionsPreviewSection(onAction: (CollectionsPreviewAction) -> Unit, viewModel: NftListViewModels = hiltViewModel()) {
+fun CollectionsPreviewSection(onAction: (CollectionsPreviewAction) -> Unit, viewModel: CollectionsViewModel = hiltViewModel()) {
     val collections by viewModel.collections.collectAsStateWithLifecycle()
 
     Column {
@@ -24,7 +25,7 @@ fun CollectionsPreviewSection(onAction: (CollectionsPreviewAction) -> Unit, view
         )
         collections.forEachIndexed { index, nft ->
             NftListItem(
-                model = nft,
+                row = nft.row,
                 listPosition = ListPosition.getPosition(index, collections.size),
                 onClick = {
                     when (val target = nft.target) {

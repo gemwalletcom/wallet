@@ -1,13 +1,16 @@
 use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
+use crate::services::assets::icon::{GemAssetIcon, asset_icon};
+use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
+use crate::services::confirm::GemNetworkFeeScreen;
+use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
+use primitives::{Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
-use crate::services::empty_state::GemEmptyStateKind;
 use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, uniffi::Enum)]
@@ -20,17 +23,14 @@ pub enum GemTransactionFilter {
     Others,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemActivityFilters {
-    pub asset_rank_greater_than: i32,
-    pub chains: Vec<Chain>,
-    pub transaction_types: Vec<TransactionType>,
-    pub pending_states: Vec<TransactionState>,
+#[uniffi::export]
+pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> TransactionsFilter {
+    rules::activity_filters(chains, filters)
 }
 
 #[uniffi::export]
-pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
-    rules::activity_filters(chains, filters)
+pub fn pending_activity_filters() -> TransactionsFilter {
+    rules::pending_activity_filters()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -47,7 +47,6 @@ pub enum GemTransactionsFilterSummary {
     Count { count: u32 },
 }
 
-#[uniffi::export]
 pub fn chains_filter_summary(chains: Vec<Chain>) -> GemChainsFilterSummary {
     match chains.as_slice() {
         [] => GemChainsFilterSummary::All,
@@ -56,28 +55,15 @@ pub fn chains_filter_summary(chains: Vec<Chain>) -> GemChainsFilterSummary {
     }
 }
 
-#[uniffi::export]
-pub fn transactions_filter_summary(filters: Vec<GemTransactionFilter>) -> GemTransactionsFilterSummary {
-    match filters.as_slice() {
-        [] => GemTransactionsFilterSummary::All,
-        [filter] => GemTransactionsFilterSummary::Filter { filter: *filter },
-        selected => GemTransactionsFilterSummary::Count { count: selected.len() as u32 },
-    }
-}
-
 #[cfg(test)]
 mod filter_summary_tests {
     use super::*;
 
     #[test]
-    fn test_a_filter_reads_as_all_its_one_choice_or_a_count() {
+    fn test_a_chain_filter_reads_as_all_its_one_chain_or_a_count() {
         assert_eq!(chains_filter_summary(vec![]), GemChainsFilterSummary::All);
         assert_eq!(chains_filter_summary(vec![Chain::Ethereum]), GemChainsFilterSummary::Chain { chain: Chain::Ethereum });
         assert_eq!(chains_filter_summary(vec![Chain::Ethereum, Chain::Bitcoin, Chain::Solana]), GemChainsFilterSummary::Count { count: 3 });
-
-        assert_eq!(transactions_filter_summary(vec![]), GemTransactionsFilterSummary::All);
-        assert_eq!(transactions_filter_summary(vec![GemTransactionFilter::Swaps]), GemTransactionsFilterSummary::Filter { filter: GemTransactionFilter::Swaps });
-        assert_eq!(transactions_filter_summary(vec![GemTransactionFilter::Swaps, GemTransactionFilter::Stake]), GemTransactionsFilterSummary::Count { count: 2 });
     }
 }
 
@@ -167,16 +153,6 @@ pub enum GemTransactionParticipantRole {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemTransactionParticipant {
-    pub role: GemTransactionParticipantRole,
-    pub address: String,
-    pub text: String,
-    pub name: Option<AddressName>,
-    pub link: BlockExplorerLink,
-    pub can_add_contact: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionAmount {
     pub asset: Asset,
     pub value: GemBigUint,
@@ -189,6 +165,7 @@ pub struct GemHeaderAmount {
     pub asset: Asset,
     pub amount: GemFormattedNumber,
     pub fiat: Option<GemFormattedNumber>,
+    pub icon: GemAssetIcon,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -237,7 +214,6 @@ pub struct GemTransactionRow {
     pub value: GemTransactionRowValue,
     pub value_tone: GemValueTone,
     pub equivalent_value: GemTransactionRowValue,
-    pub nft_image_url: Option<String>,
     pub badge: GemTransactionBadge,
     pub icon: crate::services::assets::icon::GemAssetIcon,
 }
@@ -250,26 +226,40 @@ pub enum GemTransactionBadge {
 }
 
 #[uniffi::export]
-pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemEmptyStateKind {
-    match chains.is_empty() && filters.is_empty() {
-        true => GemEmptyStateKind::Activity,
-        false => GemEmptyStateKind::SearchActivity,
-    }
-}
-
-#[uniffi::export]
-pub fn transaction_rows(transactions: Vec<TransactionExtended>) -> Vec<GemTransactionRow> {
-    transactions.iter().map(rules::row).collect()
+pub fn transaction_rows(items: Vec<TransactionListItem>) -> Vec<GemTransactionRow> {
+    items.iter().map(rules::row).collect()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemTransactionHeader {
-    Amount { amount: GemHeaderAmount },
+    Amount { header: GemValueHeader },
+    Value { header: GemValueHeader },
     Swap { from: GemHeaderAmount, to: GemHeaderAmount },
-    Nft { asset_id: NFTAssetId, name: Option<String>, image_url: String },
-    Symbol { asset: Asset },
-    AssetImage { asset: Asset },
+    Nft { name: Option<String>, image_url: String },
+    AssetImage { icon: GemAssetIcon },
+}
+
+impl GemTransactionHeader {
+    pub fn amount(amount: GemHeaderAmount) -> Self {
+        Self::Amount {
+            header: GemValueHeader::asset(
+                amount.icon,
+                GemLocalizedText::Number { number: amount.amount },
+                amount.fiat.map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            ),
+        }
+    }
+
+    pub fn symbol(asset: &Asset) -> Self {
+        Self::Amount {
+            header: GemValueHeader::asset(asset_icon(&asset.id), GemLocalizedText::Text { text: asset.symbol.clone() }, None),
+        }
+    }
+
+    pub fn asset_image(asset: &Asset) -> Self {
+        Self::AssetImage { icon: asset_icon(&asset.id) }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -286,7 +276,7 @@ pub enum GemTransactionDetailRow {
     Header,
     SwapProgress,
     SwapAgain,
-    Participant,
+    Participant { row: GemAddressRow },
     Fee,
     Row { row: GemListRow },
 }
@@ -316,7 +306,7 @@ pub struct GemTransactionDetailRows {
     pub swap_progress: Option<GemSwapProgress>,
     pub swap_again: Option<GemSwapAgain>,
     pub estimated_confirmation_seconds: Option<u32>,
-    pub participant: Option<GemTransactionParticipant>,
+    pub participant: Option<GemAddressRow>,
     pub provider_name: Option<String>,
     pub provider_contract: Option<String>,
     pub memo: Option<String>,
@@ -332,9 +322,16 @@ pub struct GemTransactionDetailRows {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionFeeRow {
     pub title: GemListRowTitle,
-    pub amount: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
+    pub text: GemFeeText,
+    pub fee: GemFeeAmount,
     pub info: GemInfoTopic,
+}
+
+#[uniffi::export]
+impl GemTransactionFeeRow {
+    pub fn screen(&self) -> GemNetworkFeeScreen {
+        GemNetworkFeeScreen::fee(self.fee.clone())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -358,12 +355,31 @@ pub struct GemTransactionDetails {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapProgress {
-    pub amount: GemFormattedNumber,
-    pub network: String,
-    pub provider_name: String,
-    pub transfer: GemSwapProgressState,
-    pub swap: GemSwapProgressState,
+    pub transfer: GemSwapProgressRow,
+    pub swap: GemSwapProgressRow,
+    pub is_connector_active: bool,
     pub eta_seconds: Option<u32>,
+}
+
+/// One step of a cross-chain swap: its title, what it moves, where it stands, and whether the estimate shows beside it.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapProgressRow {
+    pub title: GemLocalizedText,
+    pub subtitle: GemLocalizedText,
+    pub state: GemSwapProgressState,
+    pub shows_estimate: bool,
+}
+
+impl GemSwapProgressRow {
+    pub fn new(title: GemListRowTitle, subtitle: GemLocalizedText, step: GemSwapProgressStep) -> Self {
+        let state = step.state();
+        Self {
+            title: GemLocalizedText::RowTitle { title },
+            subtitle,
+            shows_estimate: state.marker == GemSwapProgressMarker::Spinner,
+            state,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

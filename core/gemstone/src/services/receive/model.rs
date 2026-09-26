@@ -1,12 +1,19 @@
 use primitives::AssetId;
 
-use crate::services::localization::GemLocalizedText;
+use crate::services::assets::model::GemAssetText;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
+#[derive(Clone, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum GemReceiveWarning {
-    AssetNetwork,
+    AssetNetwork { symbol: String, network: String },
     NoDestinationTagRequired,
     NoMemoRequired,
+}
+
+/// The asset the receive screen shows, with the warnings under its address.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemReceiveAssetState {
+    pub asset: GemAssetText,
+    pub warnings: Vec<GemReceiveWarning>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -18,5 +25,5 @@ pub struct GemReceiveNetworks {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemReceiveNetwork {
     pub asset_id: AssetId,
-    pub standard: Option<GemLocalizedText>,
+    pub row: crate::services::chain::GemChainRow,
 }

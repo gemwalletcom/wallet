@@ -1,6 +1,6 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAsset, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic,
-    PortfolioType,
+    AssetData, ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAsset, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage,
+    PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -13,10 +13,10 @@ use crate::services::chart::GemChartData;
 use crate::services::chart::rules::{change_chart_data, converted_values};
 use crate::services::localization::GemLocalizedText;
 
-pub fn portfolio_asset(balance: &GemAssetBalance) -> PortfolioAsset {
+pub fn portfolio_asset(data: &AssetData) -> PortfolioAsset {
     PortfolioAsset {
-        asset_id: balance.asset_id.clone(),
-        value: balance.total(),
+        asset_id: data.asset.id.clone(),
+        value: GemAssetBalance::from(data).total(),
     }
 }
 
@@ -54,10 +54,10 @@ pub fn portfolio_currency(portfolio_type: PortfolioType, currency: Currency) -> 
     }
 }
 
-pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, currency: Currency) -> Option<GemChartData> {
+pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
     let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
     let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
-    change_chart_data(chart.values.clone(), shows_value, portfolio_currency(portfolio_type, currency))
+    change_chart_data(chart.values.clone(), shows_value, period, portfolio_currency(portfolio_type, currency))
 }
 
 /// Every statistic finished as a row, so neither app formats a bare f64.
@@ -177,21 +177,23 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
+    use primitives::{Asset, Balance, ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
 
     #[test]
     fn test_the_portfolio_value_is_the_balance_total_core_already_owns() {
-        let balance = GemAssetBalance {
-            available: 100u32.into(),
-            staked: 20u32.into(),
-            reserved: 7u32.into(),
-            ..GemAssetBalance::zero(primitives::AssetId::new("ethereum").unwrap())
-        };
+        let data = AssetData::mock(
+            Asset::mock_eth(),
+            Balance {
+                staked: 20u32.into(),
+                reserved: 7u32.into(),
+                ..Balance::coin_balance(100u32.into())
+            },
+        );
 
-        assert_eq!(portfolio_asset(&balance).value, balance.total());
-        assert_eq!(portfolio_asset(&balance).value, 120u32.into(), "a reserved balance is not part of the total");
+        assert_eq!(portfolio_asset(&data).value, GemAssetBalance::from(&data).total());
+        assert_eq!(portfolio_asset(&data).value, 120u32.into(), "a reserved balance is not part of the total");
     }
 
     #[test]
@@ -252,11 +254,11 @@ mod tests {
             available_periods: wallet_periods(),
         };
 
-        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl, Currency::USD).expect("series");
+        let pnl = portfolio_chart_data(data.clone(), PortfolioType::Perpetuals, PortfolioChartType::Pnl, ChartPeriod::All, Currency::USD).expect("series");
         assert_eq!(pnl.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![1.0, 3.0]);
         assert!(!pnl.shows_secondary_value);
 
-        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value, Currency::USD).expect("series");
+        let value = portfolio_chart_data(data, PortfolioType::Perpetuals, PortfolioChartType::Value, ChartPeriod::All, Currency::USD).expect("series");
         assert_eq!(value.values.iter().map(|value| value.value).collect::<Vec<_>>(), vec![10.0, 12.0]);
         assert_eq!(value.header.unwrap().secondary_value.map(|value| value.value), Some(12.0));
     }
@@ -268,7 +270,7 @@ mod tests {
             statistics: vec![],
             available_periods: wallet_periods(),
         };
-        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value, Currency::USD), None);
+        assert_eq!(portfolio_chart_data(data, PortfolioType::Wallet, PortfolioChartType::Value, ChartPeriod::All, Currency::USD), None);
     }
 
     #[test]

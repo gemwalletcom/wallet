@@ -4,7 +4,6 @@ import Components
 import Primitives
 import PrimitivesComponents
 import struct Stake.ValidatorView
-import struct Stake.ValidatorViewModel
 import Style
 import SwiftUI
 
@@ -60,47 +59,43 @@ public struct AmountScene: View {
                 }
             }
 
-            if let stake = model.stake {
-                switch stake.selection {
-                case let .validator(validatorSelection):
-                    Section(validatorSelection.title) {
-                        if validatorSelection.isEnabled {
-                            NavigationLink(value: validatorSelection.selectedValidator) {
-                                ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
-                            }
-                        } else {
-                            ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
+            switch model.extras {
+            case let .validator(row, canSelect):
+                Section(model.validatorTitle) {
+                    if canSelect {
+                        NavigationLink(value: row.validator.toPrimitives()) {
+                            ValidatorView(row: row)
                         }
+                    } else {
+                        ValidatorView(row: row)
                     }
-
-                case let .resource(resourceSelection):
-                    @Bindable var resourceSelection = resourceSelection
-                    Section {
-                        Picker("", selection: $resourceSelection.selected) {
-                            ForEach(resourceSelection.options) { resource in
-                                Text(resource.title)
-                                    .tag(resource)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: Sizing.picker.segmentedWidth)
-                        .onChange(of: resourceSelection.selected, model.onChangeResource)
-                    }
-                    .cleanListRow()
                 }
-            }
-
-            if let perpetual = model.perpetual {
-                if let leverageListItem = perpetual.leverageListItem {
+            case let .resources(options, selected):
+                Section {
+                    Picker("", selection: model.resourceBinding(selected: selected.toPrimitives())) {
+                        ForEach(options.map { $0.toPrimitives() }) { resource in
+                            Text(resource.title)
+                                .tag(resource)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: Sizing.picker.segmentedWidth)
+                }
+                .cleanListRow()
+            case let .provider(row):
+                Section(model.providerTitle) {
+                    ValidatorView(row: row)
+                }
+            case let .perpetual(leverage, autoclose):
+                if let leverage {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(model: leverageListItem),
+                            with: ListItemView(model: model.leverageListItem(leverage)),
                             action: model.onSelectLeverage,
                         )
                     }
                 }
-
-                if perpetual.isAutocloseEnabled, let autocloseListItem = perpetual.autocloseListItem {
+                if let autoclose, let autocloseListItem = autoclose.listItemModel(onInfo: model.onInfo) {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(model: autocloseListItem),
@@ -108,12 +103,8 @@ public struct AmountScene: View {
                         )
                     }
                 }
-            }
-
-            if let row = model.earnProviderRow {
-                Section(model.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(row: row))
-                }
+            case .none:
+                EmptyView()
             }
         }
         .safeAreaButton {

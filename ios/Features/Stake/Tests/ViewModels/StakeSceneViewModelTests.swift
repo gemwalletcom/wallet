@@ -22,8 +22,12 @@ struct StakeSceneViewModelTests {
     @Test
     func theInfoSectionShowsTheRowsCoreReturns() {
         let rows: [GemListRow] = [
-            .amount(title: .stakeApr, amount: .mock(value: 12.5, tone: .positive), info: .stakeApr),
-            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime, estimate: false),
+            .amount(
+                title: .stakeApr,
+                amount: .mock(value: 12.5, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .positive, rounding: .toNearest),
+                info: .stakeApr(chain: Primitives.Chain.tron.rawValue),
+            ),
+            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime(chain: Primitives.Chain.tron.rawValue), estimate: false),
         ]
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(infoRows: rows))
 
@@ -34,11 +38,11 @@ struct StakeSceneViewModelTests {
     func theInfoSheetMatchesTheRowThatOpenedIt() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        model.onInfo(.stakeApr)
-        #expect(model.isPresentingInfoSheet?.id == "stakeApr")
+        model.onInfo(.stakeApr(chain: Primitives.Chain.tron.rawValue))
+        #expect(model.isPresentingInfoSheet?.title == .apr)
 
-        model.onInfo(.stakeLockTime)
-        #expect(model.isPresentingInfoSheet?.id == "stakeLockTime")
+        model.onInfo(.stakeLockTime(chain: Primitives.Chain.tron.rawValue))
+        #expect(model.isPresentingInfoSheet?.title == .lockTime)
     }
 
     @Test
@@ -58,8 +62,8 @@ struct StakeSceneViewModelTests {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
 
-        let stake = tron.viewState.actions.first { $0.action == .stake }
-        guard case .disabled = stake?.tap else {
+        let stake = tron.viewState.actions.first { $0.kind == .stake }
+        guard case .disabled = stake?.action else {
             Issue.record("expected a disabled stake action")
             return
         }
@@ -75,7 +79,11 @@ struct StakeSceneViewModelTests {
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
-        let model = StakeSceneViewModel.mock(chain: .tron)
+        let delegation = Delegation.mock().toGem()
+        let model = StakeSceneViewModel.mock(
+            chain: .tron,
+            stakeService: GemStakeServiceMock(claimRewardsDestination: .amount(input: .rewards(delegations: [delegation], validator: delegation.validator))),
+        )
 
         guard case .transfer(.amount) = claimDestination(model).map(model.route(destination:)) else {
             Issue.record("expected an amount route")
@@ -84,7 +92,7 @@ struct StakeSceneViewModelTests {
     }
 
     private func claimDestination(_ model: StakeSceneViewModel) -> GemStakeDestination? {
-        guard case let .open(destination) = model.viewState.actions.first(where: { $0.action == .claimRewards })?.tap else { return nil }
+        guard case let .open(destination) = model.viewState.actions.first(where: { $0.kind == .claimRewards })?.action else { return nil }
         return destination
     }
 }

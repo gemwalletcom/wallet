@@ -10,11 +10,11 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
-import com.gemwallet.android.ui.components.list_head.HeadActionsUIModel
 import com.gemwallet.android.ui.theme.WalletTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.GemHeaderActions
 
 @RunWith(AndroidJUnit4::class)
 class AmountListHeadTest {
@@ -46,7 +46,7 @@ class AmountListHeadTest {
     private fun setWatchWalletContent() {
         composeRule.setContent {
             WalletTheme {
-                AssetHeadActions(model = HeadActionsUIModel.WatchOnly)
+                AssetHeadActions(actions = GemHeaderActions.WatchOnly, onAction = {})
             }
         }
     }

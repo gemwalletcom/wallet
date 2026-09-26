@@ -37,6 +37,8 @@ struct PriceAlertsNavigationView: View {
 
     private func onSelectAsset(asset: Asset) {
         isPresentingAddAsset = false
-        isPresentingToastMessage = .priceAlert(for: asset.name, enabled: true)
+        Task {
+            isPresentingToastMessage = await model.includeAsset(asset)
+        }
     }
 }

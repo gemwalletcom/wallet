@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemNetworkAssetSections
+import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import func Gemstone.networkAssetSections
 import GemstoneServices
@@ -22,8 +23,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     public var isPresentingToastMessage: ToastMessage?
 
-    public let activeQuery: ObservableQuery<AssetsRequest>
-    public let hiddenQuery: ObservableQuery<AssetsRequest>
+    public let activeQuery: ObservableQuery<AssetsQuery>
+    public let hiddenQuery: ObservableQuery<AssetsQuery>
 
     public init(
         wallet: Wallet,
@@ -35,11 +36,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         self.service = service
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance], limit: nil),
+            AssetsQuery(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance], limit: nil),
             initialValue: [],
         )
         hiddenQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance], limit: nil),
+            AssetsQuery(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance], limit: nil),
             initialValue: [],
         )
     }
@@ -72,8 +73,13 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         return NetworkAssetGroups(pinned: assets(ids.pinned), unpinned: assets(ids.unpinned), hidden: assets(ids.hidden), sections: ids.sections)
     }
 
-    var emptyModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.networkAssets, actions: [.manageTokenList: onManageAssetsAction]))
+    var emptyModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .networkAssets) { [onManageAssetsAction] action in
+            switch action {
+            case .manageTokenList: onManageAssetsAction()
+            case .buy, .swap, .receive, .addCustomToken, .clearFilters: break
+            }
+        }
     }
 
     var assetIds: [AssetId] {
@@ -95,8 +101,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 }
 
 extension NetworkAssetsSceneViewModel {
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
@@ -104,7 +110,7 @@ extension NetworkAssetsSceneViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives(), rowStyle: service.assetRowStyle())
+        ListAssetItemsViewModel(currency: service.getCurrency().toPrimitives())
     }
 }
 

@@ -1,12 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemBannerButton
+import enum Gemstone.GemBannerDestination
+import struct Gemstone.GemBannerKey
+import enum Gemstone.GemHeaderButtonAction
+import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
+import struct Gemstone.GemWalletRow
+import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -25,18 +34,18 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
     let observablePreferences: ObservablePreferences
 
-    public let collectionsModel: CollectionsViewModel
+    public let collectionsModel: CollectionsSceneViewModel
 
     public var wallet: Wallet {
-        walletQuery.value.wallet
+        walletQuery.value
     }
 
     // db queries
-    public let walletQuery: ObservableQuery<MappedRequest<WalletRequest, WalletEntry>>
-    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
-    public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
-    public let assetsQuery: ObservableQuery<AssetsRequest>
-    public let bannersQuery: ObservableQuery<BannersRequest>
+    public let walletQuery: ObservableQuery<WalletQuery>
+    public let fiatValuesQuery: ObservableQuery<AssetFiatValuesQuery>
+    public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
+    public let assetsQuery: ObservableQuery<AssetsQuery>
+    public let bannersQuery: ObservableQuery<BannersQuery>
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingScanner = false
@@ -51,7 +60,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public init(
         service: any GemWalletHomeServiceProtocol,
         observablePreferences: ObservablePreferences,
-        collectionsModel: CollectionsViewModel,
+        collectionsModel: CollectionsSceneViewModel,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         isPresentingWallets: Binding<Bool>,
@@ -60,18 +69,18 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         self.observablePreferences = observablePreferences
         self.collectionsModel = collectionsModel
 
-        walletQuery = ObservableQuery(MappedRequest(WalletRequest(walletId: wallet.id), transform: WalletEntry.init(wallet:)), initialValue: WalletEntry(wallet: wallet))
+        walletQuery = ObservableQuery(WalletQuery(walletId: wallet.id), initialValue: wallet)
         fiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(walletId: wallet.id),
+            AssetFiatValuesQuery(walletId: wallet.id),
             initialValue: [],
         )
         perpetualBalanceQuery = ObservableQuery(
-            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            PerpetualWalletBalanceQuery(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
         bannersQuery = ObservableQuery(
-            BannersRequest(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
+            BannersQuery(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
             initialValue: [],
         )
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
@@ -94,8 +103,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Localized.Nft.collections
     }
 
-    var collectionsContent: CollectionsContent {
-        collectionsModel.content
+    var collections: [GemNftEntry] {
+        collectionsModel.screen.items
     }
 
     public var searchImage: Image {
@@ -110,12 +119,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Images.Actions.manage
     }
 
-    public var walletBarModel: WalletBarViewViewModel {
-        let row = walletQuery.value.row
-        return WalletBarViewViewModel(
-            name: row.name,
-            image: row.avatarImage,
-        )
+    public var walletRow: GemWalletRow {
+        Gemstone.walletRow(wallet: wallet.toGem())
     }
 
     var homeState: WalletHomeState {
@@ -127,7 +132,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
-            header: WalletHeaderViewModel(state: viewState),
+            header: viewState.header.valueHeader,
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
             banner: viewState.banner,
@@ -170,41 +175,42 @@ public extension WalletSceneViewModel {
         isPresentingSheet = .portfolio(.wallet)
     }
 
-    internal func onHeaderAction(type: GemHeaderButtonKind) {
-        switch type {
+    internal func onHeaderAction(_ action: GemHeaderButtonAction) {
+        switch action {
         case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .swap: isPresentingSheet = .swap
-        case .more, .deposit, .withdraw: break
+        case .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
     }
 
     internal func onSelectWatchWalletInfo() {
-        isPresentingSheet = .infoSheet(.watchWallet)
+        isPresentingSheet = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
     }
 
-    internal func onBanner(action: BannerAction) {
-        switch action.type {
-        case let .destination(destination):
-            switch destination {
-            case let .url(url): isPresentingUrl = URL(string: url)
-            case .stake, .activateAsset, .perpetuals: break
-            }
-        case .closeBanner:
-            Task {
-                do {
-                    try await service.closeBanner(key: action.key)
-                } catch let error as GemServiceError {
-                    isPresentingToastMessage = .error(error.text().text)
-                } catch {
-                    isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-                }
-            }
-        case let .button(bannerButton):
-            switch bannerButton {
-            case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-            case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
+    internal func onSelectBanner(destination: GemBannerDestination) {
+        switch destination {
+        case let .url(url): isPresentingUrl = URL(string: url)
+        case .stake, .activateAsset, .perpetuals: break
+        }
+    }
+
+    internal func onSelectBanner(button: GemBannerButton) {
+        switch button {
+        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
+        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
+        }
+    }
+
+    internal func onCloseBanner(_ key: GemBannerKey) {
+        Task {
+            do {
+                try await service.closeBanner(key: key)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
+            } catch {
+                isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
             }
         }
     }
@@ -244,8 +250,8 @@ extension WalletSceneViewModel {
         isLoadingAssets = service.showsInitialLoading()
     }
 
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
@@ -253,6 +259,6 @@ extension WalletSceneViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: observablePreferences.currency, rowStyle: service.assetRowStyle())
+        ListAssetItemsViewModel(currency: observablePreferences.currency)
     }
 }

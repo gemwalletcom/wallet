@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum AssetType {
@@ -29,8 +29,8 @@ impl AssetType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "UPPERCASE")]
 pub enum AssetSubtype {
     NATIVE,

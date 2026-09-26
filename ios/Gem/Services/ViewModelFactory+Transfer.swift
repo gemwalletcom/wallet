@@ -8,6 +8,7 @@ import struct Gemstone.GemPaymentRecipient
 import class Gemstone.GemReceiveService
 import class Gemstone.GemRecipientService
 import enum Gemstone.GemRecipientType
+import enum Gemstone.GemStakeAmountInput
 import class Gemstone.GemSwapQuoteService
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
@@ -28,15 +29,16 @@ import WalletConnectorService
 public extension ViewModelFactory {
     @MainActor
     func validatorSelectScene(
-        currentValidator: DelegationValidator?,
-        recommended: [GemValidatorRow],
-        validators: [GemValidatorRow],
+        chain: Chain,
+        input: GemStakeAmountInput,
+        currentValidatorId: String,
         selectValidator: @escaping (GemValidatorRow) -> Void,
     ) -> ValidatorSelectSceneViewModel {
         ValidatorSelectSceneViewModel(
-            currentValidator: currentValidator,
-            recommended: recommended,
-            validators: validators,
+            service: stakeService,
+            chain: chain,
+            input: input,
+            currentValidatorId: currentValidatorId,
             selectValidator: selectValidator,
         )
     }
@@ -78,13 +80,13 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetData: assetData, wallet: wallet, service: receiveService())
+    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetData: assetData, wallet: wallet, service: receiveService())
     }
 
     @MainActor
-    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
+    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
     }
 
     private func receiveService() -> GemReceiveService {
@@ -192,7 +194,6 @@ public extension ViewModelFactory {
         wallet: Wallet,
         delegation: Delegation,
         asset: Asset,
-        validators: [DelegationValidator],
         onNavigate: StakeRouteAction,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> DelegationSceneViewModel {
@@ -201,7 +202,6 @@ public extension ViewModelFactory {
             delegation: delegation,
             asset: asset,
             service: stakeService,
-            validators: validators,
             onNavigate: onNavigate,
             onSelectAddress: onSelectAddress,
         )

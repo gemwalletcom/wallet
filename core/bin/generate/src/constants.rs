@@ -28,7 +28,7 @@ struct Constant {
 struct Enumeration {
     variants: Vec<String>,
     flat: bool,
-    typeshared: bool,
+    app_model: bool,
     kotlin_package: String,
 }
 
@@ -57,15 +57,15 @@ impl Constants {
                     let Item::Enum(enumeration) = item else {
                         continue;
                     };
-                    let typeshared = enumeration.attrs.iter().any(|attribute| attribute.path().is_ident("typeshare"));
+                    let app_model = crate::models::is_app_model(&enumeration.attrs);
                     let name = enumeration.ident.to_string();
-                    if !typeshared && enums.contains_key(&name) {
+                    if !app_model && enums.contains_key(&name) {
                         continue;
                     }
                     let declaration = Enumeration {
                         variants: enumeration.variants.iter().map(|variant| variant.ident.to_string()).collect(),
                         flat: enumeration.variants.iter().all(|variant| matches!(variant.fields, Fields::Unit)),
-                        typeshared,
+                        app_model,
                         kotlin_package: kotlin_package(&path, primitives),
                     };
                     enums.insert(name, declaration);
@@ -134,10 +134,10 @@ impl Constants {
         }
     }
 
-    /// A TypeShare enum reaches the app as the app's own type; a UniFFI enum keeps its binding type.
+    /// An app model enum reaches the app as the app's own type; a UniFFI enum keeps its binding type.
     fn enum_name(&self, name: &str, language: Language) -> String {
         let enumeration = self.enumeration(name);
-        match (language, enumeration.typeshared) {
+        match (language, enumeration.app_model) {
             (Language::Swift, true) => format!("Primitives.{name}"),
             (Language::Swift, false) => format!("Gemstone.{name}"),
             (Language::Kotlin, true) => format!("{}.{name}", enumeration.kotlin_package),
@@ -185,7 +185,7 @@ impl Constants {
         let variant = path.path.segments.last().map(|segment| segment.ident.to_string()).unwrap_or_default();
         let enumeration = self.enumeration(name);
         assert!(enumeration.variants.contains(&variant), "{name} has no variant {variant}");
-        let case = match (language, enumeration.typeshared) {
+        let case = match (language, enumeration.app_model) {
             (Language::Swift, true) => swift_case(&variant),
             (Language::Swift, false) => uniffi_swift_case(&variant),
             (Language::Kotlin, true) => variant,

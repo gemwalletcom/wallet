@@ -24,10 +24,7 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
         selectedRow: GemWalletRow,
     ) {
         let sections = sections.map { section in
-            switch section.kind {
-            case .pinned: ListSection(id: "pinned", title: Localized.Common.pinned, image: Images.System.pin, values: section.rows)
-            case .wallets: ListSection(id: "wallets", title: nil, image: nil, values: section.rows)
-            }
+            ListSection(id: String(describing: section.kind), title: section.kind.title, image: section.kind.image, values: section.rows)
         }
 
         self.init(

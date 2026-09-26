@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemPriceAlertItem
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -8,14 +10,14 @@ import Style
 import SwiftUI
 
 struct PriceAlertItemView: View {
-    let item: PriceAlertItem
+    let item: GemPriceAlertItem
     let onDelete: (PriceAlert) -> Void
 
     var body: some View {
-        ListAssetItemView(model: item.model)
+        ListAssetItemView(row: item.row.row)
             .swipeActions(edge: .trailing) {
                 Button(Localized.Common.delete, role: .destructive) {
-                    onDelete(item.data.priceAlert)
+                    onDelete(item.data.priceAlert.toPrimitives())
                 }
                 .tint(Colors.red)
             }

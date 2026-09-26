@@ -308,6 +308,7 @@
   <string name="charts_price_change">涨跌幅</string>
   <string name="date_today">今天</string>
   <string name="date_yesterday">昨天</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">连接</string>
   <string name="wallet_connect_disconnect">断开</string>

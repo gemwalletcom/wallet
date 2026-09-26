@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.application.assets.values.AssetsQueryFilter
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import io.mockk.every
@@ -22,7 +22,7 @@ class GemstoneSwapStoreTest {
 
     @Test
     fun `asset candidates ask the database for one page with the filters Core names`() = runBlocking {
-        every { assetsDao.search(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns flowOf(emptyList())
+        every { assetsDao.filteredSearch(any(), any(), any(), any(), any()) } returns flowOf(emptyList())
 
         subject.getAssetIds(
             mockWalletId().id,
@@ -31,22 +31,12 @@ class GemstoneSwapStoreTest {
         )
 
         verify {
-            assetsDao.search(
+            assetsDao.filteredSearch(
                 walletId = mockWalletId().id,
                 query = "",
                 limit = 25,
-                exclude = emptyList(),
-                enabled = true,
-                buyable = false,
-                sellable = false,
-                swappable = true,
-                hasBalance = false,
-                hasAvailableBalance = false,
-                byChainsOrAssetIds = true,
-                chains = listOf(Chain.Ethereum),
-                assetIds = listOf("ethereum"),
-                byChains = false,
-                selectedChains = emptyList(),
+                filters = setOf(AssetsQueryFilter.Enabled, AssetsQueryFilter.Swappable, AssetsQueryFilter.ChainsOrAssets(listOf(Chain.Ethereum), listOf("ethereum"))),
+                withPriority = false,
             )
         }
     }
@@ -66,7 +56,7 @@ class GemstoneSwapStoreTest {
             assetsDao.getRecentAssets(
                 walletId = mockWalletId().id,
                 type = listOf(PrimitiveRecentActivityType.SwapSelect, PrimitiveRecentActivityType.Swap),
-                filters = setOf(AssetsRequestFilter.Enabled, AssetsRequestFilter.Swappable),
+                filters = setOf(AssetsQueryFilter.Enabled, AssetsQueryFilter.Swappable),
                 limit = 20,
             )
         }

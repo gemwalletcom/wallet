@@ -4,6 +4,7 @@ import Components
 import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemRecipientErrorDisplay
 import struct Gemstone.GemTransferData
+import struct Gemstone.NameRecord
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
@@ -40,7 +41,7 @@ struct RecipientSceneViewModelTests {
         #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .cosmos, tokenId: nil))).showMemo == true)
         #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .ton, tokenId: nil))).showMemo == true)
         #expect(RecipientSceneViewModel.mock(asset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil))).showMemo == false)
-        #expect(RecipientSceneViewModel.mock(asset: .mockEthereum()).showMemo == false)
+        #expect(RecipientSceneViewModel.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)).showMemo == false)
     }
 
     @Test
@@ -70,7 +71,7 @@ struct RecipientSceneViewModelTests {
         #expect(model.actionButtonState == .disabled)
 
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: Chain.ethereum.rawValue, address: "0x1234567890123456789012345678901234567890"))
         #expect(model.actionButtonState == .normal)
     }
 
@@ -91,7 +92,7 @@ struct RecipientSceneViewModelTests {
 
         recipientAddress = nil
         model.addressInputModel.text = "test.eth"
-        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: Chain.ethereum.rawValue, address: address))
         model.onContinue()
 
         #expect(recipientAddress == checksummed)
@@ -100,7 +101,10 @@ struct RecipientSceneViewModelTests {
     @Test
     func mismatchedTokenScanShowsNetworkError() {
         var didNavigate = false
-        let model = RecipientSceneViewModel.mock(asset: .mockSolanaUSDC(), onNavigate: { _ in didNavigate = true })
+        let model = RecipientSceneViewModel.mock(
+            asset: .mock(id: .mock(chain: .solana, tokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .spl),
+            onNavigate: { _ in didNavigate = true },
+        )
 
         model.onHandleScan("ethereum:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326", for: .address)
 
@@ -122,7 +126,7 @@ struct RecipientSceneViewModelTests {
 
     @Test
     func onHandleScanKeepsAmount() {
-        let asset = Asset.mockEthereum()
+        let asset = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
         let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()))
 
         model.onHandleScan("ethereum:0x123?amount=1.5", for: .address)
@@ -137,7 +141,7 @@ struct RecipientSceneViewModelTests {
 
     @Test
     func recipientDataKeepsAmount() {
-        let asset = Asset.mockEthereum()
+        let asset = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
         let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         let model = RecipientSceneViewModel.mock(
             asset: asset,
@@ -156,7 +160,7 @@ struct RecipientSceneViewModelTests {
 
     @Test
     func onHandleScanWithAmountGoesStraightToConfirm() {
-        let asset = Asset.mockEthereum()
+        let asset = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
         var transfer: GemTransferData?
         let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()), onNavigate: {
             if case let .confirm(data) = $0 {

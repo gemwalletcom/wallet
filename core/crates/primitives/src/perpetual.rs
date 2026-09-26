@@ -1,10 +1,10 @@
-use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, UInt64};
+use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct Perpetual {
     pub id: PerpetualId,
@@ -22,7 +22,6 @@ pub struct Perpetual {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualMarketData {
     pub coin: String,
@@ -33,8 +32,8 @@ pub struct PerpetualMarketData {
     pub funding: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualBasic {
     pub asset_id: AssetId,
@@ -42,8 +41,8 @@ pub struct PerpetualBasic {
     pub provider: PerpetualProvider,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 pub struct PerpetualSearchData {
     pub perpetual: Perpetual,
     pub asset: Asset,
@@ -59,8 +58,8 @@ impl Perpetual {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum PerpetualDirection {
@@ -68,16 +67,16 @@ pub enum PerpetualDirection {
     Long,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualPositionData {
     pub perpetual: Perpetual,
     pub asset: Asset,
     pub position: PerpetualPosition,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualData {
     pub perpetual: Perpetual,
     pub asset: Asset,
@@ -85,7 +84,6 @@ pub struct PerpetualData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualPositionsSummary {
     pub positions: Vec<PerpetualPosition>,
     pub balance: PerpetualBalance,
@@ -97,24 +95,24 @@ pub struct PerpetualAccountPositions {
     pub summary: PerpetualPositionsSummary,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualBalance {
     pub available: f64,
     pub reserved: f64,
     pub withdrawable: f64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub enum PerpetualAccountMode {
     Standard,
     Unified,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualMetadata {
     pub is_pinned: bool,
@@ -140,7 +138,6 @@ pub struct PerpetualConfirmData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub enum AccountDataType {
     Activate,
@@ -149,7 +146,7 @@ pub enum AccountDataType {
 #[derive(Debug, Clone)]
 pub struct CancelOrderData {
     pub asset_index: i32,
-    pub order_id: UInt64,
+    pub order_id: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -171,8 +168,8 @@ pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
     pub asset_index: i32,
     pub modify_types: Vec<PerpetualModifyPositionType>,
-    pub take_profit_order_id: Option<UInt64>,
-    pub stop_loss_order_id: Option<UInt64>,
+    pub take_profit_order_id: Option<u64>,
+    pub stop_loss_order_id: Option<u64>,
 }
 
 #[derive(Debug, Clone)]

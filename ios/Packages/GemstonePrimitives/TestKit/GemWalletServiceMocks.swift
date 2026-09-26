@@ -184,14 +184,55 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
     public init() {
         dataForType = { type in
             switch type {
-            case .wallet: .mockWallet()
-            case .perpetuals: .mockPerpetual()
+            case .wallet: .mock(
+                    charts: [.mock(
+                        chartType: .value,
+                        values: [Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105).toGem(),
+                                 Primitives.ChartDateValue.mock(
+                                     date: Date(timeIntervalSince1970: 34560),
+                                     value: 102,
+                                 ).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108).toGem(), Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110).toGem()],
+                    )],
+                    statistics: [
+                        .allTimeHigh(value: Primitives.ChartValuePercentage.mock(date: Date(timeIntervalSince1970: 0), value: 1500, percentage: 5).toGem()),
+                        .allTimeLow(value: Primitives.ChartValuePercentage.mock(date: Date(timeIntervalSince1970: 0), value: 800, percentage: -10).toGem()),
+                    ],
+                    availablePeriods: [.day, .week, .month, .year, .all],
+                )
+            case .perpetuals: .mock(
+                    charts: [
+                        .mock(
+                            chartType: .pnl,
+                            values: [
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 0).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 5).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 34560), value: 2).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 8).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 10).toGem(),
+                            ],
+                        ),
+                        .mock(
+                            chartType: .value,
+                            values: [
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 0), value: 100).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 17280), value: 105).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 34560), value: 102).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 51840), value: 108).toGem(),
+                                Primitives.ChartDateValue.mock(date: Date(timeIntervalSince1970: 69120), value: 110).toGem(),
+                            ],
+                        ),
+                    ],
+                    statistics: [
+                        .unrealizedPnl(value: 500),
+                        .accountLeverage(value: 2.5),
+                        .marginUsage(value: .mock(accountValue: 10000, usage: 0.15, usedValue: 1500, usagePercent: 15)),
+                        .allTimePnl(value: 1200),
+                        .volume(value: 50000),
+                    ],
+                    availablePeriods: [.day, .week, .month, .year, .all],
+                )
             }
         }
-    }
-
-    public func currency(portfolioType _: Gemstone.PortfolioType) -> Gemstone.Currency {
-        Primitives.Currency.usd.toGem()
     }
 
     public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
@@ -227,10 +268,6 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func assetRowStyle() -> Gemstone.GemAssetRowStyle {
-        Gemstone.GemAssetRowStyle(title: .asset, showsSymbol: false, subtitle: .price, trailing: .balance)
-    }
-
     public func viewState(wallet _: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner]) -> GemWalletHomeViewState {
         let collateral: Double = perpetual.map { ($0.balance.available + $0.balance.reserved) * $0.price } ?? 0
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + collateral
@@ -239,11 +276,16 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         let showsPnl = total.value > 0 && total.pnlAmount != 0
         var pnlAmount = formattedCurrency(value: total.pnlAmount, code: Currency.usd.rawValue, style: .fiat)
         pnlAmount.notation = .signed
+        let pnl: GemLocalizedText? = showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil
+        let pnlTone: GemValueTone = total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral
         return GemWalletHomeViewState(
-            total: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat),
-            pnl: showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil,
-            pnlTone: total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral,
-            headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
+            header: GemValueHeader(
+                icon: nil,
+                title: .number(number: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat)),
+                subtitle: pnl.map { GemRowText(text: $0, tone: pnlTone) },
+                subtitleIcon: pnl == nil ? nil : .chart,
+                actions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton.mock(kind: $0, isEnabled: isEnabled) }),
+            ),
             showCollections: false,
             showsPerpetuals: false,
             banner: nil,
@@ -262,8 +304,9 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         }
     }
 
-    public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
-        pinned.append((assetId, isPinned))
+    public func setAssetPinned(asset: Gemstone.Asset, pinned isPinned: Bool) async throws -> GemToast {
+        pinned.append((asset.id, isPinned))
+        return GemToast(text: .pinned(name: asset.name, pinned: isPinned), icon: isPinned ? .pin : .unpin)
     }
 
     public func setAssetsEnabled(assetIds: [Gemstone.AssetId], enabled isEnabled: Bool) async throws {
@@ -363,7 +406,15 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
         if let newestError {
             throw newestError
         }
-        return newestValue.map { GemAppUpdateOffer(version: $0.version, canSkip: !$0.upgradeRequired, apkUrl: nil) }
+        return newestValue.map {
+            GemAppUpdateOffer(
+                version: $0.version,
+                title: .appUpdateTitle,
+                description: .appUpdateDescription(version: $0.version),
+                actions: $0.upgradeRequired ? [.update] : [.skip, .update],
+                apkUrl: nil,
+            )
+        }
     }
 
     public func isVersionHigher(new: String, current: String) -> Bool {

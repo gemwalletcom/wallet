@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use chrono::{NaiveDateTime, TimeDelta};
-use primitives::NaiveDateTimeExt;
 use primitives::rewards::RewardStatus;
 
 use crate::error::{ReferralConfirmationError, ReferralValidationError};
@@ -53,22 +52,22 @@ impl ReferralUseFacts {
         self.referred_status == Some(RewardStatus::Pending) && self.device_referral.as_ref().is_some_and(|referral| referral.is_pending_confirmation(referrer_username, &self.referred_username))
     }
 
+    pub fn eligibility_ends_at(&self, device_created_at: NaiveDateTime, days: i64) -> NaiveDateTime {
+        self.device_wallets
+            .iter()
+            .filter_map(|wallet| wallet.first_subscription_at)
+            .chain(self.wallet_first_subscription_at)
+            .fold(device_created_at, NaiveDateTime::min)
+            + TimeDelta::days(days)
+    }
+
     pub fn validate_use(&self, referrer_username: &str, referrer_wallet_id: i32, device_created_at: NaiveDateTime, eligibility_days: Option<i64>, now: NaiveDateTime) -> Result<(), ReferralValidationError> {
-        if let Some(days) = eligibility_days {
-            if device_created_at <= now - TimeDelta::days(days) || self.wallet_first_subscription_at.is_some_and(|at| at.is_older_than_days(days)) {
-                return Err(ReferralValidationError::EligibilityExpired(days));
-            }
+        if let Some(days) = eligibility_days.filter(|days| now >= self.eligibility_ends_at(device_created_at, *days)) {
+            return Err(ReferralValidationError::EligibilityExpired(days));
         }
 
-        for wallet in &self.device_wallets {
-            if let Some(days) = eligibility_days {
-                if wallet.first_subscription_at.is_some_and(|at| at.is_older_than_days(days)) {
-                    return Err(ReferralValidationError::EligibilityExpired(days));
-                }
-            }
-            if wallet.wallet_id == referrer_wallet_id {
-                return Err(ReferralValidationError::CannotReferSelf);
-            }
+        if self.device_wallets.iter().any(|wallet| wallet.wallet_id == referrer_wallet_id) {
+            return Err(ReferralValidationError::CannotReferSelf);
         }
 
         if self.device_referral.as_ref().is_some_and(|referral| !referral.is_pending_confirmation(referrer_username, &self.referred_username)) {
@@ -207,6 +206,24 @@ mod tests {
             .validate_use("alice", 1, recent, Some(30), now),
             Err(ReferralValidationError::DeviceAlreadyUsed)
         );
+    }
+
+    #[test]
+    fn test_eligibility_ends_at_counts_from_the_oldest_device_or_wallet() {
+        let now = now();
+        let facts = ReferralUseFacts::mock();
+        assert_eq!(facts.eligibility_ends_at(now, 30), now + TimeDelta::days(30));
+
+        let device_wallets = vec![DeviceWallet {
+            wallet_id: 2,
+            first_subscription_at: Some(now - TimeDelta::days(10)),
+        }];
+        let shared_device = ReferralUseFacts {
+            wallet_first_subscription_at: Some(now - TimeDelta::days(5)),
+            device_wallets,
+            ..facts
+        };
+        assert_eq!(shared_device.eligibility_ends_at(now - TimeDelta::days(1), 30), now + TimeDelta::days(20));
     }
 
     #[test]

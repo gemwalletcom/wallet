@@ -1,4 +1,4 @@
-use crate::{TransactionStateRequest, UInt64};
+use crate::TransactionStateRequest;
 use chrono::{DateTime, Utc};
 
 impl TransactionStateRequest {
@@ -11,7 +11,7 @@ impl TransactionStateRequest {
         }
     }
 
-    pub fn with_block_number(mut self, block_number: UInt64) -> Self {
+    pub fn with_block_number(mut self, block_number: u64) -> Self {
         self.block_number = block_number;
         self
     }

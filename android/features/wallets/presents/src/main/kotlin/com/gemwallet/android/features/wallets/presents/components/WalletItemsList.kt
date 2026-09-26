@@ -1,0 +1,87 @@
+package com.gemwallet.android.features.wallets.presents.components
+
+import androidx.annotation.StringRes
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.DropDownContextItem
+import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.components.list_item.pinnedHeader
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletSection
+import uniffi.gemstone.GemWalletSectionKind
+
+internal fun LazyListScope.wallets(section: GemWalletSection, longPressedWallet: MutableState<String>, onEdit: (WalletId) -> Unit, onSelectWallet: (WalletId) -> Unit, onDeleteWallet: (WalletId) -> Unit, onTogglePin: (WalletId) -> Unit) {
+    if (section.kind == GemWalletSectionKind.PINNED) {
+        pinnedHeader()
+    }
+    itemsIndexed(items = section.rows, key = { _, row -> row.id }) { index, row ->
+        val walletId = WalletId(row.id)
+
+        DropDownContextItem(
+            isExpanded = longPressedWallet.value == walletId.id,
+            onDismiss = { longPressedWallet.value = "" },
+            content = {
+                WalletItem(
+                    row = row,
+                    isCurrent = row.isCurrent,
+                    listPosition = ListPosition.getPosition(index, section.rows.size),
+                    onEdit = { onEdit(walletId) },
+                    modifier = it,
+                )
+            },
+            menuItems = {
+                WalletDropDownItem(
+                    if (row.isPinned) R.string.common_unpin else R.string.common_pin,
+                    if (row.isPinned) R.drawable.keep_off else AppIcons.PushPin,
+                ) {
+                    onTogglePin(walletId)
+                    longPressedWallet.value = ""
+                }
+                WalletDropDownItem(R.string.common_wallet, AppIcons.Settings) {
+                    onEdit(walletId)
+                    longPressedWallet.value = ""
+                }
+                WalletDropDownItem(R.string.common_delete, AppIcons.Delete, MaterialTheme.colorScheme.error) {
+                    onDeleteWallet(walletId)
+                    longPressedWallet.value = ""
+                }
+            },
+            onLongClick = { longPressedWallet.value = walletId.id },
+        ) { onSelectWallet(walletId) }
+    }
+}
+
+@Composable
+private fun WalletDropDownItem(@StringRes text: Int, icon: Any, color: Color = Color.Unspecified, onClick: () -> Unit) {
+    val text = stringResource(text)
+    DropdownMenuItem(
+        text = {
+            Text(text = text, color = color)
+        },
+        trailingIcon = {
+            when (icon) {
+                is ImageVector -> Icon(
+                    imageVector = icon,
+                    tint = color,
+                    contentDescription = text,
+                )
+
+                is Int -> Icon(painterResource(icon), text)
+            }
+        },
+        onClick = onClick,
+    )
+}

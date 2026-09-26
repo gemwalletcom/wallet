@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import enum Gemstone.GemPerpetualMarketSection
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI
@@ -64,7 +64,7 @@ struct PerpetualsScene: View {
             if !model.isSearching {
                 Section {} header: {
                     ValueHeaderView(
-                        model: model.headerViewModel,
+                        header: model.header,
                         isPrivacyEnabled: .constant(false),
                         titleActionType: .action(model.onSelectBalance),
                         onHeaderAction: model.onSelectHeaderAction,

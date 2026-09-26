@@ -2,52 +2,62 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemHeaderButton
+import enum Gemstone.GemHeaderButtonAction
 import Primitives
 import SwiftUI
 
+public typealias HeaderButtonActionHandler = @MainActor @Sendable (GemHeaderButtonAction) -> Void
+
 public struct HeaderButtonsView: View {
-    private let buttons: [HeaderButton]
-    private var action: HeaderButtonAction?
+    private let buttons: [GemHeaderButton]
+    private let menuTitle: String?
+    private let menuItems: [ActionMenuItemType]
+    private var action: HeaderButtonActionHandler?
 
     var maxWidth: CGFloat {
         buttons.count > 3 ? 84 : 94
     }
 
     public init(
-        buttons: [HeaderButton],
-        action: HeaderButtonAction? = nil,
+        buttons: [GemHeaderButton],
+        menuTitle: String? = nil,
+        menuItems: [ActionMenuItemType] = [],
+        action: HeaderButtonActionHandler? = nil,
     ) {
         self.buttons = buttons
+        self.menuTitle = menuTitle
+        self.menuItems = menuItems
         self.action = action
     }
 
     public var body: some View {
         HStack(alignment: .center, spacing: .extraSmall) {
-            ForEach(buttons) {
+            ForEach(buttons, id: \.self) {
                 buttonView(for: $0)
             }
         }
     }
 
-    private func buttonView(for button: HeaderButton) -> some View {
+    private func buttonView(for button: GemHeaderButton) -> some View {
         Group {
-            switch button.viewType {
-            case .button:
+            switch button.action {
+            case .send, .receive, .buy, .swap, .deposit, .withdraw, .sendCollectible:
                 RoundButton(
-                    title: button.title,
-                    image: button.image,
+                    title: button.kind.title,
+                    image: button.kind.image,
                     isEnabled: button.isEnabled,
                 ) {
-                    action?(button.type)
+                    action?(button.action)
                 }
-            case let .menuButton(title, items):
+            case .collectibleMenu:
                 AdaptiveActionMenu(
-                    title: title,
-                    items: items,
+                    title: menuTitle,
+                    items: menuItems,
                     label: {
                         RoundButton(
-                            title: button.title,
-                            image: button.image,
+                            title: button.kind.title,
+                            image: button.kind.image,
                             isEnabled: button.isEnabled,
                             action: {}, // action empty, handled by menu
                         )
@@ -55,7 +65,7 @@ public struct HeaderButtonsView: View {
                 )
             }
         }
-        .accessibilityIdentifier(button.id)
+        .accessibilityIdentifier("\(button.kind)_button")
         .frame(maxWidth: maxWidth, alignment: .center)
     }
 }
@@ -64,13 +74,10 @@ public struct HeaderButtonsView: View {
 
 #Preview {
     let buttons = [
-        HeaderButton(type: .send, isEnabled: true),
-        HeaderButton(type: .receive, isEnabled: true),
-        HeaderButton(type: .buy, isEnabled: true),
-        HeaderButton(type: .swap, isEnabled: true),
-        HeaderButton(type: .deposit, isEnabled: true),
-        HeaderButton(type: .withdraw, isEnabled: true),
-        HeaderButton(type: .more, isEnabled: true),
+        GemHeaderButton(kind: .send, action: .send(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .receive, action: .receive(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .buy, action: .buy(assetId: nil), isEnabled: true),
+        GemHeaderButton(kind: .swap, action: .swap(payAssetId: nil, receiveAssetId: nil), isEnabled: true),
     ]
     VStack {
         Spacer()

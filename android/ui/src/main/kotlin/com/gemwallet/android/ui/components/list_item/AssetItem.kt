@@ -1,71 +1,122 @@
 package com.gemwallet.android.ui.components.list_item
 
-import androidx.compose.foundation.background
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.balance.hiddenWhen
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.AssetIcon
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.adaptivePadding
-import com.gemwallet.android.ui.theme.alpha10
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.GemAssetItemRow
+import uniffi.gemstone.GemAssetItemTrailing
 import uniffi.gemstone.GemFormattedNumber
-import uniffi.gemstone.GemPriceRow
+import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemValueTone
 
 @Composable
 private fun assetListItemContentPadding(): Dp = adaptivePadding(default = paddingMiddle, compact = space6)
 
+sealed interface AssetItemAction {
+    data class Switch(val enabled: Boolean) : AssetItemAction
+    data object Copy : AssetItemAction
+}
+
 @Composable
-fun AssetListItem(
-    asset: AssetInfoDataAggregate,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition,
-    support: (@Composable () -> Unit)? = assetPriceSupport(asset.price),
-    badge: String? = null,
-    trailing: (@Composable () -> Unit)? = { getBalanceInfo(asset).invoke() },
-) {
+fun AssetListItem(asset: AssetInfoDataAggregate, listPosition: ListPosition, modifier: Modifier = Modifier, onAction: ((AssetItemAction) -> Unit)? = null) {
+    AssetListItem(row = asset.row, listPosition = listPosition, modifier = modifier, hideBalance = asset.hideBalance, onAction = onAction)
+}
+
+@Composable
+fun AssetListItem(row: GemAssetItemRow, listPosition: ListPosition, modifier: Modifier = Modifier, hideBalance: Boolean = false, onAction: ((AssetItemAction) -> Unit)? = null, accessory: (@Composable () -> Unit)? = null) {
+    val context = LocalContext.current
+    val hidden = hideBalance && row.masksBalance
+    val trailing: (@Composable () -> Unit)? = when (val value = row.trailing) {
+        is GemAssetItemTrailing.Value -> getBalanceInfo(value.value, value.extra, hidden)
+
+        is GemAssetItemTrailing.Toggle -> {
+            { Switch(checked = value.isOn, onCheckedChange = { onAction?.invoke(AssetItemAction.Switch(it)) }) }
+        }
+
+        GemAssetItemTrailing.Copy -> {
+            {
+                IconButton(onClick = { onAction?.invoke(AssetItemAction.Copy) }, modifier = Modifier.size(iconSize)) {
+                    Icon(
+                        imageVector = AppIcons.ContentCopyOutlined,
+                        contentDescription = "",
+                        modifier = Modifier.size(compactIconSize),
+                        tint = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
+        }
+
+        GemAssetItemTrailing.None -> accessory
+    }
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
         minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
-        leading = @Composable { AssetIcon(asset.icon) },
-        title = @Composable { ListItemTitleText(asset.title, { Badge(text = badge) }) },
-        subtitle = support,
-        trailing = if (trailing == null) {
-            null
-        } else {
-            { trailing.invoke() }
-        },
+        leading = @Composable { AssetIcon(row.icon) },
+        title = @Composable { ListItemTitleText(row.title, { Badge(text = row.titleExtra) }) },
+        subtitle = row.subtitle?.let { subtitle -> { AssetItemSupport(subtitle.string(context), subtitle.tone, row.subtitleExtra?.let { it.string(context) to it.tone }) } },
+        trailing = trailing?.let { content -> { content() } },
     )
+}
+
+@Composable
+private fun AssetItemSupport(text: String, tone: GemValueTone, extra: Pair<String, GemValueTone>?) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
+    ) {
+        Text(
+            modifier = Modifier.weight(1f, false),
+            text = text,
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis,
+            color = tone.color(),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        extra?.let { (extraText, extraTone) ->
+            Text(
+                text = extraText,
+                maxLines = 1,
+                color = extraTone.color(),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
 }
 
 @Composable
@@ -110,58 +161,6 @@ fun Badge(text: String?) {
     )
 }
 
-fun assetPriceSupport(price: GemPriceRow): (@Composable () -> Unit)? {
-    val value = price.price ?: return null
-    return {
-        PriceInfo(
-            value.text(),
-            price.change?.text().orEmpty(),
-            (price.change?.tone ?: GemValueTone.PLAIN).textStyle(),
-            style = MaterialTheme.typography.bodyMedium,
-            internalPadding = paddingHalfSmall,
-        )
-    }
-}
-
-@Composable
-fun PriceInfo(
-    price: String,
-    changes: String,
-    changeStyle: ListItemTextStyle,
-    modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
-    isHighlightPercentage: Boolean = false,
-    internalPadding: Dp = paddingHalfSmall,
-) {
-    val color = changeStyle.color()
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(internalPadding),
-    ) {
-        Text(
-            modifier = Modifier.weight(1f, false),
-            text = price,
-            maxLines = 1,
-            overflow = TextOverflow.MiddleEllipsis,
-            color = if (isHighlightPercentage) color else MaterialTheme.colorScheme.secondary,
-            style = style,
-        )
-        Text(
-            modifier = if (isHighlightPercentage) {
-                Modifier.background(color.copy(alpha = alpha10), MaterialTheme.shapes.small)
-            } else {
-                Modifier
-            },
-            text = changes,
-            color = color,
-            style = style,
-        )
-    }
-}
-
-fun getBalanceInfo(asset: AssetInfoDataAggregate): @Composable () -> Unit = getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance)
-
 fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Composable () -> Unit = (
     @Composable {
         val color = MaterialTheme.colorScheme.let {
@@ -175,6 +174,18 @@ fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Compos
     }
     )
 
+fun getBalanceInfo(value: GemRowText, extra: GemRowText?, hidden: Boolean = false): @Composable () -> Unit = (
+    @Composable {
+        val context = LocalContext.current
+        BalanceInfo(
+            crypto = value.string(context).hiddenWhen(hidden),
+            equivalent = extra?.string(context)?.hiddenWhen(hidden).orEmpty(),
+            color = value.tone.color(),
+            equivalentColor = extra?.tone?.color() ?: MaterialTheme.colorScheme.secondary,
+        )
+    }
+    )
+
 fun getBalanceInfo(amount: GemFormattedNumber, equivalent: GemFormattedNumber?): @Composable () -> Unit = (
     @Composable {
         BalanceInfo(crypto = amount.text(), equivalent = equivalent?.text().orEmpty(), color = amount.tone.color())
@@ -182,7 +193,7 @@ fun getBalanceInfo(amount: GemFormattedNumber, equivalent: GemFormattedNumber?):
     )
 
 @Composable
-private fun BalanceInfo(crypto: String, equivalent: String, color: Color) {
+private fun BalanceInfo(crypto: String, equivalent: String, color: Color, equivalentColor: Color = MaterialTheme.colorScheme.secondary) {
     Column(
         horizontalAlignment = Alignment.End,
     ) {
@@ -202,44 +213,9 @@ private fun BalanceInfo(crypto: String, equivalent: String, color: Color) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.End,
-                color = MaterialTheme.colorScheme.secondary,
+                color = equivalentColor,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-    }
-}
-
-@Composable
-fun PriceInfo(
-    priceValue: String,
-    changedPercentages: String,
-    changeStyle: ListItemTextStyle,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.secondary,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
-    isHighlightPercentage: Boolean = false,
-    internalPadding: Dp = paddingDefault,
-) {
-    val highlightColor = changeStyle.color()
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = priceValue,
-            color = if (isHighlightPercentage) highlightColor else color,
-            style = style,
-        )
-        Spacer(modifier = Modifier.width(internalPadding))
-        Text(
-            modifier = if (isHighlightPercentage) {
-                Modifier.background(highlightColor.copy(alpha = alpha10), MaterialTheme.shapes.small)
-            } else {
-                Modifier
-            }.padding(paddingHalfSmall),
-            text = changedPercentages,
-            color = highlightColor,
-            style = style,
-        )
     }
 }

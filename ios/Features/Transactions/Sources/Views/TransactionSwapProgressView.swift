@@ -1,18 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemSwapProgress
+import struct Gemstone.GemSwapProgressRow
+import struct Gemstone.GemSwapProgressState
+import struct GemstonePrimitives.EstimatedConfirmationFormatter
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct TransactionSwapProgressView: View {
-    let model: TransactionSwapProgressItemModel
+    let progress: GemSwapProgress
+
+    private var estimatedTime: String? {
+        progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) }
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: .space12) {
             timelineView
             VStack(alignment: .leading, spacing: .space8) {
-                stepContent(model.transfer)
-                stepContent(model.swap)
+                stepContent(progress.transfer)
+                stepContent(progress.swap)
             }
         }
         .padding(.medium)
@@ -24,17 +33,17 @@ struct TransactionSwapProgressView: View {
 
     private var timelineView: some View {
         VStack(spacing: .zero) {
-            marker(for: model.transfer)
-            connector(color: model.transfer.lineColor)
-            marker(for: model.swap)
+            marker(for: progress.transfer.state)
+            connector(color: progress.isConnectorActive ? Colors.green : Colors.gray.opacity(.medium))
+            marker(for: progress.swap.state)
         }
         .frame(width: Sizing.list.settings)
     }
 
-    private func stepContent(_ step: TransactionSwapProgressItemModel.Step) -> some View {
+    private func stepContent(_ step: GemSwapProgressRow) -> some View {
         VStack(alignment: .leading, spacing: .space6) {
             HStack(alignment: .center, spacing: .space8) {
-                Text(step.title)
+                Text(step.title.text)
                     .font(.app.body)
                     .foregroundStyle(Colors.black)
                     .lineLimit(2)
@@ -42,18 +51,18 @@ struct TransactionSwapProgressView: View {
 
                 Spacer(minLength: .space8)
 
-                statusTag(for: step)
+                statusTag(for: step.state)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: .space8) {
-                Text(step.subtitle)
+                Text(step.subtitle.text)
                     .font(.app.callout)
                     .foregroundStyle(Colors.gray)
                     .lineLimit(2)
 
                 Spacer(minLength: .space8)
 
-                if step.showsSpinner, let estimatedTime = model.estimatedTime {
+                if step.showsEstimate, let estimatedTime {
                     Text(estimatedTime)
                         .font(.app.callout)
                         .foregroundStyle(Colors.gray)
@@ -69,34 +78,34 @@ struct TransactionSwapProgressView: View {
             .frame(width: 1.5, height: Sizing.list.settings)
     }
 
-    private func marker(for step: TransactionSwapProgressItemModel.Step) -> some View {
+    private func marker(for state: GemSwapProgressState) -> some View {
         ZStack {
             Circle()
-                .stroke(step.color, lineWidth: .space1)
-                .background(Circle().fill(step.markerBackground))
-            if step.showsSpinner {
-                LoadingView(size: .small, tint: step.color)
+                .stroke(state.color, lineWidth: .space1)
+                .background(Circle().fill(state.markerBackground))
+            if state.marker == .spinner {
+                LoadingView(size: .small, tint: state.color)
             } else {
-                step.markerImage?
+                state.marker.image?
                     .font(.app.footnote)
                     .fontWeight(.semibold)
-                    .foregroundStyle(step.color)
+                    .foregroundStyle(state.color)
             }
         }
         .frame(width: Sizing.list.settings, height: Sizing.list.settings)
     }
 
     @ViewBuilder
-    private func statusTag(for step: TransactionSwapProgressItemModel.Step) -> some View {
-        if let tagTitle = step.tagTitle {
+    private func statusTag(for state: GemSwapProgressState) -> some View {
+        if let tagTitle = state.step.tagTitle {
             Text(tagTitle)
                 .font(.app.footnote)
-                .foregroundStyle(step.color)
+                .foregroundStyle(state.color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, .small)
                 .padding(.vertical, .extraSmall)
-                .background(step.tagBackground)
+                .background(state.background)
                 .cornerRadius(.space6)
         }
     }

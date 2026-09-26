@@ -1,5 +1,6 @@
-use primitives::{ChartPeriod, Perpetual};
+use primitives::{ChartPeriod, Perpetual, PerpetualPosition};
 
+use super::model::GemCandleChart;
 use super::rules;
 use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
@@ -93,6 +94,10 @@ impl GemCandleSession {
     pub fn request(&self) -> Option<GemCandleRequest> {
         let needs_candles = self.is_refreshing || matches!(self.state, GemLoadState::Loading);
         self.symbol.clone().filter(|_| needs_candles).map(|symbol| GemCandleRequest { symbol, period: self.period })
+    }
+
+    pub fn chart(&self, position: Option<PerpetualPosition>) -> Option<GemCandleChart> {
+        rules::candle_chart(&self.candles, self.period, position.as_ref())
     }
 
     pub fn view_state(&self) -> GemCandleViewState {

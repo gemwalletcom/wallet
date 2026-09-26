@@ -37,6 +37,7 @@ extension PriceAlertAssetRecordInfo {
                 earnApr: asset.earnApr,
                 rankScore: asset.rank.asInt32,
             ),
+            associations: [],
         )
     }
 }

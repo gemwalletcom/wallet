@@ -1,4 +1,3 @@
-use crate::UInt64;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -8,5 +7,5 @@ pub struct TransactionStateRequest {
     pub id: String,
     pub sender_address: String,
     pub created_at: DateTime<Utc>,
-    pub block_number: UInt64,
+    pub block_number: u64,
 }

@@ -1,0 +1,148 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Primitives
+import PrimitivesTestKit
+import Store
+import StoreTestKit
+import Testing
+
+struct WalletSearchQueryTests {
+    private let wallet = Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .smartChain), .mock(chain: .tron), .mock(chain: .ethereum)])
+    private let walletAssets: [AssetBasic] = [
+        .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
+        .mock(
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+        .mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
+        .mock(
+            asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+        .mock(
+            asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20),
+            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
+        ),
+    ]
+    private let walletBalances: [UpdateBalance] = [
+        .mock(assetId: .mock(chain: .smartChain), available: 1),
+        .mock(assetId: .mock(chain: .tron), available: 2),
+        .mock(assetId: .mock(chain: .ethereum), available: 3),
+        .mock(assetId: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), available: 4),
+    ]
+
+    @Test
+    func excludesNegativeRank() throws {
+        let visible = AssetBasic.mock(asset: .mock(id: AssetId(chain: .ethereum)), score: .mock(rank: 0))
+        let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
+        let db = DB.mock(wallets: [.mock(accounts: [visible, hidden].map { .mock(chain: $0.asset.chain) })], assets: [visible, hidden])
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchQuery(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(result.assets.map(\.asset.id) == [visible.asset.id])
+        }
+    }
+
+    @Test
+    func searchAssets() throws {
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
+        let searchStore = SearchStore(db: db)
+
+        try db.dbQueue.read { db in
+            let btc = try WalletSearchQuery(walletId: .mock(), searchBy: "btc", searchKey: "btc").fetch(db)
+            let tokenId = try WalletSearchQuery(walletId: .mock(), searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7", searchKey: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
+
+            #expect(btc.assets.first?.asset.symbol == "BTC")
+            #expect(tokenId.assets.first?.asset.symbol == "USDT")
+
+            let defaultView = try WalletSearchQuery(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(defaultView.assets.isNotEmpty)
+        }
+
+        let query = "priority test"
+        let expectedOrder = walletAssets.reversed().map(\.asset.id.identifier)
+        try searchStore.add(type: .asset, query: query, ids: expectedOrder)
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query, limit: 10).fetch(db)
+            #expect(result.assets.map(\.asset.id.identifier) == expectedOrder)
+        }
+    }
+
+    @Test
+    func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ton), .mock(chain: .base)])], assets: [
+            .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),
+            .mock(asset: .mock(id: AssetId(chain: .ton, tokenId: "abc"), name: "Tether", symbol: "USDT", decimals: 6, type: .jetton)),
+            .mock(asset: .mock(id: AssetId(chain: .base), name: "Base ETH", symbol: "ETH", decimals: 18, type: .native)),
+            .mock(asset: .mock(id: AssetId(chain: .base, tokenId: "0xtoken"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
+        ])
+
+        try db.dbQueue.read { db in
+            let ton = try WalletSearchQuery(walletId: .mock(), searchBy: "Ton").fetch(db)
+            let base = try WalletSearchQuery(walletId: .mock(), searchBy: "Base").fetch(db)
+
+            #expect(ton.assets.map(\.asset.id) == [AssetId(chain: .ton)])
+            #expect(base.assets.map(\.asset.id) == [AssetId(chain: .base)])
+        }
+    }
+
+    @Test
+    func searchPerpetuals() throws {
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
+        let store = PerpetualStore(db: db)
+        let searchStore = SearchStore(db: db)
+
+        let ethPerpetual = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "ETH-USD"), name: "ETH-USD", assetId: AssetId(chain: .ethereum))
+        let btcPerpetual = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC-USD"), name: "BTC-USD", assetId: AssetId(chain: .bitcoin))
+        try store.upsertPerpetuals([ethPerpetual, btcPerpetual])
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchQuery(walletId: .mock(), searchBy: "ETH", searchKey: "ETH").fetch(db)
+            #expect(result.perpetuals.first?.perpetual.name == "ETH-USD")
+        }
+
+        let query = "perp priority"
+        try searchStore.add(type: .perpetual, query: query, ids: [btcPerpetual.id.identifier, ethPerpetual.id.identifier])
+        try searchStore.add(type: .perpetual, query: "tag:stocks", ids: [ethPerpetual.id.identifier])
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query).fetch(db)
+            #expect(result.perpetuals.first?.perpetual.id == btcPerpetual.id)
+
+            let defaultView = try WalletSearchQuery(walletId: .mock(), searchBy: "").fetch(db)
+            #expect(defaultView.perpetuals.isNotEmpty)
+
+            let listWithPerp = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks", scope: .list("stocks")).fetch(db)
+            #expect(listWithPerp.perpetuals.first?.perpetual.name == "ETH-USD")
+
+            let listWithoutPerp = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks_ai", scope: .list("stocks_ai")).fetch(db)
+            #expect(listWithoutPerp.perpetuals.isEmpty)
+        }
+    }
+
+    @Test
+    func searchLists() throws {
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
+        let searchStore = SearchStore(db: db)
+
+        let assetListStore = AssetListStore(db: db)
+        let query = "stocks"
+        let lists = [AssetList(id: "stocks", name: "Stocks", count: 2), AssetList(id: "ai", name: "AI", count: 1)]
+        try assetListStore.upsert(lists)
+        try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
+        try assetListStore.upsert(lists)
+        try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
+
+        try db.dbQueue.read { db in
+            let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query, types: [.list]).fetch(db)
+            #expect(result.lists == lists)
+
+            let withList = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query, scope: .list("stocks"), types: [.list]).fetch(db)
+            #expect(withList.lists.isEmpty)
+
+            let withoutListType = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query).fetch(db)
+            #expect(withoutListType.lists.isEmpty)
+        }
+    }
+}

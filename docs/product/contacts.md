@@ -8,10 +8,19 @@ flowchart LR
     H[Recipient or transaction] --> I[Add to Contact] --> D
 ```
 
-- A contact has a name, an optional description, and one or more addresses, each on a network, with a memo where that network uses one.
-- An address can be typed as a name and is resolved.
-- When sending, the recipient screen offers the contacts that have an address on that network.
-- From a recipient or a transaction the user saves the address as a new contact or adds it to an existing one.
+1. The user creates a contact: a name, an optional description, and one or more addresses, each on a network, with a memo where that network uses one.
+2. From a recipient or a transaction the user saves the address as a new contact or adds it to an existing one.
+3. When sending, the recipient screen offers the contacts that have an address on that network.
+
+## Expected results
+
+| When | Expected | Why |
+|---|---|---|
+| An address is typed as a name | it is resolved | |
+
+## Platform differences
+
+None recorded.
 
 ## Rules
 

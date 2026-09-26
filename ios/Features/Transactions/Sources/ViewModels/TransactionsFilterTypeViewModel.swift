@@ -16,11 +16,7 @@ public struct TransactionsFilterTypeViewModel: FilterTypeRepresentable {
     }
 
     public var value: String {
-        switch summary {
-        case .all: Localized.Common.all
-        case let .filter(filter): filter.title
-        case let .count(count): "\(count)"
-        }
+        summary.text
     }
 
     public var title: String {

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppUpdateOffer
-import uniffi.gemstone.GemAppUpdateService
 import uniffi.gemstone.GemAppUpdateServiceInterface
 
 class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInterface, private val buildInfo: BuildInfo) :
@@ -26,7 +25,7 @@ class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInte
 
     override suspend fun skipAppUpdate(update: GemAppUpdateOffer) {
         withContext(Dispatchers.IO) { appUpdateService.skip(update) }
-        offer.value = check()
+        offer.value = null
     }
 
     private suspend fun check(): GemAppUpdateOffer? = withContext(Dispatchers.IO) {

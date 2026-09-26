@@ -8,35 +8,32 @@ import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.property.icon
 import com.gemwallet.android.ui.format.rowDateFormatter
-import com.gemwallet.android.ui.localization.infoDescriptionRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.style.badgeIconRes
+import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.style.textStyle
+import com.gemwallet.android.ui.style.walletListItemImage
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAvatar
+import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemCopy
-import uniffi.gemstone.GemCopyKind
-import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNoticeKind
+import uniffi.gemstone.GemRowAction
+import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemSocialLink
-import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
 import java.time.ZoneId
 import java.util.Locale
@@ -47,13 +44,13 @@ internal sealed interface GemListRowUIModel {
         GemListRowUIModel
     data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
     data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
-    data class Icon(val assetId: AssetId, val imageUrl: String?) : GemListRowUIModel
+    data class Icon(val icon: GemAssetIcon, val imageUrl: String?) : GemListRowUIModel
     data class Avatar(val image: ListItemImage) : GemListRowUIModel
     data class Address(val address: String, val copy: GemCopy, val menu: List<GemListRowMenuItem>) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
     data class Social(val links: List<GemSocialLink>) : GemListRowUIModel
-    data class Toggle(val model: ListItemModel, val title: GemListRowTitle, val isOn: Boolean) : GemListRowUIModel
-    data class Picker(val model: ListItemModel, val title: GemListRowTitle) : GemListRowUIModel
+    data class Toggle(val model: ListItemModel, val action: GemRowAction, val isOn: Boolean) : GemListRowUIModel
+    data class Picker(val model: ListItemModel, val action: GemRowAction) : GemListRowUIModel
     data object Loading : GemListRowUIModel
 }
 
@@ -64,7 +61,7 @@ internal sealed interface GemListRowMenuItem {
     data class Open(override val title: String, val url: String) : GemListRowMenuItem
 }
 
-internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemListRowUIModel = when (this) {
+internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (this) {
     is GemListRow.Latency -> GemListRowUIModel.Item(status.listItemModel(context, title.text(context) + titleSuffix, host))
 
     is GemListRow.Notice -> GemListRowUIModel.Notice(title = title.text(context), message = message?.string(context), kind = kind)
@@ -77,7 +74,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     )
 
     is GemListRow.Amount -> GemListRowUIModel.Item(
-        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(context, infoIcon)),
+        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet()),
     )
 
     is GemListRow.Rate -> inverse?.let { inverse ->
@@ -89,7 +86,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             title = title.text(context),
             titleStyle = if (info == null) ListItemTextStyle.Body else ListItemTextStyle.Faded,
             subtitle = value?.text(),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -102,7 +99,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ),
     )
 
-    is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = "#$rank"))
+    is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = tag))
 
     is GemListRow.AllTime -> GemListRowUIModel.Item(
         ListItemModel(
@@ -118,7 +115,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ListItemModel(
             title = title.text(context),
             subtitle = if (estimate) parts.formatEstimate() else parts.formatDuration(),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -128,7 +125,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             subtitle = text.string(context),
             subtitleStyle = tone.subtitleStyle(),
             subtitleTagType = if (progress) ListItemTagType.Progress else ListItemTagType.None,
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -137,23 +134,20 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     is GemListRow.Network -> GemListRowUIModel.Network(chain.requireChain(), name)
 
     is GemListRow.App -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.wallet_connect_app), subtitle = name),
+        ListItemModel(title = title.text(context), subtitle = name),
         trailingImage = iconUrl?.let { ListItemImage.Url(it) },
-        menu = listOfNotNull(websiteUrl?.let { GemListRowMenuItem.Open(context.getString(R.string.settings_website), it) }),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Wallet -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.common_wallet), subtitle = wallet.name),
+        ListItemModel(title = title.text(context), subtitle = wallet.name),
         trailingImage = wallet.listItemImage(),
-        menu = listOf(
-            GemListRowMenuItem.Copy(context.getString(R.string.wallet_copy_address), copy.value),
-            GemListRowMenuItem.Open(context.getString(R.string.transaction_view_on, explorer.name), explorer.link),
-        ),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Memo -> GemListRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.transfer_memo), subtitle = value),
-        menu = listOfNotNull(copy?.let { GemListRowMenuItem.Copy(context.getString(R.string.common_copy), it) }),
+        ListItemModel(title = title.text(context), subtitle = value),
+        menu = menu.map { it.uiModel(context) },
     )
 
     is GemListRow.Link -> GemListRowUIModel.Item(listItemModel(context, title, value, icon), opensAnotherScreen = true)
@@ -165,25 +159,26 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             title = title.text(context),
             subtitle = lines.firstOrNull()?.string(context),
             subtitleExtra = lines.getOrNull(1)?.string(context),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
     is GemListRow.Identifier -> GemListRowUIModel.Item(
         ListItemModel(title = title.text(context), subtitle = copy.display),
         url = explorer?.link,
-        menu = listOfNotNull(
-            GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value),
-            explorer?.let { GemListRowMenuItem.Open(context.getString(R.string.transaction_view_on, it.name), it.link) },
-        ),
-        address = copy.value.takeIf { title == GemListRowTitle.CONTRACT },
+        menu = menu.map { it.uiModel(context) },
+        address = address,
     )
 
-    is GemListRow.Explorer -> GemListRowUIModel.Item(ListItemModel(title = context.getString(R.string.transaction_view_on, name)), url = url)
+    is GemListRow.Explorer -> GemListRowUIModel.Item(ListItemModel(title = title.string(context)), url = url)
 
     is GemListRow.Error -> GemListRowUIModel.Notice(title = GemListRowTitle.ERROR.text(context), message = error.errorText().text(context), kind = GemNoticeKind.ERROR)
 
-    is GemListRow.Icon -> GemListRowUIModel.Icon(assetId = AssetId(assetId), imageUrl = imageUrl)
+    is GemListRow.Icon -> GemListRowUIModel.Icon(icon = icon, imageUrl = imageUrl)
+
+    is GemListRow.AssetChange -> GemListRowUIModel.Item(
+        ListItemModel(title = name, subtitle = amount.text(), subtitleStyle = amount.tone.textStyle(), image = ListItemImage.Asset(icon)),
+    )
 
     is GemListRow.Avatar -> GemListRowUIModel.Avatar(image = avatar.listItemImage())
 
@@ -192,17 +187,23 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     is GemListRow.Address -> GemListRowUIModel.Address(
         address = address,
         copy = copy,
-        menu = listOf(GemListRowMenuItem.Copy(context.getString(copy.kind.copyTitleRes()), copy.value)),
+        menu = listOf(GemRowMenuItem.Copy(copy).uiModel(context)),
     )
 
-    is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), title, isOn)
+    is GemListRow.Toggle -> GemListRowUIModel.Toggle(ListItemModel(title = label.string(context), image = icon.image()), action, isOn)
 
-    is GemListRow.Picker -> GemListRowUIModel.Picker(listItemModel(context, title, value.string(context), icon), title)
+    is GemListRow.Picker -> GemListRowUIModel.Picker(listItemModel(context, title, value.string(context), icon), action)
 
     is GemListRow.Social -> GemListRowUIModel.Social(links)
 
     GemListRow.Loading -> GemListRowUIModel.Loading
 }
+
+fun GemConnectionRow.listItem(): ListItemModel = ListItemModel(
+    title = title,
+    titleExtra = host,
+    image = iconUrl?.let { ListItemImage.Url(it, placeholder = initial) } ?: ListItemImage.Initials(initial),
+)
 
 fun GemAvatar.listItemImage(): ListItemImage = imageUrl?.let { ListItemImage.Stored(it, initials) } ?: ListItemImage.Initials(initials)
 
@@ -217,9 +218,9 @@ private fun listItemModel(context: Context, title: GemListRowTitle, value: Strin
     image = icon.image(),
 )
 
-private fun GemCopyKind.copyTitleRes(): Int = when (this) {
-    is GemCopyKind.Address -> R.string.wallet_copy_address
-    GemCopyKind.Plain, GemCopyKind.SecretPhrase, GemCopyKind.PrivateKey -> R.string.common_copy
+private fun GemRowMenuItem.uiModel(context: Context): GemListRowMenuItem = when (this) {
+    is GemRowMenuItem.Copy -> GemListRowMenuItem.Copy(context.getString(R.string.common_copy), copy.value)
+    is GemRowMenuItem.Open -> GemListRowMenuItem.Open(title.string(context), url)
 }
 
 private fun GemValueTone.subtitleStyle(): ListItemTextStyle = when (this) {
@@ -251,59 +252,7 @@ private fun GemListRowIcon.image(): ListItemImage? = when (this) {
     GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)
 }
 
-fun GemInfoTopic.infoSheet(context: Context, icon: Any?, onBuy: (() -> Unit)? = null): InfoSheetEntity = when (this) {
-    is GemInfoTopic.NetworkFee -> asset.toPrimitives().let { InfoSheetEntity.NetworkFeeInfo(it.chain.networkName(), it.symbol) }
-
-    is GemInfoTopic.MinimumAmount -> asset.toPrimitives().let {
-        InfoSheetEntity.MinimumAmountInfo(
-            networkTitle = it.chain.networkName(),
-            value = ValueFormatter(style = GemValueStyle.FULL).string(minimum, it.decimals, it.symbol),
-            actionLabel = onBuy?.let { _ -> context.getString(R.string.asset_buy_asset, it.symbol) },
-            action = onBuy,
-        )
-    }
-
-    GemInfoTopic.NoQuote -> InfoSheetEntity.NoQuoteInfo
-
-    GemInfoTopic.PriceImpact -> InfoSheetEntity.PriceImpactInfo
-
-    GemInfoTopic.Slippage -> InfoSheetEntity.Slippage
-
-    GemInfoTopic.OpenInterest -> InfoSheetEntity.OpenInterestInfo
-
-    GemInfoTopic.FundingApr -> InfoSheetEntity.FundingAprInfo
-
-    GemInfoTopic.StakeApr -> InfoSheetEntity.StakeAprInfo(icon)
-
-    GemInfoTopic.StakeLockTime -> InfoSheetEntity.StakeLockTimeInfo(icon)
-
-    GemInfoTopic.StakeFrozenRequired -> InfoSheetEntity.StakeFrozenRequired(icon)
-
-    GemInfoTopic.AutoClose -> InfoSheetEntity.AutoCloseInfo
-
-    GemInfoTopic.LiquidationPrice -> InfoSheetEntity.LiquidationPriceInfo
-
-    GemInfoTopic.FundingPayments -> InfoSheetEntity.FundingPayments
-
-    GemInfoTopic.FullyDilutedValuation -> InfoSheetEntity.FullyDilutedValuation
-
-    GemInfoTopic.CirculatingSupply -> InfoSheetEntity.CirculatingSupply
-
-    GemInfoTopic.TotalSupply -> InfoSheetEntity.TotalSupply
-
-    GemInfoTopic.MaxSupply -> InfoSheetEntity.MaxSupply
-
-    is GemInfoTopic.EstimatedConfirmation -> InfoSheetEntity.EstimatedConfirmationInfo(chain.requireChain())
-
-    is GemInfoTopic.TransactionStatus -> InfoSheetEntity.TransactionInfo(
-        icon = icon,
-        state = state.toPrimitives(),
-        badgeIcon = tone.badgeIconRes(),
-        description = tone.infoDescriptionRes(),
-    )
-}
-
-fun GemListRow.listItemModel(context: Context, infoIcon: Any? = null): ListItemModel? = (uiModel(context, infoIcon) as? GemListRowUIModel.Item)?.model
+fun GemListRow.listItemModel(context: Context): ListItemModel? = (uiModel(context) as? GemListRowUIModel.Item)?.model
 
 fun GemLatencyStatus.listItemModel(context: Context, title: String, titleExtra: String?): ListItemModel = ListItemModel(
     title = title,

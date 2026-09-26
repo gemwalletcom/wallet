@@ -3,44 +3,34 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemFormattedNumber
+import struct Gemstone.GemPriceAlertInput
 import GemstonePrimitives
-import Localization
 import Primitives
-import Style
+import PrimitivesComponents
 import SwiftUI
 
 struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
-    let type: SetPriceAlertType
-    let alertDirection: PriceAlertDirection
-    let currentPrice: GemFormattedNumber?
+    let input: GemPriceAlertInput
+    let secondaryText: String
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
 
     var placeholder: String {
-        switch type {
-        case .price: .zero
-        case .percentage: "5"
-        }
+        input.placeholder
     }
 
     var currencySymbol: String {
-        switch type {
-        case .price: formatter.symbol
-        case .percentage: "%"
+        switch input.symbol {
+        case .currency: formatter.symbol
+        case .percent: "%"
         }
     }
 
     var currencyPosition: Components.CurrencyTextField.CurrencyPosition {
-        switch type {
-        case .price: .leading
-        case .percentage: .trailing
+        switch input.placement {
+        case .leading: .leading
+        case .trailing: .trailing
         }
-    }
-
-    var secondaryText: String {
-        guard let currentPrice else { return .empty }
-        return [Localized.PriceAlerts.SetAlert.currentPrice, currentPrice.text()].joined(separator: " ")
     }
 
     var keyboardType: UIKeyboardType {
@@ -52,21 +42,11 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     var actionStyle: CurrencyInputActionStyle? {
-        guard let actionButtonImage else { return nil }
-        return CurrencyInputActionStyle(
-            position: .amount,
-            image: actionButtonImage,
-        )
-    }
-
-    private var actionButtonImage: Image? {
-        switch type {
-        case .price: nil
-        case .percentage:
-            switch alertDirection {
-            case .up: Images.PriceAlert.up
-            case .down: Images.PriceAlert.down
-            }
+        input.directionButton.map {
+            CurrencyInputActionStyle(
+                position: .amount,
+                image: $0.image,
+            )
         }
     }
 }

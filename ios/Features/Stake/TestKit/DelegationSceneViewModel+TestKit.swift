@@ -14,20 +14,18 @@ public extension DelegationSceneViewModel {
         state: DelegationState = .active,
         rewards: BigInt = .zero,
         providerType: StakeProviderType = .stake,
-        validators: [DelegationValidator] = [],
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
         onNavigate: StakeRouteAction = nil,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) -> DelegationSceneViewModel {
-        let validator = DelegationValidator.mock(chain, providerType: providerType)
-        let base = DelegationBase.mock(state: state, assetId: .mock(chain), rewards: rewards)
-        let delegation = Delegation.mock(state: state, validator: validator, base: base)
+        let validator = DelegationValidator.mock(chain: chain, providerType: providerType)
+        let base = DelegationBase.mock(assetId: .mock(chain: chain), state: state, rewards: rewards)
+        let delegation = Delegation.mock(base: base, validator: validator)
         return DelegationSceneViewModel(
             wallet: wallet,
             delegation: delegation,
             asset: chain.asset,
             service: stakeService,
-            validators: validators,
             onNavigate: onNavigate,
             onSelectAddress: onSelectAddress,
         )

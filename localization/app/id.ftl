@@ -356,6 +356,7 @@ charts_price_change = Perubahan
 
 date_today = Hari Ini
 date_yesterday = Kemarin
+date_day_time = %@, %@
 
 # Wallet Connect
 

@@ -1,7 +1,7 @@
+use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
-use typeshare::typeshare;
 
 use crate::{AssetId, NFTAssetId, PaymentLink, PaymentMerchant, PerpetualDirection, PerpetualProvider, TransferDataOutputAction, stake_type::Resource};
 
@@ -13,7 +13,6 @@ pub struct TransactionPaymentMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionPerpetualMetadata {
     pub pnl: f64,
@@ -24,8 +23,8 @@ pub struct TransactionPerpetualMetadata {
     pub provider: Option<PerpetualProvider>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSwapMetadata {
     pub from_asset: AssetId,
@@ -37,8 +36,8 @@ pub struct TransactionSwapMetadata {
     pub provider: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionNFTTransferMetadata {
     pub asset_id: NFTAssetId,

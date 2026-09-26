@@ -39,7 +39,7 @@ public struct SwapScene: View {
         .safeAreaView {
             bottomActionView
                 .confirmationDialog(
-                    model.swapDetailsViewModel?.highImpactWarningTitle ?? "",
+                    model.priceImpactWarningTitle,
                     presenting: $model.isPresentingPriceImpactConfirmation,
                     sensoryFeedback: .warning,
                     actions: { _ in
@@ -65,7 +65,7 @@ public struct SwapScene: View {
             }
         }
         .sheet(isPresented: $isPresentingSlippage) {
-            if let slippageModel = model.swapSlippageViewModel {
+            if let slippageModel = model.swapSlippageSceneViewModel {
                 SwapSlippageScene(model: slippageModel)
                     .sheetPresentation([.medium])
             }
@@ -108,7 +108,7 @@ extension SwapScene {
     private var swapFromSectionView: some View {
         Section {
             SwapTokenView(
-                model: model.swapTokenModel(type: .pay),
+                side: model.side(type: .pay),
                 text: $model.amountInputModel.text,
                 onBalanceAction: model.onSelectFromMaxBalance,
                 onSelectAssetAction: model.onSelectAssetPay,
@@ -124,7 +124,7 @@ extension SwapScene {
     private var swapToSectionView: some View {
         Section {
             SwapTokenView(
-                model: model.swapTokenModel(type: .receive(payAssetId: nil)),
+                side: model.side(type: .receive(payAssetId: nil)),
                 text: $model.toValue,
                 showLoading: model.isReceiveFieldLoading,
                 onBalanceAction: {},
@@ -150,9 +150,9 @@ extension SwapScene {
 
     private var additionalInfoSectionView: some View {
         Section {
-            if let swapDetailsViewModel = model.swapDetailsViewModel {
+            if let swapDetails = model.swapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(model: swapDetailsViewModel),
+                    with: SwapDetailsListView(details: swapDetails),
                     action: model.onSelectSwapDetails,
                 )
             }

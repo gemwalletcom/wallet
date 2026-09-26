@@ -56,10 +56,10 @@ struct AmountSceneRequestTests {
         let deposit = AmountSceneViewModel.mock(type: .earn(.deposit(DelegationValidator.mock(name: "Figment").toGem())))
         let withdraw = AmountSceneViewModel.mock(type: .earn(.withdraw(Delegation.mock(validator: .mock(name: "Chorus One")).toGem())))
 
-        #expect(deposit.earnProviderRow?.name == "Figment")
-        #expect(withdraw.earnProviderRow?.name == "Chorus One")
+        #expect(deposit.providerName == "Figment")
+        #expect(withdraw.providerName == "Chorus One")
         #expect(deposit.title != withdraw.title)
-        #expect(AmountSceneViewModel.mock().earnProviderRow == nil)
+        #expect(AmountSceneViewModel.mock().providerName == nil)
     }
 
     @Test
@@ -82,5 +82,12 @@ struct AmountSceneRequestTests {
 
     private func transferData(_ model: AmountSceneViewModel, value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
         try await GemAmountService.mock().transferData(asset: model.asset.toGem(), request: model.request, value: value, useMaxAmount: useMaxAmount)
+    }
+}
+
+private extension AmountSceneViewModel {
+    var providerName: String? {
+        guard case let .provider(row) = extras else { return nil }
+        return row.name
     }
 }

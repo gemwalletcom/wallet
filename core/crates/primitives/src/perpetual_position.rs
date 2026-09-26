@@ -1,11 +1,11 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 use crate::{AssetId, PerpetualDirection, PerpetualId};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum PerpetualMarginType {
@@ -13,8 +13,8 @@ pub enum PerpetualMarginType {
     Isolated,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum PerpetualOrderType {
@@ -22,16 +22,16 @@ pub enum PerpetualOrderType {
     Limit,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualTriggerOrder {
     pub price: f64,
     pub order_type: PerpetualOrderType,
     pub order_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualPosition {
     pub id: String,

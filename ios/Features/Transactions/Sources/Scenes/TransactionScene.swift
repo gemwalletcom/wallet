@@ -14,10 +14,9 @@ public struct TransactionScene: View {
     }
 
     public var body: some View {
-        ListSectionView(
-            provider: model,
-            content: content(for:),
-        )
+        ListSectionView(sections: model.sections) { item in
+            content(for: model.itemModel(for: item))
+        }
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
         .background(Colors.grayBackground)
@@ -32,15 +31,15 @@ public struct TransactionScene: View {
                 with: ListItemView(model: model),
                 action: self.model.onSelectFeeDetails,
             )
-        case let .header(headerType):
+        case let .header(header):
             TransactionHeaderListItemView(
-                headerType: headerType,
+                header: header,
                 action: model.onTransactionHeaderTap,
             )
-        case let .swapProgress(model):
-            TransactionSwapProgressView(model: model)
-        case let .participant(model):
-            AddressListItemView(model: model)
+        case let .swapProgress(progress):
+            TransactionSwapProgressView(progress: progress)
+        case let .participant(row):
+            AddressListItemView(row: row, onSelect: model.selectAction(row), onAddContact: model.addContactAction)
         case let .row(row):
             GemListRowView(row: row, onSelectAddress: model.onSelectProviderContract, onInfo: model.onInfo)
         case let .swapAgain(text):

@@ -6,11 +6,13 @@ pub(crate) mod testkit;
 
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
+use crate::services::toast::GemToast;
 use std::sync::Arc;
 
-use primitives::{AssetId, Currency, PriceAlert};
+use primitives::{Asset, AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::banner::GemNotificationPermissions;
 use crate::services::preferences::GemPreferencesService;
 use session::GemPriceAlertSession;
@@ -49,8 +51,8 @@ impl GemPriceAlertService {
         self.preferences.set_price_alerts_enabled(enabled)
     }
 
-    pub fn new_alert_session(&self, asset_id: AssetId) -> GemPriceAlertSession {
-        GemPriceAlertSession::new(asset_id, self.get_currency())
+    pub fn new_alert_session(&self, asset_id: AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
+        GemPriceAlertSession::new(asset_id, self.get_currency(), format)
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -62,12 +64,13 @@ impl GemPriceAlertService {
         self.set_enabled(true).await
     }
 
-    pub async fn set_auto_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.get_currency());
+    pub async fn set_auto_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+        let alert = PriceAlert::new_auto(asset.id, self.get_currency());
         match enabled {
-            true => self.enable_price_alert(alert).await,
-            false => self.delete_price_alerts(vec![alert]).await,
+            true => self.enable_price_alert(alert).await?,
+            false => self.delete_price_alerts(vec![alert]).await?,
         }
+        Ok(GemToast::price_alerts(asset.name, enabled))
     }
 
     pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {

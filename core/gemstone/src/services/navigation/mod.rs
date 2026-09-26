@@ -4,10 +4,11 @@ use std::sync::Arc;
 
 use crate::services::transaction_state::GemTransactionStateService;
 
-use primitives::{Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Transaction, WalletId};
+use primitives::{Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Payment, Transaction, UrlAction, WalletConnectLink, WalletId};
 
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
+use crate::services::error_text::GemErrorText;
 use crate::services::push_notification::GemPushNotification;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -24,6 +25,16 @@ pub enum GemNavigationTarget {
     Transaction { asset: Asset, wallet_id: WalletId, transaction: Transaction, is_perpetual: bool },
     Address { chain: Chain, address: String },
     None,
+}
+
+/// What opening a link or a scanned code does: a payment link shows loading while it is prepared.
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemCodeOutcome {
+    Open { target: GemNavigationTarget },
+    WalletConnect { link: WalletConnectLink },
+    Payment { payment: Payment, shows_loading: bool },
+    Failure { text: GemErrorText },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -73,6 +84,27 @@ impl GemNavigationService {
         }
     }
 
+    pub async fn open_code(&self, code: String) -> GemCodeOutcome {
+        match ::payment::classify_url(&code) {
+            Some(action) => self.open_action(action).await,
+            None => GemCodeOutcome::Failure { text: GemErrorText::NotSupported },
+        }
+    }
+
+    pub async fn open_action(&self, action: UrlAction) -> GemCodeOutcome {
+        match action {
+            UrlAction::Deeplink { deeplink } => match self.open_deeplink(deeplink).await {
+                Ok(target) => GemCodeOutcome::Open { target },
+                Err(error) => GemCodeOutcome::Failure { text: error.text() },
+            },
+            UrlAction::Payment { payment } => GemCodeOutcome::Payment {
+                shows_loading: matches!(payment, Payment::Link { .. }),
+                payment,
+            },
+            UrlAction::WalletConnect { link } => GemCodeOutcome::WalletConnect { link },
+        }
+    }
+
     pub async fn open_notification(&self, notification: GemPushNotification) -> Result<GemNavigationTarget, GemServiceError> {
         match notification {
             GemPushNotification::Asset { asset_id } | GemPushNotification::PriceAlert { asset_id } => self.open_asset(asset_id).await,
@@ -88,16 +120,20 @@ impl GemNavigationService {
             GemPushNotification::Test => Ok(GemNavigationTarget::None),
         }
     }
-}
 
-impl GemNavigationService {
-    async fn open_asset(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+    pub async fn open_asset(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         Ok(match self.assets.open_asset(asset_id).await? {
             Some(asset) => target(asset, None),
             None => GemNavigationTarget::None,
         })
     }
 
+    pub fn asset_target(&self, asset: Asset) -> GemNavigationTarget {
+        target(asset, None)
+    }
+}
+
+impl GemNavigationService {
     async fn open_wallet_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(GemNavigationTarget::None);
@@ -203,6 +239,48 @@ mod tests {
                 }
             );
             assert_eq!(*testkit.status.tracked.lock().unwrap(), vec![vec![transaction]]);
+        });
+    }
+
+    #[test]
+    fn test_only_a_perpetual_opens_the_perpetual_screen() {
+        let testkit = DiscoveryTestkit::with_status(200);
+        let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+        let coin = Asset::from_chain(Chain::Ethereum);
+        let perpetual = Asset {
+            asset_type: AssetType::PERPETUAL,
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+
+        assert_eq!(
+            service.asset_target(coin.clone()),
+            GemNavigationTarget::Asset {
+                asset: coin,
+                wallet_id: None,
+                is_perpetual: false
+            }
+        );
+        assert!(matches!(service.asset_target(perpetual), GemNavigationTarget::Asset { is_perpetual: true, .. }));
+    }
+
+    #[test]
+    fn test_a_code_opens_its_target_pairs_prepares_a_payment_or_says_why_not() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let wallet = Wallet::mock();
+            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+            testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+
+            assert_eq!(service.open_code("gem://perpetuals".to_string()).await, GemCodeOutcome::Open { target: GemNavigationTarget::Perpetuals });
+            assert!(matches!(service.open_code("wc:abc@2?relay-protocol=irn".to_string()).await, GemCodeOutcome::WalletConnect { .. }));
+            assert!(matches!(service.open_code("solana:https%3A%2F%2Fexample.com%2Fpay".to_string()).await, GemCodeOutcome::Payment { shows_loading: true, .. }));
+            assert_eq!(service.open_code("https://example.com/unknown".to_string()).await, GemCodeOutcome::Failure { text: GemErrorText::NotSupported });
+            assert_eq!(
+                service.open_code("gem://tokens/bitcoin/receive".to_string()).await,
+                GemCodeOutcome::Failure { text: GemErrorText::NoAccountForChain },
+                "a link that cannot open says why instead of doing nothing"
+            );
         });
     }
 

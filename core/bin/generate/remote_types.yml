@@ -2,6 +2,7 @@ remote:
   - Currency
   - TransactionUtxoInput
   - TransactionExtended
+  - TransactionListItem
   - TransactionDirection
   - Transaction
   - PriceProvider
@@ -19,6 +20,9 @@ remote:
   - BannerEvent
   - Banner
   - BalanceMetadata
+  - Balance
+  - AssetBalance
+  - AssetData
   - BannerState
   - ChainAddress
   - ChainType
@@ -41,6 +45,7 @@ remote:
   - AssetProperties
   - AssetBasic
   - AssetList
+  - RecentAsset
   - ChainAsset
   - AssetAssociationType
   - AssetAssociation
@@ -72,7 +77,6 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
-  - PerpetualAccountSummary
   - PerpetualPortfolioTimeframeData
   - UTXO
   - MarketsAssets
@@ -169,6 +173,7 @@ remote:
   - TotalFiatValue
   - TransactionState
   - TransactionType
+  - TransactionsFilter
   - TransferDataOutputAction
   - TransferDataOutputType
   - TransferDataExtra
@@ -215,6 +220,208 @@ identifiers:
   - TransactionId
   - WalletId
 
+# The types `just generate-models` writes a test mock for, one per type on both apps, with the
+# defaults the generator's rules give each field. An entry that maps a type to fields overrides
+# those fields where the rule would build an invalid value.
+mocks:
+  - Account
+  - AddressName
+  - ApplicationMetadata
+  - ApprovalData
+  - Asset
+  - AssetBalance
+  - AssetBasic
+  - AssetData
+  - AssetFull
+  - AssetLink
+  - AssetMarket
+  - AssetMetaData
+  - AssetPrice
+  - AssetProperties
+  - AssetScore
+  - Balance
+  - Banner
+  - BlockExplorerLink
+  - ChainAssetData
+  - ChartCandleStick
+  - ChartDateValue
+  - ChartValuePercentage
+  - Contact
+  - ContactAddress
+  - ContactData
+  - ContractCallData
+  - CoreListItem
+  - Delegation
+  - DelegationBase
+  - DelegationValidator
+  - Device
+  - FiatProvider
+  - FiatQuote
+  - FiatRate
+  - FiatTransaction
+  - FiatTransactionAssetData
+  - FiatTransactionData
+  - GemAddressRow
+  - GemAppUpdateOffer
+  - GemAssetBalance
+  - GemAssetDetails
+  - GemAssetDetailsState
+  - GemAssetIcon
+  - GemAssetIconImage
+  - GemAssetItemRow
+  - GemAssetItemTrailing
+  - GemAssetRowStyle
+  - GemChainRow
+  - GemChart
+  - GemChartBounds
+  - GemChartData
+  - GemChartHeader
+  - GemConfirmFee
+  - GemConfirmFeeRow
+  - GemConfirmFeeSelection
+  - GemConfirmHeader
+  - GemConfirmLoad
+  - GemConfirmLoadOptions
+  - GemConfirmMetadata
+  - GemConfirmScreen
+  - GemConfirmSimulation
+  - GemConfirmSimulationState
+  - GemConnectionRow
+  - GemCustomFeeSession
+  - GemEmptyState
+  - GemFeeAmount
+  - GemFeeAsset
+  - GemFeeText
+  - GemFeeRateKind
+  - GemFeeRateRow
+  - GemFeeRateRows
+  - GemFiatOperation
+  - GemFiatQuoteRequest
+  - GemFiatQuoteRow
+  - GemFiatQuotesResult
+  - GemFiatSession
+  - GemFormattedNumber
+  - GemHeaderAmount
+  - GemHeaderButton
+  - GemHeaderButtonAction
+  - GemInfoTopic
+  - GemLocalizedText
+  - GemNetworkFeeScreen
+  - GemNftEntry
+  - GemNftItem
+  - GemNftRow
+  - GemNodeCheck
+  - GemNodeSelection
+  - GemNodeStatusState
+  - GemNumberDisplay
+  - GemNumberFormat
+  - GemNumberUnit:
+      code: USD
+  - GemPaymentRecipient
+  - GemPerpetualDetails
+  - GemPerpetualTransferData
+  - GemPrecision
+  - GemRecipient
+  - GemRewardsRedemption
+  - GemRewardsResult
+  - GemRewardsState
+  - GemRowText
+  - GemSignMessagePreview
+  - GemSocialLink
+  - GemStakeValidatorOptions
+  - GemSwapPairSuggestion
+  - GemSwapQuoteInput
+  - GemSwapQuotesResult
+  - GemSwapRequest
+  - GemSwapSession
+  - GemSwapTransfer
+  - GemTransactionAmount
+  - GemTransactionDetailRows
+  - GemTransactionFeeRow
+  - GemTransactionHeader
+  - GemTransactionStatus
+  - GemTransferAmount
+  - GemTransferAmountResult
+  - GemTransferData
+  - GemValidatorRow
+  - GemValueHeader
+  - GemWalletConnectAuthAccount
+  - GemWalletConnectMessageRequest
+  - GemWalletConnectTransactionRequest
+  - GemWalletHomeViewState
+  - GemWalletRow
+  - InAppNotification
+  - Latency
+  - NameRecord
+  - NFTAsset
+  - NFTAssetData
+  - NFTCollection
+  - NFTData
+  - NFTImages
+  - NFTResource
+  - PaymentInvoice
+  - PaymentLink
+  - PaymentMerchant
+  - PaymentPrice
+  - PaymentQuote
+  - PaymentRequest
+  - Perpetual
+  - PerpetualConfirmData
+  - PerpetualData
+  - PerpetualMetadata
+  - PerpetualModifyConfirmData
+  - PerpetualPortfolioTimeframeData
+  - PerpetualPosition
+  - PerpetualPositionData
+  - PerpetualReduceData
+  - PortfolioChartData
+  - PortfolioData
+  - PortfolioMarginUsage
+  - Price
+  - PriceAlert
+  - PriceAlertData
+  - RecentAsset
+  - RedelegateData
+  - RedemptionResult
+  - ReferralAllowance
+  - ReferralQuota
+  - RewardRedemption
+  - RewardRedemptionOption
+  - Rewards
+  - SignMessage
+  - SimulationPayloadField
+  - SimulationResult
+  - SimulationWarning
+  - SimulationWarningApproval
+  - SimulationWarningType
+  - SupportAgent
+  - SupportMessage
+  - SupportMessageImage
+  - SwapData
+  - SwapperOptions
+  - SwapperProviderData
+  - SwapperProviderType
+  - SwapperQuote
+  - SwapperQuoteAsset
+  - SwapperQuoteRequest
+  - SwapperRoute
+  - SwapperSlippage
+  - SwapProviderData
+  - SwapQuote
+  - SwapQuoteData
+  - Transaction
+  - TransactionExtended
+  - TransactionInputType
+  - TransactionListItem
+  - TransactionsFilter
+  - TransactionSwapMetadata
+  - TransferDataExtra
+  - Wallet
+  - WalletConnection
+  - WalletConnectionSession
+  - WalletConnectionSessionProposal
+  - WCPairingProposal
+
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone
 # custom type, and the declarations import it).
@@ -236,7 +443,7 @@ defaults:
   AssetRank: Unknown
 
 conversions:
-  UInt64:
+  u64:
     kotlin:
       - "{}.toLong()"
       - "{}.toULong()"
@@ -263,11 +470,29 @@ conversions:
       - "AnyCodableValue(core: {})"
       - "{}.json()"
 
+# Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
+aliases:
+  SwapperProvider: SwapProvider
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
-  UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue
   BigUint: GemBigUint
   BigIntValue: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>
+
+type_mappings:
+  swift:
+    BigInt: String
+    BigIntValue: BigIntValue
+    BigUint: String
+    DateTime: Date
+    Value: AnyCodableValue
+    u64: UInt64
+  kotlin:
+    BigInt: String
+    BigIntValue: SerializedBigInteger
+    BigUint: String
+    DateTime: SerializedDate
+    Value: JsonValue
+    u64: Long

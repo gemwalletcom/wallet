@@ -6,6 +6,9 @@ import func Gemstone.addressCopy
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
+import struct Gemstone.GemProviderRow
+import enum Gemstone.GemRowMenuItem
+import enum Gemstone.GemValueTone
 import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -17,6 +20,43 @@ import Style
 import Testing
 
 struct GemListRowItemTests {
+    @Test
+    func aProviderRowReadsItsAmountsAndMarksThePickedOne() {
+        let row = GemProviderRow(
+            kind: .fiat(provider: .moonPay),
+            name: "MoonPay",
+            amount: .mock(value: 0.000488, unit: .symbol(symbol: "BTC"), display: .number(precision: .fraction(min: 0, max: 8)), notation: .plain, tone: .plain, rounding: .toNearest),
+            fiat: .mock(value: 48.8, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
+            isSelected: true,
+        )
+
+        #expect(row.listItem.title == "MoonPay")
+        #expect(row.listItem.subtitle == "0.000488 BTC")
+        #expect(row.listItem.subtitleExtra == "$48.80")
+        #expect(row.id == .fiat(provider: .moonPay))
+    }
+
+    @Test
+    func anAssetChangeReadsItsSignedAmountInItsTone() {
+        let change = { (value: Double, tone: GemValueTone) -> ListItemModel? in
+            let row = GemListRow.assetChange(
+                name: "Solana",
+                icon: .mock(),
+                amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .signed, tone: tone, rounding: .toNearest, exact: "1.5"),
+            )
+            guard case let .listItem(model) = row.item(onInfo: nil) else { return nil }
+            return model
+        }
+        let negative = change(-1.5, .negative)
+        let positive = change(1.5, .positive)
+
+        #expect(negative?.title == "Solana")
+        #expect(negative?.subtitle == "-1.5 SOL")
+        #expect(positive?.subtitle == "+1.5 SOL")
+        #expect(negative?.subtitleStyle.color == Colors.red)
+        #expect(positive?.subtitleStyle.color == Colors.green)
+    }
+
     @Test
     func latencyRowsRenderMeasurementsLoadingAndErrors() {
         let row = GemListRow.latency(title: .stream, titleSuffix: "", host: "api.gemwallet.com", status: .result(latency: .init(latencyType: .fast, value: 125)))
@@ -70,8 +110,8 @@ struct GemListRowItemTests {
 
     @Test
     func aQuoteRowKeepsTheChangeBesideThePrice() {
-        let price = GemFormattedNumber.mock(value: 2.55)
-        let change = GemFormattedNumber.mock(value: -0.69, unit: .percent, tone: .negative)
+        let price = GemFormattedNumber.mock(value: 2.55, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)
+        let change = GemFormattedNumber.mock(value: -0.69, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .negative, rounding: .toNearest)
         guard case let .listItem(model) = GemListRow.quote(title: .price, value: price, change: change).item(onInfo: nil) else {
             Issue.record("Expected a quote row")
             return
@@ -84,71 +124,76 @@ struct GemListRowItemTests {
     }
 
     @Test
-    func anAppRowOpensItsWebsite() {
-        guard case let .app(model, website) = GemListRow.app(name: "PancakeSwap", iconUrl: nil, websiteUrl: "https://pancakeswap.finance").item(onInfo: nil) else {
+    func anAppRowCarriesItsWebsiteMenu() {
+        let website: GemRowMenuItem = .open(title: .rowTitle(title: .website), url: "https://pancakeswap.finance")
+        guard case let .imageMenu(model, menu) = GemListRow.app(title: .app, name: "PancakeSwap", iconUrl: nil, menu: [website]).item(onInfo: nil) else {
             Issue.record("Expected an app row")
             return
         }
         #expect(model.title == Localized.WalletConnect.app)
         #expect(model.subtitle == "PancakeSwap")
-        #expect(website == URL(string: "https://pancakeswap.finance"))
+        #expect(menu == [website])
     }
 
     @Test
-    func aWalletRowCarriesItsExplorerContext() {
+    func aWalletRowCarriesItsMenu() {
         let wallet = Wallet.mock()
-        let row = GemListRow.wallet(
-            wallet: walletRow(wallet: wallet.toGem()),
-            copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1"),
-            explorer: BlockExplorerLink.mock().toGem(),
-        )
-        guard case let .wallet(model, context) = row.item(onInfo: nil) else {
+        let menu: [GemRowMenuItem] = [
+            .copy(copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1")),
+            .open(title: .viewOn(name: "Etherscan"), url: "https://etherscan.io/address/0x1"),
+        ]
+        guard case let .imageMenu(model, rowMenu) = GemListRow.wallet(title: .wallet, wallet: walletRow(wallet: wallet.toGem()), menu: menu).item(onInfo: nil) else {
             Issue.record("Expected a wallet row")
             return
         }
         #expect(model.title == Localized.Common.wallet)
         #expect(model.subtitle == wallet.name)
         #expect(model.imageStyle != nil)
-        #expect(context == ExplorerContextData(copyValue: .address(value: "0x1", chain: .ethereum), explorerLink: .mock()))
+        #expect(rowMenu == menu)
     }
 
     @Test
-    func aMemoRowCopiesOnlyARealMemo() {
-        guard case let .memo(model, copy) = GemListRow.memo(value: "12345", copy: "12345").item(onInfo: nil),
-              case let .memo(placeholder, noCopy) = GemListRow.memo(value: "-", copy: nil).item(onInfo: nil)
-        else {
-            Issue.record("Expected memo rows")
+    func aMemoRowReadsItsTitleFromCore() {
+        guard case let .menu(model, menu) = GemListRow.memo(title: .memo, value: "12345", menu: []).item(onInfo: nil) else {
+            Issue.record("Expected a memo row")
             return
         }
         #expect(model.title == Localized.Transfer.memo)
         #expect(model.subtitle == "12345")
-        #expect(copy == "12345")
-        #expect(placeholder.subtitle == "-")
-        #expect(noCopy == nil)
+        #expect(menu.isEmpty)
     }
 
     @Test
     func anInfoTopicBecomesTheRowsInfoAction() {
         var opened: GemInfoTopic?
-        let row = GemListRow.label(title: .status, text: .transactionState(state: .confirmed), tone: .positive, info: .stakeApr, progress: false)
+        let row = GemListRow.label(title: .status, text: .transactionState(state: .confirmed), tone: .positive, info: .stakeApr(chain: Primitives.Chain.tron.rawValue), progress: false)
         guard case let .listItem(model) = row.item(onInfo: { opened = $0 }) else {
             Issue.record("Expected a list item")
             return
         }
         model.infoAction?()
-        #expect(opened == .stakeApr)
+        #expect(opened == .stakeApr(chain: Primitives.Chain.tron.rawValue))
     }
 
     @Test
     func aPositionRowJoinsItsPnlAndMargin() {
         let pnl = GemListRow.label(
             title: .pnl,
-            text: .pnl(amount: .mock(value: 500), percent: .mock(value: 50, unit: .percent)),
+            text: .pnl(
+                amount: .mock(value: 500, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+                percent: .mock(value: 50, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            ),
             tone: .positive,
             info: nil,
             progress: false,
         )
-        let margin = GemListRow.label(title: .margin, text: .margin(amount: .mock(value: 1000, notation: .plain), marginType: .isolated), tone: .plain, info: nil, progress: false)
+        let margin = GemListRow.label(
+            title: .margin,
+            text: .margin(amount: .mock(value: 1000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), marginType: .isolated),
+            tone: .plain,
+            info: nil,
+            progress: false,
+        )
         guard case let .listItem(pnlModel) = pnl.item(onInfo: nil), case let .listItem(marginModel) = margin.item(onInfo: nil) else {
             Issue.record("Expected list items")
             return
@@ -159,7 +204,11 @@ struct GemListRowItemTests {
 
     @Test
     func marketCapCarriesItsRankTag() {
-        guard case let .listItem(model) = GemListRow.ranked(title: .marketCap, amount: .mock(value: 1_000_000), rank: 7).item(onInfo: nil) else {
+        guard case let .listItem(model) = GemListRow.ranked(
+            title: .marketCap,
+            amount: .mock(value: 1_000_000, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest),
+            tag: "#7",
+        ).item(onInfo: nil) else {
             Issue.record("Expected a list item")
             return
         }
@@ -169,7 +218,12 @@ struct GemListRowItemTests {
 
     @Test
     func anAllTimeRowShowsItsDateAndTonedChange() {
-        let row = GemListRow.allTime(title: .allTimeHigh, value: .mock(value: 100, notation: .plain), date: Date(), change: .mock(value: -12, unit: .percent, tone: .negative))
+        let row = GemListRow.allTime(
+            title: .allTimeHigh,
+            value: .mock(value: 100, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest),
+            date: Date(),
+            change: .mock(value: -12, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .negative, rounding: .toNearest),
+        )
         guard case let .listItem(model) = row.item(onInfo: nil) else {
             Issue.record("Expected a list item")
             return
@@ -185,18 +239,19 @@ struct GemListRowItemTests {
     func anIdentifierOpensTheExplorerOnlyWhenCoreGivesALink() {
         let copy = addressCopy(chain: Chain.ethereum.rawValue, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7")
         let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/token/0xdAC17F958D2ee523a2206206994597C13D831ec7")
-        guard case let .explorerPage(model, context) = GemListRow.identifier(title: .contract, copy: copy, explorer: link.toGem()).item(onInfo: nil),
-              case let .memo(plain, copyValue) = GemListRow.identifier(title: .tokenId, copy: copy, explorer: nil).item(onInfo: nil)
+        let menu: [GemRowMenuItem] = [.copy(copy: copy)]
+        guard case let .explorerPage(model, url, _) = GemListRow.identifier(title: .contract, copy: copy, explorer: link.toGem(), address: copy.value, menu: menu).item(onInfo: nil),
+              case let .menu(plain, plainMenu) = GemListRow.identifier(title: .tokenId, copy: copy, explorer: nil, address: nil, menu: menu).item(onInfo: nil)
         else {
             Issue.record("Expected an explorer page and a copyable row")
             return
         }
         #expect(model.title == Localized.Asset.contract)
         #expect(model.subtitle == copy.display)
-        #expect(context.explorerLink == link)
+        #expect(url == link.url)
         #expect(plain.title == Localized.Asset.tokenId)
         #expect(plain.subtitle == copy.display)
-        #expect(copyValue == copy.value)
+        #expect(plainMenu == menu)
     }
 
     @Test

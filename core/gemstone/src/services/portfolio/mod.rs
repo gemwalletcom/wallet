@@ -36,10 +36,6 @@ impl GemPortfolioService {
         Self { api, store, price, perpetual, preferences }
     }
 
-    pub fn currency(&self, portfolio_type: PortfolioType) -> Currency {
-        rules::portfolio_currency(portfolio_type, self.preferences.get_currency())
-    }
-
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         self.preferences.show_perpetuals(wallet_type, chains)
     }
@@ -80,7 +76,7 @@ impl GemPortfolioService {
     }
 
     async fn get_wallet_assets(&self, wallet_id: WalletId, period: ChartPeriod) -> Result<PortfolioAssets, GemServiceError> {
-        let assets = self.store.get_wallet_balances(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
+        let assets = self.store.get_portfolio_assets(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
         Ok(self.get_assets(period, PortfolioAssetsRequest { assets }).await?)
     }
 }

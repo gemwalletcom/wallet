@@ -3,7 +3,8 @@
 import Components
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
-import struct Gemstone.GemWalletHomeViewState
+import struct Gemstone.GemRowText
+import struct Gemstone.GemValueHeader
 import Localization
 import Primitives
 import Style
@@ -55,22 +56,22 @@ public struct ValueHeaderViewSpacing: Sendable {
 }
 
 public struct ValueHeaderView: View {
-    private let model: any ValueHeaderViewModel
+    private let model: ValueHeader
 
     @Binding var isPrivacyEnabled: Bool
 
     private let titleActionType: HeaderTitleActionType
     private let spacing: ValueHeaderViewSpacing
-    private let onHeaderAction: HeaderButtonAction?
+    private let onHeaderAction: HeaderButtonActionHandler?
     private let onSubtitleAction: VoidAction
     private let onInfoAction: VoidAction
 
     public init(
-        model: any ValueHeaderViewModel,
+        header model: ValueHeader,
         isPrivacyEnabled: Binding<Bool>,
         titleActionType: HeaderTitleActionType,
         spacing: ValueHeaderViewSpacing = .standard,
-        onHeaderAction: HeaderButtonAction?,
+        onHeaderAction: HeaderButtonActionHandler?,
         onSubtitleAction: VoidAction = nil,
         onInfoAction: VoidAction,
     ) {
@@ -204,21 +205,16 @@ public struct ValueHeaderView: View {
         amount.notation = .signed
         return amount
     }()
-    let model = WalletHeaderViewModel(state: GemWalletHomeViewState(
-        total: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat),
-        pnl: .pnl(
-            amount: amount,
-            percent: formattedPercentage(value: 5.26, style: .unsigned),
-        ),
-        pnlTone: .positive,
-        headerActions: .buttons(buttons: []),
-        showCollections: false,
-        showsPerpetuals: false,
-        banner: nil,
-    ))
+    let header = GemValueHeader(
+        icon: nil,
+        title: .number(number: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat)),
+        subtitle: GemRowText(text: .pnl(amount: amount, percent: formattedPercentage(value: 5.26, style: .unsigned)), tone: .positive),
+        subtitleIcon: .chart,
+        actions: .buttons(buttons: []),
+    ).valueHeader
 
     ValueHeaderView(
-        model: model,
+        header: header,
         isPrivacyEnabled: .constant(false),
         titleActionType: .privacyToggle,
         onHeaderAction: .none,

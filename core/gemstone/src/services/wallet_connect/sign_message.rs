@@ -109,16 +109,8 @@ impl GemSignMessageService {
 }
 
 fn review_rows(chain: Chain, wallet: &Wallet, account: &Account, metadata: &ApplicationMetadata, shows_app: bool, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemListRow> {
-    let app = shows_app.then(|| GemListRow::App {
-        name: metadata.short_name(),
-        icon_url: application::icon_url(metadata),
-        website_url: Some(metadata.url.clone()).filter(|url| !url.is_empty()),
-    });
-    let sender = GemListRow::Wallet {
-        wallet: wallet_row(wallet.clone()),
-        copy: address_copy(chain, account.address.clone()),
-        explorer: address_url(chain, account.address.clone()),
-    };
+    let app = shows_app.then(|| GemListRow::app(metadata.short_name(), application::icon_url(metadata), Some(metadata.url.clone()).filter(|url| !url.is_empty())));
+    let sender = GemListRow::wallet(wallet_row(wallet.clone()), address_copy(chain, account.address.clone()), address_url(chain, account.address.clone()));
     let network = GemListRow::Network {
         title: GemListRowTitle::Network,
         chain,
@@ -130,6 +122,7 @@ fn review_rows(chain: Chain, wallet: &Wallet, account: &Account, metadata: &Appl
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::list::GemRowMenuItem;
     use primitives::WalletType;
 
     #[test]
@@ -142,8 +135,8 @@ mod tests {
 
         let account = wallet.account(Chain::Ethereum).unwrap().clone();
         let with_header = review_rows(Chain::Ethereum, &wallet, &account, &ApplicationMetadata::mock(), true, link);
-        assert!(matches!(&with_header[0], GemListRow::App { name, website_url: Some(url), .. } if name == "Test Dapp" && url == "https://example.com"));
-        assert!(matches!(&with_header[1], GemListRow::Wallet { copy, .. } if copy.value == account.address));
+        assert!(matches!(&with_header[0], GemListRow::App { name, menu, .. } if name == "Test Dapp" && matches!(menu.as_slice(), [GemRowMenuItem::Open { url, .. }] if url == "https://example.com")));
+        assert!(matches!(&with_header[1], GemListRow::Wallet { menu, .. } if matches!(menu.first(), Some(GemRowMenuItem::Copy { copy }) if copy.value == account.address)));
         assert!(matches!(&with_header[2], GemListRow::Network { chain: Chain::Ethereum, .. }));
 
         let plain = review_rows(Chain::Ethereum, &wallet, &account, &ApplicationMetadata::mock(), false, link);

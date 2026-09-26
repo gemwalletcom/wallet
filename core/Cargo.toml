@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.48"
+version = "2.114.50"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -24,6 +24,7 @@ members = [
     "gemstone",
 
     "crates/primitives",
+    "crates/model_derive",
     "crates/block_explorers",
     "crates/config_keys",
     "crates/node_probes",
@@ -140,7 +141,7 @@ sui-types = { package = "sui-sdk-types", version = "0.4", features = [
     "serde",
 ] }
 k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
-bip39 = { version = "3.0.0", default-features = false }
+bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 
 uniffi = { version = "0.32.1" }
 regex = { version = "1.13.1" }
@@ -157,4 +158,19 @@ jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 debug = "line-tables-only"
 
 [profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.hmac]
+opt-level = 3
+
+[profile.dev.package.pbkdf2]
+opt-level = 3
+
+[profile.dev.package.salsa20]
+opt-level = 3
+
+[profile.dev.package.scrypt]
+opt-level = 3
+
+[profile.dev.package.sha2]
 opt-level = 3

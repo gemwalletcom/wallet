@@ -92,7 +92,9 @@ impl NameResolver for UdProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let key = RECORD_KEYS.iter().find_map(|(candidate, key)| (*candidate == chain).then_some(*key)).ok_or(format!("unsupported chain: {chain}"))?;
+        let Some(key) = RECORD_KEYS.iter().find_map(|(candidate, key)| (*candidate == chain).then_some(*key)) else {
+            return Ok(None);
+        };
         let domain = self.client.get_domain(&query.domain).await?;
         Ok(domain.records.get(key).cloned())
     }

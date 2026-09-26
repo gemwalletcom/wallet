@@ -308,6 +308,7 @@
   <string name="charts_price_change">Зміна</string>
   <string name="date_today">Сьогодні</string>
   <string name="date_yesterday">Вчора</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Підключення</string>
   <string name="wallet_connect_disconnect">Відключити</string>

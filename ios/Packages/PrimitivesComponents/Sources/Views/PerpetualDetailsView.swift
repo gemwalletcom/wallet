@@ -12,7 +12,7 @@ public struct PerpetualDetailsView: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             GemListRowView(row: row)
         }
         .toolbarDismissItem(type: .close, placement: .topBarLeading)

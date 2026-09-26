@@ -356,6 +356,7 @@ charts_price_change = Mudar
 
 date_today = Hoje
 date_yesterday = Ontem
+date_day_time = %@, %@
 
 # Wallet Connect
 

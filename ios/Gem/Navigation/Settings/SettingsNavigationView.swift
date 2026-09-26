@@ -3,10 +3,11 @@
 import Contacts
 import GemstoneServices
 import InAppNotifications
-import MarketInsight
+import Market
 import PriceAlerts
 import Primitives
 import PrimitivesComponents
+import Rewards
 import Settings
 import Store
 import Support
@@ -62,7 +63,7 @@ struct SettingsNavigationView: View {
                 model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
-        .navigationDestination(for: Scenes.Price.self) { scene in
+        .navigationDestination(for: Scenes.Chart.self) { scene in
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,
@@ -112,7 +113,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: viewModelFactory.appearanceScene())
         }
-        .navigationDestination(for: Scenes.Referral.self) { scene in
+        .navigationDestination(for: Scenes.Rewards.self) { scene in
             if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
                 RewardsScene(model: model)
             }

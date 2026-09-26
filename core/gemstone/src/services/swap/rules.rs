@@ -58,14 +58,17 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
     })
 }
 
+pub fn pay_value(pay_asset: &Asset, value: &str, format: &GemNumberFormat) -> Option<BigUint> {
+    value_from_input(&format.decimal_separator, value, pay_asset.decimals as u32).ok()?.to_biguint().filter(|value| *value > BigUint::ZERO)
+}
+
 pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, available_value: &BigInt, slippage_bps: Option<u32>, format: &GemNumberFormat) -> Option<GemSwapQuoteInput> {
     if pay_asset.id == receive_asset.id {
         return None;
     }
-    let value = value_from_input(&format.decimal_separator, value, pay_asset.decimals as u32).ok()?;
-    let atomic = value.to_biguint().filter(|value| *value > BigUint::ZERO)?;
+    let atomic = pay_value(pay_asset, value, format)?;
     Some(GemSwapQuoteInput {
-        use_max_amount: value == *available_value,
+        use_max_amount: BigInt::from(atomic.clone()) == *available_value,
         request: GemSwapRequest {
             pay_asset_id: pay_asset.id.clone(),
             receive_asset_id: receive_asset.id.clone(),
@@ -272,7 +275,7 @@ impl GemSwapButtonInput {
     }
 }
 
-pub fn is_retryable(error: Option<&SwapperError>) -> bool {
+fn is_retryable(error: Option<&SwapperError>) -> bool {
     match error {
         Some(SwapperError::NoQuoteAvailable | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_) | SwapperError::Offline) => true,
         Some(SwapperError::NotSupportedChain | SwapperError::NotSupportedAsset | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::InputAmountError { .. }) | None => false,

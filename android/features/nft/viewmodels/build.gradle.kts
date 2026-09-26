@@ -50,6 +50,7 @@ android {
 dependencies {
     implementation(project(":ui"))
     api(project(":ui-models"))
+    implementation(project(":data:services:store"))
 
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
     testImplementation(libs.kotlinx.coroutines.test)

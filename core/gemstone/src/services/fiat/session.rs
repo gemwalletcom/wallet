@@ -5,7 +5,7 @@ use super::model::{GemFiatAmountCheck, GemFiatAmountError, GemFiatQuoteRow};
 use super::rules;
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::models::list::{GemListRow, GemListRowTitle, GemProviderKind, GemProviderRow};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 
@@ -60,7 +60,7 @@ pub struct GemFiatViewState {
     pub quote_type: FiatQuoteType,
     pub amount: String,
     pub phase: GemFiatQuotePhase,
-    pub quote_rows: Vec<GemFiatQuoteRow>,
+    pub provider_rows: Vec<GemProviderRow>,
     pub selected_quote_row: Option<GemFiatQuoteRow>,
     pub rate_row: Option<GemListRow>,
     pub can_select_provider: bool,
@@ -99,8 +99,22 @@ impl GemFiatSession {
         }
     }
 
-    fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
-        self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
+    fn provider_rows(&self, asset_price: Option<f64>) -> Vec<GemProviderRow> {
+        let selected = self.selected_quote().map(|quote| quote.provider.id);
+        self.current()
+            .quotes
+            .iter()
+            .map(|quote| {
+                let row = rules::quote_row(quote, asset_price);
+                GemProviderRow {
+                    is_selected: selected == Some(row.provider),
+                    kind: GemProviderKind::Fiat { provider: row.provider },
+                    name: row.provider_name,
+                    amount: row.crypto_amount,
+                    fiat: Some(row.fiat_amount),
+                }
+            })
+            .collect()
     }
 
     fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
@@ -186,7 +200,7 @@ impl GemFiatSession {
             quote_type: operation.quote_type,
             amount: operation.amount.clone(),
             phase: operation.phase.clone(),
-            quote_rows: self.quote_rows(asset_price),
+            provider_rows: self.provider_rows(asset_price),
             rate_row: selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
                 title: GemListRowTitle::Rate,
                 rate,
@@ -592,7 +606,14 @@ mod tests {
         assert_eq!(state.quote_type, FiatQuoteType::Buy);
         assert_eq!(state.amount, "100");
         assert_eq!(state.phase, GemFiatQuotePhase::Ready);
-        assert_eq!(state.quote_rows.len(), 2);
+        assert_eq!(state.provider_rows.len(), 2);
+        assert_eq!(
+            state.provider_rows.iter().filter(|row| row.is_selected).map(|row| row.kind.clone()).collect::<Vec<_>>(),
+            vec![GemProviderKind::Fiat {
+                provider: session.selected_quote().unwrap().provider.id
+            }],
+            "only the picked quote is marked"
+        );
         assert_eq!(
             state.rate_row,
             state.selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
@@ -618,7 +639,7 @@ mod tests {
             quote_type: FiatQuoteType::Buy,
             amount: String::new(),
             phase,
-            quote_rows: Vec::new(),
+            provider_rows: Vec::new(),
             selected_quote_row: None,
             rate_row: None,
             can_select_provider: false,

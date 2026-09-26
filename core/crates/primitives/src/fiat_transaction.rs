@@ -1,30 +1,30 @@
 use crate::{Asset, AssetId, FiatProviderName, FiatQuoteUrlData};
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatTransaction {
     pub id: String,
     pub asset_id: AssetId,
     pub transaction_type: FiatQuoteType,
     pub provider: FiatProviderName,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip_serializing)]
     pub provider_transaction_id: Option<String>,
     pub status: FiatTransactionStatus,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip_serializing)]
     pub country: Option<String>,
     pub fiat_amount: f64,
     pub fiat_currency: String,
     #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip_serializing)]
     pub transaction_hash: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -74,16 +74,16 @@ pub enum FiatWebhook {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatTransactionData {
     pub transaction: FiatTransaction,
     pub details_url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatTransactionAssetData {
     pub id: String,
@@ -99,8 +99,8 @@ pub struct FiatTransactionAssetData {
     pub details_url: Option<String>,
 }
 
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum FiatTransactionStatus {
@@ -110,8 +110,8 @@ pub enum FiatTransactionStatus {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum FiatQuoteType {

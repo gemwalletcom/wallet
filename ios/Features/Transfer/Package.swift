@@ -31,7 +31,7 @@ let package = Package(
 
         .package(name: "Stake", path: "../Stake"),
         .package(name: "WalletConnector", path: "../WalletConnector"),
-        .package(name: "InfoSheet", path: "../InfoSheet"),
+        .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
         .package(name: "Swap", path: "../Swap"),
         .package(name: "Perpetuals", path: "../Perpetuals"),
 

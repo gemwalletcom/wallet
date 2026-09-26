@@ -1,11 +1,13 @@
-use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, Wallet};
+use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, RecentActivityType, VerificationStatus, Wallet};
 
-use crate::formatted_number::GemFormattedNumber;
+use crate::config::image::GemImage;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListSectionTitle};
-use crate::precision::GemCurrencyStyle;
-use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
+use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
+use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
+use crate::services::empty_state::GemEmptyState;
+use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
@@ -86,8 +88,10 @@ pub enum GemAssetTrailingStyle {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetText {
+    pub asset: Asset,
+    pub icon: super::icon::GemAssetIcon,
     pub title: String,
     pub subtitle_symbol: Option<String>,
     pub network_name: String,
@@ -113,14 +117,42 @@ pub enum GemAssetBalanceScope {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAssetListRowInput {
-    pub asset: Asset,
-    pub balance: GemAssetBalance,
-    pub scope: GemAssetBalanceScope,
-    pub price: Option<f64>,
-    pub change: Option<f64>,
-    pub currency: Currency,
-    pub style: GemAssetRowStyle,
+pub struct GemRowText {
+    pub text: GemLocalizedText,
+    pub tone: GemValueTone,
+}
+
+impl GemRowText {
+    pub fn number(number: GemFormattedNumber) -> Self {
+        Self {
+            tone: number.tone,
+            text: GemLocalizedText::Number { number },
+        }
+    }
+
+    pub fn neutral(text: GemLocalizedText) -> Self {
+        Self { text, tone: GemValueTone::Neutral }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemAssetItemTrailing {
+    Value { value: GemRowText, extra: Option<GemRowText> },
+    Toggle { is_on: bool },
+    Copy,
+    None,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetItemRow {
+    pub icon: super::icon::GemAssetIcon,
+    pub title: String,
+    pub title_extra: Option<String>,
+    pub subtitle: Option<GemRowText>,
+    pub subtitle_extra: Option<GemRowText>,
+    pub trailing: GemAssetItemTrailing,
+    pub masks_balance: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -129,23 +161,19 @@ pub struct GemPriceRow {
     pub change: Option<GemFormattedNumber>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAssetListRow {
-    pub icon: super::icon::GemAssetIcon,
-    pub text: GemAssetRowText,
-    pub price: GemPriceRow,
-    pub amount: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
+#[uniffi::export]
+pub fn asset_list_row(data: AssetData, currency: Currency, scope: GemAssetBalanceScope, style: GemAssetRowStyle) -> GemAssetItemRow {
+    super::rules::asset_list_row(&data, &currency, scope, style)
 }
 
 #[uniffi::export]
-pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
-    super::rules::asset_list_row(input)
+pub fn asset_list_rows(assets: Vec<AssetData>, currency: Currency, style: GemAssetRowStyle) -> Vec<GemAssetItemRow> {
+    assets.iter().map(|data| super::rules::asset_list_row(data, &currency, GemAssetBalanceScope::Total, style)).collect()
 }
 
 #[uniffi::export]
-pub fn asset_list_rows(inputs: Vec<GemAssetListRowInput>) -> Vec<GemAssetListRow> {
-    inputs.into_iter().map(super::rules::asset_list_row).collect()
+pub fn wallet_asset_rows(assets: Vec<AssetData>, currency: Currency) -> Vec<GemAssetItemRow> {
+    asset_list_rows(assets, currency, super::rules::wallet_asset_row_style())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -187,7 +215,6 @@ pub struct GemSelectAssetFlow {
     pub action: Option<GemAssetAction>,
     pub scope: GemSelectAssetScope,
     pub filters: Vec<GemAssetFilter>,
-    pub enables_price_alert: bool,
     pub network_search: bool,
     pub chain_filter: bool,
     pub recents: bool,
@@ -231,10 +258,6 @@ impl GemSelectAssetFlow {
             (false, false) => GemSelectAssetState::Empty,
         }
     }
-
-    pub fn applied_filters(&self, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
-        super::rules::applied_filters(self, chains, has_balance)
-    }
 }
 
 impl GemSelectAssetFlow {
@@ -253,6 +276,7 @@ pub struct GemSelectAssetWalletFlow {
     pub chains: Vec<Chain>,
     pub shows_add_token: bool,
     pub shows_chain_filter: bool,
+    pub empty_state: GemEmptyState,
 }
 
 #[uniffi::export]
@@ -329,8 +353,22 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
+    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemImage, GemSelectAssetState, GemSelectAssetType, RecentActivityType, search_list_rows};
     use primitives::Chain;
+
+    #[test]
+    fn test_a_list_row_shows_its_asset_count_and_list_image() {
+        let list = primitives::AssetList {
+            id: "trending".to_string(),
+            name: "Trending".to_string(),
+            count: 12,
+        };
+        let row = search_list_rows(vec![list.clone()]).remove(0);
+
+        assert_eq!(row.list, list);
+        assert_eq!(row.subtitle, "12");
+        assert_eq!(row.image_url, GemImage::AssetList { list_id: "trending".to_string() }.url());
+    }
 
     #[test]
     fn test_a_search_runs_only_on_a_trimmed_query_a_network_flow_accepts() {
@@ -425,11 +463,34 @@ impl GemWalletSearchLimits {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct GemAssetSectionIds {
     pub pinned: Vec<AssetId>,
     pub popular: Vec<AssetId>,
     pub assets: Vec<AssetId>,
+}
+
+impl GemAssetSectionIds {
+    pub fn sections(self) -> Vec<GemAssetSection> {
+        [(GemAssetSectionKind::Popular, self.popular), (GemAssetSectionKind::Pinned, self.pinned), (GemAssetSectionKind::Assets, self.assets)]
+            .into_iter()
+            .filter(|(_, asset_ids)| !asset_ids.is_empty())
+            .map(|(kind, asset_ids)| GemAssetSection { kind, asset_ids })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetSectionKind {
+    Popular,
+    Pinned,
+    Assets,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetSection {
+    pub kind: GemAssetSectionKind,
+    pub asset_ids: Vec<AssetId>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, uniffi::Record)]
@@ -461,15 +522,38 @@ pub struct GemFeeAmount {
     pub fiat: Option<GemFormattedNumber>,
 }
 
-#[uniffi::export]
-pub fn fee_amount(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
-    super::rules::fee_amount(&asset, &value, price, currency)
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFeeText {
+    pub value: GemFormattedNumber,
+    pub extra: Option<GemLocalizedText>,
+}
+
+impl GemFeeAmount {
+    pub fn text(&self) -> GemFeeText {
+        GemFeeText {
+            value: self.fiat.clone().unwrap_or_else(|| self.amount.clone()),
+            extra: None,
+        }
+    }
+
+    pub fn text_with_amount(&self) -> GemFeeText {
+        GemFeeText {
+            value: self.amount.clone(),
+            extra: self.fiat.clone().map(|number| GemLocalizedText::Number { number }),
+        }
+    }
+
+    pub fn text_with_symbol(&self, symbol: &str) -> GemFeeText {
+        GemFeeText {
+            extra: self.fiat.is_some().then(|| GemLocalizedText::Text { text: symbol.to_string() }),
+            ..self.text()
+        }
+    }
 }
 
 #[uniffi::export]
-pub fn fiat_equivalent(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    let value = value.to_biguint()?;
-    super::rules::fiat_amount_of(&asset, &value, price, currency, GemCurrencyStyle::Currency)
+pub fn fee_amount(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
+    super::rules::fee_amount(&asset, &value, price, currency)
 }
 
 #[uniffi::export]
@@ -526,7 +610,26 @@ pub struct GemWalletSearchView {
     pub has_more_assets: bool,
     pub has_more_perpetuals: bool,
     pub has_more_nfts: bool,
-    pub shows_add_token: bool,
+    pub empty_state: GemEmptyState,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSearchListRow {
+    pub list: primitives::AssetList,
+    pub subtitle: String,
+    pub image_url: String,
+}
+
+#[uniffi::export]
+pub fn search_list_rows(lists: Vec<primitives::AssetList>) -> Vec<GemSearchListRow> {
+    lists
+        .into_iter()
+        .map(|list| GemSearchListRow {
+            subtitle: list.count.to_string(),
+            image_url: GemImage::AssetList { list_id: list.id.clone() }.url(),
+            list,
+        })
+        .collect()
 }
 
 #[uniffi::export]
@@ -551,42 +654,116 @@ pub struct GemAssetMenuInput {
     pub offers_add_to_wallet: bool,
 }
 
-#[uniffi::export]
-pub fn asset_menu_actions(input: GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
-    super::rules::menu_actions(&input)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetMenuIcon {
+    Pin,
+    Unpin,
+    Hide,
+    AddToWallet,
+    Copy,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetMenuRow {
+    pub action: GemAssetMenuAction,
+    pub icon: GemAssetMenuIcon,
+}
+
+#[uniffi::export]
+pub fn asset_menu_rows(input: GemAssetMenuInput) -> Vec<GemAssetMenuRow> {
+    super::rules::menu_rows(&input)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemHeaderButtonAction {
+    Send { asset_id: Option<AssetId> },
+    Receive { asset_id: Option<AssetId> },
+    Buy { asset_id: Option<AssetId> },
+    Swap { pay_asset_id: Option<AssetId>, receive_asset_id: Option<AssetId> },
+    Deposit { asset: Asset },
+    Withdraw { asset: Asset },
+    SendCollectible,
+    CollectibleMenu,
+}
+
+impl GemHeaderButtonAction {
+    fn kind(&self) -> GemHeaderButtonKind {
+        match self {
+            Self::Send { .. } | Self::SendCollectible => GemHeaderButtonKind::Send,
+            Self::Receive { .. } => GemHeaderButtonKind::Receive,
+            Self::Buy { .. } => GemHeaderButtonKind::Buy,
+            Self::Swap { .. } => GemHeaderButtonKind::Swap,
+            Self::Deposit { .. } => GemHeaderButtonKind::Deposit,
+            Self::Withdraw { .. } => GemHeaderButtonKind::Withdraw,
+            Self::CollectibleMenu => GemHeaderButtonKind::More,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemHeaderButton {
     pub kind: GemHeaderButtonKind,
+    pub action: GemHeaderButtonAction,
     pub is_enabled: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+impl GemHeaderButton {
+    pub fn new(action: GemHeaderButtonAction, is_enabled: bool) -> Self {
+        Self { kind: action.kind(), action, is_enabled }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemHeaderActions {
     WatchOnly,
     Buttons { buttons: Vec<GemHeaderButton> },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemValueHeaderIcon {
+    Asset { icon: super::icon::GemAssetIcon },
+    Image { url: String, placeholder: Option<String> },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetEmptyAction {
-    Buy,
-    Swap,
+pub enum GemValueHeaderSubtitleIcon {
+    Chart,
+}
+
+/// A screen's value header: its icon, the value, the line under it and the header's buttons.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemValueHeader {
+    pub icon: Option<GemValueHeaderIcon>,
+    pub title: GemLocalizedText,
+    pub subtitle: Option<GemRowText>,
+    pub subtitle_icon: Option<GemValueHeaderSubtitleIcon>,
+    pub actions: Option<GemHeaderActions>,
+}
+
+impl GemValueHeader {
+    pub fn asset(icon: super::icon::GemAssetIcon, title: GemLocalizedText, subtitle: Option<GemRowText>) -> Self {
+        Self {
+            icon: Some(GemValueHeaderIcon::Asset { icon }),
+            title,
+            subtitle,
+            subtitle_icon: None,
+            actions: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
-    pub header_actions: GemHeaderActions,
     pub shows_banners: bool,
     pub price_alert: GemPriceAlertToggle,
-    pub empty_transactions_action: Option<GemAssetEmptyAction>,
+    pub empty_state: GemEmptyState,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
-    Balance { row: GemAssetBalanceRow },
-    Row { row: GemListRow },
+    Balance { row: GemAssetBalanceRow, action: Option<GemRowAction> },
+    Row { row: GemListRow, action: Option<GemRowAction> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -598,29 +775,27 @@ pub struct GemAssetDetailSection {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetailsInput {
     pub wallet: Wallet,
-    pub asset: Asset,
-    pub owner_address: Option<String>,
-    pub metadata: AssetMetaData,
-    pub balance: GemAssetBalance,
-    pub price: Option<f64>,
-    pub price_change_percentage_24h: Option<f64>,
+    pub asset_data: AssetData,
     pub currency: Currency,
     pub banners: Vec<Banner>,
-    pub price_alerts: Vec<PriceAlert>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAssetOption {
+    ViewAddress { link: BlockExplorerLink },
+    ViewToken { link: BlockExplorerLink },
+    Share,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub header: GemValueHeader,
     pub banner: Option<GemBannerRow>,
-    pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
-    pub fiat_value: Option<GemFormattedNumber>,
-    pub explorer_name: String,
-    pub address_link: Option<BlockExplorerLink>,
-    pub token_link: Option<BlockExplorerLink>,
+    pub options: Vec<GemAssetOption>,
     pub verification_status: Option<VerificationStatus>,
     pub network_destination: Option<GemAssetNetworkDestination>,
     pub share_url: String,

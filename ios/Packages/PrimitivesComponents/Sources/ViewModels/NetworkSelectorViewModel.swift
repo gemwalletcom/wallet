@@ -31,12 +31,11 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         self.title = title
         search = ListSearch(
             filter: filter(chains:query:),
-            emptyContent: EmptyContentTypeViewModel(type: EmptyContentType(.searchNetworks)),
+            emptyContent: EmptyStateViewModel(kind: .searchNetworks),
         )
     }
 
     private func filter(chains: [Chain], query: String) -> [Chain] {
-        let matching = Set(GemChainService.shared.getMatchingChains(chains: chains.map(\.rawValue), query: query))
-        return chains.filter { matching.contains($0.rawValue) }
+        GemChainService.shared.chainRows(chains: chains.map(\.rawValue), query: query).map { Chain(core: $0.chain) }
     }
 }

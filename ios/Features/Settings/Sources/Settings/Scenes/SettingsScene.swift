@@ -10,12 +10,12 @@ import SwiftUI
 public struct SettingsScene: View {
     @Environment(\.openURL) private var openURL
 
-    @State private var model: SettingsViewModel
+    @State private var model: SettingsSceneViewModel
     @Binding private var isPresentingWallets: Bool
     @Binding private var isPresentingSupport: Bool
 
     public init(
-        model: SettingsViewModel,
+        model: SettingsSceneViewModel,
         isPresentingWallets: Binding<Bool>,
         isPresentingSupport: Binding<Bool>,
     ) {
@@ -25,7 +25,7 @@ public struct SettingsScene: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -41,7 +41,7 @@ public struct SettingsScene: View {
 extension SettingsScene {
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch SettingsRowDestination(row: row) {
+        switch row.action() {
         case .wallets:
             NavigationCustomLink(with: GemListRowView(row: row), action: onOpenWallets)
         case .security:
@@ -55,12 +55,12 @@ extension SettingsScene {
         case .support:
             NavigationCustomLink(with: GemListRowView(row: row), action: onOpenSupport)
         case .rewards:
-            link(row, to: Scenes.Referral())
+            link(row, to: Scenes.Rewards())
         case .aboutUs:
             link(row, to: Scenes.AboutUs())
         case .developer:
             link(row, to: Scenes.Developer())
-        case .none:
+        default:
             GemListRowView(row: row)
         }
     }

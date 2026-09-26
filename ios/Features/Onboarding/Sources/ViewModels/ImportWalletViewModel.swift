@@ -37,7 +37,7 @@ public final class ImportWalletViewModel {
         ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: nameService, type: type, onComplete: onComplete)
     }
 
-    func importWalletTypeModel() -> ImportWalletTypeViewModel {
-        ImportWalletTypeViewModel()
+    func importWalletTypeModel() -> ImportWalletTypeSceneViewModel {
+        ImportWalletTypeSceneViewModel()
     }
 }

@@ -492,6 +492,13 @@ struct Migrations {
             try db.execute(sql: "DELETE FROM \(FiatRateRecord.databaseTableName) WHERE \(FiatRateRecord.Columns.symbol.name) NOT IN (\(known))")
         }
 
+        migrator.registerMigration("Index \(TransactionRecord.databaseTableName) by wallet and date") { db in
+            guard try db.hasColumn(TransactionRecord.Columns.date.name, in: TransactionRecord.databaseTableName) else { return }
+            try db.create(indexOn: TransactionRecord.databaseTableName, columns: [TransactionRecord.Columns.walletId.name, TransactionRecord.Columns.date.name], options: .ifNotExists)
+            try db.drop(indexOn: TransactionRecord.databaseTableName, columns: [TransactionRecord.Columns.walletId.name])
+            try db.drop(indexOn: TransactionRecord.databaseTableName, columns: [TransactionRecord.Columns.date.name])
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

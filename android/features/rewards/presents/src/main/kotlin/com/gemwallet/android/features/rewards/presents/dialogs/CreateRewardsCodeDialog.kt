@@ -1,0 +1,119 @@
+package com.gemwallet.android.features.rewards.presents.dialogs
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.GemTextField
+import com.gemwallet.android.ui.components.filters.FormDialog
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.Spacer8
+import com.gemwallet.android.ui.theme.paddingDefault
+
+@Composable
+internal fun CreateRewardsCodeDialog(isVisible: Boolean, onUsername: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+    var username by remember { mutableStateOf("") }
+    var showError by remember { mutableStateOf<Throwable?>(null) }
+    var showProgress by remember { mutableStateOf(false) }
+
+    val focusRequester = remember { FocusRequester() }
+
+    val dismissDialog: () -> Unit = {
+        onDismiss()
+        username = ""
+    }
+    val doneAction: () -> Unit = done@{
+        if (username.isEmpty() || showProgress) return@done
+        showProgress = true
+        onUsername(username) {
+            showProgress = false
+            if (it == null) {
+                dismissDialog()
+            } else {
+                showError = it
+            }
+        }
+    }
+    val done: @Composable () -> Unit = {
+        TextButton(
+            onClick = doneAction,
+            enabled = username.isNotEmpty() && !showProgress,
+        ) {
+            if (showProgress) {
+                CircularProgressIndicator16()
+            } else {
+                Text(stringResource(R.string.common_done))
+            }
+        }
+    }
+
+    FormDialog(
+        isVisible = isVisible,
+        title = stringResource(R.string.rewards_create_referral_code_title),
+        onDismiss = dismissDialog,
+        doneAction = done,
+    ) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+        GemTextField(
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            label = stringResource(id = R.string.rewards_username),
+            value = username,
+            onValueChange = {
+                username = it
+            },
+            singleLine = true,
+            keyboardActions = KeyboardActions(onDone = { doneAction() }),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        )
+        Spacer8()
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingDefault),
+            text = stringResource(R.string.rewards_create_referral_code_info),
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Companion.Center,
+        )
+        Spacer16()
+    }
+
+    if (showError != null) {
+        AlertDialog(
+            onDismissRequest = { showError = null },
+            containerColor = MaterialTheme.colorScheme.background,
+            confirmButton = {
+                Button({ showError = null }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+            text = {
+                Text(showError?.errorText()?.text(LocalContext.current) ?: return@AlertDialog)
+            },
+        )
+    }
+}

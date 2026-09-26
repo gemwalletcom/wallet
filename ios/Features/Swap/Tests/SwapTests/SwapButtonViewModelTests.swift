@@ -6,6 +6,7 @@ import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapRequest
 import struct Gemstone.GemSwapSession
 import enum Gemstone.SwapperError
+import GemstonePrimitivesTestKit
 import Localization
 import Primitives
 import PrimitivesTestKit
@@ -17,13 +18,14 @@ import Testing
 struct SwapButtonViewModelTests {
     @Test
     func retryTitleForBothRetryActions() {
-        #expect(SwapButtonViewModel.mock(session: .mockFailed(.NoQuoteAvailable)).title == Localized.Common.tryAgain)
-        #expect(SwapButtonViewModel.mock(session: .mockReady().failedTransfer(.NoQuoteAvailable)).title == Localized.Common.tryAgain)
+        #expect(SwapButtonViewModel.mock(session: .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())).title == Localized.Common.tryAgain)
+        #expect(SwapButtonViewModel.mock(session: .mock(quotes: .mock(quotes: [.mock()]), selectedQuote: .mock(), quotePhase: .ready, transferPhase: .failed(request: .mock(), provider: .uniswapV3, error: .NoQuoteAvailable), input: .mock()))
+            .title == Localized.Common.tryAgain)
     }
 
     @Test
     func retryQuotesStaysNormalWhileQuotesAreIdle() {
-        let viewModel = SwapButtonViewModel.mock(session: .mockFailed(.NoQuoteAvailable))
+        let viewModel = SwapButtonViewModel.mock(session: .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock()))
 
         #expect(viewModel.type == ButtonType.primary(.normal))
         #expect(viewModel.isVisible == true)
@@ -31,7 +33,7 @@ struct SwapButtonViewModelTests {
 
     @Test
     func retryTransferShowsLoadingWhileTheTransferIsInFlight() throws {
-        let viewModel = try SwapButtonViewModel.mock(session: #require(GemSwapSession.mockReady().startTransfer()))
+        let viewModel = try SwapButtonViewModel.mock(session: #require(GemSwapSession.mock(quotes: .mock(quotes: [.mock()]), selectedQuote: .mock(), quotePhase: .ready, input: .mock()).startTransfer()))
 
         #expect(viewModel.type == ButtonType.primary(.loading()))
     }
@@ -39,7 +41,7 @@ struct SwapButtonViewModelTests {
     @Test
     func insufficientBalanceNamesTheAssetAndDisablesTheButton() {
         let asset = AssetData.mock(asset: .mock(symbol: "BTC"))
-        let viewModel = SwapButtonViewModel.mock(session: .mockReady(), availableBalance: 1, fromAsset: asset)
+        let viewModel = SwapButtonViewModel.mock(session: .mock(quotes: .mock(quotes: [.mock()]), selectedQuote: .mock(), quotePhase: .ready, input: .mock(request: .mock(value: 2))), availableBalance: 1, fromAsset: asset)
 
         #expect(viewModel.title == Localized.Transfer.insufficientBalance("BTC"))
         #expect(viewModel.type == ButtonType.primary(.disabled))
@@ -47,7 +49,7 @@ struct SwapButtonViewModelTests {
 
     @Test
     func useMinimumAmountStaysEnabled() {
-        let viewModel = SwapButtonViewModel.mock(session: .mockFailed(.InputAmountError(minAmount: "100")), availableBalance: 1000)
+        let viewModel = SwapButtonViewModel.mock(session: .mock(quotePhase: .failed(request: .mock(), error: .InputAmountError(minAmount: "100")), input: .mock()), availableBalance: 1000)
 
         #expect(viewModel.title == Localized.Swap.useMinimumAmount)
         #expect(viewModel.type == ButtonType.primary(.normal))
@@ -55,10 +57,10 @@ struct SwapButtonViewModelTests {
 
     @Test
     func swapFollowsTheQuoteState() {
-        #expect(SwapButtonViewModel.mock(session: .mockReady()).title == Localized.Wallet.swap)
-        #expect(SwapButtonViewModel.mock(session: .mockReady()).type == ButtonType.primary(.normal))
-        #expect(SwapButtonViewModel.mock(session: .mockLoading()).type == ButtonType.primary(.loading()))
-        #expect(SwapButtonViewModel.mock(session: .mockFailed(.NoAvailableProvider)).type == ButtonType.primary(.disabled))
+        #expect(SwapButtonViewModel.mock(session: .mock(quotes: .mock(quotes: [.mock()]), selectedQuote: .mock(), quotePhase: .ready, input: .mock())).title == Localized.Wallet.swap)
+        #expect(SwapButtonViewModel.mock(session: .mock(quotes: .mock(quotes: [.mock()]), selectedQuote: .mock(), quotePhase: .ready, input: .mock())).type == ButtonType.primary(.normal))
+        #expect(SwapButtonViewModel.mock(session: .mock(quotePhase: .loading(request: .mock()), input: .mock())).type == ButtonType.primary(.loading()))
+        #expect(SwapButtonViewModel.mock(session: .mock(quotePhase: .failed(request: .mock(), error: .NoAvailableProvider), input: .mock())).type == ButtonType.primary(.disabled))
     }
 
     @Test

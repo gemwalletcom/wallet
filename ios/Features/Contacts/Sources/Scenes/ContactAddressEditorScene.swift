@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import enum Gemstone.GemContactAddressField
 import Primitives
 import PrimitivesComponents
@@ -11,7 +12,7 @@ import SwiftUI
 public struct ContactAddressEditorScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactAddressEditorViewModel
+    @State private var model: ContactAddressEditorSceneViewModel
 
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -19,7 +20,7 @@ public struct ContactAddressEditorScene: View {
         case memo
     }
 
-    public init(model: ContactAddressEditorViewModel) {
+    public init(model: ContactAddressEditorSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -43,7 +44,7 @@ public struct ContactAddressEditorScene: View {
             focusedField = .address
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .address, action: onScan)
+            QRScannerNavigationStack(scanType: .address, action: onScan)
         }
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             NetworkSelectorScene(
@@ -69,7 +70,7 @@ extension ContactAddressEditorScene {
     private var chainSection: some View {
         Section(model.networkTitle) {
             NavigationLink(value: Scenes.NetworksSelector()) {
-                ChainView(model: ChainViewModel(chain: model.chain))
+                ChainView(model: chainRow(chain: model.chain.rawValue))
             }
         }
     }

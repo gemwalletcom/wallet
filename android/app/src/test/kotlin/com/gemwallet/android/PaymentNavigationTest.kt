@@ -3,13 +3,17 @@ package com.gemwallet.android
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.AmountRoute
+import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
-import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
+import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
@@ -25,6 +29,8 @@ import uniffi.gemstone.GemPaymentTarget
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
+import uniffi.gemstone.TransactionInputType
+import java.math.BigInteger
 
 class PaymentNavigationTest {
 
@@ -42,20 +48,29 @@ class PaymentNavigationTest {
 
     @Test
     fun `a prepared transfer confirms`() = runTest {
-        val transfer = mockGemTransferData()
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(mockAsset().toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
 
-        val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmRoute
+        val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmTransferRoute
 
         assertEquals(transfer.value, requireNotNull(unpackTransferData(route.params)).value)
     }
 
     @Test
+    fun `an address without an amount opens the amount input`() = runTest {
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
+
+        val route = navigation(GemPaymentTarget.Amount(asset.toGem(), recipient())).routes(payment).single()
+
+        assertEquals(AmountParams.Transfer(asset.id, recipient()), AmountParams.unpack((route as AmountRoute).params))
+    }
+
+    @Test
     fun `an asset Core resolved opens its recipient input`() = runTest {
-        val asset = mockAssetSolanaUSDC()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
 
         val route = navigation(GemPaymentTarget.Recipient(asset.toGem(), recipient())).routes(payment).single()
 
-        assertEquals(asset.id, (route as RecipientInputRoute).assetId)
+        assertEquals(asset.id, (route as RecipientRoute).assetId)
     }
 
     @Test

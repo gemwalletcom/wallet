@@ -6,11 +6,10 @@ import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.serialization.NavKeySerializer
-import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
-import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
-import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
-import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
+import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
+import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
+import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectorRequestRoute
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -58,9 +57,9 @@ internal fun List<NavKey>.dropNonRestorableRoutes(startDestination: NavKey): Lis
 }
 
 private fun NavKey.isNonRestorableRoute(): Boolean = isConfirmFlowSegmentRoute() ||
-    this is WalletSecurityReminderRoute ||
-    this is WalletPhraseRoute ||
+    this is SecurityReminderRoute ||
+    this is ExportWalletRoute ||
     this is CreateWalletRoute ||
-    this is WalletConnectRequestRoute
+    this is WalletConnectorRequestRoute
 
 private fun NavKey.isRootRoute(): Boolean = this is WalletRootRoute || this is OnboardingRoute

@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AccountsDao
-import com.gemwallet.android.data.service.store.database.AddressesDao
-import com.gemwallet.android.data.service.store.database.WalletsDao
-import com.gemwallet.android.data.service.store.database.entities.AddressNameUpdate
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.AccountsDao
+import com.gemwallet.android.data.services.store.database.AddressesDao
+import com.gemwallet.android.data.services.store.database.WalletsDao
+import com.gemwallet.android.data.services.store.database.entities.AddressNameUpdate
+import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives

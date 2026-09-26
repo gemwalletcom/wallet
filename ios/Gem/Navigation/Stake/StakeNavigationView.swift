@@ -21,7 +21,7 @@ struct StakeNavigationView: View {
         )
         .bindQuery(model.delegationsQuery, model.assetQuery, model.validatorsQuery)
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
     }
 }

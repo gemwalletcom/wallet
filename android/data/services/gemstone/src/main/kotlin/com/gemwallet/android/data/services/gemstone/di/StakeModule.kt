@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.StakeDao
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.StakeDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
 import dagger.Module
 import dagger.Provides

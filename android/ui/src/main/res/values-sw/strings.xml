@@ -308,6 +308,7 @@
   <string name="charts_price_change">Mabadiliko</string>
   <string name="date_today">Leo</string>
   <string name="date_yesterday">Jana</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Muunganisho</string>
   <string name="wallet_connect_disconnect">Tenganisha</string>

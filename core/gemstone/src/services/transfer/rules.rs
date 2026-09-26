@@ -366,7 +366,6 @@ impl GemConfirmDestination {
     }
 }
 
-#[uniffi::export]
 impl GemTransferData {
     pub fn destination(&self) -> Option<GemConfirmDestination> {
         let recipient = || {

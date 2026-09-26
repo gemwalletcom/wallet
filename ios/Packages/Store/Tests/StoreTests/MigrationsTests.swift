@@ -138,4 +138,26 @@ struct MigrationsTests {
 
         #expect(try dbQueue.read { try $0.tableExists(AssetMarketRecord.databaseTableName) })
     }
+
+    @Test
+    func transactionsMoveFromTheSingleColumnIndexesToTheWalletDateIndex() throws {
+        let table = TransactionRecord.databaseTableName
+        let walletId = TransactionRecord.Columns.walletId.name
+        let date = TransactionRecord.Columns.date.name
+        let dbQueue = try DatabaseQueue()
+        var migrations = Migrations()
+        try migrations.run(dbQueue: dbQueue)
+        try dbQueue.write { db in
+            try db.drop(indexOn: table, columns: [walletId, date])
+            try db.execute(sql: "CREATE INDEX \(table)_on_\(walletId) ON \(table)(\(walletId))")
+            try db.execute(sql: "CREATE INDEX \(table)_on_\(date) ON \(table)(\(date))")
+        }
+
+        try migrations.runChanges(dbQueue: dbQueue)
+
+        let indexes = try dbQueue.read { try $0.indexes(on: table).map(\.columns) }
+        #expect(indexes.contains([walletId, date]))
+        #expect(!indexes.contains([walletId]))
+        #expect(!indexes.contains([date]))
+    }
 }

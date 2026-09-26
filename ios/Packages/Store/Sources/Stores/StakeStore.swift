@@ -88,7 +88,7 @@ public struct StakeStore: Sendable {
 
     public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
         try db.read { db in
-            try DelegationsRequest(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
+            try DelegationsQuery(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
         }
     }
 

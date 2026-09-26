@@ -8,14 +8,14 @@ import Style
 import SwiftUI
 
 public struct NotificationsScene: View {
-    @State private var model: NotificationsViewModel
+    @State private var model: NotificationsSceneViewModel
 
-    public init(model: NotificationsViewModel) {
+    public init(model: NotificationsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -33,7 +33,7 @@ public struct NotificationsScene: View {
 extension NotificationsScene {
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        if case .link(.priceAlerts, _, _) = row {
+        if row.action() == .priceAlerts {
             NavigationLink(value: Scenes.PriceAlerts()) {
                 GemListRowView(row: row)
             }

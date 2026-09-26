@@ -21,27 +21,22 @@ public final class AmountPerpetualViewModel {
     let asset: Asset
     let action: GemPerpetualPositionAction
     let leverageSelection: SelectionState<LeverageOption>?
-    let leverageTextStyle: TextStyle
     private let service: any GemAmountServiceProtocol
 
     private let decimalSeparator = NumberInput.format(.current).decimalSeparator
-    private(set) var autocloseListItem: ListItemModel?
-    private var draft: GemAutocloseDraft {
-        didSet { autocloseListItem = autocloseRow(draft) }
-    }
+    private var draft: GemAutocloseDraft
 
     init(asset: Asset, action: GemPerpetualPositionAction, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
         self.service = service
-        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(action: action, service: service)
+        leverageSelection = Self.makeLeverageSelection(action: action, service: service)
         let defaults = service.perpetualAutoclose(
             action: action,
             leverage: leverageSelection?.selected.value ?? action.transferData().leverage,
             decimalSeparator: decimalSeparator,
         )
         draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
-        autocloseListItem = autocloseRow(draft)
     }
 
     var takeProfit: String? {
@@ -52,24 +47,12 @@ public final class AmountPerpetualViewModel {
         draft.stopLoss.value
     }
 
-    var leverageListItem: ListItemModel? {
-        leverageSelection.map { ListItemModel(title: $0.title, subtitle: $0.selected.displayText, subtitleStyle: leverageTextStyle) }
-    }
-
-    private func autocloseRow(_ draft: GemAutocloseDraft) -> ListItemModel? {
-        service.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator).listItemModel()
-    }
-
     private var transferData: GemPerpetualTransferData {
         action.transferData()
     }
 
     private var leverage: UInt8 {
         leverageSelection?.selected.value ?? transferData.leverage
-    }
-
-    var isAutocloseEnabled: Bool {
-        action.showsAutoclose()
     }
 
     private var direction: PerpetualDirection {
@@ -108,28 +91,17 @@ public final class AmountPerpetualViewModel {
     private static func makeLeverageSelection(
         action: GemPerpetualPositionAction,
         service: any GemAmountServiceProtocol,
-    ) -> (SelectionState<LeverageOption>?, TextStyle) {
-        guard case let .open(openData) = action else {
-            return (nil, .callout)
+    ) -> SelectionState<LeverageOption>? {
+        guard case let .open(openData) = action,
+              let leverage = service.perpetualLeverageSelection(maxLeverage: openData.leverage)
+        else {
+            return nil
         }
-
-        let maxLeverage = openData.leverage
-        let textStyle = TextStyle(
-            font: .callout,
-            color: openData.direction.toPrimitives().color,
-        )
-        guard let leverage = service.perpetualLeverageSelection(maxLeverage: maxLeverage) else {
-            return (nil, textStyle)
-        }
-        let options = leverage.options.map(LeverageOption.init(option:))
-        let selected = LeverageOption(option: leverage.selected)
-        let selection = SelectionState(
-            options: options,
-            selected: selected,
+        return SelectionState(
+            options: leverage.options.map(LeverageOption.init(option:)),
+            selected: LeverageOption(option: leverage.selected),
             isEnabled: true,
             title: Localized.Perpetual.leverage,
         )
-
-        return (selection, textStyle)
     }
 }

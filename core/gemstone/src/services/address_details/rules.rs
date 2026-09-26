@@ -8,8 +8,9 @@ use crate::formatted_number::GemValueTone;
 use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
 use crate::models::state::{GemLoad, GemLoadState};
+use crate::services::assets::icon::asset_icon;
 use crate::services::assets::rules::asset_text;
-use crate::services::balance::rules::{balance_amount, balance_updates, chain_balances};
+use crate::services::balance::rules::{BalanceKind, balance_amount, balance_updates};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error::GemServiceError;
@@ -96,17 +97,14 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
             section(info),
         ])
         .chain(balances)
-        .chain(once(section(vec![GemListRow::Explorer {
-            name: details.link.name.clone(),
-            url: details.link.link.clone(),
-        }])))
+        .chain(once(section(vec![GemListRow::explorer(&details.link)])))
         .collect()
 }
 
 fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> GemListRow {
     let chain = details.chain;
     let chain_icon = GemListRow::Icon {
-        asset_id: AssetId::from_chain(chain),
+        icon: asset_icon(&AssetId::from_chain(chain)),
         image_url: None,
     };
     match address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone()) {
@@ -116,11 +114,11 @@ fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> Ge
         },
         Some(AddressType::Contact) => contact_avatar(address_name, None).map_or(chain_icon, |avatar| GemListRow::Avatar { avatar }),
         Some(AddressType::Asset) => GemListRow::Icon {
-            asset_id: AssetId::from_token(chain, &details.address),
+            icon: asset_icon(&AssetId::from_token(chain, &details.address)),
             image_url: None,
         },
         Some(AddressType::Validator) => GemListRow::Icon {
-            asset_id: AssetId::from_chain(chain),
+            icon: asset_icon(&AssetId::from_chain(chain)),
             image_url: Some(
                 GemImage::Validator {
                     chain,
@@ -146,7 +144,7 @@ fn display_name(name: Option<String>, address: &str) -> Option<String> {
 }
 
 fn balance_rows(chain: Chain, coin: AssetBalance, stake: Option<AssetBalance>) -> Vec<GemBalanceRow> {
-    let balance = balance_updates(chain_balances(vec![coin], stake.into_iter().collect(), Vec::new(), Vec::new()))
+    let balance = balance_updates(once((BalanceKind::Coin, coin)).chain(stake.map(|stake| (BalanceKind::Stake, stake))).collect())
         .iter()
         .fold(GemAssetBalance::zero(AssetId::from_chain(chain)), |balance, update| balance.applying(update));
     let breakdown = balance.detail_rows(chain, false).into_iter().filter(|row| match row {
@@ -384,7 +382,7 @@ mod tests {
         assert_eq!(
             sections(&loading, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Cosmos),
+                icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: None
             }]
         );
@@ -428,21 +426,21 @@ mod tests {
         assert_eq!(
             sections(&token, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                icon: asset_icon(&AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
                 image_url: None,
             }]
         );
         assert_eq!(
             sections(&validator, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Cosmos),
+                icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: Some("https://assets.gemwallet.com/blockchains/cosmos/validators/cosmosvaloper1/logo.png".to_string()),
             }]
         );
         assert_eq!(
             sections(&contract, None)[0].rows,
             vec![GemListRow::Icon {
-                asset_id: AssetId::from_chain(Chain::Ethereum),
+                icon: asset_icon(&AssetId::from_chain(Chain::Ethereum)),
                 image_url: None,
             }]
         );

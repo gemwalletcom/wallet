@@ -1,13 +1,11 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::currency::Currency;
 use crate::{AssetId, FiatProviderName, PaymentType};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatAssets {
     pub version: u32,

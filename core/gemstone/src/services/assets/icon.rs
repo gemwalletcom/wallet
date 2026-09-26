@@ -4,7 +4,7 @@ use primitives::{Asset, AssetId, Chain};
 use crate::config::chain::{badge_chain, icon_chain, is_ether_layer2};
 use crate::config::image::GemImage;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetIcon {
     pub image: GemAssetIconImage,
     pub badge: Option<Chain>,
@@ -17,7 +17,7 @@ pub enum GemLocalTokenIcon {
     Usdc,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetIconImage {
     Local { chain: Chain },
     LocalToken { token: GemLocalTokenIcon },

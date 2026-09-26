@@ -4,7 +4,7 @@ import struct Gemstone.GemSelectAssetFlow
 import Store
 
 extension GemSelectAssetFlow {
-    var requestScope: AssetsRequestScope {
+    var requestScope: AssetsQueryScope {
         switch scope {
         case .wallet: .wallet
         case .allAssets: .allAssets

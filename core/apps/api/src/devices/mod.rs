@@ -135,7 +135,7 @@ pub async fn get_device_defi_positions_v2(device: AuthenticatedDeviceWallet, cli
 
 #[get("/devices/rewards")]
 pub async fn get_device_rewards_v2(device: AuthenticatedDeviceWallet, client: &State<RewardsClient>) -> Result<ApiResponse<Rewards>, ApiError> {
-    Ok(client.get_rewards_by_wallet_id(device.wallet_id, device.record.device.locale.as_ref()).await?.into())
+    Ok(client.get_rewards_by_wallet_id(&device.record, device.wallet_id, device.record.device.locale.as_ref()).await?.into())
 }
 
 #[get("/devices/rewards/events")]
@@ -203,7 +203,7 @@ pub async fn report_device_nft_v2(device: AuthenticatedDevice, request: DeviceJs
 
 #[get("/devices/name/resolve/<name>?<chain>")]
 pub async fn get_device_name_resolve_v2(_device: AuthenticatedDevice, name: &str, chain: ChainParam, client: &State<NameClient>) -> Result<ApiResponse<Option<NameRecord>>, ApiError> {
-    Ok(client.resolve(name, chain.0).await.ok().flatten().into())
+    Ok(client.resolve(name, chain.0).await?.into())
 }
 
 #[post("/devices/scan/transaction", data = "<request>")]

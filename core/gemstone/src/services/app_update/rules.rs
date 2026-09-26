@@ -1,4 +1,6 @@
+use super::{GemAppUpdateAction, GemAppUpdateOffer};
 use crate::config::public::apk_download_url;
+use crate::services::localization::GemLocalizedText;
 use primitives::{PlatformStore, Release, is_version_higher};
 
 pub fn newest_release(releases: &[Release], store: PlatformStore, current_version: &str) -> Option<Release> {
@@ -9,9 +11,14 @@ pub fn available_update(releases: &[Release], store: PlatformStore, current_vers
     newest_release(releases, store, current_version).filter(|release| release.upgrade_required || skipped_version != Some(release.version.as_str()))
 }
 
-pub fn update_offer(release: Release) -> super::GemAppUpdateOffer {
-    super::GemAppUpdateOffer {
-        can_skip: !release.upgrade_required,
+pub fn update_offer(release: Release) -> GemAppUpdateOffer {
+    GemAppUpdateOffer {
+        title: GemLocalizedText::AppUpdateTitle,
+        description: GemLocalizedText::AppUpdateDescription { version: release.version.clone() },
+        actions: match release.upgrade_required {
+            true => vec![GemAppUpdateAction::Update],
+            false => vec![GemAppUpdateAction::Skip, GemAppUpdateAction::Update],
+        },
         apk_url: (release.store == PlatformStore::ApkUniversal).then(|| apk_download_url(&release.version)),
         version: release.version,
     }
@@ -46,5 +53,17 @@ mod tests {
         );
         assert_eq!(update_offer(Release::new(PlatformStore::GooglePlay, "2.29".into(), true)).apk_url, None);
         assert_eq!(update_offer(Release::new(PlatformStore::Huawei, "2.29".into(), false)).apk_url, None);
+    }
+
+    #[test]
+    fn test_an_update_prompt_names_the_version_and_offers_skip_only_when_optional() {
+        let optional = update_offer(Release::new(PlatformStore::AppStore, "2.29".into(), false));
+        let required = update_offer(Release::new(PlatformStore::AppStore, "2.29".into(), true));
+
+        assert_eq!(optional.description, GemLocalizedText::AppUpdateDescription { version: "2.29".into() });
+        assert_eq!(optional.actions, vec![GemAppUpdateAction::Skip, GemAppUpdateAction::Update]);
+        assert!(optional.can_skip());
+        assert_eq!(required.actions, vec![GemAppUpdateAction::Update]);
+        assert!(!required.can_skip());
     }
 }

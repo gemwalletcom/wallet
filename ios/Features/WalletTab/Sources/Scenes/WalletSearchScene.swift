@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import struct Gemstone.GemPerpetualMarketItem
+import struct Gemstone.GemSearchListRow
 import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
@@ -11,7 +13,6 @@ import NFT
 import Perpetuals
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI
@@ -102,7 +103,7 @@ public struct WalletSearchScene: View {
 
             if state.showsNfts {
                 Section(
-                    content: { CollectionsPreviewView(content: search.collectionsContent) },
+                    content: { CollectionsPreviewView(entries: search.previewNFTs) },
                     header: {
                         if search.view.hasMoreNfts {
                             HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
@@ -144,10 +145,10 @@ public struct WalletSearchScene: View {
         )
     }
 
-    private func listItems(for lists: [AssetList]) -> some View {
-        ForEach(lists) { list in
-            NavigationLink(value: model.listDestination(for: list)) {
-                ListItemView(model: model.listItem(for: list))
+    private func listItems(for rows: [GemSearchListRow]) -> some View {
+        ForEach(rows, id: \.list.id) { row in
+            NavigationLink(value: model.listDestination(for: row)) {
+                ListItemView(model: row.listItem)
             }
         }
     }

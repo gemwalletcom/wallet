@@ -53,7 +53,7 @@ struct PortfolioSceneViewModelTests {
     @Test
     func theOfferedPeriodsComeFromThePortfolio() async {
         let service = GemPortfolioServiceMock()
-        service.dataForType = { _ in .mockWallet(availablePeriods: [.day, .month]) }
+        service.dataForType = { _ in .mock(availablePeriods: [.day, .month]) }
         let model = PortfolioSceneViewModel.mock(service: service)
 
         #expect(model.periods == [.day, .week, .month, .year, .all])

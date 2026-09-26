@@ -53,6 +53,8 @@ Reference: `crates/storage/src/lib.rs` (`Database`).
 
 Wrap external models with `#[uniffi::remote(Record)]` on a type alias instead of a duplicate struct plus `From` impls. Reference: `gemstone/src/transfer_amount.rs`.
 
+An exported object that keeps state behind a `Mutex` reads it once per call into a local and derives the whole answer from that snapshot. A guard created inside a larger expression, such as one field of a struct literal, lives until the expression ends, so a later field that locks the same mutex again blocks the calling app thread forever.
+
 ## Shared Utilities
 
 - `U256` <-> `BigUint`: `u256_to_biguint` / `biguint_to_u256` in `crates/gem_evm/src/u256.rs`

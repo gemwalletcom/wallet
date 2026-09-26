@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
-use typeshare::typeshare;
 
 use crate::Chain;
 use crate::chain_config::StakeChainConfig;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum StakeChain {

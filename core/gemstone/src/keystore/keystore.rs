@@ -90,10 +90,6 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
-    pub fn exists(&self, keystore_id: String) -> bool {
-        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
-    }
-
     pub fn decode_password(&self, password: String) -> Vec<u8> {
         decode_password(&password)
     }
@@ -104,6 +100,10 @@ impl GemKeystore {
 }
 
 impl GemKeystore {
+    pub fn exists(&self, keystore_id: String) -> bool {
+        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
+    }
+
     pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
         match import {
             GemImportType::PrivateKey { value, chain } => {

@@ -1,0 +1,133 @@
+package com.gemwallet.android.data.services.store.database
+
+import com.gemwallet.android.testkit.mockTransactionsFilter
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class TransactionsQueryBuilderTest {
+
+    private val walletId = WalletId("wallet-1")
+    private val limit = 1000
+    private val baseArgCount = 1 // walletId is the only bound arg in TRANSACTION_LIST_SOURCE
+
+    @Test
+    fun emptyFilters_baseQueryHasNoExtraConditions() {
+        val query = buildTransactionListSql(walletId, limit = limit, filter = null)
+        assertTrue(query.sql.trimStart().startsWith("SELECT"))
+        assertTrue(query.sql.contains("FROM transactions as tx"))
+        assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
+        assertEquals(listOf<Any>(walletId.id, 1000), query.args)
+    }
+
+    @Test
+    fun anEmptyFilter_isANoOp() {
+        val baseline = buildTransactionListSql(walletId, limit = limit, filter = null).sql
+        assertEquals(baseline, buildTransactionListSql(walletId, limit = limit, filter = mockTransactionsFilter()).sql)
+    }
+
+    @Test
+    fun chainsFilter_buildsInClauseOnJoinedAsset() {
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(chains = listOf(Chain.Ethereum, Chain.Bitcoin)),
+        )
+        assertTrue(query.sql.contains("AND asset.chain IN (?,?)"))
+        assertEquals(Chain.Ethereum.string, query.args[baseArgCount])
+        assertEquals(Chain.Bitcoin.string, query.args[baseArgCount + 1])
+    }
+
+    @Test
+    fun typesFilter_buildsInClauseWithEnumNames() {
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(transactionTypes = listOf(TransactionType.Transfer, TransactionType.Swap)),
+        )
+        assertTrue(query.sql.contains("AND tx.type IN (?,?)"))
+        assertEquals("Transfer", query.args[baseArgCount])
+        assertEquals("Swap", query.args[baseArgCount + 1])
+    }
+
+    @Test
+    fun assetRankGreaterThan_buildsInequalityOnJoinedAsset() {
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(assetRankGreaterThan = 15),
+        )
+        assertTrue(query.sql.contains("AND asset.rank > ?"))
+        assertEquals(15, query.args[baseArgCount])
+    }
+
+    @Test
+    fun assetFilter_matchesTransactionAssetsOnly_bindsIdOnce() {
+        val assetId = AssetId(chain = Chain.Ethereum, tokenId = "0xABC")
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(assetId = assetId),
+        )
+        assertTrue(query.sql.contains("AND EXISTS (SELECT 1 FROM transactions_assets AS ta WHERE ta.tx_id = tx.id AND ta.asset_id = ?)"))
+        assertFalse(query.sql.contains("tx.assetId = ?"))
+        assertEquals(listOf<Any>(walletId.id, "ethereum_0xABC", limit), query.args)
+    }
+
+    @Test
+    fun statesFilter_buildsInClauseWithEnumNames() {
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(states = listOf(TransactionState.Pending, TransactionState.InTransit)),
+        )
+        assertTrue(query.sql.contains("AND tx.state IN (?,?)"))
+        assertEquals("Pending", query.args[baseArgCount])
+        assertEquals("InTransit", query.args[baseArgCount + 1])
+    }
+
+    @Test
+    fun multipleFilters_addOneAndPerFilter() {
+        val baselineAndCount = " AND ".toRegex()
+            .findAll(buildTransactionListSql(walletId, limit = limit, filter = null).sql).count()
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(chains = listOf(Chain.Ethereum), transactionTypes = listOf(TransactionType.Transfer), assetRankGreaterThan = 15),
+        )
+        val totalAndCount = " AND ".toRegex().findAll(query.sql).count()
+        assertEquals(3, totalAndCount - baselineAndCount)
+        assertEquals(Chain.Ethereum.string, query.args[baseArgCount])
+        assertEquals("Transfer", query.args[baseArgCount + 1])
+        assertEquals(15, query.args[baseArgCount + 2])
+    }
+
+    @Test
+    fun countSql_sharesFilterClausesWithExtendedSql() {
+        val filter = mockTransactionsFilter(states = listOf(TransactionState.Pending, TransactionState.InTransit), assetRankGreaterThan = 15)
+        val query = buildTransactionsCountSql(walletId, filter)
+        assertTrue(query.sql.trimStart().startsWith("SELECT COUNT(DISTINCT tx.id)"))
+        assertTrue(query.sql.contains("AND asset.rank > ?"))
+        assertTrue(query.sql.contains("AND tx.state IN (?,?)"))
+        assertFalse(query.sql.contains("ORDER BY"))
+        assertEquals(listOf<Any>(walletId.id, 15, "Pending", "InTransit"), query.args)
+    }
+
+    @Test
+    fun theListAndTheCountReadNoPrices() {
+        assertFalse(buildTransactionListSql(walletId, limit = limit, filter = null).sql.contains("prices"))
+        assertFalse(buildTransactionsCountSql(walletId, filter = null).sql.contains("prices"))
+    }
+
+    @Test
+    fun walletIdIsBoundOnce() {
+        val query = buildTransactionListSql(walletId, limit = limit, filter = null)
+        assertEquals(walletId.id, query.args[0])
+    }
+}

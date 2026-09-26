@@ -10,19 +10,19 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
-import com.gemwallet.android.features.settings.currency.presents.CurrenciesScene
-import com.gemwallet.android.features.settings.develop.presents.DevelopScene
-import com.gemwallet.android.features.settings.develop.presents.PaymentsScene
-import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsAction
-import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsScene
-import com.gemwallet.android.features.settings.networks.presents.NetworksScreen
-import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertTargetNavScreen
-import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
-import com.gemwallet.android.features.settings.security.presents.SecurityScene
-import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
-import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
-import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
+import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
+import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScreen
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
+import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
+import com.gemwallet.android.features.settings.presents.NotificationsScreen
+import com.gemwallet.android.features.settings.presents.PreferencesScreen
+import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
+import com.gemwallet.android.features.settings.presents.chain_settings.ChainSettingsScreen
+import com.gemwallet.android.features.settings.presents.currency.CurrencyScreen
+import com.gemwallet.android.features.settings.presents.developer.DeveloperPaymentsScene
+import com.gemwallet.android.features.settings.presents.developer.DeveloperScreen
+import com.gemwallet.android.features.settings.presents.security.SecurityScreen
+import com.gemwallet.android.features.support.presents.SupportChatScreen
 import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -32,28 +32,28 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemNotificationDestination
 
-const val settingsRoute = "settings"
+const val SettingsRoute = "settings"
 
 @Serializable
-data object CurrenciesRoute : NavKey
+data object CurrencyRoute : NavKey
 
 @Serializable
 data object SecurityRoute : NavKey
 
 @Serializable
-data object DevelopRoute : NavKey
+data object DeveloperRoute : NavKey
 
 @Serializable
-data object DevelopPaymentsRoute : NavKey
+data object DeveloperPaymentsRoute : NavKey
 
 @Serializable
 data object InAppNotificationsRoute : NavKey
 
 @Serializable
-data object AboutusRoute : NavKey
+data object AboutUsRoute : NavKey
 
 @Serializable
-data object NetworksRoute : NavKey
+data object ChainSettingsRoute : NavKey
 
 @Serializable
 data object PriceAlertsRoute : NavKey
@@ -62,7 +62,7 @@ data object PriceAlertsRoute : NavKey
 data class AssetPriceAlertsRoute(val assetId: AssetId) : NavKey
 
 @Serializable
-data class AddPriceAlertTargetRoute(val assetId: AssetId) : NavKey
+data class SetPriceAlertRoute(val assetId: AssetId) : NavKey
 
 @Serializable
 data object SupportRoute : NavKey
@@ -73,32 +73,27 @@ data object PreferencesRoute : NavKey
 @Serializable
 data object NotificationsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.settingsScreen(
-    onAction: (SettingsAction) -> Unit,
-    onOpenUrl: (String) -> Boolean,
-    routeMessage: (NavKey) -> RouteMessage?,
-    onRouteMessageShown: (NavKey) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit, onOpenUrl: (String) -> Boolean, routeMessage: (NavKey) -> RouteMessage?, onRouteMessageShown: (NavKey) -> Unit) {
     val onCancel = { onAction(SettingsAction.Cancel) }
 
-    entry<CurrenciesRoute> {
-        CurrenciesScene(onCancel = onCancel)
+    entry<CurrencyRoute> {
+        CurrencyScreen(onCancel = onCancel)
     }
 
     entry<SecurityRoute> {
-        SecurityScene(onCancel = onCancel)
+        SecurityScreen(onCancel = onCancel)
     }
 
-    entry<DevelopRoute> {
-        DevelopScene(
+    entry<DeveloperRoute> {
+        DeveloperScreen(
             onInAppNotifications = { onAction(SettingsAction.InAppNotifications) },
             onPayments = { onAction(SettingsAction.DeveloperPayments) },
             onCancel = onCancel,
         )
     }
 
-    entry<DevelopPaymentsRoute> {
-        PaymentsScene(
+    entry<DeveloperPaymentsRoute> {
+        DeveloperPaymentsScene(
             onSelect = { onAction(SettingsAction.Payment(it)) },
             onCancel = onCancel,
         )
@@ -107,7 +102,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     entry<InAppNotificationsRoute> { key ->
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
-        InAppNotificationsScene(
+        InAppNotificationsScreen(
             message = routeMessage(key),
             onMessageShown = { onRouteMessageShown(key) },
             onAction = { action ->
@@ -123,12 +118,12 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         )
     }
 
-    entry<AboutusRoute> {
+    entry<AboutUsRoute> {
         AboutUsScreen(onCancel = onCancel)
     }
 
-    entry<NetworksRoute> {
-        NetworksScreen(onCancel = onCancel)
+    entry<ChainSettingsRoute> {
+        ChainSettingsScreen(onCancel = onCancel)
     }
 
     entry<PriceAlertsRoute> { key ->
@@ -149,24 +144,24 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         )
     }
 
-    entry<AddPriceAlertTargetRoute>(
+    entry<SetPriceAlertRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        PriceAlertTargetNavScreen(
+        SetPriceAlertScreen(
             onCancel = onCancel,
-            onComplete = { onAction(SettingsAction.PriceAlertTargetComplete(it)) },
+            onComplete = { onAction(SettingsAction.SetPriceAlertComplete(it)) },
         )
     }
 
     entry<NotificationsRoute> {
-        NotificationsScene(
+        NotificationsScreen(
             onPriceAlerts = { onAction(SettingsAction.PriceAlerts) },
             onCancel = onCancel,
         )
     }
 
     entry<PreferencesRoute> {
-        PreferencesScene(
+        PreferencesScreen(
             onAction = { action ->
                 when (action) {
                     PreferencesAction.Currencies -> onAction(SettingsAction.Currencies)
@@ -192,7 +187,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
             }
         }
         CompositionLocalProvider(LocalUriHandler provides uriHandler) {
-            SupportChatNavScreen(
+            SupportChatScreen(
                 message = routeMessage(key),
                 onMessageShown = { onRouteMessageShown(key) },
                 onCancel = onCancel,
@@ -203,11 +198,11 @@ fun EntryProviderScope<NavKey>.settingsScreen(
 
 @Composable
 private fun priceAlertsScreenContent(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
-    PriceAlertsNavScreen(
+    PriceAlertsScreen(
         message = message,
         onMessageShown = onMessageShown,
         onChart = { onAction(SettingsAction.Chart(it)) },
-        onAddPriceAlertTarget = { onAction(SettingsAction.AddPriceAlertTarget(it)) },
+        onSetPriceAlert = { onAction(SettingsAction.SetPriceAlert(it)) },
         onCancel = { onAction(SettingsAction.Cancel) },
     )
 }

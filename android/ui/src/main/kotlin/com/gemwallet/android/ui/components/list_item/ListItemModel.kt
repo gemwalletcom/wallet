@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -40,8 +39,8 @@ import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
-import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.GemAssetIconImage
 
 data class ListItemModel(
     val title: String,
@@ -107,7 +106,7 @@ sealed interface ListItemImage {
     val style: ListItemImageStyle
 
     data class Asset(val icon: GemAssetIcon) : ListItemImage {
-        constructor(assetId: AssetId) : this(assetId.icon())
+        constructor(chain: String) : this(GemAssetIcon(image = GemAssetIconImage.Local(chain), badge = null, placeholder = null))
 
         override val style: ListItemImageStyle = ListItemImageStyle.Avatar
     }
@@ -179,6 +178,7 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = model.titleLineLimit ?: Int.MAX_VALUE,
                 titleBadge = model.titleTag?.let { { TitleTag(it, model.titleTagStyle, model.titleTagType) } },
+                info = model.info,
             )
         },
         subtitle = model.titleExtra?.let {

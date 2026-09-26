@@ -308,6 +308,7 @@
   <string name="charts_price_change">Variație</string>
   <string name="date_today">Astăzi</string>
   <string name="date_yesterday">Ieri</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Conexiune</string>
   <string name="wallet_connect_disconnect">Deconectați-vă</string>

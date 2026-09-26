@@ -218,7 +218,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn test_get_coin_list_retries_transient_errors() {
         for response in [
             Err(ClientError::Network("connection interrupted".into())),

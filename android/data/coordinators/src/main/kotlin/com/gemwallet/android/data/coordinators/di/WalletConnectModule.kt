@@ -5,10 +5,10 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import dagger.Module
@@ -43,7 +43,7 @@ object WalletConnectModule {
     fun providePairWalletConnect(coordinator: WalletConnectCoordinator): PairWalletConnect = coordinator
 
     @Provides
-    fun provideGetWalletConnections(coordinator: WalletConnectCoordinator): GetWalletConnections = coordinator
+    fun provideSyncWalletConnectSessions(coordinator: WalletConnectCoordinator): SyncWalletConnectSessions = coordinator
 
     @Provides
     fun provideDisconnectWalletConnection(coordinator: WalletConnectCoordinator): DisconnectWalletConnection = coordinator

@@ -15,7 +15,7 @@ impl DidClient {
     }
 
     pub async fn get_records(&self, account: &str) -> Result<Vec<Record>, Box<dyn Error + Send + Sync>> {
-        let response: Data<Records> = self.client.post(DidTarget::Records, &AccountRequest { account }).await?;
-        Ok(response.data.records)
+        let response: Data<Option<Records>> = self.client.post(DidTarget::Records, &AccountRequest { account }).await?;
+        Ok(response.data.map(|data| data.records).unwrap_or_default())
     }
 }

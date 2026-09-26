@@ -20,9 +20,9 @@ struct SwapNavigationView: View {
             .sheet(item: $model.isPresentingInfoSheet) {
                 switch $0 {
                 case let .info(type):
-                    InfoSheetScene(type: type)
+                    InfoSheetScene(sheet: type)
                 case let .selectAsset(type):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: .swap(type),
@@ -30,9 +30,14 @@ struct SwapNavigationView: View {
                         ),
                     )
                 case .swapDetails:
-                    if let model = model.swapDetailsViewModel {
+                    if let details = model.swapDetails {
                         NavigationStack {
-                            SwapDetailsView(model: Bindable(model))
+                            SwapDetailsView(
+                                details: details,
+                                providers: model.providers,
+                                allowSelectProvider: model.allowsProviderSelection,
+                                onSelectProvider: model.onFinishSwapProviderSelection,
+                            )
                         }
                         .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -11,25 +12,25 @@ public struct AssetSceneInput: Sendable {
     public let wallet: Wallet
     public let asset: Asset
 
-    public var assetRequest: ChainAssetRequest
-    public var transactionsRequest: MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>
-    public var bannersRequest: BannersRequest
+    public var assetRequest: ChainAssetQuery
+    public var transactionsRequest: MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>
+    public var bannersRequest: BannersQuery
 
     public init(wallet: Wallet, asset: Asset) {
         self.wallet = wallet
         self.asset = asset
 
-        assetRequest = ChainAssetRequest(
+        assetRequest = ChainAssetQuery(
             walletId: wallet.id,
             assetId: asset.id,
         )
 
-        transactionsRequest = MappedRequest(
-            TransactionsRequest.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemConstants.transactionsListLimit),
-            transform: TransactionViewModel.sections,
+        transactionsRequest = MappedQuery(
+            TransactionsQuery.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemConstants.transactionsListLimit),
+            transform: transactionListSections,
         )
 
-        bannersRequest = BannersRequest(
+        bannersRequest = BannersQuery(
             walletId: wallet.id,
             assetId: asset.id,
             events: BannerEvent.allCases,

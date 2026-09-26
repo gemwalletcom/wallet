@@ -29,7 +29,7 @@ pub enum CacheKey<'a> {
 
     // Fiat keys
     FiatRates,
-    FiatQuote(i32, i32, &'a str, &'a str),
+    FiatQuote(i32, i32, &'a str),
     FiatIpCheck(&'a str),
 
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
@@ -92,7 +92,7 @@ impl CacheKey<'_> {
             Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
             Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
-            Self::FiatQuote(device_id, wallet_id, ip_address, quote_id) => format!("fiat:quote:{}:{}:{}:{}", device_id, wallet_id, ip_address, quote_id),
+            Self::FiatQuote(device_id, wallet_id, quote_id) => format!("fiat:quote:{}:{}:{}", device_id, wallet_id, quote_id),
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
@@ -119,7 +119,7 @@ impl CacheKey<'_> {
 
     pub fn ttl(&self) -> u64 {
         match self {
-            Self::ReferralIpCheck(_) => 30 * SECONDS_PER_DAY,
+            Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
             Self::DeviceStreamEvents(_, ttl) => *ttl,
             Self::FetchCoinAddresses(_, _) => 7 * SECONDS_PER_DAY,
@@ -133,7 +133,7 @@ impl CacheKey<'_> {
             Self::PricerCoinInfo(_) => SECONDS_PER_DAY,
             Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
-            Self::FiatQuote(_, _, _, _) => 5 * SECONDS_PER_MINUTE,
+            Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
@@ -175,5 +175,18 @@ mod tests {
         let key = CacheKey::ScanSafe("website", "example.com", 3600);
         assert_eq!(key.key(), "scan:safe:website:example.com");
         assert_eq!(key.ttl(), 3600);
+    }
+
+    #[test]
+    fn test_fiat_quote() {
+        let key = CacheKey::FiatQuote(1, 2, "quote");
+        assert_eq!(key.key(), "fiat:quote:1:2:quote");
+        assert_eq!(key.ttl(), 15 * 60);
+    }
+
+    #[test]
+    fn test_ip_checks_last_one_day() {
+        assert_eq!(CacheKey::ReferralIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
+        assert_eq!(CacheKey::FiatIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
     }
 }

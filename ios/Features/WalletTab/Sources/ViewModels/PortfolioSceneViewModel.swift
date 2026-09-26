@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemChartData
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPortfolioServiceProtocol
 import struct Gemstone.GemPortfolioSession
@@ -56,10 +57,10 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         state.periods.map { $0.toPrimitives() }
     }
 
-    public var chartState: StateViewType<ChartValuesViewModel> {
+    public var chartState: StateViewType<GemChartData> {
         switch state.phase {
         case .loading: .loading
-        case let .data(chart): .data(ChartValuesViewModel(period: state.period.toPrimitives(), chartData: chart))
+        case let .data(chart): .data(chart)
         case .noData: .noData
         case let .failed(error): .error(error)
         }

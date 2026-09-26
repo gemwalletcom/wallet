@@ -13,17 +13,16 @@ struct GemDelegationDestinationTests {
     @Test
     func confirmBecomesATransferRoute() {
         let transfer = GemTransferData.mock()
-        let route = GemDelegationDestination.confirm(transfer: transfer).route(delegation: .mock(), validators: [])
+        let route = GemDelegationDestination.confirm(transfer: transfer).route(delegation: .mock())
 
         #expect(route == .transfer(.confirm(transfer)))
     }
 
     @Test
-    func detailsCarriesTheDelegationAndItsValidators() {
+    func detailsCarriesTheDelegation() {
         let delegation = Delegation.mock()
-        let validators = [DelegationValidator.mock()]
-        let route = GemDelegationDestination.details.route(delegation: delegation, validators: validators)
+        let route = GemDelegationDestination.details.route(delegation: delegation)
 
-        #expect(route == .delegation(DelegationInput(delegation: delegation, validators: validators)))
+        #expect(route == .delegation(delegation))
     }
 }

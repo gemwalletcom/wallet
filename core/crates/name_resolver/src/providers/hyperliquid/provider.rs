@@ -54,12 +54,13 @@ impl NameResolver for HyperliquidProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let name = query.ascii_domain()?;
-        if !Self::is_valid_name(&name) {
-            return Err(format!("invalid name: {name}").into());
+        let Some(name) = query.ascii_domain().ok().filter(|name| Self::is_valid_name(name)) else {
+            return Ok(None);
+        };
+        match self.client.get_record(&name).await? {
+            Some(record) => Self::map_address(record, chain),
+            None => Ok(None),
         }
-        let record = self.client.get_record(&name).await?;
-        Self::map_address(record, chain)
     }
 }
 

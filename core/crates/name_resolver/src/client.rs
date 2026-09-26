@@ -23,9 +23,11 @@ impl NameClient {
 
     pub async fn resolve(&self, name: &str, chain: Chain) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
         let query = NameQuery::new(name);
-        let provider = self.matched_provider(name, chain)?;
+        let Some(provider) = self.matched_provider(name, chain) else {
+            return Ok(None);
+        };
         if provider.provider() != NameProvider::Sns && query.name.len() > self.config.max_name_length {
-            return Err(format!("name '{}' exceeds maximum length of {}", query.name, self.config.max_name_length).into());
+            return Ok(None);
         }
 
         let Some(address) = provider.resolve(&query, chain).await? else {
@@ -44,7 +46,7 @@ impl NameClient {
         }))
     }
 
-    fn matched_provider(&self, name: &str, chain: Chain) -> Result<&dyn NameResolver, Box<dyn Error + Send + Sync>> {
+    fn matched_provider(&self, name: &str, chain: Chain) -> Option<&dyn NameResolver> {
         self.providers
             .iter()
             .enumerate()
@@ -52,7 +54,6 @@ impl NameClient {
             .filter_map(|(index, provider)| provider.domains().iter().filter_map(|domain| domain_match_len(name, domain)).max().map(|match_len| (match_len, index, provider.as_ref())))
             .max_by(|left, right| left.0.cmp(&right.0).then(right.1.cmp(&left.1)))
             .map(|(_, _, provider)| provider)
-            .ok_or_else(|| format!("No provider found for name: {name}").into())
     }
 }
 
@@ -76,6 +77,7 @@ fn domain_match_len(name: &str, domain: &str) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    use gem_client::ClientError;
     use gem_client::testkit::MockClient;
     use primitives::{Chain, NameProvider, name::NameRecord};
 
@@ -145,6 +147,27 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_resolve_sns_missing_domain_has_no_record() {
+        let transport = MockClient::new().with_get(|_| {
+            Err(ClientError::Http {
+                status: 404,
+                body: br#"{"s":"error","result":"Domain not found"}"#.to_vec(),
+            })
+        });
+        let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
+
+        assert_eq!(client.resolve("fatherstretchmyhandspt2.sol", Chain::Solana).await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_sns_outage_is_an_error() {
+        let transport = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: vec![] }));
+        let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
+
+        assert!(client.resolve("bonfida.sol", Chain::Solana).await.is_err());
+    }
+
+    #[tokio::test]
     async fn test_resolve_long_sns_name_preserves_provider_error() {
         let transport = MockClient::new().with_get(|path| {
             assert_eq!(path, "/resolve/fatherstretchmyhandspt2.sol");
@@ -180,26 +203,33 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resolve_rejects_long_non_sns_solana_name() {
+    async fn test_resolve_long_non_sns_solana_name_has_no_record() {
         let client = NameClient::new(
             vec![Box::new(MockNameResolver::new(NameProvider::AllDomains, vec!["solana"], vec![Chain::Solana], Err("provider called")))],
             NameConfig { max_name_length: 20 },
         );
 
-        let error = client.resolve("abcdefghijklmnopqrstu.solana", Chain::Solana).await.unwrap_err();
-
-        assert_eq!(error.to_string(), "name 'abcdefghijklmnopqrstu' exceeds maximum length of 20");
+        assert_eq!(client.resolve("abcdefghijklmnopqrstu.solana", Chain::Solana).await.unwrap(), None);
     }
 
     #[tokio::test]
-    async fn test_resolve_rejects_long_name() {
+    async fn test_resolve_long_name_has_no_record() {
         let client = NameClient::new(
             vec![Box::new(MockNameResolver::new(NameProvider::Injective, vec!["inj"], vec![Chain::Injective], Ok("inj14apqz6u2nprsly3j0mqa6jwpxnmnphq3pp0q9g")))],
             NameConfig { max_name_length: 20 },
         );
 
-        let result = client.resolve("inj1kly3z4r8pzgfhh9cx5x69xjw0j4evlepq6ccgw.inj", Chain::Injective).await;
-        assert_eq!(result.unwrap_err().to_string(), "name 'inj1kly3z4r8pzgfhh9cx5x69xjw0j4evlepq6ccgw' exceeds maximum length of 20");
+        assert_eq!(client.resolve("inj1kly3z4r8pzgfhh9cx5x69xjw0j4evlepq6ccgw.inj", Chain::Injective).await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_unsupported_name_has_no_record() {
+        let client = NameClient::new(
+            vec![Box::new(MockNameResolver::new(NameProvider::Injective, vec!["inj"], vec![Chain::Injective], Err("provider called")))],
+            NameConfig { max_name_length: 20 },
+        );
+
+        assert_eq!(client.resolve("alice.unknown", Chain::Injective).await.unwrap(), None);
     }
 
     #[tokio::test]

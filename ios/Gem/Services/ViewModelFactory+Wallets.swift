@@ -4,12 +4,12 @@ import Contacts
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
-import ManageWallets
 import Onboarding
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
+import Wallets
 
 public extension ViewModelFactory {
     @MainActor
@@ -28,8 +28,8 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
-        WalletDetailViewModel(
+    func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailSceneViewModel {
+        WalletDetailSceneViewModel(
             navigationPath: navigationPath,
             wallet: wallet,
             service: walletService,
@@ -38,13 +38,13 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, service: walletService)
+    func walletImageScene(wallet: Wallet) -> WalletImageSceneViewModel {
+        WalletImageSceneViewModel(wallet: wallet, service: walletService)
     }
 
     @MainActor
-    func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
-        CreateWalletModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
+    func createWalletScene(onComplete: VoidAction) -> CreateWalletViewModel {
+        CreateWalletViewModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
     }
 
     @MainActor
@@ -58,12 +58,12 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
-        ContactsViewModel(service: contactService, contactEditor: contactEditorScene, mode: mode)
+    func contactsScene(mode: ContactsSceneViewModel.Mode = .list) -> ContactsSceneViewModel {
+        ContactsSceneViewModel(service: contactService, contactEditor: contactEditorScene, mode: mode)
     }
 
     @MainActor
-    func contactEditorScene(mode: ContactEditorViewModel.Mode) -> ContactEditorViewModel {
-        ContactEditorViewModel(service: contactEditorService, nameService: nameService, mode: mode)
+    func contactEditorScene(mode: ContactEditorSceneViewModel.Mode) -> ContactEditorSceneViewModel {
+        ContactEditorSceneViewModel(service: contactEditorService, nameService: nameService, mode: mode)
     }
 }

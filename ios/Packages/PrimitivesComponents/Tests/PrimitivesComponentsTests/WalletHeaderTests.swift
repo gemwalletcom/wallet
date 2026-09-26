@@ -1,0 +1,77 @@
+import func Gemstone.formattedCurrency
+import func Gemstone.formattedPercentage
+import struct Gemstone.GemFormattedNumber
+import struct Gemstone.GemHeaderButton
+import enum Gemstone.GemLocalizedText
+import struct Gemstone.GemRowText
+import struct Gemstone.GemValueHeader
+import GemstonePrimitivesTestKit
+import Primitives
+@testable import PrimitivesComponents
+import PrimitivesTestKit
+import Testing
+
+struct WalletHeaderTests {
+    @Test
+    func title() {
+        #expect(model(total: 1000).title == "$1,000.00")
+    }
+
+    @Test
+    func titleSmallValue() {
+        #expect(model(total: 0.1041).title == "$0.10")
+    }
+
+    @Test
+    func subtitle() {
+        #expect(model(total: 1000, pnlAmount: 50, pnlPercentage: 5).subtitle == "+$50.00 (5.00%)")
+    }
+
+    @Test
+    func subtitleSmallPnlAmount() {
+        #expect(model(total: 61.40, pnlAmount: 0.1041, pnlPercentage: 0.17).subtitle == "+$0.10 (0.17%)")
+    }
+
+    @Test
+    func noChangeShowsNoSubtitle() {
+        #expect(model(total: 1000).subtitle == nil)
+    }
+
+    @Test
+    func buttonsDisabled() {
+        let model = GemValueHeader(
+            icon: nil,
+            title: .number(number: currency(0)),
+            subtitle: nil,
+            subtitleIcon: nil,
+            actions: .buttons(buttons: [.mock(kind: .send, isEnabled: false), .mock(kind: .swap, isEnabled: false)]),
+        ).valueHeader
+        #expect(model.buttons.allSatisfy { !$0.isEnabled })
+    }
+
+    private func model(total: Double, pnlAmount: Double? = nil, pnlPercentage: Double = 0) -> ValueHeader {
+        let pnl: GemLocalizedText? = pnlAmount.map {
+            .pnl(
+                amount: signed(currency($0)),
+                percent: formattedPercentage(value: pnlPercentage, style: .unsigned),
+            )
+        }
+        return GemValueHeader(
+            icon: nil,
+            title: .number(number: currency(total)),
+            subtitle: pnl.map { GemRowText(text: $0, tone: .positive) },
+            subtitleIcon: pnl == nil ? nil : .chart,
+            actions: .buttons(buttons: []),
+        ).valueHeader
+    }
+
+    private func currency(_ value: Double) -> GemFormattedNumber {
+        formattedCurrency(value: value, code: Currency.usd.rawValue, style: .fiat)
+    }
+
+    private func signed(_ number: GemFormattedNumber) -> GemFormattedNumber {
+        var signed = number
+        signed.notation = .signed
+        return signed
+    }
+}

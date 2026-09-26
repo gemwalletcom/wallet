@@ -7,20 +7,20 @@ import Primitives
 
 @Observable
 @MainActor
-public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, BindableQuery {
-    public var request: Request {
+public final class ObservableQuery<Query: DatabaseQueryable>: Sendable, BindableQuery {
+    public var request: Query {
         didSet {
             guard request != oldValue else { return }
             startObservation()
         }
     }
 
-    public internal(set) var value: Request.Value
+    public internal(set) var value: Query.Value
 
     private var dbQueue: DatabaseQueue?
     private var cancellable: AnyCancellable?
 
-    public init(_ request: Request, initialValue: Request.Value) {
+    public init(_ request: Query, initialValue: Query.Value) {
         self.request = request
         value = initialValue
     }
@@ -41,7 +41,7 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
             .sink(
                 receiveCompletion: { completion in
                     if case let .failure(error) = completion {
-                        debugLog("ObservableQuery<\(Request.self)> error: \(error)")
+                        debugLog("ObservableQuery<\(Query.self)> error: \(error)")
                     }
                 },
                 receiveValue: { [weak self] newValue in

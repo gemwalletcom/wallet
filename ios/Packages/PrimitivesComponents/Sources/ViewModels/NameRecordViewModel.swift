@@ -5,7 +5,6 @@ import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
-import Style
 import SwiftUI
 
 @Observable
@@ -42,21 +41,6 @@ public final class NameRecordViewModel {
         } catch {
             guard !error.isCancelled else { return }
             state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: .error)
-        }
-    }
-
-    public var isResolving: Bool {
-        if case .loading = state {
-            return true
-        }
-        return false
-    }
-
-    public var resolveImage: Image? {
-        switch state {
-        case .none, .loading: nil
-        case .error: Images.NameResolve.error
-        case .complete: Images.NameResolve.success
         }
     }
 

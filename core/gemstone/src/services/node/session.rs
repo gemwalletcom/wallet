@@ -2,22 +2,24 @@ use std::collections::HashMap;
 
 use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeCheckRow, GemNodeRow, GemNodeSelection, GemNodeStatusState};
 use super::rules;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
+use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAddNodePhase {
     Idle,
     Checking,
-    Ready { check: GemNodeCheck },
+    Ready { rows: Vec<GemNodeCheckRow> },
     Failed { error: GemErrorText },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddNodeViewState {
     pub phase: GemAddNodePhase,
+    pub shows_warning: bool,
     pub can_import: bool,
 }
 
@@ -97,6 +99,7 @@ impl GemAddNodeSession {
     pub fn view_state(&self) -> GemAddNodeViewState {
         GemAddNodeViewState {
             phase: self.phase(),
+            shows_warning: self.check.is_some(),
             can_import: self.check.is_some(),
         }
     }
@@ -117,7 +120,7 @@ impl GemAddNodeSession {
             return GemAddNodePhase::Checking;
         }
         match (&self.check, &self.error) {
-            (Some(check), _) => GemAddNodePhase::Ready { check: check.clone() },
+            (Some(check), _) => GemAddNodePhase::Ready { rows: check.rows() },
             (None, Some(error)) => GemAddNodePhase::Failed { error: error.clone() },
             (None, None) => GemAddNodePhase::Idle,
         }
@@ -141,9 +144,12 @@ mod tests {
     fn test_a_new_url_clears_the_previous_answer() {
         let checked = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checked("https://node".to_string(), GemNodeCheck::mock());
         assert!(checked.view_state().can_import);
+        assert!(checked.view_state().shows_warning, "a checked node is imported at the user's own risk");
+        assert_eq!(checked.view_state().phase, GemAddNodePhase::Ready { rows: GemNodeCheck::mock().rows() });
 
         let retyped = checked.on_input("https://other".to_string());
         assert_eq!(retyped.view_state().phase, GemAddNodePhase::Idle);
+        assert!(!retyped.view_state().shows_warning);
         assert!(!retyped.view_state().can_import, "a url that was never checked cannot be imported");
     }
 
@@ -209,6 +215,23 @@ impl GemNodeListSession {
             statuses: HashMap::new(),
         }
     }
+
+    pub fn rows(&self) -> Vec<GemNodeRow> {
+        self.nodes
+            .iter()
+            .map(|node| {
+                let status = self.statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
+                GemNodeRow {
+                    title: node.title(),
+                    subtitle: status.subtitle(),
+                    latency_status: status.latency_status(),
+                    can_delete: rules::can_delete_node(self.chain, &node.url),
+                    delete_prompt: GemLocalizedText::DeleteConfirmation { name: node.host.clone() },
+                    node: node.clone(),
+                }
+            })
+            .collect()
+    }
 }
 
 #[uniffi::export]
@@ -237,24 +260,12 @@ impl GemNodeListSession {
         Self { statuses, ..self.clone() }
     }
 
-    pub fn rows(&self) -> Vec<GemNodeRow> {
-        self.nodes
-            .iter()
-            .map(|node| {
-                let status = self.statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
-                GemNodeRow {
-                    title: node.title(),
-                    subtitle: status.subtitle(),
-                    latency_status: status.latency_status(),
-                    can_delete: rules::can_delete_node(self.chain, &node.url),
-                    node: node.clone(),
-                }
-            })
-            .collect()
-    }
-
     pub fn node_urls(&self) -> Vec<String> {
         self.nodes.iter().map(|node| node.url.clone()).collect()
+    }
+
+    pub fn sections(&self, explorers: Vec<GemExplorerRow>) -> Vec<GemChainSettingsSection> {
+        vec![GemChainSettingsSection::Nodes { rows: self.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
     }
 }
 
@@ -321,5 +332,20 @@ mod node_list_tests {
         );
         assert!(!rows[0].can_delete);
         assert!(rows[1].can_delete);
+        assert_eq!(rows[1].delete_prompt, GemLocalizedText::DeleteConfirmation { name: added.host });
+    }
+
+    #[test]
+    fn test_the_settings_list_the_nodes_before_the_explorers() {
+        let session = GemNodeListSession::new(Chain::Ethereum).on_nodes(vec![GemNodeSelection::mock("a")]);
+        let explorers = vec![GemExplorerRow {
+            name: "Etherscan".to_string(),
+            is_selected: true,
+        }];
+
+        assert_eq!(
+            session.sections(explorers.clone()),
+            vec![GemChainSettingsSection::Nodes { rows: session.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
+        );
     }
 }

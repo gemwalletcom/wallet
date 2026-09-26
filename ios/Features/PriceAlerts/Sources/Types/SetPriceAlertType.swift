@@ -7,6 +7,13 @@ enum SetPriceAlertType {
     case price
     case percentage
 
+    init(notificationType: PriceAlertNotificationType) {
+        switch notificationType {
+        case .price, .auto: self = .price
+        case .pricePercentChange: self = .percentage
+        }
+    }
+
     var notificationType: PriceAlertNotificationType {
         switch self {
         case .price: .price
