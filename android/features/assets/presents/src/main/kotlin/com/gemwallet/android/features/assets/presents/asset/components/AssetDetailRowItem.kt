@@ -37,6 +37,7 @@ internal fun AssetDetailRowItem(row: GemAssetDetailRow, action: AssetAction?, li
             row = row.row,
             listPosition = listPosition,
             onSelect = action?.let { selected -> { onAction(selected) } },
+            rowAction = row.action,
             modifier = if (action is AssetAction.OpenChart) Modifier.testTag("assetChart") else Modifier,
         )
     }

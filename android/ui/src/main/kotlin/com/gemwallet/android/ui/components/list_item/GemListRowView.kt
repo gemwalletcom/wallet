@@ -64,6 +64,7 @@ fun GemListRowView(
     modifier: Modifier = Modifier,
     onToggle: ((GemRowAction, Boolean) -> Unit)? = null,
     onSelect: ((GemRowAction) -> Unit)? = null,
+    rowAction: GemRowAction? = null,
     onSelectAddress: ((String) -> Unit)? = null,
     accessory: (@Composable () -> Unit)? = null,
 ) {
@@ -71,7 +72,7 @@ fun GemListRowView(
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
 
-    val action = row.action()
+    val action = rowAction ?: row.action()
     when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
             title = row.title,
