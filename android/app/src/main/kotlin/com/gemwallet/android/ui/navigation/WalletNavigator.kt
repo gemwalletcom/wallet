@@ -68,7 +68,7 @@ import com.gemwallet.android.ui.navigation.routes.ReceiveCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
-import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
@@ -257,7 +257,7 @@ class WalletNavigator(
     fun openNotifications() = push(NotificationsRoute)
     fun openPreferences() = push(PreferencesRoute)
     fun openSupport() = push(SupportRoute)
-    fun openReferral(code: String? = null) = push(ReferralRoute(code))
+    fun openRewards(code: String? = null) = push(RewardsRoute(code))
     fun openPriceAlerts() = push(PriceAlertsRoute)
     fun openPriceAlerts(assetId: AssetId) = push(AssetPriceAlertsRoute(assetId))
     fun openSetPriceAlert(assetId: AssetId) = push(SetPriceAlertRoute(assetId))

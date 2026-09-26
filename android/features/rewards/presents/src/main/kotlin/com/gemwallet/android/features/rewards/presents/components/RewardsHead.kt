@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import uniffi.gemstone.GemRewardsAction
 
-internal fun LazyListScope.referralHead(joinPointsCost: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
+internal fun LazyListScope.rewardsHead(joinPointsCost: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
             modifier = Modifier

@@ -32,12 +32,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.features.rewards.presents.components.referralHead
-import com.gemwallet.android.features.rewards.presents.components.referralInfo
-import com.gemwallet.android.features.rewards.presents.dialogs.GetStartedDialog
-import com.gemwallet.android.features.rewards.presents.dialogs.ReferralCodeDialog
+import com.gemwallet.android.features.rewards.presents.components.rewardsHead
+import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
+import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
+import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -72,7 +72,7 @@ import uniffi.gemstone.GemServiceException
 private val referralCodeMaxWidth = 250.dp
 
 @Composable
-fun ReferralScene(
+fun RewardsScene(
     isLoading: Boolean,
     isRefreshing: Boolean,
     loadError: GemServiceException?,
@@ -82,7 +82,7 @@ fun ReferralScene(
     notices: List<GemListRow>,
     inviteRewardPoints: String,
     sections: List<RewardsSectionUIModel>,
-    redemptions: List<RewardRedemptionUIModel>,
+    redemptions: List<RewardRedemptionOptionUIModel>,
     currentWallet: Wallet?,
     incomingCode: IncomingCodeUIModel = IncomingCodeUIModel(),
     onUsername: (String, (Throwable?) -> Unit) -> Unit,
@@ -90,7 +90,7 @@ fun ReferralScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (RewardRedemptionUIModel) -> Unit,
+    onRedeem: (RewardRedemptionOptionUIModel) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
@@ -174,7 +174,7 @@ fun ReferralScene(
                     item { GemListRowView(row = GemListRow.Error(loadError), listPosition = ListPosition.Single) }
                     return@LazyColumn
                 }
-                referralHead(
+                rewardsHead(
                     joinPointsCost = inviteRewardPoints,
                     action = actions.firstOrNull { it is GemRewardsAction.Share || it is GemRewardsAction.CreateCode },
                     onGetStarted = { getStartedDialogShow = true },
@@ -220,16 +220,16 @@ fun ReferralScene(
                         }
                     }
                 }
-                referralInfo(sections, redemptions, onRedeem)
+                rewardsInfo(sections, redemptions, onRedeem)
             }
         }
     }
 
-    GetStartedDialog(isVisible = getStartedDialogShow, onUsername = onUsername) {
+    CreateRewardsCodeDialog(isVisible = getStartedDialogShow, onUsername = onUsername) {
         getStartedDialogShow = false
     }
 
-    ReferralCodeDialog(
+    RedeemRewardsCodeDialog(
         isVisible = codeDialogShow,
         referralCode = referralCode,
         onCode = onCode,
@@ -241,9 +241,9 @@ fun ReferralScene(
 
 @Preview
 @Composable
-private fun ReferralScenePreview() {
+private fun RewardsScenePreview() {
     WalletTheme {
-        ReferralScene(
+        RewardsScene(
             loadError = null,
             isLoading = false,
             isRefreshing = false,
@@ -268,9 +268,9 @@ private fun ReferralScenePreview() {
 
 @Preview
 @Composable
-private fun ReferralSceneNoRewardsPreview() {
+private fun RewardsSceneNoRewardsPreview() {
     WalletTheme {
-        ReferralScene(
+        RewardsScene(
             loadError = null,
             isLoading = false,
             isRefreshing = false,

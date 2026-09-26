@@ -35,7 +35,7 @@ import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
-import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.SetPriceAlertRoute
@@ -197,7 +197,7 @@ class WalletNavigatorTest {
     fun openPendingNavigation_selectsTheTabCoreNamed() {
         val navigator = navigatorWith(WalletRootRoute)
 
-        navigator.openPendingNavigation(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS)
+        navigator.openPendingNavigation(listOf(RewardsRoute(code = null)), GemNavigationTab.SETTINGS)
 
         assertEquals(SettingsRoute, navigator.currentTab.value)
     }

@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.Spacer16
 
 @Composable
-fun ReferralCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+fun RedeemRewardsCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var code by remember(referralCode) { mutableStateOf(referralCode ?: "") }
     var showError by remember { mutableStateOf<Throwable?>(null) }
     var showProgress by remember { mutableStateOf(false) }

@@ -24,7 +24,7 @@ import Style
 
 @Observable
 @MainActor
-public final class RewardsViewModel: Sendable {
+public final class RewardsSceneViewModel: Sendable {
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
 

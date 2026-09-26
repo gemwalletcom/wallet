@@ -11,7 +11,7 @@ import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
-import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.wallet.core.primitives.AssetType
@@ -79,7 +79,7 @@ class NotificationNavigationTest {
     @Test
     fun `support and rewards need no asset at all`() = runBlocking {
         assertEquals(PendingNavigation.Routes(listOf(SupportRoute), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Support).prepareNavigation(GemPushNotification.Support))
-        assertEquals(PendingNavigation.Routes(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
+        assertEquals(PendingNavigation.Routes(listOf(RewardsRoute(code = null)), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
         verify(exactly = 0) { walletSessionService.setCurrentWalletId(any()) }
     }
 

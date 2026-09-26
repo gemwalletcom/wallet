@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Names:** NAM369 to NAM372 in any order, one feature per change.
+4. **Names:** NAM370 to NAM372 in any order, one feature per change.
 5. **Parity:** BD342, BD343, BD345 to BD351.
 6. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -381,10 +381,10 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Expected:** a Core details record with placed actions; the models go.
 - **VM257** **S** **Redemption rows compose the confirmation text.**
   - **iOS:** `RewardRedemptionOptionViewModel` composes the confirmation with `Localized.Rewards.confirmRedeem(value, points)`.
-  - **Android:** `RewardRedemptionUIModel` composes it with `R.string.rewards_confirm_redeem`.
+  - **Android:** `RewardRedemptionOptionUIModel` composes it with `R.string.rewards_confirm_redeem`.
   - **Expected:** `GemRewardsRedemption` carries the confirmation text; both models go.
 - **VM258** **S** **The incoming referral code is twinned on Android.**
-  - **iOS:** `RewardsViewModel` switches on `GemIncomingCode` directly.
+  - **iOS:** `RewardsSceneViewModel` switches on `GemIncomingCode` directly.
   - **Android:** `IncomingCodeUIModel` splits it into two nullable strings.
   - **Expected:** Android reads `GemIncomingCode` like iOS; the twin goes.
 - **VM259** **S** **Support bubbles decide their side and flags.**
@@ -446,8 +446,8 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `PropertyAssetInfoItem` composes the balance and `AmountScene` the reserved fees.
   - **Expected:** the amount view state carries both texts (on `GemAmountSession`).
 - **VM274** **S** **Rewards invite and share texts are composed in the apps.**
-  - **iOS:** `RewardsViewModel` composes the invite description with bold points and the share text with the link.
-  - **Android:** `ReferralHead` bolds the points and `ReferralScene` composes the share text.
+  - **iOS:** `RewardsSceneViewModel` composes the invite description with bold points and the share text with the link.
+  - **Android:** `RewardsHead` bolds the points and `RewardsScene` composes the share text.
   - **Expected:** the rewards state carries both texts.
 - **VM275** **S** **The app update prompt is composed in the apps.**
   - **iOS:** `RootSceneViewModel` builds the alert title, the version description and skip/update actions.
@@ -523,12 +523,12 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertsScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM291** **S** **Whether a wallet can be chosen is decided in the apps.**
-  - **iOS:** `RewardsViewModel.showsWalletSelector` checks `wallets.count > 1`.
-  - **Android:** `ReferralScreen` checks `availableWallets.size > 1`; `AuthRequestScreen` does the same for WalletConnect authentication.
+  - **iOS:** `RewardsSceneViewModel.showsWalletSelector` checks `wallets.count > 1`.
+  - **Android:** `RewardsScreen` checks `availableWallets.size > 1`; `AuthRequestScreen` does the same for WalletConnect authentication.
   - **Expected:** the rewards state and the WalletConnect request say whether a wallet can be chosen; the counts go.
 - **VM292** **S** **The rewards screen's intro and action placement are written in the apps.**
   - **iOS:** `RewardsScene` lists the three intro features with their emojis and titles and places share or create-code, use-code and the pending referral.
-  - **Android:** `ReferralHead` lists the same three features and `ReferralScene` picks the first share or create-code action, then use-code and the pending referral.
+  - **Android:** `RewardsHead` lists the same three features and `RewardsScene` picks the first share or create-code action, then use-code and the pending referral.
   - **Expected:** the rewards state returns the intro items and the placed actions.
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
@@ -627,9 +627,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM369** **S** **Rewards: Android types are `Rewards`, not `Referral`.**
-  - **iOS:** `RewardsViewModel` (+ tests, TestKit) → `RewardsSceneViewModel`; route `Scenes.Referral` → `Scenes.Rewards`.
-  - **Android:** `ReferralScreen`/`ReferralScene`/`ReferralViewModel`(`Test`)/`ReferralRoute`/`referral()` (file `routes/Referral.kt`) → `Rewards…`/`rewards()` in `Rewards.kt`; `RewardRedemptionUIModel` → `RewardRedemptionOptionUIModel`; `RewardsRowUIModel.kt` splits into files named after its types; `GetStartedDialog` → `CreateRewardsCodeDialog`; `ReferralCodeDialog` → `RedeemRewardsCodeDialog`; `ReferralHead`/`ReferralInfo` → `RewardsHead`/`RewardsInfo`.
 - **NAM370** **S** **Support: Android names follow the table.**
   - **Android:** `SupportChatSceneViewModel`(`Test`) → `SupportChatViewModel`(`Test`); file `SupportChatScene.kt` (holds `SupportChatScreen`) → `SupportChatScreen.kt`; `SupportInputBar` → `SupportMessageInputBar`; private `DaySeparator` → `SupportDateSeparator`; `SupportImageSizeTest` → `SupportImageAttachmentTest`; `SupportChatModelsTest` → `SupportChatDayBuilderTest` if it tests the day grouping.
 - **NAM371** **S** **QR scanner: one base name, `QRScanner`.**

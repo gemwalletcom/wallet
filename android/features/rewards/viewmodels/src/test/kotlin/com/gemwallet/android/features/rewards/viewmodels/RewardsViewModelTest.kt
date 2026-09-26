@@ -44,7 +44,7 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.RewardStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReferralViewModelTest {
+class RewardsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val wallet = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
@@ -223,12 +223,12 @@ class ReferralViewModelTest {
         }
     }
 
-    private fun pendingCode(viewModel: ReferralViewModel): String? = viewModel.actions.value.filterIsInstance<GemRewardsAction.ActivatePendingReferral>().firstOrNull()?.code
+    private fun pendingCode(viewModel: RewardsViewModel): String? = viewModel.actions.value.filterIsInstance<GemRewardsAction.ActivatePendingReferral>().firstOrNull()?.code
 
-    private fun createViewModel(code: String? = null): ReferralViewModel {
+    private fun createViewModel(code: String? = null): RewardsViewModel {
         val arguments = mutableMapOf<String, Any>()
         code?.let { arguments[RouteArgument.Code.key] = it }
-        return ReferralViewModel(
+        return RewardsViewModel(
             getSession = getSession,
             walletsQuery = walletsQuery,
             service = service,

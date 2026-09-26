@@ -6,7 +6,7 @@ import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.ui.navigation.routes.FiatRoute
-import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
@@ -78,7 +78,7 @@ class PendingNavigationCoordinatorTest {
         coordinator.buildRoutes(NoOpWalletConnect)
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
-        assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
+        assertEquals(listOf(RewardsRoute(code = "gemcoder")), routes)
     }
 
     @Test
@@ -140,7 +140,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
-        val expected = PendingNavigation.Routes(listOf(ReferralRoute(code = "from-notification")), GemNavigationTab.SETTINGS)
+        val expected = PendingNavigation.Routes(listOf(RewardsRoute(code = "from-notification")), GemNavigationTab.SETTINGS)
         coEvery { notificationNavigation.prepareNavigation(intent) } returns expected
         coordinator.setIntent(intent)
 

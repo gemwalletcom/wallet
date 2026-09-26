@@ -167,7 +167,7 @@ extension NavigationRouter {
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
         case let .rewards(code):
-            navigationState.settings.append(Scenes.Referral(code: code))
+            navigationState.settings.append(Scenes.Rewards(code: code))
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
         case let .address(chain, address):

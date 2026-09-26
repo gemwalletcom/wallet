@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 public struct RewardsScene: View {
-    @State private var model: RewardsViewModel
+    @State private var model: RewardsSceneViewModel
 
-    public init(model: RewardsViewModel) {
+    public init(model: RewardsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

@@ -1,6 +1,6 @@
-# Referral Feature Module
+# Rewards Feature Module
 
-This module implements the referral program feature for Gem Wallet.
+This module implements the rewards program feature for Gem Wallet.
 
 ## Structure
 
@@ -8,31 +8,31 @@ The module follows the standard Gem Wallet feature architecture with two submodu
 
 ### viewmodels
 Contains the business logic and state management:
-- `ReferralViewModel.kt` - Main ViewModel handling referral data and actions
-- `ReferralUIState` - UI state representation
+- `RewardsViewModel.kt` - Main ViewModel handling rewards data and actions
+- `models/` - UI models for the rewards sections, redemption options and incoming codes
 
 ### presents
 Contains the UI/presentation layer:
-- `ReferralScreen.kt` - Main composable screen
-- `ReferralNavigation.kt` - Navigation setup for the feature
+- `RewardsScreen.kt` - Main composable screen, binds `RewardsViewModel`
+- `RewardsScene.kt` - Stateless rewards scene
 
 ## Usage
 
 ### Navigation
 
-To navigate to the referral screen:
+To navigate to the rewards screen:
 
 ```kotlin
-navController.navigateToReferral()
+navigator.openRewards()
 ```
 
 ### Integration
 
-Add the referral destination to your navigation graph:
+The app registers the rewards destination (`RewardsRoute`, `routes/Rewards.kt`) in its navigation graph:
 
 ```kotlin
-referral(
-    onCancel = { navController.popBackStack() }
+rewards(
+    onClose = onCancel
 )
 ```
 

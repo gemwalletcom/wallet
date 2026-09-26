@@ -55,7 +55,7 @@ extension SettingsScene {
         case .support:
             NavigationCustomLink(with: GemListRowView(row: row), action: onOpenSupport)
         case .rewards:
-            link(row, to: Scenes.Referral())
+            link(row, to: Scenes.Rewards())
         case .aboutUs:
             link(row, to: Scenes.AboutUs())
         case .developer:

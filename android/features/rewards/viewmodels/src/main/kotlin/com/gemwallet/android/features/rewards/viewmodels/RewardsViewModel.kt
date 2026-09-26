@@ -11,7 +11,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.rewards.viewmodels.models.IncomingCodeUIModel
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
 import com.gemwallet.android.features.rewards.viewmodels.models.uiModel
@@ -50,7 +50,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ReferralViewModel @Inject constructor(
+class RewardsViewModel @Inject constructor(
     getSession: GetSession,
     walletsQuery: WalletsQuery,
     private val service: GemRewardsServiceInterface,
@@ -92,7 +92,7 @@ class ReferralViewModel @Inject constructor(
     val sections: StateFlow<List<RewardsSectionUIModel>> = rewardsState.map { it.sectionModels(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val redemptions: StateFlow<List<RewardRedemptionUIModel>> = rewardsState.map { state -> state.redemptions.map { it.uiModel(context) } }
+    val redemptions: StateFlow<List<RewardRedemptionOptionUIModel>> = rewardsState.map { state -> state.redemptions.map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val referralLink = rewardsState.mapLatest { it.referralLink }

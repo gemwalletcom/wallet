@@ -167,7 +167,7 @@ public enum Scenes {
         }
     }
 
-    public struct Referral: Hashable, Codable {
+    public struct Rewards: Hashable, Codable {
         public let code: String?
 
         public init(code: String? = nil) {

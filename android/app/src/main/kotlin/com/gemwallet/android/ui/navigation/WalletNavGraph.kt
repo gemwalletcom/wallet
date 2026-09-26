@@ -45,7 +45,7 @@ import com.gemwallet.android.ui.navigation.routes.perpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipient
-import com.gemwallet.android.ui.navigation.routes.referral
+import com.gemwallet.android.ui.navigation.routes.rewards
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
@@ -309,7 +309,7 @@ fun WalletNavGraph(
                 onGetAsset = navigator::openGetAsset,
             )
 
-            referral(onClose = onCancel)
+            rewards(onClose = onCancel)
 
             addressDetailsScreen(onCancel = onCancel)
 

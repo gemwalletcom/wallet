@@ -5,12 +5,12 @@ import GemstonePrimitivesTestKit
 import Primitives
 import Rewards
 
-public extension RewardsViewModel {
+public extension RewardsSceneViewModel {
     static func mock(
         service: any GemRewardsServiceProtocol = GemRewardsServiceMock(),
         wallets: [Wallet],
         activateCode: String? = nil,
-    ) -> RewardsViewModel? {
-        RewardsViewModel(service: service, wallets: wallets, currentWallet: wallets.first, activateCode: activateCode)
+    ) -> RewardsSceneViewModel? {
+        RewardsSceneViewModel(service: service, wallets: wallets, currentWallet: wallets.first, activateCode: activateCode)
     }
 }

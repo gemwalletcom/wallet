@@ -113,7 +113,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: viewModelFactory.appearanceScene())
         }
-        .navigationDestination(for: Scenes.Referral.self) { scene in
+        .navigationDestination(for: Scenes.Rewards.self) { scene in
             if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
                 RewardsScene(model: model)
             }

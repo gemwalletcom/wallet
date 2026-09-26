@@ -134,9 +134,9 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func rewardsScene(activateCode: String?) -> RewardsViewModel? {
+    func rewardsScene(activateCode: String?) -> RewardsSceneViewModel? {
         let wallets = currentWallets()
-        return RewardsViewModel(
+        return RewardsSceneViewModel(
             service: rewardsService,
             wallets: wallets,
             currentWallet: currentWallet(in: wallets),

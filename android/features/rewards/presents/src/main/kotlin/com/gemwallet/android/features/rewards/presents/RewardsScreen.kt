@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.features.rewards.viewmodels.ReferralViewModel
+import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.list_item.walletSections
@@ -30,7 +30,7 @@ import com.gemwallet.android.ui.localization.text
 import kotlinx.coroutines.launch
 
 @Composable
-fun ReferralScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltViewModel()) {
+fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewModel()) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val loadingMessage = stringResource(R.string.common_loading)
@@ -55,7 +55,7 @@ fun ReferralScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltViewM
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
-    ReferralScene(
+    RewardsScene(
         isLoading = isLoading,
         isRefreshing = isRefreshing,
         loadError = loadError,
@@ -76,7 +76,7 @@ fun ReferralScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltViewM
         onRedeem = {
             if (!it.redemption.canRedeem) {
                 showMessageDialog = insufficientPointsMessage
-                return@ReferralScene
+                return@RewardsScene
             }
             scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
             viewModel.redeem(it.redemption) { err ->

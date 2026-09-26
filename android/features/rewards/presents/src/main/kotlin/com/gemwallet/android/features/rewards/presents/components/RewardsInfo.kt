@@ -13,7 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.rewards.viewmodels.models.RewardRedemptionOptionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -23,7 +23,7 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
 
-internal fun LazyListScope.referralInfo(sections: List<RewardsSectionUIModel>, redemptions: List<RewardRedemptionUIModel>, onRedeem: (RewardRedemptionUIModel) -> Unit) {
+internal fun LazyListScope.rewardsInfo(sections: List<RewardsSectionUIModel>, redemptions: List<RewardRedemptionOptionUIModel>, onRedeem: (RewardRedemptionOptionUIModel) -> Unit) {
     sections.forEach { section ->
         item {
             section.title?.let { SubheaderItem(it) }
@@ -42,7 +42,7 @@ internal fun LazyListScope.referralInfo(sections: List<RewardsSectionUIModel>, r
 }
 
 @Composable
-private fun RewardRedemptionOptionItem(item: RewardRedemptionUIModel, listPosition: ListPosition, onClick: () -> Unit) {
+private fun RewardRedemptionOptionItem(item: RewardRedemptionOptionUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     var showConfirm by remember { mutableStateOf(false) }
     ListItem(
         model = item.model,

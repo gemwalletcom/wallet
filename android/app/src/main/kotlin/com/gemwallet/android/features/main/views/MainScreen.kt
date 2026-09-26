@@ -245,7 +245,7 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
                                         SettingsAction.Preferences -> navigator.openPreferences()
                                         SettingsAction.Connections -> navigator.openConnections()
                                         SettingsAction.Support -> navigator.openSupport()
-                                        SettingsAction.Rewards -> navigator.openReferral()
+                                        SettingsAction.Rewards -> navigator.openRewards()
                                         SettingsAction.AboutUs -> navigator.openAboutUs()
                                         SettingsAction.Developer -> navigator.openDeveloper()
                                     }

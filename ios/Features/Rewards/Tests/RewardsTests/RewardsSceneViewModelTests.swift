@@ -12,18 +12,18 @@ import RewardsTestKit
 import Testing
 
 @MainActor
-struct RewardsViewModelTests {
+struct RewardsSceneViewModelTests {
     private let first = Wallet.mock(id: .mock(address: "0xaaa"), name: "First")
     private let second = Wallet.mock(id: .mock(address: "0xbbb"), name: "Second")
 
     @Test
     func noSelectedWalletMeansNoScene() {
-        #expect(RewardsViewModel.mock(wallets: []) == nil)
+        #expect(RewardsSceneViewModel.mock(wallets: []) == nil)
     }
 
     @Test
     func theSceneOffersTheWalletsCoreReturned() throws {
-        let model = try #require(RewardsViewModel.mock(wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
 
         #expect(model.selectedWallet.id == first.id)
         #expect(model.wallets.map(\.id) == [first.id, second.id])
@@ -32,7 +32,7 @@ struct RewardsViewModelTests {
 
     @Test
     func aSingleWalletHidesTheSelector() throws {
-        let model = try #require(RewardsViewModel.mock(wallets: [first]))
+        let model = try #require(RewardsSceneViewModel.mock(wallets: [first]))
 
         #expect(model.showsWalletSelector == false)
     }
@@ -40,7 +40,7 @@ struct RewardsViewModelTests {
     @Test
     func loadingAsksCoreForTheSelectedWallet() async throws {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
 
         await model.refresh()
 
@@ -53,7 +53,7 @@ struct RewardsViewModelTests {
     func aFailedLoadShowsTheErrorInsteadOfTheCreateCodeScreen() async throws {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .failure(AnyError("offline"))
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
 
         await model.refresh()
 
@@ -68,7 +68,7 @@ struct RewardsViewModelTests {
     @Test
     func aLoadForAWalletThatIsNoLongerSelectedIsDropped() async throws {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
         model.selectWallet(id: second.id.id)
@@ -80,7 +80,7 @@ struct RewardsViewModelTests {
     @Test
     func oneWalletWithAnActivateCodeRedeemsItWithoutTheSheet() async throws {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first], activateCode: "friend"))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first], activateCode: "friend"))
 
         await model.onTaskOnce()
 
@@ -91,7 +91,7 @@ struct RewardsViewModelTests {
     @Test
     func severalWalletsWithAnActivateCodeAskWhichWalletFirst() async throws {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second], activateCode: "friend"))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second], activateCode: "friend"))
 
         await model.onTaskOnce()
 
@@ -101,7 +101,7 @@ struct RewardsViewModelTests {
 
     @Test
     func selectingAWalletSwitchesTheSelection() throws {
-        let model = try #require(RewardsViewModel.mock(wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
 
         model.selectWallet(id: second.id.id)
 
@@ -110,7 +110,7 @@ struct RewardsViewModelTests {
 
     @Test
     func selectingAnUnknownWalletKeepsTheSelection() throws {
-        let model = try #require(RewardsViewModel.mock(wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
 
         model.selectWallet(id: "multicoin_0xccc")
 
@@ -121,7 +121,7 @@ struct RewardsViewModelTests {
     func activatingAPendingReferralSendsTheStoredCode() async throws {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
         await model.activatePendingReferral()
@@ -136,7 +136,7 @@ struct RewardsViewModelTests {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
         service.useReferralCodeError = GemServiceError.Api(msg: "code already used")
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
         await model.activatePendingReferral()
@@ -148,7 +148,7 @@ struct RewardsViewModelTests {
     @Test
     func redeemingSendsTheOptionId() async throws {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
 
         await model.redeem(redemptionId: "option-7")
 
@@ -160,7 +160,7 @@ struct RewardsViewModelTests {
     func aFailedRedemptionShowsTheError() async throws {
         let service = GemRewardsServiceMock()
         service.redeemError = GemServiceError.Api(msg: "out of stock")
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
 
         await model.redeem(redemptionId: "option-7")
 
@@ -172,7 +172,7 @@ struct RewardsViewModelTests {
     func aReadyPendingReferralCanBeActivated() async throws {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary())
@@ -182,7 +182,7 @@ struct RewardsViewModelTests {
     func aWaitingPendingReferralCannotBeActivated() async throws {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantFuture))
-        let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
+        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary(.disabled))
