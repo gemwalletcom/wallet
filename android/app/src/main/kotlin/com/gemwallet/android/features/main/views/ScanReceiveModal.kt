@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
-import com.gemwallet.android.features.asset_select.presents.views.assetSelectViewModel
+import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
+import com.gemwallet.android.features.assets.presents.select.assetSelectViewModel
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest

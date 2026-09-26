@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
-import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
-import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
-import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
+import com.gemwallet.android.features.assets.presents.select.AssetSelectAction
+import com.gemwallet.android.features.assets.presents.select.AssetSelectScene
+import com.gemwallet.android.features.assets.presents.select.RecentsSheetHost
+import com.gemwallet.android.features.assets.viewmodels.select.RecentsSheetViewModel
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualItem
 import com.gemwallet.android.features.wallet_tab.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.wallet_tab.viewmodels.models.AssetListRowUIModel

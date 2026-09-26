@@ -17,8 +17,8 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
-import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
+import com.gemwallet.android.features.assets.presents.select.assetsManageScreen
+import com.gemwallet.android.features.assets.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
 import com.gemwallet.android.features.main.views.MainScreen

@@ -51,7 +51,7 @@ dependencies {
     implementation(project(":ui"))
     api(project(":ui-models"))
     implementation(project(":data:services:store"))
-    implementation(project(":features:asset_select:viewmodels"))
+    implementation(project(":features:assets:viewmodels"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

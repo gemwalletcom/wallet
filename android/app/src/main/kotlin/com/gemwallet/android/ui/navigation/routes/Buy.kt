@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.asset_select.presents.views.SelectBuyScreen
+import com.gemwallet.android.features.assets.presents.select.SelectBuyScreen
 import com.gemwallet.android.features.fiat_connect.presents.FiatNavScreen
 import com.gemwallet.android.features.fiat_connect.presents.FiatTransactionsNavScreen
 import com.gemwallet.android.ui.models.actions.CancelAction

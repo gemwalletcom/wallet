@@ -31,7 +31,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.features.asset.presents.address.AddressDetailsScreen
+import com.gemwallet.android.features.assets.presents.address.AddressDetailsScreen
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetuals.viewmodels.AutocloseViewModel

@@ -19,10 +19,10 @@ import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.features.assets.viewmodels.select.BaseAssetSelectViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
+import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
+import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument

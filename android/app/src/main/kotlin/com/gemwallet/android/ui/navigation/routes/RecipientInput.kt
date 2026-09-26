@@ -3,8 +3,8 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.asset_select.presents.views.SelectSendScreen
-import com.gemwallet.android.features.asset_select.viewmodels.SendPaymentViewModel
+import com.gemwallet.android.features.assets.presents.select.SelectSendScreen
+import com.gemwallet.android.features.assets.viewmodels.select.SendPaymentViewModel
 import com.gemwallet.android.features.recipient.presents.RecipientScreen
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction

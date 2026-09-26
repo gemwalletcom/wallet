@@ -53,7 +53,7 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:settings:price_alerts:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
+    implementation(project(":features:assets:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 

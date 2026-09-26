@@ -54,10 +54,9 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:perpetuals:viewmodels"))
-    implementation(project(":features:asset_select:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
+    implementation(project(":features:assets:viewmodels"))
+    implementation(project(":features:assets:presents"))
     implementation(project(":features:confirm:presents"))
-    implementation(project(":features:asset:presents"))
     implementation(project(":features:confirm:viewmodels"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)

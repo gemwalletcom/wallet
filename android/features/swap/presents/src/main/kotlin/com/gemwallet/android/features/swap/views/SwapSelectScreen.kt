@@ -5,8 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScreen
-import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
+import com.gemwallet.android.features.assets.presents.select.AssetSelectScreen
+import com.gemwallet.android.features.assets.viewmodels.select.RecentsSheetViewModel
 import com.gemwallet.android.features.swap.viewmodels.SwapSelectViewModel
 import com.wallet.core.primitives.AssetId
 

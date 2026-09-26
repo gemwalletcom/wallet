@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.features.asset_select.presents.views.assetRows
+import com.gemwallet.android.features.assets.presents.select.assetRows
 import com.gemwallet.android.features.wallet_tab.viewmodels.NetworkAssetsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType

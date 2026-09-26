@@ -2,9 +2,9 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
-import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
+import com.gemwallet.android.features.assets.presents.chart.AssetChartScene
+import com.gemwallet.android.features.assets.presents.details.AssetDetailsScreen
+import com.gemwallet.android.features.assets.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments

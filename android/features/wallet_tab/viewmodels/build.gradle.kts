@@ -52,8 +52,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":data:services:store"))
     implementation(project(":gemcore"))
-    implementation(project(":features:asset:viewmodels"))
-    implementation(project(":features:asset_select:viewmodels"))
+    implementation(project(":features:assets:viewmodels"))
     implementation(libs.ktx.core)
     implementation(libs.okhttp)
 

@@ -54,10 +54,8 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:wallet_tab:viewmodels"))
-    implementation(project(":features:asset:presents"))
-    implementation(project(":features:asset:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
-    implementation(project(":features:asset_select:viewmodels"))
+    implementation(project(":features:assets:presents"))
+    implementation(project(":features:assets:viewmodels"))
     implementation(project(":features:banner:presents"))
     implementation(project(":features:perpetuals:presents"))
     implementation(project(":features:nft:presents"))

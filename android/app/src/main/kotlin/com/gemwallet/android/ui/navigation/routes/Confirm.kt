@@ -4,7 +4,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.unpackConfirmTransferInput
-import com.gemwallet.android.features.asset_select.presents.views.SelectPaymentScreen
+import com.gemwallet.android.features.assets.presents.select.SelectPaymentScreen
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.confirm.presents.PaymentVerificationScreen
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction

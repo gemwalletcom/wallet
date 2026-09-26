@@ -56,7 +56,7 @@ dependencies {
     implementation(project(":features:wallet_connector:viewmodels"))
     implementation(project(":features:confirm:presents"))
     implementation(project(":features:confirm:viewmodels"))
-    implementation(project(":features:asset:presents"))
+    implementation(project(":features:assets:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 }

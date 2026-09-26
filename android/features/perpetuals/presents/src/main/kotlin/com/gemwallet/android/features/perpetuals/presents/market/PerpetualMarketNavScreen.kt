@@ -9,8 +9,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
-import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
+import com.gemwallet.android.features.assets.presents.select.RecentsSheetHost
+import com.gemwallet.android.features.assets.viewmodels.select.RecentsSheetViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualMarketViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.RefreshOnTimer
