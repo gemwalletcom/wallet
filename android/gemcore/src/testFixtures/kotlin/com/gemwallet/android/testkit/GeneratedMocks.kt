@@ -12,10 +12,8 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
-import com.wallet.core.primitives.AssetBalance
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetData
-import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
@@ -26,13 +24,9 @@ import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Balance
 import com.wallet.core.primitives.BalanceMetadata
-import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.BannerEvent
-import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAssetData
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Contact
@@ -46,8 +40,6 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.Device
-import com.wallet.core.primitives.DeviceLocale
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatRate
@@ -55,7 +47,6 @@ import com.wallet.core.primitives.FiatTransaction
 import com.wallet.core.primitives.FiatTransactionAssetData
 import com.wallet.core.primitives.FiatTransactionData
 import com.wallet.core.primitives.FiatTransactionStatus
-import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.JsonValue
 import com.wallet.core.primitives.Latency
 import com.wallet.core.primitives.LatencyType
@@ -70,7 +61,6 @@ import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.Perpetual
-import com.wallet.core.primitives.PerpetualBasic
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
@@ -80,13 +70,10 @@ import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
-import com.wallet.core.primitives.Platform
-import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.PriceAlertDirection
-import com.wallet.core.primitives.RecentAsset
 import com.wallet.core.primitives.SerializedBigInteger
 import com.wallet.core.primitives.SerializedDate
 import com.wallet.core.primitives.StakeProviderType
@@ -173,16 +160,6 @@ fun mockAsset(
     type = type,
 )
 
-fun mockAssetBalance(
-    assetId: AssetId = mockAssetId(),
-    balance: Balance = mockBalance(),
-    isActive: Boolean = false,
-) = AssetBalance(
-    assetId = assetId,
-    balance = balance,
-    isActive = isActive,
-)
-
 fun mockAssetBasic(
     asset: Asset = mockAsset(),
     properties: AssetProperties = mockAssetProperties(),
@@ -211,28 +188,6 @@ fun mockAssetData(
     priceAlerts = priceAlerts,
     metadata = metadata,
     associations = associations,
-)
-
-fun mockAssetFull(
-    asset: Asset = mockAsset(),
-    properties: AssetProperties = mockAssetProperties(),
-    score: AssetScore = mockAssetScore(),
-    tags: List<String> = emptyList(),
-    links: List<AssetLink> = emptyList(),
-    associations: List<AssetAssociation> = emptyList(),
-    perpetuals: List<PerpetualBasic> = emptyList(),
-    price: Price? = null,
-    market: AssetMarket? = null,
-) = AssetFull(
-    asset = asset,
-    properties = properties,
-    score = score,
-    tags = tags,
-    links = links,
-    associations = associations,
-    perpetuals = perpetuals,
-    price = price,
-    market = market,
 )
 
 fun mockAssetLink(
@@ -293,18 +248,6 @@ fun mockAssetMetaData(
     rankScore = rankScore,
 )
 
-fun mockAssetPrice(
-    assetId: AssetId = mockAssetId(),
-    price: Double = 0.0,
-    priceChangePercentage24h: Double = 0.0,
-    updatedAt: SerializedDate = 0L,
-) = AssetPrice(
-    assetId = assetId,
-    price = price,
-    priceChangePercentage24h = priceChangePercentage24h,
-    updatedAt = updatedAt,
-)
-
 fun mockAssetProperties(
     isEnabled: Boolean = false,
     isBuyable: Boolean = false,
@@ -359,18 +302,6 @@ fun mockBalance(
     metadata = metadata,
 )
 
-fun mockBanner(
-    walletId: WalletId? = null,
-    asset: Asset? = null,
-    event: BannerEvent = BannerEvent.Stake,
-    state: BannerState = BannerState.Active,
-) = Banner(
-    walletId = walletId,
-    asset = asset,
-    event = event,
-    state = state,
-)
-
 fun mockBlockExplorerLink(
     name: String = "",
     link: String = "",
@@ -385,22 +316,6 @@ fun mockChainAssetData(
 ) = ChainAssetData(
     assetData = assetData,
     feeAssetData = feeAssetData,
-)
-
-fun mockChartCandleStick(
-    date: SerializedDate = 0L,
-    open: Double = 0.0,
-    high: Double = 0.0,
-    low: Double = 0.0,
-    close: Double = 0.0,
-    volume: Double = 0.0,
-) = ChartCandleStick(
-    date = date,
-    open = open,
-    high = high,
-    low = low,
-    close = close,
-    volume = volume,
 )
 
 fun mockChartDateValue(
@@ -527,34 +442,6 @@ fun mockDelegationValidator(
     providerType = providerType,
 )
 
-fun mockDevice(
-    id: String = "",
-    platform: Platform = Platform.IOS,
-    platformStore: PlatformStore = PlatformStore.AppStore,
-    os: String = "",
-    model: String = "",
-    token: String = "",
-    locale: DeviceLocale = DeviceLocale.AR,
-    version: String = "",
-    currency: Currency = Currency.MXN,
-    isPushEnabled: Boolean = false,
-    isPriceAlertsEnabled: Boolean? = null,
-    subscriptionsVersion: Int = 0,
-) = Device(
-    id = id,
-    platform = platform,
-    platformStore = platformStore,
-    os = os,
-    model = model,
-    token = token,
-    locale = locale,
-    version = version,
-    currency = currency,
-    isPushEnabled = isPushEnabled,
-    isPriceAlertsEnabled = isPriceAlertsEnabled,
-    subscriptionsVersion = subscriptionsVersion,
-)
-
 fun mockFiatRate(
     symbol: Currency = Currency.MXN,
     rate: Double = 0.0,
@@ -617,18 +504,6 @@ fun mockFiatTransactionData(
 ) = FiatTransactionData(
     transaction = transaction,
     detailsUrl = detailsUrl,
-)
-
-fun mockInAppNotification(
-    walletId: WalletId = mockWalletId(),
-    readAt: SerializedDate? = null,
-    createdAt: SerializedDate = 0L,
-    item: CoreListItem = mockCoreListItem(),
-) = InAppNotification(
-    walletId = walletId,
-    readAt = readAt,
-    createdAt = createdAt,
-    item = item,
 )
 
 fun mockLatency(
@@ -839,14 +714,6 @@ fun mockPriceAlertData(
     price = price,
     priceAlert = priceAlert,
     rankScore = rankScore,
-)
-
-fun mockRecentAsset(
-    asset: Asset = mockAsset(),
-    createdAt: SerializedDate = 0L,
-) = RecentAsset(
-    asset = asset,
-    createdAt = createdAt,
 )
 
 fun mockSupportAgent(
@@ -1075,18 +942,6 @@ fun mockApprovalData(
     spender = spender,
     value = value,
     isUnlimited = isUnlimited,
-)
-
-fun mockContractCallData(
-    contractAddress: String = "",
-    callData: String = "",
-    approval: uniffi.gemstone.ApprovalData? = null,
-    gasLimit: String? = null,
-) = uniffi.gemstone.ContractCallData(
-    contractAddress = contractAddress,
-    callData = callData,
-    approval = approval,
-    gasLimit = gasLimit,
 )
 
 fun mockFiatProvider(
@@ -1339,16 +1194,6 @@ fun mockGemChartData(
     dateStyle = dateStyle,
 )
 
-fun mockGemChartHeader(
-    value: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    secondaryValue: uniffi.gemstone.GemFormattedNumber? = null,
-    change: uniffi.gemstone.GemFormattedNumber? = null,
-) = uniffi.gemstone.GemChartHeader(
-    value = value,
-    secondaryValue = secondaryValue,
-    change = change,
-)
-
 fun mockGemConfirmFee(
     value: java.math.BigInteger = java.math.BigInteger.ZERO,
     formatted: uniffi.gemstone.GemFeeAmount = mockGemFeeAmount(),
@@ -1475,24 +1320,6 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
-fun mockGemCustomFeeSession(
-    feeAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
-    input: String = "",
-    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
-    rows: uniffi.gemstone.GemFeeRateRows = mockGemFeeRateRows(),
-    loadedFee: java.math.BigInteger? = null,
-    price: Double? = null,
-    currency: uniffi.gemstone.Currency = uniffi.gemstone.Currency.MXN,
-) = uniffi.gemstone.GemCustomFeeSession(
-    feeAsset = feeAsset,
-    input = input,
-    format = format,
-    rows = rows,
-    loadedFee = loadedFee,
-    price = price,
-    currency = currency,
-)
-
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,
@@ -1591,22 +1418,6 @@ fun mockGemFiatQuoteRequest(
     amount = amount,
 )
 
-fun mockGemFiatQuoteRow(
-    quoteId: String = "",
-    provider: uniffi.gemstone.FiatProviderName = uniffi.gemstone.FiatProviderName.MERCURYO,
-    providerName: String = "",
-    cryptoAmount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    fiatAmount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    rate: uniffi.gemstone.GemAssetRate? = null,
-) = uniffi.gemstone.GemFiatQuoteRow(
-    quoteId = quoteId,
-    provider = provider,
-    providerName = providerName,
-    cryptoAmount = cryptoAmount,
-    fiatAmount = fiatAmount,
-    rate = rate,
-)
-
 fun mockGemFiatQuotesResult(
     request: uniffi.gemstone.GemFiatQuoteRequest = mockGemFiatQuoteRequest(),
     quotes: List<uniffi.gemstone.FiatQuote> = emptyList(),
@@ -1645,18 +1456,6 @@ fun mockGemFormattedNumber(
     tone = tone,
     rounding = rounding,
     exact = exact,
-)
-
-fun mockGemHeaderAmount(
-    asset: uniffi.gemstone.Asset = mockAsset().toGem(),
-    amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    fiat: uniffi.gemstone.GemFormattedNumber? = null,
-    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
-) = uniffi.gemstone.GemHeaderAmount(
-    asset = asset,
-    amount = amount,
-    fiat = fiat,
-    icon = icon,
 )
 
 fun mockGemHeaderButton(
@@ -1741,8 +1540,6 @@ fun mockGemNodeSelection(
     gemNodeFlag = gemNodeFlag,
 )
 
-fun mockGemNodeStatusState(): uniffi.gemstone.GemNodeStatusState = uniffi.gemstone.GemNodeStatusState.Loading
-
 fun mockGemNumberDisplay(): uniffi.gemstone.GemNumberDisplay = uniffi.gemstone.GemNumberDisplay.Number(precision = mockGemPrecision())
 
 fun mockGemNumberFormat(
@@ -1809,26 +1606,6 @@ fun mockGemRecipient(
     references = references,
 )
 
-fun mockGemRewardsRedemption(
-    id: String = "",
-    assetId: String = mockAssetId().toIdentifier(),
-    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
-    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
-    canRedeem: Boolean = false,
-    points: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    value: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
-    confirmation: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
-) = uniffi.gemstone.GemRewardsRedemption(
-    id = id,
-    assetId = assetId,
-    icon = icon,
-    title = title,
-    canRedeem = canRedeem,
-    points = points,
-    value = value,
-    confirmation = confirmation,
-)
-
 fun mockGemRewardsResult(
     walletId: String = mockWalletId().id,
     state: uniffi.gemstone.GemLoadState = uniffi.gemstone.GemLoadState.NoData,
@@ -1837,36 +1614,6 @@ fun mockGemRewardsResult(
     walletId = walletId,
     state = state,
     rewards = rewards,
-)
-
-fun mockGemRewardsState(
-    intro: List<uniffi.gemstone.GemRewardsIntroItem> = emptyList(),
-    inviteAction: uniffi.gemstone.GemRewardsInviteAction? = null,
-    canUseReferralCode: Boolean = false,
-    pendingReferral: uniffi.gemstone.GemRewardsPendingReferral? = null,
-    errorNotice: uniffi.gemstone.GemListRow? = null,
-    statusNotice: uniffi.gemstone.GemListRow? = null,
-    sections: List<uniffi.gemstone.GemListSection> = emptyList(),
-    inviteDescription: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
-    referralCode: String? = null,
-    referralLink: String? = null,
-    shareText: uniffi.gemstone.GemLocalizedText? = null,
-    usedReferralCode: String? = null,
-    redemptions: List<uniffi.gemstone.GemRewardsRedemption> = emptyList(),
-) = uniffi.gemstone.GemRewardsState(
-    intro = intro,
-    inviteAction = inviteAction,
-    canUseReferralCode = canUseReferralCode,
-    pendingReferral = pendingReferral,
-    errorNotice = errorNotice,
-    statusNotice = statusNotice,
-    sections = sections,
-    inviteDescription = inviteDescription,
-    referralCode = referralCode,
-    referralLink = referralLink,
-    shareText = shareText,
-    usedReferralCode = usedReferralCode,
-    redemptions = redemptions,
 )
 
 fun mockGemRowText(
@@ -2187,18 +1934,6 @@ fun mockGemWalletConnectTransactionRequest(
     action = action,
 )
 
-fun mockGemWalletHomeViewState(
-    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
-    showCollections: Boolean = false,
-    showsPerpetuals: Boolean = false,
-    banner: uniffi.gemstone.GemBannerRow? = null,
-) = uniffi.gemstone.GemWalletHomeViewState(
-    header = header,
-    showCollections = showCollections,
-    showsPerpetuals = showsPerpetuals,
-    banner = banner,
-)
-
 fun mockGemWalletRow(
     id: String = "",
     name: String = "",
@@ -2277,22 +2012,6 @@ fun mockPaymentQuote(
     value = value,
 )
 
-fun mockPaymentRequest(
-    address: String = "",
-    amount: uniffi.gemstone.PaymentAmount? = null,
-    memo: String? = null,
-    label: String? = null,
-    references: List<String>? = null,
-    assetId: String? = null,
-) = uniffi.gemstone.PaymentRequest(
-    address = address,
-    amount = amount,
-    memo = memo,
-    label = label,
-    references = references,
-    assetId = assetId,
-)
-
 fun mockPerpetualConfirmData(
     direction: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
     marginType: uniffi.gemstone.PerpetualMarginType = uniffi.gemstone.PerpetualMarginType.CROSS,
@@ -2325,30 +2044,6 @@ fun mockPerpetualConfirmData(
     marginAmount = marginAmount,
     takeProfit = takeProfit,
     stopLoss = stopLoss,
-)
-
-fun mockPerpetualModifyConfirmData(
-    baseAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
-    assetIndex: Int = 0,
-    modifyTypes: List<uniffi.gemstone.PerpetualModifyPositionType> = emptyList(),
-    takeProfitOrderId: ULong? = null,
-    stopLossOrderId: ULong? = null,
-) = uniffi.gemstone.PerpetualModifyConfirmData(
-    baseAsset = baseAsset,
-    assetIndex = assetIndex,
-    modifyTypes = modifyTypes,
-    takeProfitOrderId = takeProfitOrderId,
-    stopLossOrderId = stopLossOrderId,
-)
-
-fun mockPerpetualPortfolioTimeframeData(
-    accountValueHistory: List<uniffi.gemstone.ChartDateValue> = emptyList(),
-    pnlHistory: List<uniffi.gemstone.ChartDateValue> = emptyList(),
-    volume: Double = 0.0,
-) = uniffi.gemstone.PerpetualPortfolioTimeframeData(
-    accountValueHistory = accountValueHistory,
-    pnlHistory = pnlHistory,
-    volume = volume,
 )
 
 fun mockPerpetualReduceData(
@@ -2387,14 +2082,6 @@ fun mockPortfolioMarginUsage(
     usage = usage,
     usedValue = usedValue,
     usagePercent = usagePercent,
-)
-
-fun mockRedelegateData(
-    delegation: uniffi.gemstone.Delegation = mockDelegation().toGem(),
-    toValidator: uniffi.gemstone.DelegationValidator = mockDelegationValidator().toGem(),
-) = uniffi.gemstone.RedelegateData(
-    delegation = delegation,
-    toValidator = toValidator,
 )
 
 fun mockRedemptionResult(
@@ -2667,16 +2354,6 @@ fun mockSwapperQuoteRequest(
     destinationAddress = destinationAddress,
     value = value,
     options = options,
-)
-
-fun mockSwapperRoute(
-    input: String = mockAssetId().toIdentifier(),
-    output: String = mockAssetId().toIdentifier(),
-    routeData: String = "",
-) = uniffi.gemstone.SwapperRoute(
-    input = input,
-    output = output,
-    routeData = routeData,
 )
 
 fun mockSwapperSlippage(

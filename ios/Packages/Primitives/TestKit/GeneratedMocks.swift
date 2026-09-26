@@ -77,20 +77,6 @@ public extension Asset {
     }
 }
 
-public extension AssetBalance {
-    static func mock(
-        assetId: AssetId = .mock(),
-        balance: Balance = .mock(),
-        isActive: Bool = false,
-    ) -> AssetBalance {
-        AssetBalance(
-            assetId: assetId,
-            balance: balance,
-            isActive: isActive,
-        )
-    }
-}
-
 public extension AssetBasic {
     static func mock(
         asset: Asset = .mock(),
@@ -125,32 +111,6 @@ public extension AssetData {
             priceAlerts: priceAlerts,
             metadata: metadata,
             associations: associations,
-        )
-    }
-}
-
-public extension AssetFull {
-    static func mock(
-        asset: Asset = .mock(),
-        properties: AssetProperties = .mock(),
-        score: AssetScore = .mock(),
-        tags: [String] = [],
-        links: [AssetLink] = [],
-        associations: [AssetAssociation] = [],
-        perpetuals: [PerpetualBasic] = [],
-        price: Price? = nil,
-        market: AssetMarket? = nil,
-    ) -> AssetFull {
-        AssetFull(
-            asset: asset,
-            properties: properties,
-            score: score,
-            tags: tags,
-            links: links,
-            associations: associations,
-            perpetuals: perpetuals,
-            price: price,
-            market: market,
         )
     }
 }
@@ -225,22 +185,6 @@ public extension AssetMetaData {
     }
 }
 
-public extension AssetPrice {
-    static func mock(
-        assetId: AssetId = .mock(),
-        price: Double = 0,
-        priceChangePercentage24h: Double = 0,
-        updatedAt: Date = Date(timeIntervalSince1970: 0),
-    ) -> AssetPrice {
-        AssetPrice(
-            assetId: assetId,
-            price: price,
-            priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: updatedAt,
-        )
-    }
-}
-
 public extension AssetProperties {
     static func mock(
         isEnabled: Bool = false,
@@ -307,22 +251,6 @@ public extension Balance {
     }
 }
 
-public extension Banner {
-    static func mock(
-        walletId: WalletId? = nil,
-        asset: Asset? = nil,
-        event: BannerEvent = .stake,
-        state: BannerState = .active,
-    ) -> Banner {
-        Banner(
-            walletId: walletId,
-            asset: asset,
-            event: event,
-            state: state,
-        )
-    }
-}
-
 public extension BlockExplorerLink {
     static func mock(
         name: String = "",
@@ -343,26 +271,6 @@ public extension ChainAssetData {
         ChainAssetData(
             assetData: assetData,
             feeAssetData: feeAssetData,
-        )
-    }
-}
-
-public extension ChartCandleStick {
-    static func mock(
-        date: Date = Date(timeIntervalSince1970: 0),
-        open: Double = 0,
-        high: Double = 0,
-        low: Double = 0,
-        close: Double = 0,
-        volume: Double = 0,
-    ) -> ChartCandleStick {
-        ChartCandleStick(
-            date: date,
-            open: open,
-            high: high,
-            low: low,
-            close: close,
-            volume: volume,
         )
     }
 }
@@ -527,38 +435,6 @@ public extension DelegationValidator {
     }
 }
 
-public extension Device {
-    static func mock(
-        id: String = "",
-        platform: Platform = .ios,
-        platformStore: PlatformStore = .appStore,
-        os: String = "",
-        model: String = "",
-        token: String = "",
-        locale: DeviceLocale = .ar,
-        version: String = "",
-        currency: Currency = .mxn,
-        isPushEnabled: Bool = false,
-        isPriceAlertsEnabled: Bool? = nil,
-        subscriptionsVersion: Int32 = 0,
-    ) -> Device {
-        Device(
-            id: id,
-            platform: platform,
-            platformStore: platformStore,
-            os: os,
-            model: model,
-            token: token,
-            locale: locale,
-            version: version,
-            currency: currency,
-            isPushEnabled: isPushEnabled,
-            isPriceAlertsEnabled: isPriceAlertsEnabled,
-            subscriptionsVersion: subscriptionsVersion,
-        )
-    }
-}
-
 public extension FiatRate {
     static func mock(
         symbol: Currency = .mxn,
@@ -635,22 +511,6 @@ public extension FiatTransactionData {
         FiatTransactionData(
             transaction: transaction,
             detailsUrl: detailsUrl,
-        )
-    }
-}
-
-public extension InAppNotification {
-    static func mock(
-        walletId: WalletId = .mock(),
-        readAt: Date? = nil,
-        createdAt: Date = Date(timeIntervalSince1970: 0),
-        item: CoreListItem = .mock(),
-    ) -> InAppNotification {
-        InAppNotification(
-            walletId: walletId,
-            readAt: readAt,
-            createdAt: createdAt,
-            item: item,
         )
     }
 }
@@ -921,18 +781,6 @@ public extension PriceAlertData {
             price: price,
             priceAlert: priceAlert,
             rankScore: rankScore,
-        )
-    }
-}
-
-public extension RecentAsset {
-    static func mock(
-        asset: Asset = .mock(),
-        createdAt: Date = Date(timeIntervalSince1970: 0),
-    ) -> RecentAsset {
-        RecentAsset(
-            asset: asset,
-            createdAt: createdAt,
         )
     }
 }
