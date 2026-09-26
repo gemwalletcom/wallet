@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM198 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
-4. **Parity:** BD345 to BD347, BD349 to BD351.
+4. **Parity:** BD346, BD347, BD349 to BD351.
 5. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -565,10 +565,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Same rule, different answers
 
 - **VM344** **S** **iOS support chat holds two Core services.** `SupportChatSceneViewModel` holds the support and notifications services ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)); Android enables support push through the `EnablePushForSupport` port. **Expected:** the support service answers the push enablement, and the view model holds one service.
-- **BD345** **S** **Perpetual searches match different fields.**
-  - **iOS:** markets match name and symbol; positions match the perpetual name and identifier and the asset name and symbol.
-  - **Android:** markets rank by the stored search priorities when present (`PerpetualsQuery`); positions match the row title, the perpetual id's symbol and the asset symbol and name.
-  - **Expected:** Android matches iOS.
 - **BD346** **S** **Activity filters select different transactions.**
   - **iOS:** the asset filter joins `transactions_assets` only; the chain filter uses the transaction's chain; each caller passes its own limit.
   - **Android:** the asset filter also matches the transaction's main asset; the chain filter uses the asset's chain; every list uses the 1000-row limit (`TransactionsQuery`).

@@ -41,9 +41,9 @@ class PerpetualPositionsQueryTest {
     private val query = PerpetualPositionsQuery(database.perpetualPositionDao())
     private val wallet1 = WalletId("wallet-1")
     private val wallet2 = WalletId("wallet-2")
-    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "XBT", decimals = 8)
     private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val bitcoinMarket = mockPerpetual(price = 100.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC"), name = "BTC", assetId = bitcoinAsset.id, identifier = "0")
+    private val bitcoinMarket = mockPerpetual(price = 100.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC-USD"), name = "BTC", assetId = bitcoinAsset.id, identifier = "0")
     private val ethereumMarket = mockPerpetual(price = 50.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "ETH"), name = "ETH", assetId = ethereumAsset.id, identifier = "1")
     private val bitcoinLong = PerpetualPositionData(
         perpetual = bitcoinMarket,
@@ -96,6 +96,19 @@ class PerpetualPositionsQueryTest {
     fun anotherWalletSeesOnlyItsOwnPositions() = runBlocking(Dispatchers.IO) {
         assertEquals(listOf(otherWalletBitcoin), query(wallet2).first())
         assertEquals(emptyList<PerpetualPositionData>(), query(WalletId("wallet-3")).first())
+    }
+
+    @Test
+    fun aSearchMatchesThePerpetualNameAndIdentifierAndTheAssetNameAndSymbol() = runBlocking(Dispatchers.IO) {
+        assertEquals(listOf(bitcoinLong), query(wallet1, "btc").first())
+        assertEquals(listOf(ethereumShort), query(wallet1, "1").first())
+        assertEquals(listOf(ethereumShort), query(wallet1, "ether").first())
+        assertEquals(listOf(bitcoinLong), query(wallet1, "xbt").first())
+    }
+
+    @Test
+    fun aSearchDoesNotMatchThePerpetualIdSymbol() = runBlocking(Dispatchers.IO) {
+        assertEquals(emptyList<PerpetualPositionData>(), query(wallet1, "btc-usd").first())
     }
 
     @Test

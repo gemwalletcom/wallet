@@ -98,25 +98,11 @@ class PerpetualsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val pinnedPerpetuals = perpetualSections.map { it.pinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    private val positionAggregates = getSession()
-        .filterNotNull()
-        .flatMapLatest { perpetualPositionsQuery(it.wallet.id) }
+    val positions = combine(getSession().filterNotNull().map { it.wallet.id }.distinctUntilChanged(), query) { walletId, search -> walletId to search.orEmpty() }
+        .flatMapLatest { (walletId, search) -> perpetualPositionsQuery(walletId, search) }
         .map { it.positionAggregates() }
         .flowOn(ioDispatcher)
-
-    val positions = combine(positionAggregates, query) { items, q ->
-        val needle = q.orEmpty()
-        if (needle.isEmpty()) {
-            items
-        } else {
-            items.filter {
-                it.title.contains(needle, ignoreCase = true) ||
-                    it.perpetualId.symbol.contains(needle, ignoreCase = true) ||
-                    it.asset.symbol.contains(needle, ignoreCase = true) ||
-                    it.asset.name.contains(needle, ignoreCase = true)
-            }
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
         .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.row) } }

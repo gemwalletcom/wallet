@@ -12,7 +12,10 @@ import javax.inject.Inject
 
 class PerpetualPositionsQuery @Inject constructor(private val perpetualPositionDao: PerpetualPositionDao) {
 
-    operator fun invoke(walletId: WalletId): Flow<List<PerpetualPositionData>> = perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
+    operator fun invoke(walletId: WalletId, searchQuery: String = ""): Flow<List<PerpetualPositionData>> = perpetualPositionDao.getPositionsData(walletId.id)
+        .map { items -> items.mapNotNull { it.toDTO() }.filter { it.matches(searchQuery) } }
 
     operator fun invoke(walletId: WalletId, perpetualId: PerpetualId): Flow<PerpetualPositionData?> = perpetualPositionDao.getPositionDataByPerpetual(walletId.id, perpetualId.toIdentifier()).map { it?.toDTO() }
 }
+
+private fun PerpetualPositionData.matches(searchQuery: String): Boolean = listOf(perpetual.name, perpetual.identifier, asset.name, asset.symbol).any { it.contains(searchQuery, ignoreCase = true) }

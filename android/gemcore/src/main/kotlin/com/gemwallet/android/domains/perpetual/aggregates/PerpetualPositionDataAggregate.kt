@@ -8,5 +8,4 @@ interface PerpetualPositionDataAggregate {
     val perpetualId: PerpetualId
     val asset: Asset
     val row: GemAssetItemRow
-    val title: String get() = row.title
 }

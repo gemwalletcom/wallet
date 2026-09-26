@@ -43,7 +43,4 @@ interface SearchDao {
 
     @Query("SELECT COUNT(*) FROM search WHERE `query` = :query AND assetId IS NOT NULL")
     fun hasAssetPriorities(query: String): Flow<Int>
-
-    @Query("SELECT COUNT(*) FROM search WHERE `query` = :query AND perpetualId IS NOT NULL")
-    fun hasPerpetualPriorities(query: String): Flow<Int>
 }

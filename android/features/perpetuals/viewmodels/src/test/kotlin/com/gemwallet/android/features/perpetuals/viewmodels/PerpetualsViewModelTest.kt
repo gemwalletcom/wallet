@@ -33,7 +33,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -125,7 +124,8 @@ class PerpetualsViewModelTest {
             every { this@mockk(any(), any(), any()) } returns perpetuals
         }
         val perpetualPositionsQuery = mockk<PerpetualPositionsQuery> {
-            every { this@mockk(any<WalletId>()) } returns flowOf(positions)
+            every { this@mockk(any<WalletId>(), any<String>()) } returns flowOf(emptyList())
+            every { this@mockk(mockSession().wallet.id, "bitcoin") } returns flowOf(positions)
         }
         val perpetualWalletBalanceQuery = mockk<PerpetualWalletBalanceQuery> {
             every { this@mockk(any(), any()) } returns flowOf(balance?.let { PerpetualWalletBalance(balance = it, price = 1.0) })
@@ -151,16 +151,16 @@ class PerpetualsViewModelTest {
     }
 
     @Test
-    fun `a position is found by its perpetual symbol like on iOS`() = runTest(dispatcher) {
+    fun `the trimmed search reaches the positions query for the session wallet`() = runTest(dispatcher) {
         val position = mockPerpetualPositionData(
-            perpetual = mockPerpetual(price = 100.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC-USD")),
+            perpetual = mockPerpetual(price = 100.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC")),
             asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC"),
         )
         val viewModel = viewModel(mockk(relaxed = true), positions = listOf(position))
-        viewModel.setQuery("btc-usd")
-        assertEquals(listOf(position.perpetual.id), viewModel.positions.first { it.isNotEmpty() }.map { it.perpetualId })
-        viewModel.setQuery("zzz")
-        assertEquals(emptyList<PerpetualId>(), viewModel.positions.first { it.isEmpty() }.map { it.perpetualId })
+        viewModel.setQuery(" bitcoin ")
+        advanceUntilIdle()
+
+        assertEquals(listOf(position.perpetual.id), viewModel.positions.value.map { it.perpetualId })
     }
 
     @Test

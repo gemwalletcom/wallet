@@ -32,7 +32,7 @@ class PerpetualsQueryTest {
         InstrumentationRegistry.getInstrumentation().targetContext,
         GemDatabase::class.java,
     ).build()
-    private val query = PerpetualsQuery(database.perpetualDao(), database.searchDao())
+    private val query = PerpetualsQuery(database.perpetualDao())
     private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
     private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     private val solanaAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
@@ -83,21 +83,22 @@ class PerpetualsQueryTest {
     }
 
     @Test
-    fun aSearchWithoutStoredPrioritiesMatchesTheMarketNameOrTheAssetSymbol() = runBlocking(Dispatchers.IO) {
+    fun aSearchMatchesTheMarketNameOrTheAssetSymbol() = runBlocking(Dispatchers.IO) {
         assertEquals(listOf(ethereum, doge), query("e", 100, requiresVolume = true).first())
         assertEquals(listOf(solana, doge), query("o", 100, requiresVolume = true).first())
         assertEquals(emptyList<PerpetualData>(), query("bitcoin", 100, requiresVolume = true).first())
     }
 
     @Test
-    fun aSearchWithStoredPrioritiesListsOnlyThoseMarketsInPriorityOrder() = runBlocking(Dispatchers.IO) {
+    fun storedSearchPrioritiesNeitherAddNorReorderMarkets() = runBlocking(Dispatchers.IO) {
         database.searchDao().insert(
             listOf(
-                DbSearch(query = "bitcoin", perpetualId = doge.perpetual.id.toIdentifier(), priority = 0),
-                DbSearch(query = "bitcoin", perpetualId = bitcoin.perpetual.id.toIdentifier(), priority = 1),
+                DbSearch(query = "o", perpetualId = bitcoin.perpetual.id.toIdentifier(), priority = 0),
+                DbSearch(query = "o", perpetualId = doge.perpetual.id.toIdentifier(), priority = 1),
+                DbSearch(query = "o", perpetualId = solana.perpetual.id.toIdentifier(), priority = 2),
             ),
         )
 
-        assertEquals(listOf(doge, bitcoin), query("bitcoin", 100, requiresVolume = true).first())
+        assertEquals(listOf(solana, doge), query("o", 100, requiresVolume = true).first())
     }
 }
