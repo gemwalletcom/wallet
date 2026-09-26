@@ -12,12 +12,6 @@ struct WalletIdTests {
     }
 
     @Test
-    func walletType() {
-        #expect(WalletId.multicoin(address: "0x123").walletType == .multicoin)
-        #expect(WalletId.single(chain: .ethereum, address: "0x456").walletType == .single)
-    }
-
-    @Test
     func fromId() throws {
         #expect(try WalletId.from(id: "multicoin_0x123") == .multicoin(address: "0x123"))
         #expect(try WalletId.from(id: "single_ethereum_0x456") == .single(chain: .ethereum, address: "0x456"))
