@@ -2,8 +2,8 @@
 
 import Components
 import Foundation
-import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
+import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
 import protocol Gemstone.GemNavigationServiceProtocol
 import enum Gemstone.GemNavigationTab
@@ -109,20 +109,12 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func open(code: String) async {
-        guard let action = deeplinkService.urlAction(url: code) else {
-            return showError(AnyError(Localized.Errors.notSupported))
-        }
-        await open(action: action)
+        await open(outcome: navigationService.openCode(code: code))
     }
 
     @MainActor
     func open(action: UrlAction) async {
-        do {
-            try await openURLAction(action)
-        } catch {
-            toastPresenter.toastMessage = nil
-            showError(error)
-        }
+        await open(outcome: navigationService.openAction(action: action))
     }
 
     @MainActor
@@ -136,24 +128,27 @@ final class NavigationRouter: Sendable {
         Task { await open(action: action) }
         return true
     }
+
+    @MainActor
+    private func open(outcome: GemCodeOutcome) async {
+        do {
+            switch outcome {
+            case let .open(target): try await open(target: target)
+            case let .walletConnect(link): await openWalletConnect(link)
+            case let .payment(payment, showsLoading): try await openPayment(payment, showsLoading: showsLoading)
+            case let .failure(text): showError(message: text.text)
+            }
+        } catch {
+            toastPresenter.toastMessage = nil
+            showError(error)
+        }
+    }
 }
 
-// MARK: - UrlAction
+// MARK: - Target
 
 @MainActor
 extension NavigationRouter {
-    private func openURLAction(_ action: UrlAction) async throws {
-        switch action {
-        case let .deeplink(deeplink): try await openDeeplink(deeplink)
-        case let .payment(payment): try await openPayment(payment)
-        case let .walletConnect(link): await openWalletConnect(link)
-        }
-    }
-
-    private func openDeeplink(_ deeplink: Deeplink) async throws {
-        try await open(target: navigationService.openDeeplink(deeplink: deeplink))
-    }
-
     private func open(target: GemNavigationTarget) async throws {
         switch target {
         case let .asset(asset, walletId, isPerpetual):
@@ -198,9 +193,9 @@ extension NavigationRouter {
 
 @MainActor
 extension NavigationRouter {
-    private func openPayment(_ payment: Gemstone.Payment) async throws {
+    private func openPayment(_ payment: Gemstone.Payment, showsLoading: Bool) async throws {
         let wallet = try await walletSessionService.requireCurrentWallet()
-        if case .link = payment {
+        if showsLoading {
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
         }
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)

@@ -158,7 +158,6 @@ class MainActivity :
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectPairingToastShown = viewModel::dismissWalletConnectPairingToast,
-                    onScanErrorShown = viewModel::dismissScanError,
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onErrorDismiss = viewModel::resetError,
                 )

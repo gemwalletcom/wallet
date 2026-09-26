@@ -93,28 +93,13 @@ class MainViewModel @Inject constructor(
                 .filter { it }
                 .collect {
                     try {
-                        val handled = pendingNavigationCoordinator.buildRoutes(walletConnectHandler)
-                        if (!handled) {
-                            _uiState.update { it.copy(isScanErrorVisible = true) }
+                        pendingNavigationCoordinator.buildRoutes(walletConnectHandler)?.let { text ->
+                            _uiState.update { it.copy(navigationError = text.text(context)) }
                         }
                     } catch (error: GemPaymentException) {
-                        val isLoadingPayment = pendingNavigationCoordinator.pendingNavigation.value is PendingNavigation.Loading
-                        pendingNavigationCoordinator.clear()
-                        if (isLoadingPayment) {
-                            _uiState.update { state ->
-                                state.copy(navigationError = error.errorText().text(context))
-                            }
-                        }
+                        onNavigationFailed(error)
                     } catch (error: GemServiceException) {
-                        val input = when (val pending = pendingNavigationCoordinator.pendingNavigation.value) {
-                            is PendingNavigation.Loading -> pending.input
-                            else -> pending as? PendingNavigation.Input
-                        }
-                        pendingNavigationCoordinator.clear()
-                        when (input?.code) {
-                            null -> Log.e("MainViewModel", "notification navigation failed", error)
-                            else -> _uiState.update { it.copy(navigationError = error.errorText().text(context)) }
-                        }
+                        onNavigationFailed(error)
                     }
                 }
         }
@@ -208,8 +193,16 @@ class MainViewModel @Inject constructor(
 
     fun consumePendingNavigation() = pendingNavigationCoordinator.clear()
 
-    fun dismissScanError() {
-        _uiState.update { it.copy(isScanErrorVisible = false) }
+    private fun onNavigationFailed(error: Exception) {
+        val input = when (val pending = pendingNavigationCoordinator.pendingNavigation.value) {
+            is PendingNavigation.Loading -> pending.input
+            else -> pending as? PendingNavigation.Input
+        }
+        pendingNavigationCoordinator.clear()
+        when (input?.code) {
+            null -> Log.e("MainViewModel", "notification navigation failed", error)
+            else -> _uiState.update { it.copy(navigationError = error.errorText().text(context)) }
+        }
     }
 
     fun dismissWalletConnectPairingToast() {
@@ -262,7 +255,6 @@ class MainViewModel @Inject constructor(
         val walletConnectError: String? = null,
         val navigationError: String? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
-        val isScanErrorVisible: Boolean = false,
     )
 }
 

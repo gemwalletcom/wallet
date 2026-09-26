@@ -28,7 +28,6 @@ internal fun MainContent(
     onPendingNavigationConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectPairingToastShown: () -> Unit,
-    onScanErrorShown: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
 ) {
@@ -87,11 +86,6 @@ internal fun MainContent(
             visible = isWalletUnlocked && pendingNavigation is PendingNavigation.Loading,
             message = R.string.common_loading,
             onShown = {},
-        )
-        MessageToast(
-            visible = state.isScanErrorVisible,
-            message = R.string.errors_not_supported,
-            onShown = onScanErrorShown,
         )
         MessageToast(
             message = state.navigationError,

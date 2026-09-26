@@ -261,6 +261,8 @@ mod tests {
         );
         assert_eq!(Deeplink::from_url("https://gemwallet.com/perpetuals"), Some(Deeplink::Perpetuals));
         assert_eq!(Deeplink::from_url("gem://perpetuals"), Some(Deeplink::Perpetuals));
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/perpetuals/"), Some(Deeplink::Perpetuals));
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/es/perpetuals/"), Some(Deeplink::Perpetuals));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/rewards?code=gemcoder"), Some(Deeplink::Rewards { code: Some("gemcoder".to_string()) }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/join/gemcoder"), Some(Deeplink::Rewards { code: Some("gemcoder".to_string()) }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/en/join?code=test"), Some(Deeplink::Rewards { code: Some("test".to_string()) }));

@@ -45,6 +45,7 @@ flowchart LR
 - The balance changes a simulation predicts show every digit of the amount, never a rounded value, so what the user approves is exactly what moves.
 - When Confirm loads with a problem the user can act on (not enough balance or network fee, a required memo, a risky transaction), its explanation opens by itself; other load errors stay in the error row. It opens once per problem: a refresh or a fee change that finds the same problem leaves it as the user left it, while Retry and a different problem open it again.
 - When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
+- A scanned code or link never does nothing: one the app cannot read shows "Not supported", and one it can read but not open (a network the wallet has no account on, a payment link that fails) shows why.
 - Dash sends standard non-replaceable payments, which the Dash network automatically attempts to lock with InstantSend when their inputs are eligible; until the provider exposes that lock, Activity remains Pending until the transaction is mined.
 
 ## Test codes
