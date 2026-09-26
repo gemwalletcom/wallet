@@ -1,14 +1,14 @@
+use model_derive::Model;
 use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
-use typeshare::typeshare;
 
 pub use crate::gas_price_type::GasPriceType;
 
 pub const SOLANA_PRIORITY_FEE_SCALE: u64 = 1_000_000;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq, PartialOrd, Ord)]
-#[typeshare(swift = "Equatable, Sendable, CaseIterable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq, PartialOrd, Ord, Model)]
+#[model(swift = "Equatable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum FeePriority {
@@ -16,10 +16,10 @@ pub enum FeePriority {
     Fast,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq, Model)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
-#[typeshare(swift = "Equatable, Sendable")]
+#[model(swift = "Equatable, Sendable")]
 pub enum FeeUnitType {
     SatVb,
     Gwei,

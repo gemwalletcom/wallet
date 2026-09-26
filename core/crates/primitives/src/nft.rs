@@ -4,27 +4,27 @@ use std::{
     str::FromStr,
 };
 
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
 use crate::{AssetLink, CHAIN_SEPARATOR, Chain, ImageType, TOKEN_ID_SEPARATOR, VerificationStatus};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[model(swift = "Sendable, Hashable, Equatable")]
 pub struct NFTData {
     pub collection: NFTCollection,
     pub assets: Vec<NFTAsset>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable, Identifiable")]
+#[model(swift = "Sendable, Hashable, Equatable, Identifiable")]
 pub struct NFTCollection {
     pub id: NFTCollectionId,
     pub name: String,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub symbol: Option<String>,
     pub description: Option<String>,
     pub chain: Chain,
@@ -56,9 +56,9 @@ impl NFTCollection {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable, Identifiable")]
+#[model(swift = "Sendable, Hashable, Equatable, Identifiable")]
 pub struct NFTAsset {
     pub id: NFTAssetId,
     pub collection_id: NFTCollectionId,
@@ -95,8 +95,8 @@ impl From<NFTAsset> for NFTAssetId {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Hashable, Equatable")]
 pub struct NFTAssetData {
     pub collection: NFTCollection,
     pub asset: NFTAsset,
@@ -179,9 +179,9 @@ impl FromStr for NFTCollectionId {
 crate::impl_string_serde!(NFTAssetId);
 crate::impl_string_serde!(NFTCollectionId);
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[model(swift = "Sendable, Hashable, Equatable")]
 pub struct NFTResource {
     pub url: String,
     pub mime_type: String,
@@ -200,24 +200,24 @@ impl NFTResource {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[model(swift = "Sendable, Hashable, Equatable")]
 pub struct NFTImages {
     pub preview: NFTResource,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Sendable, Hashable, Equatable")]
 #[serde(rename_all = "lowercase")]
 pub enum NFTAttributeType {
     String,
     Timestamp,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[model(swift = "Sendable, Hashable, Equatable")]
 pub struct NFTAttribute {
     pub name: String,
     pub value: String,
@@ -238,8 +238,8 @@ impl NFTAttribute {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "Sendable, Hashable, Equatable")]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, EnumIter, AsRefStr, EnumString, Model)]
+#[model(swift = "Sendable, Hashable, Equatable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum NFTType {
@@ -259,8 +259,8 @@ fn mime_type_for_image_url(url: &str) -> String {
     ImageType::from_extension(url).unwrap_or(ImageType::Png).mime_type().to_string()
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "Sendable, CaseIterable")]
+#[derive(Debug, Serialize, Deserialize, Clone, EnumIter, AsRefStr, EnumString, Model)]
+#[model(swift = "Sendable, CaseIterable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum ReportReason {

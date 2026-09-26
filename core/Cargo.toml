@@ -24,6 +24,7 @@ members = [
     "gemstone",
 
     "crates/primitives",
+    "crates/model_derive",
     "crates/block_explorers",
     "crates/config_keys",
     "crates/node_probes",

@@ -1,10 +1,10 @@
 use crate::ConnectionStatus;
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Equatable, Sendable")]
+#[model(swift = "Equatable, Sendable")]
 pub enum ConnectionComponent {
     Internet,
     Stream,

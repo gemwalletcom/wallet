@@ -56,6 +56,6 @@ Use when deleting or hiding a chain, asset, provider, endpoint, serialized field
 
 - Inventory persisted and serialized values first. Existing wallets, accounts, transactions, preferences, and old app versions may still need to decode or migrate the value.
 - Inspect actual callers in the currently supported shipped release tags; current-source compilation is not compatibility proof. State which current and legacy clients remain supported: expected failure in an intentionally unsupported client is a release decision, not automatically a blocker, but its user-visible behavior must be understood and documented.
-- Keep the Core enum and wire value when historical data must stay decodable, and remove mobile exposure through the established mechanism (`#[typeshare(skip)]`) only after confirming that requirement.
+- Keep the Core enum and wire value when historical data must stay decodable, and remove mobile exposure through the established mechanism (`#[model(skip)]` on a field, or dropping `Model` from a type's derive) only after confirming that requirement.
 - Add an explicit one-time migration on every platform that persists the affected data, and run that platform's migration tests. A fresh install or permanent runtime filtering on every launch is not evidence that upgrades are safe.
 - Keep similarly named but still-supported chains and assets distinct: check raw identifiers, filenames, token metadata, and migration predicates so cleanup cannot cross the boundary.

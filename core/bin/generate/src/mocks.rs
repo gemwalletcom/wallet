@@ -1,6 +1,6 @@
 use crate::remote_mappers::{Field, Generator, HEADER, RemoteType, Variant, Wrapper, camel_case, uniffi_swift_case, uniffi_type_name, unwrap};
 
-/// The syntax of one app's test mocks. The app side mocks the TypeShare models; the core side
+/// The syntax of one app's test mocks. The app side mocks the app models; the core side
 /// mocks the records and enums UniFFI generates for gemstone.
 pub(crate) struct MockSyntax {
     header: &'static str,
@@ -243,7 +243,7 @@ impl Generator {
     }
 
     /// One `mock(...)` per type listed under `mocks:`, taking every field with the default the
-    /// rules give its type: the TypeShare model where primitives declares one, otherwise the
+    /// rules give its type: the app model where primitives declares one, otherwise the
     /// record or enum UniFFI generates for gemstone.
     fn mocks(&self, syntax: &MockSyntax, sides: &[Side]) -> String {
         let mut body = String::new();
@@ -305,7 +305,7 @@ impl Generator {
         out
     }
 
-    /// The names under `mocks:` that primitives does not declare as a TypeShare struct, so the
+    /// The names under `mocks:` that primitives does not declare as an app model struct, so the
     /// mock is written for the UniFFI type.
     fn core_mocked(&self) -> Vec<&str> {
         let mut names = self.config.mocked().into_iter().filter(|name| !self.mocked.iter().any(|mock| mock.name() == *name)).collect::<Vec<_>>();
@@ -480,7 +480,7 @@ impl Generator {
         if self.core_mocked().contains(&name) {
             return syntax.reference.replace("{function}", &uniffi_type_name(name));
         }
-        if self.mocked.iter().any(|mock| mock.name() == name) && self.types.iter().any(|remote| remote.name() == name && remote.typeshared()) {
+        if self.mocked.iter().any(|mock| mock.name() == name) && self.types.iter().any(|remote| remote.name() == name && remote.app_model()) {
             imports.extend(syntax.core_imports.iter().map(|import| import.to_string()));
             return syntax.to_core.replace("{type}", name).replace("{function}", &uniffi_type_name(name));
         }

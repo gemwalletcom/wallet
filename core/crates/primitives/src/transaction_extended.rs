@@ -1,9 +1,9 @@
 use crate::{AddressName, Asset, AssetPrice, Price, Transaction, UInt64};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable, Hashable")]
 pub struct TransactionExtended {
     #[serde(rename = "recordId")]
     pub record_id: UInt64,

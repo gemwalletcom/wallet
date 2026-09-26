@@ -1,8 +1,8 @@
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PriceAlert {
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip)]
     pub identifier: String,
     pub price: Option<f64>,
@@ -11,8 +11,8 @@ pub struct PriceAlert {
     pub last_notified_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PriceAlertNotification {
     pub wallet_id: WalletId,

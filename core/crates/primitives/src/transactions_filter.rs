@@ -1,10 +1,10 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{AssetId, Chain, TransactionState, TransactionType};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionsFilter {
     pub asset_id: Option<AssetId>,

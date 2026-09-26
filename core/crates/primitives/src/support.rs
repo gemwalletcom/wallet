@@ -1,10 +1,10 @@
 use crate::UInt64;
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SupportMessageStatus {
     Sending,
@@ -12,15 +12,15 @@ pub enum SupportMessageStatus {
     Failed,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct SupportAgent {
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(tag = "type", content = "data", rename_all = "lowercase")]
 pub enum SupportMessageSender {
     User,
@@ -43,8 +43,8 @@ impl SupportMessageSender {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct SupportMessageImage {
     pub id: String,
@@ -61,8 +61,8 @@ pub struct SupportMessageImage {
     pub height: Option<i32>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct SupportMessage {
     pub id: String,
@@ -79,16 +79,16 @@ pub struct SupportMessageInput {
     pub content: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum SupportTypingStatus {
     On,
     Off,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 pub struct SupportTyping {
     pub status: SupportTypingStatus,
     pub agent: SupportAgent,

@@ -1,12 +1,12 @@
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 use crate::{Asset, AssetId, Device, Price, currency::Currency};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Clone, Debug, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PriceAlert {
     pub asset_id: AssetId,
@@ -19,7 +19,7 @@ pub struct PriceAlert {
     pub price_direction: Option<PriceAlertDirection>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_notified_at: Option<DateTime<Utc>>,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip)]
     pub identifier: String,
 }
@@ -101,8 +101,8 @@ impl PriceAlert {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, AsRefStr, EnumString, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Clone, Debug, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum PriceAlertDirection {
@@ -122,8 +122,8 @@ pub enum PriceAlertType {
     PriceMilestone,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum PriceAlertNotificationType {
     Auto,
@@ -140,8 +140,8 @@ pub struct DevicePriceAlert {
     pub price_alert: PriceAlert,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Clone, Debug, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct PriceAlertData {
     pub asset: Asset,

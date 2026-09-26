@@ -1,9 +1,9 @@
 use crate::{AddressName, Asset, Transaction};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable, Hashable")]
 pub struct TransactionListItem {
     pub transaction: Transaction,
     pub asset: Asset,

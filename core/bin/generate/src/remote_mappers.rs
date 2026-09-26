@@ -98,14 +98,14 @@ pub enum RemoteType {
         name: String,
         module: String,
         variants: Vec<Variant>,
-        typeshared: bool,
+        app_model: bool,
         content: Option<String>,
     },
     Record {
         name: String,
         module: String,
         fields: Vec<Field>,
-        typeshared: bool,
+        app_model: bool,
     },
     Code {
         name: String,
@@ -138,9 +138,9 @@ impl RemoteType {
         }
     }
 
-    pub(crate) fn typeshared(&self) -> bool {
+    pub(crate) fn app_model(&self) -> bool {
         match self {
-            Self::Enum { typeshared, .. } | Self::Record { typeshared, .. } => *typeshared,
+            Self::Enum { app_model, .. } | Self::Record { app_model, .. } => *app_model,
             Self::Code { .. } => true,
         }
     }
@@ -165,7 +165,7 @@ pub struct Generator {
     pub(crate) core_errors: BTreeSet<String>,
 }
 
-/// A TypeShare declaration as the apps see it: its module, and for an enum its variants.
+/// An app model declaration as the apps see it: its module, and for an enum its variants.
 pub(crate) struct AppType {
     pub(crate) module: String,
     pub(crate) variants: Option<Vec<Variant>>,
@@ -190,18 +190,18 @@ impl Generator {
                 .map(|parent| parent.components().map(|component| component.as_os_str().to_string_lossy().into_owned()).collect::<Vec<_>>().join("."))
                 .unwrap_or_default();
             let mut lines = source.lines();
-            let mut typeshare = false;
+            let mut app_model = false;
             let mut camel_case_fields = false;
             let mut content = None;
             while let Some(line) = lines.next() {
                 let Some((keyword, name)) = declaration(line.trim()) else {
                     let attribute = line.trim().starts_with("#[");
-                    typeshare = attribute && (typeshare || line.trim().starts_with("#[typeshare"));
+                    app_model = attribute && (app_model || derives_model(line.trim()));
                     camel_case_fields = attribute && (camel_case_fields || line.trim() == "#[serde(rename_all = \"camelCase\")]");
                     content = attribute.then(|| content.take().or_else(|| serde_content(line.trim()))).flatten();
                     continue;
                 };
-                let declared = std::mem::take(&mut typeshare);
+                let declared = std::mem::take(&mut app_model);
                 let camel = std::mem::take(&mut camel_case_fields);
                 let tagged_content = content.take();
                 let remote = config.remote.contains(&name);
@@ -219,7 +219,7 @@ impl Generator {
                         name: name.clone(),
                         module: module.clone(),
                         fields: fields(&body, camel),
-                        typeshared: declared,
+                        app_model: declared,
                     });
                 }
                 if config.codes.contains(&name) {
@@ -238,27 +238,27 @@ impl Generator {
                         variants: variants(&name, &body),
                         name,
                         module: module.clone(),
-                        typeshared: declared,
+                        app_model: declared,
                         content: tagged_content,
                     },
                     _ => RemoteType::Record {
                         name,
                         module: module.clone(),
                         fields: fields(&body, camel),
-                        typeshared: declared,
+                        app_model: declared,
                     },
                 });
             }
         }
         for name in config.remote.iter().chain(&config.codes) {
-            let typeshared = found.iter().filter(|remote| remote.name() == name && remote.typeshared()).count();
-            if typeshared > 0 {
-                found.retain(|remote| remote.name() != name || remote.typeshared());
+            let app_model = found.iter().filter(|remote| remote.name() == name && remote.app_model()).count();
+            if app_model > 0 {
+                found.retain(|remote| remote.name() != name || remote.app_model());
             }
             let declarations = found.iter().filter(|remote| remote.name() == name).count();
             assert!(
                 declarations == 1,
-                "{name} has {declarations} declarations in {}, expected exactly one TypeShare declaration or one plain one",
+                "{name} has {declarations} declarations in {}, expected exactly one app model declaration or one plain one",
                 primitives.display()
             );
         }
@@ -266,10 +266,10 @@ impl Generator {
         core_aliases.extend(config.aliases.clone());
         for name in &mocks {
             let declarations = mocked.iter().filter(|mock| mock.name() == *name).count();
-            let core = core_types.contains_key(*name) || found.iter().any(|remote| remote.name() == *name && !remote.typeshared());
+            let core = core_types.contains_key(*name) || found.iter().any(|remote| remote.name() == *name && !remote.app_model());
             assert!(
                 declarations == 1 || (declarations == 0 && core),
-                "{name} is listed under mocks: and has {declarations} TypeShare structs in {} and no UniFFI record or enum in {}, expected one",
+                "{name} is listed under mocks: and has {declarations} app model structs in {} and no UniFFI record or enum in {}, expected one",
                 primitives.display(),
                 gemstone.display()
             );
@@ -351,10 +351,10 @@ impl Generator {
     }
 
     /// One `map()` / `toPrimitives()` / `toGem()` per direction for every remote type that has a
-    /// TypeShare twin; a type without one is held by the apps as the uniffi type itself.
+    /// app model twin; a type without one is held by the apps as the uniffi type itself.
     fn mappers(&self, language: &Language) -> String {
         let mut out = format!("{HEADER}\n{}", language.header);
-        for remote in self.types.iter().filter(|remote| remote.typeshared()) {
+        for remote in self.types.iter().filter(|remote| remote.app_model()) {
             let name = remote.name();
             if let RemoteType::Code { .. } = remote {
                 out.push_str(&language.code_mapper.replace("{name}", name));
@@ -393,7 +393,7 @@ impl Generator {
                                     let value = language.convert(&self.config, &field.type_name, &payload, index);
                                     language.sealed_arm_data.replace("{payload}", &payload).replace("{value}", &value)
                                 }
-                                (true, _) => panic!("{name}::{} carries named or multiple fields; a TypeShare twin renders those as a type of their own", variant.name),
+                                (true, _) => panic!("{name}::{} carries named or multiple fields; an app model twin renders those as a type of their own", variant.name),
                             };
                             out.push_str(&arm.replace("{from_type}", from).replace("{from_case}", &from_case).replace("{to_type}", to).replace("{to_case}", &to_case));
                         }
@@ -468,14 +468,14 @@ fn core_types(gemstone: &Path) -> (BTreeMap<String, RemoteType>, BTreeMap<String
                     variants: variants(&name, &body),
                     name: name.clone(),
                     module,
-                    typeshared: false,
+                    app_model: false,
                     content: None,
                 },
                 _ => RemoteType::Record {
                     fields: fields(&body, false),
                     name: name.clone(),
                     module,
-                    typeshared: false,
+                    app_model: false,
                 },
             };
             found.insert(name, declaration);
@@ -642,9 +642,9 @@ fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
     for line in body {
         if let Some(value) = serde_rename(line.trim()) {
             rename = Some(value);
-        } else if let Some(value) = typeshare_serialized_as(line.trim()) {
+        } else if let Some(value) = model_serialized_as(line.trim()) {
             serialized_as = Some(value);
-        } else if line.trim() == "#[typeshare(skip)]" {
+        } else if line.trim() == "#[model(skip)]" {
             skipped = true;
         } else if let Some((rust, Some(type_name))) = member(line) {
             fields.push(Field {
@@ -661,8 +661,14 @@ fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
     fields
 }
 
-fn typeshare_serialized_as(line: &str) -> Option<String> {
-    Some(line.strip_prefix("#[typeshare(serialized_as = \"")?.split('"').next()?.to_string())
+fn model_serialized_as(line: &str) -> Option<String> {
+    Some(line.strip_prefix("#[model(serialized_as = \"")?.split('"').next()?.to_string())
+}
+
+fn derives_model(line: &str) -> bool {
+    line.strip_prefix("#[derive(")
+        .and_then(|list| list.strip_suffix(")]"))
+        .is_some_and(|list| list.split(',').any(|derive| derive.trim() == "Model"))
 }
 
 fn serde_content(line: &str) -> Option<String> {
@@ -847,7 +853,7 @@ impl Language {
                 let variant = config.default_variant(name).unwrap_or_default();
                 format!("{}.{}.{}", self.core_module, name, (self.cases[0])(variant))
             }
-            (name, _) => panic!("{record}.{} is skipped by TypeShare and {name} has no default the generator can emit", field.rust),
+            (name, _) => panic!("{record}.{} is skipped by its app model and {name} has no default the generator can emit", field.rust),
         }
     }
 }
@@ -916,7 +922,7 @@ pub(crate) fn uniffi_swift_case(variant: &str) -> String {
 }
 
 /// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
-/// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
+/// becomes `transferNft`, where the app model keeps `transferNFT`. The two sides of a mapper therefore
 /// spell the same variant differently whenever it contains an acronym.
 pub(crate) fn uniffi_type_name(name: &str) -> String {
     let camel = uniffi_swift_case(name);
@@ -967,11 +973,11 @@ mod tests {
     }
 
     #[test]
-    fn test_a_typeshare_declaration_wins_over_a_plain_one_with_the_same_name() {
+    fn test_an_app_model_declaration_wins_over_a_plain_one_with_the_same_name() {
         let generator = Generator::mock();
         let stake = generator.types.iter().find(|remote| remote.name() == "GasPriceType").unwrap();
-        assert!(!stake.typeshared());
-        assert_eq!(generator.types.iter().filter(|remote| remote.typeshared()).count(), 8);
+        assert!(!stake.app_model());
+        assert_eq!(generator.types.iter().filter(|remote| remote.app_model()).count(), 8);
     }
 
     #[test]
@@ -984,7 +990,7 @@ mod tests {
 
     #[test]
     fn test_a_field_serialized_as_another_type_maps_through_that_type() {
-        let fields = fields(&["    #[typeshare(serialized_as = \"BigIntValue\")]", "    pub balance: BigUint,", "    pub rewards: BigUint,"], true);
+        let fields = fields(&["    #[model(serialized_as = \"BigIntValue\")]", "    pub balance: BigUint,", "    pub rewards: BigUint,"], true);
         assert_eq!(fields[0].type_name, "BigIntValue");
         assert_eq!(fields[1].type_name, "BigUint", "the override belongs to the next field only");
 

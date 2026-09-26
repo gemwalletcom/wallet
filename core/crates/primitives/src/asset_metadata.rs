@@ -1,8 +1,8 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 pub struct AssetMetaData {
     #[serde(rename = "isEnabled")]
     pub is_enabled: bool,
