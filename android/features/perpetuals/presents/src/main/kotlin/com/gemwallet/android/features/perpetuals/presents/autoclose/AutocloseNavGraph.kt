@@ -32,33 +32,33 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.assets.presents.address.AddressDetailsScreen
-import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetuals.viewmodels.AutocloseViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import kotlinx.serialization.Serializable
 
+typealias AutocloseConfirmContent = @Composable (input: ConfirmTransferInput, finishAction: FinishConfirmAction, cancelAction: CancelAction, onOpenAddress: (ChainAddress) -> Unit) -> Unit
+
 @Composable
-fun AutocloseNavGraph(onDismiss: () -> Unit, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit) {
+fun AutocloseNavGraph(onDismiss: () -> Unit, finishAction: FinishConfirmAction, confirmContent: AutocloseConfirmContent) {
     val rootOwner = rememberAutocloseRootViewModelStoreOwner()
     CompositionLocalProvider(LocalViewModelStoreOwner provides rootOwner) {
         AutocloseNavGraphContent(
             onDismiss = onDismiss,
             finishAction = finishAction,
-            onAcquireAsset = onAcquireAsset,
+            confirmContent = confirmContent,
         )
     }
 }
 
 @Composable
-private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit) {
+private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: FinishConfirmAction, confirmContent: AutocloseConfirmContent) {
     val viewModel: AutocloseViewModel = hiltViewModel()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val positionRow by viewModel.positionRow.collectAsStateWithLifecycle()
@@ -114,21 +114,19 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
         }
         entry<AutocloseConfirmRoute> {
             transfer?.let { input ->
-                ConfirmScreen(
-                    input = input,
-                    cancelAction = popInternal,
-                    finishAction = { hash, warning ->
+                confirmContent(
+                    input,
+                    FinishConfirmAction { hash, warning ->
                         finishAction(hash, warning)
                         onDismiss()
                     },
-                    onAcquireAsset = onAcquireAsset,
-                    onOpenAddress = { chainAddress ->
+                    CancelAction { popInternal() },
+                    { chainAddress ->
                         val route = AutocloseAddressDetailsRoute(chainAddress)
                         if (backStack.lastOrNull() != route) {
                             backStack.add(route)
                         }
                     },
-                    handleSystemBack = true,
                 )
             }
         }

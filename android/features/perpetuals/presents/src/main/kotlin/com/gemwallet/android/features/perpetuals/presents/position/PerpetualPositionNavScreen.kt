@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseConfirmContent
 import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseNavGraph
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualDetailsViewModel
 import com.gemwallet.android.ui.R
@@ -19,7 +19,6 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 
 @Composable
@@ -28,7 +27,7 @@ fun PerpetualPositionNavScreen(
     confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
+    confirmContent: AutocloseConfirmContent,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
     LifecycleResumeEffect(Unit) {
@@ -85,7 +84,7 @@ fun PerpetualPositionNavScreen(
         AutocloseNavGraph(
             onDismiss = { showAutoclose = false },
             finishAction = FinishConfirmAction { _, _ -> viewModel.refreshPerpetual() },
-            onAcquireAsset = onAcquireAsset,
+            confirmContent = confirmContent,
         )
     }
 }

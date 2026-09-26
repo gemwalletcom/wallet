@@ -11,8 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
-import com.gemwallet.android.features.confirm.presents.ConfirmScreen
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.wallet_connector.viewmodels.RequestSceneState
 import com.gemwallet.android.features.wallet_connector.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.wallet_connector.viewmodels.model.WCRequest
@@ -21,11 +20,19 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.ChainAddress
+import uniffi.gemstone.SimulationResult
 
 @Composable
-fun RequestScene(request: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
+fun RequestScene(
+    request: WalletConnectSessionRequest,
+    verifyContext: WalletConnectVerifyContext,
+    confirmContent: @Composable (input: ConfirmTransferInput, simulation: SimulationResult, finishAction: FinishConfirmAction, cancelAction: CancelAction) -> Unit,
+    onOpenAddress: (ChainAddress) -> Unit,
+    onError: (String) -> Unit,
+) {
     val viewModel: WCRequestViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
     val context = LocalContext.current
@@ -64,14 +71,11 @@ fun RequestScene(request: WalletConnectSessionRequest, verifyContext: WalletConn
                     onOpenAddress = onOpenAddress,
                 )
 
-                is WCRequest.Transaction -> ConfirmScreen(
-                    input = request.input,
-                    simulationResult = request.simulation,
-                    finishAction = { hash, _ -> viewModel.onTransactionResult(hash) },
-                    onAcquireAsset = onAcquireAsset,
-                    onOpenAddress = onOpenAddress,
-                    cancelAction = viewModel::onReject,
-                    handleSystemBack = true,
+                is WCRequest.Transaction -> confirmContent(
+                    request.input,
+                    request.simulation,
+                    FinishConfirmAction { hash, _ -> viewModel.onTransactionResult(hash) },
+                    CancelAction(viewModel::onReject),
                 )
             }
         }

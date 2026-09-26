@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectUserRequest
+import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.wallet_connector.presents.AuthRequestScene
 import com.gemwallet.android.features.wallet_connector.presents.ProposalScene
@@ -33,7 +34,17 @@ internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectReque
         is WalletConnectUserRequest.SessionRequest -> RequestScene(
             request = current.request,
             verifyContext = current.verifyContext,
-            onAcquireAsset = onAcquireAsset,
+            confirmContent = { input, simulation, finishAction, cancelAction ->
+                ConfirmScreen(
+                    input = input,
+                    simulationResult = simulation,
+                    finishAction = finishAction,
+                    onAcquireAsset = onAcquireAsset,
+                    onOpenAddress = onOpenAddress,
+                    cancelAction = cancelAction,
+                    handleSystemBack = true,
+                )
+            },
             onOpenAddress = onOpenAddress,
             onError = onError,
         )
