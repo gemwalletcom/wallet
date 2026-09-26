@@ -131,12 +131,13 @@ public struct RewardsScene: View {
                 }
 
                 HStack(spacing: Spacing.medium) {
-                    featureItem(emoji: "👥", text: Localized.Rewards.InviteFriends.title)
-                    featureItem(emoji: "💎", text: Localized.Rewards.EarnPoints.title)
-                    featureItem(emoji: "🎉", text: Localized.Rewards.GetRewards.title)
+                    ForEach(model.introItems, id: \.self) { item in
+                        featureItem(emoji: item.emoji, text: item.title)
+                    }
                 }
 
-                if model.action(.share) {
+                switch model.inviteAction {
+                case .share:
                     Button {
                         model.isPresentingSheet = .share
                     } label: {
@@ -146,20 +147,22 @@ public struct RewardsScene: View {
                         }
                     }
                     .buttonStyle(.blue())
-                } else if model.action(.createCode) {
+                case .createCode:
                     Button {
                         model.isPresentingSheet = .createCode
                     } label: {
                         Text(model.createCodeButtonTitle)
                     }
                     .buttonStyle(.blue())
+                case nil:
+                    EmptyView()
                 }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, Spacing.small)
         }
 
-        if model.action(.useReferralCode) {
+        if model.canUseReferralCode {
             Section {
                 Button {
                     model.isPresentingSheet = .activateCode(code: "")

@@ -36,7 +36,9 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemRewardsAction
+import uniffi.gemstone.GemRewardsIntroItem
+import uniffi.gemstone.GemRewardsInviteAction
+import uniffi.gemstone.GemRewardsPendingReferral
 import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemServiceException
@@ -78,8 +80,17 @@ class RewardsViewModel @Inject constructor(
     private val rewardsState = viewState.map { it.rewards }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.rewards)
 
-    val actions: StateFlow<List<GemRewardsAction>> = rewardsState.map { it.actions }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.actions)
+    val introItems: StateFlow<List<GemRewardsIntroItem>> = rewardsState.map { it.intro }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.intro)
+
+    val inviteAction: StateFlow<GemRewardsInviteAction?> = rewardsState.map { it.inviteAction }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.inviteAction)
+
+    val canUseReferralCode: StateFlow<Boolean> = rewardsState.map { it.canUseReferralCode }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.canUseReferralCode)
+
+    val pendingReferral: StateFlow<GemRewardsPendingReferral?> = rewardsState.map { it.pendingReferral }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.pendingReferral)
 
     val notices: StateFlow<List<GemListRow>> = rewardsState.map { listOfNotNull(it.errorNotice, it.statusNotice) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

@@ -52,6 +52,7 @@ import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemNotificationIcon
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemSecurityReminderItem
 import uniffi.gemstone.GemSupportBubbleSide
 import uniffi.gemstone.GemSwapProgressMarker
@@ -238,6 +239,12 @@ fun GemSwapProgressStep.textStyle(): ListItemTextStyle = when (this) {
     -> ListItemTextStyle.Negative
 
     GemSwapProgressStep.REFUNDED -> ListItemTextStyle.Warning
+}
+
+fun GemRewardsIntroItem.emoji(): String = when (this) {
+    GemRewardsIntroItem.INVITE_FRIENDS -> "\uD83D\uDC65"
+    GemRewardsIntroItem.EARN_POINTS -> "\uD83D\uDC8E"
+    GemRewardsIntroItem.GET_REWARDS -> "\uD83C\uDF89"
 }
 
 @Composable

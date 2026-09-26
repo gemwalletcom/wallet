@@ -48,7 +48,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val incomingCode by viewModel.incomingCode.collectAsStateWithLifecycle()
-    val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val introItems by viewModel.introItems.collectAsStateWithLifecycle()
+    val inviteAction by viewModel.inviteAction.collectAsStateWithLifecycle()
+    val canUseReferralCode by viewModel.canUseReferralCode.collectAsStateWithLifecycle()
+    val pendingReferral by viewModel.pendingReferral.collectAsStateWithLifecycle()
     val notices by viewModel.notices.collectAsStateWithLifecycle()
     val inviteDescription by viewModel.inviteDescription.collectAsStateWithLifecycle()
     val shareText by viewModel.shareText.collectAsStateWithLifecycle()
@@ -62,7 +65,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         isAvailableWalletSelect = canChooseWallet,
         incomingCode = incomingCode,
         referralLink = referralLink,
-        actions = actions,
+        introItems = introItems,
+        inviteAction = inviteAction,
+        canUseReferralCode = canUseReferralCode,
+        pendingReferral = pendingReferral,
         notices = notices,
         inviteDescription = inviteDescription,
         shareText = shareText,

@@ -20,14 +20,17 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.emoji
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import uniffi.gemstone.GemRewardsAction
+import uniffi.gemstone.GemRewardsIntroItem
+import uniffi.gemstone.GemRewardsInviteAction
 
-internal fun LazyListScope.rewardsHead(description: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
+internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewardsIntroItem>, action: GemRewardsInviteAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
             modifier = Modifier
@@ -57,62 +60,32 @@ internal fun LazyListScope.rewardsHead(description: String, action: GemRewardsAc
                 horizontalArrangement = Arrangement.spacedBy(paddingDefault),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-                ) {
-                    Text(
-                        text = "\uD83D\uDC65",
-                        fontSize = 26.sp,
-                    )
-                    Text(
-                        text = stringResource(R.string.rewards_invite_friends_title),
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-                ) {
-                    Text(
-                        text = "\uD83D\uDC8E",
-                        fontSize = 26.sp,
-                    )
-                    Text(
-                        text = stringResource(R.string.rewards_earn_points_title),
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-                ) {
-                    Text(
-                        text = "\uD83C\uDF89",
-                        fontSize = 26.sp,
-                    )
-                    Text(
-                        text = stringResource(R.string.rewards_get_rewards_title),
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                    )
+                intro.forEach { item ->
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
+                    ) {
+                        Text(
+                            text = item.emoji(),
+                            fontSize = 26.sp,
+                        )
+                        Text(
+                            text = stringResource(item.titleRes()),
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
             when (action) {
-                GemRewardsAction.CreateCode -> MainActionButton(
+                GemRewardsInviteAction.CREATE_CODE -> MainActionButton(
                     title = stringResource(R.string.common_get_started),
                     onClick = onGetStarted,
                 )
 
-                GemRewardsAction.Share -> MainActionButton(
+                GemRewardsInviteAction.SHARE -> MainActionButton(
                     onClick = onShare,
                 ) {
                     Icon(AppIcons.Share, contentDescription = "share")
@@ -120,7 +93,7 @@ internal fun LazyListScope.rewardsHead(description: String, action: GemRewardsAc
                     Text(stringResource(R.string.rewards_invite_friends_title))
                 }
 
-                else -> Unit
+                null -> Unit
             }
         }
     }

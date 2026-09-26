@@ -101,6 +101,7 @@ import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
+import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
 import uniffi.gemstone.GemSelectAssetTitle
@@ -477,6 +478,13 @@ fun GemTransactionStateTone.infoDescriptionRes(): Int = when (this) {
 fun PerpetualDirection.stringRes(): Int = when (this) {
     PerpetualDirection.Long -> R.string.perpetual_long
     PerpetualDirection.Short -> R.string.perpetual_short
+}
+
+@StringRes
+fun GemRewardsIntroItem.titleRes(): Int = when (this) {
+    GemRewardsIntroItem.INVITE_FRIENDS -> R.string.rewards_invite_friends_title
+    GemRewardsIntroItem.EARN_POINTS -> R.string.rewards_earn_points_title
+    GemRewardsIntroItem.GET_REWARDS -> R.string.rewards_get_rewards_title
 }
 
 @StringRes

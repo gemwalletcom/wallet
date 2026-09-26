@@ -1048,7 +1048,10 @@ public extension Gemstone.GemRewardsResult {
 
 public extension Gemstone.GemRewardsState {
     static func mock(
-        actions: [Gemstone.GemRewardsAction] = [],
+        intro: [Gemstone.GemRewardsIntroItem] = [],
+        inviteAction: Gemstone.GemRewardsInviteAction? = nil,
+        canUseReferralCode: Bool = false,
+        pendingReferral: Gemstone.GemRewardsPendingReferral? = nil,
         errorNotice: Gemstone.GemListRow? = nil,
         statusNotice: Gemstone.GemListRow? = nil,
         sections: [Gemstone.GemListSection] = [],
@@ -1060,7 +1063,10 @@ public extension Gemstone.GemRewardsState {
         redemptions: [Gemstone.GemRewardsRedemption] = [],
     ) -> Gemstone.GemRewardsState {
         Gemstone.GemRewardsState(
-            actions: actions,
+            intro: intro,
+            inviteAction: inviteAction,
+            canUseReferralCode: canUseReferralCode,
+            pendingReferral: pendingReferral,
             errorNotice: errorNotice,
             statusNotice: statusNotice,
             sections: sections,

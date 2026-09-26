@@ -53,7 +53,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | — |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM292 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM290; retain native locale/theme application |
@@ -155,10 +155,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsSceneViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
   - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertsScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
-- **VM292** **S** **The rewards screen's intro and action placement are written in the apps.**
-  - **iOS:** `RewardsScene` lists the three intro features with their emojis and titles and places share or create-code, use-code and the pending referral.
-  - **Android:** `RewardsHead` lists the same three features and `RewardsScene` picks the first share or create-code action, then use-code and the pending referral.
-  - **Expected:** the rewards state returns the intro items and the placed actions.
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
   - **Android:** `PhraseWord.phraseRows` does the same.

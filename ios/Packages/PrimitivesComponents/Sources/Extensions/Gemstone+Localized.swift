@@ -69,6 +69,7 @@ import enum Gemstone.GemReceiveWarning
 import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemRecipientSectionKind
+import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemSelectAssetSection
 import enum Gemstone.GemSelectAssetTitle
@@ -1675,6 +1676,16 @@ public extension GemRecipientSectionKind {
         case .contacts: Localized.Contacts.title
         case .wallets: Localized.Transfer.Recipient.myWallets
         case .viewWallets: Localized.Transfer.Recipient.viewWallets
+        }
+    }
+}
+
+public extension GemRewardsIntroItem {
+    var title: String {
+        switch self {
+        case .inviteFriends: Localized.Rewards.InviteFriends.title
+        case .earnPoints: Localized.Rewards.EarnPoints.title
+        case .getRewards: Localized.Rewards.GetRewards.title
         }
     }
 }

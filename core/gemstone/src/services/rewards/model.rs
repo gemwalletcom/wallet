@@ -19,17 +19,31 @@ pub struct GemRewardsViewState {
     pub is_refreshing: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
-pub enum GemRewardsAction {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemRewardsIntroItem {
+    InviteFriends,
+    EarnPoints,
+    GetRewards,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemRewardsInviteAction {
     CreateCode,
     Share,
-    UseReferralCode,
-    ActivatePendingReferral { code: String, is_enabled: bool },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemRewardsPendingReferral {
+    pub code: String,
+    pub is_enabled: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRewardsState {
-    pub actions: Vec<GemRewardsAction>,
+    pub intro: Vec<GemRewardsIntroItem>,
+    pub invite_action: Option<GemRewardsInviteAction>,
+    pub can_use_referral_code: bool,
+    pub pending_referral: Option<GemRewardsPendingReferral>,
     pub error_notice: Option<GemListRow>,
     pub status_notice: Option<GemListRow>,
     pub sections: Vec<GemListSection>,
@@ -68,7 +82,10 @@ pub struct GemRewardsRedemption {
 impl Default for GemRewardsState {
     fn default() -> Self {
         Self {
-            actions: Vec::new(),
+            intro: vec![GemRewardsIntroItem::InviteFriends, GemRewardsIntroItem::EarnPoints, GemRewardsIntroItem::GetRewards],
+            invite_action: None,
+            can_use_referral_code: false,
+            pending_referral: None,
             error_notice: None,
             status_notice: None,
             sections: Vec::new(),

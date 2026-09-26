@@ -38,7 +38,6 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemRewardsWallets
 import uniffi.gemstone.GemServiceException
@@ -224,7 +223,7 @@ class RewardsViewModelTest {
         }
     }
 
-    private fun pendingCode(viewModel: RewardsViewModel): String? = viewModel.actions.value.filterIsInstance<GemRewardsAction.ActivatePendingReferral>().firstOrNull()?.code
+    private fun pendingCode(viewModel: RewardsViewModel): String? = viewModel.pendingReferral.value?.code
 
     private fun createViewModel(code: String? = null): RewardsViewModel {
         val arguments = mutableMapOf<String, Any>()

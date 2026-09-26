@@ -65,7 +65,9 @@ import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemRewardsAction
+import uniffi.gemstone.GemRewardsIntroItem
+import uniffi.gemstone.GemRewardsInviteAction
+import uniffi.gemstone.GemRewardsPendingReferral
 import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemServiceException
 
@@ -78,7 +80,10 @@ fun RewardsScene(
     loadError: GemServiceException?,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    actions: List<GemRewardsAction>,
+    introItems: List<GemRewardsIntroItem>,
+    inviteAction: GemRewardsInviteAction?,
+    canUseReferralCode: Boolean,
+    pendingReferral: GemRewardsPendingReferral?,
     notices: List<GemListRow>,
     inviteDescription: String,
     shareText: String?,
@@ -100,7 +105,7 @@ fun RewardsScene(
     val joinText = shareText.orEmpty()
     val shareTitle = stringResource(id = R.string.common_share, link)
 
-    var getStartedDialogShow by remember(actions) { mutableStateOf(false) }
+    var getStartedDialogShow by remember(inviteAction) { mutableStateOf(false) }
     var codeDialogShow by remember(incomingCode, isLoading, isRefreshing) { mutableStateOf(incomingCode is GemIncomingCode.Confirm && !isLoading && !isRefreshing) }
     val referralCode = (incomingCode as? GemIncomingCode.Confirm)?.code
 
@@ -177,12 +182,13 @@ fun RewardsScene(
                 }
                 rewardsHead(
                     description = inviteDescription,
-                    action = actions.firstOrNull { it is GemRewardsAction.Share || it is GemRewardsAction.CreateCode },
+                    intro = introItems,
+                    action = inviteAction,
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
                 )
 
-                if (actions.contains(GemRewardsAction.UseReferralCode)) {
+                if (canUseReferralCode) {
                     item {
                         Spacer8()
                         Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
@@ -204,7 +210,7 @@ fun RewardsScene(
                         )
                     }
                 }
-                val pending = actions.filterIsInstance<GemRewardsAction.ActivatePendingReferral>().firstOrNull()
+                val pending = pendingReferral
                 notices.forEachIndexed { index, notice ->
                     val isLast = index == notices.lastIndex
                     item {
@@ -250,7 +256,10 @@ private fun RewardsScenePreview() {
             isRefreshing = false,
             isAvailableWalletSelect = false,
             referralLink = null,
-            actions = listOf(GemRewardsAction.Share),
+            introItems = GemRewardsIntroItem.entries,
+            inviteAction = GemRewardsInviteAction.SHARE,
+            canUseReferralCode = false,
+            pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
             shareText = null,
@@ -278,7 +287,10 @@ private fun RewardsSceneNoRewardsPreview() {
             isRefreshing = false,
             isAvailableWalletSelect = false,
             referralLink = null,
-            actions = listOf(GemRewardsAction.CreateCode, GemRewardsAction.UseReferralCode),
+            introItems = GemRewardsIntroItem.entries,
+            inviteAction = GemRewardsInviteAction.CREATE_CODE,
+            canUseReferralCode = true,
+            pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
             shareText = null,

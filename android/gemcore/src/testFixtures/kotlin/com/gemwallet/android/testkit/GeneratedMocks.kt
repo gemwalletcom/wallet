@@ -1840,7 +1840,10 @@ fun mockGemRewardsResult(
 )
 
 fun mockGemRewardsState(
-    actions: List<uniffi.gemstone.GemRewardsAction> = emptyList(),
+    intro: List<uniffi.gemstone.GemRewardsIntroItem> = emptyList(),
+    inviteAction: uniffi.gemstone.GemRewardsInviteAction? = null,
+    canUseReferralCode: Boolean = false,
+    pendingReferral: uniffi.gemstone.GemRewardsPendingReferral? = null,
     errorNotice: uniffi.gemstone.GemListRow? = null,
     statusNotice: uniffi.gemstone.GemListRow? = null,
     sections: List<uniffi.gemstone.GemListSection> = emptyList(),
@@ -1851,7 +1854,10 @@ fun mockGemRewardsState(
     usedReferralCode: String? = null,
     redemptions: List<uniffi.gemstone.GemRewardsRedemption> = emptyList(),
 ) = uniffi.gemstone.GemRewardsState(
-    actions = actions,
+    intro = intro,
+    inviteAction = inviteAction,
+    canUseReferralCode = canUseReferralCode,
+    pendingReferral = pendingReferral,
     errorNotice = errorNotice,
     statusNotice = statusNotice,
     sections = sections,

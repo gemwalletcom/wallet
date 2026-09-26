@@ -35,6 +35,7 @@ import enum Gemstone.GemNotificationIcon
 import enum Gemstone.GemPerpetualChartLineKind
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemRecipientSectionKind
+import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecretWarning
 import struct Gemstone.GemSocialLink
 import enum Gemstone.GemSupportBubbleSide
@@ -395,6 +396,16 @@ public extension GemRecipientSectionKind {
         case .contacts: Images.System.person
         case .wallets: Images.System.wallet
         case .viewWallets: Images.System.eye
+        }
+    }
+}
+
+public extension GemRewardsIntroItem {
+    var emoji: String {
+        switch self {
+        case .inviteFriends: "👥"
+        case .earnPoints: "💎"
+        case .getRewards: "🎉"
         }
     }
 }

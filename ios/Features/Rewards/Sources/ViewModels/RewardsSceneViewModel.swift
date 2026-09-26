@@ -4,7 +4,9 @@ import Components
 import Foundation
 import enum Gemstone.GemIncomingCode
 import enum Gemstone.GemListRow
-import enum Gemstone.GemRewardsAction
+import enum Gemstone.GemRewardsIntroItem
+import enum Gemstone.GemRewardsInviteAction
+import struct Gemstone.GemRewardsPendingReferral
 import struct Gemstone.GemRewardsRedemption
 import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsSession
@@ -122,15 +124,20 @@ public final class RewardsSceneViewModel: Sendable {
         rewardsState.sections.listSections
     }
 
-    func action(_ action: GemRewardsAction) -> Bool {
-        rewardsState.actions.contains(action)
+    var introItems: [GemRewardsIntroItem] {
+        rewardsState.intro
     }
 
-    var pendingReferral: (code: String, isEnabled: Bool)? {
-        rewardsState.actions.compactMap { action -> (code: String, isEnabled: Bool)? in
-            guard case let .activatePendingReferral(code, isEnabled) = action else { return nil }
-            return (code, isEnabled)
-        }.first
+    var inviteAction: GemRewardsInviteAction? {
+        rewardsState.inviteAction
+    }
+
+    var canUseReferralCode: Bool {
+        rewardsState.canUseReferralCode
+    }
+
+    var pendingReferral: GemRewardsPendingReferral? {
+        rewardsState.pendingReferral
     }
 
     var pendingReferralButtonTitle: String {

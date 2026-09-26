@@ -122,7 +122,11 @@ mod tests {
         let unreachable = session.on_result(failed());
 
         assert!(matches!(unreachable.view_state(now()).state, GemLoadState::Error { .. }), "a wallet with a code must not be offered the create-code screen");
-        assert!(unreachable.view_state(now()).rewards.actions.is_empty(), "a failed wallet is offered nothing to do");
+        let rewards = unreachable.view_state(now()).rewards;
+        assert!(
+            rewards.invite_action.is_none() && !rewards.can_use_referral_code && rewards.pending_referral.is_none(),
+            "a failed wallet is offered nothing to do"
+        );
     }
 
     #[test]
