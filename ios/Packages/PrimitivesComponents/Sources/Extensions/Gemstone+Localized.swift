@@ -10,6 +10,7 @@ import enum Gemstone.GemAcceptTermsItem
 import enum Gemstone.GemAcquireAssetFlow
 import enum Gemstone.GemAcquireOption
 import enum Gemstone.GemAmountError
+import enum Gemstone.GemAmountSymbol
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemBalanceRowValue
@@ -1373,6 +1374,15 @@ public extension GemSwapProgressStep {
         case .failed: Localized.Transaction.Status.failed
         case .reverted: Localized.Transaction.Status.reverted
         case .refunded: Localized.Transaction.Status.refunded
+        }
+    }
+}
+
+public extension GemAmountSymbol {
+    var text: String {
+        switch self {
+        case let .asset(symbol): symbol
+        case let .currency(currency): CurrencyFormatter(type: .currency, currencyCode: currency.toPrimitives().rawValue).symbol
         }
     }
 }

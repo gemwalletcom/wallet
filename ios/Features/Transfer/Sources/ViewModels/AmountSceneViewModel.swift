@@ -35,7 +35,6 @@ public final class AmountSceneViewModel {
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
 
-    let currencyFormatter: CurrencyFormatter
     private let currency: Currency
 
     public let asset: Asset
@@ -70,7 +69,6 @@ public final class AmountSceneViewModel {
         self.service = service
         self.onTransferAction = onTransferAction
         currency = service.getCurrency().toPrimitives()
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
         asset = input.asset
         var stake: AmountStakeViewModel?
         var perpetual: AmountPerpetualViewModel?
@@ -178,14 +176,11 @@ public final class AmountSceneViewModel {
 
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
+            field: session.field(asset: asset.toGem(), input: input, currency: currency.toGem()),
             canSwitchInputType: amountType.canSwitchInputType(),
-            inputType: amountInputType,
-            asset: asset,
-            currencyFormatter: currencyFormatter,
             numberFormat: NumberInput.format(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
-            usesWholeAmounts: input.usesWholeAmounts,
         )
     }
 }

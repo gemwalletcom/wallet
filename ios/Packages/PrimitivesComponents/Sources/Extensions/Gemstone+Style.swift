@@ -3,6 +3,8 @@
 import Components
 import Foundation
 import enum Gemstone.GemAcquireOption
+import enum Gemstone.GemAmountKeyboard
+import enum Gemstone.GemAmountSymbolPlacement
 import struct Gemstone.GemAssetIcon
 import struct Gemstone.GemAssetText
 import struct Gemstone.GemAvatar
@@ -447,6 +449,24 @@ public extension GemButtonState {
         case .disabled: .disabled
         case .loading: .loading(showProgress: true)
         case .enabled: .normal
+        }
+    }
+}
+
+public extension GemAmountSymbolPlacement {
+    var position: CurrencyTextField.CurrencyPosition {
+        switch self {
+        case .leading: .leading
+        case .trailing: .trailing
+        }
+    }
+}
+
+public extension GemAmountKeyboard {
+    var keyboardType: UIKeyboardType {
+        switch self {
+        case .decimal: .decimalPad
+        case .whole: .numberPad
         }
     }
 }

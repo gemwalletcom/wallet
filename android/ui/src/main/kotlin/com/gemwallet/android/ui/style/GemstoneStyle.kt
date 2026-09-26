@@ -7,6 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.empty.EmptyStateImage
@@ -29,7 +31,10 @@ import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
-import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemAmountField
+import uniffi.gemstone.GemAmountKeyboard
+import uniffi.gemstone.GemAmountSymbol
+import uniffi.gemstone.GemAmountSymbolPlacement
 import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
@@ -228,9 +233,20 @@ fun GemAddressServiceInterface.formatShort(address: String, chain: String?): Str
 
 fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<String> = formatAll(addresses, GemAddressFormatStyle.Short)
 
-fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): AmountSymbolUIModel = when (this) {
-    GemAmountInputType.ASSET -> AmountSymbolUIModel(assetSymbol, AmountSymbolPlacement.Trailing)
-    GemAmountInputType.FIAT -> AmountSymbolUIModel(java.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
+fun GemAmountField.amountSymbol(): AmountSymbolUIModel = AmountSymbolUIModel(
+    symbol = when (val symbol = symbol) {
+        is GemAmountSymbol.Asset -> symbol.symbol
+        is GemAmountSymbol.Currency -> java.util.Currency.getInstance(symbol.currency.toPrimitives().string).symbol
+    },
+    placement = when (placement) {
+        GemAmountSymbolPlacement.LEADING -> AmountSymbolPlacement.Leading
+        GemAmountSymbolPlacement.TRAILING -> AmountSymbolPlacement.Trailing
+    },
+)
+
+fun GemAmountKeyboard.keyboardType(): KeyboardType = when (this) {
+    GemAmountKeyboard.DECIMAL -> KeyboardType.Decimal
+    GemAmountKeyboard.WHOLE -> KeyboardType.Number
 }
 
 @Composable

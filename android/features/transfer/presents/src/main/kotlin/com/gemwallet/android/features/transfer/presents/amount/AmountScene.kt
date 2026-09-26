@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
+import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.infoSheet
@@ -41,6 +42,8 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoI
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.style.amountSymbol
+import com.gemwallet.android.ui.style.keyboardType
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingMiddle
@@ -48,6 +51,7 @@ import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.assetText
@@ -56,14 +60,13 @@ import uniffi.gemstone.assetText
 internal fun AmountScene(
     title: String,
     amount: String,
-    amountSymbol: AmountSymbolUIModel,
+    field: GemAmountField?,
     asset: Asset,
     icon: GemAssetIcon?,
     currency: Currency,
     canSwitchInputType: Boolean,
     readOnly: Boolean,
     focusesInput: Boolean,
-    usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
     error: String,
     errorTopic: GemInfoTopic?,
@@ -108,7 +111,7 @@ internal fun AmountScene(
                 AmountField(
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                     amount = amount,
-                    symbol = amountSymbol,
+                    symbol = field?.amountSymbol() ?: AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),
                     onInputTypeClick = if (canSwitchInputType) {
                         { onAction(AmountAction.SwitchInputType) }
                     } else {
@@ -116,7 +119,7 @@ internal fun AmountScene(
                     },
                     equivalent = equivalent,
                     readOnly = readOnly,
-                    keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
+                    keyboardType = field?.keyboard?.keyboardType() ?: KeyboardType.Decimal,
                     error = error,
                     errorInfo = errorTopic?.let { { showsErrorInfo = true } },
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },

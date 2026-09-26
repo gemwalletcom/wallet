@@ -26,11 +26,9 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.providers.Amoun
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.style.amountSymbol
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Currency
@@ -60,6 +58,7 @@ import uniffi.gemstone.EarnType
 import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountException
+import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountRequest
@@ -141,9 +140,9 @@ class AmountViewModel @Inject constructor(
 
     val currency: Currency = service.getCurrency().toPrimitives()
 
-    private val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, assetInfo) { inputType, current ->
-        inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET.amountSymbol("", currency))
+    private val field: StateFlow<GemAmountField?> = combine(session, assetInfo, input) { session, current, input ->
+        current?.let { current -> input?.let { session.field(current.asset.toGem(), it, currency.toGem()) } }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val entry: StateFlow<GemAmountEntry?> = combine(session, assetInfo, amountType, input) { session, current, amountType, input ->
         if (current == null || amountType == null || input == null) {
@@ -179,7 +178,7 @@ class AmountViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiState: StateFlow<AmountUIState> = combine(
-        combine(amountType, amountAsset, amountSymbol, input) { type, asset, symbol, input -> listOf(type?.title(), asset, symbol, input) },
+        combine(amountType, amountAsset, field, input) { type, asset, field, input -> listOf(type?.title(), asset, field, input) },
         combine(availableBalanceFormatted, reserveForFeeFormatted, amountEquivalent, buttonState) { available, reserve, equivalent, button -> listOf(available, reserve, equivalent, button) },
         combine(amountType, amountErrorDisplay, extras) { amountType, errorDisplay, extras -> listOf(amountType, errorDisplay, extras) },
     ) { screen, values, rest ->
@@ -189,12 +188,11 @@ class AmountViewModel @Inject constructor(
             title = (screen[0] as GemAmountTitle?)?.text(context).orEmpty(),
             asset = screen[1] as Asset?,
             icon = input?.icon,
-            amountSymbol = screen[2] as AmountSymbolUIModel,
+            field = screen[2] as GemAmountField?,
             canSwitchInputType = (rest[0] as GemAmountType?)?.canSwitchInputType() == true,
             readOnly = input?.canChangeValue == false,
             focusesInput = input?.focusesInput == true,
             showsAssetBalance = input?.showsAssetBalance != false,
-            usesWholeAmounts = input?.usesWholeAmounts == true,
             availableBalance = values[0] as String,
             reserveForFee = values[1] as String?,
             equivalent = values[2] as String,

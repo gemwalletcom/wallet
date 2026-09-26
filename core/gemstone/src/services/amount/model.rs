@@ -165,6 +165,31 @@ impl GemAmountInputType {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountField {
+    pub symbol: GemAmountSymbol,
+    pub placement: GemAmountSymbolPlacement,
+    pub keyboard: GemAmountKeyboard,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountSymbol {
+    Asset { symbol: String },
+    Currency { currency: Currency },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAmountSymbolPlacement {
+    Leading,
+    Trailing,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAmountKeyboard {
+    Decimal,
+    Whole,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountEntry {
     pub value: Option<GemBigInt>,
     pub error: Option<GemAmountError>,
@@ -327,6 +352,21 @@ impl GemAmountSession {
         }
     }
 
+    pub fn field(&self, asset: Asset, input: GemAmountInput, currency: Currency) -> GemAmountField {
+        let (symbol, placement) = match self.input_type {
+            GemAmountInputType::Asset => (GemAmountSymbol::Asset { symbol: asset.symbol }, GemAmountSymbolPlacement::Trailing),
+            GemAmountInputType::Fiat => (GemAmountSymbol::Currency { currency }, GemAmountSymbolPlacement::Leading),
+        };
+        GemAmountField {
+            symbol,
+            placement,
+            keyboard: match input.uses_whole_amounts {
+                true => GemAmountKeyboard::Whole,
+                false => GemAmountKeyboard::Decimal,
+            },
+        }
+    }
+
     pub fn entry(&self, amount_type: GemAmountType, asset: Asset, input: GemAmountInput, price: Option<f64>, currency: Currency) -> GemAmountEntry {
         amount_type.entry(&asset, &input, price, self.input_type, self.format.plain(self.text.clone()), currency)
     }
@@ -374,6 +414,27 @@ mod tests {
         let toggled = max.on_toggle();
         assert_eq!((toggled.text.as_str(), toggled.input_type), ("", GemAmountInputType::Fiat), "switching sides starts over");
         assert_eq!(session.on_prefill(input, asset).text, "", "a transfer the user types has nothing to prefill");
+    }
+
+    #[test]
+    fn test_the_field_puts_the_asset_symbol_after_and_the_currency_before_the_number() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let input = GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(1));
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ".".to_string() });
+
+        assert_eq!(
+            session.field(asset.clone(), input.clone(), primitives::Currency::EUR),
+            GemAmountField {
+                symbol: GemAmountSymbol::Asset { symbol: "ETH".to_string() },
+                placement: GemAmountSymbolPlacement::Trailing,
+                keyboard: GemAmountKeyboard::Decimal,
+            }
+        );
+        let fiat = session.on_toggle().field(asset.clone(), input.clone(), primitives::Currency::EUR);
+        assert_eq!((fiat.symbol, fiat.placement), (GemAmountSymbol::Currency { currency: primitives::Currency::EUR }, GemAmountSymbolPlacement::Leading));
+
+        let whole = GemAmountInput { uses_whole_amounts: true, ..input };
+        assert_eq!(session.field(asset, whole, primitives::Currency::EUR).keyboard, GemAmountKeyboard::Whole, "a whole-unit asset takes no decimal point");
     }
 
     #[test]
