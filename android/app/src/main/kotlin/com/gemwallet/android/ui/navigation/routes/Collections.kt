@@ -13,8 +13,6 @@ import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAsset
 import kotlinx.serialization.Serializable
 
-const val nftRoute = "nft"
-
 @Serializable
 data object CollectionsRoute : NavKey
 

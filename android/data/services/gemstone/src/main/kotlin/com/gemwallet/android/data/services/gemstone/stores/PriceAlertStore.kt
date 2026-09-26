@@ -4,11 +4,7 @@ import com.gemwallet.android.data.services.store.database.PriceAlertsDao
 import com.gemwallet.android.data.services.store.database.entities.toPriceAlert
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.PriceAlertInfo
-import com.wallet.core.primitives.AssetId
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemPriceAlertStore
 import uniffi.gemstone.PriceAlertFormatter
@@ -23,6 +19,4 @@ class GemstonePriceAlertStore(private val priceAlertsDao: PriceAlertsDao, privat
     override suspend fun updatePriceAlerts(alerts: List<uniffi.gemstone.PriceAlert>, deleteIds: List<String>) {
         priceAlertsDao.update(alerts.map { it.toPrimitives().toRecord(priceAlertFormatter.alertId(it)) }, deleteIds)
     }
-
-    fun observePriceAlerts(assetId: AssetId?): Flow<List<PriceAlertInfo>> = (assetId?.let { priceAlertsDao.getAlerts(it.toIdentifier()) } ?: priceAlertsDao.getAlerts()).map { records -> records.map { PriceAlertInfo(it.toPriceAlert()) } }
 }

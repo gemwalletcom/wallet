@@ -63,7 +63,6 @@ object AppIcons {
     val Tune: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_tune)
     val Verified: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_verified)
     val Visibility: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_visibility)
-    val VisibilityOff: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_visibility_off)
     val Wallet: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_wallet)
     val Warning: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_warning)
 }

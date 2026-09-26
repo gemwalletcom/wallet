@@ -187,9 +187,6 @@ interface TransactionsDao {
     @Query("SELECT * FROM transactions WHERE walletId = :walletId AND type = :type")
     suspend fun getTransactionsByType(walletId: WalletId, type: TransactionType): List<DbTransaction>
 
-    @Query("DELETE FROM transactions WHERE state = :state")
-    fun deleteByState(state: TransactionState)
-
     @Query("DELETE FROM transactions")
     suspend fun deleteAll()
 }
