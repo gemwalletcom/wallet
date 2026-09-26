@@ -101,6 +101,8 @@ extension AddNodeScene {
                     ListItemView(field: $0.element)
                 }
             }
+        }
+        if model.showsWarning {
             warningSection
         }
     }

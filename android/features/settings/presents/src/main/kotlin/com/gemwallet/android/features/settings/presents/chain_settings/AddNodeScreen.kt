@@ -11,7 +11,7 @@ import com.wallet.core.primitives.Chain
 @Composable
 fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
     val viewModel: AddNodeViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
 
     DisposableEffect(chain) {
         viewModel.init(chain)
@@ -20,7 +20,7 @@ fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
 
     AddNodeScene(
         chain = chain,
-        uiState = uiState,
+        state = state,
         url = viewModel.url,
         onUrlChange = viewModel::onUrlChange,
         onAdd = { viewModel.addUrl(onAdded = onCancel) },

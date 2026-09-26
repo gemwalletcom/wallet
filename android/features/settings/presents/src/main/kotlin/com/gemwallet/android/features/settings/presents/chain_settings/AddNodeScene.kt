@@ -19,8 +19,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.AddNodeUIState
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -29,17 +27,27 @@ import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.QRScanType
+import uniffi.gemstone.GemAddNodePhase
+import uniffi.gemstone.GemAddNodeViewState
+import uniffi.gemstone.GemNodeCheckRow
+import uniffi.gemstone.GemNodeSyncState
 import uniffi.gemstone.chainRow
 
 @Composable
-fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
+fun AddNodeScene(chain: Chain, state: GemAddNodeViewState?, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
+    val context = LocalContext.current
     var isShowQRScan by remember { mutableStateOf(false) }
+    val phase = state?.phase
 
     BackHandler {
         onCancel()
@@ -50,7 +58,7 @@ fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
-                state = uiState.buttonState,
+                state = buttonState(enabled = state?.canImport == true, loading = phase is GemAddNodePhase.Checking),
             ) {
                 onAdd()
             }
@@ -64,15 +72,20 @@ fun AddNodeScene(chain: Chain, uiState: AddNodeUIState, url: MutableState<String
         )
         UrlField(
             value = url,
-            error = uiState.errorText,
+            error = (phase as? GemAddNodePhase.Failed)?.error?.text(context).orEmpty(),
             onValueChange = onUrlChange,
             onQRScan = {
                 isShowQRScan = true
             },
         )
         Spacer16()
-        uiState.checks.forEach { NodeCheckRow(it) }
-        uiState.warning?.let { ListItem(model = it, listPosition = ListPosition.Single) }
+        (phase as? GemAddNodePhase.Ready)?.rows.orEmpty().forEach { NodeCheckRow(it) }
+        if (state?.showsWarning == true) {
+            ListItem(
+                model = ListItemModel(title = stringResource(R.string.asset_verification_warning_title), titleExtra = stringResource(R.string.nodes_import_node_warning_message)),
+                listPosition = ListPosition.Single,
+            )
+        }
     }
 
     QRScannerModal(
@@ -123,10 +136,11 @@ private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: St
 }
 
 @Composable
-private fun NodeCheckRow(row: NodeCheckRowUIModel) {
-    val isInSync = row.isInSync
+private fun NodeCheckRow(row: GemNodeCheckRow) {
+    val context = LocalContext.current
+    val isInSync = (row as? GemNodeCheckRow.InSync)?.state?.let { it == GemNodeSyncState.IN_SYNC }
     ListItem(
-        model = row.model,
+        model = ListItemModel(title = stringResource(row.stringRes()), subtitle = row.text(context).takeIf { row !is GemNodeCheckRow.InSync }),
         listPosition = ListPosition.Middle,
         accessory = isInSync?.let {
             {

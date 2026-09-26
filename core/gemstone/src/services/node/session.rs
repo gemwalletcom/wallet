@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeCheckRow, GemNodeRow, GemNodeSelection, GemNodeStatusState};
 use super::rules;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
@@ -11,13 +11,14 @@ use crate::services::error_text::GemErrorText;
 pub enum GemAddNodePhase {
     Idle,
     Checking,
-    Ready { check: GemNodeCheck },
+    Ready { rows: Vec<GemNodeCheckRow> },
     Failed { error: GemErrorText },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddNodeViewState {
     pub phase: GemAddNodePhase,
+    pub shows_warning: bool,
     pub can_import: bool,
 }
 
@@ -97,6 +98,7 @@ impl GemAddNodeSession {
     pub fn view_state(&self) -> GemAddNodeViewState {
         GemAddNodeViewState {
             phase: self.phase(),
+            shows_warning: self.check.is_some(),
             can_import: self.check.is_some(),
         }
     }
@@ -117,7 +119,7 @@ impl GemAddNodeSession {
             return GemAddNodePhase::Checking;
         }
         match (&self.check, &self.error) {
-            (Some(check), _) => GemAddNodePhase::Ready { check: check.clone() },
+            (Some(check), _) => GemAddNodePhase::Ready { rows: check.rows() },
             (None, Some(error)) => GemAddNodePhase::Failed { error: error.clone() },
             (None, None) => GemAddNodePhase::Idle,
         }
@@ -141,9 +143,12 @@ mod tests {
     fn test_a_new_url_clears_the_previous_answer() {
         let checked = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checked("https://node".to_string(), GemNodeCheck::mock());
         assert!(checked.view_state().can_import);
+        assert!(checked.view_state().shows_warning, "a checked node is imported at the user's own risk");
+        assert_eq!(checked.view_state().phase, GemAddNodePhase::Ready { rows: GemNodeCheck::mock().rows() });
 
         let retyped = checked.on_input("https://other".to_string());
         assert_eq!(retyped.view_state().phase, GemAddNodePhase::Idle);
+        assert!(!retyped.view_state().shows_warning);
         assert!(!retyped.view_state().can_import, "a url that was never checked cannot be imported");
     }
 

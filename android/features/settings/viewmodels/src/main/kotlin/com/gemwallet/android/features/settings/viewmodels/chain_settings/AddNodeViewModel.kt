@@ -1,38 +1,36 @@
 package com.gemwallet.android.features.settings.viewmodels.chain_settings
 
-import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.GemConstants
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.AddNodeUIState
-import com.gemwallet.android.features.settings.viewmodels.chain_settings.models.uiState
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddNodeException
 import uniffi.gemstone.GemAddNodeSession
+import uniffi.gemstone.GemAddNodeViewState
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
 
 @HiltViewModel
-class AddNodeViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher, @param:ApplicationContext private val context: Context) : ViewModel() {
+class AddNodeViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
     private val session = MutableStateFlow<GemAddNodeSession?>(null)
-    val uiState = session.map { it?.uiState(context) ?: AddNodeUIState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AddNodeUIState())
+    val viewState: StateFlow<GemAddNodeViewState?> = session.map { it?.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val url = mutableStateOf("")
     private var checkUrlJob: Job? = null
     private var addUrlJob: Job? = null

@@ -55,7 +55,6 @@ pub enum GemNodeCheckRow {
     Latency { milliseconds: u32 },
 }
 
-#[uniffi::export]
 impl GemNodeCheck {
     pub fn rows(&self) -> Vec<GemNodeCheckRow> {
         vec![

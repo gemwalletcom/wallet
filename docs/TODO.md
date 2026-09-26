@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM245 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
+1. **App models to Core records:** VM246 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 2. **Generated mappers:** BD299, then GEN300.
 3. **Unused code:** CLN318.
 4. **Parity:** BD373 to BD376.
@@ -55,7 +55,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM248, VM249, VM271, VM277 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM257, VM258, VM274, VM291, VM292 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | VM246 |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM245, VM265, VM270 |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM265, VM270 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM283, VM290; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM247, VM259 |
@@ -121,10 +121,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Settings
 
-- **VM245** **S** **Add-node results are shaped in the apps.**
-  - **iOS:** `AddNodeSceneViewModel` shows the warning only once checks exist.
-  - **Android:** `AddNodeUIState` derives error text and checks from the phase, shows the warning once checks exist and maps sync state to a flag.
-  - **Expected:** the add-node view state carries error, check rows and warning; both models go.
 - **VM246** **S** **Contact address rows are built in the apps.**
   - **iOS:** `ContactEditorSceneViewModel.listItemModel(for:)` builds network name, short address and image.
   - **Android:** `ContactAddressRowUIModel` and `addAddressListItem` do the same.

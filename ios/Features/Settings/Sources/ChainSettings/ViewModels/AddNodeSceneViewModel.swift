@@ -38,9 +38,13 @@ final class AddNodeSceneViewModel {
         switch session.viewState().phase {
         case .idle: .noData
         case .checking: .loading
-        case let .ready(check): .data(check.rows().map { ListItemField(title: $0.title, value: $0.text) })
+        case let .ready(rows): .data(rows.map { ListItemField(title: $0.title, value: $0.text) })
         case let .failed(error): .error(AnyError(error.text))
         }
+    }
+
+    var showsWarning: Bool {
+        session.viewState().showsWarning
     }
 
     var title: String {
