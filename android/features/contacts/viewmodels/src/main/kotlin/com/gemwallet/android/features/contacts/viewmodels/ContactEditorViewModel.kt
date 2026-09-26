@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorPage
-import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorState
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
 import com.gemwallet.android.features.contacts.viewmodels.models.addAddressListItem
 import com.gemwallet.android.features.contacts.viewmodels.models.listItemImage
@@ -61,6 +60,16 @@ class ContactEditorViewModel @Inject constructor(
         data object Add : Mode
         data class Edit(val contactId: String) : Mode
     }
+
+    private data class ContactEditorState(
+        val session: GemContactSession,
+        val isEdit: Boolean,
+        val emojiBackground: Int = 0,
+        val page: ContactEditorPage = ContactEditorPage.Form,
+        val form: ContactAddressForm? = null,
+        val saved: Boolean = false,
+        val errorText: String? = null,
+    )
 
     private val mode: Mode = run {
         val editContactId = savedStateHandle.get<String>(RouteArgument.ContactId.key)

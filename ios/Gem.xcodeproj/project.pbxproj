@@ -116,7 +116,7 @@
 		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
 		F02BCC3D305F39AF007BEE31 /* SwiftHTTPClient in Frameworks */ = {isa = PBXBuildFile; productRef = D8WIDGETHTTPCLIENT000001 /* SwiftHTTPClient */; };
 		F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* GemstoneServices */; };
-		FADEC0DE000000000000B002 /* AddContactNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADEC0DE000000000000B001 /* AddContactNavigationView.swift */; };
+		FADEC0DE000000000000B002 /* AddContactNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -267,7 +267,7 @@
 		DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E1B4C7082E85B00000EARN01 /* Stake */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Stake; sourceTree = "<group>"; };
 		F1A7B80E2F0C000000FIAT02 /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
-		FADEC0DE000000000000B001 /* AddContactNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationView.swift; sourceTree = "<group>"; };
+		FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -421,7 +421,7 @@
 				B67ED5462DDB5DCC009F74E6 /* NavigationRouter.swift */,
 				B67ED5492DDB5DCD009F74E6 /* NavigationPresenter.swift */,
 				A1D0E5512F00000100ADD001 /* AddressDetailsDestination.swift */,
-				FADEC0DE000000000000B001 /* AddContactNavigationView.swift */,
+				FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */,
 				D83BDCB62E3E878A00E41807 /* Perpetuals */,
 			);
 			path = Navigation;
@@ -1001,7 +1001,7 @@
 				D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */,
 				83B57FAB2CFF92670009319F /* AppResolver.swift in Sources */,
 				B67ED5472DDB5DCC009F74E6 /* NavigationRouter.swift in Sources */,
-				FADEC0DE000000000000B002 /* AddContactNavigationView.swift in Sources */,
+				FADEC0DE000000000000B002 /* AddContactNavigationStack.swift in Sources */,
 				B67ED5482DDB5DCD009F74E6 /* NavigationPresenter.swift in Sources */,
 				A1D0E5522F00000100ADD001 /* AddressDetailsDestination.swift in Sources */,
 				C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */,

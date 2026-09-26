@@ -18,7 +18,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class ContactsViewModel {
+public final class ContactsSceneViewModel {
     public enum Mode: Sendable {
         case list
         case addAddress(GemRecipient, chain: Chain)
@@ -30,7 +30,7 @@ public final class ContactsViewModel {
     }
 
     private let service: any GemContactServiceProtocol
-    private let contactEditor: @MainActor (ContactEditorViewModel.Mode) -> ContactEditorViewModel
+    private let contactEditor: @MainActor (ContactEditorSceneViewModel.Mode) -> ContactEditorSceneViewModel
     private let mode: Mode
 
     var isPresentingAlertMessage: AlertMessage?
@@ -44,7 +44,7 @@ public final class ContactsViewModel {
 
     public init(
         service: any GemContactServiceProtocol,
-        contactEditor: @escaping @MainActor (ContactEditorViewModel.Mode) -> ContactEditorViewModel,
+        contactEditor: @escaping @MainActor (ContactEditorSceneViewModel.Mode) -> ContactEditorSceneViewModel,
         mode: Mode = .list,
     ) {
         self.service = service
@@ -64,11 +64,11 @@ public final class ContactsViewModel {
         }
     }
 
-    func contactEditorModel(mode: ContactEditorViewModel.Mode) -> ContactEditorViewModel {
+    func contactEditorModel(mode: ContactEditorSceneViewModel.Mode) -> ContactEditorSceneViewModel {
         contactEditor(mode)
     }
 
-    var addContactMode: ContactEditorViewModel.Mode {
+    var addContactMode: ContactEditorSceneViewModel.Mode {
         switch mode {
         case .list: .add()
         case let .addAddress(recipient, chain): .add(recipient: recipient, chain: chain)

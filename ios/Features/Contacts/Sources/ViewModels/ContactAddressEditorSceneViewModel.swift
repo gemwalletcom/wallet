@@ -18,7 +18,7 @@ import UIKit
 
 @Observable
 @MainActor
-public final class ContactAddressEditorViewModel {
+public final class ContactAddressEditorSceneViewModel {
     public enum Mode: Identifiable {
         case add
         case edit(ContactAddress)
@@ -117,7 +117,7 @@ public final class ContactAddressEditorViewModel {
 
 // MARK: - Actions
 
-extension ContactAddressEditorViewModel {
+extension ContactAddressEditorSceneViewModel {
     func onSelectChain(_ chain: Chain) {
         addressInputModel.chain = chain
         fields = contactAddressFields(chain: chain.rawValue)

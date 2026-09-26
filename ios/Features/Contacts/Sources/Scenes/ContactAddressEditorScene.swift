@@ -11,7 +11,7 @@ import SwiftUI
 public struct ContactAddressEditorScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactAddressEditorViewModel
+    @State private var model: ContactAddressEditorSceneViewModel
 
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -19,7 +19,7 @@ public struct ContactAddressEditorScene: View {
         case memo
     }
 
-    public init(model: ContactAddressEditorViewModel) {
+    public init(model: ContactAddressEditorSceneViewModel) {
         _model = State(initialValue: model)
     }
 

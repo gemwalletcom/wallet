@@ -11,7 +11,7 @@ import com.gemwallet.android.ui.components.screen.SelectChain
 import com.wallet.core.primitives.Chain
 
 @Composable
-fun ContactChainSelectScene(onSelect: (Chain) -> Unit, onCancel: () -> Unit, viewModel: ContactChainSelectViewModel = hiltViewModel()) {
+fun ContactChainSelectScreen(onSelect: (Chain) -> Unit, onCancel: () -> Unit, viewModel: ContactChainSelectViewModel = hiltViewModel()) {
     val chainFilter = rememberTextFieldState()
     val query = chainFilter.text.toString()
 

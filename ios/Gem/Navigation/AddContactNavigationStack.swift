@@ -5,7 +5,7 @@ import GemstoneServices
 import PrimitivesComponents
 import SwiftUI
 
-struct AddContactNavigationView: View {
+struct AddContactNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     let action: AddContactType

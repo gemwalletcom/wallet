@@ -8,6 +8,7 @@ import com.gemwallet.android.data.services.store.queries.ContactsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.contacts.viewmodels.models.ContactRowUIModel
 import com.gemwallet.android.features.contacts.viewmodels.models.listItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
@@ -38,12 +39,12 @@ class ContactsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val contacts: StateFlow<List<ContactListItem>> = contactsQuery()
+    val contacts: StateFlow<List<ContactRowUIModel>> = contactsQuery()
         .map { contacts -> contacts.zip(contactRows(contacts.map { it.contact.toGem() }), ::listItem) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private fun listItem(contact: ContactData, row: GemContactRow): ContactListItem = ContactListItem(
+    private fun listItem(contact: ContactData, row: GemContactRow): ContactRowUIModel = ContactRowUIModel(
         contact = contact,
         model = ListItemModel(
             title = row.title,
@@ -65,5 +66,3 @@ class ContactsViewModel @Inject constructor(
 
     fun clearError() = errorState.update { null }
 }
-
-data class ContactListItem(val contact: ContactData, val model: ListItemModel)

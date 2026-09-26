@@ -4,10 +4,10 @@ import Contacts
 import class Gemstone.GemContactService
 import GemstonePrimitivesTestKit
 
-public extension ContactsViewModel {
+public extension ContactsSceneViewModel {
     @MainActor
-    static func mock(mode: Mode = .list) -> ContactsViewModel {
-        ContactsViewModel(
+    static func mock(mode: Mode = .list) -> ContactsSceneViewModel {
+        ContactsSceneViewModel(
             service: GemContactService.mock(),
             contactEditor: { .mock(mode: $0) },
             mode: mode,

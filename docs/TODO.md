@@ -23,7 +23,7 @@ These need no further answer; work them in this order, one family per change.
 2. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 3. **Generated mappers:** BD299, then GEN300.
 4. **Unused code:** CLN318.
-5. **Names:** NAM366 to NAM372 in any order, one feature per change.
+5. **Names:** NAM367 to NAM372 in any order, one feature per change.
 6. **Parity:** BD342, BD343, BD345 to BD351.
 7. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -338,7 +338,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `AddNodeUIState` derives error text and checks from the phase, shows the warning once checks exist and maps sync state to a flag.
   - **Expected:** the add-node view state carries error, check rows and warning; both models go.
 - **VM246** **S** **Contact address rows are built in the apps.**
-  - **iOS:** `ContactEditorViewModel.listItemModel(for:)` builds network name, short address and image.
+  - **iOS:** `ContactEditorSceneViewModel.listItemModel(for:)` builds network name, short address and image.
   - **Android:** `ContactAddressRowUIModel` and `addAddressListItem` do the same.
   - **Expected:** the contact session returns address rows; both builders go.
 - **VM247** **S** **Notification rows decide their tag and icon.**
@@ -420,7 +420,7 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
   - **Expected:** the search and home view states carry finished sections; the splitting types go.
 - **VM265** **S** **Chain pickers each search chains themselves.**
-  - **iOS:** `ChainListSettingsSceneViewModel`, `ContactAddressEditorViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
+  - **iOS:** `ChainListSettingsSceneViewModel`, `ContactAddressEditorSceneViewModel`, `ImportWalletTypeSceneViewModel` (with its own empty-query branch) and `NetworkSelectorViewModel` (filters its list by matching ids) call the chain service separately.
   - **Android:** `ContactChainSelectViewModel`, `ChainSettingsViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` and `SelectFilterChain` do the same.
   - **Expected:** one Core chain list (rows plus search) that every picker uses, with VM199's chain rows.
 - **VM266** **S** **Info sheets are twinned and their button rule is written twice.**
@@ -632,9 +632,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
 
-- **NAM366** **S** **Contacts: screen view models and rows follow the table.**
-  - **iOS:** `ContactsViewModel`/`ContactEditorViewModel`/`ContactAddressEditorViewModel` (+ tests, TestKit) → `…SceneViewModel`; `ContactsNavigationView` and the app's `AddContactNavigationView` follow the destination-host rule.
-  - **Android:** `ContactChainSelectScene` (binds a view model) → `ContactChainSelectScreen`; `ContactListItem` → `ContactRowUIModel` in `models/`; `ContactEditorState` becomes private or `ContactEditorSession`; `ContactAddressFormTest` folds into `ContactEditorViewModelTest`.
 - **NAM367** **S** **Price alerts: the list is plural and setting a target is `SetPriceAlert`.**
   - **iOS:** `AssetPriceAlertsViewModel`/`SetPriceAlertViewModel` (+ tests) → `…SceneViewModel`; `PriceAlertItem` (struct) → `PriceAlertItemViewModel`; file `AddAssetPriceAlertNavigationStack.swift` → `AddAssetPriceAlertsNavigationStack.swift`; `PriceAlertsNavigationView` follows the destination-host rule.
   - **Android:** `PriceAlertScene`/`PriceAlertViewModel`(`Test`)/`PriceAlertAction` → `PriceAlertsScene`/`PriceAlertsViewModel`(`Test`)/`PriceAlertsAction`; `PriceAlertTargetScreen`/`Scene`/`ViewModel`/`AddPriceAlertTargetRoute` → `SetPriceAlert…`/`SetPriceAlertRoute`; `PriceAlertAssetItem` in `PriceAlertListItem.kt` → `PriceAlertItem` in `PriceAlertItem.kt`; `PriceAlertSelectScreen` → `AddAssetPriceAlertsScreen`.

@@ -12,11 +12,11 @@ import PrimitivesTestKit
 import Testing
 
 @MainActor
-struct ContactsViewModelTests {
+struct ContactsSceneViewModelTests {
     @Test
     func theListPicksARowAndTheAddressFlowPicksAContact() {
-        let list = ContactsViewModel.mock()
-        let picking = ContactsViewModel.mock(mode: .addAddress(.mock(address: "bc1qar0"), chain: .bitcoin))
+        let list = ContactsSceneViewModel.mock()
+        let picking = ContactsSceneViewModel.mock(mode: .addAddress(.mock(address: "bc1qar0"), chain: .bitcoin))
 
         #expect(list.rowAction == .navigate)
         #expect(picking.rowAction == .select)
@@ -35,7 +35,7 @@ struct ContactsViewModelTests {
 
     @Test
     func aRowReadsItsTitleAndSubtitleFromCore() {
-        let model = ContactsViewModel.mock()
+        let model = ContactsSceneViewModel.mock()
         model.query.value = [.mock(contact: .mock(name: "Satoshi"), addresses: [.mock()])]
 
         #expect(model.items.map(\.listItem.title) == ["Satoshi"])

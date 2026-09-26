@@ -84,7 +84,7 @@ struct TransactionsNavigationView: View {
                         ),
                     )
                 case let .addContact(action):
-                    AddContactNavigationView(action: action)
+                    AddContactNavigationStack(action: action)
                 case let .addressDetails(chainAddress):
                     AddressDetailsDestination(chainAddress: chainAddress)
                 }

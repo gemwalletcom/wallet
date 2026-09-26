@@ -20,7 +20,7 @@ import UIKit
 
 @Observable
 @MainActor
-public final class ContactEditorViewModel {
+public final class ContactEditorSceneViewModel {
     public enum Mode {
         case add(recipient: GemRecipient? = nil, chain: Chain? = nil)
         case edit(ContactData)
@@ -32,7 +32,7 @@ public final class ContactEditorViewModel {
 
     private(set) var session: GemContactSession
     var nameInputModel: InputValidationViewModel
-    var isPresentingAddress: ContactAddressEditorViewModel.Mode?
+    var isPresentingAddress: ContactAddressEditorSceneViewModel.Mode?
     var isPresentingAvatar: Bool = false
     var isPresentingAlertMessage: AlertMessage?
 
@@ -161,8 +161,8 @@ public final class ContactEditorViewModel {
         )
     }
 
-    func addressModel(mode: ContactAddressEditorViewModel.Mode) -> ContactAddressEditorViewModel {
-        ContactAddressEditorViewModel(
+    func addressModel(mode: ContactAddressEditorSceneViewModel.Mode) -> ContactAddressEditorSceneViewModel {
+        ContactAddressEditorSceneViewModel(
             service: service,
             nameService: nameService,
             contactId: session.id,

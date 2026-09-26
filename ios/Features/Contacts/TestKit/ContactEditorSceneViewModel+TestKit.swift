@@ -4,15 +4,13 @@ import Contacts
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 
-public extension ContactAddressEditorViewModel {
+public extension ContactEditorSceneViewModel {
     @MainActor
-    static func mock(contactId: String = "contact", mode: Mode = .add) -> ContactAddressEditorViewModel {
-        ContactAddressEditorViewModel(
+    static func mock(mode: Mode = .add()) -> ContactEditorSceneViewModel {
+        ContactEditorSceneViewModel(
             service: GemContactEditorServiceMock(),
             nameService: GemNameServiceMock(),
-            contactId: contactId,
             mode: mode,
-            onComplete: { _ in },
         )
     }
 }

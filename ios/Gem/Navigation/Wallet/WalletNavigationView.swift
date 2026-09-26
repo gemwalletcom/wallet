@@ -225,7 +225,7 @@ struct WalletNavigationView: View {
                 case let .portfolio(defaultType):
                     PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
-                    AddContactNavigationView(action: action)
+                    AddContactNavigationStack(action: action)
                 case let .addressDetails(chainAddress):
                     AddressDetailsDestination(chainAddress: chainAddress)
                 case .swap:

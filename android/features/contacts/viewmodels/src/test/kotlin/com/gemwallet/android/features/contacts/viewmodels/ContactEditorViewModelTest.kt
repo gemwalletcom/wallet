@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemContactAddressField
 
-class ContactAddressFormTest {
+class ContactEditorViewModelTest {
 
     @Test
     fun memoIsOfferedOnlyForChainsThatSupportIt() {

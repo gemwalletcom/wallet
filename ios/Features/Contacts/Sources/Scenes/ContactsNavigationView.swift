@@ -6,9 +6,9 @@ import Style
 import SwiftUI
 
 public struct ContactsNavigationView: View {
-    @State private var model: ContactsViewModel
+    @State private var model: ContactsSceneViewModel
 
-    public init(model: ContactsViewModel) {
+    public init(model: ContactsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -35,7 +35,7 @@ public struct ContactsNavigationView: View {
             }
     }
 
-    func contactEditor(for mode: ContactEditorViewModel.Mode) -> some View {
+    func contactEditor(for mode: ContactEditorSceneViewModel.Mode) -> some View {
         ContactEditorScene(model: model.contactEditorModel(mode: mode))
     }
 }

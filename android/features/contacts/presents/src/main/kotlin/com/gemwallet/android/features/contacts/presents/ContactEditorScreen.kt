@@ -62,7 +62,7 @@ fun ContactEditorScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: Co
                 )
             }
 
-            ContactEditorPage.SelectChain -> ContactChainSelectScene(
+            ContactEditorPage.SelectChain -> ContactChainSelectScreen(
                 onSelect = viewModel::setChain,
                 onCancel = viewModel::cancelSelectChain,
             )
