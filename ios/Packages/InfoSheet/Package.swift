@@ -19,11 +19,8 @@ let package = Package(
         .package(name: "Style", path: "../Style"),
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Components", path: "../Components"),
-        .package(name: "Formatters", path: "../Formatters"),
         .package(name: "Gemstone", path: "../Gemstone"),
-        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "PrimitivesComponents", path: "../PrimitivesComponents"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -33,11 +30,8 @@ let package = Package(
                 "Style",
                 "Localization",
                 "Components",
-                "Formatters",
                 "Gemstone",
-                "GemstonePrimitives",
                 "PrimitivesComponents",
-                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),

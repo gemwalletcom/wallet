@@ -29,7 +29,6 @@ let package = Package(
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
     ],
     targets: [
@@ -46,7 +45,6 @@ let package = Package(
                 "Store",
                 .product(name: "ImageGalleryService", package: "SystemServices"),
                 "GemstonePrimitives",
-                "Formatters",
                 "InfoSheet",
             ],
             path: "Sources",
@@ -68,7 +66,6 @@ let package = Package(
             name: "NFTTests",
             dependencies: [
                 "Localization",
-                .product(name: "ImageGalleryService", package: "SystemServices"),
                 .product(name: "ImageGalleryServiceTestKit", package: "SystemServices"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
@@ -77,7 +74,6 @@ let package = Package(
                 "NFT",
                 "NFTTestKit",
                 "Store",
-                "Gemstone",
                 "Primitives",
             ],
         ),

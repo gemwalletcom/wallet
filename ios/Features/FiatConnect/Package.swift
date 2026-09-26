@@ -37,7 +37,6 @@ let package = Package(
             dependencies: [
                 "Gemstone",
                 "Primitives",
-                "Formatters",
                 "Style",
                 "Components",
                 "Localization",
@@ -53,7 +52,6 @@ let package = Package(
             name: "FiatConnectTestKit",
             dependencies: [
                 "FiatConnect",
-                "Gemstone",
                 "Primitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
@@ -74,7 +72,6 @@ let package = Package(
                 "Localization",
                 "Primitives",
                 "Store",
-                "GemstonePrimitives",
             ],
             path: "Tests",
         ),

@@ -38,8 +38,6 @@ let package = Package(
             name: "PrimitivesTests",
             dependencies: [
                 "Primitives",
-                "PrimitivesTestKit",
-                .product(name: "BigInt", package: "BigInt"),
             ],
         ),
     ],

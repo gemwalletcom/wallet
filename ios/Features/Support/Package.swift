@@ -50,7 +50,6 @@ let package = Package(
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Primitives",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "TestKit",
         ),

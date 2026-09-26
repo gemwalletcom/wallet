@@ -16,7 +16,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -27,8 +26,6 @@ let package = Package(
             name: "FormattersTests",
             dependencies: [
                 "Formatters",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
             ],
         ),

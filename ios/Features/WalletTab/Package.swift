@@ -33,7 +33,6 @@ let package = Package(
         .package(name: "Perpetuals", path: "../Perpetuals"),
         .package(name: "Assets", path: "../Assets"),
         .package(name: "NFT", path: "../NFT"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
     ],
     targets: [
         .target(
@@ -52,7 +51,6 @@ let package = Package(
                 "Perpetuals",
                 "Assets",
                 "NFT",
-                "Formatters",
             ],
             path: "Sources",
         ),
