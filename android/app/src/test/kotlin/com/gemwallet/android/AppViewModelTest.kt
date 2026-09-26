@@ -7,9 +7,9 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.testkit.mockGemAppUpdateOffer
 import com.gemwallet.android.ui.AppViewModel
+import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import io.mockk.coEvery
 import io.mockk.coVerify

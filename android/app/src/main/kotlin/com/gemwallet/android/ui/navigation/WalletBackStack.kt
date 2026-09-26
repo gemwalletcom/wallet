@@ -6,8 +6,7 @@ import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.serialization.NavKeySerializer
-import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
-import com.gemwallet.android.features.onboarding.OnboardingRoute
+import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute

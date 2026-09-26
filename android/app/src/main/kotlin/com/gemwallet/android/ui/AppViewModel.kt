@@ -13,8 +13,8 @@ import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher

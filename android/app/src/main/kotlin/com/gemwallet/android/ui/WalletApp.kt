@@ -25,8 +25,8 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.WalletConnectRequestContent
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.features.onboarding.AcceptTermsDestination
-import com.gemwallet.android.features.onboarding.OnboardScreen
+import com.gemwallet.android.features.onboarding.presents.OnboardScreen
+import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
