@@ -29,19 +29,6 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func buttonsAreDrawnInTheToneCoreGives() {
-        let model = PerpetualSceneViewModel.mock(service: GemPerpetualDetailsServiceMock())
-        let buttons = model.buttonModels([
-            GemPerpetualButtonRow(button: .long, tone: .positive),
-            GemPerpetualButtonRow(button: .increase, tone: .neutral),
-            GemPerpetualButtonRow(button: .reduce, tone: .negative),
-        ])
-
-        #expect(buttons.map(\.style) == [.green, .blue, .red])
-        #expect(buttons.map(\.isDestructive) == [false, false, true])
-    }
-
-    @Test
     func thePositionCoreNamesIsTheOneTheSceneShowsAndActsOn() {
         let service = GemPerpetualDetailsServiceMock()
         let position = Primitives.PerpetualPosition.mock()

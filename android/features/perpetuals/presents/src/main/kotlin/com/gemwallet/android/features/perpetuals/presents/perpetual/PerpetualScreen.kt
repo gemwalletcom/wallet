@@ -41,7 +41,6 @@ fun PerpetualScreen(
     }
 
     val details by viewModel.details.collectAsStateWithLifecycle()
-    val positionRow by viewModel.positionRow.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
@@ -52,7 +51,6 @@ fun PerpetualScreen(
 
     PerpetualScene(
         details = details,
-        positionRow = positionRow,
         transactions = transactions,
         chart = chart,
         tooltip = viewModel::tooltip,

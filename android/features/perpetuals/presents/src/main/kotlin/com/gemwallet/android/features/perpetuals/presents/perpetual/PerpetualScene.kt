@@ -16,11 +16,7 @@ import com.gemwallet.android.features.perpetuals.presents.components.PerpetualAc
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualButtonUIModel
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionDetailUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualSectionUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -30,6 +26,7 @@ import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.AssetId
@@ -43,19 +40,22 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
-import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualButton
+import uniffi.gemstone.GemPerpetualButtonRow
+import uniffi.gemstone.GemPerpetualDetails
+import uniffi.gemstone.GemPerpetualPositionDetail
+import uniffi.gemstone.GemPerpetualPositionDetailRow
+import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemValueTone
 
 @Composable
 internal fun PerpetualScene(
-    details: PerpetualUIModel?,
-    positionRow: GemAssetItemRow?,
+    details: GemPerpetualDetails?,
     transactions: List<GemTransactionRow>,
     chart: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
@@ -99,20 +99,20 @@ internal fun PerpetualScene(
                 }
                 details?.sections.orEmpty().forEach { section ->
                     when (section) {
-                        is PerpetualSectionUIModel.Position -> {
-                            item { SubheaderItem(section.title) }
+                        is GemPerpetualSection.Position -> {
+                            item { SubheaderItem(section.stringRes()) }
                             positionProperties(
-                                position = positionRow,
+                                position = details?.positionRow?.row,
                                 rows = section.rows,
                                 onAutocloseClick = { onAction(PerpetualAction.Autoclose) },
                             )
                         }
 
-                        is PerpetualSectionUIModel.Info -> {
+                        is GemPerpetualSection.Info -> {
                             if (section.buttons.isNotEmpty()) {
                                 item { PerpetualActions(section.buttons) { onButton(it) } }
                             }
-                            item { SubheaderItem(section.title) }
+                            item { SubheaderItem(section.stringRes()) }
                             itemsPositioned(section.rows) { rowPosition, row -> GemListRowView(row = row, listPosition = rowPosition) }
                         }
                     }
@@ -171,14 +171,14 @@ private fun PerpetualScenePreview() {
 
     WalletTheme {
         PerpetualScene(
-            details = PerpetualUIModel(
+            details = GemPerpetualDetails(
                 title = "Bitcoin Perpetual",
                 sections = listOf(
-                    PerpetualSectionUIModel.Position(
-                        title = "Position",
+                    GemPerpetualSection.Position(
                         rows = listOf(
-                            PerpetualPositionDetailUIModel.Item(GemListRow.Text(GemListRowTitle.PNL, "+$460.25 (+9.64%)")),
-                            PerpetualPositionDetailUIModel.Autoclose(
+                            GemPerpetualPositionDetail(GemPerpetualPositionDetailRow.PNL, GemListRow.Text(GemListRowTitle.PNL, "+$460.25 (+9.64%)")),
+                            GemPerpetualPositionDetail(
+                                GemPerpetualPositionDetailRow.AUTOCLOSE,
                                 GemListRow.Lines(
                                     title = GemListRowTitle.AUTO_CLOSE,
                                     lines = listOf(GemLocalizedText.Text("TP $95,000.00"), GemLocalizedText.Text("SL $90,050.00")),
@@ -187,22 +187,21 @@ private fun PerpetualScenePreview() {
                             ),
                         ),
                     ),
-                    PerpetualSectionUIModel.Info(
-                        title = "Info",
+                    GemPerpetualSection.Info(
                         buttons = listOf(
-                            PerpetualButtonUIModel("Modify", GemPerpetualButton.MODIFY, GemValueTone.NEUTRAL),
-                            PerpetualButtonUIModel("Close", GemPerpetualButton.CLOSE, GemValueTone.NEGATIVE),
+                            GemPerpetualButtonRow(GemPerpetualButton.MODIFY, GemValueTone.NEUTRAL),
+                            GemPerpetualButtonRow(GemPerpetualButton.CLOSE, GemValueTone.NEGATIVE),
                         ),
                         rows = listOf(GemListRow.Text(GemListRowTitle.DAILY_VOLUME, "$15.00B")),
                     ),
                 ),
                 modifyButtons = listOf(
-                    PerpetualButtonUIModel("Increase", GemPerpetualButton.INCREASE, GemValueTone.NEUTRAL),
-                    PerpetualButtonUIModel("Reduce", GemPerpetualButton.REDUCE, GemValueTone.NEGATIVE),
+                    GemPerpetualButtonRow(GemPerpetualButton.INCREASE, GemValueTone.NEUTRAL),
+                    GemPerpetualButtonRow(GemPerpetualButton.REDUCE, GemValueTone.NEGATIVE),
                 ),
                 position = null,
+                positionRow = null,
             ),
-            positionRow = null,
             transactions = emptyList(),
             chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition, LocalContext.current)),
             tooltip = { CandleTooltipUIModel(emptyList(), emptyList()) },

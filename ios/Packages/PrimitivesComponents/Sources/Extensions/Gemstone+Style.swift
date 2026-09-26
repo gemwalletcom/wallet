@@ -91,6 +91,15 @@ public extension GemValueTone {
         case .negative: Colors.redLight
         }
     }
+
+    @MainActor
+    var buttonStyle: ColorButtonStyle {
+        switch self {
+        case .positive: .green()
+        case .negative: .red()
+        case .plain, .neutral, .warning: .blue()
+        }
+    }
 }
 
 public extension GemHeaderButtonKind {

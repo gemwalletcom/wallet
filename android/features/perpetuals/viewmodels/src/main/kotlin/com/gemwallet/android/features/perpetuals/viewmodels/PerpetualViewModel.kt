@@ -19,8 +19,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualChartUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualUIModel
-import com.gemwallet.android.features.perpetuals.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.chart.CandleTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
@@ -61,7 +59,6 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -121,16 +118,10 @@ class PerpetualViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val detailsState: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
+    val details: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
         perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.toGem())) }
     }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val positionRow: StateFlow<GemAssetItemRow?> = detailsState.map { it?.positionRow?.row }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), null)
-
-    val details: StateFlow<PerpetualUIModel?> = detailsState.map { it?.uiModel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
