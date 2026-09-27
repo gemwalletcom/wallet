@@ -1,4 +1,5 @@
 use gem_keystore::Mnemonic;
+use primitives::OptionStringExt;
 use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
@@ -85,7 +86,7 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
         (GemWalletImportKind::Phrase, Some(chain)) => Ok(GemWalletImportType::SinglePhrase { words: words(), chain }),
         (GemWalletImportKind::PrivateKey, Some(chain)) => Ok(GemWalletImportType::PrivateKey { value: input.trim().to_string(), chain }),
         (GemWalletImportKind::Address, Some(chain)) => Ok(GemWalletImportType::Address {
-            address: name_record.map(|record| record.address.trim()).filter(|address| !address.is_empty()).unwrap_or(input.trim()).to_string(),
+            address: name_record.map(|record| record.address.trim()).non_empty().unwrap_or(input.trim()).to_string(),
             chain,
         }),
         (GemWalletImportKind::PrivateKey | GemWalletImportKind::Address, None) => Err(GemWalletImportError::MissingChain),
@@ -93,7 +94,7 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
 }
 
 pub fn import_name(name_record: Option<&NameRecord>, default_name: &str) -> String {
-    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).unwrap_or(default_name.trim()).to_string()
+    name_record.map(|record| record.name.trim()).non_empty().unwrap_or(default_name.trim()).to_string()
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {

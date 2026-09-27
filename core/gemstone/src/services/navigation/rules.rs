@@ -1,5 +1,6 @@
+use primitives::OptionStringExt;
 pub fn code(code: Option<String>) -> Option<String> {
-    code.map(|code| code.trim().to_string()).filter(|code| !code.is_empty())
+    code.map(|code| code.trim().to_string()).non_empty()
 }
 
 #[cfg(test)]

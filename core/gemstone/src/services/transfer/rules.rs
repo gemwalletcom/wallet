@@ -1,5 +1,6 @@
 use chrono::Utc;
 use num_bigint::BigInt;
+use primitives::OptionStringExt;
 use primitives::SwapProvider;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
@@ -541,7 +542,7 @@ impl GemPendingTransactionInput {
                 let value = simulation_header.as_ref().and_then(|header| header.value.clone()).unwrap_or(transfer_value);
                 let memo = match &transfer.input_type {
                     TransactionInputType::Swap { .. } => None,
-                    _ => transfer.recipient.memo.clone().filter(|memo| !memo.is_empty()),
+                    _ => transfer.recipient.memo.clone().non_empty(),
                 };
                 (recipient, value, memo)
             }
@@ -553,7 +554,7 @@ impl GemPendingTransactionInput {
             .unwrap_or_else(|| transfer.input_type.transaction_asset().id);
         let direction = if self.sender == recipient { TransactionDirection::SelfTransfer } else { TransactionDirection::Outgoing };
         let contract = match (&transfer.input_type, &self.transaction_type) {
-            (TransactionInputType::Swap { swap_data, .. }, TransactionType::Swap) if swap_data.data.data_type == SwapQuoteDataType::Contract => Some(swap_data.data.to.clone()).filter(|contract| !contract.is_empty()),
+            (TransactionInputType::Swap { swap_data, .. }, TransactionType::Swap) if swap_data.data.data_type == SwapQuoteDataType::Contract => Some(swap_data.data.to.clone()).non_empty(),
             _ => None,
         };
         let metadata = match transfer.input_type {

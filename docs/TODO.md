@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN403 and CLN404 in section 12, one item per change.
+2. **Conversion sweeps:** CLN404 in section 12.
 3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -220,7 +220,6 @@ The same conversion written at many call sites, found on 2026-09-27: ids turned 
 
 ### Core
 
-- **CLN403** **S** **Empty strings become absent through one helper.** `Option` strings are filtered with `.filter(|value| !value.is_empty())` at 76 sites; a `non_empty()` extension in `primitives` replaces them, leaving signer and keystore code as written. iOS spells the same `value.isEmpty ? nil : value` 8 times; one `String` property replaces it.
 - **CLN404** **S** **A neutral number row once.** `GemRowText::neutral(GemLocalizedText::Number { number })` is written 8 times beside the existing `GemRowText::number`; a `GemRowText::neutral_number` constructor replaces them.
 
 ## Blocked upstream

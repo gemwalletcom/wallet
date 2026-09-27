@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::str::FromStr;
 
 use strum::IntoEnumIterator;
@@ -130,7 +131,7 @@ pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> Bl
         contact: can_add_contact.then(|| GemRecipient {
             address: address.clone(),
             name: None,
-            memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
+            memo: transaction.memo.clone().non_empty(),
             references: vec![],
         }),
         is_selectable: true,
@@ -169,8 +170,8 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
         estimated_confirmation_seconds: details.estimated_confirmation_seconds,
         participant,
         provider_name: details.provider_name,
-        provider_contract: transaction.contract.clone().filter(|contract| !contract.is_empty()),
-        memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
+        provider_contract: transaction.contract.clone().non_empty(),
+        memo: transaction.memo.clone().non_empty(),
         resource: resource(transaction),
         rate: swap_rate(extended),
         pnl: details.pnl.map(GemFormattedNumber::signed_usd),
@@ -210,7 +211,7 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             })
         }),
         rows.participant.clone().map(|row| Participant { row }),
-        rows.memo.clone().filter(|memo| !memo.is_empty()).map(|memo| list(GemListRow::memo(memo.clone(), Some(memo)))),
+        rows.memo.clone().non_empty().map(|memo| list(GemListRow::memo(memo.clone(), Some(memo)))),
         rows.resource.map(|resource| {
             list(GemListRow::Label {
                 title: GemListRowTitle::Resource,

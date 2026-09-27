@@ -1,4 +1,5 @@
 use primitives::ApplicationMetadata;
+use primitives::OptionStringExt;
 use url::{Host, Url, form_urlencoded};
 
 use crate::config::public::ASSETS_URL;
@@ -15,7 +16,7 @@ const CONNECTION_INITIAL: &str = "WC";
 
 pub fn connection_row(metadata: &ApplicationMetadata) -> GemConnectionRow {
     let name = metadata.short_name();
-    let host = Some(url_host(&metadata.url)).filter(|host| !host.is_empty());
+    let host = Some(url_host(&metadata.url)).non_empty();
     GemConnectionRow {
         initial: name
             .chars()

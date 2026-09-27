@@ -14,6 +14,7 @@ use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
+use primitives::OptionStringExt;
 use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
@@ -595,7 +596,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                     _ => None,
                 };
                 GemConfirmRowContent::Row {
-                    row: GemListRow::app(name, metadata.and_then(application::icon_url), metadata.map(|metadata| metadata.url.clone()).filter(|url| !url.is_empty())),
+                    row: GemListRow::app(name, metadata.and_then(application::icon_url), metadata.map(|metadata| metadata.url.clone()).non_empty()),
                 }
             }),
             GemConfirmRow::Sender => wallet.account(chain).map(|account| GemConfirmRowContent::Row {

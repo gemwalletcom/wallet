@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink};
@@ -155,7 +156,7 @@ impl GemAssetDetailsService {
             metadata,
             ..
         } = asset_data;
-        let owner_address = Some(account.address).filter(|address| !address.is_empty());
+        let owner_address = Some(account.address).non_empty();
         let price_change_percentage_24h = price.as_ref().map(|price| price.price_change_percentage_24h);
         let price = price.map(|price| price.price);
         let wallet_type = wallet.wallet_type;

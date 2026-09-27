@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chain_primitives::format_token_id;
@@ -64,7 +65,7 @@ pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<Strin
     let chains = get_chains_for_coingecko_market_id(id).into_iter().map(AssetId::from_chain);
     let tokens = platforms.iter().filter_map(|(platform_id, contract)| {
         let chain = get_chain_for_coingecko_platform_id(platform_id)?;
-        let contract = contract.as_ref().filter(|contract| !contract.is_empty())?;
+        let contract = contract.as_ref().non_empty()?;
         let token_id = format_token_id(chain, contract.clone())?;
         Some(AssetId::from(chain, Some(token_id)))
     });

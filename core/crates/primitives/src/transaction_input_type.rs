@@ -1,3 +1,4 @@
+use crate::OptionStringExt;
 use crate::contract_call_data::ContractCallData;
 use crate::earn_type::EarnType;
 use crate::stake_type::StakeType;
@@ -175,7 +176,7 @@ impl TransactionLoadInput {
     }
 
     pub fn get_memo(&self) -> Option<&str> {
-        self.memo.as_deref().filter(|memo| !memo.is_empty())
+        self.memo.as_deref().non_empty()
     }
 
     pub fn value_as_u64(&self) -> Result<u64, SignerError> {

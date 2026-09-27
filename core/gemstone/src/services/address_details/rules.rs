@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::iter::once;
 
 use primitives::{AddressDetails, AddressName, AddressType, Asset, AssetBalance, AssetId, Chain, VerificationStatus, block_explorer::BlockExplorerLink};
@@ -109,7 +110,7 @@ fn header(details: &GemAddressDetails, address_name: Option<&AddressName>) -> Ge
     };
     match address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone()) {
         Some(AddressType::InternalWallet) => GemListRow::WalletAvatar {
-            image_url: address_name.and_then(|address_name| address_name.image_url.clone()).filter(|url| !url.is_empty()),
+            image_url: address_name.and_then(|address_name| address_name.image_url.clone()).non_empty(),
             placeholder: GemWalletPlaceholder::Multicoin,
         },
         Some(AddressType::Contact) => contact_avatar(address_name, None).map_or(chain_icon, |avatar| GemListRow::Avatar { avatar }),

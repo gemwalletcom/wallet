@@ -1,5 +1,6 @@
 use fiat::FiatWebhookRequest;
 use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
+use primitives::OptionStringExt;
 use primitives::{TransactionId, WebhookKind};
 use rocket::data::{Data, ToByteUnit};
 use rocket::http::Status;
@@ -40,7 +41,7 @@ impl<'r> FromRequest<'r> for WebhookSecret {
             return Error((Status::Unauthorized, "Missing Authorization header".to_string()));
         };
 
-        match auth_value.strip_prefix(BEARER_PREFIX).filter(|secret| !secret.is_empty()) {
+        match auth_value.strip_prefix(BEARER_PREFIX).non_empty() {
             Some(secret) => Success(Self(secret.to_string())),
             None => Error((Status::Unauthorized, "Invalid authorization format".to_string())),
         }

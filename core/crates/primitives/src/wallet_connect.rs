@@ -1,3 +1,4 @@
+use crate::OptionStringExt;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_option_u64_from_str_or_int;
 use url::Url;
@@ -57,11 +58,11 @@ impl WalletConnectLink {
     }
 
     fn connect(url: &Url) -> Option<Self> {
-        query_value(url, QUERY_URI).filter(|uri| !uri.is_empty()).map(|uri| WalletConnectLink::Connect { uri })
+        query_value(url, QUERY_URI).non_empty().map(|uri| WalletConnectLink::Connect { uri })
     }
 
     fn session_or_request(url: &Url) -> Option<Self> {
-        if let Some(topic) = query_value(url, QUERY_SESSION_TOPIC).filter(|topic| !topic.is_empty()) {
+        if let Some(topic) = query_value(url, QUERY_SESSION_TOPIC).non_empty() {
             Some(WalletConnectLink::Session { topic })
         } else if query_value(url, QUERY_REQUEST_ID).is_some() {
             Some(WalletConnectLink::Request)

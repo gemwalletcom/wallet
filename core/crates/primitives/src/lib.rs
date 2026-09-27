@@ -343,6 +343,8 @@ pub mod domain;
 
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
+pub mod option_ext;
+pub use self::option_ext::OptionStringExt;
 pub mod number_incrementer;
 pub use self::number_incrementer::NumberIncrementer;
 pub mod chain_signer;

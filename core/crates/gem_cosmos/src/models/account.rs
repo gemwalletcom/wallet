@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,7 +26,7 @@ pub struct Pagination {
 
 impl Pagination {
     pub(crate) fn key(pagination: &Option<Self>) -> Option<String> {
-        pagination.as_ref()?.next_key.clone().filter(|key| !key.is_empty())
+        pagination.as_ref()?.next_key.clone().non_empty()
     }
 }
 

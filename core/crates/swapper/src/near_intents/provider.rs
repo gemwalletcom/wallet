@@ -21,6 +21,7 @@ use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
+use primitives::OptionStringExt;
 use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
@@ -335,7 +336,7 @@ where
         let from_asset = &quote.request.from_asset;
 
         let memo_required = deposit_memo_chains().contains(&from_asset.asset_id().chain);
-        let deposit_memo = near_quote.deposit_memo.filter(|memo| !memo.is_empty());
+        let deposit_memo = near_quote.deposit_memo.non_empty();
 
         if memo_required && deposit_mode != DepositMode::Memo {
             return Err(SwapperError::ComputeQuoteError("Near Intents Stellar deposits require a memo".into()));

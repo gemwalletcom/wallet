@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use primitives::{Chain, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
 use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
@@ -114,7 +115,7 @@ impl NewTransactionRow {
         let hash = transaction.hash().to_string();
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
-        let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
+        let memo = transaction.memo.map(|memo| memo.replace('\0', "")).non_empty();
         let value = if transaction.value == BigUint::ZERO { None } else { Some(transaction.value.to_string()) };
 
         Self {

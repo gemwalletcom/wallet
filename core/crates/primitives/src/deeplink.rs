@@ -1,3 +1,4 @@
+use crate::OptionStringExt;
 use url::Url;
 
 use crate::url_query::query_value;
@@ -149,7 +150,7 @@ fn url_segments(url: &Url) -> Option<Vec<String>> {
             }
         }
         GEM_URL_SCHEME => {
-            if let Some(host) = url.host_str().filter(|host| !host.is_empty()) {
+            if let Some(host) = url.host_str().non_empty() {
                 segments.insert(0, host.to_string());
             }
         }

@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::fmt;
 use std::str::FromStr;
 
@@ -100,7 +101,7 @@ impl Address {
     }
 
     pub fn ensure_matches(claimed: Option<&str>, actual: &str) -> Result<(), SignerError> {
-        let Some(claimed) = claimed.filter(|value| !value.is_empty()) else {
+        let Some(claimed) = claimed.non_empty() else {
             return Ok(());
         };
         if Self::parse(claimed)? != Self::parse(actual)? {

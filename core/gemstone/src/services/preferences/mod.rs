@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
@@ -383,7 +384,7 @@ impl GemPreferencesService {
     }
 
     pub fn get_pushed_subscriptions(&self) -> Option<String> {
-        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).filter(|signature| !signature.is_empty())
+        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).non_empty()
     }
 
     pub fn set_pushed_subscriptions(&self, signature: String) -> Result<(), GemServiceError> {

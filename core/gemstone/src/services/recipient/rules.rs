@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use primitives::name::NameRecord;
 use primitives::{Asset, Chain, ChainAsset, ContactData, Wallet, WalletType};
 
@@ -50,7 +51,7 @@ fn matches_input(record: &NameRecord, chain: Chain, input: &str) -> bool {
 }
 
 fn address(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> String {
-    let address = name_record.map(|record| record.address.as_str()).filter(|address| !address.is_empty()).unwrap_or(input);
+    let address = name_record.map(|record| record.address.as_str()).non_empty().unwrap_or(input);
     checksum_address(address, chain)
 }
 

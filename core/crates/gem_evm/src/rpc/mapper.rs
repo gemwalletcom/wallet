@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::borrow::Cow;
 
 use super::parsers::{ProtocolParser, ProtocolParsers};
@@ -145,7 +146,7 @@ impl EthereumMapper {
         let transaction = match payload {
             TransactionPayload::NativeTransfer => build_native_asset_transaction(TransactionType::Transfer, None, None),
             TransactionPayload::NativeTransferWithCallData => {
-                let memo = decode_hex_utf8(&transaction.input).filter(|value| !value.is_empty());
+                let memo = decode_hex_utf8(&transaction.input).non_empty();
                 build_native_asset_transaction(TransactionType::Transfer, memo, Some(transaction.input.clone()))
             }
             TransactionPayload::Erc20Approve(approval) => build_erc20_approval(approval),

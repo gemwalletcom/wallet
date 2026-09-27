@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact};
 
@@ -291,7 +292,7 @@ pub struct GemAvatar {
 pub fn contact_avatar(address_name: Option<&AddressName>, name: Option<&str>) -> Option<GemAvatar> {
     let address_name = address_name.filter(|address_name| address_name.address_type == AddressType::Contact)?;
     Some(GemAvatar {
-        image_url: address_name.image_url.clone().filter(|url| !url.is_empty()),
+        image_url: address_name.image_url.clone().non_empty(),
         initials: contact_initials(name.unwrap_or(&address_name.name).to_string()),
     })
 }

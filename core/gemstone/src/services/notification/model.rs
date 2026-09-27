@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use primitives::OptionStringExt;
 use primitives::{AssetId, CoreListItemIcon, InAppNotification, UrlAction};
 
 use crate::services::localization::GemLocalizedText;
@@ -30,7 +31,7 @@ pub enum GemNotificationDestination {
 }
 
 fn destination(url: Option<&str>) -> Option<GemNotificationDestination> {
-    let url = url.filter(|url| !url.is_empty())?;
+    let url = url.non_empty()?;
     Some(match ::payment::classify_url(url) {
         Some(action) => GemNotificationDestination::InApp { action },
         None => GemNotificationDestination::Web { url: url.to_string() },

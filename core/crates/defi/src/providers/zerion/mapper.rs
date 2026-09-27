@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use std::error::Error;
 use std::str::FromStr;
 
@@ -51,7 +52,7 @@ fn map_protocol(position: &ZerionPosition) -> DefiProtocol {
         .or_else(|| position.attributes.protocol.clone())
         .or_else(|| position.relationships.dapp.as_ref().and_then(|relationship| relationship.data.as_ref()).map(|data| data.id.clone()))
         .unwrap_or_default();
-    let url = metadata.and_then(|metadata| metadata.url.clone()).filter(|url| !url.is_empty());
+    let url = metadata.and_then(|metadata| metadata.url.clone()).non_empty();
 
     DefiProtocol { name, url }
 }

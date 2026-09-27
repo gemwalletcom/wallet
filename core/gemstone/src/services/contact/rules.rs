@@ -1,5 +1,6 @@
 use crate::services::collections::stale_by;
 use chrono::{DateTime, Utc};
+use primitives::OptionStringExt;
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
 
@@ -46,7 +47,7 @@ pub fn contact(existing: Option<&Contact>, id: String, name: String, description
 }
 
 pub fn scanned_address(input: &str, payment: Option<&PaymentRequest>) -> GemContactScannedAddress {
-    let address = payment.map(|payment| payment.address.trim()).filter(|address| !address.is_empty()).unwrap_or(input.trim());
+    let address = payment.map(|payment| payment.address.trim()).non_empty().unwrap_or(input.trim());
     GemContactScannedAddress {
         address: address.to_string(),
         memo: payment.and_then(|payment| payment.memo.clone()),

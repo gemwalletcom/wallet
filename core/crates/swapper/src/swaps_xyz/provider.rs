@@ -1,4 +1,5 @@
 use num_traits::ToPrimitive;
+use primitives::OptionStringExt;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
@@ -190,7 +191,7 @@ where
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         Self::validate_response(&response, &quote.request, source, destination)?;
-        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.clone(), response.tx.to_extra.filter(|memo| !memo.is_empty()));
+        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.clone(), response.tx.to_extra.non_empty());
         if source.chain != Chain::Sui {
             return Ok(data);
         }

@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::sync::Arc;
 
 use primitives::{Account, ApplicationMetadata, Asset, Chain, Wallet, WalletId};
@@ -109,7 +110,7 @@ impl GemSignMessageService {
 }
 
 fn review_rows(chain: Chain, wallet: &Wallet, account: &Account, metadata: &ApplicationMetadata, shows_app: bool, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemListRow> {
-    let app = shows_app.then(|| GemListRow::app(metadata.short_name(), application::icon_url(metadata), Some(metadata.url.clone()).filter(|url| !url.is_empty())));
+    let app = shows_app.then(|| GemListRow::app(metadata.short_name(), application::icon_url(metadata), Some(metadata.url.clone()).non_empty()));
     let sender = GemListRow::wallet(wallet_row(wallet.clone()), address_copy(chain, account.address.clone()), address_url(chain, account.address.clone()));
     let network = GemListRow::Network {
         title: GemListRowTitle::Network,

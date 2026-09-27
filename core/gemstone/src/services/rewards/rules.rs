@@ -3,6 +3,7 @@ use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
+use primitives::OptionStringExt;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
 
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState};
@@ -12,7 +13,7 @@ use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSe
 use crate::services::localization::GemLocalizedText;
 
 pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomingCode> {
-    let code = code.map(str::trim).filter(|code| !code.is_empty())?.to_string();
+    let code = code.map(str::trim).non_empty()?.to_string();
     match wallets {
         [] => None,
         [_] => Some(GemIncomingCode::Activate { code }),
@@ -32,9 +33,9 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let has_pending_referral = has_used_referral_code && rewards.verify_after.is_some();
     let can_activate_pending_referral = has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after);
     let is_unverified = has_referral_code && rewards.status == RewardStatus::Unverified && !has_pending_referral;
-    let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
+    let referral_code = rewards.code.clone().non_empty();
     let can_invite = has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution);
-    let used_referral_code = rewards.used_referral_code.clone().filter(|code| !code.is_empty());
+    let used_referral_code = rewards.used_referral_code.clone().non_empty();
     let pending_code = (has_pending_referral && !is_unverified).then(|| used_referral_code.clone()).flatten();
     let can_use_referral_code = !has_referral_code && !has_used_referral_code && rewards.use_referral_code_until.is_none_or(|until| now < until);
     GemRewardsState {
@@ -147,7 +148,7 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
 
 fn info_rows(referral_code: Option<&str>, referral_count: i32, points: i32, used_referral_code: Option<&str>) -> Vec<GemListRow> {
     let text = |title: GemListRowTitle, value: &str| GemListRow::Text { title, value: value.to_string() };
-    let optional = |title: GemListRowTitle, value: Option<&str>| value.filter(|value| !value.is_empty()).map(|value| text(title, value));
+    let optional = |title: GemListRowTitle, value: Option<&str>| value.non_empty().map(|value| text(title, value));
     let amount = |title: GemListRowTitle, amount: GemFormattedNumber| GemListRow::Amount { title, amount, info: None };
     [
         optional(GemListRowTitle::MyReferralCode, referral_code),

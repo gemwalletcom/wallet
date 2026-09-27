@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::collections::{HashMap, HashSet};
 
 use crate::services::assets::icon::asset_icon;
@@ -741,7 +742,7 @@ pub fn missing_validators(chain: Chain, delegations: &[DelegationBase], existing
     unique(delegations.iter().map(|delegation| delegation.validator_id.clone()).filter(|id| !existing.contains_key(id)))
         .into_iter()
         .map(|id| {
-            let name = names.get(&id).filter(|name| !name.is_empty()).cloned().unwrap_or_else(|| id.clone());
+            let name = names.get(&id).non_empty().cloned().unwrap_or_else(|| id.clone());
             inactive_validator(chain, id, name)
         })
         .collect()

@@ -1,5 +1,6 @@
 use crate::model::WorkerService;
 use config_keys::{ConfigKey, ConfigParamKey};
+use primitives::OptionStringExt;
 use primitives::{Chain, FiatProviderName, FiatRateProvider, ListProviderName, PlatformStore, PriceProvider};
 use services::ConfigCacher;
 use std::error::Error;
@@ -102,7 +103,7 @@ impl JobLabel for ListProviderName {
 }
 
 fn compose_job_name(base: &str, label: Option<&str>) -> String {
-    match label.map(str::trim).filter(|value| !value.is_empty()) {
+    match label.map(str::trim).non_empty() {
         Some(suffix) => format!("{base}.{suffix}"),
         None => base.to_string(),
     }

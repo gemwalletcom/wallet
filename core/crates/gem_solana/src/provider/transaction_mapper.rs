@@ -1,5 +1,6 @@
 use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
+use primitives::OptionStringExt;
 
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
@@ -29,7 +30,7 @@ fn map_memo(instructions: &[Instruction], account_keys: &[String]) -> Option<Str
         if account_keys.get(instruction.program_id_index).map(String::as_str) != Some(MEMO_PROGRAM_ID) {
             return None;
         }
-        String::from_utf8(bs58::decode(&instruction.data).into_vec().ok()?).ok().filter(|memo| !memo.is_empty())
+        String::from_utf8(bs58::decode(&instruction.data).into_vec().ok()?).ok().non_empty()
     })
 }
 

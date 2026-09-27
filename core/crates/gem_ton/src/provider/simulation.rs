@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -17,8 +18,8 @@ impl<C: Client> ChainSimulation for TonClient<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let request: TonConnectRequest = serde_json::from_str(&input.encoded_transaction)?;
         request.validate_for_emulation()?;
-        let request_sender = request.from.as_deref().filter(|address| !address.is_empty());
-        let input_sender = input.signer_address.as_deref().filter(|address| !address.is_empty());
+        let request_sender = request.from.as_deref().non_empty();
+        let input_sender = input.signer_address.as_deref().non_empty();
         if let Some(input_sender) = input_sender {
             Address::ensure_matches(request_sender, input_sender)?;
         }

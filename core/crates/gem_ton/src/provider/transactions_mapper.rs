@@ -6,6 +6,7 @@ use crate::models::{
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
 
@@ -118,7 +119,7 @@ fn jetton_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         to: parse_address(&details.receiver)?,
         value: details.amount.clone(),
         transaction_type: TransactionType::Transfer,
-        memo: details.comment.filter(|comment| !comment.is_empty()),
+        memo: details.comment.non_empty(),
         metadata: None,
         contract: None,
     })
@@ -137,7 +138,7 @@ fn nft_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         to: details.new_owner.encode_non_bounceable(),
         value: BigUint::from(0u32),
         transaction_type: TransactionType::TransferNFT,
-        memo: details.comment.filter(|comment| !comment.is_empty()),
+        memo: details.comment.non_empty(),
         metadata: Some(metadata_value),
         contract: None,
     })

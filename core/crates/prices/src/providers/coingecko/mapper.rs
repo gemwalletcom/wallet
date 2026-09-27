@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
@@ -158,7 +159,7 @@ fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
     let links = &coin_info.links;
     let mut results = vec![AssetLink::new(&format!("https://www.coingecko.com/coins/{}", coin_info.id.to_lowercase()), LinkType::Coingecko)];
 
-    if let Some(value) = links.twitter_screen_name.as_ref().filter(|v| !v.is_empty()) {
+    if let Some(value) = links.twitter_screen_name.as_ref().non_empty() {
         results.push(AssetLink::new(&format!("https://x.com/{value}"), LinkType::X));
     }
 
@@ -166,7 +167,7 @@ fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
         results.push(AssetLink::new(value, LinkType::Website));
     }
 
-    if let Some(value) = links.telegram_channel_identifier.as_ref().filter(|v| !v.is_empty()) {
+    if let Some(value) = links.telegram_channel_identifier.as_ref().non_empty() {
         results.push(AssetLink::new(&format!("https://t.me/{value}"), LinkType::Telegram));
     }
 
