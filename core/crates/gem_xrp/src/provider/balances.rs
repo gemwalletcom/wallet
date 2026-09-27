@@ -33,10 +33,6 @@ impl<C: Client + Clone> ChainBalances for XrpClient<C> {
         Ok(map_balance_tokens(&objects, token_ids, self.get_chain()))
     }
 
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         let objects = default_if_account_not_found(self.get_account_objects(&address).await)?;
         Ok(map_balance_assets(&objects, self.get_chain()))

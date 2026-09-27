@@ -29,14 +29,6 @@ impl<C: Client + Clone> ChainBalances for NearProvider<C> {
         .await?;
         Ok(balances)
     }
-
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
-    async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
-    }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]

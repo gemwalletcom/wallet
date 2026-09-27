@@ -24,10 +24,6 @@ impl<C: Client> ChainBalances for StellarClient<C> {
         }
     }
 
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         match self.get_account(address).await? {
             AccountResult::Found(account) => Ok(map_all_balances(self.get_chain(), account)),

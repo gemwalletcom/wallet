@@ -14,18 +14,6 @@ impl<C: Client> ChainBalances for PolkadotProvider<C> {
         let balance = self.get_balance(address).await?;
         Ok(balances_mapper::map_coin_balance(balance))
     }
-
-    async fn get_balance_tokens(&self, _address: String, _token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![])
-    }
-
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
-    async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
-    }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]

@@ -36,10 +36,6 @@ impl<C: Client> ChainBalances for AptosClient<C> {
         let stake = self.get_delegation_pool_stake(KNOWN_VALIDATOR_POOL, &address).await?;
         Ok(Some(map_balance_staking(stake, self.get_chain())))
     }
-
-    async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
-    }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
