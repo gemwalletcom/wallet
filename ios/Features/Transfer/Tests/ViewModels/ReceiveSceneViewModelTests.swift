@@ -44,6 +44,16 @@ struct ReceiveSceneViewModelTests {
     }
 
     @Test
+    func openingTheScreenUpdatesTheAsset() async {
+        let service = GemReceiveServiceMock()
+        let model = ReceiveSceneViewModel.mock(service: service)
+
+        await model.updateAsset()
+
+        #expect(service.updatedAssetIds == [AssetId.mock(chain: .bitcoin).identifier])
+    }
+
+    @Test
     func theWarningsComeFromCore() {
         let service = GemReceiveServiceMock()
         service.warningsValue = [.noMemoRequired, .noDestinationTagRequired]

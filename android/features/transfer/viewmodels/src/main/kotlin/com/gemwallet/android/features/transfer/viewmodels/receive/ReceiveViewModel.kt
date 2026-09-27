@@ -71,6 +71,13 @@ class ReceiveViewModel @AssistedInject constructor(
 
     private fun storedAsset(assetId: AssetId) = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
+    init {
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable { service.updateAsset(sourceAssetId.toIdentifier()) }
+                .onFailure { Log.d(TAG, "asset update failed (${it.javaClass.simpleName})") }
+        }
+    }
+
     val networks = combine(
         asset.filterNotNull().filter { it.asset.id == sourceAssetId },
         session.filterNotNull(),

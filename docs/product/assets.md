@@ -23,6 +23,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
+| Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
 
 ## Market
 

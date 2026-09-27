@@ -1,4 +1,3 @@
-use futures::TryFutureExt;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink};
@@ -110,7 +109,7 @@ impl GemAssetDetailsService {
         };
         let (prices, associations, balances, transactions, price_alerts) = futures::join!(
             self.stream.add_prices(vec![asset_id.clone()]),
-            self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ()),
+            self.assets.update_asset(asset_id.clone()),
             self.balances.sync_assets_and_update(wallet_id.clone(), vec![asset_id.clone()]),
             self.transactions.sync_wallet(wallet_id, Some(asset_id.clone())),
             self.price_alerts.sync(Some(asset_id))

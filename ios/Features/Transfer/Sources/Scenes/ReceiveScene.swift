@@ -2,6 +2,7 @@
 
 import Components
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
@@ -13,6 +14,12 @@ public struct ReceiveScene: View {
     }
 
     public var body: some View {
+        content
+            .bindQuery(model.assetQuery)
+            .task { await model.updateAsset() }
+    }
+
+    private var content: some View {
         VStack(spacing: .large) {
             VStack {
                 Spacer()

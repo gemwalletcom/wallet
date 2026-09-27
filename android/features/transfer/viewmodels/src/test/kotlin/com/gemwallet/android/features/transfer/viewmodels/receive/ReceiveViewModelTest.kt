@@ -126,4 +126,15 @@ class ReceiveViewModelTest {
 
         coVerify { service.enableAsset(wallet.id.id, bitcoin.id.toIdentifier()) }
     }
+
+    @Test
+    fun `opening the screen updates the asset`() = runTest(dispatcher) {
+        val service: GemReceiveServiceInterface = mockk(relaxed = true) {
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow())), showsSelector = false)
+        }
+        val model = receiveModel(service)
+        model.asset.first { it != null }
+
+        coVerify(exactly = 1) { service.updateAsset(bitcoin.id.toIdentifier()) }
+    }
 }

@@ -11,6 +11,7 @@ import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import SwiftUI
 
 @Observable
@@ -30,31 +31,25 @@ public final class ReceiveSceneViewModel: Sendable {
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
     private let generator = QRCodeGenerator()
-    let networks: GemReceiveNetworks
+    let assetQuery: ObservableQuery<AssetQueryOptional>
     private(set) var selectNetworkTask: Task<Void, Never>?
 
     private init(
-        asset: Asset,
-        associations: [AssetAssociation],
+        assetData: AssetData,
         wallet: Wallet,
         address: String,
         service: any GemReceiveServiceProtocol,
     ) {
-        assetState = service.assetState(asset: asset.toGem())
+        assetState = service.assetState(asset: assetData.asset.toGem())
         self.wallet = wallet
         self.address = address
         self.service = service
-        networks = service.networks(
-            asset: asset.toGem(),
-            associations: associations.map(\.assetId.identifier),
-            wallet: wallet.toGem(),
-        )
+        assetQuery = ObservableQuery(AssetQueryOptional(walletId: wallet.id, assetId: assetData.asset.id), initialValue: assetData)
     }
 
     public convenience init(assetData: AssetData, wallet: Wallet, service: any GemReceiveServiceProtocol) {
         self.init(
-            asset: assetData.asset,
-            associations: assetData.associations,
+            assetData: assetData,
             wallet: wallet,
             address: assetData.account.address,
             service: service,
@@ -63,12 +58,27 @@ public final class ReceiveSceneViewModel: Sendable {
 
     public convenience init(assetAddress: AssetAddress, wallet: Wallet, service: any GemReceiveServiceProtocol) {
         self.init(
-            asset: assetAddress.asset,
-            associations: [],
+            assetData: AssetData.with(asset: assetAddress.asset, account: Account(chain: assetAddress.asset.chain, address: assetAddress.address, derivationPath: "", extendedPublicKey: nil)),
             wallet: wallet,
             address: assetAddress.address,
             service: service,
         )
+    }
+
+    var networks: GemReceiveNetworks {
+        service.networks(
+            asset: asset.toGem(),
+            associations: (assetQuery.value?.associations ?? []).map(\.assetId.identifier),
+            wallet: wallet.toGem(),
+        )
+    }
+
+    func updateAsset() async {
+        do {
+            try await service.updateAsset(assetId: asset.id.identifier)
+        } catch {
+            debugLog("receive asset update error: \(error)")
+        }
     }
 
     var title: String {

@@ -3,7 +3,6 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
-use super::GemAssetsService;
 use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchView};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
@@ -22,7 +21,6 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetSelectionService {
-    assets: Arc<GemAssetsService>,
     search: Arc<GemSearchService>,
     balances: Arc<GemBalanceService>,
     recent_activity: Arc<GemRecentActivityService>,
@@ -36,7 +34,6 @@ pub struct GemAssetSelectionService {
 impl GemAssetSelectionService {
     #[uniffi::constructor]
     pub fn new(
-        assets: Arc<GemAssetsService>,
         search: Arc<GemSearchService>,
         balances: Arc<GemBalanceService>,
         recent_activity: Arc<GemRecentActivityService>,
@@ -46,7 +43,6 @@ impl GemAssetSelectionService {
         swap: Arc<GemSwapService>,
     ) -> Self {
         Self {
-            assets,
             search,
             balances,
             recent_activity,
@@ -129,8 +125,6 @@ impl GemAssetSelectionService {
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
-        let asset_id = asset.id.clone();
-        self.recent_activity.add_recent(action, asset).await?;
-        self.assets.prepare_for_action(action, asset_id).await
+        self.recent_activity.add_recent(action, asset).await
     }
 }

@@ -33,6 +33,10 @@ impl GemReceiveService {
         rules::networks(&asset, associations, &wallet)
     }
 
+    pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+        self.assets.update_asset(asset_id).await
+    }
+
     pub async fn enable_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {
         self.balances.enable_assets(wallet_id, vec![asset_id.clone()]).await?;
         if let Ok(asset) = self.asset(asset_id).await {
