@@ -534,20 +534,22 @@ mod tests {
             let context = WalletTestkit::new();
             let wallet = context.import("Wallet", PHRASE).await;
             let path = context.keystore_path(&wallet);
-            fs::write(&path, "not a keystore").unwrap();
+            let unreadable = "not a keystore";
+            fs::write(&path, unreadable).unwrap();
             let import = GemWalletImportType::MulticoinPhrase {
                 words: PHRASE.iter().map(|word| word.to_string()).collect(),
                 chains: vec![Chain::Ethereum],
             };
 
-            assert!(context.service.store_import("Again".to_string(), import.clone(), WalletSource::Import).await.is_err());
-            assert_eq!(fs::read_to_string(&path).unwrap(), "not a keystore");
+            let with_record = context.service.store_import("Again".to_string(), import.clone(), WalletSource::Import).await;
+            assert!(with_record.is_err(), "an unreadable file is a read error, not a missing secret");
+            assert_eq!(fs::read_to_string(&path).unwrap(), unreadable, "the file is not rebuilt");
 
             context.wallets.wallets.lock().unwrap().clear();
             *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
-
-            assert!(context.service.store_import("Again".to_string(), import, WalletSource::Import).await.is_err());
-            assert_eq!(fs::read_to_string(&path).unwrap(), "not a keystore", "a store failure must not roll back a file this import did not create");
+            let without_record = context.service.store_import("Again".to_string(), import, WalletSource::Import).await;
+            assert!(without_record.is_err());
+            assert_eq!(fs::read_to_string(&path).unwrap(), unreadable, "a store failure never rolls back a file this import did not create");
         });
     }
 
