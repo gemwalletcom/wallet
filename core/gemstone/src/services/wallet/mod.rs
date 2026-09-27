@@ -302,7 +302,6 @@ impl GemWalletService {
                 None,
             ),
             import => {
-                let keystore_id = keystore_id_for_wallet(wallet_id.id());
                 let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 let wallet = Wallet {
@@ -316,7 +315,7 @@ impl GemWalletService {
                     image_url: None,
                     source,
                 };
-                (wallet, stored.created.then_some(keystore_id))
+                (wallet, stored.created.then_some(stored.keystore_id))
             }
         };
         if let Err(error) = self.store_wallet(&wallet).await {
