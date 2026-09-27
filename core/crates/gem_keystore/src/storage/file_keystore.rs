@@ -99,9 +99,8 @@ impl FileKeystore {
         }
         let body = encrypt_secret(&self.default_kdf, payload, password, &id)?;
         self.write_new_file(&id, &body, false)?;
-        let mut meta = self.get_meta_unlocked(id.as_str())?.ok_or(KeystoreError::NotFound)?;
-        meta.created = true;
-        Ok(meta)
+        let meta = self.get_meta_unlocked(id.as_str())?.ok_or(KeystoreError::NotFound)?;
+        Ok(StoredSecretMeta { created: true, ..meta })
     }
 
     fn get_meta_unlocked(&self, keystore_id: &str) -> Result<Option<StoredSecretMeta>, KeystoreError> {
