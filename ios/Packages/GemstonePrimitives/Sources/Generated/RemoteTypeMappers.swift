@@ -2499,7 +2499,7 @@ public extension Primitives.Node {
 public extension Gemstone.Perpetual {
     func toPrimitives() -> Primitives.Perpetual {
         Primitives.Perpetual(
-            id: Primitives.PerpetualId(core: id),
+            id: id,
             name: name,
             provider: provider.toPrimitives(),
             assetId: Primitives.AssetId(core: assetId),
@@ -2518,7 +2518,7 @@ public extension Gemstone.Perpetual {
 public extension Primitives.Perpetual {
     func toGem() -> Gemstone.Perpetual {
         Gemstone.Perpetual(
-            id: id.identifier,
+            id: id,
             name: name,
             provider: provider.toGem(),
             assetId: assetId.identifier,
@@ -2558,7 +2558,7 @@ public extension Gemstone.PerpetualBasic {
     func toPrimitives() -> Primitives.PerpetualBasic {
         Primitives.PerpetualBasic(
             assetId: Primitives.AssetId(core: assetId),
-            perpetualId: Primitives.PerpetualId(core: perpetualId),
+            perpetualId: perpetualId,
             provider: provider.toPrimitives(),
         )
     }
@@ -2568,7 +2568,7 @@ public extension Primitives.PerpetualBasic {
     func toGem() -> Gemstone.PerpetualBasic {
         Gemstone.PerpetualBasic(
             assetId: assetId.identifier,
-            perpetualId: perpetualId.identifier,
+            perpetualId: perpetualId,
             provider: provider.toGem(),
         )
     }
@@ -2614,7 +2614,7 @@ public extension Gemstone.PerpetualPosition {
     func toPrimitives() -> Primitives.PerpetualPosition {
         Primitives.PerpetualPosition(
             id: id,
-            perpetualId: Primitives.PerpetualId(core: perpetualId),
+            perpetualId: perpetualId,
             assetId: Primitives.AssetId(core: assetId),
             size: size,
             sizeValue: sizeValue,
@@ -2636,7 +2636,7 @@ public extension Primitives.PerpetualPosition {
     func toGem() -> Gemstone.PerpetualPosition {
         Gemstone.PerpetualPosition(
             id: id,
-            perpetualId: perpetualId.identifier,
+            perpetualId: perpetualId,
             assetId: assetId.identifier,
             size: size,
             sizeValue: sizeValue,

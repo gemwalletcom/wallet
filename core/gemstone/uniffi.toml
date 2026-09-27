@@ -37,3 +37,9 @@ lower = "{} / 1000"
 type_name = "Date"
 lift = "Date(timeIntervalSince1970: TimeInterval({}))"
 lower = "Int64({}.timeIntervalSince1970)"
+
+[bindings.swift.custom_types.PerpetualId]
+type_name = "Primitives.PerpetualId"
+imports = ["Primitives"]
+lift = "Primitives.PerpetualId(core: {})"
+lower = "{}.identifier"

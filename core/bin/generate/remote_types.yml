@@ -412,6 +412,10 @@ defaults:
   AssetRank: Unknown
 
 conversions:
+  PerpetualId:
+    swift:
+      - "{}"
+      - "{}"
   u64:
     kotlin:
       - "{}.toLong()"

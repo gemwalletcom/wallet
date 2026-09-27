@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN394 to CLN404 in section 12, one item per change; the typed ids go smallest first (CLN394, CLN395, CLN396, then CLN397 and CLN398).
+2. **Conversion sweeps:** CLN396 to CLN404 in section 12, one item per change; the typed ids go smallest first (CLN396, then CLN397 and CLN398).
 3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -218,15 +218,13 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 
 The same conversion written at many call sites, found on 2026-09-27: ids turned into strings and back at every Gemstone call, one error or text shape spelled out each time. Each item gives the conversion one owner and removes the call-site copies without changing a request, a stored value or a screen. It verifies the modules it touches the same way as section 11 and states the count removed in the commit.
 
-### Typed ids across the FFI boundary
+### Typed ids across the FFI boundary (iOS)
 
-Core already passes these ids as UniFFI custom types ([`custom_types.rs`](../core/gemstone/src/models/custom_types.rs)), but [`uniffi.toml`](../core/gemstone/uniffi.toml) maps only `GemBigInt`, `GemBigUint` and `DateTimeUtc` to app types, so both apps receive strings and convert them by hand at every call (for example `assetIds.map { try Primitives.AssetId.from(id: $0) }`). Each item adds the Swift and Kotlin `custom_types` entry that lifts the string into the app's own id type (`init(core:)` on iOS, the identifier constructor on Android) and lowers it with its identifier, changes any remaining `String` id parameter in the exports to the id type, and deletes the call-site conversions that follow. Bindings are regenerated for both apps; the lift fails only on an id Core itself produced, as `init(core:)` does today.
+Core passes these ids as UniFFI custom types ([`custom_types.rs`](../core/gemstone/src/models/custom_types.rs)), but Swift received them as strings and converted them by hand at every call (for example `assetIds.map { try Primitives.AssetId.from(id: $0) }`). `PerpetualId` shows the fix: a Swift `custom_types` entry in [`uniffi.toml`](../core/gemstone/uniffi.toml) lifts it with `init(core:)` and lowers it with `identifier`, a Swift pass-through in [`remote_types.yml`](../core/bin/generate/remote_types.yml) removes the generated mapper conversions, and the Gemstone package depends on `Primitives`. Each item does the same for one id, changes any remaining `String` id parameter in the exports to the id type, and deletes the Swift call-site conversions the compiler then flags. Android keeps strings ([ARCHITECTURE](ARCHITECTURE.md#field-types)); its conversions are CLN400 and CLN401.
 
-- **CLN394** **S** **`PerpetualId`.** 6 Core mentions; iOS `PerpetualId.from(id:)` (5), Android `toPerpetualId()` (9) at Gemstone calls.
-- **CLN395** **S** **`NFTAssetId` and `NFTCollectionId`.** 23 Core mentions; Android `toNftAssetId()` (10) and the identifier conversions at the NFT store and service calls.
-- **CLN396** **M** **`TransactionId`.** 46 Core mentions; iOS `TransactionId.from(id:)` and `init(core:)`, Android identifier conversions at the transaction state and store calls.
-- **CLN397** **L** **`AssetId`.** 716 Core mentions; iOS `AssetId.from(id:)` (29), `AssetId(core:)` (16) and the `.identifier` passed to Gemstone, Android `toAssetId()` (35) and `toIdentifier()` at Gemstone calls. Split by service family if one change grows too large to review.
-- **CLN398** **L** **`WalletId`.** 332 Core mentions; iOS `WalletId.from(id:)` (45, 34 of them in the GemstoneServices stores) and `.id.id` passed to Gemstone, Android `WalletId(...)` and `.id` at Gemstone calls. Split by service family if needed.
+- **CLN396** **M** **`TransactionId`.** 46 Core mentions; `TransactionId.from(id:)` and `init(core:)` at the transaction state and store calls.
+- **CLN397** **L** **`AssetId`.** 716 Core mentions; `AssetId.from(id:)` (29), `AssetId(core:)` (16) and the `.identifier` passed to Gemstone. Split by service family if one change grows too large to review.
+- **CLN398** **L** **`WalletId`.** 332 Core mentions; `WalletId.from(id:)` (45, 34 of them in the GemstoneServices stores) and `.id.id` passed to Gemstone. Split by service family if needed.
 
 ### iOS
 
