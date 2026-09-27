@@ -24,7 +24,6 @@ struct ResponseTests {
     @Test
     func mapDate() throws {
         _ = try Response(body: Data("{\"date\": \"2023-12-26T21:47:58.101180Z\"}".utf8)).map(as: TestDate.self)
-        _ = try Response(body: Data("{\"date\": \"2023-12-26T21:47:58.101180Z\"}".utf8)).map(as: TestDate.self)
         _ = try Response(body: Data("{\"date\": \"2025-04-09T17:30:40Z\"}".utf8)).map(as: TestDate.self)
     }
 
