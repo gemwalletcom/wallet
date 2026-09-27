@@ -23,7 +23,7 @@ flowchart LR
 |---|---|---|
 | Several banners apply | the wallet and asset screens show at most one, the most important; closing it brings up the next | |
 | The wallet's key no longer has full control of a network account | a non-dismissible warning; actions for the affected account are unavailable | the wallet must refuse transactions it cannot authorize |
-| The wallet is watch-only | a notice instead of buttons, on the wallet and asset screens and in an empty transaction list | |
+| The wallet is watch-only | a notice instead of buttons, on the wallet and asset screens and in an empty transaction list; no account-control warning | it holds no key that could lose control |
 | The asset is a native coin | it is titled by its network | |
 | The wallet has no address on a network | none of that network's assets are listed | a network without an address has nothing to send, receive or refresh |
 | The user hides balances | one switch hides them everywhere | |

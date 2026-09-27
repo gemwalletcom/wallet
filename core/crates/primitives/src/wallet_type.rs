@@ -22,4 +22,11 @@ impl WalletType {
             WalletType::View => 3,
         }
     }
+
+    pub fn can_sign(&self) -> bool {
+        match self {
+            WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => true,
+            WalletType::View => false,
+        }
+    }
 }

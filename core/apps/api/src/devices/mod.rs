@@ -213,7 +213,7 @@ pub async fn scan_device_transaction_v2(_device: AuthenticatedDevice, request: D
 
 #[get("/devices/wallet_configuration")]
 pub async fn get_device_wallet_configuration_v2(device: AuthenticatedDeviceWallet, client: &State<WalletConfigurationClient>) -> Result<ApiResponse<WalletConfigurationResult>, ApiError> {
-    Ok(client.get_configuration(device.record.id, device.wallet_id, device.wallet_identifier).await?.into())
+    Ok(client.get_configuration(device.record.id, device.wallet_id, device.wallet_identifier, device.wallet_type).await?.into())
 }
 
 #[get("/devices/notifications?<params..>")]
