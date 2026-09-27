@@ -10,10 +10,12 @@ import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -43,6 +45,7 @@ class BannersQueryTest {
             GemDatabase::class.java,
         ).build()
         database.assetsDao().insert(asset.toRecord())
+        WALLET_IDS.forEach { id -> database.walletsDao().insert(mockWallet(id = WalletId(id)).toRecord()) }
         database.bannersDao().addBanners(
             listOf(
                 warning,
@@ -84,5 +87,9 @@ class BannersQueryTest {
         val banners = BannersQuery(database.bannersDao())(null, asset.id).first()
 
         assertEquals(listOf(BannerEvent.Stake), banners.map { it.event })
+    }
+
+    private companion object {
+        val WALLET_IDS = listOf("wallet-1", "wallet-2")
     }
 }

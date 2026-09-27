@@ -35,7 +35,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbTransaction
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
 
 @Database(
-    version = 101,
+    version = 102,
     entities = [
         DbWallet::class,
         DbAccount::class,

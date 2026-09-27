@@ -10,9 +10,11 @@ import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -42,6 +44,7 @@ class BannersDaoTest {
             GemDatabase::class.java,
         ).build()
         database.assetsDao().insert(asset.toRecord())
+        WALLET_IDS.forEach { id -> database.walletsDao().insert(mockWallet(id = WalletId(id)).toRecord()) }
         database.bannersDao().saveBanner(warning)
     }
 
@@ -60,6 +63,13 @@ class BannersDaoTest {
     }
 
     @Test
+    fun deletingTheWalletDeletesItsBanners() = runBlocking(Dispatchers.IO) {
+        database.walletsDao().delete(mockWallet(id = WalletId("wallet-1")).toRecord())
+
+        assertNull(database.bannersDao().getBanner(warning.id))
+    }
+
+    @Test
     fun walletKeepsAssetlessOnboarding() = runBlocking(Dispatchers.IO) {
         database.bannersDao().saveBanner(warning.copy(id = "onboarding", assetId = null, event = BannerEvent.Onboarding))
         val banner = database.bannersDao()
@@ -68,5 +78,9 @@ class BannersDaoTest {
 
         assertEquals(BannerEvent.Onboarding, banner.event)
         assertNull(banner.asset)
+    }
+
+    private companion object {
+        val WALLET_IDS = listOf("wallet-1")
     }
 }
