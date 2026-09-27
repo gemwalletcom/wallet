@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -132,8 +133,8 @@ class ReceiveViewModelTest {
         val service: GemReceiveServiceInterface = mockk(relaxed = true) {
             every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(GemReceiveNetwork(bitcoin.id.toIdentifier(), row = mockGemChainRow())), showsSelector = false)
         }
-        val model = receiveModel(service)
-        model.asset.first { it != null }
+        receiveModel(service)
+        advanceUntilIdle()
 
         coVerify(exactly = 1) { service.updateAsset(bitcoin.id.toIdentifier()) }
     }
