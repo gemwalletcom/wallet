@@ -14,7 +14,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import WalletTab
+import Wallet
 
 public extension ViewModelFactory {
     @MainActor

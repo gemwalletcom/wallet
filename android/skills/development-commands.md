@@ -46,7 +46,7 @@ For ViewModel or display-model behavior, pair the module build with the narrowes
 
 ```bash
 ./gradlew :features:assets:viewmodels:testDebugUnitTest
-./gradlew :features:wallets:presents:testDebugUnitTest
+./gradlew :features:wallet:presents:testDebugUnitTest
 ```
 
 Use `./gradlew assembleGoogleDebug` when the change touches app composition, navigation wiring, flavor-specific code, generated bindings, or code that cannot be validated by a module build.

@@ -13,7 +13,7 @@ import PrimitivesComponents
 import Store
 import SwiftUI
 import Transactions
-import WalletTab
+import Wallet
 
 struct WalletNavigationView: View {
     @Environment(\.navigationRouter) private var navigationRouter

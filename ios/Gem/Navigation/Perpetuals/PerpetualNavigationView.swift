@@ -4,7 +4,7 @@ import Perpetuals
 import Store
 import Style
 import SwiftUI
-import WalletTab
+import Wallet
 
 public struct PerpetualNavigationView: View {
     @State private var model: PerpetualSceneViewModel

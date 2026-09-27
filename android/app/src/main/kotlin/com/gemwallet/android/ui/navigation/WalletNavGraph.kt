@@ -25,7 +25,7 @@ import com.gemwallet.android.features.onboarding.presents.create_wallet.createWa
 import com.gemwallet.android.features.onboarding.presents.import_wallet.importWalletScreen
 import com.gemwallet.android.features.onboarding.presents.terms.acceptTermsScreen
 import com.gemwallet.android.features.transactions.presents.transaction.TransactionAction
-import com.gemwallet.android.features.wallet_tab.presents.WalletSearchAction
+import com.gemwallet.android.features.wallet.presents.WalletSearchAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction

@@ -5,7 +5,7 @@ import Onboarding
 import Primitives
 import Style
 import SwiftUI
-import Wallets
+import Wallet
 
 struct WalletsNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

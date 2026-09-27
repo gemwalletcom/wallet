@@ -45,9 +45,9 @@ import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.presents.SettingsScreen
 import com.gemwallet.android.features.transactions.presents.list.TransactionsScreen
-import com.gemwallet.android.features.wallet_tab.presents.WalletAction
-import com.gemwallet.android.features.wallet_tab.presents.WalletScreen
-import com.gemwallet.android.features.wallet_tab.viewmodels.WalletViewModel
+import com.gemwallet.android.features.wallet.presents.WalletAction
+import com.gemwallet.android.features.wallet.presents.WalletScreen
+import com.gemwallet.android.features.wallet.viewmodels.WalletViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled

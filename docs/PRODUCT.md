@@ -19,9 +19,8 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 ## Areas
 
 - [Onboarding](product/onboarding.md) — create a wallet, import a wallet, and what happens right after
-- [Wallet](product/wallet_tab.md) — the wallet screen, balances, search
+- [Wallet](product/wallet.md) — the wallet screen, balances, search, and the wallets list: switching, pinning, rename, avatar, secrets, delete
 - [Assets](product/assets.md) — the asset screen with its price chart and market data, manage tokens, recent assets
-- [Wallets](product/wallets.md) — the wallets list, switching, pinning, rename, avatar, secrets, delete
 - [Transfer](product/transfer.md) — send, recipient, amount, confirm, and scanned payment codes and links
 - [Transactions](product/transactions.md) — activity, filters, transaction details, pending tracking
 - [Swap](product/swap.md) — quotes, providers, slippage, price impact, approval

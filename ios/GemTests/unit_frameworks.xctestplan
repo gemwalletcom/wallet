@@ -149,9 +149,9 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/WalletTab",
-        "identifier": "WalletTabTests",
-        "name": "WalletTabTests"
+        "containerPath": "container:Features/Wallet",
+        "identifier": "WalletTests",
+        "name": "WalletTests"
       }
     },
     {
@@ -208,13 +208,6 @@
         "containerPath": "container:Packages/PrimitivesComponents",
         "identifier": "PrimitivesComponentsTests",
         "name": "PrimitivesComponentsTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/Wallets",
-        "identifier": "WalletsTests",
-        "name": "WalletsTests"
       }
     },
     {

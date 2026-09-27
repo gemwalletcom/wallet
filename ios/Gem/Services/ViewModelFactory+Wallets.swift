@@ -9,7 +9,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import Wallets
+import Wallet
 
 public extension ViewModelFactory {
     @MainActor

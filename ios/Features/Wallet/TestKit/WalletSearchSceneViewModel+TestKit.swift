@@ -1,0 +1,32 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Assets
+import protocol Gemstone.GemAssetSelectionServiceProtocol
+import class Gemstone.GemRecentActivityService
+import GemstoneServices
+import GemstoneServicesTestKit
+import Primitives
+import PrimitivesTestKit
+import StoreTestKit
+import Wallet
+
+public extension WalletSearchSceneViewModel {
+    @MainActor
+    static func mock(
+        wallet: Wallet = .mock(),
+        service: any GemAssetSelectionServiceProtocol = GemAssetSelectionServiceMock(),
+    ) -> WalletSearchSceneViewModel {
+        WalletSearchSceneViewModel(
+            wallet: wallet,
+            service: service,
+            recentModel: RecentAssetsViewModel(
+                walletId: wallet.id,
+                types: RecentActivityType.allCases,
+                service: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
+            ),
+            onDismissSearch: {},
+            onSelectAssetAction: { _ in },
+            onAddToken: {},
+        )
+    }
+}
