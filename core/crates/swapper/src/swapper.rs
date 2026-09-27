@@ -1,4 +1,4 @@
-use crate::ranking::{RankedQuote, rank_quotes};
+use crate::ranking::rank_quotes;
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across,
     alien::RpcProvider, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
@@ -38,6 +38,10 @@ impl GemSwapper {
             SwapperChainAsset::All(chain) => *chain == asset_id.chain,
             SwapperChainAsset::Assets(chain, assets) => *chain == asset_id.chain && (asset_id.is_native() || assets.contains(asset_id)),
         })
+    }
+
+    fn amount_mode(&self, quote: &Quote) -> Option<SwapAmountMode> {
+        self.get_swapper_by_provider(&quote.data.provider.id).ok().map(|swapper| swapper.amount_mode(&quote.request))
     }
 
     fn get_swapper_by_provider(&self, provider: &SwapperProvider) -> Result<&dyn Swapper, SwapperError> {
@@ -173,9 +177,8 @@ impl GemSwapper {
         let quotes_futures = providers.into_iter().map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
-                let amount_mode = x.amount_mode(request);
-                let request = Self::quote_request_for_mode(amount_mode, request).map_err(|e| (provider_id.clone(), e))?;
-                x.get_quote(&request).await.map(|quote| RankedQuote { quote, amount_mode }).map_err(|e| (provider_id, e))
+                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
+                x.get_quote(&request).await.map_err(|e| (provider_id, e))
             }
         });
 
@@ -190,7 +193,7 @@ impl GemSwapper {
             }
         }
 
-        let quotes = rank_quotes(request, quotes, &quote_preferences());
+        let quotes = rank_quotes(request, quotes, &quote_preferences(), |quote| self.amount_mode(quote));
         Ok(SwapQuotes { quotes, errors })
     }
 

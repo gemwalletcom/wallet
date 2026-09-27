@@ -4,39 +4,32 @@ use crate::config::QuotePreference;
 use crate::fees::max_amount_spends_all_but_fee;
 use crate::{Quote, QuoteRequest, SwapAmountMode};
 
-pub(crate) struct RankedQuote {
-    pub quote: Quote,
-    pub amount_mode: SwapAmountMode,
-}
-
-impl RankedQuote {
-    fn leaves_no_dust(&self) -> bool {
-        match self.amount_mode {
-            SwapAmountMode::Flexible => true,
-            SwapAmountMode::Fixed => max_amount_spends_all_but_fee(self.quote.request.from_asset.chain()),
-        }
-    }
-}
-
-pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<RankedQuote>, preferences: &[QuotePreference]) -> Vec<Quote> {
-    quotes.sort_by(|a, b| b.quote.to_value.cmp(&a.quote.to_value));
+pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, preferences: &[QuotePreference], amount_mode: impl Fn(&Quote) -> Option<SwapAmountMode>) -> Vec<Quote> {
+    quotes.sort_by(|a, b| b.to_value.cmp(&a.to_value));
     for preference in preferences {
         match preference {
-            QuotePreference::DustFreeMaxAmount { tolerance_bps } => prefer_dust_free_max_amount(request, &mut quotes, *tolerance_bps),
+            QuotePreference::DustFreeMaxAmount { tolerance_bps } => prefer_dust_free_max_amount(request, &mut quotes, *tolerance_bps, &amount_mode),
         }
     }
-    quotes.into_iter().map(|ranked| ranked.quote).collect()
+    quotes
 }
 
-fn prefer_dust_free_max_amount(request: &QuoteRequest, quotes: &mut Vec<RankedQuote>, tolerance_bps: u32) {
+fn leaves_no_dust(quote: &Quote, amount_mode: Option<SwapAmountMode>) -> bool {
+    match amount_mode {
+        Some(SwapAmountMode::Flexible) => true,
+        Some(SwapAmountMode::Fixed) | None => max_amount_spends_all_but_fee(quote.request.from_asset.chain()),
+    }
+}
+
+fn prefer_dust_free_max_amount(request: &QuoteRequest, quotes: &mut Vec<Quote>, tolerance_bps: u32, amount_mode: &impl Fn(&Quote) -> Option<SwapAmountMode>) {
     if !request.options.use_max_amount || !request.from_asset.is_native() {
         return;
     }
-    let Some(best) = quotes.first().map(|ranked| ranked.quote.to_value.clone()) else {
+    let Some(best) = quotes.first().map(|quote| quote.to_value.clone()) else {
         return;
     };
     let floor = best * BigUint::from(10_000 - tolerance_bps.min(10_000)) / BigUint::from(10_000u32);
-    if let Some(index) = quotes.iter().position(|ranked| ranked.leaves_no_dust() && ranked.quote.to_value >= floor) {
+    if let Some(index) = quotes.iter().position(|quote| leaves_no_dust(quote, amount_mode(quote)) && quote.to_value >= floor) {
         let preferred = quotes.remove(index);
         quotes.insert(0, preferred);
     }
@@ -56,13 +49,17 @@ mod tests {
         }
     }
 
-    fn ranked(request: &QuoteRequest, provider: SwapperProvider, amount_mode: SwapAmountMode, to_value: &str) -> RankedQuote {
-        RankedQuote {
-            quote: Quote {
-                request: request.clone(),
-                ..Quote::mock_with_provider(provider, to_value)
-            },
-            amount_mode,
+    fn quote(request: &QuoteRequest, provider: SwapperProvider, to_value: &str) -> Quote {
+        Quote {
+            request: request.clone(),
+            ..Quote::mock_with_provider(provider, to_value)
+        }
+    }
+
+    fn deposit_only_near_intents(quote: &Quote) -> Option<SwapAmountMode> {
+        match quote.data.provider.id {
+            SwapperProvider::NearIntents => Some(SwapAmountMode::Flexible),
+            _ => Some(SwapAmountMode::Fixed),
         }
     }
 
@@ -73,7 +70,7 @@ mod tests {
     #[test]
     fn test_quotes_rank_by_output_and_equal_outputs_keep_the_order_the_providers_answered_in() {
         let request = request(AssetId::from_chain(Chain::Ethereum), false);
-        let rank = |outs: [(SwapperProvider, &str); 3]| providers(rank_quotes(&request, outs.into_iter().map(|(provider, out)| ranked(&request, provider, SwapAmountMode::Fixed, out)).collect(), &[]));
+        let rank = |outs: [(SwapperProvider, &str); 3]| providers(rank_quotes(&request, outs.into_iter().map(|(provider, out)| quote(&request, provider, out)).collect(), &[], deposit_only_near_intents));
 
         assert_eq!(
             rank([(SwapperProvider::UniswapV3, "101"), (SwapperProvider::UniswapV4, "100"), (SwapperProvider::PancakeswapV3, "102")]),
@@ -98,11 +95,12 @@ mod tests {
             providers(rank_quotes(
                 &solana,
                 vec![
-                    ranked(&solana, SwapperProvider::Jupiter, SwapAmountMode::Fixed, "10000"),
-                    ranked(&solana, SwapperProvider::NearIntents, SwapAmountMode::Flexible, deposit_out),
-                    ranked(&solana, SwapperProvider::Okx, SwapAmountMode::Fixed, "9990"),
+                    quote(&solana, SwapperProvider::Jupiter, "10000"),
+                    quote(&solana, SwapperProvider::NearIntents, deposit_out),
+                    quote(&solana, SwapperProvider::Okx, "9990"),
                 ],
                 &preferences,
+                deposit_only_near_intents,
             ))
         };
 
@@ -129,11 +127,9 @@ mod tests {
         let close = |request: &QuoteRequest, preferences: &[QuotePreference]| {
             providers(rank_quotes(
                 request,
-                vec![
-                    ranked(request, SwapperProvider::UniswapV3, SwapAmountMode::Fixed, "10000"),
-                    ranked(request, SwapperProvider::NearIntents, SwapAmountMode::Flexible, "9990"),
-                ],
+                vec![quote(request, SwapperProvider::UniswapV3, "10000"), quote(request, SwapperProvider::NearIntents, "9990")],
                 preferences,
+                deposit_only_near_intents,
             ))
         };
         let solana_max = request(AssetId::from_chain(Chain::Solana), true);
@@ -155,6 +151,6 @@ mod tests {
             "on an Ethereum-style network a contract call spends everything but the fee too, so the best quote wins"
         );
         assert_eq!(close(&solana_max, &[]), vec![SwapperProvider::UniswapV3, SwapperProvider::NearIntents], "with no preference configured the best quote wins");
-        assert_eq!(providers(rank_quotes(&solana_max, vec![], &preferences)), vec![]);
+        assert_eq!(providers(rank_quotes(&solana_max, vec![], &preferences, deposit_only_near_intents)), vec![]);
     }
 }
