@@ -17,14 +17,6 @@ public struct PerpetualId: Equatable, Hashable, Sendable {
         "\(provider.rawValue)\(Self.separator)\(symbol)"
     }
 
-    public init(core id: String) {
-        do {
-            self = try PerpetualId.from(id: id)
-        } catch {
-            preconditionFailure("failed to decode PerpetualId from Core: \(id)")
-        }
-    }
-
     public static func from(id: String) throws -> PerpetualId {
         let parts = id.split(separator: Self.separator, maxSplits: 1, omittingEmptySubsequences: false)
         guard parts.count == 2,
@@ -36,14 +28,4 @@ public struct PerpetualId: Equatable, Hashable, Sendable {
     }
 }
 
-extension PerpetualId: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        self = try Self.from(id: container.decode(String.self))
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(identifier)
-    }
-}
+extension PerpetualId: IdentifierCodable {}

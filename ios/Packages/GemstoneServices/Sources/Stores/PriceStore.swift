@@ -45,14 +45,14 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     }
 
     public func saveMarket(assetId: Gemstone.AssetId, market: Gemstone.AssetMarket) async throws {
-        try priceStore.updateMarket(assetId: Primitives.AssetId(id: assetId), market: market.toPrimitives())
+        try priceStore.updateMarket(assetId: Primitives.AssetId.from(id: assetId), market: market.toPrimitives())
     }
 }
 
 private extension GemPriceUpdate {
     func priceUpdate() throws -> PriceUpdate {
         try PriceUpdate(
-            assetId: Primitives.AssetId(id: assetId),
+            assetId: Primitives.AssetId.from(id: assetId),
             price: price,
             priceUsd: priceUsd,
             priceChangePercentage24h: priceChangePercentage24h,

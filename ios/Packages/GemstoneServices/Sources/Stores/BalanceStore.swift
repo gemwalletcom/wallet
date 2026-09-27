@@ -19,19 +19,19 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetBalance] {
-        try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
+        try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) })
             .map { $0.toGem() }
     }
 
     public func getBalanceAssetIds(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetId] {
-        try store.getBalanceAssetIds(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
+        try store.getBalanceAssetIds(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) })
     }
 
     public func updateBalances(walletId: String, balances: [GemBalanceRecord]) async throws {
         let walletId = try WalletId.from(id: walletId)
         let updates = try balances.map { balance in
             try UpdateBalance(
-                assetId: Primitives.AssetId(id: balance.assetId),
+                assetId: Primitives.AssetId.from(id: balance.assetId),
                 available: value(balance.available),
                 frozen: value(balance.frozen),
                 locked: value(balance.locked),
@@ -57,7 +57,7 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     public func setAssetConfiguration(walletId: String, assetIds: [Gemstone.AssetId], configuration: GemAssetConfiguration) async throws {
         try store.setConfiguration(
             walletId: WalletId.from(id: walletId),
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) },
             configuration: AssetConfiguration(isEnabled: configuration.isEnabled, isPinned: configuration.isPinned),
         )
     }

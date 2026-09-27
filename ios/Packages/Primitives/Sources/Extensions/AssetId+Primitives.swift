@@ -9,20 +9,11 @@ extension AssetId: Identifiable {
 public extension AssetId {
     static let subTokenSeparator = "::"
 
-    init(core id: String) {
-        do {
-            try self.init(id: id)
-        } catch {
-            preconditionFailure("failed to decode AssetId from Core: \(id)")
-        }
-    }
-
-    init(id: String) throws {
-        if let (chain, tokenID) = AssetId.getData(id: id) {
-            self.init(chain: chain, tokenId: tokenID)
-        } else {
+    static func from(id: String) throws -> AssetId {
+        guard let (chain, tokenId) = AssetId.getData(id: id) else {
             throw AnyError("invalid asset id: \(id)")
         }
+        return AssetId(chain: chain, tokenId: tokenId)
     }
 
     init(chain: Chain) {

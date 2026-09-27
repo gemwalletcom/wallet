@@ -32,7 +32,7 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
     }
 
     public func clearPerpetuals(collateralAssetIds: [Gemstone.AssetId]) async throws {
-        try store.clear(collateralAssetIds: collateralAssetIds.map { try Primitives.AssetId(id: $0) })
+        try store.clear(collateralAssetIds: collateralAssetIds.map { try Primitives.AssetId.from(id: $0) })
     }
 
     public func getPositions(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {

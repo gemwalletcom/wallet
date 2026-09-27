@@ -30,14 +30,6 @@ public enum WalletId: Equatable, Hashable, Sendable {
 
     public var identifier: String { id }
 
-    public init(core id: String) {
-        do {
-            self = try WalletId.from(id: id)
-        } catch {
-            preconditionFailure("failed to decode WalletId from Core: \(id)")
-        }
-    }
-
     public static func from(id: String) throws -> WalletId {
         let parts = id.split(separator: "_", maxSplits: 2).map(String.init)
         guard parts.count >= 2 else {
@@ -72,15 +64,4 @@ public enum WalletId: Equatable, Hashable, Sendable {
     }
 }
 
-extension WalletId: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let string = try container.decode(String.self)
-        self = try Self.from(id: string)
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(id)
-    }
-}
+extension WalletId: IdentifierCodable {}

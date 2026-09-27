@@ -36,6 +36,7 @@ struct WalletIdTests {
         let walletId = WalletId.multicoin(address: "0xabc")
         let data = try JSONEncoder().encode(walletId)
         let decoded = try JSONDecoder().decode(WalletId.self, from: data)
+        #expect(String(data: data, encoding: .utf8) == "\"multicoin_0xabc\"")
         #expect(decoded == walletId)
     }
 

@@ -65,7 +65,7 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
 
     public func addBalances(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
         try balanceStore.addBalance(
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) },
             isEnabled: enabled,
             for: WalletId.from(id: walletId),
         )
@@ -73,7 +73,7 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
 
     public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
         try balanceStore.addBalance(
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) },
             isEnabled: false,
             for: WalletId.from(id: walletId),
         )
