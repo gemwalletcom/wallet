@@ -522,9 +522,15 @@ mod tests {
 
             let result = context.service.store_import("Again".to_string(), import, WalletSource::Import).await.unwrap();
 
-            assert!(matches!(&result, GemWalletImportResult::Existing { wallet: existing } if existing.id == wallet.id));
+            match result {
+                GemWalletImportResult::Existing { wallet: existing } => assert_eq!(existing.id, wallet.id),
+                GemWalletImportResult::New { .. } => panic!("the wallet already existed"),
+            }
             assert!(context.keystore_path(&wallet).exists());
-            assert!(matches!(context.service.export_secret(wallet.id).await.unwrap(), GemWalletSecret::Words { words } if words.join(" ") == PHRASE.join(" ")));
+            match context.service.export_secret(wallet.id).await.unwrap() {
+                GemWalletSecret::Words { words } => assert_eq!(words.join(" "), PHRASE.join(" ")),
+                GemWalletSecret::PrivateKey { .. } => panic!("a phrase wallet exports words"),
+            }
         });
     }
 
