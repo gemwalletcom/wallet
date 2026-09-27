@@ -20,7 +20,8 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
+2. **Conversion sweeps:** CLN394 to CLN404 in section 12, one item per change; the typed ids go smallest first (CLN394, CLN395, CLN396, then CLN397 and CLN398).
+3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -212,6 +213,35 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 - **CLN391** **S** **One route-string helper.** `DelegationViewModel`, `TransactionViewModel` and `ConnectionViewModel` each keep a private `SavedStateHandle.requireString`; [`RouteArgumentExt.kt`](../android/ui-models/src/main/kotlin/com/gemwallet/android/ui/models/navigation/RouteArgumentExt.kt) gains it and its `require*` helpers reuse its missing-argument check.
 - **CLN392** **S** **One receive picker screen.** `SelectReceiveCollectionScreen` repeats `SelectReceiveScreen` line for line except the default view model; the collection route passes its view model to `SelectReceiveScreen` and the copy goes.
 - **CLN393** **S** **Hiding an asset is written once.** `WalletViewModel.hideAsset` and `NetworkAssetsViewModel.hideAsset` are the same call and log line; one internal helper in the wallet view models serves both.
+
+## 12. Conversion sweeps
+
+The same conversion written at many call sites, found on 2026-09-27: ids turned into strings and back at every Gemstone call, one error or text shape spelled out each time. Each item gives the conversion one owner and removes the call-site copies without changing a request, a stored value or a screen. It verifies the modules it touches the same way as section 11 and states the count removed in the commit.
+
+### Typed ids across the FFI boundary
+
+Core already passes these ids as UniFFI custom types ([`custom_types.rs`](../core/gemstone/src/models/custom_types.rs)), but [`uniffi.toml`](../core/gemstone/uniffi.toml) maps only `GemBigInt`, `GemBigUint` and `DateTimeUtc` to app types, so both apps receive strings and convert them by hand at every call (for example `assetIds.map { try Primitives.AssetId.from(id: $0) }`). Each item adds the Swift and Kotlin `custom_types` entry that lifts the string into the app's own id type (`init(core:)` on iOS, the identifier constructor on Android) and lowers it with its identifier, changes any remaining `String` id parameter in the exports to the id type, and deletes the call-site conversions that follow. Bindings are regenerated for both apps; the lift fails only on an id Core itself produced, as `init(core:)` does today.
+
+- **CLN394** **S** **`PerpetualId`.** 6 Core mentions; iOS `PerpetualId.from(id:)` (5), Android `toPerpetualId()` (9) at Gemstone calls.
+- **CLN395** **S** **`NFTAssetId` and `NFTCollectionId`.** 23 Core mentions; Android `toNftAssetId()` (10) and the identifier conversions at the NFT store and service calls.
+- **CLN396** **M** **`TransactionId`.** 46 Core mentions; iOS `TransactionId.from(id:)` and `init(core:)`, Android identifier conversions at the transaction state and store calls.
+- **CLN397** **L** **`AssetId`.** 716 Core mentions; iOS `AssetId.from(id:)` (29), `AssetId(core:)` (16) and the `.identifier` passed to Gemstone, Android `toAssetId()` (35) and `toIdentifier()` at Gemstone calls. Split by service family if one change grows too large to review.
+- **CLN398** **L** **`WalletId`.** 332 Core mentions; iOS `WalletId.from(id:)` (45, 34 of them in the GemstoneServices stores) and `.id.id` passed to Gemstone, Android `WalletId(...)` and `.id` at Gemstone calls. Split by service family if needed.
+
+### iOS
+
+- **CLN399** **S** **Service error text once.** `error.text().text` is written 18 times in 13 files; one `GemServiceError` property returns it.
+
+### Android
+
+- **CLN400** **S** **One serializer for string ids.** `NFTAssetIdSerializer`, `NFTCollectionIdSerializer`, `PerpetualIdSerializer`, `TransactionIdSerializer` and `WalletIdSerializer` repeat one string serializer with a different parse; a shared base takes the parse and the identifier, as `IdentifierCodable` does on iOS. `AssetIdSerializer` keeps its keyed fallback.
+- **CLN401** **S** **One id prefix parse.** `AssetId`, `NFTAssetId`, `NFTCollectionId`, `TransactionId` and `PerpetualId` each find their chain or provider with `entries.firstOrNull { it.string == identifier.substringBefore("_") }`; one helper does it.
+
+### Core
+
+- **CLN402** **S** **One constructor for a core service error.** `GemServiceError::Core { msg: error.to_string() }` is built by hand 19 times in gemstone; a `GemServiceError::core` constructor serves `.map_err`, as `SignerError::from_display` does.
+- **CLN403** **S** **Empty strings become absent through one helper.** `Option` strings are filtered with `.filter(|value| !value.is_empty())` at 76 sites; a `non_empty()` extension in `primitives` replaces them, leaving signer and keystore code as written. iOS spells the same `value.isEmpty ? nil : value` 8 times; one `String` property replaces it.
+- **CLN404** **S** **A neutral number row once.** `GemRowText::neutral(GemLocalizedText::Number { number })` is written 8 times beside the existing `GemRowText::number`; a `GemRowText::neutral_number` constructor replaces them.
 
 ## Blocked upstream
 
