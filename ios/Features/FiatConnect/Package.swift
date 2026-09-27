@@ -66,7 +66,6 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
-                "Formatters",
                 "Gemstone",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Localization",

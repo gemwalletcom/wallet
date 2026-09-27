@@ -2,11 +2,9 @@
 
 import Components
 import struct Gemstone.GemAvatar
-import GemstonePrimitives
 @testable import Primitives
 import PrimitivesComponents
 import Testing
-@testable import Transfer
 
 struct GemAvatarTests {
     @Test

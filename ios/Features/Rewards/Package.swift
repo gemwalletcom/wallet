@@ -59,7 +59,6 @@ let package = Package(
                 "Primitives",
                 "Gemstone",
                 "Components",
-                "Localization",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
             ],

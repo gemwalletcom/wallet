@@ -4,7 +4,6 @@ import Components
 import Gemstone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import InfoSheet
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives

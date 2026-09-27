@@ -67,7 +67,6 @@ let package = Package(
         .testTarget(
             name: "PerpetualsTests",
             dependencies: [
-                .product(name: "StoreTestKit", package: "Store"),
                 "Perpetuals",
                 "PerpetualsTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),

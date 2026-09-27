@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemSwapDetails
-import GemstonePrimitives
 import GemstoneServicesTestKit
 import Primitives
 @testable import Swap

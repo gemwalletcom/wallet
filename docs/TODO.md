@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Redundancy sweeps:** CLN384 to CLN393 in section 11, one item per change, in any order.
+2. **Redundancy sweeps:** CLN385 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -203,7 +203,6 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 
 ### iOS
 
-- **CLN384** **S** **Test targets depend on what they import.** `Package.swift` test targets still declare dependencies no test imports, several left by CLN319: `AssetsTests` (Store), `FiatConnectTests` and `PrimitivesComponentsTests` (Formatters), `NFTTests`, `PerpetualsTests`, `SupportTests`, `SwapTests`, `TransferTests` and `WalletConnectorTests` (StoreTestKit), `RewardsTests` (Localization), `TransactionsTests` (Localization, Style). Periphery also reports unused imports in `PerpetualSceneViewModelTests` (InfoSheet), `GemSwapDetailsTests` and `GemAvatarTests`. Remove them and build each test target.
 - **CLN385** **S** **Stored-string ids encode and decode once.** `NFTAssetId`, `NFTCollectionId` and `PerpetualId` write the same `init(from:)` and `encode(to:)` (decode the string with `from(id:)`, encode `identifier`), and `TransactionId` and `AssetId` repeat the encoder. A protocol with default `Codable` members for an identifier type replaces the copies; the JSON stays the same string.
 - **CLN386** **S** **One banner-close handler.** `AssetSceneViewModel.onCloseBanner` and `WalletSceneViewModel.onCloseBanner` are the same eleven lines (close through the service, toast the service error text or "An error occurred"). One helper both call.
 - **CLN387** **S** **Transfer routes navigate once.** `SelectAssetNavigationStack` and `SelectedAssetNavigationStack` both switch a `TransferRoute` into the same `navigationPath` appends. One shared function.
