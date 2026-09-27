@@ -20,7 +20,6 @@ import struct Gemstone.GemTransactionRow
 import func Gemstone.loadError
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -231,10 +230,8 @@ public extension AssetSceneViewModel {
         Task {
             do {
                 try await service.closeBanner(key: key)
-            } catch let error as GemServiceError {
-                isPresentingToastMessage = .error(error.text().text)
             } catch {
-                isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                isPresentingToastMessage = .error(error)
             }
         }
     }

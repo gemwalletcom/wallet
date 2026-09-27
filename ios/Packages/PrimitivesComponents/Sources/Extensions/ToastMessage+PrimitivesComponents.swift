@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemServiceError
 import enum Gemstone.GemSubmitMessage
 import enum Gemstone.GemSubmitResult
 import struct Gemstone.GemToast
@@ -50,5 +51,9 @@ public extension ToastMessage {
 
     static func error(_ message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.xmarkCircle)
+    }
+
+    static func error(_ error: any Error) -> ToastMessage {
+        .error((error as? GemServiceError)?.text().text ?? Localized.Errors.errorOccurred)
     }
 }
