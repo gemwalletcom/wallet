@@ -50,6 +50,13 @@ impl<C: Client + Clone> XrpClient<C> {
         }
     }
 
+    pub async fn destination_exists(&self, destination: Option<&str>) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        match destination {
+            Some(destination) => self.account_exists(destination).await,
+            None => Ok(false),
+        }
+    }
+
     pub async fn get_account_info_full(&self, address: &str) -> Result<AccountInfoResult, Box<dyn Error + Send + Sync>> {
         self.request(XrpRpc::GetAccountInfo { address: address.to_string() }).await
     }
