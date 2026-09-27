@@ -11,7 +11,7 @@ public extension AssetsResultsSceneViewModel {
     @MainActor
     static func mock(
         service: any GemAssetSelectionServiceProtocol = GemAssetSelectionServiceMock(),
-        request: WalletSearchRequest = WalletSearchRequest(walletId: .mock(), searchBy: "usdc", types: [.asset]),
+        request: WalletSearchQuery = WalletSearchQuery(walletId: .mock(), searchBy: "usdc", types: [.asset]),
         onSelectAsset: @escaping (Asset) -> Void = { _ in },
     ) -> AssetsResultsSceneViewModel {
         AssetsResultsSceneViewModel(

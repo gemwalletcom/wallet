@@ -33,20 +33,20 @@ import com.gemwallet.android.ui.theme.space4
 import uniffi.gemstone.GemAutocloseFieldState
 
 @Composable
-fun AutocloseInputSection(field: GemAutocloseFieldState, text: String, onTextChanged: (String) -> Unit, onFocusChanged: (Boolean) -> Unit) {
+fun AutocloseInputSection(field: GemAutocloseFieldState, onTextChanged: (String) -> Unit, onFocusChanged: (Boolean) -> Unit) {
     SubheaderItem(
         title = stringResource(field.tpslType.toPrimitives().autocloseRes()),
     )
     GemTextField(
         modifier = Modifier.onFocusChanged { onFocusChanged(it.isFocused) },
-        value = text,
+        value = field.text,
         onValueChange = onTextChanged,
         label = stringResource(R.string.asset_price),
         error = field.validation.stringRes()?.let { stringResource(it) }.orEmpty(),
         keyboardOptions = decimalKeyboardOptions(),
         listPosition = ListPosition.Single,
         errorDivider = true,
-        trailing = if (text.isNotEmpty()) {
+        trailing = if (field.text.isNotEmpty()) {
             {
                 Icon(
                     modifier = Modifier
@@ -72,13 +72,7 @@ fun AutocloseInputSection(field: GemAutocloseFieldState, text: String, onTextCha
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            text = stringResource(
-                if (field.isProfit) {
-                    R.string.perpetual_auto_close_expected_profit
-                } else {
-                    R.string.perpetual_auto_close_expected_loss
-                },
-            ),
+            text = field.estimateTitle.string(LocalContext.current),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.secondary,

@@ -1,5 +1,5 @@
 use primitives::name::NameRecord;
-use primitives::{Asset, Chain, ChainAsset, Wallet, WalletType};
+use primitives::{Asset, Chain, ChainAsset, ContactData, Wallet, WalletType};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
 use crate::address::validate_address;
@@ -99,6 +99,21 @@ pub fn select_step(recipient_type: GemRecipientType, recipient: GemRecipient) ->
             amount: None,
         },
     ))
+}
+
+pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRecipient> {
+    contacts
+        .into_iter()
+        .flat_map(|data| {
+            let name = data.contact.name;
+            data.addresses.into_iter().filter(move |address| address.chain == chain).map(move |address| GemRecipient {
+                address: address.address,
+                name: Some(name.clone()),
+                memo: address.memo,
+                references: vec![],
+            })
+        })
+        .collect()
 }
 
 pub fn recipient_sections(wallets: Vec<Wallet>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemRecipientSection> {
@@ -473,6 +488,34 @@ mod tests {
         );
         assert_eq!(names(&sections[2]), vec!["multicoin", "private key", "single"]);
         assert_eq!(names(&sections[3]), vec!["watching"]);
+    }
+
+    #[test]
+    fn test_each_contact_address_on_the_chain_is_a_recipient_named_after_its_contact() {
+        let contacts = vec![
+            ContactData {
+                contact: primitives::Contact::mock(),
+                addresses: vec![
+                    primitives::ContactAddress {
+                        memo: Some("1".to_string()),
+                        ..primitives::ContactAddress::mock("a")
+                    },
+                    primitives::ContactAddress {
+                        chain: Chain::Bitcoin,
+                        ..primitives::ContactAddress::mock("b")
+                    },
+                ],
+            },
+            ContactData {
+                contact: primitives::Contact {
+                    name: "Bob".to_string(),
+                    ..primitives::Contact::mock()
+                },
+                addresses: vec![],
+            },
+        ];
+
+        assert_eq!(contact_recipients(contacts, Chain::Ethereum), vec![contact("Alice", "0xa")]);
     }
 
     #[test]

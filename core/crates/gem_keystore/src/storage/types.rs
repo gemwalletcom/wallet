@@ -22,16 +22,6 @@ pub struct StoredSecretMeta {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct KeystoreInspection {
-    pub meta: Option<StoredSecretMeta>,
-    pub authenticated: bool,
-    pub file_len: u64,
-    pub ciphertext_len: u64,
-    pub tag_len: u8,
-    pub warnings: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct KeystoreEntryError {
     pub entry: String,
     pub error: String,

@@ -55,6 +55,7 @@ pub mod stream;
 pub mod subscription;
 pub mod support;
 pub mod swap;
+pub mod toast;
 pub mod transaction_state;
 pub mod transactions;
 pub mod transfer;

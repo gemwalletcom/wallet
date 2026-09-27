@@ -4,10 +4,10 @@ use crate::{
 };
 
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, vec};
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -22,8 +22,8 @@ impl TransactionsResponse {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Sendable, Equatable, Hashable")]
 pub struct Transaction {
     pub id: TransactionId,
     #[serde(rename = "assetId")]
@@ -56,7 +56,7 @@ pub struct Transaction {
     pub utxo_outputs: Option<Vec<TransactionUtxoInput>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<serde_json::Value>,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(rename = "createdAt")]

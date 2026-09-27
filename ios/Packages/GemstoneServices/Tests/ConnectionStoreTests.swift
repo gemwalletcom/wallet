@@ -14,7 +14,7 @@ struct ConnectionStoreTests {
     func connectionsBindToTheirWallets() async throws {
         let walletA = Wallet.mock(id: .multicoin(address: "0xa"), name: "Wallet A", accounts: [.mock(chain: .ethereum)])
         let walletB = Wallet.mock(id: .multicoin(address: "0xb"), name: "Wallet B", accounts: [.mock(chain: .ethereum)])
-        let store = try GemstoneConnectionStore(store: .mock(db: .mockWithWallets([walletA, walletB])))
+        let store = GemstoneConnectionStore(store: .mock(db: .mock(wallets: [walletA, walletB])))
 
         try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "a", sessionId: "a"), wallet: walletA).toGem())
         try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "b", sessionId: "b"), wallet: walletB).toGem())
@@ -30,7 +30,7 @@ struct ConnectionStoreTests {
     @Test
     func updatesAndDeletesSessions() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
-        let store = try GemstoneConnectionStore(store: .mock(db: .mockWithWallets([wallet])))
+        let store = GemstoneConnectionStore(store: .mock(db: .mock(wallets: [wallet])))
         try await store.addConnection(connection: WalletConnection.mock(session: .mock(id: "a", sessionId: "a", chains: [.ethereum]), wallet: wallet).toGem())
 
         try await store.updateSession(session: WalletConnectionSession.mock(id: "a", sessionId: "a", chains: [.ethereum, .solana]).toGem())

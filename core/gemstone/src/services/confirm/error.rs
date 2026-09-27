@@ -10,8 +10,9 @@ use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
+use swapper::SwapperError;
 
-#[derive(Debug, Clone, uniffi::Error)]
+#[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired {
@@ -94,6 +95,30 @@ impl GemConfirmError {
             | Self::InsufficientBalance { .. }
             | Self::InsufficientNetworkFee { .. }
             | Self::MinimumAccountBalanceTooLow { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => false,
+        }
+    }
+
+    pub(crate) fn includes_network_fee(&self, fee_asset_id: &AssetId) -> bool {
+        match self {
+            Self::InsufficientBalance { asset, .. } | Self::MinimumAccountBalanceTooLow { asset, .. } => &asset.id == fee_asset_id,
+            Self::InsufficientNetworkFee { .. } => true,
+            Self::ScanMalicious
+            | Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
+            | Self::BalanceMissing { .. }
             | Self::DestinationAccountActivation { .. }
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
@@ -282,16 +307,25 @@ impl GemConfirmError {
 #[uniffi::export]
 impl GemConfirmErrorDisplay {
     pub fn has_info_sheet(&self) -> bool {
+        self.sheet().is_some()
+    }
+}
+
+impl GemConfirmErrorDisplay {
+    pub(crate) fn sheet(&self) -> Option<GemConfirmErrorSheet> {
         match self {
-            Self::Malicious
-            | Self::MemoRequired { .. }
-            | Self::BalanceRequired { .. }
-            | Self::NetworkFeeRequired { .. }
-            | Self::NetworkFeeMissing { .. }
-            | Self::MinimumAccountBalance { .. }
-            | Self::SwapMinimum { .. }
-            | Self::DustThreshold { .. } => true,
-            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => false,
+            Self::Malicious => Some(GemConfirmErrorSheet::Malicious),
+            Self::MemoRequired { symbol } => Some(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }),
+            Self::BalanceRequired { .. } => Some(GemConfirmErrorSheet::BalanceRequired),
+            Self::NetworkFeeRequired { .. } => Some(GemConfirmErrorSheet::NetworkFeeRequired),
+            Self::NetworkFeeMissing { .. } => Some(GemConfirmErrorSheet::NetworkFeeMissing),
+            Self::MinimumAccountBalance { .. } => Some(GemConfirmErrorSheet::MinimumAccountBalance),
+            Self::SwapMinimum { provider, provider_name, .. } => Some(GemConfirmErrorSheet::SwapMinimum {
+                provider: *provider,
+                provider_name: provider_name.clone(),
+            }),
+            Self::DustThreshold { chain } => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
+            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => None,
         }
     }
 }
@@ -351,6 +385,15 @@ impl From<GemServiceError> for GemConfirmError {
             GemServiceError::Cancelled => Self::Cancelled,
             GemServiceError::Offline => Self::Offline,
             error => Self::Load { msg: error.to_string() },
+        }
+    }
+}
+
+impl From<SwapperError> for GemConfirmError {
+    fn from(error: SwapperError) -> Self {
+        match error {
+            SwapperError::Offline => GemConfirmError::Offline,
+            error => GemConfirmError::Load { msg: error.to_string() },
         }
     }
 }

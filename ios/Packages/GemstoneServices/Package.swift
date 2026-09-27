@@ -53,7 +53,6 @@ let package = Package(
                 .product(name: "NativeProviderService", package: "NativeProviderService"),
                 "Gemstone",
                 "GemstoneServices",
-                "Keychain",
                 .product(name: "BigInt", package: "BigInt"),
                 "GemstonePrimitives",
                 "Primitives",

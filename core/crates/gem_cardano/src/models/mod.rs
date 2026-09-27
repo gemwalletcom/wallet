@@ -5,8 +5,6 @@ pub mod rpc;
 pub mod transaction;
 pub mod utxo;
 
-pub type UInt64 = u64;
-
 pub use account::{Balance, BalanceAggregate, BalanceResponse, BalanceSum, BalanceSumValue};
 pub use block::{Block, BlockData, BlockTip, Genesis, GenesisData, GenesisShelley};
 #[cfg(feature = "rpc")]

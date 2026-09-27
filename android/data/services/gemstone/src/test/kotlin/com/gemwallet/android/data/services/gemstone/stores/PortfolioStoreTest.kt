@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWalletId
@@ -29,9 +29,9 @@ class GemstonePortfolioStoreTest {
         }
         val subject = GemstonePortfolioStore(assetsDao)
 
-        val balances = subject.getWalletBalances(walletId.id)
+        val assets = subject.getPortfolioAssets(walletId.id)
 
-        assertEquals(listOf(bitcoin.id.toIdentifier()), balances.map { it.assetId })
-        assertEquals(listOf(BigInteger("1000")), balances.map { it.available })
+        assertEquals(listOf(bitcoin.id.toIdentifier()), assets.map { it.asset.id })
+        assertEquals(listOf(BigInteger("1000")), assets.map { it.balance.available })
     }
 }

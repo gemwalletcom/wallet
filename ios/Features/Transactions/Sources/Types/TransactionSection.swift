@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemListRow
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailSection
 import Primitives
@@ -19,14 +18,4 @@ public extension ListSection where T == GemTransactionDetailRow {
     init(_ section: GemTransactionDetailSection) {
         self.init(id: "\(section.rows[0])", title: nil, image: nil, values: section.rows)
     }
-}
-
-public enum TransactionItemModel {
-    case fee(ListItemModel)
-    case header(TransactionHeaderType)
-    case swapProgress(TransactionSwapProgressItemModel)
-    case participant(AddressListItemViewModel)
-    case row(GemListRow)
-    case swapAgain(text: String)
-    case empty
 }

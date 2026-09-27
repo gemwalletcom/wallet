@@ -39,19 +39,3 @@ extension AssetLinkRecord: CreateTable {
         }
     }
 }
-
-extension AssetLink {
-    func record(assetId: AssetId) -> AssetLinkRecord {
-        AssetLinkRecord(
-            assetId: assetId,
-            name: name,
-            url: url,
-        )
-    }
-}
-
-extension AssetLinkRecord {
-    var link: AssetLink {
-        AssetLink(name: name, url: url)
-    }
-}

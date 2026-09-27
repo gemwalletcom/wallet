@@ -16,23 +16,16 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
             name: "Formatters",
-            dependencies: [
-                "Primitives",
-                .product(name: "BigInt", package: "BigInt"),
-            ],
             path: "Sources",
         ),
         .testTarget(
             name: "FormattersTests",
             dependencies: [
                 "Formatters",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
             ],
         ),

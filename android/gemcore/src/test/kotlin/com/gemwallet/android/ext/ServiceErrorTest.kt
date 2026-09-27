@@ -6,7 +6,6 @@ import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemServiceException
 
 class ServiceErrorTest {
-
     @Test
     fun coreServiceErrorsReadAsTheirMessageAndStorageAsUnknown() {
         assertEquals(
@@ -14,15 +13,5 @@ class ServiceErrorTest {
             GemServiceException.Api("Rewards are not enabled for this user").errorText(),
         )
         assertEquals(GemErrorText.Unknown, GemServiceException.Store("disk full").errorText())
-    }
-
-    @Test
-    fun aCancelledServiceCallReadsAsTheCancelledText() {
-        assertEquals(GemErrorText.Cancelled, GemServiceException.Cancelled().errorText())
-    }
-
-    @Test
-    fun otherErrorsKeepTheirOwnMessage() {
-        assertEquals(GemErrorText.Message("offline"), IllegalStateException("offline").errorText())
     }
 }

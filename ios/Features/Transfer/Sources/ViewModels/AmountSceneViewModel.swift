@@ -1,26 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemAmountEntry
 import enum Gemstone.GemAmountError
+import enum Gemstone.GemAmountExtras
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
+import struct Gemstone.GemAmountLeverage
 import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemAmountSession
 import enum Gemstone.GemAmountType
-import struct Gemstone.GemAssetBalance
 import enum Gemstone.GemInfoAction
 import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
+import func Gemstone.newAmountSession
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
 import Localization
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Store
@@ -34,7 +35,6 @@ public final class AmountSceneViewModel {
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
 
-    let currencyFormatter: CurrencyFormatter
     private let currency: Currency
 
     public let asset: Asset
@@ -42,7 +42,7 @@ public final class AmountSceneViewModel {
     public let perpetual: AmountPerpetualViewModel?
     private let baseRequest: GemAmountRequest
 
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
         assetQuery.value
     }
@@ -52,20 +52,22 @@ public final class AmountSceneViewModel {
     public var isPresentingSheet: AmountSheetType?
     private(set) var input: GemAmountInput
     private(set) var entry: GemAmountEntry
-    private(set) var amountInputType: GemAmountInputType = .asset
+    private var session: GemAmountSession
+
+    var amountInputType: GemAmountInputType {
+        session.inputType
+    }
 
     public init(
         input: AmountInput,
         wallet: Wallet,
         service: any GemAmountServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.service = service
         self.onTransferAction = onTransferAction
         currency = service.getCurrency().toPrimitives()
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
         asset = input.asset
         var stake: AmountStakeViewModel?
         var perpetual: AmountPerpetualViewModel?
@@ -75,7 +77,7 @@ public final class AmountSceneViewModel {
         case .withdraw: baseRequest = .transfer(transfer: .withdraw)
         case let .earn(earnType): baseRequest = .earn(earnType: earnType)
         case let .stake(type):
-            let model = AmountStakeViewModel(asset: input.asset, type: type, service: stakeService)
+            let model = AmountStakeViewModel(asset: input.asset, type: type)
             stake = model
             baseRequest = model.request
         case let .perpetual(action):
@@ -85,15 +87,14 @@ public final class AmountSceneViewModel {
         }
         self.stake = stake
         self.perpetual = perpetual
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         let request = stake?.request ?? perpetual?.request ?? baseRequest
         let amountInput = Self.input(request: request, asset: input.asset, assetData: assetQuery.value)
         self.input = amountInput
-        entry = Self.entry(amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
+        let session = newAmountSession(format: NumberInput.format())
+        self.session = session
+        entry = Self.entry(session: session, amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, currency: currency)
         amountInputModel = InputValidationViewModel()
-        perpetual?.onInfo = { [weak self] topic in
-            self?.isPresentingSheet = .infoAction(topic.infoSheet)
-        }
     }
 
     var request: GemAmountRequest {
@@ -108,13 +109,28 @@ public final class AmountSceneViewModel {
         amountType.title().title
     }
 
-    var earnProviderRow: GemValidatorRow? {
-        guard case let .earn(_, provider) = amountType else { return nil }
-        return provider
+    var extras: GemAmountExtras {
+        service.extras(request: request, asset: asset.toGem())
+    }
+
+    var validatorTitle: String {
+        Localized.Stake.validator
     }
 
     var providerTitle: String {
         Localized.Common.provider
+    }
+
+    func leverageListItem(_ leverage: GemAmountLeverage) -> ListItemModel {
+        ListItemModel(
+            title: Localized.Perpetual.leverage,
+            subtitle: leverage.selection.selected.label.text,
+            subtitleStyle: TextStyle(font: .callout, color: leverage.direction.toPrimitives().color),
+        )
+    }
+
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingSheet = .infoAction(topic.infoSheet)
     }
 
     var displayAsset: Asset {
@@ -134,7 +150,7 @@ public final class AmountSceneViewModel {
     }
 
     var assetImage: AssetImage {
-        AssetIdViewModel(assetId: displayAsset.id).assetImage
+        AssetImage(icon: input.icon)
     }
 
     var assetName: String {
@@ -142,7 +158,7 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        Localized.Transfer.balance(input.balance.text())
+        input.balance.text
     }
 
     var actionButtonState: ButtonState {
@@ -153,8 +169,7 @@ public final class AmountSceneViewModel {
     }
 
     var infoText: String? {
-        guard let reservedFee = entry.reservedFee else { return nil }
-        return Localized.Transfer.reservedFees(reservedFee.text())
+        entry.reservedFee?.text
     }
 
     var maxTitle: String {
@@ -171,32 +186,26 @@ public final class AmountSceneViewModel {
 
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
+            field: session.field(asset: asset.toGem(), input: input, currency: currency.toGem()),
             canSwitchInputType: amountType.canSwitchInputType(),
-            inputType: amountInputType,
-            asset: asset,
-            currencyFormatter: currencyFormatter,
             numberFormat: NumberInput.format(),
             secondaryText: secondaryText,
             onTapActionButton: onSelectInputButton,
-            usesWholeAmounts: input.usesWholeAmounts,
         )
     }
 }
 
 extension AmountSceneViewModel {
     func prefillAmount() {
-        guard let prefill = input.prefill,
-              let text = NumberInput.format().inputText(value: prefill.value.description, decimals: UInt32(asset.decimals)) else { return }
-        amountInputType = prefill.inputType
-        amountInputModel.text = text
-        refreshEntry()
+        showSession(session.onPrefill(input: input, asset: asset.toGem()))
     }
 
     public func onChangeAssetBalance(_: AssetData, _: AssetData) {
         refreshEntry()
     }
 
-    func onChangeAmountText(_: String, _: String) {
+    func onChangeAmountText(_: String, _ text: String) {
+        session = session.onText(text: text)
         refreshEntry()
     }
 
@@ -211,8 +220,7 @@ extension AmountSceneViewModel {
     }
 
     func onSelectInputButton() {
-        amountInputType = amountInputType.toggled()
-        cleanInput()
+        showSession(session.onToggle())
     }
 
     func onSelectReservedFeesInfo() {
@@ -236,8 +244,8 @@ extension AmountSceneViewModel {
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
-    public func onAutocloseComplete(_ selection: AutocloseSelection) {
-        perpetual?.updateAutoclose(takeProfit: selection.takeProfit, stopLoss: selection.stopLoss)
+    public func onAutocloseComplete(takeProfit: String, stopLoss: String) {
+        perpetual?.updateAutoclose(takeProfit: takeProfit, stopLoss: stopLoss)
         isPresentingSheet = nil
     }
 
@@ -281,22 +289,23 @@ extension AmountSceneViewModel {
 
 private extension AmountSceneViewModel {
     func setMax() {
-        let max = input.maxEntry()
-        guard let text = NumberInput.format().inputText(value: max.value.description, decimals: UInt32(asset.decimals)) else { return }
-        amountInputType = max.inputType
-        amountInputModel.text = text
+        showSession(session.onMax(input: input, asset: asset.toGem()))
+    }
+
+    func showSession(_ session: GemAmountSession) {
+        self.session = session
+        amountInputModel.text = session.text
         refreshEntry()
     }
 
     func refreshEntry() {
         input = Self.input(request: request, asset: asset, assetData: assetData)
-        entry = Self.entry(amountType: amountType, asset: asset, assetData: assetData, input: input, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
+        entry = Self.entry(session: session, amountType: amountType, asset: asset, assetData: assetData, input: input, currency: currency)
         amountInputModel.update(error: entry.error)
     }
 
     func cleanInput() {
-        amountInputModel.text = .empty
-        refreshEntry()
+        showSession(session.onClear())
     }
 
     func load() async {
@@ -316,11 +325,11 @@ private extension AmountSceneViewModel {
         entry.equivalent.text()
     }
 
-    static func input(request: GemAmountRequest, asset: Asset, assetData: AssetData) -> GemAmountInput {
-        request.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
+    static func input(request: GemAmountRequest, asset _: Asset, assetData: AssetData) -> GemAmountInput {
+        request.input(data: assetData.toGem())
     }
 
-    static func entry(amountType: GemAmountType, asset: Asset, assetData: AssetData, input: GemAmountInput, inputType: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
-        amountType.entry(asset: asset.toGem(), input: input, price: assetData.price?.price, inputType: inputType, text: text, currency: currency.toGem())
+    static func entry(session: GemAmountSession, amountType: GemAmountType, asset: Asset, assetData: AssetData, input: GemAmountInput, currency: Currency) -> GemAmountEntry {
+        session.entry(amountType: amountType, asset: asset.toGem(), input: input, price: assetData.price?.price, currency: currency.toGem())
     }
 }

@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Deserializer, Serialize, de};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
-#[derive(Clone, Copy, Debug, Serialize, AsRefStr, EnumString, PartialEq, Eq)]
-#[typeshare(swift = "CaseIterable, Equatable, Sendable")]
+#[derive(Clone, Copy, Debug, Serialize, AsRefStr, EnumString, PartialEq, Eq, Model)]
+#[model(swift = "CaseIterable, Equatable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum DeviceLocale {

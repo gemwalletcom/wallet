@@ -3,8 +3,6 @@
 import Components
 import Foundation
 import InfoSheet
-import Localization
-import Primitives
 import PrimitivesComponents
 import Store
 import Style

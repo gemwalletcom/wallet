@@ -15,6 +15,8 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemToast
+import struct Gemstone.GemValueHeader
 import enum Gemstone.WalletType
 import GemstonePrimitivesTestKit
 import Primitives
@@ -30,7 +32,9 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         GemAssetRefresh(transactions: .data, failures: [])
     }
 
-    public func setAssetPinned(assetId _: AssetId, pinned _: Bool) async throws {}
+    public func setAssetPinned(asset: Asset, pinned: Bool) async throws -> GemToast {
+        GemToast(text: .pinned(name: asset.name, pinned: pinned), icon: pinned ? .pin : .unpin)
+    }
 
     public func setAssetsEnabled(assetIds _: [AssetId], enabled _: Bool) async throws {}
 
@@ -40,27 +44,31 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         GemAssetDetails(
             state: GemAssetDetailsState(
                 isViewOnly: input.wallet.walletType == .view,
-                headerActions: input.wallet.walletType == .view ? .watchOnly : .buttons(buttons: []),
                 showsBanners: input.wallet.walletType != .view,
                 priceAlert: .disabled,
-                emptyTransactionsAction: nil,
+                emptyState: .mock(),
+            ),
+            header: GemValueHeader(
+                icon: .asset(icon: .mock()),
+                title: .number(number: .mock(value: 0, unit: .symbol(symbol: input.assetData.asset.symbol), display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: .plain, rounding: .toNearest)),
+                subtitle: nil,
+                subtitleIcon: nil,
+                actions: input.wallet.walletType == .view ? .watchOnly : .buttons(buttons: []),
             ),
             banner: nil,
-            balanceValue: .mock(value: 0, unit: .symbol(symbol: input.asset.symbol)),
             sections: [],
-            title: input.asset.name,
-            fiatValue: .none,
-            explorerName: "Explorer",
-            addressLink: input.ownerAddress.map { Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\($0)") },
-            tokenLink: .none,
+            title: input.assetData.asset.name,
+            options: (input.assetData.account.address.isEmpty ? [] : [.viewAddress(link: Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(input.assetData.account.address)"))]) + [.share],
             verificationStatus: .none,
             networkDestination: .none,
             shareUrl: "https://gemwallet.com",
-            swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.asset.id, receiveAssetId: nil),
+            swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.assetData.asset.id, receiveAssetId: nil),
         )
     }
 
-    public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
+    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast {
+        GemToast(text: .priceAlertsToggled(name: asset.name, enabled: enabled), icon: .priceAlert)
+    }
 
     public func deeplinkUrl(deeplink _: Deeplink) -> String {
         "https://gemwallet.com"

@@ -2,7 +2,6 @@
 
 import Foundation
 import enum Gemstone.GemTransactionStateTone
-import Localization
 import Primitives
 import Style
 import SwiftUI

@@ -1,8 +1,10 @@
 use crate::models::button::GemButtonState;
+use crate::services::assets::model::GemFeeText;
+use crate::services::wallet::GemKeystoreAuthentication;
 use primitives::SimulationResult;
 
-use super::error::GemConfirmError;
-use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
+use super::error::{GemConfirmError, GemConfirmErrorSheet};
+use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeValue, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
 
 impl GemConfirmScreen {
     pub fn initial(simulation: Option<&SimulationResult>) -> Self {
@@ -11,11 +13,26 @@ impl GemConfirmScreen {
             has_critical_warning: simulation.is_some_and(SimulationResult::has_critical_warning),
             failure: None,
             has_fee: true,
+            shown_sheet: None,
         }
+    }
+
+    fn load_sheet(&self) -> Option<GemConfirmErrorSheet> {
+        self.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.display().sheet())
     }
 
     fn is_account_missing(&self) -> bool {
         self.failure.as_ref().is_some_and(|failure| failure.error.is_account_missing())
+    }
+
+    fn fee_text(&self, load: &GemConfirmLoad) -> Option<GemFeeText> {
+        let fee = &load.fee.as_ref()?.formatted;
+        let includes_network_fee = self.failure.as_ref().is_some_and(|failure| failure.error.includes_network_fee(&load.fee_asset.id));
+        Some(match (includes_network_fee, load.shows_fee_assets()) {
+            (true, _) => fee.text_with_amount(),
+            (false, true) => fee.text_with_symbol(&load.fee_asset.symbol),
+            (false, false) => fee.text(),
+        })
     }
 
     fn failed(&self, stage: GemConfirmStage, error: GemConfirmError) -> Self {
@@ -34,11 +51,15 @@ impl GemConfirmScreen {
     }
 
     pub fn presents_sheet(&self) -> bool {
-        self.failure.as_ref().is_some_and(|failure| failure.stage == GemConfirmStage::Load && failure.error.display().has_info_sheet())
+        self.load_sheet().is_some_and(|sheet| self.shown_sheet.as_ref() != Some(&sheet))
     }
 
     pub fn button(&self) -> GemConfirmButton {
-        let button = |kind, state| GemConfirmButton { kind, state };
+        let button = |kind, state| GemConfirmButton {
+            kind,
+            state,
+            icon: GemKeystoreAuthentication::None,
+        };
         match self.phase {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemButtonState::Loading),
             GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemButtonState::Disabled),
@@ -48,16 +69,17 @@ impl GemConfirmScreen {
         }
     }
 
-    pub fn fee_row(&self) -> GemConfirmFeeRow {
+    pub fn fee_value(&self, load: Option<GemConfirmLoad>) -> GemConfirmFeeValue {
+        let unavailable = || GemConfirmFeeValue::Unavailable {
+            text: crate::models::placeholder::EMPTY_VALUE.to_string(),
+        };
         match self.phase {
-            GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
-            GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable {
-                text: crate::models::placeholder::EMPTY_VALUE.to_string(),
+            GemConfirmPhase::Loading => GemConfirmFeeValue::Loading,
+            GemConfirmPhase::Failed => unavailable(),
+            GemConfirmPhase::Ready | GemConfirmPhase::Confirming => match load.as_ref().and_then(|load| self.fee_text(load)) {
+                Some(text) => GemConfirmFeeValue::Ready { text },
+                None => unavailable(),
             },
-            GemConfirmPhase::Ready | GemConfirmPhase::Confirming if !self.has_fee => GemConfirmFeeRow::Unavailable {
-                text: crate::models::placeholder::EMPTY_VALUE.to_string(),
-            },
-            GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
         }
     }
 
@@ -72,11 +94,17 @@ impl GemConfirmScreen {
     }
 
     pub fn on_load_started(&self) -> GemConfirmScreen {
+        let shown_sheet = match self.phase {
+            GemConfirmPhase::Loading => self.shown_sheet.clone(),
+            GemConfirmPhase::Ready => self.load_sheet(),
+            GemConfirmPhase::Confirming | GemConfirmPhase::Failed => None,
+        };
         Self {
             phase: GemConfirmPhase::Loading,
             has_critical_warning: self.has_critical_warning,
             failure: None,
             has_fee: self.has_fee,
+            shown_sheet,
         }
     }
 
@@ -90,6 +118,7 @@ impl GemConfirmScreen {
             has_critical_warning: load.simulation.simulation.as_ref().is_some_and(|simulation| simulation.has_critical_warning),
             failure: amount_error.map(|error| GemConfirmFailure { stage: GemConfirmStage::Load, error }),
             has_fee: load.fee.is_some(),
+            shown_sheet: self.shown_sheet.clone(),
         }
     }
 
@@ -122,9 +151,15 @@ impl GemConfirmScreen {
 mod tests {
     use primitives::{Asset, Chain, SimulationResult, SimulationWarning, TransactionInputType, TransferAmount};
 
-    use super::super::model::{GemConfirmData, GemConfirmFee};
+    use super::super::model::{GemConfirmData, GemConfirmFee, GemFeeAsset};
+    use super::super::rules::fee_asset_row;
     use super::*;
+    use crate::formatted_number::GemFormattedNumber;
     use crate::models::placeholder::EMPTY_VALUE;
+    use crate::services::assets::rules::fee_amount;
+    use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
+    use crate::services::localization::GemLocalizedText;
+    use primitives::currency::Currency;
 
     #[test]
     fn test_a_load_error_with_an_info_sheet_presents_it() {
@@ -134,6 +169,47 @@ mod tests {
         assert!(screen.on_load_failed(GemConfirmError::ScanMalicious).presents_sheet());
         assert!(!screen.on_load_failed(GemConfirmError::Load { msg: "offline".into() }).presents_sheet());
         assert!(!screen.on_execute_failed(GemConfirmError::ScanMalicious).presents_sheet(), "an execute error stays in its row");
+    }
+
+    #[test]
+    fn test_a_refresh_that_finds_the_same_problem_leaves_its_sheet_closed() {
+        let network_fee_missing = |required: u64| GemConfirmError::InsufficientNetworkFee {
+            asset: Asset::mock_eth(),
+            requirement: Some(GemBalanceRequirement::new(required.into(), 0u64.into())),
+        };
+        let problem = |error: GemConfirmError| {
+            let mut load = GemConfirmLoad::mock();
+            load.fee = Some(GemConfirmFee::mock(GemTransferAmountResult::Error { error }));
+            load
+        };
+        let shown = GemConfirmScreen::initial(None).on_load_started().on_loaded(problem(network_fee_missing(21_000)));
+        assert!(shown.presents_sheet());
+
+        let refreshed = shown.on_load_started().on_loaded(problem(network_fee_missing(42_000)));
+        assert!(!refreshed.presents_sheet(), "a new fee changes the amounts, not the problem");
+        assert!(
+            !shown.on_load_started().on_load_started().on_loaded(problem(network_fee_missing(42_000))).presents_sheet(),
+            "a fee change during a refresh is still a refresh"
+        );
+
+        let balance_missing = GemConfirmError::InsufficientBalance {
+            asset: Asset::mock_eth(),
+            requirement: GemBalanceRequirement::new(10u64.into(), 0u64.into()),
+        };
+        assert!(refreshed.on_load_started().on_loaded(problem(balance_missing)).presents_sheet(), "a different problem opens its own sheet");
+
+        let resolved = refreshed.on_load_started().on_loaded(GemConfirmLoad::mock());
+        assert!(
+            resolved.on_load_started().on_loaded(problem(network_fee_missing(21_000))).presents_sheet(),
+            "a problem that comes back after a load without it opens again"
+        );
+    }
+
+    #[test]
+    fn test_retry_opens_the_sheet_of_a_problem_that_is_still_there() {
+        let failed = GemConfirmScreen::initial(None).on_load_failed(GemConfirmError::ScanMalicious);
+        assert!(failed.presents_sheet());
+        assert!(failed.on_load_started().on_load_failed(GemConfirmError::ScanMalicious).presents_sheet());
     }
 
     #[test]
@@ -165,7 +241,8 @@ mod tests {
             missing.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::AccountMissing,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(missing.action(), None);
@@ -183,7 +260,8 @@ mod tests {
             GemConfirmScreen::initial(None).button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Loading
+                state: GemButtonState::Loading,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -194,7 +272,8 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Loading
+                state: GemButtonState::Loading,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -206,7 +285,8 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Retry,
-                state: GemButtonState::Enabled
+                state: GemButtonState::Enabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
@@ -220,21 +300,24 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
             GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(
             ready.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Enabled
+                state: GemButtonState::Enabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
     }
@@ -247,12 +330,13 @@ mod tests {
             ..GemConfirmScreen::initial(None)
         };
 
-        assert_eq!(waiting.fee_row(), GemConfirmFeeRow::Unavailable { text: EMPTY_VALUE.to_string() });
+        assert_eq!(waiting.fee_value(Some(GemConfirmLoad::mock())), GemConfirmFeeValue::Unavailable { text: EMPTY_VALUE.to_string() });
         assert_eq!(
             waiting.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemButtonState::Disabled
+                state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(waiting.action(), None);
@@ -265,30 +349,91 @@ mod tests {
             has_critical_warning: true,
             ..GemConfirmScreen::initial(None)
         };
+        let load = GemConfirmLoad {
+            fee: Some(GemConfirmFee::mock(GemTransferAmountResult::mock())),
+            ..GemConfirmLoad::mock()
+        };
+        let ready = GemConfirmFeeValue::Ready {
+            text: GemConfirmFee::mock(GemTransferAmountResult::mock()).formatted.text(),
+        };
 
-        assert_eq!(loading.fee_row(), GemConfirmFeeRow::Loading);
+        assert_eq!(loading.fee_value(Some(load.clone())), GemConfirmFeeValue::Loading);
         assert_eq!(
             GemConfirmScreen {
                 phase: GemConfirmPhase::Ready,
                 ..loading.clone()
             }
-            .fee_row(),
-            GemConfirmFeeRow::Ready
+            .fee_value(Some(load.clone())),
+            ready
         );
         assert_eq!(
             GemConfirmScreen {
                 phase: GemConfirmPhase::Confirming,
                 ..loading.clone()
             }
-            .fee_row(),
-            GemConfirmFeeRow::Ready
+            .fee_value(Some(load.clone())),
+            ready
         );
         assert_eq!(
-            GemConfirmScreen { phase: GemConfirmPhase::Failed, ..loading }.fee_row(),
-            GemConfirmFeeRow::Unavailable {
+            GemConfirmScreen { phase: GemConfirmPhase::Failed, ..loading }.fee_value(Some(load)),
+            GemConfirmFeeValue::Unavailable {
                 text: crate::models::placeholder::EMPTY_VALUE.to_string()
             },
             "a fee the screen could not load reads as the placeholder both apps use"
+        );
+    }
+
+    #[test]
+    fn test_confirm_fee_row_shows_the_fee_amount_only_when_a_balance_problem_includes_the_fee() {
+        let eth = Asset::mock_eth();
+        let priced = fee_amount(&eth, &num_bigint::BigInt::from(1_000_000_000_000_000u64), Some(2000.0), Currency::USD);
+        let fiat = priced.fiat.clone().unwrap();
+        let fee = |amount: GemTransferAmountResult| GemConfirmFee {
+            formatted: priced.clone(),
+            ..GemConfirmFee::mock(amount)
+        };
+        let short_of = |asset: Asset| GemTransferAmountResult::Error {
+            error: GemConfirmError::InsufficientBalance {
+                asset,
+                requirement: GemBalanceRequirement::new(10u64.into(), 0u64.into()),
+            },
+        };
+        let row = |load: GemConfirmLoad| GemConfirmScreen::initial(None).on_loaded(load.clone()).fee_value(Some(load));
+        let load = |amount: GemTransferAmountResult| GemConfirmLoad {
+            fee: Some(fee(amount)),
+            ..GemConfirmLoad::mock()
+        };
+        let text = |value: GemFormattedNumber, extra: Option<GemLocalizedText>| GemConfirmFeeValue::Ready { text: GemFeeText { value, extra } };
+        let btc = Asset::mock_btc();
+        let picker = GemConfirmLoad {
+            fee_assets: vec![GemFeeAsset {
+                asset: btc.clone(),
+                balance: GemAssetBalance::mock_with_available(1),
+                price: None,
+                row: fee_asset_row(&btc, &GemAssetBalance::mock_with_available(1), None, &Currency::USD),
+            }],
+            ..load(GemTransferAmountResult::mock())
+        };
+
+        assert_eq!(row(load(GemTransferAmountResult::mock())), text(fiat.clone(), None), "a fee reads in the user's currency only");
+        assert_eq!(
+            row(load(short_of(eth.clone()))),
+            text(priced.amount.clone(), Some(GemLocalizedText::Number { number: fiat.clone() })),
+            "a shortfall in the asset that pays the fee shows the fee amount the user has to cover"
+        );
+        assert_eq!(row(load(short_of(Asset::mock_ethereum_usdc()))), text(fiat.clone(), None), "a token shortfall does not involve the fee");
+        assert_eq!(
+            row(picker.clone()),
+            text(fiat.clone(), Some(GemLocalizedText::Text { text: eth.symbol.clone() })),
+            "a fee paid in a picked asset names that asset"
+        );
+        assert_eq!(
+            row(GemConfirmLoad {
+                fee: Some(GemConfirmFee::mock(GemTransferAmountResult::mock())),
+                ..picker
+            }),
+            text(GemConfirmFee::mock(GemTransferAmountResult::mock()).formatted.amount, None),
+            "a fee without a price shows its amount, which already names the asset"
         );
     }
 
@@ -316,6 +461,7 @@ mod tests {
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
                 state: GemButtonState::Disabled,
+                icon: GemKeystoreAuthentication::None,
             }
         );
         assert_eq!(amount_failed.action(), None, "an amount the wallet cannot cover is not retried by pressing the button");

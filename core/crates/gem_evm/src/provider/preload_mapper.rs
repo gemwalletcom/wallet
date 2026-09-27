@@ -113,6 +113,17 @@ pub fn calculate_gas_limit_with_increase(gas_limit: BigInt) -> BigInt {
     }
 }
 
+pub fn pending_permit_gas_limit(input: &TransactionLoadInput) -> Result<Option<BigInt>, Box<dyn Error + Send + Sync>> {
+    let TransactionInputType::Swap { swap_data, .. } = &input.input_type else {
+        return Ok(None);
+    };
+    if swap_data.data.approval.is_some() || swap_data.data.permit2.is_none() {
+        return Ok(None);
+    }
+    let gas_limit = swap_data.data.gas_limit.as_deref().ok_or("swap gas limit is required while its permit is unsigned")?;
+    Ok(Some(BigInt::from_str_radix(gas_limit, 10)?))
+}
+
 pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     match &input.input_type {
         TransactionInputType::Swap { swap_data, .. } => {
@@ -142,7 +153,7 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
 mod tests {
     use super::*;
     use primitives::Asset;
-    use primitives::swap::ApprovalData;
+    use primitives::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapQuoteData};
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
 
     #[test]
@@ -268,6 +279,41 @@ mod tests {
 
         let result = map_transaction_fee_rates(EVMChain::Ethereum, &fee_history);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_pending_permit_gas_limit() {
+        let swap = |permit2: Option<Permit2ApprovalData>, approval: Option<ApprovalData>, gas_limit: Option<&str>| {
+            TransactionLoadInput::mock_evm(
+                TransactionInputType::Swap {
+                    from_asset: Asset::mock_erc20(),
+                    to_asset: Asset::mock_eth(),
+                    swap_data: SwapData {
+                        data: SwapQuoteData {
+                            permit2,
+                            approval,
+                            gas_limit: gas_limit.map(String::from),
+                            ..SwapQuoteData::mock()
+                        },
+                        ..SwapData::mock()
+                    },
+                },
+                "1000",
+            )
+        };
+
+        assert_eq!(
+            pending_permit_gas_limit(&swap(Some(Permit2ApprovalData::mock()), None, Some("300000"))).unwrap(),
+            Some(BigInt::from(300_000)),
+            "an unsigned permit cannot be estimated, so the provider's limit is used"
+        );
+        assert_eq!(
+            pending_permit_gas_limit(&swap(Some(Permit2ApprovalData::mock()), Some(ApprovalData::mock()), Some("300000"))).unwrap(),
+            None,
+            "a pending approval is the transaction that gets estimated"
+        );
+        assert_eq!(pending_permit_gas_limit(&swap(None, None, Some("300000"))).unwrap(), None, "signed calldata is estimated");
+        assert!(pending_permit_gas_limit(&swap(Some(Permit2ApprovalData::mock()), None, None)).is_err());
     }
 
     #[test]

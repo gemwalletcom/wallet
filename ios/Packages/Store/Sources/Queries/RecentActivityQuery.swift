@@ -1,0 +1,50 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import GRDB
+import Primitives
+
+public struct RecentActivityQuery: DatabaseQueryable {
+    public var walletId: WalletId
+    public var limit: Int
+    public var types: [RecentActivityType]
+    public var filters: [AssetsQueryFilter]
+
+    public init(
+        walletId: WalletId,
+        limit: Int = 20,
+        types: [RecentActivityType] = RecentActivityType.allCases,
+        filters: [AssetsQueryFilter] = [],
+    ) {
+        self.walletId = walletId
+        self.limit = limit
+        self.types = types
+        self.filters = filters
+    }
+
+    public func fetch(_ db: Database) throws -> [RecentAsset] {
+        let recentActivitiesForWallet = AssetRecord.recentActivities
+            .filter(RecentActivityRecord.Columns.walletId == walletId.id)
+            .filter(types.map(\.rawValue).contains(RecentActivityRecord.Columns.type))
+
+        let maxCreatedAt = recentActivitiesForWallet.max(RecentActivityRecord.Columns.createdAt)
+
+        var request = AssetRecord
+            .joining(required: recentActivitiesForWallet)
+            .annotated(with: maxCreatedAt.forKey("maxCreatedAt"))
+            .filter(AssetRecord.Columns.rank >= 0)
+
+        if filters.contains(where: \.referencesBalances) {
+            request = request.joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
+        }
+
+        return try AssetsQuery.filtered(request: request, filters)
+            .order(literal: "maxCreatedAt DESC")
+            .limit(limit)
+            .asRequest(of: RecentAssetRecordInfo.self)
+            .fetchAll(db)
+            .map(\.mapToRecentAsset)
+    }
+}
+
+extension RecentActivityQuery: Equatable {}

@@ -12,8 +12,10 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::assets::icon::asset_icon;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
+use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules::margin_amount_value;
 use crate::services::stake::model::GemStakeAmountInput;
@@ -29,33 +31,12 @@ const USDC_SYMBOL: &str = "USDC";
 
 #[uniffi::export]
 impl GemAmountType {
-    pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
-        let available = self.available_value(asset, balance);
-        let reserve = reserve_for_fee(self, asset);
-        let max_after_fee = (&available - &reserve).max(BigInt::from(0));
-        let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
-        let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
-        let can_change_value = can_change_value(self, asset);
-        GemAmountInput {
-            balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
-            available_value: available,
-            prefill: (!can_change_value).then(|| GemAmountMaxEntry {
-                input_type: GemAmountInputType::Asset,
-                value: max_value.clone(),
-            }),
-            max_value,
-            reserved_fee,
-            can_change_value,
-            focuses_input: can_change_value,
-            shows_asset_balance: shows_asset_balance(self, asset),
-            uses_whole_amounts: uses_whole_amounts(self, asset),
-        }
-    }
-
     pub fn can_switch_input_type(&self) -> bool {
         matches!(self, Self::Transfer)
     }
+}
 
+impl GemAmountType {
     pub fn entry(&self, asset: &Asset, input: &GemAmountInput, price: Option<f64>, input_type: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
         let decimals = asset.decimals as u32;
         let (value, error) = match entry_value(&text, decimals, price, input_type) {
@@ -70,14 +51,41 @@ impl GemAmountType {
         GemAmountEntry {
             equivalent: equivalent(value.as_ref(), asset, price, input_type, currency),
             is_max,
-            reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto)),
+            reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemLocalizedText::ReservedFees {
+                fee: GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto),
+            }),
             value,
             error,
         }
     }
+
+    pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
+        let available = self.available_value(asset, balance);
+        let reserve = reserve_for_fee(self, asset);
+        let max_after_fee = (&available - &reserve).max(BigInt::from(0));
+        let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
+        let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
+        let can_change_value = can_change_value(self, asset);
+        GemAmountInput {
+            icon: asset_icon(&asset.id),
+            balance: GemLocalizedText::AmountBalance {
+                balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
+            },
+            available_value: available,
+            prefill: (!can_change_value).then(|| GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: max_value.clone(),
+            }),
+            max_value,
+            reserved_fee,
+            can_change_value,
+            focuses_input: can_change_value,
+            shows_asset_balance: shows_asset_balance(self, asset),
+            uses_whole_amounts: uses_whole_amounts(self, asset),
+        }
+    }
 }
 
-#[uniffi::export]
 impl GemAmountInput {
     pub fn max_entry(&self) -> GemAmountMaxEntry {
         GemAmountMaxEntry {
@@ -228,6 +236,7 @@ pub fn transfer_input(transfer: &GemAmountTransfer, asset: &Asset, balance: &Gem
         value,
     });
     GemAmountInput {
+        icon: asset_icon(&transfer_display_asset(transfer, asset.clone()).id),
         prefill: prefill.or(input.prefill.clone()),
         ..input
     }
@@ -1060,9 +1069,10 @@ mod tests {
         let ether = Asset::from_chain(Chain::Ethereum);
         let input = GemAmountType::Transfer.input(&ether, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
         assert_eq!(input.available_value, BigInt::from(1_500_000_000_000_000_000u64), "the raw value stays, because entry reads it back");
-        assert_eq!(input.balance, GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, GemValueStyle::Auto));
-        assert_eq!(input.balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol.clone() }, "the symbol travels with the number");
-        assert_eq!(input.balance.value, 1.5);
+        let balance = GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, GemValueStyle::Auto);
+        assert_eq!(balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol.clone() }, "the symbol travels with the number");
+        assert_eq!(balance.value, 1.5);
+        assert_eq!(input.balance, GemLocalizedText::AmountBalance { balance }, "the screen reads Balance: with the number");
     }
 
     #[test]
@@ -1079,7 +1089,12 @@ mod tests {
         let max_text = BigNumberFormatter::value(&max.value.to_string(), cosmos.decimals).unwrap();
         let at_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, max_text, Currency::USD);
         assert!(at_max.is_max);
-        assert_eq!(at_max.reserved_fee, Some(GemFormattedNumber::asset_amount(&BigInt::from(config.reserved_for_fees), &cosmos, GemValueStyle::Auto)));
+        assert_eq!(
+            at_max.reserved_fee,
+            Some(GemLocalizedText::ReservedFees {
+                fee: GemFormattedNumber::asset_amount(&BigInt::from(config.reserved_for_fees), &cosmos, GemValueStyle::Auto)
+            })
+        );
 
         let below_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, "1".to_string(), Currency::USD);
         assert!(!below_max.is_max);

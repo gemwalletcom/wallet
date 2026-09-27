@@ -16,7 +16,7 @@ use super::{
     keystore::Keystore,
     queue,
     secret::{decrypt_secret, encrypt_secret},
-    types::{FileKeystore, KdfParams, KeystoreEntryError, KeystoreInspection, ParsedFile, SecretPayload, StoredSecretMeta},
+    types::{FileKeystore, KdfParams, KeystoreEntryError, ParsedFile, SecretPayload, StoredSecretMeta},
 };
 
 impl FileKeystore {
@@ -29,20 +29,7 @@ impl FileKeystore {
         Ok(keystore)
     }
 
-    pub fn inspect_path(path: &Path) -> Result<KeystoreInspection, KeystoreError> {
-        let _queue = queue::lock()?;
-        let bytes = read_capped(path, WHOLE_FILE_CAP)?;
-        let parsed = parse_v4(&bytes)?;
-        Ok(KeystoreInspection {
-            meta: Some(meta_from_header(&parsed.header)),
-            authenticated: false,
-            file_len: bytes.len() as u64,
-            ciphertext_len: parsed.ciphertext.len() as u64,
-            tag_len: parsed.header.cipher.tag_len(),
-            warnings: Vec::new(),
-        })
-    }
-
+    #[cfg(test)]
     pub fn verify_path(path: &Path, password: &[u8]) -> Result<StoredSecretMeta, KeystoreError> {
         let _queue = queue::lock()?;
         let bytes = read_capped(path, WHOLE_FILE_CAP)?;

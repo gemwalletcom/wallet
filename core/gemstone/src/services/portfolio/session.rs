@@ -209,7 +209,7 @@ impl GemPortfolioSession {
     fn phase(&self, load: &GemPortfolioLoad, currency: Currency) -> GemPortfolioPhase {
         match (&load.state, &load.data) {
             (GemLoadState::Loading, _) => GemPortfolioPhase::Loading,
-            (_, Some(data)) => match rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, currency) {
+            (_, Some(data)) => match rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, self.period, currency) {
                 Some(chart) => GemPortfolioPhase::Data { chart },
                 None => GemPortfolioPhase::NoData,
             },

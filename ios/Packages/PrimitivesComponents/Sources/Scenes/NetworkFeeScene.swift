@@ -34,28 +34,21 @@ public struct NetworkFeeScene: View {
 
             if model.showFeeRates {
                 Section {
-                    ForEach(model.feeRatesViewModels) { feeRate in
+                    ForEach(model.feeRateRows, id: \.title) { row in
                         NavigationCustomLink(
                             with: FeeRow(
-                                emoji: feeRate.emoji,
-                                isSelected: feeRate.isSelected,
-                                model: model.rowItem(for: feeRate),
+                                emoji: row.emoji,
+                                isSelected: row.isSelected,
+                                model: model.rowItem(for: row),
                             ),
                         ) {
-                            model.select(.priority(priority: feeRate.priority.toGem()))
-                            dismiss()
-                        }
-                    }
-
-                    if model.supportsCustomFee {
-                        NavigationCustomLink(
-                            with: FeeRow(
-                                emoji: Emoji.FeeRate.custom.rawValue,
-                                isSelected: model.isCustomSelected,
-                                model: model.customRowItem,
-                            ),
-                        ) {
-                            isPresentingCustomFee = true
+                            switch row.kind {
+                            case let .priority(priority):
+                                model.select(.priority(priority: priority))
+                                dismiss()
+                            case .custom:
+                                isPresentingCustomFee = true
+                            }
                         }
                     }
                 } footer: {

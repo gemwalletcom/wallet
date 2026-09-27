@@ -6,9 +6,9 @@ import Style
 import SwiftUI
 
 public struct AboutUsScene: View {
-    @State private var model: AboutUsViewModel
+    @State private var model: AboutUsSceneViewModel
 
-    public init(model: AboutUsViewModel) {
+    public init(model: AboutUsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

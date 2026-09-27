@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
+import com.gemwallet.android.data.services.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNotificationStore
 import dagger.Module
 import dagger.Provides

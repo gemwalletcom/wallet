@@ -9,9 +9,9 @@ import SwiftUI
 public struct ContactsScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactsViewModel
+    @State private var model: ContactsSceneViewModel
 
-    public init(model: ContactsViewModel) {
+    public init(model: ContactsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

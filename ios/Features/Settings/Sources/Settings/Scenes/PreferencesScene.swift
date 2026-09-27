@@ -10,9 +10,9 @@ import SwiftUI
 public struct PreferencesScene: View {
     @Environment(\.openURL) private var openURL
 
-    @State private var model: PreferencesViewModel
+    @State private var model: PreferencesSceneViewModel
 
-    public init(model: PreferencesViewModel) {
+    public init(model: PreferencesSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -49,7 +49,7 @@ public struct PreferencesScene: View {
 
     @ViewBuilder
     private func content(for row: GemListRow) -> some View {
-        switch PreferencesRowDestination(row: row) {
+        switch row.action() {
         case .currency:
             link(row, to: Scenes.Currency())
         case .language:
@@ -60,7 +60,7 @@ public struct PreferencesScene: View {
             link(row, to: Scenes.Chains())
         case .contacts:
             link(row, to: Scenes.Contacts())
-        case .none:
+        default:
             if case .picker = row {
                 GemListRowView(row: row, onSelect: model.onSelect)
                     .padding(.leading, Sizing.image.asset - .tiny)

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemAssetBalance
+import struct Gemstone.AssetData
 import protocol Gemstone.GemPortfolioStore
 import typealias Gemstone.WalletId
 import GemstonePrimitives
@@ -15,8 +15,8 @@ public final class GemstonePortfolioStore: GemPortfolioStore, @unchecked Sendabl
         self.assetStore = assetStore
     }
 
-    public func getWalletBalances(walletId: Gemstone.WalletId) async throws -> [Gemstone.GemAssetBalance] {
+    public func getPortfolioAssets(walletId: Gemstone.WalletId) async throws -> [Gemstone.AssetData] {
         try assetStore.getAssetsData(walletId: Primitives.WalletId.from(id: walletId), filters: [.enabledBalance, .hasBalance], limit: nil)
-            .map { GemAssetBalance($0.balance, assetId: $0.asset.id, isActive: $0.metadata.isActive) }
+            .map { $0.toGem() }
     }
 }

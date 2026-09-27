@@ -20,8 +20,6 @@ public struct ContactAddressRecord: Codable, FetchableRecord, PersistableRecord,
     public var address: String
     public var chain: Chain
     public var memo: String?
-
-    static let contact = belongsTo(ContactRecord.self).forKey("contact")
 }
 
 extension ContactAddressRecord: CreateTable {
@@ -39,29 +37,5 @@ extension ContactAddressRecord: CreateTable {
                 .notNull()
             $0.column(Columns.memo.name, .text)
         }
-    }
-}
-
-extension ContactAddressRecord {
-    var contactAddress: ContactAddress {
-        ContactAddress(
-            id: id,
-            contactId: contactId,
-            address: address,
-            chain: chain,
-            memo: memo,
-        )
-    }
-}
-
-extension ContactAddress {
-    var record: ContactAddressRecord {
-        ContactAddressRecord(
-            id: id,
-            contactId: contactId,
-            address: address,
-            chain: chain,
-            memo: memo,
-        )
     }
 }

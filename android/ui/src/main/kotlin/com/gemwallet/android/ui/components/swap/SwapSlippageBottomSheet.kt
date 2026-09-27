@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.SuggestionsBar
@@ -29,16 +31,18 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemSlippageViewState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SwapSlippageBottomSheet(state: SlippageStateUIModel?, onAuto: (Boolean) -> Unit, onInput: (String) -> Unit, onDismiss: () -> Unit) {
+fun SwapSlippageBottomSheet(state: GemSlippageViewState?, onAuto: (Boolean) -> Unit, onInput: (String) -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(
         isVisible = state != null,
         onDismissRequest = onDismiss,
@@ -46,6 +50,7 @@ fun SwapSlippageBottomSheet(state: SlippageStateUIModel?, onAuto: (Boolean) -> U
         title = stringResource(R.string.swap_slippage),
     ) {
         state ?: return@ModalBottomSheet
+        val context = LocalContext.current
         val focusRequester = remember { FocusRequester() }
 
         Column(
@@ -87,10 +92,10 @@ fun SwapSlippageBottomSheet(state: SlippageStateUIModel?, onAuto: (Boolean) -> U
                         keyboardOptions = decimalKeyboardOptions(),
                     )
                 }
-                state.footerText?.let { FooterText(text = it, color = MaterialTheme.colorScheme.error) }
+                state.footer?.let { FooterText(text = it.text(context), color = MaterialTheme.colorScheme.error) }
                 Spacer(modifier = Modifier.weight(1f))
                 SuggestionsBar(
-                    labels = state.suggestions.map { it.label },
+                    labels = state.suggestions.map { it.percent.text() },
                     modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
                     onSelected = { index -> onInput(state.suggestions[index].input) },
                 )

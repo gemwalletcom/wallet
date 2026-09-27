@@ -1,11 +1,11 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 const SUSPICIOUS_MAX_RANK: i32 = 5;
 const UNVERIFIED_MAX_RANK: i32 = 15;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum VerificationStatus {
     Verified,

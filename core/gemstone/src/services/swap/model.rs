@@ -3,12 +3,13 @@ use crate::models::custom_types::GemBigUint;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Currency};
-use swapper::SwapperError;
+use swapper::{Quote, SwapperError};
 
 use super::rules;
-use super::session::{GemSwapProviderRow, provider_row};
+use super::session::provider_row;
 use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::GemProviderRow;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::swap::GemSwapValue;
 use crate::percentage::GemPercentageStyle;
@@ -105,7 +106,7 @@ impl GemSwapQuoteSummary {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapDetails {
     pub summary: GemSwapQuoteSummary,
-    pub provider: GemSwapProviderRow,
+    pub provider: GemProviderRow,
     pub rows: Vec<GemListRow>,
 }
 
@@ -136,6 +137,12 @@ pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
         to_asset,
         quote,
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct GemSwapRequote {
+    pub quote: Quote,
+    pub transfer: GemTransferData,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

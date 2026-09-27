@@ -6,6 +6,7 @@ import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.FiatProviderName
 import uniffi.gemstone.FiatProvider
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.YieldProvider
 
 @DrawableRes
 fun SwapProvider.iconResource(): Int = when (this) {
@@ -62,6 +63,11 @@ fun FiatProviderName.iconResource(): Int = when (this) {
     FiatProviderName.Banxa -> R.drawable.fiat_provider_banxa
     FiatProviderName.Paybis -> R.drawable.fiat_provider_paybis
     FiatProviderName.Flashnet -> R.drawable.fiat_provider_cashapp
+}
+
+@DrawableRes
+fun YieldProvider.iconResource(): Int = when (this) {
+    YieldProvider.YO -> R.drawable.yield_provider_yo
 }
 
 fun SwapProvider.iconModel(): Any = iconResource()

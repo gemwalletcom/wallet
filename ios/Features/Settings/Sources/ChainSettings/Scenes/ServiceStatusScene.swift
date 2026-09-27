@@ -7,9 +7,9 @@ import SwiftUI
 public struct ServiceStatusScene: View {
     @Environment(\.isStreamConnected) private var isStreamConnected
 
-    @State private var model: ServiceStatusViewModel
+    @State private var model: ServiceStatusSceneViewModel
 
-    public init(model: ServiceStatusViewModel) {
+    public init(model: ServiceStatusSceneViewModel) {
         _model = State(initialValue: model)
     }
 

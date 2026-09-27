@@ -19,7 +19,7 @@ public struct WalletStore: Sendable {
         try db.write { db in
             try record.insert(db, onConflict: .ignore)
             for account in wallet.accounts {
-                try account.record(for: wallet.id.id).upsert(db)
+                try account.toRecord(walletId: wallet.id.id).upsert(db)
             }
         }
     }
@@ -106,19 +106,6 @@ extension Wallet {
             imageUrl: imageUrl,
             updatedAt: nil,
             source: source,
-        )
-    }
-}
-
-extension Account {
-    func record(for walletId: String) -> AccountRecord {
-        AccountRecord(
-            walletId: walletId,
-            chain: chain,
-            address: address,
-            extendedPublicKey: extendedPublicKey,
-            index: 0,
-            derivationPath: derivationPath,
         )
     }
 }

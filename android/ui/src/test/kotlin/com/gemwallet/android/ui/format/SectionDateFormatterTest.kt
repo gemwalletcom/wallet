@@ -22,6 +22,7 @@ class SectionDateFormatterTest {
     private val formatter = SectionDateFormatter(
         todayLabel = TODAY,
         yesterdayLabel = YESTERDAY,
+        dayTimeTemplate = "%1\$s, %2\$s",
         clock = clock,
     )
 

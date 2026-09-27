@@ -28,7 +28,7 @@ public struct PriceAlertsScene: View {
             ListItemValueSectionList(
                 list: model.sections,
                 content: { item in
-                    NavigationLink(value: Scenes.Price(asset: item.data.asset)) {
+                    NavigationLink(value: model.chart(item)) {
                         PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
                     }
                 },
@@ -59,11 +59,7 @@ public struct PriceAlertsScene: View {
 private extension PriceAlertsScene {
     var toggleView: some View {
         Section {
-            Toggle(
-                model.enableTitle,
-                isOn: $model.isPriceAlertsEnabled,
-            )
-            .toggleStyle(AppToggleStyle())
+            GemListRowView(row: model.toggleRow, onToggle: model.onToggle)
         } footer: {
             Text(Localized.PriceAlerts.getNotifiedExplainMessage)
         }

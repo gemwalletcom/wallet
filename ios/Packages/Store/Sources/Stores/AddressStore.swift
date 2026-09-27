@@ -28,7 +28,7 @@ public struct AddressStore: Sendable {
                         AddressRecord.Columns.status.set(to: addressName.status.rawValue),
                         AddressRecord.Columns.imageUrl.set(to: addressName.imageUrl),
                     ])
-                try addressName.record.insert(db, onConflict: .ignore)
+                try addressName.toRecord().insert(db, onConflict: .ignore)
             }
         }
     }
@@ -45,16 +45,7 @@ public struct AddressStore: Sendable {
         }
     }
 
-    func deleteAddress(chain: Chain, address: String) throws -> Int {
-        try db.write { db in
-            try AddressRecord
-                .filter(AddressRecord.Columns.chain == chain.rawValue)
-                .filter(AddressRecord.Columns.address == address)
-                .deleteAll(db)
-        }
-    }
-
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
-        try db.read { try AddressNameRequest(chain: chain, address: address).fetch($0) }
+        try db.read { try AddressNameQuery(chain: chain, address: address).fetch($0) }
     }
 }

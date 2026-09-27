@@ -23,17 +23,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.features.nft.viewmodels.models.NftActionUIModel
 import com.gemwallet.android.ui.components.list_head.AmountHeadAction
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemCollectibleAction
+import uniffi.gemstone.GemCollectibleMenuRow
 import uniffi.gemstone.GemHeaderActions
-import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemHeaderButtonAction
 
 @Composable
-fun NftHeaderActions(header: GemHeaderActions, actions: List<NftActionUIModel>, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit) {
+fun NftHeaderActions(header: GemHeaderActions, actions: List<GemCollectibleMenuRow>, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     var isMenuExpanded by remember { mutableStateOf(false) }
     val buttons = (header as? GemHeaderActions.Buttons)?.buttons.orEmpty()
@@ -45,8 +45,8 @@ fun NftHeaderActions(header: GemHeaderActions, actions: List<NftActionUIModel>, 
     ) {
         buttons.forEach { button ->
             val title = stringResource(button.kind.stringRes())
-            when (button.kind) {
-                GemHeaderButtonKind.MORE -> Box(modifier = Modifier.weight(1f)) {
+            when (button.action) {
+                GemHeaderButtonAction.CollectibleMenu -> Box(modifier = Modifier.weight(1f)) {
                     AmountHeadAction(
                         modifier = Modifier.fillMaxWidth(),
                         title = title,
@@ -66,7 +66,7 @@ fun NftHeaderActions(header: GemHeaderActions, actions: List<NftActionUIModel>, 
                         actions.forEach { item ->
                             val color = if (item.isDestructive) MaterialTheme.colorScheme.error else Color.Unspecified
                             DropdownMenuItem(
-                                text = { Text(item.title, color = color) },
+                                text = { Text(stringResource(item.action.stringRes()), color = color) },
                                 leadingIcon = { Icon(item.action.icon(), contentDescription = null, tint = if (item.isDestructive) color else LocalContentColor.current) },
                                 onClick = {
                                     isMenuExpanded = false

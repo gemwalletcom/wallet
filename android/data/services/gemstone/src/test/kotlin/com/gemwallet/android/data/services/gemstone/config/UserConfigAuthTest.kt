@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.config
 
 import android.content.Context
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify

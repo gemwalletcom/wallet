@@ -7,9 +7,9 @@ import Style
 import SwiftUI
 
 public struct SecurityScene: View {
-    @State private var model: SecurityViewModel
+    @State private var model: SecuritySceneViewModel
 
-    public init(model: SecurityViewModel) {
+    public init(model: SecuritySceneViewModel) {
         self.model = model
     }
 

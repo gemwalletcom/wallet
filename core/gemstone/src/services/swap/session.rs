@@ -1,13 +1,14 @@
 use crate::models::button::GemButtonState;
+use crate::services::assets::icon::asset_icon;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetId, Currency};
+use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::{Quote as SwapperQuote, SwapperError, SwapperProvider};
 
 use super::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapDetails, quote_details};
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::list::GemInfoTopic;
+use crate::models::list::{GemInfoTopic, GemProviderKind, GemProviderRow};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::rules::fiat_amount_of;
@@ -177,15 +178,11 @@ impl GemSwapErrorDisplay {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSwapAssetData {
-    pub asset: Asset,
-    pub balance: GemAssetBalance,
-    pub price: Option<f64>,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapSideState {
     pub interaction: GemSwapSideInteraction,
+    pub title: GemLocalizedText,
+    pub amount_placeholder: String,
+    pub icon: Option<crate::services::assets::icon::GemAssetIcon>,
     pub balance: Option<GemLocalizedText>,
     pub fiat: Option<GemFormattedNumber>,
 }
@@ -202,11 +199,12 @@ pub struct GemSwapViewState {
     pub is_transfer_loading: bool,
     pub allows_provider_selection: bool,
     pub is_input_empty: bool,
+    pub shows_button: bool,
     pub pay: GemSwapSideState,
     pub receive: GemSwapSideState,
     pub is_receive_loading: bool,
     pub receive_amount: Option<GemFormattedNumber>,
-    pub providers: Vec<GemSwapProviderRow>,
+    pub providers: Vec<GemProviderRow>,
     pub details: Option<GemSwapDetails>,
 }
 
@@ -243,20 +241,22 @@ pub struct GemSwapSession {
     pub pay_value: Option<GemBigUint>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSwapProviderRow {
-    pub provider: SwapperProvider,
-    pub title: String,
-    pub amount: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
-    pub is_selected: bool,
+fn side_title(data: Option<&AssetData>) -> GemLocalizedText {
+    match data {
+        Some(data) => GemLocalizedText::Text { text: data.asset.symbol.clone() },
+        None => GemLocalizedText::SelectAsset,
+    }
 }
 
-pub(super) fn provider_row(provider: SwapperProvider, title: String, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemSwapProviderRow {
+fn side_amount_placeholder(data: Option<&AssetData>) -> String {
+    data.map(|_| "0".to_string()).unwrap_or_default()
+}
+
+pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemProviderRow {
     let value = BigNumberFormatter::f64_value(to_value.to_string(), receive_asset.decimals as u32);
-    GemSwapProviderRow {
-        provider,
-        title,
+    GemProviderRow {
+        kind: GemProviderKind::Swap { provider },
+        name,
         amount: GemFormattedNumber::amount(value, Some(receive_asset.symbol.clone()), GemValueStyle::Auto),
         fiat: receive_price.map(|price| GemFormattedNumber::currency(value * price, currency.clone(), GemCurrencyStyle::Currency)),
         is_selected,
@@ -265,6 +265,11 @@ pub(super) fn provider_row(provider: SwapperProvider, title: String, to_value: &
 
 #[uniffi::export]
 impl GemSwapSession {
+    pub fn minimum_amount_text(&self, pay_asset: Asset, format: GemNumberFormat) -> Option<String> {
+        let minimum = rules::minimum_amount(self.quote_error().as_ref())?;
+        format.input_text(minimum.to_string(), pay_asset.decimals as u32)
+    }
+
     pub fn on_input_changed(&self, amount: String, pay_asset: Option<Asset>, receive_asset: Option<Asset>, available_value: GemBigInt, slippage_bps: Option<u32>, format: GemNumberFormat) -> GemSwapSession {
         let input = match (&pay_asset, &receive_asset) {
             (Some(pay), Some(receive)) => rules::quote_input(pay, receive, &amount, &available_value, slippage_bps, &format),
@@ -373,7 +378,7 @@ impl GemSwapSession {
         }
     }
 
-    pub fn view_state(&self, pay: Option<GemSwapAssetData>, receive: Option<GemSwapAssetData>, currency: Currency) -> GemSwapViewState {
+    pub fn view_state(&self, pay: Option<AssetData>, receive: Option<AssetData>, currency: Currency) -> GemSwapViewState {
         let available_balance = pay.as_ref().map(|pay| GemBigInt::from(pay.balance.available.clone())).unwrap_or_default();
         let button_action = self.button_action(available_balance);
         let is_transfer_loading = self.is_transfer_loading();
@@ -388,36 +393,47 @@ impl GemSwapSession {
             is_transfer_loading,
             allows_provider_selection: self.allows_provider_selection(),
             is_input_empty: self.is_input_empty(),
+            shows_button: !self.is_input_empty(),
             pay: GemSwapSideState {
+                title: side_title(pay.as_ref()),
+                amount_placeholder: side_amount_placeholder(pay.as_ref()),
+                icon: pay.as_ref().map(|pay| asset_icon(&pay.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: !is_transfer_loading,
                     is_asset_selectable: !is_transfer_loading,
                     is_balance_action_enabled: !is_transfer_loading && pay.is_some(),
                 },
-                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), pay.balance.clone())),
+                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), GemAssetBalance::from(pay))),
                 fiat: pay
                     .as_ref()
                     .zip(self.pay_value.as_ref())
-                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, pay.price, currency.clone(), GemCurrencyStyle::Currency)),
+                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
             },
             receive: GemSwapSideState {
+                title: side_title(receive.as_ref()),
+                amount_placeholder: side_amount_placeholder(receive.as_ref()),
+                icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: false,
                     is_asset_selectable: !is_transfer_loading,
                     is_balance_action_enabled: false,
                 },
-                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), receive.balance.clone())),
+                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), GemAssetBalance::from(receive))),
                 fiat: receive
                     .as_ref()
                     .zip(quote)
-                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, receive.price, currency.clone(), GemCurrencyStyle::Currency)),
+                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, price_value(receive), currency.clone(), GemCurrencyStyle::Currency)),
             },
             is_receive_loading: self.is_quote_loading() && !is_transfer_loading,
             receive_amount: quote.map(receive_amount),
-            providers: receive.as_ref().filter(|_| quote.is_some()).map(|receive| self.provider_rows(&receive.asset, receive.price, &currency)).unwrap_or_default(),
+            providers: receive
+                .as_ref()
+                .filter(|_| quote.is_some())
+                .map(|receive| self.provider_rows(&receive.asset, price_value(receive), &currency))
+                .unwrap_or_default(),
             details: pay.zip(receive).zip(quote).map(|((pay, receive), quote)| {
                 let has_selected_slippage = self.current_request().is_some_and(|request| request.slippage_bps.is_some());
-                quote_details(rules::swap_quote(quote), pay.asset, receive.asset, pay.price, receive.price, &currency, has_selected_slippage)
+                quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency, has_selected_slippage)
             }),
             quote: quote.cloned(),
         }
@@ -427,16 +443,22 @@ impl GemSwapSession {
         self.current_quote().cloned()
     }
 
-    fn error(&self) -> Option<SwapperError> {
-        self.transfer_error().or_else(|| self.quote_error())
-    }
-
     pub fn is_transfer_loading(&self) -> bool {
         matches!(self.transfer_phase, GemSwapTransferPhase::Loading { .. })
     }
 
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
         is_screen_active && !self.refresh_paused_until_restart && !self.is_transfer_loading() && !self.quote_phase.is_failed()
+    }
+}
+
+fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals), None, GemValueStyle::Auto)
+}
+
+impl GemSwapSession {
+    fn error(&self) -> Option<SwapperError> {
+        self.transfer_error().or_else(|| self.quote_error())
     }
 
     fn action(&self) -> GemSwapSessionAction {
@@ -463,14 +485,8 @@ impl GemSwapSession {
             GemSwapButtonAction::Swap | GemSwapButtonAction::RetryQuote | GemSwapButtonAction::RetryTransfer | GemSwapButtonAction::UseMinimumAmount { .. } => GemButtonState::Enabled,
         }
     }
-}
 
-fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals), None, GemValueStyle::Auto)
-}
-
-impl GemSwapSession {
-    fn provider_rows(&self, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency) -> Vec<GemSwapProviderRow> {
+    fn provider_rows(&self, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency) -> Vec<GemProviderRow> {
         let selected = self.current_quote().map(|quote| quote.data.provider.id);
         self.quotes
             .iter()
@@ -489,7 +505,7 @@ impl GemSwapSession {
             .collect()
     }
 
-    fn pair_quote(&self, pay: Option<&GemSwapAssetData>, receive: Option<&GemSwapAssetData>) -> Option<&SwapperQuote> {
+    fn pair_quote(&self, pay: Option<&AssetData>, receive: Option<&AssetData>) -> Option<&SwapperQuote> {
         let request = &self.quotes.as_ref()?.request;
         let is_current_pair = pay?.asset.id == request.pay_asset_id && receive?.asset.id == request.receive_asset_id;
         self.current_quote().filter(|_| is_current_pair)
@@ -545,14 +561,46 @@ impl GemSwapSession {
     }
 }
 
+fn price_value(data: &AssetData) -> Option<f64> {
+    data.price.as_ref().map(|price| price.price)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::swap::testkit::mock_asset_data;
+    use chrono::Utc;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain};
+    use primitives::{Asset, Chain, Price, PriceProvider};
 
     fn view(session: &GemSwapSession, available: u64) -> GemSwapViewState {
-        session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, available)), Some(GemSwapAssetData::mock(Chain::Solana, 0)), Currency::USD)
+        session.view_state(Some(mock_asset_data(Chain::Ethereum, available)), Some(mock_asset_data(Chain::Solana, 0)), Currency::USD)
+    }
+
+    #[test]
+    fn test_the_minimum_amount_is_typed_in_the_pay_assets_decimals_and_the_callers_separator() {
+        let request = GemSwapRequest {
+            pay_asset_id: AssetId::from_chain(Chain::Ethereum),
+            receive_asset_id: AssetId::from_chain(Chain::Solana),
+            value: GemBigUint::from(1u32),
+            slippage_bps: None,
+        };
+        let failed = |min_amount: Option<&str>| GemSwapSession {
+            quote_phase: GemSwapQuotePhase::Failed {
+                request: request.clone(),
+                error: SwapperError::InputAmountError { min_amount: min_amount.map(str::to_string) },
+            },
+            ..GemSwapSession::default()
+        };
+        let asset = Asset {
+            decimals: 6,
+            ..Asset::from_chain(Chain::Ethereum)
+        };
+        let format = GemNumberFormat { decimal_separator: ",".to_string() };
+
+        assert_eq!(failed(Some("1500000")).minimum_amount_text(asset.clone(), format.clone()), Some("1,5".to_string()));
+        assert_eq!(failed(None).minimum_amount_text(asset.clone(), format.clone()), None);
+        assert_eq!(GemSwapSession::default().minimum_amount_text(asset, format), None);
     }
 
     #[test]
@@ -868,13 +916,23 @@ mod tests {
     }
 
     #[test]
+    fn test_a_side_without_an_asset_asks_for_one_and_shows_no_zero() {
+        let state = GemSwapSession::default().view_state(Some(mock_asset_data(Chain::Ethereum, 0)), None, Currency::USD);
+
+        assert_eq!((state.pay.title, state.pay.amount_placeholder.as_str()), (GemLocalizedText::Text { text: "ETH".to_string() }, "0"));
+        assert_eq!((state.receive.title, state.receive.amount_placeholder.as_str()), (GemLocalizedText::SelectAsset, ""));
+    }
+
+    #[test]
     fn test_view_state_carries_the_quote_and_button_at_once() {
         let idle = view(&GemSwapSession::default(), 0);
         assert!(idle.is_input_empty);
+        assert!(!idle.shows_button, "an empty amount hides the button");
         assert_eq!(idle.button_state, GemButtonState::Disabled);
 
         let session = GemSwapSession::mock_ready();
         let state = view(&session, 200);
+        assert!(state.shows_button);
         assert_eq!(state.quote, session.quote());
         assert_eq!(state.action, GemSwapSessionAction::Ready);
         assert_eq!(state.button_action, GemSwapButtonAction::Swap);
@@ -903,9 +961,9 @@ mod tests {
 
     #[test]
     fn test_each_side_reads_its_balance_and_value_and_the_pay_value_waits_for_no_receive_asset() {
-        let pay = GemSwapAssetData {
-            price: Some(2.0),
-            ..GemSwapAssetData::mock(Chain::Ethereum, 1000)
+        let pay = AssetData {
+            price: Some(Price::new(2.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            ..mock_asset_data(Chain::Ethereum, 1000)
         };
         let typed = GemSwapSession::default().on_input_changed("1".to_string(), Some(pay.asset.clone()), None, GemBigInt::from(1000), None, GemNumberFormat { decimal_separator: ".".to_string() });
         let state = typed.view_state(Some(pay), None, Currency::USD);
@@ -921,11 +979,11 @@ mod tests {
     fn test_a_quote_shows_only_for_the_pair_it_was_asked_for() {
         let session = GemSwapSession::mock_ready();
         let quote = session.quote().unwrap();
-        let receive = GemSwapAssetData {
-            price: Some(100.0),
-            ..GemSwapAssetData::mock(Chain::Solana, 0)
+        let receive = AssetData {
+            price: Some(Price::new(100.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            ..mock_asset_data(Chain::Solana, 0)
         };
-        let state = session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
+        let state = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
 
         assert_eq!(state.quote.as_ref(), Some(&quote));
         assert_eq!(state.receive_amount, Some(receive_amount(&quote)));
@@ -936,10 +994,10 @@ mod tests {
         );
         assert_eq!(state.providers.len(), 2);
         let details = state.details.unwrap();
-        assert_eq!(details.provider.provider, quote.data.provider.id);
+        assert_eq!(details.provider.kind, GemProviderKind::Swap { provider: quote.data.provider.id });
         assert!(!details.provider.is_selected);
 
-        let stale = session.view_state(Some(GemSwapAssetData::mock(Chain::Ethereum, 1000)), Some(GemSwapAssetData::mock(Chain::Bitcoin, 0)), Currency::USD);
+        let stale = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(mock_asset_data(Chain::Bitcoin, 0)), Currency::USD);
         assert_eq!((stale.quote, stale.receive_amount, stale.details, stale.receive.fiat), (None, None, None, None));
         assert!(stale.providers.is_empty(), "a quote for another pair is not shown while the new one loads");
     }

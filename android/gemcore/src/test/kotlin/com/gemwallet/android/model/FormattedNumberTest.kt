@@ -30,6 +30,23 @@ class FormattedNumberTest {
     }
 
     @Test
+    fun `each value formats on its own even when the same currency formatted a signed rounded value before`() {
+        val fiat = GemFormattedNumber(
+            value = 1234.567,
+            unit = GemNumberUnit.Currency(code = "USD"),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2u, max = 2u)),
+            notation = GemNumberNotation.SIGNED,
+            tone = GemValueTone.PLAIN,
+            rounding = GemNumberRounding.TOWARD_ZERO,
+            exact = null,
+        )
+
+        assertEquals("+$1,234.56", fiat.text(Locale.US))
+        assertEquals("$1,234.57", fiat.copy(notation = GemNumberNotation.PLAIN, rounding = GemNumberRounding.TO_NEAREST).text(Locale.US))
+        assertEquals("€1,234.57", fiat.copy(unit = GemNumberUnit.Currency(code = "EUR"), notation = GemNumberNotation.PLAIN, rounding = GemNumberRounding.TO_NEAREST).text(Locale.US))
+    }
+
+    @Test
     fun `a percent keeps the sign the locale puts in front of it`() {
         val percent = GemFormattedNumber(
             value = 5.23,

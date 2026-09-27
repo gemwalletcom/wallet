@@ -4,7 +4,13 @@ import Foundation
 import Gemstone
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
-    public var rewardsResult: Result<Rewards, Error> = .success(.mock())
+    public var rewardsResult: Result<Rewards, Error> = .success(.mock(
+        code: "test123",
+        inviteRewardPoints: 100,
+        referralCount: 5,
+        status: .verified,
+        referralAllowance: .mock(daily: .mock(limit: 5, available: 5), weekly: .mock(limit: 20, available: 20)),
+    ))
     public var useReferralCodeError: Error?
     public var redeemError: Error?
 
@@ -48,7 +54,7 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return try rewardsResult.get()
     }
 
-    public func wallets(wallets: [Wallet]) -> [Wallet] {
-        wallets
+    public func wallets(wallets: [Wallet]) -> GemRewardsWallets {
+        GemRewardsWallets(wallets: wallets, canChoose: wallets.count > 1)
     }
 }

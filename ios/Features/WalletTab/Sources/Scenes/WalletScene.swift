@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
-import Localization
 import NFT
 import Primitives
 import PrimitivesComponents
@@ -50,8 +50,10 @@ public struct WalletScene: View {
             if let banner = state.banner {
                 Section {
                     BannerView(
-                        model: BannerViewModel(row: banner),
-                        action: model.onBanner,
+                        row: banner,
+                        onDestination: model.onSelectBanner(destination:),
+                        onButton: model.onSelectBanner(button:),
+                        onClose: model.onCloseBanner,
                     )
                 }
                 .listRowInsets(.zero)
@@ -97,7 +99,7 @@ public struct WalletScene: View {
 
             if state.showCollections {
                 Section {
-                    CollectionsPreviewView(content: model.collectionsContent)
+                    CollectionsPreviewView(entries: model.collections)
                 } header: {
                     HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
                 } footer: {

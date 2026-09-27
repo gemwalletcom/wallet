@@ -14,7 +14,7 @@ import Store
 @MainActor
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
 
     private let service: any GemStakeServiceProtocol
     private let chain: Chain
@@ -34,23 +34,21 @@ public final class ValidatorSelectSceneViewModel {
         self.input = input
         self.currentValidatorId = currentValidatorId
         self.selectValidator = selectValidator
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain, providerType: .stake), initialValue: [])
     }
 
     public var title: String {
         Localized.Stake.validators
     }
 
-    public var emptyContent: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.validators))
+    public var emptyContent: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .validators)
     }
 
     public var list: [ListItemValueSection<GemValidatorRow>] {
-        let options = service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
-        return [
-            listSection(title: Localized.Common.recommended, rows: options.recommended),
-            listSection(title: Localized.Stake.active, rows: options.options),
-        ].filter(\.values.isNotEmpty)
+        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() }).sections.map {
+            ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
+        }
     }
 
     public func isSelected(_ row: GemValidatorRow) -> Bool {
@@ -66,13 +64,6 @@ public final class ValidatorSelectSceneViewModel {
         return row.explorer.map {
             ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
         }
-    }
-
-    private func listSection(title: String, rows: [GemValidatorRow]) -> ListItemValueSection<GemValidatorRow> {
-        ListItemValueSection(
-            section: title,
-            values: rows.map { ListItemValue(value: $0) },
-        )
     }
 }
 

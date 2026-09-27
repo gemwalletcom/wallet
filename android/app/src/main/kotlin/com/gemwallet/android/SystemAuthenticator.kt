@@ -11,8 +11,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleDestroyedException
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
+import com.gemwallet.android.features.settings.viewmodels.lock.LockViewModel
+import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.model.requiresConfirmation
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-internal class SystemAuthenticator(private val activity: FragmentActivity, private val viewModel: MainViewModel) {
+internal class SystemAuthenticator(private val activity: FragmentActivity, private val lockViewModel: LockViewModel) {
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
@@ -40,7 +41,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    if (viewModel.uiState.value.initialAuth != AuthState.Success) {
+                    if (!lockViewModel.uiState.value.isUnlocked) {
                         retryOrCloseAfterAuthError(errorCode)
                     } else if (authRequests.hasActive()) {
                         SystemAuthPolicy.errorText(errorCode)?.let { Toast.makeText(activity, it.text(activity), Toast.LENGTH_LONG).show() }
@@ -50,8 +51,8 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     initialAuthRetry?.cancel()
-                    if (viewModel.uiState.value.initialAuth != AuthState.Success) {
-                        viewModel.onInitialAuth(AuthState.Success)
+                    if (!lockViewModel.uiState.value.isUnlocked) {
+                        lockViewModel.onInitialAuth(AuthState.Success)
                     } else if (authRequests.hasActive()) {
                         completeActiveAuthRequest()
                     }
@@ -100,7 +101,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
     }
 
     fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-        if (viewModel.isAuthRequired() || auth == AuthRequest.Required) {
+        if (lockViewModel.isAuthRequired() || auth == AuthRequest.Required) {
             if (refreshEnrollment()) {
                 authRequests.enqueue(
                     requiresConfirmation = auth.requiresConfirmation,
@@ -133,18 +134,18 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
                 delay(retryDelay)
             }
             if (!activity.isFinishing && !activity.isDestroyed) {
-                viewModel.retryInitialAuth()
+                lockViewModel.retryInitialAuth()
             }
         }
     }
 
     private fun startAuthRequest(request: PendingAuthRequest) {
-        viewModel.requestAuth(requestId = request.id)
+        lockViewModel.requestAuth(requestId = request.id)
         activeAuthTimeout?.cancel()
         activeAuthTimeout = activity.lifecycleScope.launch {
             delay(SystemAuthPolicy.authRequestTimeout)
             val timedOut = authRequests.completeActive(request.id) ?: return@launch
-            viewModel.completeAuthRequest(timedOut.id)
+            lockViewModel.completeAuthRequest(timedOut.id)
             runCatching { biometricPrompt.cancelAuthentication() }
             delay(SystemAuthPolicy.authRequestRestartDelay)
             activeAuthTimeout = null
@@ -156,7 +157,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         val request = authRequests.completeActive() ?: return
         activeAuthTimeout?.cancel()
         activeAuthTimeout = null
-        if (viewModel.completeAuthRequest(request.id)) {
+        if (lockViewModel.completeAuthRequest(request.id)) {
             request.onSuccess()
         }
         authRequests.startNext()?.let(::startAuthRequest)
@@ -166,7 +167,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         val request = authRequests.completeActive() ?: return
         activeAuthTimeout?.cancel()
         activeAuthTimeout = null
-        viewModel.completeAuthRequest(request.id)
+        lockViewModel.completeAuthRequest(request.id)
         authRequests.startNext()?.let(::startAuthRequest)
     }
 }

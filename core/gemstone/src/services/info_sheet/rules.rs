@@ -159,6 +159,23 @@ mod tests {
     use primitives::{Asset, Currency, SwapProvider, TransactionState, VerificationStatus};
 
     #[test]
+    fn test_a_sheet_shows_its_docs_link_always_and_other_actions_only_when_handled() {
+        let learn_more = GemInfoSheet {
+            action: Some(GemInfoAction::LearnMore { url: "https://docs".to_string() }),
+            ..sheet(&GemInfoTopic::PriceImpact, Platform::IOS)
+        };
+        let proceed = GemInfoSheet {
+            action: Some(GemInfoAction::Continue),
+            ..learn_more.clone()
+        };
+
+        assert_eq!(learn_more.button(false), learn_more.action);
+        assert_eq!(proceed.button(false), None, "nothing would run the action");
+        assert_eq!(proceed.button(true), Some(GemInfoAction::Continue));
+        assert_eq!(GemInfoSheet { action: None, ..proceed }.button(true), None);
+    }
+
+    #[test]
     fn test_a_network_fee_sheet_names_the_network_and_links_the_platform_docs() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
         let sheet = sheet(&GemInfoTopic::NetworkFee { asset: ethereum.clone() }, Platform::IOS);

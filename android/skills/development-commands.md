@@ -37,15 +37,15 @@ From the repo root, use `just start-emulator`, then `just run-android` as the de
 For presentation-only Compose work, build the owning module first and avoid repeating full app builds for each visual adjustment:
 
 ```bash
-./gradlew :features:asset:presents:assembleDebug
-./gradlew :features:settings:settings:presents:assembleDebug
+./gradlew :features:assets:presents:assembleDebug
+./gradlew :features:settings:presents:assembleDebug
 ./gradlew :ui:assembleDebug
 ```
 
 For ViewModel or display-model behavior, pair the module build with the narrowest matching unit test:
 
 ```bash
-./gradlew :features:asset:viewmodels:testDebugUnitTest
+./gradlew :features:assets:viewmodels:testDebugUnitTest
 ./gradlew :features:wallets:presents:testDebugUnitTest
 ```
 
@@ -54,7 +54,7 @@ Use `./gradlew assembleGoogleDebug` when the change touches app composition, nav
 ## Test Commands
 
 ```bash
-./gradlew :features:asset:viewmodels:testDebugUnitTest # one library module while iterating
+./gradlew :features:assets:viewmodels:testDebugUnitTest # one library module while iterating
 ./gradlew :app:testGoogleDebugUnitTest                 # the app module
 just test                                              # every module, before a commit
 ./gradlew assembleGoogleDebugAndroidTest               # compile instrumented tests

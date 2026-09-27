@@ -3,13 +3,12 @@ use primitives::{AssetId, Chain};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::UInt64;
 use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
 
 #[derive(Deserialize)]
 pub struct SolanaTransaction {
     pub meta: SolanaTransactionMeta,
-    pub slot: UInt64,
+    pub slot: u64,
 }
 
 #[derive(Deserialize)]

@@ -13,7 +13,7 @@ use primitives::{
 use strum::IntoEnumIterator;
 
 use super::model::{
-    GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualBalanceHeader, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind,
+    GemCandleChart, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind,
     GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
     GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
     PerpetualPositionLine,
@@ -23,7 +23,9 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::perpetual::GemPerpetual;
-use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
+use crate::services::chart::candlestick_header;
+use crate::services::chart::rules::date_style;
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -259,6 +261,17 @@ pub fn autoclose_row(data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
     })
 }
 
+pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position: Option<&PerpetualPosition>) -> Option<GemCandleChart> {
+    let base = candles.first()?.close;
+    let last = candles.last()?.close;
+    Some(GemCandleChart {
+        candles: candles.to_vec(),
+        layout: chart_layout(candles, position),
+        header: candlestick_header(base, last),
+        date_style: date_style(period),
+    })
+}
+
 pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPosition>) -> GemPerpetualChartLayout {
     let candle_low = candles.iter().map(|candle| candle.low).reduce(f64::min).unwrap_or(0.0);
     let candle_high = candles.iter().map(|candle| candle.high).reduce(f64::max).unwrap_or(1.0);
@@ -286,9 +299,11 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
                 _ => 0,
             };
             previous = Some((price, overlap_level));
+            let price = GemFormattedNumber::adaptive(price, None);
             GemPerpetualChartLine {
                 kind,
-                price: GemFormattedNumber::adaptive(price, None),
+                label: GemLocalizedText::ChartLine { kind, price: price.clone() },
+                price,
                 overlap_level,
             }
         })
@@ -426,29 +441,24 @@ pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
     GemFormattedNumber::usd(balance.map_or(0.0, |balance| balance.available + balance.reserved))
 }
 
-pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
+pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
     let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
-    GemPerpetualBalanceHeader {
-        total: balance_total(balance.as_ref()),
-        available: GemFormattedNumber::usd(available),
-        deposit_asset: perpetual.deposit_asset(),
-        withdraw_asset: HYPERCORE_PERPETUAL_USDC.clone(),
-        actions: match wallet_type {
-            WalletType::View => GemHeaderActions::WatchOnly,
-            WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
-                buttons: vec![
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Withdraw,
-                        is_enabled: withdrawable > 0.0,
-                    },
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Deposit,
-                        is_enabled: true,
-                    },
-                ],
-            },
+    let actions = match wallet_type {
+        WalletType::View => GemHeaderActions::WatchOnly,
+        WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
+            buttons: vec![
+                GemHeaderButton::new(GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, withdrawable > 0.0),
+                GemHeaderButton::new(GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() }, true),
+            ],
         },
+    };
+    GemValueHeader {
+        icon: None,
+        title: GemLocalizedText::Number { number: balance_total(balance.as_ref()) },
+        subtitle: Some(GemRowText::neutral(GemLocalizedText::AvailableBalance { amount: GemFormattedNumber::usd(available) })),
+        subtitle_icon: None,
+        actions: Some(actions),
     }
 }
 
@@ -676,6 +686,7 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     let shows_pinned = counts.pinned > 0;
     let shows_markets = counts.markets > 0;
     [
+        (!is_searching, GemPerpetualMarketSection::Header),
         (is_searching && is_query_empty && counts.recents > 0, GemPerpetualMarketSection::Recents),
         (shows_positions, GemPerpetualMarketSection::Positions),
         (shows_pinned, GemPerpetualMarketSection::Pinned),
@@ -736,7 +747,7 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
     position_line(perpetual, asset, position).into()
 }
 
-pub fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
+fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
     let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
     PerpetualPositionLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),
@@ -902,6 +913,8 @@ pub fn changed_perpetual_prices(prices: HashMap<String, f64>, stored: &[Perpetua
 mod tests {
     use super::*;
     use crate::services::amount::{GemAmountPerpetualPosition, GemAmountType, rules::perpetual_amount_type};
+    use crate::services::assets::model::GemHeaderButtonKind;
+    use crate::services::chart::model::GemChartDateStyle;
     use crate::services::perpetual::model::GemPerpetualMarketSession;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
@@ -910,10 +923,20 @@ mod tests {
 
     #[test]
     fn test_the_balance_header_names_the_asset_each_button_moves() {
-        let header = balance_header(None, WalletType::Multicoin);
+        let Some(GemHeaderActions::Buttons { buttons }) = balance_header(None, WalletType::Multicoin).actions else {
+            panic!("a funded wallet shows the buttons")
+        };
 
-        assert_eq!(header.deposit_asset, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset());
-        assert_eq!(header.withdraw_asset, *HYPERCORE_PERPETUAL_USDC, "a withdrawal leaves the perpetual account, not the chain");
+        assert_eq!(
+            buttons.into_iter().map(|button| button.action).collect::<Vec<_>>(),
+            vec![
+                GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() },
+                GemHeaderButtonAction::Deposit {
+                    asset: GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
+                },
+            ],
+            "a withdrawal leaves the perpetual account, not the chain"
+        );
     }
 
     #[test]
@@ -1024,7 +1047,7 @@ mod tests {
 
         assert_eq!(market_sections(&counts, true, true), vec![GemPerpetualMarketSection::Recents, GemPerpetualMarketSection::Empty]);
         assert_eq!(market_sections(&counts, true, false), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(market_sections(&counts, false, true), vec![]);
+        assert_eq!(market_sections(&counts, false, true), vec![GemPerpetualMarketSection::Header], "the balance header shows only outside a search");
 
         let listed = GemPerpetualMarketCounts {
             positions: 1,
@@ -1052,7 +1075,7 @@ mod tests {
         assert_eq!(searching.on_query_changed("  ".to_string()).sections(counts), searching.sections(counts));
         assert_eq!(searching.on_query_changed(" btc ".to_string()).search_query(), "btc");
         assert_eq!(searching.on_query_changed(" btc ".to_string()).sections(counts), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(GemPerpetualMarketSession::default().sections(counts), vec![]);
+        assert_eq!(GemPerpetualMarketSession::default().sections(counts), vec![GemPerpetualMarketSection::Header]);
     }
 
     #[test]
@@ -1214,6 +1237,31 @@ mod tests {
 
         assert_eq!(lines, vec![(GemPerpetualChartLineKind::StopLoss, 8.0), (GemPerpetualChartLineKind::Entry, 14.0)]);
         assert!(layout.price_low <= 8.0 && layout.price_high >= 14.0);
+    }
+
+    #[test]
+    fn test_candle_chart_labels_each_line_and_answers_the_selection_against_the_first_close() {
+        let mut open = PerpetualPosition::mock();
+        open.entry_price = 11.0;
+        let candles = [ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)];
+
+        let chart = candle_chart(&candles, ChartPeriod::Year, Some(&open)).expect("chart");
+        let entry = chart.layout.lines.first().expect("entry line");
+
+        assert_eq!(
+            entry.label,
+            GemLocalizedText::ChartLine {
+                kind: GemPerpetualChartLineKind::Entry,
+                price: entry.price.clone()
+            }
+        );
+        assert_eq!(chart.date_style, GemChartDateStyle::Day);
+        assert_eq!(chart.header, candlestick_header(candles[0].close, candles[1].close));
+        assert_eq!(chart.selection(0).map(|selection| selection.header), Some(candlestick_header(candles[0].close, candles[0].close)));
+        assert_eq!(chart.selection(2), None);
+        assert_eq!(chart.tooltip(1), Some(candle_tooltip(&candles[1])));
+        assert_eq!(chart.tooltip(2), None);
+        assert_eq!(candle_chart(&[], ChartPeriod::Day, None), None, "no candles, no chart");
     }
 
     #[test]
@@ -1981,7 +2029,7 @@ mod tests {
 
         assert_eq!(
             market_sections(&counts, false, true),
-            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
+            vec![GemPerpetualMarketSection::Header, GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
         );
         assert_eq!(
             market_sections(&counts, true, true),
@@ -2014,47 +2062,24 @@ mod tests {
             WalletType::Multicoin,
         );
 
-        assert_eq!(header.total, GemFormattedNumber::usd(75.0));
-        assert_eq!(header.available, GemFormattedNumber::usd(50.0));
-        assert_eq!(
-            header.actions,
-            GemHeaderActions::Buttons {
-                buttons: vec![
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Withdraw,
-                        is_enabled: true
-                    },
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Deposit,
-                        is_enabled: true
-                    }
-                ]
-            }
-        );
+        let enabled = |header: GemValueHeader| match header.actions {
+            Some(GemHeaderActions::Buttons { buttons }) => buttons.into_iter().map(|button| (button.kind, button.is_enabled)).collect(),
+            Some(GemHeaderActions::WatchOnly) | None => vec![],
+        };
+        assert_eq!(header.title, GemLocalizedText::Number { number: GemFormattedNumber::usd(75.0) });
+        assert_eq!(header.subtitle, Some(GemRowText::neutral(GemLocalizedText::AvailableBalance { amount: GemFormattedNumber::usd(50.0) })));
+        assert_eq!(enabled(header), vec![(GemHeaderButtonKind::Withdraw, true), (GemHeaderButtonKind::Deposit, true)]);
 
         let empty = balance_header(None, WalletType::Multicoin);
-        assert_eq!(empty.total, GemFormattedNumber::usd(0.0));
-        assert_eq!(
-            empty.actions,
-            GemHeaderActions::Buttons {
-                buttons: vec![
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Withdraw,
-                        is_enabled: false
-                    },
-                    GemHeaderButton {
-                        kind: GemHeaderButtonKind::Deposit,
-                        is_enabled: true
-                    }
-                ]
-            },
-            "an empty balance has nothing to withdraw"
-        );
-        assert_eq!(balance_header(None, WalletType::View).actions, GemHeaderActions::WatchOnly);
+        assert_eq!(empty.title, GemLocalizedText::Number { number: GemFormattedNumber::usd(0.0) });
+        assert_eq!(enabled(empty), vec![(GemHeaderButtonKind::Withdraw, false), (GemHeaderButtonKind::Deposit, true)], "an empty balance has nothing to withdraw");
+        assert_eq!(balance_header(None, WalletType::View).actions, Some(GemHeaderActions::WatchOnly));
 
-        let withdraw = |balance: PerpetualBalance| match balance_header(Some(balance), WalletType::Multicoin).actions {
-            GemHeaderActions::Buttons { buttons } => buttons.into_iter().find(|button| button.kind == GemHeaderButtonKind::Withdraw).map(|button| button.is_enabled),
-            GemHeaderActions::WatchOnly => None,
+        let withdraw = |balance: PerpetualBalance| {
+            enabled(balance_header(Some(balance), WalletType::Multicoin))
+                .into_iter()
+                .find(|(kind, _)| *kind == GemHeaderButtonKind::Withdraw)
+                .map(|(_, is_enabled)| is_enabled)
         };
         let leveraged = PerpetualBalance {
             available: 50.0,

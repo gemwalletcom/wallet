@@ -4,8 +4,6 @@ import Assets
 import Components
 import Foundation
 import InfoSheet
-import Localization
-import PriceAlerts
 import Primitives
 import PrimitivesComponents
 import Store

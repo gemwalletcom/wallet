@@ -28,12 +28,25 @@ public extension LocalKeystore {
         )
     }
 
-    func swapService(swapper: GemSwapper, store: any GemSwapStore) -> GemSwapService {
-        GemSwapService(
-            swapper: swapper,
+    func confirmTransferService(
+        confirm: GemConfirmService,
+        explorer: GemExplorerService,
+        names: GemNameService,
+        recentActivity: GemRecentActivityService,
+        preferences: GemPreferencesService,
+        payment: GemPaymentService,
+        swap: GemSwapService,
+    ) -> GemConfirmTransferService {
+        GemConfirmTransferService(
+            confirm: confirm,
+            explorer: explorer,
+            names: names,
             keystore: gemKeystore,
             password: password,
-            store: store,
+            recentActivity: recentActivity,
+            preferences: preferences,
+            payment: payment,
+            swap: swap,
         )
     }
 

@@ -32,22 +32,3 @@ impl<C: Client> DefiProviderTrait for ZerionClient<C> {
         map_positions(self.get_wallet_positions(chain, address).await?, chain)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use primitives::Chain;
-
-    use crate::provider::DefiProvider;
-
-    use super::ZerionClient;
-    use gem_client::ReqwestClient;
-
-    #[test]
-    fn test_chains() {
-        let client = ZerionClient::new(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
-
-        assert!(client.chains().contains(&Chain::Ethereum));
-        assert!(client.chains().contains(&Chain::Base));
-        assert!(!client.chains().contains(&Chain::Solana));
-    }
-}

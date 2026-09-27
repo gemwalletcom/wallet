@@ -10,7 +10,7 @@ import PrimitivesTestKit
 public extension SwapSceneViewModel {
     static func mock(
         service: any GemSwapQuoteServiceProtocol = GemSwapQuoteServiceMock(),
-        pairSelector: SwapPairSelectorViewModel = SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
+        pairSelector: SwapPairSelectorViewModel = SwapPairSelectorViewModel(fromAssetId: .mock(chain: .ethereum), toAssetId: nil),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
             service: service,
@@ -19,8 +19,8 @@ public extension SwapSceneViewModel {
                 pairSelector: pairSelector,
             ),
         )
-        model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
-        model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())
+        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .mock(available: 1_000_000_000_000_000_000))
+        model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))
         model.amountInputModel.text = "1"
         model.onChangeFromValue("", "1")
         return model

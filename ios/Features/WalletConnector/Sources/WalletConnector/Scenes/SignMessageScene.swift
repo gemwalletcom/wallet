@@ -22,7 +22,7 @@ public struct SignMessageScene: View {
     public var body: some View {
         List {
             if let headerModel = model.headerModel {
-                TransactionHeaderListItemView(headerType: .assetValue(headerModel))
+                TransactionHeaderListItemView(header: .value(header: headerModel))
             } else {
                 ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
             }

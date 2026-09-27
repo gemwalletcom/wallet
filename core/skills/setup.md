@@ -13,7 +13,6 @@ Use when preparing a machine for Core work: toolchain, backend prerequisites, an
 
 ```sh
 just install-rust
-just install-typeshare
 just install-postgres
 just install-diesel
 ```

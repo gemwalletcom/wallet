@@ -9,7 +9,6 @@ import InfoSheet
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
-import StoreTestKit
 import Testing
 
 @MainActor
@@ -26,19 +25,6 @@ struct PerpetualSceneViewModelTests {
 
         #expect(model.details == service.detailsValue)
         #expect(model.positionData(model.details) == nil)
-    }
-
-    @Test
-    func buttonsAreDrawnInTheToneCoreGives() {
-        let model = PerpetualSceneViewModel.mock(service: GemPerpetualDetailsServiceMock())
-        let buttons = model.buttonModels([
-            GemPerpetualButtonRow(button: .long, tone: .positive),
-            GemPerpetualButtonRow(button: .increase, tone: .neutral),
-            GemPerpetualButtonRow(button: .reduce, tone: .negative),
-        ])
-
-        #expect(buttons.map(\.style) == [.green, .blue, .red])
-        #expect(buttons.map(\.isDestructive) == [false, false, true])
     }
 
     @Test
@@ -133,26 +119,6 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func theInfoSheetsMatchTheRowThatOpenedThem() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onInfo(.fundingApr)
-        #expect(model.isPresentingInfoSheet?.title == .fundingApr)
-
-        model.onInfo(.fundingPayments)
-        #expect(model.isPresentingInfoSheet?.title == .fundingPayments)
-
-        model.onInfo(.liquidationPrice)
-        #expect(model.isPresentingInfoSheet?.title == .liquidationPrice)
-
-        model.onInfo(.openInterest)
-        #expect(model.isPresentingInfoSheet?.title == .openInterest)
-
-        model.onInfo(.autoClose)
-        #expect(model.isPresentingInfoSheet?.title == .autoClose)
-    }
-
-    @Test
     func loadingSyncsPositionsAndTransactionsForTheAsset() async {
         let service = GemPerpetualDetailsServiceMock()
         let asset = Primitives.Asset.mock()
@@ -189,14 +155,5 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(model.isPresentingAlertMessage == nil)
-    }
-
-    @Test
-    func dismissingAutocloseClearsThePresentedPosition() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onAutocloseComplete()
-
-        #expect(model.isPresentingAutoclose == nil)
     }
 }

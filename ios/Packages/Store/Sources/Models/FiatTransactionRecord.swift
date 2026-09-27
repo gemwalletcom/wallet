@@ -92,21 +92,3 @@ extension FiatTransactionRecordInfo {
         )
     }
 }
-
-extension FiatTransactionData {
-    func record(walletId: String) -> FiatTransactionRecord {
-        FiatTransactionRecord(
-            id: transaction.id,
-            walletId: walletId,
-            assetId: transaction.assetId,
-            transactionType: transaction.transactionType,
-            providerId: transaction.provider,
-            status: transaction.status,
-            fiatAmount: transaction.fiatAmount,
-            fiatCurrency: transaction.fiatCurrency,
-            value: transaction.value,
-            createdAt: transaction.createdAt,
-            detailsUrl: detailsUrl,
-        )
-    }
-}

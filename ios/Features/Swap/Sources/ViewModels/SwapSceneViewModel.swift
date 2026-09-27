@@ -2,14 +2,13 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
-import struct Gemstone.GemAssetBalance
+import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
-import struct Gemstone.GemSwapAssetData
 import enum Gemstone.GemSwapButtonAction
+import struct Gemstone.GemSwapDetails
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapQuoteInput
@@ -17,6 +16,7 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
+import struct Gemstone.GemSwapSideState
 import struct Gemstone.GemSwapViewState
 import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
@@ -40,11 +40,11 @@ public final class SwapSceneViewModel {
     public let wallet: Wallet
 
     public var session: GemSwapSession
-    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: GemSwapAssetData?, receive: GemSwapAssetData?, state: GemSwapViewState)?
+    @ObservationIgnored private var viewStateCache: (session: GemSwapSession, pay: AssetData?, receive: AssetData?, state: GemSwapViewState)?
     public var isPresentingInfoSheet: SwapSheetType?
 
-    public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
-    public let toAssetQuery: ObservableQuery<AssetRequestOptional>
+    public let fromAssetQuery: ObservableQuery<AssetQueryOptional>
+    public let toAssetQuery: ObservableQuery<AssetQueryOptional>
 
     var fromAsset: AssetData? {
         fromAssetQuery.value
@@ -59,12 +59,12 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var viewState: GemSwapViewState {
-        let pay = fromAsset?.swapAssetData
-        let receive = toAsset?.swapAssetData
+        let pay = fromAsset
+        let receive = toAsset
         if let cache = viewStateCache, cache.session == session, cache.pay == pay, cache.receive == receive {
             return cache.state
         }
-        let state = session.viewState(pay: pay, receive: receive, currency: service.currency.toGem())
+        let state = session.viewState(pay: pay?.toGem(), receive: receive?.toGem(), currency: service.getCurrency())
         viewStateCache = (session, pay, receive, state)
         return state
     }
@@ -92,10 +92,10 @@ public final class SwapSceneViewModel {
         self.service = service
         wallet = input.wallet
 
-        fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
-        toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
+        fromAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
+        toAssetQuery = ObservableQuery(AssetQueryOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.onSwap = onSwap
-        selectedSlippage = service.slippage
+        selectedSlippage = service.slippageBps().map { .manual(bps: $0) } ?? .auto
         session = service.newSession()
     }
 
@@ -115,26 +115,29 @@ public final class SwapSceneViewModel {
         Localized.Errors.errorOccurred
     }
 
-    public var swapDetailsViewModel: SwapDetailsViewModel? {
-        let state = viewState
-        guard let details = state.details else { return nil }
-        return SwapDetailsViewModel(
-            state: providersState(state),
-            details: details,
-            allowSelectProvider: state.allowsProviderSelection,
-            swapProviderSelectAction: { [weak self] provider in
-                self?.onFinishSwapProviderSelection(provider)
-            },
-        )
+    var priceImpactWarningTitle: String {
+        Localized.Swap.PriceImpactWarning.title
+    }
+
+    public var swapDetails: GemSwapDetails? {
+        viewState.details
+    }
+
+    public var providers: StateViewType<[GemProviderRow]> {
+        providersState(viewState)
+    }
+
+    public var allowsProviderSelection: Bool {
+        viewState.allowsProviderSelection
     }
 
     var showsSlippageIndicator: Bool {
         selectedSlippage.isCustom
     }
 
-    var swapSlippageViewModel: SwapSlippageViewModel? {
+    var swapSlippageSceneViewModel: SwapSlippageSceneViewModel? {
         guard let fromAsset else { return nil }
-        return SwapSlippageViewModel(
+        return SwapSlippageSceneViewModel(
             chain: fromAsset.asset.chain,
             slippage: selectedSlippage,
             onSelect: { [weak self] slippage in
@@ -180,11 +183,10 @@ public final class SwapSceneViewModel {
         }
     }
 
-    func swapTokenModel(type: SelectAssetSwapType) -> SwapTokenViewModel {
-        let state = viewState
-        return switch type {
-        case .pay: SwapTokenViewModel(asset: fromAsset?.asset, side: state.pay)
-        case .receive: SwapTokenViewModel(asset: toAsset?.asset, side: state.receive)
+    func side(type: SelectAssetSwapType) -> GemSwapSideState {
+        switch type {
+        case .pay: viewState.pay
+        case .receive: viewState.receive
         }
     }
 }
@@ -259,7 +261,7 @@ extension SwapSceneViewModel {
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
-        for failure in await service.refreshPair(assetIds: Array(assetIds)) {
+        for failure in await service.refreshPair(assetIds: Array(assetIds).ids) {
             debugLog("SwapScene pair refresh error: \(failure.step) \(failure.message)")
         }
     }
@@ -277,7 +279,7 @@ extension SwapSceneViewModel {
         isPresentingInfoSheet = .swapDetails
     }
 
-    func onFinishSwapProviderSelection(_ provider: SwapProvider) {
+    public func onFinishSwapProviderSelection(_ provider: SwapProvider) {
         session = session.onProviderSelected(provider: provider)
     }
 
@@ -285,7 +287,7 @@ extension SwapSceneViewModel {
         guard slippage != selectedSlippage else { return }
         selectedSlippage = slippage
         do {
-            try service.setSlippage(slippage)
+            try service.setSlippageBps(bps: slippage.bps)
         } catch {
             debugLog("set swap slippage error: \(error)")
         }
@@ -316,11 +318,11 @@ extension SwapSceneViewModel {
 // MARK: - Private
 
 extension SwapSceneViewModel {
-    private func providersState(_ state: GemSwapViewState) -> StateViewType<[SwapProviderItem]> {
+    private func providersState(_ state: GemSwapViewState) -> StateViewType<[GemProviderRow]> {
         switch state.quotesState {
         case .loading: .loading
         case let .failed(error): .error(error)
-        case .quotes: .data(state.providers.map(SwapProviderItem.init(row:)))
+        case .quotes: .data(state.providers)
         case .empty: .noData
         }
     }
@@ -355,8 +357,8 @@ extension SwapSceneViewModel {
         amountInputModel.text = text
     }
 
-    private func setFromValue(minimum value: BigInt) {
-        guard let fromAsset, let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(fromAsset.asset.decimals)) else { return }
+    private func setMinimumAmount() {
+        guard let fromAsset, let text = session.minimumAmountText(payAsset: fromAsset.asset.toGem(), format: NumberInput.format()) else { return }
         amountInputModel.text = text
         updateSessionInput()
         setLoadTrigger(isImmediate: true)
@@ -382,10 +384,9 @@ extension SwapSceneViewModel {
 
         Task {
             do {
-                let transferData = try await service.getTransferData(
-                    fromAsset: fromAsset.asset,
-                    toAsset: toAsset.asset,
-                    quote: quote,
+                let transferData = try await service.getTransfer(quote: quote).transferData(
+                    fromAsset: fromAsset.asset.toGem(),
+                    toAsset: toAsset.asset.toGem(),
                 )
                 guard session.transferPhase == transfer else { return }
                 onSwap?(transferData)
@@ -406,14 +407,21 @@ extension SwapSceneViewModel {
             let toAsset, toAsset.asset.id.identifier == input.request.receiveAssetId
         else { return }
         session = session.onFetchStarted(request: input.request)
-        resetToValue()
         do {
-            let swapQuotes = try await service.getQuotes(fromAsset: fromAsset.asset, toAsset: toAsset.asset, input: input)
+            let swapQuotes = try await service.getQuotes(
+                fromAsset: fromAsset.asset.toGem(),
+                toAsset: toAsset.asset.toGem(),
+                value: input.request.value,
+                useMaxAmount: input.useMaxAmount,
+                slippageBps: input.request.slippageBps,
+            )
+            try Task.checkCancellation()
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
             setToValue()
         } catch let error as SwapperError {
             guard !Task.isCancelled else { return }
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))
+            setToValue()
             debugLog("SwapScene get quotes error: \(error)")
         } catch {
             debugLog("SwapScene get quotes error: \(error)")
@@ -429,23 +437,13 @@ extension SwapSceneViewModel {
             setLoadTrigger(isImmediate: true)
         case .retryTransfer: swap()
         case .insufficientBalance: break
-        case let .useMinimumAmount(value): setFromValue(minimum: value)
+        case .useMinimumAmount: setMinimumAmount()
         case .swap:
-            if let warningText = swapDetailsViewModel?.highImpactWarningDescription {
+            if let warningText = viewState.details?.priceImpactWarning {
                 isPresentingPriceImpactConfirmation = warningText
                 return
             }
             swap()
         }
-    }
-}
-
-private extension AssetData {
-    var swapAssetData: GemSwapAssetData {
-        GemSwapAssetData(
-            asset: asset.toGem(),
-            balance: GemAssetBalance(balance, assetId: asset.id, isActive: metadata.isActive),
-            price: price?.price,
-        )
     }
 }

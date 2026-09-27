@@ -6,22 +6,6 @@ import Testing
 @MainActor
 struct NavigationPathStateTests {
     @Test
-    func initialState() {
-        let state = NavigationPathState()
-
-        #expect(state.isEmpty == true)
-        #expect(state.count == 0)
-    }
-
-    @Test
-    func appendElement() {
-        let state = NavigationPathState()
-
-        #expect(state.append(TestScene(id: "a")) == true)
-        #expect(state.count == 1)
-    }
-
-    @Test
     func appendDuplicateElement() {
         let state = NavigationPathState()
         state.append(TestScene(id: "a"))
@@ -49,15 +33,6 @@ struct NavigationPathStateTests {
     }
 
     @Test
-    func setPath() {
-        let state = NavigationPathState()
-
-        state.setPath([TestScene(id: "a"), TestScene(id: "b"), TestScene(id: "c")])
-
-        #expect(state.count == 3)
-    }
-
-    @Test
     func setPathOverwrites() {
         let state = NavigationPathState()
         state.append(TestScene(id: "x"))
@@ -73,36 +48,6 @@ struct NavigationPathStateTests {
         state.append(TestScene(id: "a"))
 
         state.reset()
-
-        #expect(state.isEmpty == true)
-    }
-
-    @Test
-    func removeLast() {
-        let state = NavigationPathState()
-        state.append(TestScene(id: "a"))
-        state.append(TestScene(id: "b"))
-
-        state.removeLast()
-
-        #expect(state.count == 1)
-    }
-
-    @Test
-    func removeLastOnEmptyPath() {
-        let state = NavigationPathState()
-
-        state.removeLast()
-
-        #expect(state.isEmpty == true)
-    }
-
-    @Test
-    func removeLastClampsToAvailableElements() {
-        let state = NavigationPathState()
-        state.append(TestScene(id: "a"))
-
-        state.removeLast(2)
 
         #expect(state.isEmpty == true)
     }

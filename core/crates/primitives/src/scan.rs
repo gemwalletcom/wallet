@@ -1,6 +1,6 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
-use typeshare::typeshare;
 
 use crate::{AddressName, AssetId, Chain, ChainAddress, TransactionType, VerificationStatus};
 
@@ -97,8 +97,8 @@ pub struct ScanAddressTarget {
     pub address: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "CaseIterable, Equatable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, Model)]
+#[model(swift = "CaseIterable, Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum AddressType {

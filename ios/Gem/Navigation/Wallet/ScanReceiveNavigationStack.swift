@@ -4,7 +4,6 @@ import Assets
 import Primitives
 import PrimitivesComponents
 import QRScanner
-import Recents
 import Style
 import SwiftUI
 

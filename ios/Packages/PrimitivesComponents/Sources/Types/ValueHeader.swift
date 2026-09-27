@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
-import struct Gemstone.GemPerpetualBalanceHeader
-import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemWalletHomeViewState
-import GemstonePrimitives
-import Localization
+import struct Gemstone.GemHeaderButton
+import struct Gemstone.GemValueHeader
+import enum Gemstone.GemValueHeaderIcon
+import enum Gemstone.GemValueHeaderSubtitleIcon
 import Primitives
 import Style
 import SwiftUI
@@ -17,7 +15,7 @@ public struct ValueHeader {
     public let subtitle: String?
     public let subtitleColor: Color
     public let subtitleImage: Image?
-    public let buttons: [HeaderButton]
+    public let buttons: [GemHeaderButton]
     public let isWatchWallet: Bool
 
     public init(
@@ -26,7 +24,7 @@ public struct ValueHeader {
         subtitle: String? = nil,
         subtitleColor: Color = Colors.gray,
         subtitleImage: Image? = nil,
-        buttons: [HeaderButton] = [],
+        buttons: [GemHeaderButton] = [],
         isWatchWallet: Bool = false,
     ) {
         self.assetImage = assetImage
@@ -37,47 +35,35 @@ public struct ValueHeader {
         self.buttons = buttons
         self.isWatchWallet = isWatchWallet
     }
-
-    public static func placeholder(assetImage: AssetImage) -> ValueHeader {
-        ValueHeader(assetImage: assetImage, title: "")
-    }
 }
 
-public extension GemWalletHomeViewState {
+public extension GemValueHeader {
     var valueHeader: ValueHeader {
         ValueHeader(
-            title: total.text(),
-            subtitle: pnl?.text,
-            subtitleColor: pnlTone.color,
-            subtitleImage: Image(systemName: SystemImage.chartLineUptrendXyaxis),
-            buttons: headerActions.headerButtons,
-            isWatchWallet: headerActions.isWatchOnly,
+            assetImage: icon?.assetImage,
+            title: title.text,
+            subtitle: subtitle?.text.text,
+            subtitleColor: subtitle?.tone.color ?? Colors.gray,
+            subtitleImage: subtitleIcon?.image,
+            buttons: actions?.headerButtons ?? [],
+            isWatchWallet: actions?.isWatchOnly ?? false,
         )
     }
 }
 
-public extension GemSimulationValue {
-    var valueHeader: ValueHeader {
-        ValueHeader(
-            assetImage: AssetViewModel(asset: asset.toPrimitives()).assetImage,
-            title: value.title(symbol: asset.symbol, formatter: ValueFormatter(style: .full), decimals: Int(asset.decimals)),
-        )
+extension GemValueHeaderIcon {
+    var assetImage: AssetImage {
+        switch self {
+        case let .asset(icon): AssetImage(icon: icon)
+        case let .image(url, placeholder): AssetImage(type: .text(placeholder ?? .empty), imageURL: URL(string: url), placeholder: .none, chainPlaceholder: .none)
+        }
     }
 }
 
-public extension GemPerpetualBalanceHeader {
-    var valueHeader: ValueHeader {
-        ValueHeader(
-            title: total.text(),
-            subtitle: Localized.Wallet.availableBalance(available.text()),
-            buttons: actions.headerButtons,
-            isWatchWallet: actions.isWatchOnly,
-        )
-    }
-}
-
-extension AmountDisplay {
-    var valueHeader: ValueHeader {
-        ValueHeader(assetImage: assetImage, title: amount.text, subtitle: fiat?.text)
+extension GemValueHeaderSubtitleIcon {
+    var image: Image {
+        switch self {
+        case .chart: Image(systemName: SystemImage.chartLineUptrendXyaxis)
+        }
     }
 }

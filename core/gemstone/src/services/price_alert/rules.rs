@@ -176,11 +176,11 @@ pub fn displayed_price_alert_ids(alerts: Vec<PriceAlert>) -> Vec<String> {
     sorted_price_alerts(alerts.into_iter().filter(PriceAlert::should_display).collect()).iter().map(PriceAlert::id).collect()
 }
 
-pub fn shows_alerted_asset(rank_score: i32) -> bool {
+fn shows_alerted_asset(rank_score: i32) -> bool {
     rank_score >= 0
 }
 
-pub fn price_alert_sections(alerts: Vec<PriceAlertData>) -> Vec<GemPriceAlertSection> {
+fn price_alert_sections(alerts: Vec<PriceAlertData>) -> Vec<GemPriceAlertSection> {
     let alerts: Vec<PriceAlertData> = alerts.into_iter().filter(|data| shows_alerted_asset(data.rank_score)).collect();
     let names: HashMap<AssetId, String> = alerts.iter().map(|data| (data.price_alert.asset_id.clone(), data.asset.name.clone())).collect();
     let displayed = sorted_price_alerts(alerts.into_iter().map(|data| data.price_alert).filter(PriceAlert::should_display).collect());
@@ -263,11 +263,11 @@ pub fn price_alert_toggle(alerts: &[PriceAlert]) -> GemPriceAlertToggle {
     }
 }
 
-pub fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {
+fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {
     price_alert_line(data, price_currency).into()
 }
 
-pub fn price_alert_line(data: &PriceAlertData, price_currency: Currency) -> PriceAlertLine {
+fn price_alert_line(data: &PriceAlertData, price_currency: Currency) -> PriceAlertLine {
     let PriceAlertData {
         asset, price: market, price_alert: alert, ..
     } = data;
@@ -310,7 +310,7 @@ fn percent_style(kind: GemPriceAlertKind) -> GemPercentageStyle {
     }
 }
 
-pub fn alert_kind(alert: &PriceAlert) -> GemPriceAlertKind {
+fn alert_kind(alert: &PriceAlert) -> GemPriceAlertKind {
     match (alert.notification_type(), alert.price_direction.clone()) {
         (PriceAlertNotificationType::Price, Some(PriceAlertDirection::Up)) => GemPriceAlertKind::Over,
         (PriceAlertNotificationType::Price, Some(PriceAlertDirection::Down)) => GemPriceAlertKind::Under,

@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import GemstonePrimitives
-import Localization
 import Primitives
-import Style
 import SwiftUI
 
 @Observable

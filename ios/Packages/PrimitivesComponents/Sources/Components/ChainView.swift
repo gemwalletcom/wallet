@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
+import struct Gemstone.GemChainRow
 import SwiftUI
 
 public struct ChainView: View {
-    private let model: ChainViewModel
+    private let model: GemChainRow
 
-    public init(model: ChainViewModel) {
+    public init(model: GemChainRow) {
         self.model = model
     }
 
@@ -18,5 +20,5 @@ public struct ChainView: View {
 // MARK: - Previews
 
 #Preview {
-    ChainView(model: ChainViewModel(chain: .aptos))
+    ChainView(model: chainRow(chain: "aptos"))
 }

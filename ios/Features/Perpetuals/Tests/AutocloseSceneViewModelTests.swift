@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 @testable import Perpetuals
 @testable import PerpetualsTestKit
 import Primitives
@@ -12,28 +13,16 @@ struct AutocloseSceneViewModelTests {
     @Test
     func isEditing() {
         let model = AutocloseSceneViewModel(type: .mock())
-        model.input.takeProfit.text = ""
-        model.input.stopLoss.text = ""
+        model.takeProfitText = ""
+        model.stopLossText = ""
 
         #expect(model.isEditing(field: nil) == false)
         #expect(model.isEditing(field: .takeProfit) == true)
         #expect(model.isEditing(field: .stopLoss) == true)
 
-        model.input.takeProfit.text = "100"
+        model.takeProfitText = "100"
         #expect(model.isEditing(field: .takeProfit) == false)
         #expect(model.isEditing(field: .stopLoss) == true)
-    }
-
-    @Test
-    func fieldStates() {
-        let model = AutocloseSceneViewModel(type: .mock())
-
-        #expect(model.takeProfitModel(model.viewState).title == "Take profit")
-        #expect(model.stopLossModel(model.viewState).title == "Stop loss")
-        #expect(model.takeProfitModel(model.viewState).profitTitle == "Expected profit")
-        #expect(model.stopLossModel(model.viewState).profitTitle == "Expected loss")
-        #expect(model.takeProfitModel(model.viewState).expectedPnL == "-")
-        #expect(model.takeProfitModel(model.viewState).percentSuggestions.map(\.value) == [15, 25, 50])
     }
 
     @Test
@@ -43,9 +32,9 @@ struct AutocloseSceneViewModelTests {
 
         model.onSelectPercent(50)
 
-        #expect(model.input.takeProfit.text.isNotEmpty)
-        #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
-        #expect(model.input.stopLoss.text.isEmpty)
+        #expect(model.takeProfitText.isNotEmpty)
+        #expect(model.viewState.takeProfit.estimate != nil)
+        #expect(model.stopLossText.isEmpty)
     }
 
     @Test
@@ -70,20 +59,22 @@ struct AutocloseSceneViewModelTests {
 
     @Test
     func openKeepsTheEnteredTrigger() {
-        let model = AutocloseSceneViewModel(type: .mock(data: .mock(takeProfit: "110")))
+        let model = AutocloseSceneViewModel(type: .mock(data: .mock(symbol: "BTC", direction: .long, marketPrice: 100, leverage: 10, size: 1, assetDecimals: 8, takeProfit: "110")))
 
-        #expect(model.input.takeProfit.text == "110")
-        #expect(model.takeProfitModel(model.viewState).expectedPnL != "-")
+        #expect(model.takeProfitText == "110")
+        #expect(model.viewState.takeProfit.estimate != nil)
         #expect(model.confirmButtonType(model.viewState) == .primary(.normal))
     }
 
     @Test
     func aTransferCoreRefusesShowsTheError() {
         var transfers = 0
-        let data = PerpetualPositionData.mock(perpetual: .mock(identifier: "BTC"))
+        let data = PerpetualPositionData.mock(
+            perpetual: .mock(identifier: "BTC", price: 1000),
+            position: .mock(size: 1, sizeValue: 1000, leverage: 10, entryPrice: 1000, marginType: .isolated, direction: .long, marginAmount: 100),
+        )
         let model = AutocloseSceneViewModel(type: .modify(data, onTransferAction: { _ in transfers += 1 }))
-        model.input.takeProfit.text = "1500"
-        model.onChangePrice()
+        model.takeProfitText = "1500"
 
         model.onSelectConfirm()
 

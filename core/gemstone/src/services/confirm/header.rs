@@ -2,46 +2,49 @@ use std::str::FromStr;
 
 use chrono::Utc;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetId, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
+use primitives::{Asset, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
 
 use super::model::{GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemSimulationValue, GemTransferAmountResult};
 use super::rules;
 use crate::config::image::GemImage;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::perpetual::GemPerpetual;
+use crate::services::assets::icon::asset_icon;
+use crate::services::assets::model::GemValueHeader;
+use crate::services::localization::GemLocalizedText;
 use crate::services::transactions::model::{GemAmountSign, GemTransactionAmount, GemTransactionHeader, GemTransactionHeaderKind};
 use crate::services::transactions::rules::header_amount;
 use crate::services::transfer::model::GemTransferData;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
-pub enum GemConfirmHeader {
-    Placeholder { asset_id: AssetId },
-    Reserved { header: GemTransactionHeader },
-    Value { value: GemSimulationValue },
-    Transaction { header: GemTransactionHeader },
+/// The confirm screen's header; a reserved one keeps its place hidden until the load ends.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmHeader {
+    pub header: GemTransactionHeader,
+    pub is_reserved: bool,
 }
 
 pub fn header(transfer: &GemTransferData, requested: Option<&SimulationResult>, load: Option<&GemConfirmLoad>, currency: Currency, screen: &GemConfirmScreen) -> GemConfirmHeader {
+    GemConfirmHeader {
+        is_reserved: screen.phase == GemConfirmPhase::Loading && is_amountless_payment(transfer),
+        header: confirm_header(transfer, requested, load, currency),
+    }
+}
+
+fn confirm_header(transfer: &GemTransferData, requested: Option<&SimulationResult>, load: Option<&GemConfirmLoad>, currency: Currency) -> GemTransactionHeader {
     if let Some(value) = load.and_then(|load| load.simulation.simulation.as_ref()).and_then(|simulation| simulation.header.clone()) {
-        return GemConfirmHeader::Value { value };
+        return GemTransactionHeader::Value { header: value.header };
     }
     if let TransactionInputType::TokenApprove { asset, approval_data } = &transfer.input_type {
-        return GemConfirmHeader::Value {
-            value: GemSimulationValue {
-                asset: asset.clone(),
-                value: rules::approval_value_from(Some(&approval_data.value), approval_data.is_unlimited),
-            },
+        return GemTransactionHeader::Value {
+            header: GemSimulationValue::new(asset.clone(), rules::approval_value_from(Some(&approval_data.value), approval_data.is_unlimited)).header,
         };
     }
     if let (TransactionInputType::Generic { .. }, Some(header)) = (&transfer.input_type, requested.and_then(|result| result.valid_header())) {
-        return GemConfirmHeader::Placeholder { asset_id: header.asset_id.clone() };
+        return GemTransactionHeader::Value {
+            header: GemValueHeader::asset(asset_icon(&header.asset_id), GemLocalizedText::Text { text: String::new() }, None),
+        };
     }
-    let header = transaction_header(transfer, load, currency);
-    if screen.phase == GemConfirmPhase::Loading && is_amountless_payment(transfer) {
-        return GemConfirmHeader::Reserved { header };
-    }
-    GemConfirmHeader::Transaction { header }
+    transaction_header(transfer, load, currency)
 }
 
 fn is_amountless_payment(transfer: &GemTransferData) -> bool {
@@ -50,14 +53,12 @@ fn is_amountless_payment(transfer: &GemTransferData) -> bool {
 
 fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, currency: Currency) -> GemTransactionHeader {
     let prices = load.map(|load| load.metadata.prices.as_slice()).unwrap_or_default();
-    let amount = |shows_fiat: bool| GemTransactionHeader::Amount {
-        amount: header_amount(amount(transfer, load, prices, &currency), &currency, shows_fiat),
-    };
+    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(amount(transfer, load, prices, &currency), &currency, shows_fiat));
     match transfer.header_kind() {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match &transfer.input_type {
             TransactionInputType::Swap { from_asset, to_asset, swap_data } => GemTransactionHeader::Swap {
-                from: header_amount(leg(from_asset.clone(), swap_data.quote.from_value.clone(), prices), &currency, true),
+                from: header_amount(leg(from_asset.clone(), sent_value(load).unwrap_or_else(|| swap_data.quote.from_value.clone()), prices), &currency, true),
                 to: header_amount(leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices), &currency, true),
             },
             _ => amount(true),
@@ -65,13 +66,12 @@ fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>,
         GemTransactionHeaderKind::Nft => match &transfer.input_type {
             TransactionInputType::TransferNft { nft_asset, .. } => GemTransactionHeader::Nft {
                 image_url: GemImage::NftAsset { asset_id: nft_asset.id.to_string() }.url(),
-                asset_id: nft_asset.id.clone(),
                 name: Some(nft_asset.name.clone()),
             },
             _ => amount(false),
         },
-        GemTransactionHeaderKind::Symbol => GemTransactionHeader::Symbol { asset: header_asset(transfer) },
-        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::AssetImage { asset: header_asset(transfer) },
+        GemTransactionHeaderKind::Symbol => GemTransactionHeader::symbol(&header_asset(transfer)),
+        GemTransactionHeaderKind::AssetImage => GemTransactionHeader::asset_image(&header_asset(transfer)),
     }
 }
 
@@ -103,6 +103,13 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
     leg(asset, value, prices)
 }
 
+fn sent_value(load: Option<&GemConfirmLoad>) -> Option<GemBigUint> {
+    match &load?.fee.as_ref()?.amount {
+        GemTransferAmountResult::Amount { amount } => amount.value.to_biguint(),
+        GemTransferAmountResult::Error { .. } => None,
+    }
+}
+
 fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransactionAmount {
     GemTransactionAmount {
         price: prices.iter().find(|price| price.asset_id == asset.id).cloned(),
@@ -114,12 +121,13 @@ fn leg(asset: Asset, value: GemBigUint, prices: &[AssetPrice]) -> GemTransaction
 
 #[cfg(test)]
 mod tests {
-    use primitives::{ApprovalData, Chain, NFTAsset, PaymentInvoice, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransferDataExtra};
+    use primitives::{ApprovalData, AssetId, Chain, NFTAsset, PaymentInvoice, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransferDataExtra};
 
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
     use crate::formatted_number::GemFormattedNumber;
     use crate::precision::GemValueStyle;
+    use crate::services::assets::model::{GemRowText, GemValueHeaderIcon};
 
     use super::*;
 
@@ -131,6 +139,13 @@ mod tests {
         GemConfirmScreen {
             phase: GemConfirmPhase::Ready,
             ..GemConfirmScreen::initial(None)
+        }
+    }
+
+    fn amount_header(header: GemConfirmHeader) -> GemValueHeader {
+        match header.header {
+            GemTransactionHeader::Amount { header } => header,
+            other => panic!("expected an amount header, got {other:?}"),
         }
     }
 
@@ -154,9 +169,9 @@ mod tests {
         );
 
         assert_eq!(
-            unlimited,
-            GemConfirmHeader::Value {
-                value: GemSimulationValue { asset, value: GemApprovalValue::Unlimited }
+            unlimited.header,
+            GemTransactionHeader::Value {
+                header: GemSimulationValue::new(asset, GemApprovalValue::Unlimited).header
             },
             "both apps show the approved asset, not one of them a bare symbol"
         );
@@ -164,15 +179,14 @@ mod tests {
 
     #[test]
     fn test_a_withdrawal_shows_the_asset_it_moves_rather_than_the_one_it_is_priced_in() {
-        let header = header(&transfer(TransactionInputType::Withdrawal { asset: Asset::mock() }), None, None, Currency::USD, &ready());
+        let header = amount_header(header(&transfer(TransactionInputType::Withdrawal { asset: Asset::mock() }), None, None, Currency::USD, &ready()));
 
-        let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount, .. },
-        } = header
-        else {
-            panic!("a withdrawal reads as an amount")
-        };
-        assert_eq!(amount.asset, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset());
+        assert_eq!(
+            header.icon,
+            Some(GemValueHeaderIcon::Asset {
+                icon: asset_icon(&GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id)
+            })
+        );
     }
 
     #[test]
@@ -195,12 +209,8 @@ mod tests {
             &ready(),
         );
 
-        assert_eq!(
-            header,
-            GemConfirmHeader::Transaction {
-                header: GemTransactionHeader::Symbol { asset: market }
-            }
-        );
+        assert_eq!(header.header, GemTransactionHeader::symbol(&market));
+        assert_eq!(amount_header(header).title, GemLocalizedText::Text { text: "BTC".to_string() });
     }
 
     #[test]
@@ -227,7 +237,12 @@ mod tests {
                 Currency::USD,
                 &ready(),
             ),
-            GemConfirmHeader::Placeholder { asset_id: asset.id },
+            GemConfirmHeader {
+                header: GemTransactionHeader::Value {
+                    header: GemValueHeader::asset(asset_icon(&asset.id), GemLocalizedText::Text { text: String::new() }, None)
+                },
+                is_reserved: false,
+            },
             "the head keeps its place until the simulation answers"
         );
     }
@@ -239,17 +254,44 @@ mod tests {
             ..transfer(TransactionInputType::Transfer { asset: Asset::mock() })
         };
 
-        let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount },
-        } = header(&sent, None, None, Currency::USD, &ready())
-        else {
-            panic!("a transfer reads as an amount")
-        };
         assert_eq!(
-            amount.amount,
-            GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), GemValueStyle::Auto),
+            amount_header(header(&sent, None, None, Currency::USD, &ready())).title,
+            GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), GemValueStyle::Auto)
+            },
             "the head is not empty while the fee loads"
         );
+    }
+
+    #[test]
+    fn test_a_swap_shows_what_it_will_send_once_the_fee_is_known() {
+        use super::super::model::GemConfirmFee;
+        use crate::transfer_amount::GemTransferAmount;
+        use primitives::SwapProvider;
+        use primitives::swap::SwapData;
+        let deposit = transfer(TransactionInputType::Swap {
+            from_asset: Asset::mock_eth(),
+            to_asset: Asset::mock_erc20(),
+            swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"),
+        });
+        let sent = GemConfirmLoad {
+            fee: Some(GemConfirmFee::mock(GemTransferAmountResult::Amount {
+                amount: GemTransferAmount {
+                    value: 990.into(),
+                    network_fee: 10.into(),
+                    is_max_amount: true,
+                },
+            })),
+            ..GemConfirmLoad::mock()
+        };
+        let from = |load: Option<&GemConfirmLoad>| match header(&deposit, None, load, Currency::USD, &ready()).header {
+            GemTransactionHeader::Swap { from, .. } => from.amount,
+            other => panic!("expected a swap header, got {other:?}"),
+        };
+        let amount = |value: u32| GemAmountSign::None.amount(&value.into(), &Asset::mock_eth(), GemValueStyle::Auto);
+
+        assert_eq!(from(None), amount(1_000), "the quoted amount until the fee is known");
+        assert_eq!(from(Some(&sent)), amount(990), "then the amount that leaves the wallet");
     }
 
     #[test]
@@ -266,7 +308,13 @@ mod tests {
             &ready(),
         );
 
-        assert!(matches!(header, GemConfirmHeader::Transaction { header: GemTransactionHeader::Nft { ref asset_id, .. } } if *asset_id == nft.id));
+        assert_eq!(
+            header.header,
+            GemTransactionHeader::Nft {
+                name: Some(nft.name.clone()),
+                image_url: GemImage::NftAsset { asset_id: nft.id.to_string() }.url(),
+            }
+        );
     }
 
     #[test]
@@ -285,22 +333,16 @@ mod tests {
             })
         };
 
-        let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount },
-        } = header(&payment, None, None, Currency::USD, &ready())
+        let Some(GemRowText {
+            text: GemLocalizedText::Number { number: fiat },
+            ..
+        }) = amount_header(header(&payment, None, None, Currency::USD, &ready())).subtitle
         else {
             panic!("a payment reads as an amount with its fiat");
         };
-        let fiat = amount.fiat.unwrap().value;
-        assert!((fiat - 0.1).abs() < 1e-9, "the fiat is the invoice price, not the market price: {fiat}");
+        assert!((fiat.value - 0.1).abs() < 1e-9, "the fiat is the invoice price, not the market price: {}", fiat.value);
 
-        let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount, .. },
-        } = header(&payment, None, None, Currency::EUR, &ready())
-        else {
-            panic!("a payment reads as an amount");
-        };
-        assert_eq!(amount.fiat, None, "another wallet currency falls back to the market price");
+        assert_eq!(amount_header(header(&payment, None, None, Currency::EUR, &ready())).subtitle, None, "another wallet currency falls back to the market price");
     }
 
     #[test]
@@ -315,21 +357,30 @@ mod tests {
         };
         let loading = GemConfirmScreen::initial(None);
 
-        assert!(matches!(header(&payment, None, None, Currency::USD, &loading), GemConfirmHeader::Reserved { .. }));
-        assert!(matches!(header(&payment, None, None, Currency::USD, &ready()), GemConfirmHeader::Transaction { .. }));
+        assert!(header(&payment, None, None, Currency::USD, &loading).is_reserved);
+        assert!(!header(&payment, None, None, Currency::USD, &ready()).is_reserved);
         assert!(
-            matches!(
-                header(&payment, None, None, Currency::USD, &loading.on_load_failed(GemConfirmError::Load { msg: "offline".into() })),
-                GemConfirmHeader::Transaction { .. }
-            ),
+            !header(&payment, None, None, Currency::USD, &loading.on_load_failed(GemConfirmError::Load { msg: "offline".into() })).is_reserved,
             "a failed load shows the head"
         );
         assert!(
-            matches!(
-                header(&transfer(TransactionInputType::Transfer { asset: Asset::mock() }), None, None, Currency::USD, &loading),
-                GemConfirmHeader::Transaction { .. }
-            ),
+            !header(&transfer(TransactionInputType::Transfer { asset: Asset::mock() }), None, None, Currency::USD, &loading).is_reserved,
             "only an amountless payment waits"
+        );
+    }
+
+    #[test]
+    fn test_an_approval_header_names_an_unlimited_amount_and_shows_an_exact_one_in_full() {
+        let usdt = Asset::mock_ethereum_usdc();
+        let unlimited = GemSimulationValue::new(usdt.clone(), GemApprovalValue::Unlimited);
+        let exact = GemSimulationValue::new(usdt.clone(), GemApprovalValue::Exact { value: 1_234_567u32.into() });
+
+        assert_eq!(unlimited.header.title, GemLocalizedText::UnlimitedAsset { symbol: usdt.symbol.clone() });
+        assert_eq!(
+            exact.header.title,
+            GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&1_234_567u32.into(), &usdt, GemValueStyle::Full)
+            }
         );
     }
 }

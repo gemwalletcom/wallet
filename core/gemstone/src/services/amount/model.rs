@@ -5,10 +5,11 @@ use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::precision::GemValueStyle;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
+use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::autoclose::GemAutocloseDraft;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
-use primitives::{Asset, Delegation, PerpetualDirection, Resource};
+use primitives::{Asset, AssetData, Currency, Delegation, PerpetualDirection, Resource};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -100,10 +101,11 @@ impl GemAmountRequest {
         }
     }
 
-    pub fn input(&self, asset: Asset, balance: GemAssetBalance) -> GemAmountInput {
+    pub fn input(&self, data: AssetData) -> GemAmountInput {
+        let balance = GemAssetBalance::from(&data);
         match self {
-            Self::Transfer { transfer } => super::rules::transfer_input(transfer, &asset, &balance),
-            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => self.amount_type().input(&asset, &balance),
+            Self::Transfer { transfer } => super::rules::transfer_input(transfer, &data.asset, &balance),
+            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => self.amount_type().input(&data.asset, &balance),
         }
     }
 }
@@ -135,8 +137,9 @@ pub enum GemAmountPerpetualPosition {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountInput {
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub available_value: GemBigInt,
-    pub balance: GemFormattedNumber,
+    pub balance: GemLocalizedText,
     pub max_value: GemBigInt,
     pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
@@ -163,12 +166,37 @@ impl GemAmountInputType {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountField {
+    pub symbol: GemAmountSymbol,
+    pub placement: GemAmountSymbolPlacement,
+    pub keyboard: GemAmountKeyboard,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountSymbol {
+    Asset { symbol: String },
+    Currency { currency: Currency },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAmountSymbolPlacement {
+    Leading,
+    Trailing,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAmountKeyboard {
+    Decimal,
+    Whole,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountEntry {
     pub value: Option<GemBigInt>,
     pub error: Option<GemAmountError>,
     pub equivalent: GemFormattedNumber,
     pub is_max: bool,
-    pub reserved_fee: Option<GemFormattedNumber>,
+    pub reserved_fee: Option<GemLocalizedText>,
 }
 
 #[uniffi::export]
@@ -264,17 +292,120 @@ impl GemNumberFormat {
         super::rules::input_text(&self.decimal_separator, &value, decimals)
     }
 
-    pub fn value_text(&self, value: f64) -> String {
-        super::rules::value_text(&self.decimal_separator, value)
-    }
-
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
     }
+}
 
-    pub fn value(&self, input: String, decimals: u32) -> Result<GemBigInt, GemAmountError> {
-        super::rules::value_from_input(&self.decimal_separator, &input, decimals)
+impl GemNumberFormat {
+    pub fn value_text(&self, value: f64) -> String {
+        super::rules::value_text(&self.decimal_separator, value)
     }
+}
+
+/// The amount field: its text and whether it is typed in the asset or in fiat.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountSession {
+    pub text: String,
+    pub input_type: GemAmountInputType,
+    pub format: GemNumberFormat,
+}
+
+#[uniffi::export]
+pub fn new_amount_session(format: GemNumberFormat) -> GemAmountSession {
+    GemAmountSession {
+        text: String::new(),
+        input_type: GemAmountInputType::Asset,
+        format,
+    }
+}
+
+#[uniffi::export]
+impl GemAmountSession {
+    pub fn on_text(&self, text: String) -> Self {
+        Self { text, ..self.clone() }
+    }
+
+    pub fn on_toggle(&self) -> Self {
+        Self {
+            input_type: self.input_type.toggled(),
+            text: String::new(),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_clear(&self) -> Self {
+        self.on_text(String::new())
+    }
+
+    pub fn on_max(&self, input: GemAmountInput, asset: Asset) -> Self {
+        self.filled(input.max_entry(), &asset)
+    }
+
+    pub fn on_prefill(&self, input: GemAmountInput, asset: Asset) -> Self {
+        match input.prefill {
+            Some(prefill) => self.filled(prefill, &asset),
+            None => self.clone(),
+        }
+    }
+
+    pub fn field(&self, asset: Asset, input: GemAmountInput, currency: Currency) -> GemAmountField {
+        let (symbol, placement) = match self.input_type {
+            GemAmountInputType::Asset => (GemAmountSymbol::Asset { symbol: asset.symbol }, GemAmountSymbolPlacement::Trailing),
+            GemAmountInputType::Fiat => (GemAmountSymbol::Currency { currency }, GemAmountSymbolPlacement::Leading),
+        };
+        GemAmountField {
+            symbol,
+            placement,
+            keyboard: match input.uses_whole_amounts {
+                true => GemAmountKeyboard::Whole,
+                false => GemAmountKeyboard::Decimal,
+            },
+        }
+    }
+
+    pub fn entry(&self, amount_type: GemAmountType, asset: Asset, input: GemAmountInput, price: Option<f64>, currency: Currency) -> GemAmountEntry {
+        amount_type.entry(&asset, &input, price, self.input_type, self.format.plain(self.text.clone()), currency)
+    }
+}
+
+impl GemAmountSession {
+    fn filled(&self, entry: GemAmountMaxEntry, asset: &Asset) -> Self {
+        match self.format.input_text(entry.value.to_string(), asset.decimals as u32) {
+            Some(text) => Self {
+                text,
+                input_type: entry.input_type,
+                ..self.clone()
+            },
+            None => self.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountExtras {
+    None,
+    Validator {
+        row: GemValidatorRow,
+        can_select: bool,
+    },
+    Resources {
+        options: Vec<primitives::Resource>,
+        selected: primitives::Resource,
+    },
+    Provider {
+        row: GemValidatorRow,
+    },
+    Perpetual {
+        leverage: Option<GemAmountLeverage>,
+        autoclose: Option<crate::models::list::GemListRow>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAmountLeverage {
+    pub selection: GemLeverageSelection,
+    pub direction: PerpetualDirection,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -283,11 +414,70 @@ pub struct GemLeverageSelection {
     pub selected: crate::services::settings::rules::GemPickerOption,
 }
 
+impl GemLeverageSelection {
+    pub(super) fn picked(self, leverage: u8) -> Self {
+        let selected = self.options.iter().find(|option| option.value == leverage).cloned().unwrap_or(self.selected);
+        Self { selected, ..self }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::formatted_number::GemNumberUnit;
     use primitives::Chain;
+
+    #[test]
+    fn test_the_amount_field_fills_max_and_prefill_in_the_callers_separator_and_a_toggle_clears_it() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let input = GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ",".to_string() });
+
+        let max = session.on_text("0,1".to_string()).on_max(input.clone(), asset.clone());
+        assert_eq!(max.text, "1,5");
+        assert_eq!(max.input_type, GemAmountInputType::Asset);
+        assert_eq!(
+            max.entry(GemAmountType::Transfer, asset.clone(), input.clone(), None, primitives::Currency::USD).value,
+            Some(GemBigInt::from(1_500_000_000_000_000_000u64))
+        );
+
+        let toggled = max.on_toggle();
+        assert_eq!((toggled.text.as_str(), toggled.input_type), ("", GemAmountInputType::Fiat), "switching sides starts over");
+        assert_eq!(session.on_prefill(input, asset).text, "", "a transfer the user types has nothing to prefill");
+    }
+
+    #[test]
+    fn test_the_field_puts_the_asset_symbol_after_and_the_currency_before_the_number() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let input = GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(1));
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ".".to_string() });
+
+        assert_eq!(
+            session.field(asset.clone(), input.clone(), primitives::Currency::EUR),
+            GemAmountField {
+                symbol: GemAmountSymbol::Asset { symbol: "ETH".to_string() },
+                placement: GemAmountSymbolPlacement::Trailing,
+                keyboard: GemAmountKeyboard::Decimal,
+            }
+        );
+        let fiat = session.on_toggle().field(asset.clone(), input.clone(), primitives::Currency::EUR);
+        assert_eq!((fiat.symbol, fiat.placement), (GemAmountSymbol::Currency { currency: primitives::Currency::EUR }, GemAmountSymbolPlacement::Leading));
+
+        let whole = GemAmountInput { uses_whole_amounts: true, ..input };
+        assert_eq!(session.field(asset, whole, primitives::Currency::EUR).keyboard, GemAmountKeyboard::Whole, "a whole-unit asset takes no decimal point");
+    }
+
+    #[test]
+    fn test_a_leverage_selection_keeps_the_picked_leverage_it_offers() {
+        let option = crate::services::settings::rules::leverage_option;
+        let selection = GemLeverageSelection {
+            options: vec![option(1), option(5), option(10)],
+            selected: option(5),
+        };
+
+        assert_eq!(selection.clone().picked(10).selected, option(10));
+        assert_eq!(selection.picked(40).selected, option(5), "a leverage the market no longer offers falls back to the default");
+    }
 
     #[test]
     fn test_the_input_type_toggles_between_the_asset_and_the_fiat_side() {

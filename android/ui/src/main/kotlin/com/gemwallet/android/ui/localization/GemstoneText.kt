@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
@@ -12,7 +11,6 @@ import com.gemwallet.android.ext.errorTextOrNull
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
@@ -21,7 +19,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ConnectionStatus
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.PerpetualDirection
@@ -32,6 +29,7 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.ScanReceiveMode
 import com.wallet.core.primitives.TpslType
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletSource
 import uniffi.gemstone.AddressType
 import uniffi.gemstone.AutocloseValidation
@@ -39,14 +37,20 @@ import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
 import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemApprovalValue
+import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAssetMenuAction
+import uniffi.gemstone.GemAssetOption
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBalanceRowValue
+import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
+import uniffi.gemstone.GemChainSettingsSection
+import uniffi.gemstone.GemChainsFilterSummary
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
@@ -54,9 +58,12 @@ import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
+import uniffi.gemstone.GemConnectionPermission
 import uniffi.gemstone.GemCurrencySectionKind
+import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationStatus
+import uniffi.gemstone.GemEarnSection
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateText
 import uniffi.gemstone.GemErrorText
@@ -77,6 +84,7 @@ import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemLockPeriod
+import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNodeCheckRow
 import uniffi.gemstone.GemNodeRowTitle
@@ -90,10 +98,10 @@ import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemPriceAlertLabel
 import uniffi.gemstone.GemPriceAlertPrompt
 import uniffi.gemstone.GemPriceAlertSectionKind
-import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
+import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
 import uniffi.gemstone.GemSelectAssetTitle
@@ -109,7 +117,9 @@ import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
+import uniffi.gemstone.GemValidatorSectionKind
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletConnectFailure
@@ -183,6 +193,22 @@ fun GemDelegationStatus.stateText(): String = stringResource(
 )
 
 @StringRes
+fun GemAcquireOption.title(context: Context): String = context.getString(
+    when (this) {
+        GemAcquireOption.BUY -> R.string.wallet_buy
+        GemAcquireOption.SWAP -> R.string.wallet_swap
+        GemAcquireOption.RECEIVE -> R.string.wallet_receive
+    },
+)
+
+fun GemAcquireOption.subtitle(context: Context): String = context.getString(
+    when (this) {
+        GemAcquireOption.BUY -> R.string.wallet_pay_with_card_or_bank
+        GemAcquireOption.SWAP -> R.string.wallet_from_your_wallet_assets
+        GemAcquireOption.RECEIVE -> R.string.wallet_transfer_from_another_wallet
+    },
+)
+
 fun GemTransactionFilter.getLabel() = when (this) {
     GemTransactionFilter.TRANSFERS -> R.string.transfer_title
     GemTransactionFilter.SWAPS -> R.string.wallet_swap
@@ -223,6 +249,18 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.Text -> text
 
+    is GemLocalizedText.RowTitle -> title.text(context)
+
+    is GemLocalizedText.EnableValue -> context.getString(R.string.settings_enable_value, value)
+
+    is GemLocalizedText.ViewOn -> context.getString(R.string.transaction_view_on, name)
+
+    is GemLocalizedText.AmountOnNetwork -> "${amount.text()} ($network)"
+
+    is GemLocalizedText.ParticipantRole -> context.getString(role.stringRes())
+
+    is GemLocalizedText.ConfirmDestination -> context.getString(destination.title())
+
     is GemLocalizedText.Number -> number.text()
 
     GemLocalizedText.None -> context.getString(R.string.common_none)
@@ -249,6 +287,42 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.TriggerOrder -> "${context.getString(order.stringRes())}: ${price?.text() ?: EMPTY_VALUE}"
 
+    is GemLocalizedText.ChartLine -> "${context.getString(kind.stringRes())} | ${price.text()}"
+
+    GemLocalizedText.ExpectedProfit -> context.getString(R.string.perpetual_auto_close_expected_profit)
+
+    GemLocalizedText.ExpectedLoss -> context.getString(R.string.perpetual_auto_close_expected_loss)
+
+    is GemLocalizedText.ShowSecret -> context.getString(R.string.common_show, context.getString(kind.stringRes()))
+
+    is GemLocalizedText.SecretKind -> context.getString(kind.stringRes())
+
+    GemLocalizedText.NewWallet -> context.getString(R.string.wallet_new_title)
+
+    GemLocalizedText.NewTag -> context.getString(R.string.assets_tags_new)
+
+    is GemLocalizedText.DeleteConfirmation -> context.getString(R.string.common_delete_confirmation, name)
+
+    is GemLocalizedText.Pinned -> context.getString(if (pinned) R.string.common_pinned_asset else R.string.common_unpinned_asset, name)
+
+    is GemLocalizedText.PriceAlertsToggled -> context.getString(if (enabled) R.string.price_alerts_enabled_for else R.string.price_alerts_disabled_for, name)
+
+    is GemLocalizedText.AmountBalance -> context.getString(R.string.transfer_balance, balance.text())
+
+    is GemLocalizedText.ReservedFees -> context.getString(R.string.transfer_reserved_fees, fee.text())
+
+    is GemLocalizedText.RewardsInviteDescription -> context.getString(R.string.rewards_invite_friends_description, points.bold())
+
+    is GemLocalizedText.RewardsShareText -> context.getString(R.string.rewards_share_text, link)
+
+    GemLocalizedText.AppUpdateTitle -> context.getString(R.string.update_app_title)
+
+    GemLocalizedText.SwapAgain -> context.getString(R.string.transaction_swap_again)
+
+    is GemLocalizedText.AppUpdateDescription -> context.getString(R.string.update_app_description, version)
+
+    is GemLocalizedText.CurrentPrice -> "${context.getString(R.string.price_alerts_set_alert_current_price)} ${price.text()}"
+
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"
@@ -263,11 +337,19 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.Balance -> context.getString(R.string.transfer_balance, amount.text())
 
+    is GemLocalizedText.AvailableBalance -> context.getString(R.string.wallet_available_balance, amount.text())
+
+    is GemLocalizedText.UnlimitedAsset -> context.getString(R.string.simulation_header_unlimited_asset, symbol)
+
     GemLocalizedText.NftCollections -> context.getString(R.string.nft_collections)
+
+    GemLocalizedText.SelectAsset -> context.getString(R.string.assets_select_asset)
 
     GemLocalizedText.NftUnverified -> context.getString(R.string.asset_verification_unverified)
 
     is GemLocalizedText.RewardsRedeemAsset -> context.getString(R.string.rewards_ways_spend_asset_title, value.text())
+
+    is GemLocalizedText.RewardsConfirmRedeem -> context.getString(R.string.rewards_confirm_redeem, value.text(), points.text())
 
     is GemLocalizedText.PriceAlertAddedPriceOver -> context.getString(R.string.price_alerts_added_price_over, value.text())
 
@@ -399,14 +481,16 @@ fun PerpetualDirection.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun FeePriority.stringRes(): Int = when (this) {
-    FeePriority.Normal -> R.string.fee_rates_normal
-    FeePriority.Fast -> R.string.fee_rates_fast
+fun GemRewardsIntroItem.titleRes(): Int = when (this) {
+    GemRewardsIntroItem.INVITE_FRIENDS -> R.string.rewards_invite_friends_title
+    GemRewardsIntroItem.EARN_POINTS -> R.string.rewards_earn_points_title
+    GemRewardsIntroItem.GET_REWARDS -> R.string.rewards_get_rewards_title
 }
 
-fun GemApprovalValue.text(context: Context, symbol: String, formatter: ValueFormatter, asset: Asset): String = when (this) {
-    is GemApprovalValue.Exact -> formatter.string(value, asset)
-    GemApprovalValue.Unlimited -> context.getString(R.string.simulation_header_unlimited_asset, symbol)
+@StringRes
+fun GemConnectionPermission.titleRes(): Int = when (this) {
+    GemConnectionPermission.VIEW_BALANCE -> R.string.wallet_connect_permissions_view_balance
+    GemConnectionPermission.APPROVAL_REQUESTS -> R.string.wallet_connect_permissions_approval_requests
 }
 
 @StringRes
@@ -418,6 +502,25 @@ fun GemVerificationLevel.stringRes(): Int = when (this) {
 
 @StringRes
 fun WalletConnectionVerificationStatus.titleRes(): Int = verificationLevel(this).stringRes()
+
+@StringRes
+fun GemAssetSectionKind.titleRes(): Int? = when (this) {
+    GemAssetSectionKind.POPULAR -> R.string.assets_popular
+    GemAssetSectionKind.PINNED -> R.string.common_pinned
+    GemAssetSectionKind.ASSETS -> null
+}
+
+fun GemAssetOption.text(context: Context): String = when (this) {
+    is GemAssetOption.ViewAddress -> context.getString(R.string.asset_view_address_on, link.name)
+    is GemAssetOption.ViewToken -> context.getString(R.string.asset_view_token_on, link.name)
+    GemAssetOption.Share -> context.getString(R.string.common_share)
+}
+
+@StringRes
+fun GemAppUpdateAction.stringRes(): Int = when (this) {
+    GemAppUpdateAction.SKIP -> R.string.common_skip
+    GemAppUpdateAction.UPDATE -> R.string.update_app_action
+}
 
 @StringRes
 fun GemAssetMenuAction.stringRes(): Int = when (this) {
@@ -635,6 +738,12 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.PROPERTIES -> R.string.nft_properties
 }
 
+@StringRes
+fun GemValidatorSectionKind.titleRes(): Int = when (this) {
+    GemValidatorSectionKind.RECOMMENDED -> R.string.common_recommended
+    GemValidatorSectionKind.ACTIVE -> R.string.stake_active
+}
+
 fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.API -> "API"
     GemListRowTitle.STREAM -> context.getString(R.string.nodes_stream)
@@ -689,6 +798,10 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.LOCK_TIME -> context.getString(R.string.stake_lock_time)
     GemListRowTitle.MINIMUM_AMOUNT -> context.getString(R.string.stake_minimum_amount)
     GemListRowTitle.NETWORK_FEE -> context.getString(R.string.transfer_network_fee)
+    GemListRowTitle.NORMAL_FEE -> context.getString(R.string.fee_rates_normal)
+    GemListRowTitle.FAST_FEE -> context.getString(R.string.fee_rates_fast)
+    GemListRowTitle.CUSTOM_FEE -> context.getString(R.string.fee_rate_custom)
+    GemListRowTitle.PAY_WITH -> context.getString(R.string.transfer_pay_with)
     GemListRowTitle.VALIDATOR -> context.getString(R.string.stake_validator)
     GemListRowTitle.PROVIDER -> context.getString(R.string.common_provider)
     GemListRowTitle.STATUS -> context.getString(R.string.transaction_status)
@@ -734,6 +847,10 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.ALL_TIME_HIGH -> context.getString(R.string.asset_all_time_high)
     GemListRowTitle.ALL_TIME_LOW -> context.getString(R.string.asset_all_time_low)
     GemListRowTitle.WALLET -> context.getString(R.string.common_wallet)
+    GemListRowTitle.APP -> context.getString(R.string.wallet_connect_app)
+    GemListRowTitle.MEMO -> context.getString(R.string.transfer_memo)
+    GemListRowTitle.TRANSFER -> context.getString(R.string.transfer_title)
+    GemListRowTitle.SWAP -> context.getString(R.string.wallet_swap)
     GemListRowTitle.CONTRACT -> context.getString(R.string.asset_contract)
     GemListRowTitle.TOKEN_ID -> context.getString(R.string.asset_token_id)
     GemListRowTitle.COLLECTION -> context.getString(R.string.nft_collection)
@@ -743,6 +860,10 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.UNPIN -> context.getString(R.string.common_unpin)
     GemListRowTitle.ADD_TO_WALLET -> context.getString(R.string.asset_add_to_wallet)
     GemListRowTitle.PRICE_ALERTS -> context.getString(R.string.settings_price_alerts_title)
+    GemListRowTitle.ENABLE_PRICE_ALERTS -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_price_alerts_title))
+    GemListRowTitle.DEPOSIT -> context.getString(R.string.wallet_deposit)
+    GemListRowTitle.NO_DATA -> context.getString(R.string.errors_no_data_available)
+    GemListRowTitle.CONNECTION -> context.getString(R.string.wallet_connect_connection_title)
     GemListRowTitle.SET_PRICE_ALERT -> context.getString(R.string.price_alerts_set_alert_title)
     GemListRowTitle.ENERGY -> context.getString(R.string.stake_resource_energy)
     GemListRowTitle.BANDWIDTH -> context.getString(R.string.stake_resource_bandwidth)
@@ -1015,12 +1136,6 @@ fun PortfolioType.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun GemPriceAlertToggle.toastRes(): Int = when (this) {
-    GemPriceAlertToggle.ENABLED -> R.string.price_alerts_disabled_for
-    GemPriceAlertToggle.DISABLED -> R.string.price_alerts_enabled_for
-}
-
-@StringRes
 fun GemSelectAssetTitle.stringRes(): Int = when (this) {
     GemSelectAssetTitle.SEND -> R.string.wallet_send
     GemSelectAssetTitle.PAY_WITH -> R.string.transfer_pay_with
@@ -1214,6 +1329,12 @@ fun GemDelegationAction.stringRes(): Int = when (this) {
 }
 
 @StringRes
+fun GemEarnSection.stringRes(): Int = when (this) {
+    GemEarnSection.MANAGE -> R.string.common_manage
+    GemEarnSection.POSITIONS -> R.string.perpetual_positions
+}
+
+@StringRes
 fun GemStakeSection.stringRes(): Int = when (this) {
     GemStakeSection.MANAGE -> R.string.common_manage
     GemStakeSection.RESOURCES -> R.string.asset_resources
@@ -1282,7 +1403,7 @@ fun GemPerpetualMarketSection.stringRes(): Int? = when (this) {
     GemPerpetualMarketSection.POSITIONS -> R.string.perpetual_positions
     GemPerpetualMarketSection.PINNED -> R.string.common_pinned
     GemPerpetualMarketSection.MARKETS -> R.string.perpetuals_markets
-    GemPerpetualMarketSection.RECENTS, GemPerpetualMarketSection.EMPTY -> null
+    GemPerpetualMarketSection.HEADER, GemPerpetualMarketSection.RECENTS, GemPerpetualMarketSection.EMPTY -> null
 }
 
 @StringRes
@@ -1293,16 +1414,16 @@ fun GemPerpetualChartLineKind.stringRes(): Int = when (this) {
     GemPerpetualChartLineKind.TAKE_PROFIT -> R.string.perpetual_take_profit
 }
 
-fun GemReceiveWarning.text(context: Context, asset: Asset): String = when (this) {
-    GemReceiveWarning.ASSET_NETWORK -> context.getString(
+fun GemReceiveWarning.text(context: Context): String = when (this) {
+    is GemReceiveWarning.AssetNetwork -> context.getString(
         R.string.receive_warning,
-        asset.symbol.boldMarkdown(),
-        asset.networkFullName.boldMarkdown(),
+        symbol.boldMarkdown(),
+        network.boldMarkdown(),
     )
 
-    GemReceiveWarning.NO_DESTINATION_TAG_REQUIRED -> context.getString(R.string.wallet_receive_no_destination_tag_required)
+    GemReceiveWarning.NoDestinationTagRequired -> context.getString(R.string.wallet_receive_no_destination_tag_required)
 
-    GemReceiveWarning.NO_MEMO_REQUIRED -> context.getString(R.string.wallet_receive_no_memo_required)
+    GemReceiveWarning.NoMemoRequired -> context.getString(R.string.wallet_receive_no_memo_required)
 }
 
 @StringRes
@@ -1406,3 +1527,42 @@ fun GemAmountErrorDisplay.text(context: Context): String = when (this) {
 }
 
 fun GemRowText.string(context: Context): String = text.string(context)
+
+fun GemCustomFeeCheck.errorText(context: Context): String? = when (this) {
+    is GemCustomFeeCheck.BelowMinimum -> context.getString(R.string.common_minimum_value, rate.string(context))
+    is GemCustomFeeCheck.OverMaximum -> context.getString(R.string.common_maximum_value, rate.string(context))
+    GemCustomFeeCheck.Valid -> null
+}
+
+fun GemBannerButton.stringRes(): Int = when (this) {
+    GemBannerButton.BUY -> R.string.wallet_buy
+    GemBannerButton.RECEIVE -> R.string.wallet_receive
+}
+
+fun GemChainsFilterSummary.text(context: Context): String = when (this) {
+    GemChainsFilterSummary.All -> context.getString(R.string.common_all)
+    is GemChainsFilterSummary.Chain -> chain.requireChain().networkName()
+    is GemChainsFilterSummary.Count -> count.toString()
+}
+
+fun GemTransactionsFilterSummary.text(context: Context): String = when (this) {
+    GemTransactionsFilterSummary.All -> context.getString(R.string.common_all)
+    is GemTransactionsFilterSummary.Filter -> context.getString(filter.getLabel())
+    is GemTransactionsFilterSummary.Count -> count.toString()
+}
+
+fun VerificationStatus.labelRes(): Int? = when (this) {
+    VerificationStatus.Verified -> null
+    VerificationStatus.Unverified -> R.string.asset_verification_unverified
+    VerificationStatus.Suspicious -> R.string.asset_verification_suspicious
+}
+
+fun GemNameIndicator.contentDescription(): Int? = when (this) {
+    GemNameIndicator.ERROR -> R.string.errors_error_occurred
+    GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> null
+}
+
+fun GemChainSettingsSection.stringRes(): Int = when (this) {
+    is GemChainSettingsSection.Nodes -> R.string.settings_networks_source
+    is GemChainSettingsSection.Explorers -> R.string.settings_networks_explorer
+}

@@ -10,7 +10,7 @@ import SwiftUI
 public struct ContactEditorScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactEditorViewModel
+    @State private var model: ContactEditorSceneViewModel
 
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -18,7 +18,7 @@ public struct ContactEditorScene: View {
         case description
     }
 
-    public init(model: ContactEditorViewModel) {
+    public init(model: ContactEditorSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -68,7 +68,7 @@ public struct ContactEditorScene: View {
         }
     }
 
-    private func contactAddressScene(mode: ContactAddressEditorViewModel.Mode) -> some View {
+    private func contactAddressScene(mode: ContactAddressEditorSceneViewModel.Mode) -> some View {
         ContactAddressEditorScene(model: model.addressModel(mode: mode))
     }
 }
@@ -111,9 +111,9 @@ extension ContactEditorScene {
 
     private var addressesSection: some View {
         Section {
-            ForEach(model.addresses, id: \.id) { address in
-                NavigationLink(value: Scenes.ContactAddress(address: address)) {
-                    ListItemView(model: model.listItemModel(for: address))
+            ForEach(model.addressRows, id: \.address.id) { row in
+                NavigationLink(value: Scenes.ContactAddress(address: row.address.toPrimitives())) {
+                    ListItemView(model: row.listItem)
                 }
             }
             .onDelete(perform: model.deleteAddress)

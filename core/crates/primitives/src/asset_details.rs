@@ -1,10 +1,10 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
 
-#[typeshare(swift = "Sendable")]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetFull {
     pub asset: Asset,
@@ -34,8 +34,8 @@ impl AssetFull {
     }
 }
 
-#[typeshare(swift = "Sendable")]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetBasic {
     pub asset: Asset,
@@ -75,8 +75,8 @@ pub struct AssetMarketPrice {
     pub prices: Option<Vec<Price>>,
 }
 
-#[typeshare(swift = "Sendable")]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetProperties {
     pub is_enabled: bool,
@@ -90,7 +90,7 @@ pub struct AssetProperties {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub earn_apr: Option<f64>,
     pub has_image: bool,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub has_price: bool,
 }
 
@@ -117,8 +117,8 @@ impl AssetProperties {
     }
 }
 
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]
+#[model(swift = "Sendable, Equatable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetLink {
     pub name: String,

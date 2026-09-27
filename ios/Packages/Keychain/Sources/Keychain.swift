@@ -8,7 +8,6 @@ public protocol Keychain: Sendable {
     func authenticationContext(_ authenticationContext: LAContext) -> Keychain
 
     func get(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String?
-    func getString(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String?
     func getData(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> Data?
 
     func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool) throws
@@ -20,10 +19,6 @@ public protocol Keychain: Sendable {
 public extension Keychain {
     func get(_ key: String) throws -> String? {
         try get(key, ignoringAttributeSynchronizable: true)
-    }
-
-    func getString(_ key: String) throws -> String? {
-        try getString(key, ignoringAttributeSynchronizable: true)
     }
 
     func getData(_ key: String) throws -> Data? {

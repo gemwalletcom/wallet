@@ -1,12 +1,14 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::GemListRow;
+use crate::models::state::GemLoadState;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
-use crate::services::balance::GemAssetBalance;
+use crate::services::assets::icon::GemAssetIcon;
+use crate::services::assets::model::{GemAssetText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, BalanceMetadata, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
+use primitives::{Asset, AssetData, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -24,10 +26,10 @@ pub struct GemDelegationStatus {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,
+    pub icon: GemAssetIcon,
+    pub value_header: GemValueHeader,
     pub header: GemDelegationListRow,
     pub actions: Vec<GemDelegationActionItem>,
-    pub balance: GemFormattedNumber,
-    pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
     pub rewards_fiat: Option<GemFormattedNumber>,
     pub rows: Vec<GemListRow>,
@@ -70,7 +72,7 @@ pub struct GemDelegationActionItem {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemStakeAction {
+pub enum GemStakeActionKind {
     Stake,
     Freeze,
     Unfreeze,
@@ -79,14 +81,14 @@ pub enum GemStakeAction {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeActionItem {
-    pub action: GemStakeAction,
+    pub kind: GemStakeActionKind,
     pub row: GemListRow,
-    pub tap: GemStakeActionTap,
+    pub action: GemStakeAction,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum GemStakeActionTap {
+pub enum GemStakeAction {
     Open { destination: GemStakeDestination },
     FrozenBalanceInfo,
     Disabled,
@@ -117,11 +119,7 @@ pub enum GemDelegationAmountInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeInput {
     pub wallet_type: WalletType,
-    pub asset: Asset,
-    pub balance: GemAssetBalance,
-    pub balance_metadata: Option<BalanceMetadata>,
-    pub staking_apr: Option<f64>,
-    pub price: Option<f64>,
+    pub asset_data: AssetData,
     pub currency: Currency,
     pub validators: Vec<DelegationValidator>,
     pub delegations: Vec<Delegation>,
@@ -136,6 +134,7 @@ pub struct GemStakeDelegationItem {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeViewState {
+    pub asset: GemAssetText,
     pub sections: Vec<GemStakeSection>,
     pub info_rows: Vec<GemListRow>,
     pub actions: Vec<GemStakeActionItem>,
@@ -157,10 +156,6 @@ pub enum GemStakeAmountInput {
 
 #[uniffi::export]
 impl GemStakeAmountInput {
-    pub fn amount_type(&self) -> GemAmountType {
-        amount_rules::stake_amount_type(self)
-    }
-
     pub fn with_validator(&self, validator: DelegationValidator) -> GemStakeAmountInput {
         rules::with_validator(self, validator)
     }
@@ -171,6 +166,10 @@ impl GemStakeAmountInput {
 }
 
 impl GemStakeAmountInput {
+    pub fn amount_type(&self) -> GemAmountType {
+        amount_rules::stake_amount_type(self)
+    }
+
     pub fn stake_type(&self) -> StakeType {
         rules::stake_type(self)
     }
@@ -183,18 +182,38 @@ pub enum GemStakeAmountSelection {
     Resource { options: Vec<Resource>, selected: Resource },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemValidatorSectionKind {
+    Recommended,
+    Active,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemValidatorSection {
+    pub kind: GemValidatorSectionKind,
+    pub rows: Vec<GemValidatorRow>,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorOptions {
-    pub recommended: Vec<GemValidatorRow>,
-    pub options: Vec<GemValidatorRow>,
+    pub sections: Vec<GemValidatorSection>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemEarnSection {
+    Manage,
+    Positions,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
-    pub apr_row: GemListRow,
-    pub providers: Vec<DelegationValidator>,
+    pub asset: GemAssetText,
+    pub rate_row: GemListRow,
+    pub sections: Vec<GemEarnSection>,
+    pub deposit_row: GemListRow,
     pub deposit_provider: Option<DelegationValidator>,
     pub positions: Vec<GemStakeDelegationItem>,
+    pub shows_empty: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -206,6 +225,7 @@ pub struct GemEarnInput {
     pub asset_apr: Option<f64>,
     pub price: Option<f64>,
     pub currency: Currency,
+    pub state: GemLoadState,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -1,16 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
-import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
-import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
-import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
-import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneFiatStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
+import com.gemwallet.android.data.services.store.database.FiatTransactionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,21 +15,9 @@ object FiatModule {
 
     @Provides
     @Singleton
-    fun provideObserveFiatTransactions(getSession: GetSession, fiatStore: GemstoneFiatStore): ObserveFiatTransactions = ObserveFiatTransactionsImpl(getSession, fiatStore)
-
-    @Provides
-    @Singleton
     fun provideGemstoneFiatStore(fiatTransactionsDao: FiatTransactionsDao): GemstoneFiatStore = GemstoneFiatStore(fiatTransactionsDao)
 
     @Provides
     @Singleton
     fun provideGemFiatStore(store: GemstoneFiatStore): GemFiatStore = store
-
-    @Provides
-    @Singleton
-    fun provideGetBuyAssetInfo(getSession: GetSession, getAssetTokenInfo: GetAssetTokenInfo): GetBuyAssetInfo = GetBuyAssetInfoImpl(getSession, getAssetTokenInfo)
-
-    @Provides
-    @Singleton
-    fun provideGetAssetPriceUsd(priceStore: GemstonePriceStore): GetAssetPriceUsd = GetAssetPriceUsdImpl(priceStore)
 }

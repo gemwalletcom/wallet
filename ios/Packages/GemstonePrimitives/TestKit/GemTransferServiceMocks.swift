@@ -38,8 +38,8 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         perpetualAutocloseValue(leverage)
     }
 
-    public func perpetualAutocloseRow(draft: GemAutocloseDraft, decimalSeparator: String) -> GemListRow {
-        builder.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator)
+    public func extras(request: GemAmountRequest, asset: Gemstone.Asset) -> GemAmountExtras {
+        builder.extras(request: request, asset: asset)
     }
 }
 
@@ -51,7 +51,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func suggestedAmounts() -> [GemFiatSuggestedAmount] {
-        [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)) }
+        [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)) }
     }
 
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
@@ -104,11 +104,11 @@ public extension GemNameService {
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
     private let rules = GemNameService.mock()
     private let addressNames: [Primitives.AddressName]
-    private let nameRecord: Primitives.NameRecord?
+    private let nameRecord: Gemstone.NameRecord?
     private let error: Error?
     public private(set) var requestedNames: [String] = []
 
-    public init(addressNames: [Primitives.AddressName] = [], nameRecord: Primitives.NameRecord? = nil, error: Error? = nil) {
+    public init(addressNames: [Primitives.AddressName] = [], nameRecord: Gemstone.NameRecord? = nil, error: Error? = nil) {
         self.addressNames = addressNames
         self.nameRecord = nameRecord
         self.error = error
@@ -119,7 +119,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         if let error {
             throw error
         }
-        return nameRecord.map { .complete(record: $0.toGem()) } ?? .error
+        return nameRecord.map { .complete(record: $0) } ?? .error
     }
 
     public func nameInputStep(state: GemNameRecordState, name: String, chain: Gemstone.Chain?) -> GemNameInputStep {
@@ -181,29 +181,37 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func stakeValidatorOptions(chain _: Gemstone.Chain, input _: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
-        GemStakeValidatorOptions(recommended: [], options: validators.map { Gemstone.GemValidatorRow.mock(validator: $0) })
+        GemStakeValidatorOptions(
+            sections: [
+                GemValidatorSection(
+                    kind: .active,
+                    rows: validators.map { Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)) },
+                ),
+            ].filter(\.rows.isNotEmpty),
+        )
     }
 
     public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {
         let actions = [
             GemStakeActionItem(
-                action: .stake,
+                kind: .stake,
                 row: .action(title: .stake, value: nil, info: nil),
-                tap: validators.first.map { .open(destination: .amount(input: .stake(validator: $0))) } ?? .disabled,
+                action: validators.first.map { .open(destination: .amount(input: .stake(validator: $0))) } ?? .disabled,
             ),
             GemStakeActionItem(
-                action: .claimRewards,
+                kind: .claimRewards,
                 row: .action(title: .claimRewards, value: nil, info: nil),
-                tap: (claimRewardsDestination ?? input.delegations.first.map { .amount(input: .rewards(delegations: input.delegations, validator: $0.validator)) })
+                action: (claimRewardsDestination ?? input.delegations.first.map { .amount(input: .rewards(delegations: input.delegations, validator: $0.validator)) })
                     .map { .open(destination: $0) } ?? .disabled,
             ),
         ]
         return GemStakeViewState(
+            asset: Gemstone.assetText(asset: input.assetData.asset),
             sections: [.manage, freezes ? .resources : nil, input.delegations.isEmpty ? nil : .delegations].compactMap(\.self),
             infoRows: infoRows,
             actions: actions,
             resourceRows: [],
-            delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
+            delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
             docsUrl: nil,
@@ -242,14 +250,19 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func earnView(input: GemEarnInput) -> GemEarnView {
-        let positions = input.delegations.filter { BigInt($0.base.balance) > 0 }
+        let delegations = input.delegations.filter { BigInt($0.base.balance) > 0 }
+        let positions = zip(delegations, Gemstone.delegationListRows(delegations: delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
+            GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
+        }
+        let depositProvider = input.walletType == .view ? nil : input.providers.first
         return GemEarnView(
-            aprRow: .text(title: .stakeApr, value: ""),
-            providers: input.providers,
-            depositProvider: input.walletType == .view ? nil : input.providers.first,
-            positions: zip(positions, Gemstone.delegationListRows(delegations: positions, asset: input.asset, price: input.price, currency: input.currency)).map {
-                GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
-            },
+            asset: Gemstone.assetText(asset: input.asset),
+            rateRow: .text(title: .stakeApr, value: ""),
+            sections: [depositProvider.map { _ in .manage }, positions.isEmpty ? nil : .positions].compactMap(\.self),
+            depositRow: .action(title: .deposit, value: nil, info: nil),
+            depositProvider: depositProvider,
+            positions: positions,
+            showsEmpty: positions.isEmpty && input.state != .loading,
         )
     }
 }
@@ -283,39 +296,6 @@ public extension GemTransactionDetailsService {
     }
 }
 
-public extension Gemstone.GemFeeAsset {
-    static func mock(
-        asset: Primitives.Asset,
-        balance: Gemstone.GemAssetBalance? = nil,
-        price: Gemstone.AssetPrice? = nil,
-    ) -> Gemstone.GemFeeAsset {
-        let balance = balance ?? .mock(assetId: asset.id.identifier)
-        return Gemstone.GemFeeAsset(
-            asset: asset.toGem(),
-            balance: balance,
-            price: price,
-            row: .mock(asset: asset, balance: balance),
-        )
-    }
-}
-
-public extension Gemstone.GemAssetItemRow {
-    static func mock(asset: Primitives.Asset = .mock(), balance: Gemstone.GemAssetBalance? = nil) -> Gemstone.GemAssetItemRow {
-        assetListRow(
-            input: GemAssetListRowInput(
-                asset: asset.toGem(),
-                balance: balance ?? .mock(assetId: asset.id.identifier),
-                scope: .available,
-                price: nil,
-                change: nil,
-                currency: Primitives.Currency.usd.toGem(),
-                isEnabled: true,
-            ),
-            style: GemSelectAssetType.send.flow().rowStyle,
-        )
-    }
-}
-
 public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked Sendable {
     public var networksValue: GemReceiveNetworks?
     public var warningsValue: [GemReceiveWarning] = []
@@ -344,11 +324,11 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     }
 
     public func networks(asset: Gemstone.Asset, associations _: [Gemstone.AssetId], wallet _: Gemstone.Wallet) -> GemReceiveNetworks {
-        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, standard: nil)], showsSelector: false)
+        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, row: .mock())], showsSelector: false)
     }
 
-    public func warnings(chain _: Gemstone.Chain) -> [GemReceiveWarning] {
-        warningsValue
+    public func assetState(asset: Gemstone.Asset) -> GemReceiveAssetState {
+        GemReceiveAssetState(asset: Gemstone.assetText(asset: asset), warnings: warningsValue)
     }
 }
 

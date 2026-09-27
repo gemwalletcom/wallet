@@ -6,7 +6,6 @@ pub(crate) mod header;
 mod model;
 pub(crate) mod rules;
 pub(crate) mod screen;
-mod signer;
 #[cfg(test)]
 mod testkit;
 mod transfer;
@@ -17,13 +16,13 @@ use std::time::Duration;
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
 pub use model::*;
-pub use signer::GemTransactionSigner;
 pub use transfer::GemConfirmTransferService;
 
+use crate::GemstoneError;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemTransactionData, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionData, GemTransactionLoadInput};
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
@@ -168,7 +167,7 @@ impl GemConfirmService {
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self.simulation_formatter.payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
         let header = match approval {
-            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue { asset: asset.clone(), value }),
+            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue::new(asset.clone(), value)),
             None => simulation.as_ref().and_then(|simulation| GemSimulationValue::from_simulation(simulation, &assets)),
         };
         let balance_changes = self
@@ -176,11 +175,11 @@ impl GemConfirmService {
             .balance_changes(simulation, assets.iter().map(|asset| asset.id.clone()).collect())
             .into_iter()
             .filter_map(|change| {
-                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
-                Some(GemSimulationBalanceChange {
+                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?;
+                Some(crate::models::list::GemListRow::AssetChange {
+                    name: asset.name.clone(),
                     icon: crate::services::assets::icon::asset_icon(&asset.id),
-                    amount: rules::balance_change_amount(&change.value, &asset),
-                    asset,
+                    amount: rules::balance_change_amount(&change.value, asset),
                 })
             })
             .collect();
@@ -196,10 +195,10 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn sign(&self, input: &SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
+    fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
-        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
+        let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: GemSignerError::SigningError("no signed transactions".to_string()),

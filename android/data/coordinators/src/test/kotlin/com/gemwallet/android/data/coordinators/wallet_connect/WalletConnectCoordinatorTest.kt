@@ -12,6 +12,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.wallet.core.primitives.WalletConnection
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,7 +28,7 @@ import uniffi.gemstone.GemWalletConnectServiceInterface
 
 class WalletConnectCoordinatorTest {
 
-    private val wallet = mockWallet(id = "wallet-1")
+    private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val metadata = mockApplicationMetadata()
     private val settledSession = WalletConnectSession(
         topic = "topic-1",

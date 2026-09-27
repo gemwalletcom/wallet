@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
@@ -34,9 +32,9 @@ public final class StakeSceneViewModel {
     private let chain: StakeChain
 
     public let wallet: Wallet
-    public let delegationsQuery: ObservableQuery<DelegationsRequest>
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let delegationsQuery: ObservableQuery<DelegationsQuery>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
+    public let assetQuery: ObservableQuery<AssetQuery>
 
     public var assetData: AssetData {
         assetQuery.value
@@ -54,9 +52,9 @@ public final class StakeSceneViewModel {
         self.chain = chain
         self.service = service
         self.onNavigate = onNavigate
-        delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
+        delegationsQuery = ObservableQuery(DelegationsQuery(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain.chain, providerType: .stake), initialValue: [])
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
     var title: String {
@@ -67,11 +65,7 @@ public final class StakeSceneViewModel {
         service.stakeViewState(
             input: GemStakeInput(
                 walletType: wallet.type.toGem(),
-                asset: asset.toGem(),
-                balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
-                balanceMetadata: assetData.balance.metadata?.toGem(),
-                stakingApr: assetData.metadata.stakingApr,
-                price: assetData.price?.price,
+                assetData: assetData.toGem(),
                 currency: service.getCurrency(),
                 validators: validatorsQuery.value.map { $0.toGem() },
                 delegations: delegationsQuery.value.map { $0.toGem() },
@@ -83,8 +77,8 @@ public final class StakeSceneViewModel {
         !state.sections.contains(.delegations)
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: asset.symbol))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .stake, symbol: asset.symbol)
     }
 
     func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
@@ -127,10 +121,6 @@ extension StakeSceneViewModel {
 // MARK: - Private
 
 extension StakeSceneViewModel {
-    var assetModel: AssetViewModel {
-        AssetViewModel(asset: asset)
-    }
-
     private var asset: Asset {
         chain.chain.asset
     }

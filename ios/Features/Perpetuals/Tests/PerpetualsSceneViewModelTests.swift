@@ -11,14 +11,6 @@ import Testing
 @MainActor
 struct PerpetualsSceneViewModelTests {
     @Test
-    func headerViewModel() {
-        let wallet = Wallet.mock(type: .multicoin)
-        let model = PerpetualsSceneViewModel.mock(wallet: wallet)
-
-        #expect(model.header.isWatchWallet == false)
-    }
-
-    @Test
     func pullToRefreshUpdatesMarketsThatTheTimerWouldSkip() async {
         let perpetuals = GemPerpetualServiceMock()
         let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals)

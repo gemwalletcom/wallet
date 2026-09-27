@@ -23,13 +23,14 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import uniffi.gemstone.GemNameIndicator
 
 @Composable
 fun ColumnScope.AddressChainField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
-    indicator: NameResolveIndicatorUIModel? = null,
+    indicator: GemNameIndicator? = null,
     error: String = "",
     editable: Boolean = true,
     onPaste: ((String) -> Unit)? = null,

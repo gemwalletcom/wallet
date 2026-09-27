@@ -4,6 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemDelegationActionItem
 import struct Gemstone.GemDelegationDetails
+import struct Gemstone.GemDelegationListRow
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
@@ -20,7 +21,7 @@ import SwiftUI
 public final class DelegationSceneViewModel {
     public let delegation: Delegation
     public let onNavigate: StakeRouteAction
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
 
     private let wallet: Wallet
     private let asset: Asset
@@ -41,7 +42,7 @@ public final class DelegationSceneViewModel {
         self.service = service
         self.onNavigate = onNavigate
         self.onSelectAddress = onSelectAddress
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: delegation.validator.chain, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: delegation.validator.chain, providerType: .stake), initialValue: [])
     }
 
     @MainActor
@@ -63,7 +64,7 @@ public final class DelegationSceneViewModel {
     }
 
     public func header(_ details: GemDelegationDetails) -> ValueHeader {
-        DelegationViewModel(row: details.header).header
+        details.valueHeader.valueHeader
     }
 
     private var price: Double? {
@@ -71,15 +72,14 @@ public final class DelegationSceneViewModel {
     }
 
     public func rewardsItem(_ details: GemDelegationDetails) -> ListItemModel? {
-        let model = DelegationViewModel(row: details.header)
-        return details.rewards.map { rewards in
+        details.rewards.map { rewards in
             ListItemModel(
                 title: Localized.Stake.rewards,
-                titleStyle: model.titleStyle,
+                titleStyle: GemDelegationListRow.titleStyle,
                 subtitle: rewards.text(),
-                subtitleStyle: model.subtitleStyle,
+                subtitleStyle: details.header.balanceStyle,
                 subtitleExtra: details.rewardsFiat?.text(),
-                subtitleStyleExtra: model.subtitleExtraStyle,
+                subtitleStyleExtra: GemDelegationListRow.fiatStyle,
                 imageStyle: assetImageStyle,
             )
         }
@@ -94,7 +94,7 @@ public final class DelegationSceneViewModel {
     }
 
     public var assetImageStyle: ListItemImageStyle? {
-        .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
+        .asset(assetImage: AssetImage(icon: details.icon))
     }
 }
 

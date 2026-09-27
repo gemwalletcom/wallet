@@ -5,7 +5,6 @@ import Gemstone
 import Localization
 import Primitives
 import PrimitivesComponents
-import Swap
 
 extension KeystoreError: @retroactive LocalizedError {
     public var errorDescription: String? {

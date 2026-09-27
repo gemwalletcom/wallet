@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -27,13 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
-import com.gemwallet.android.ui.models.chart.CandleDirection
-import com.gemwallet.android.ui.models.chart.CandleUIModel
-import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
-import com.gemwallet.android.ui.models.chart.ChartAxisTick
-import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
@@ -42,7 +40,12 @@ import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.ChartCandleStick
+import uniffi.gemstone.GemCandleChart
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.GemValueTone
 import kotlin.math.max
 import kotlin.math.min
 
@@ -74,9 +77,12 @@ private object CandlestickMetrics {
 }
 
 @Composable
-fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, modifier: Modifier = Modifier) {
-    if (model.candles.isEmpty()) return
+fun GemCandlestickChart(chart: GemCandleChart, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, modifier: Modifier = Modifier) {
+    if (chart.candles.isEmpty()) return
 
+    val layout = chart.layout
+    val context = LocalContext.current
+    val lineLabels = remember(chart) { layout.lines.map { it.label.string(context) } }
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
@@ -134,17 +140,17 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
         val plotHeight = plotBottom - plotTop
         if (plotWidth <= 0 || plotHeight <= 0) return@Box
 
-        val slotWidth = plotWidth / model.candles.size
+        val slotWidth = plotWidth / chart.candles.size
         val bodyWidth = min(
             maxBodyWidthPx,
             max(1f, slotWidth * (1f - CandlestickMetrics.candleSpacingFraction)),
         )
 
         fun slotCenter(index: Int): Float = plotLeft + slotWidth * (index + 0.5f)
-        fun valueToY(value: Double): Float = (plotBottom - (value - model.yMin) / model.ySpan * plotHeight).toFloat()
+        fun valueToY(value: Double): Float = (plotBottom - (value - layout.priceLow) / (layout.priceHigh - layout.priceLow) * plotHeight).toFloat()
         fun touchToIndex(x: Float): Int? {
             if (x < plotLeft || x > plotRight) return null
-            return ((x - plotLeft) / slotWidth).toInt().coerceIn(0, model.candles.lastIndex)
+            return ((x - plotLeft) / slotWidth).toInt().coerceIn(0, chart.candles.lastIndex)
         }
 
         Canvas(
@@ -152,16 +158,17 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
                 .fillMaxSize()
                 .chartSelection(
                     chartSize,
-                    model.candles.size,
+                    chart.candles.size,
                     indexAt = ::touchToIndex,
                     onSelectionChanged = onSelectionChanged,
                 ),
         ) {
-            drawYAxis(model.yTicks, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
-            drawXAxisGridlines(model.xGridlineFractions, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect)
-            drawCandles(model.candles, ::slotCenter, ::valueToY, bodyWidth, wickWidthPx, upColor, downColor, flatColor)
+            drawYAxis(layout.ticks, ::valueToY, plotLeft, plotRight, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
+            drawXAxisGridlines(layout.xTickCount.toInt(), plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect)
+            drawCandles(chart.candles, layout.tones, ::slotCenter, ::valueToY, bodyWidth, wickWidthPx, upColor, downColor, flatColor)
             drawReferenceLines(
-                referenceLines = model.referenceLines,
+                referenceLines = layout.lines,
+                labels = lineLabels,
                 referenceColorByRole = referenceColorByRole,
                 valueToY = ::valueToY,
                 plotLeft = plotLeft,
@@ -179,8 +186,9 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
                 textMeasurer = textMeasurer,
             )
             drawCurrentPriceBadge(
-                lastCandle = model.candles.last(),
-                priceLabel = model.currentPriceLabel,
+                lastCandle = chart.candles.last(),
+                lastTone = layout.tones.lastOrNull() ?: GemValueTone.NEUTRAL,
+                priceLabel = layout.currentPrice?.text().orEmpty(),
                 valueToY = ::valueToY,
                 plotTop = plotTop,
                 plotBottom = plotBottom,
@@ -198,7 +206,7 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
             drawSelection(
                 selectedIndex = selectedIndex,
                 selectionAlpha = selection.alpha,
-                candles = model.candles,
+                candles = chart.candles,
                 slotCenter = ::slotCenter,
                 valueToY = ::valueToY,
                 plotTop = plotTop,
@@ -219,27 +227,30 @@ private fun referenceColors(): (GemPerpetualChartLineKind) -> Color {
     return { role -> colors.getValue(role) }
 }
 
-private fun candleColor(candle: CandleUIModel, up: Color, down: Color, flat: Color): Color = when (candle.direction) {
-    CandleDirection.Up -> up
-    CandleDirection.Down -> down
-    CandleDirection.Flat -> flat
+private fun candleColor(tone: GemValueTone, up: Color, down: Color, flat: Color): Color = when (tone) {
+    GemValueTone.POSITIVE -> up
+
+    GemValueTone.NEGATIVE -> down
+
+    GemValueTone.NEUTRAL,
+    GemValueTone.PLAIN,
+    GemValueTone.WARNING,
+    -> flat
 }
 
 private fun DrawScope.drawYAxis(
-    ticks: List<ChartAxisTick>,
+    ticks: List<GemFormattedNumber>,
+    valueToY: (Double) -> Float,
     plotLeft: Float,
     plotRight: Float,
-    plotTop: Float,
-    plotBottom: Float,
     guidelineColor: Color,
     guidelineDash: PathEffect,
     textMeasurer: TextMeasurer,
     style: TextStyle,
     labelPaddingPx: Float,
 ) {
-    val plotHeight = plotBottom - plotTop
     ticks.forEach { tick ->
-        val y = plotBottom - plotHeight * tick.fraction
+        val y = valueToY(tick.value)
         drawLine(
             color = guidelineColor,
             start = Offset(plotLeft, y),
@@ -247,15 +258,16 @@ private fun DrawScope.drawYAxis(
             strokeWidth = 1f,
             pathEffect = guidelineDash,
         )
-        val measured = textMeasurer.measure(tick.label, style)
+        val measured = textMeasurer.measure(tick.text(), style)
         drawText(textLayoutResult = measured, topLeft = Offset(plotRight + labelPaddingPx, y - measured.size.height / 2f))
     }
 }
 
-private fun DrawScope.drawXAxisGridlines(fractions: List<Float>, plotLeft: Float, plotRight: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect) {
+private fun DrawScope.drawXAxisGridlines(tickCount: Int, plotLeft: Float, plotRight: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect) {
+    if (tickCount < 2) return
     val plotWidth = plotRight - plotLeft
-    fractions.forEach { fraction ->
-        val x = plotLeft + plotWidth * fraction
+    (0 until tickCount).forEach { tick ->
+        val x = plotLeft + plotWidth * tick / (tickCount - 1)
         drawLine(
             color = color,
             start = Offset(x, plotTop),
@@ -266,9 +278,19 @@ private fun DrawScope.drawXAxisGridlines(fractions: List<Float>, plotLeft: Float
     }
 }
 
-private fun DrawScope.drawCandles(candles: List<CandleUIModel>, slotCenter: (Int) -> Float, valueToY: (Double) -> Float, bodyWidth: Float, wickWidthPx: Float, upColor: Color, downColor: Color, flatColor: Color) {
-    candles.forEachIndexed { index, candle ->
-        val color = candleColor(candle, upColor, downColor, flatColor)
+private fun DrawScope.drawCandles(
+    candles: List<ChartCandleStick>,
+    tones: List<GemValueTone>,
+    slotCenter: (Int) -> Float,
+    valueToY: (Double) -> Float,
+    bodyWidth: Float,
+    wickWidthPx: Float,
+    upColor: Color,
+    downColor: Color,
+    flatColor: Color,
+) {
+    candles.zip(tones).forEachIndexed { index, (candle, tone) ->
+        val color = candleColor(tone, upColor, downColor, flatColor)
         val centerX = slotCenter(index)
         drawLine(
             color = color,
@@ -290,7 +312,8 @@ private fun DrawScope.drawCandles(candles: List<CandleUIModel>, slotCenter: (Int
 }
 
 private fun DrawScope.drawReferenceLines(
-    referenceLines: List<ChartReferenceLineUIModel>,
+    referenceLines: List<GemPerpetualChartLine>,
+    labels: List<String>,
     referenceColorByRole: (GemPerpetualChartLineKind) -> Color,
     valueToY: (Double) -> Float,
     plotLeft: Float,
@@ -307,11 +330,11 @@ private fun DrawScope.drawReferenceLines(
     badgeCornerRadiusPx: Float,
     textMeasurer: TextMeasurer,
 ) {
-    val visible = referenceLines.mapNotNull { line ->
-        val y = valueToY(line.price)
-        if (y < plotTop || y > plotBottom) null else line to y
+    val visible = referenceLines.zip(labels).mapNotNull { (line, label) ->
+        val y = valueToY(line.price.value)
+        if (y < plotTop || y > plotBottom) null else Triple(line, label, y)
     }
-    visible.forEach { (line, y) ->
+    visible.forEach { (line, _, y) ->
         drawLine(
             color = referenceColorByRole(line.kind),
             start = Offset(plotLeft, y),
@@ -321,17 +344,17 @@ private fun DrawScope.drawReferenceLines(
         )
     }
     var lastBadgeEndX = plotLeft + labelPaddingPx
-    visible.forEach { (line, y) ->
-        val measured = textMeasurer.measure(line.label, labelStyle)
+    visible.forEach { (line, label, y) ->
+        val measured = textMeasurer.measure(label, labelStyle)
         val badgeWidth = measured.size.width + 2f * badgeHorizontalPaddingPx
-        val anchorX = if (line.overlapLevel == 0) {
+        val anchorX = if (line.overlapLevel == 0u) {
             plotLeft + labelPaddingPx
         } else {
             lastBadgeEndX + labelHorizontalGapPx
         }
         drawBadgeLabel(
             textMeasurer = textMeasurer,
-            text = line.label,
+            text = label,
             textStyle = labelStyle,
             backgroundColor = referenceColorByRole(line.kind),
             anchorX = anchorX,
@@ -345,7 +368,8 @@ private fun DrawScope.drawReferenceLines(
 }
 
 private fun DrawScope.drawCurrentPriceBadge(
-    lastCandle: CandleUIModel,
+    lastCandle: ChartCandleStick,
+    lastTone: GemValueTone,
     priceLabel: String,
     valueToY: (Double) -> Float,
     plotTop: Float,
@@ -367,7 +391,7 @@ private fun DrawScope.drawCurrentPriceBadge(
         textMeasurer = textMeasurer,
         text = priceLabel,
         textStyle = labelStyle,
-        backgroundColor = candleColor(lastCandle, upColor, downColor, flatColor),
+        backgroundColor = candleColor(lastTone, upColor, downColor, flatColor),
         anchorX = plotRight + labelPaddingPx,
         anchorY = y,
         horizontalPaddingPx = badgeHorizontalPaddingPx,
@@ -379,7 +403,7 @@ private fun DrawScope.drawCurrentPriceBadge(
 private fun DrawScope.drawSelection(
     selectedIndex: Int?,
     selectionAlpha: Float,
-    candles: List<CandleUIModel>,
+    candles: List<ChartCandleStick>,
     slotCenter: (Int) -> Float,
     valueToY: (Double) -> Float,
     plotTop: Float,

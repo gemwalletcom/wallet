@@ -1,6 +1,5 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemNameInputStep
 import uniffi.gemstone.GemNameRecordState
@@ -11,8 +10,9 @@ class NameServiceMock : GemNameServiceInterface {
     val requests = mutableListOf<Pair<String, Chain>>()
 
     override suspend fun getNameRecord(name: String, chain: uniffi.gemstone.Chain): GemNameRecordState {
-        requests.add(name to Chain.entries.first { it.string == chain })
-        return GemNameRecordState.Complete(mockNameRecord().toGem())
+        val requested = Chain.entries.first { it.string == chain }
+        requests.add(name to requested)
+        return GemNameRecordState.Complete(mockNameRecord(name = name, chain = chain))
     }
 
     override fun nameInputStep(state: GemNameRecordState, name: String, chain: uniffi.gemstone.Chain?): GemNameInputStep = when {

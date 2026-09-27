@@ -71,6 +71,23 @@ pub fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
 mod tests {
 
     #[test]
+    fn test_the_indicator_follows_the_lookup() {
+        use super::super::model::GemNameIndicator;
+        use primitives::NameRecord;
+
+        assert_eq!(GemNameRecordState::None.indicator(), None);
+        assert_eq!(loading("vitalik.eth", Chain::Ethereum).indicator(), Some(GemNameIndicator::Loading));
+        assert_eq!(GemNameRecordState::Error.indicator(), Some(GemNameIndicator::Error));
+        assert_eq!(
+            GemNameRecordState::Complete {
+                record: NameRecord::mock("vitalik.eth", "0x1")
+            }
+            .indicator(),
+            Some(GemNameIndicator::Success)
+        );
+    }
+
+    #[test]
     fn test_an_empty_or_unsupported_name_resets_and_a_repeat_changes_nothing() {
         let idle = GemNameRecordState::None;
 

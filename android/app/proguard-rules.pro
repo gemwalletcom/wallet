@@ -26,4 +26,4 @@
 -keep class * extends androidx.room.RoomDatabase { *; }
 -keep @androidx.room.Dao class * { *; }
 -keep @androidx.room.Entity class * { *; }
--keep class com.gemwallet.android.data.service.store.database.** { *; }
+-keep class com.gemwallet.android.data.services.store.database.** { *; }

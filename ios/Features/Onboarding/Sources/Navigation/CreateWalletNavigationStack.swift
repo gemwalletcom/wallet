@@ -8,10 +8,10 @@ import PrimitivesComponents
 import SwiftUI
 
 public struct CreateWalletNavigationStack: View {
-    @State private var model: CreateWalletModel
+    @State private var model: CreateWalletViewModel
     @State private var navigationPath = NavigationPath()
 
-    public init(model: CreateWalletModel) {
+    public init(model: CreateWalletViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -21,16 +21,14 @@ public struct CreateWalletNavigationStack: View {
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: Scenes.VerifyPhrase.self) { _ in
-                    VerifyPhraseWalletScene(
+                    VerifyPhraseScene(
                         model: model.verifyPhraseModel(onComplete: onVerifyPhraseComplete),
                     )
                 }
                 .navigationDestination(for: Scenes.CreateWallet.self) { _ in
                     ShowSecretDataScene(
-                        model: SecretDataViewModel(
-                            secret: .words(words: model.words),
-                            continueAction: { navigate(to: .verifyPhrase) },
-                        ),
+                        secret: .words(words: model.words),
+                        continueAction: { navigate(to: .verifyPhrase) },
                     )
                 }
                 .navigationDestination(for: Scenes.SecurityReminder.self) { _ in
@@ -45,7 +43,7 @@ public struct CreateWalletNavigationStack: View {
         if model.isAcceptTermsCompleted {
             securityReminderScene
         } else {
-            AcceptTermsScene(model: AcceptTermsViewModel(preferences: model.preferences, onNext: { navigate(to: .securityReminder) }))
+            AcceptTermsScene(model: AcceptTermsSceneViewModel(preferences: model.preferences, onNext: { navigate(to: .securityReminder) }))
         }
     }
 
