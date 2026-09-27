@@ -1,6 +1,6 @@
 use super::rules;
-use crate::support::SupportMessageDisplayContent;
 use primitives::SupportMessage;
+use support::SupportMessageDisplayContent;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSupportMessageRow {

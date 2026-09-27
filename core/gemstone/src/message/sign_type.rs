@@ -1,3 +1,4 @@
+use gem_wallet_connect::SignDigestType;
 use primitives::Chain;
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -8,7 +9,7 @@ pub enum MessageType {
     Siws,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[uniffi::remote(Enum)]
 pub enum SignDigestType {
     Eip191,
     Eip712,

@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Redundancy sweeps:** CLN381 to CLN393 in section 11, one item per change, in any order.
+2. **Redundancy sweeps:** CLN384 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -200,7 +200,6 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 
 ### Core
 
-- **CLN381** **M** **Gemstone records that copy a crate type field for field become remote declarations.** Gemstone already declares 248 crate types with `#[uniffi::remote]`; these still keep a twin type and a hand-written `From`: the WalletConnect types in [`wallet_connect/mod.rs`](../core/gemstone/src/wallet_connect/mod.rs) (11 conversions from `gem_wallet_connect` and `primitives`, including two identical `WCEthereumTransactionData` copies), `GemTransactionPreloadInput` ([`models/gateway.rs`](../core/gemstone/src/models/gateway.rs)), `SupportMessageLink` ([`support.rs`](../core/gemstone/src/support.rs)) and `TransferAmountInput` ([`transfer_amount.rs`](../core/gemstone/src/transfer_amount.rs)). Each becomes a remote declaration of the crate type, and the twin and its conversions go. Run `just check-ffi` and regenerate both apps.
 
 ### iOS
 

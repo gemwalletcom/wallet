@@ -24,7 +24,8 @@ use crate::services::error_text::GemErrorText;
 use crate::services::scan::rules::{self as scan_rules, SignMessageVerdict};
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
+use crate::wallet_connect::WalletConnect;
+use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
 pub use error::GemWalletConnectError;
 pub use model::{
@@ -253,7 +254,7 @@ impl GemWalletConnectService {
         let response = match action {
             WalletConnectAction::SignMessage { chain, sign_type, data } => {
                 let (connection, account) = self.connection_account(&session_id, chain).await?;
-                validate_sign_message_account(&sign_type.clone().into(), &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
+                validate_sign_message_account(&sign_type, &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
                 let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
                 let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
@@ -372,8 +373,8 @@ impl GemWalletConnectService {
 mod tests {
     use super::testkit::TestWalletConnectSigner;
     use super::*;
-    use crate::wallet_connect::WalletConnectResponseType;
     use futures::executor::block_on;
+    use gem_wallet_connect::WalletConnectResponseType;
     use num_bigint::BigUint;
     use primitives::ApprovalData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;

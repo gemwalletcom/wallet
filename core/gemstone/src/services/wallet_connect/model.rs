@@ -7,7 +7,7 @@ use crate::services::transfer::GemTransferData;
 use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
-use crate::wallet_connect::WalletConnectResponseType;
+use gem_wallet_connect::WalletConnectResponseType;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletConnectSessionRequest {

@@ -38,10 +38,10 @@ use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
-use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
+use crate::transfer_amount::GemTransferAmountError;
 use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
-use primitives::TransactionInputType;
+use primitives::{TransactionInputType, TransferAmountInput};
 
 const BASE_FEE_INCREASE_PERCENT: u32 = 20;
 
@@ -212,7 +212,7 @@ impl GemConfirmData {
     pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> GemTransferAmountResult {
         let transfer = &self.input.transfer;
         let available_value = transfer.available_value(&metadata.asset_balance);
-        let input = GemTransferAmountInput {
+        let input = TransferAmountInput {
             input_type: transfer.input_type.clone(),
             value: transfer.value.clone(),
             available_value,

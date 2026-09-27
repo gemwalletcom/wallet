@@ -18,10 +18,11 @@ use sui_types::PersonalMessage;
 use super::{
     eip712::GemEIP712Message,
     payload::{MessagePayloadFields, MessagePayloadPreview},
-    sign_type::{SignDigestType, SignMessage},
+    sign_type::SignMessage,
 };
 use crate::{GemstoneError, keystore::GemKeystore};
 use gem_tron::signer::tron_hash_message;
+use gem_wallet_connect::SignDigestType;
 use primitives::{BlockExplorerLink, Chain, ChainSigner, SimulationPayloadField};
 use std::sync::Arc;
 use zeroize::Zeroizing;
@@ -230,7 +231,7 @@ mod tests {
     use super::*;
     use crate::message::{
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
-        sign_type::{MessageType, SignDigestType},
+        sign_type::MessageType,
     };
     use crate::services::simulation::GemSimulationPayloadTitle;
     use crate::signer::ChainTransactionSigner;

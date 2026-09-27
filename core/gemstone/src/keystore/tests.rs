@@ -5,8 +5,9 @@ use zeroize::Zeroizing;
 use super::testkit::mock_phrase_words;
 use super::*;
 use crate::auth::sign_auth_message_hash;
-use crate::message::sign_type::{SignDigestType, SignMessage};
+use crate::message::sign_type::SignMessage;
 use crate::message::signer::MessageSigner;
+use gem_wallet_connect::SignDigestType;
 
 #[test]
 fn test_gem_keystore_private_key_create_export_delete() {

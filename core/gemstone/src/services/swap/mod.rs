@@ -18,10 +18,11 @@ use swapper::{AssetList, FetchQuoteData, Quote, SwapperError};
 
 use crate::config::swap_config::get_swap_config;
 use crate::gem_swapper::GemSwapper;
-use crate::message::sign_type::{SignDigestType, SignMessage};
+use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
+use gem_wallet_connect::SignDigestType;
 pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, GemSwapTransfer, swap_quote_summary};
 use primitives::AssetId;
 pub use session::{GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};

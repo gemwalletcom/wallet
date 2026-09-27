@@ -16,7 +16,8 @@ use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
-use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
+use crate::wallet_connect::{WalletConnect, wallet_connect_chain, wallet_connect_namespace};
+use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
@@ -284,7 +285,7 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
             let (transaction_type, approval) = match kind {
                 EvmTransactionKind::Transfer => (TransactionType::Transfer, None),
                 EvmTransactionKind::ContractCall => (TransactionType::SmartContractCall, None),
-                EvmTransactionKind::TokenApproval { approval } => (TransactionType::TokenApproval, Some(approval)),
+                EvmTransactionKind::TokenApproval(approval) => (TransactionType::TokenApproval, Some(approval)),
             };
             let extra = TransferDataExtra {
                 to: data.to,
@@ -374,7 +375,7 @@ mod tests {
     }
 
     use super::*;
-    use gem_wallet_connect::WCEthereumTransactionData as WcEthereumTransactionData;
+    use gem_wallet_connect::WCEthereumTransactionData;
     use primitives::Account;
 
     use crate::testkit::mock_wc_ethereum_transaction_data;
@@ -562,19 +563,17 @@ mod tests {
     fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
         let account = Account::mock(Chain::Ethereum, "0xAbC");
         let matching = WalletConnectTransaction::Ethereum {
-            data: WcEthereumTransactionData {
+            data: WCEthereumTransactionData {
                 from: "0xabc".to_string(),
                 ..mock_wc_ethereum_transaction_data()
-            }
-            .into(),
+            },
             kind: EvmTransactionKind::Transfer,
         };
         let other = WalletConnectTransaction::Ethereum {
-            data: WcEthereumTransactionData {
+            data: WCEthereumTransactionData {
                 from: "0xother".to_string(),
                 ..mock_wc_ethereum_transaction_data()
-            }
-            .into(),
+            },
             kind: EvmTransactionKind::Transfer,
         };
 
@@ -617,7 +616,7 @@ mod tests {
     fn test_transfer_data_maps_evm_and_encoded_transactions() {
         let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
         let evm = WalletConnectTransaction::Ethereum {
-            data: crate::wallet_connect::WCEthereumTransactionData {
+            data: gem_wallet_connect::WCEthereumTransactionData {
                 chain_id: Some(1),
                 from: "0xfrom".to_string(),
                 to: "0xto".to_string(),
@@ -630,9 +629,7 @@ mod tests {
                 nonce: None,
                 data: Some("0xdeadbeef".to_string()),
             },
-            kind: EvmTransactionKind::TokenApproval {
-                approval: primitives::swap::ApprovalData::mock(),
-            },
+            kind: EvmTransactionKind::TokenApproval(primitives::swap::ApprovalData::mock()),
         };
 
         let transfer = transfer_data(Chain::Ethereum, metadata.clone(), evm, GemWalletConnectTransactionAction::Send).unwrap();
@@ -651,7 +648,7 @@ mod tests {
         assert_eq!(extra.output_action, TransferDataOutputAction::Send);
 
         let solana = WalletConnectTransaction::Solana {
-            data: crate::wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
+            data: gem_wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
             output_type: TransferDataOutputType::Signature,
             transaction_type: TransactionType::Swap,
         };
