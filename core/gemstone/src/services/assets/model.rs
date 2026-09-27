@@ -108,7 +108,7 @@ pub fn fee_asset_id(asset_id: AssetId) -> AssetId {
     super::rules::fee_asset_id(&asset_id)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GemAssetRowText {
     pub title: String,
     pub symbol: Option<String>,
@@ -160,7 +160,7 @@ pub struct GemAssetItemRow {
     pub masks_balance: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPriceRow {
     pub price: Option<GemFormattedNumber>,
     pub change: Option<GemFormattedNumber>,

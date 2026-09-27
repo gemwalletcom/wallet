@@ -40,7 +40,7 @@ impl From<GemServiceError> for GemPaymentError {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone)]
 pub enum GemPaymentLoad {
     Sign { transfer: GemTransferData },
     Verify { invoice: GemPaymentInvoice, asset_id: AssetId, url: String },

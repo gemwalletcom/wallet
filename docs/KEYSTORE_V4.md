@@ -129,7 +129,7 @@ Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy
 
 ## Keystore-Internal Signing
 
-Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI boundary. The app passes the keystore id, chain, prepared input, and password bytes, and receives only signatures.
+Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI boundary, and neither do these signing methods: Core's own services pass the keystore id, chain, prepared input, and password bytes, and receive only signatures.
 
 - `GemKeystore.sign(keystore_id, chain, input, password) -> [signature]`: loads the key internally, routes by transaction input type (transfer, token transfer, swap, stake, token approval, perpetual, account action, data, etc.), signs, and returns signatures. Multi-signature chains return more than one.
 - `GemKeystore.sign_auth(keystore_id, chain, hash, password) -> signature`: signs a device / WalletConnect auth hash.

@@ -261,7 +261,7 @@ mod tests {
             assert_eq!(sent(&reserved), None, "the reserve the swap screen kept back is less than the fee, so the amount does not fit yet");
 
             let now = Instant::now();
-            let (fitted, swap) = testkit.service.fitted_max_swap(&wallet, reserved, None, now).await.unwrap();
+            let (fitted, swap) = Box::pin(testkit.service.fitted_max_swap(&wallet, reserved, None, now)).await.unwrap();
 
             let swap = swap.unwrap();
             assert_eq!(swap.quote.unwrap().request.value, 990u32.into(), "the provider is asked again for everything but the fee");
@@ -272,7 +272,7 @@ mod tests {
 
             let deposit = max_swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"), 1_000);
             let held = ConfirmSwapQuote::initial(&deposit.confirm_data.input.transfer, now).unwrap();
-            let (kept, swap) = testkit.service.fitted_max_swap(&wallet, deposit, Some(held), now).await.unwrap();
+            let (kept, swap) = Box::pin(testkit.service.fitted_max_swap(&wallet, deposit, Some(held), now)).await.unwrap();
 
             assert!(swap.unwrap().quote.is_none(), "a deposit is not asked again; the fee comes off at signing, and the held quote stays as it was");
             assert_eq!(kept.confirm_data.input.transfer.value, 1_000.into());
@@ -291,7 +291,7 @@ mod tests {
             let transfer = mock_swap_transfer(&wallet.accounts[0].address, Some(Permit2ApprovalData::mock()));
             let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
-            let error = testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
 
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the permit and the transaction share one password read");
             let builds = builds.lock().unwrap().clone();
@@ -315,7 +315,7 @@ mod tests {
             let transfer = mock_swap_transfer(&wallet.accounts[0].address, None);
             let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
-            let error = testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
 
             assert!(builds.lock().unwrap().is_empty(), "the data the screen loaded is what gets signed");
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false]);

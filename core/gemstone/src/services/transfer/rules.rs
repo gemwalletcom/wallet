@@ -10,7 +10,7 @@ use primitives::{
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
-use crate::models::transaction::{GemTransactionLoadInput, transaction_metadata_block_number, transaction_metadata_sequence};
+use crate::models::transaction::{transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemAssetBalance;
@@ -67,13 +67,6 @@ impl GemTransferData {
 
     pub fn default_fee_priority(&self) -> FeePriority {
         self.input_type.default_fee_priority()
-    }
-}
-
-#[uniffi::export]
-impl GemTransactionLoadInput {
-    pub fn chain(&self) -> Chain {
-        self.input_type.transaction_asset().chain()
     }
 }
 

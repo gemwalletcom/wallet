@@ -59,7 +59,7 @@ pub enum GemFiatTransactionBadge {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemFiatTransactionStatus {
     pub badge: Option<GemFiatTransactionBadge>,
     pub tone: GemValueTone,

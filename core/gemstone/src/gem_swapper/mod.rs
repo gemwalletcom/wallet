@@ -1,7 +1,5 @@
 mod error;
-mod permit2;
 pub use error::SwapperError;
-pub use permit2::permit2_data_to_eip712_json;
 mod remote_types;
 use remote_types::*;
 type Swapper = swapper::swapper::GemSwapper;

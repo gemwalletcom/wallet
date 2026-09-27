@@ -268,7 +268,7 @@ pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wa
         .collect()
 }
 
-pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
+fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
     let mut sorted = wallets;
     sorted.sort_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index));
     sorted

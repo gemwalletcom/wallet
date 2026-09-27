@@ -36,7 +36,7 @@ pub struct GemTransactionStateResult {
     pub failures: Vec<GemPostProcessingFailure>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemPostProcessingStep {
     Balances,
     Stake,

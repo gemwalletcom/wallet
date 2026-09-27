@@ -8,7 +8,7 @@ pub use swapper::SwapperProvider;
 pub type GemApprovalData = ApprovalData;
 pub type GemSwapQuoteData = SwapQuoteData;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemSlippageCheck {
     Valid,
     High,

@@ -219,7 +219,7 @@ mod tests {
                 ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() })
             };
 
-            let error = testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, None)).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, None))).await.unwrap_err();
 
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the password is read once for the whole submit");
             assert!(broadcast_failed(&error), "signing succeeded and only the broadcast failed: {error:?}");

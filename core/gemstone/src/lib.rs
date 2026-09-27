@@ -28,7 +28,6 @@ pub mod price;
 pub mod price_alert_formatter;
 pub mod services;
 pub mod signer;
-pub mod siwe;
 pub mod support;
 #[cfg(test)]
 pub(crate) mod testkit;

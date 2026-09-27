@@ -25,7 +25,6 @@ remote:
   - AssetData
   - BannerState
   - ChainAddress
-  - ChainType
   - ChartCandleStick
   - ChartCandleUpdate
   - ChartDateValue
@@ -78,12 +77,6 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
-  - PerpetualPortfolioTimeframeData
-  - UTXO
-  - MarketsAssets
-  - MarketDominance
-  - Markets
-  - PortfolioAsset
   - Perpetual
   - PerpetualBalance
   - PerpetualData
@@ -133,8 +126,6 @@ remote:
   - SimulationBalanceChange
   - SimulationHeader
   - SimulationResult
-  - SolanaNftStandard
-  - SolanaTokenProgramId
   - StakeProviderType
   - YieldProvider
   - SwapPriceImpact
@@ -170,7 +161,6 @@ remote:
   - PriceAlertDirection
   - PriceAlertNotificationType
   - ReportReason
-  - ReportNft
   - TotalFiatValue
   - TransactionState
   - TransactionType
@@ -192,9 +182,6 @@ remote:
   - SwapQuote
   - SwapData
   - ContractCallData
-  - TronVote
-  - TronUnfreeze
-  - TronStakeData
   - PerpetualSearchData
   - FiatTransactionStatus
   - CoreEmoji

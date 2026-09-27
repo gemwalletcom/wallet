@@ -2,7 +2,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Instant;
 
-use primitives::currency::Currency;
 use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualType, SimulationResult, TransactionInputType, Wallet};
 
 use super::error::GemConfirmErrorInfo;
@@ -184,10 +183,6 @@ impl GemConfirmation {
         Some(stored.as_ref()?.network_fee_screen(self.service.get_currency(), format))
     }
 
-    pub fn get_currency(&self) -> Currency {
-        self.service.get_currency()
-    }
-
     pub fn row_contents(&self, address_name: Option<AddressName>) -> Vec<GemConfirmRowContent> {
         self.service.row_contents(self.transfer(), self.wallet.clone(), address_name)
     }
@@ -198,7 +193,7 @@ impl GemConfirmation {
             Some(state) => (state.load.metadata.prices.clone(), state.load.fee_asset.id.clone()),
             None => (Vec::new(), transfer.fee_asset().id),
         };
-        super::error::confirm_error_info(error, prices, self.get_currency(), transfer.input_asset().id, fee_asset_id)
+        super::error::confirm_error_info(error, prices, self.service.get_currency(), transfer.input_asset().id, fee_asset_id)
     }
 
     pub async fn submit(&self) -> Result<GemSubmitResult, GemConfirmError> {

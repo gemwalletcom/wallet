@@ -1,15 +1,13 @@
+use gem_evm::siwe::SiweMessage;
 use gem_solana::siws::SiwsMessage;
 use primitives::{BlockExplorerLink, Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
 use std::borrow::Cow;
 use std::collections::HashSet;
 
+use crate::message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType};
+use crate::message::sign_type::MessageType;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, payload_rows};
-use crate::{
-    message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType},
-    message::sign_type::MessageType,
-    siwe::SiweMessage,
-};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
@@ -373,8 +371,8 @@ mod tests {
     use super::MessagePayloadFields;
     use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
     use crate::message::sign_type::MessageType;
-    use crate::siwe::SiweMessage;
     use gem_evm::EIP712Domain;
+    use gem_evm::siwe::SiweMessage;
     use gem_solana::siws::SiwsMessage;
     use primitives::{SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType};
 

@@ -127,7 +127,6 @@ class ConfirmTransferViewModelRetryTest {
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {
-        every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } returns null
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()

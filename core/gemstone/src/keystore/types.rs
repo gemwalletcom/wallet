@@ -30,7 +30,7 @@ impl From<Account> for GemKeystoreAccount {
     }
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemWalletImport {
     pub wallet_id: String,
     pub wallet_type: WalletType,

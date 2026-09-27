@@ -22,7 +22,6 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
@@ -149,7 +148,6 @@ class ConfirmTransferViewModelRequestTest {
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header(any()) } returns mockGemConfirmHeader()
-        every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } returns null
         coEvery { confirmation.state() } returns
             mockGemConfirmLoad(

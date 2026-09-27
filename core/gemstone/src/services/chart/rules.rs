@@ -162,7 +162,7 @@ fn available_rows<const N: usize>(rows: [Option<GemListRow>; N]) -> Vec<GemListR
     rows.into_iter().flatten().collect()
 }
 
-pub fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds {
+fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds {
     let extreme = |better: fn(f64, f64) -> bool| {
         values
             .iter()

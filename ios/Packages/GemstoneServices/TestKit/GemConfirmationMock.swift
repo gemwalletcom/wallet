@@ -2,7 +2,6 @@
 
 public import struct Gemstone.AddressName
 public import typealias Gemstone.Chain
-public import typealias Gemstone.Currency
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemConfirmError
 public import struct Gemstone.GemConfirmErrorInfo
@@ -22,6 +21,7 @@ public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
+import typealias Gemstone.Currency
 import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmDetails
 import struct Gemstone.GemConfirmFeeRow
@@ -111,7 +111,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private func details() -> GemConfirmDetails? {
         switch transfer().inputType {
         case let .swap(fromAsset, toAsset, swapData):
-            .swap(details: swapQuoteDetails(quote: swapData.quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: nil, toPrice: nil, currency: getCurrency()))
+            .swap(details: swapQuoteDetails(quote: swapData.quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: nil, toPrice: nil, currency: currency))
         case let .perpetual(_, perpetualType):
             perpetualConfirmDetails(perpetualType: perpetualType).map { .perpetual(details: $0) }
         case .transfer, .deposit, .withdrawal, .stake, .tokenApprove, .generic, .payment, .transferNft, .account, .earn:
@@ -162,7 +162,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         try executeResult.get()
     }
 
-    public func getCurrency() -> Currency {
+    private var currency: Currency {
         Primitives.Currency.usd.toGem()
     }
 
@@ -175,7 +175,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         return confirmErrorInfo(
             error: error,
             prices: state.metadata.prices,
-            currency: getCurrency(),
+            currency: currency,
             inputAssetId: transfer().inputAsset().id,
             feeAssetId: state.feeAsset.id,
         )

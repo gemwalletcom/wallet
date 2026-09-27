@@ -93,10 +93,6 @@ impl GemKeystore {
     pub fn decode_password(&self, password: String) -> Vec<u8> {
         decode_password(&password)
     }
-
-    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
-        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
-    }
 }
 
 impl GemKeystore {
@@ -147,6 +143,9 @@ impl GemKeystore {
     pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
         let password = Zeroizing::new(password);
         self.inner.verify(&keystore_id, &password).is_ok()
+    }
+    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
+        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
     pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
         crate::auth::sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, password)?)

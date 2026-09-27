@@ -334,7 +334,7 @@ impl GemTransactionFeeRow {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemTransactionHeaderKind {
     Amount { shows_fiat: bool },
     Swap,

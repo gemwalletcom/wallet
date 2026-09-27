@@ -5,6 +5,7 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
+use gem_evm::siwe::SiweMessage;
 use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
 use gem_sui::signer as sui_signer;
 use gem_ton::address::base64_to_hex_address;
@@ -19,7 +20,7 @@ use super::{
     payload::{MessagePayloadFields, MessagePayloadPreview},
     sign_type::{SignDigestType, SignMessage},
 };
-use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
+use crate::{GemstoneError, keystore::GemKeystore};
 use gem_tron::signer::tron_hash_message;
 use primitives::{BlockExplorerLink, Chain, ChainSigner, SimulationPayloadField};
 use std::sync::Arc;
@@ -35,7 +36,7 @@ fn siwe_or_text_preview(chain: primitives::Chain, data: &[u8]) -> MessagePreview
     }
 }
 
-#[derive(Debug, PartialEq, uniffi::Enum)]
+#[derive(Debug, PartialEq)]
 pub enum MessagePreview {
     Text(String),
     EIP712(GemEIP712Message),
