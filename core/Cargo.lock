@@ -1425,6 +1425,7 @@ dependencies = [
  "gem_client",
  "num-bigint 0.5.1",
  "serde",
+ "serde_json",
  "serde_serializers",
  "tokio",
 ]
@@ -5623,6 +5624,7 @@ version = "2.114.51"
 dependencies = [
  "alchemy",
  "async-trait",
+ "blockscout",
  "futures",
  "gem_client",
  "gem_evm",

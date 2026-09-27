@@ -3,6 +3,7 @@ use gem_evm::ethereum_address_checksum;
 use primitives::{Chain, NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTImages, NFTResource, VerificationStatus};
 
 use crate::providers::attribute::json_attribute_value;
+use crate::providers::image::is_inline_image;
 
 pub fn map_assets(assets: Vec<OwnedNft>, chain: Chain) -> Vec<NFTAssetId> {
     assets.into_iter().filter(|asset| !asset.is_spam.unwrap_or_default()).filter_map(|asset| map_asset_id(asset, chain)).collect()
@@ -61,21 +62,29 @@ fn map_asset_id(asset: OwnedNft, chain: Chain) -> Option<NFTAssetId> {
 }
 
 fn resource_url<'a>(metadata: &'a NftMetadata, raw_image: Option<&'a str>) -> &'a str {
-    metadata
-        .image
-        .as_ref()
-        .and_then(|image| image.original_url.as_deref().or(image.cached_url.as_deref()).or(image.png_url.as_deref()).or(image.thumbnail_url.as_deref()))
-        .or(raw_image)
-        .unwrap_or_default()
+    let image = metadata.image.as_ref();
+    hosted_url([
+        image.and_then(|image| image.original_url.as_deref()),
+        image.and_then(|image| image.cached_url.as_deref()),
+        image.and_then(|image| image.png_url.as_deref()),
+        image.and_then(|image| image.thumbnail_url.as_deref()),
+        raw_image,
+    ])
 }
 
 fn preview_url<'a>(metadata: &'a NftMetadata, raw_image: Option<&'a str>) -> &'a str {
-    metadata
-        .image
-        .as_ref()
-        .and_then(|image| image.thumbnail_url.as_deref().or(image.cached_url.as_deref()).or(image.png_url.as_deref()).or(image.original_url.as_deref()))
-        .or(raw_image)
-        .unwrap_or_default()
+    let image = metadata.image.as_ref();
+    hosted_url([
+        image.and_then(|image| image.thumbnail_url.as_deref()),
+        image.and_then(|image| image.cached_url.as_deref()),
+        image.and_then(|image| image.png_url.as_deref()),
+        image.and_then(|image| image.original_url.as_deref()),
+        raw_image,
+    ])
+}
+
+fn hosted_url(urls: [Option<&str>; 5]) -> &str {
+    urls.into_iter().flatten().find(|url| !is_inline_image(url)).unwrap_or_default()
 }
 
 fn map_attribute(attribute: &Attribute) -> Option<NFTAttribute> {
@@ -124,6 +133,15 @@ mod tests {
         assert_eq!(asset.token_type, NFTType::ERC721);
         assert_eq!(asset.attributes.len(), 8);
         assert_eq!(asset.resource.url, "https://ipfs.io/ipfs/QmRcRJFFnV7Vi4eq7F8kB4Br8axKxH4pN8pNBxpws4Ga94/411.png");
+    }
+
+    #[test]
+    fn test_map_asset_with_inline_original_uses_hosted_copy() {
+        let mut metadata: NftMetadata = serde_json::from_str(include_str!("../../testdata/alchemy/nft_metadata.json")).unwrap();
+        metadata.image.as_mut().unwrap().original_url = Some("data:image/png;base64,iVBORw0KGgo".to_string());
+        let asset = map_asset(metadata, NFTAssetId::new(Chain::SmartChain, TEST_BSC_COLLECTION, "410")).unwrap();
+
+        assert_eq!(asset.resource.url, "https://nft2-cdn.alchemy.com/bnb-mainnet/51bf02fcf51b82b1096e1f058ad90cc4");
     }
 
     #[test]

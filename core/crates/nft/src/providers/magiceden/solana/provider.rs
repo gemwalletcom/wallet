@@ -13,7 +13,7 @@ impl<C: Client + 'static> NFTProvider for MagicEdenSolanaClient<C> {
         "MagicEdenSolana"
     }
 
-    fn chains(&self) -> &'static [NFTChain] {
+    fn chains(&self) -> &[NFTChain] {
         &[NFTChain::Solana]
     }
 

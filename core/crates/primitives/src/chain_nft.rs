@@ -11,6 +11,7 @@ pub enum NFTChain {
     Solana,
     SmartChain,
     Ton,
+    Arc,
 }
 
 impl NFTChain {
@@ -27,6 +28,7 @@ impl From<NFTChain> for Chain {
             NFTChain::Solana => Chain::Solana,
             NFTChain::SmartChain => Chain::SmartChain,
             NFTChain::Ton => Chain::Ton,
+            NFTChain::Arc => Chain::Arc,
         }
     }
 }

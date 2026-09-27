@@ -75,7 +75,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Tempo | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Arc | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Arc | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 
 <sub>Reviewed 2026-09-24. Sources: [chain list](../core/crates/primitives/src/chain.rs), [feature configuration](../core/crates/primitives/src/chain_config.rs), [Squid chain coverage](../core/crates/swapper/src/squid/mod.rs), [address-history contract](../core/crates/chain_traits/src/lib.rs), [simulation implementations](../core/crates/gem_evm/src/provider/simulation.rs), [Solana](../core/crates/gem_solana/src/provider/simulation.rs), [Sui](../core/crates/gem_sui/src/provider/simulation.rs), [TON](../core/crates/gem_ton/src/provider/simulation.rs), [Tron](../core/crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../core/gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../core/crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
@@ -337,16 +337,17 @@ Payment methods include cards, Apple Pay, and Google Pay. Flashnet supports Cash
 
 ## NFT providers
 
-NFT support includes wallet assets, collections, and individual asset details. Alchemy filters assets classified as spam.
+NFT support includes wallet assets, collections, and individual asset details. Alchemy filters assets classified as spam, and Blockscout filters tokens whose reputation is not `ok`. Providers for the same chain are tried in order; Blockscout leaves NFTs with inline `data:` images to Alchemy, which hosts a copy.
 
 | Provider | Active | Chains | Wallet assets | Collections | Asset details |
 | --- | :---: | --- | :---: | :---: | :---: |
 | [OpenSea](../core/crates/nft/src/providers/opensea/provider.rs) | ✅ | Ethereum, Polygon | ✅ | ✅ | ✅ |
 | [Magic Eden Solana](../core/crates/nft/src/providers/magiceden/solana/provider.rs) | ✅ | Solana | ✅ | ✅ | ✅ |
-| [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Chain | ✅ | ✅ | ✅ |
+| [Blockscout](../core/crates/nft/src/providers/blockscout/provider.rs) | ✅ | Arc | ✅ | ✅ | ✅ |
+| [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Chain, Arc | ✅ | ✅ | ✅ |
 | [TON](../core/crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ |
 
-<sub>Reviewed 2026-09-02. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/primitives/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
+<sub>Reviewed 2026-09-27. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/primitives/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
 
 ## Coverage gaps
 
