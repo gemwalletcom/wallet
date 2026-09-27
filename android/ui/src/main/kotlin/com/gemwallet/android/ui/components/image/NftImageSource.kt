@@ -1,17 +1,13 @@
 package com.gemwallet.android.ui.components.image
 
-import com.gemwallet.android.domains.asset.getImageUrl
-import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import uniffi.gemstone.GemNftRow
 
 data class NftImageSource(val url: String, val name: String)
 
 fun NFTAsset.toImageSource(): NftImageSource = NftImageSource(url = images.preview.url, name = name)
 
-fun TransactionNFTTransferMetadata.toImageSource(): NftImageSource = NftImageSource(url = getImageUrl(), name = name.orEmpty())
-
-fun NftItemUIModel.toImageSource(): NftImageSource = NftImageSource(
+fun GemNftRow.toImageSource(): NftImageSource = NftImageSource(
     url = imageUrl,
-    name = name,
+    name = title,
 )

@@ -18,6 +18,7 @@ struct FormattedNumberTests {
             notation: .plain,
             tone: .plain,
             rounding: .toNearest,
+            exact: nil,
         )
         let towardZero = GemFormattedNumber(
             value: 1_235_999,
@@ -26,10 +27,32 @@ struct FormattedNumberTests {
             notation: .plain,
             tone: .plain,
             rounding: .towardZero,
+            exact: nil,
         )
 
         #expect(toNearest.text(locale: .US) == "$1.24M")
         #expect(towardZero.text(locale: .US) == "$1.23M", "the record asks for truncation and gets it")
+    }
+
+    @Test
+    func aFullAmountReadsItsExactDigits() {
+        let exact = "123.456789012345678901"
+        let spent = GemFormattedNumber(
+            value: -123.456789012345678901,
+            unit: .symbol(symbol: "ETH"),
+            display: .number(precision: .fraction(min: 0, max: 32)),
+            notation: .signed,
+            tone: .negative,
+            rounding: .towardZero,
+            exact: exact,
+        )
+
+        #expect(spent.text(locale: .US) == "-123.456789012345678901 ETH", "every digit past what a double holds")
+        #expect(
+            GemFormattedNumber(value: 0.5, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .plain, tone: .plain, rounding: .towardZero, exact: "0.5")
+                .text(locale: Locale(identifier: "de_DE")) == "0,5 SOL",
+            "the digits follow the reader's separator",
+        )
     }
 
     @Test
@@ -41,31 +64,30 @@ struct FormattedNumberTests {
             notation: .signed,
             tone: .positive,
             rounding: .toNearest,
+            exact: nil,
         )
 
         #expect(incoming.text(locale: .US) == "+$1.24M")
-        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
-        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest, exact: nil).text(locale: .US) == "-$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest, exact: nil).text(locale: .US) == "-$1.24M")
     }
 
     @Test
-    func aShortPriceReadsLikeTheCurrencyFormatter() {
-        let formatter = CurrencyFormatter(type: .short, locale: .US, currencyCode: "USD")
+    func aShortPriceReadsDustBelowTheThreshold() {
+        let prices: [(Double, String)] = [(0.00000783, "<$0.0001"), (0.0001, "$0.0001"), (0.0345, "$0.0345"), (1234.5, "$1,234.50")]
 
-        for value in [0.00000783, 0.0001, 0.0345, 1234.5] {
-            #expect(formattedCurrency(value: value, code: "USD", style: .short).text(locale: .US) == formatter.string(value))
+        for (value, text) in prices {
+            #expect(formattedCurrency(value: value, code: "USD", style: .short).text(locale: .US) == text)
         }
-        #expect(formattedCurrency(value: 0.00000783, code: "USD", style: .short).text(locale: .US) == "<$0.0001")
     }
 
     @Test
-    func anAmountReadsLikeTheValueFormatter() throws {
-        let formatter = ValueFormatter(locale: .US, style: .auto)
-        let values: [(BigInt, Int)] = [(5_205_516, 6), (99999, 6), (1992, 4), (1_239_999_000_000, 6), (546, 8)]
+    func anAmountReadsWithTheAutoStyle() throws {
+        let amounts: [(Double, String)] = [(5.205516, "5.2 ATOM"), (0.099999, "0.09999 ATOM"), (0.1992, "0.1992 ATOM"), (1_239_999, "1,239,999 ATOM"), (0.00000546, "0.00000546 ATOM")]
 
-        for (value, decimals) in values {
-            let number = try formattedAmount(value: formatter.double(from: value, decimals: decimals), symbol: "ATOM", style: .auto)
-            #expect(number.text(locale: .US) == formatter.string(value, decimals: decimals, currency: "ATOM"))
+        for (value, text) in amounts {
+            let formatted = try formattedAmount(value: value, symbol: "ATOM", style: .auto).text(locale: .US)
+            #expect(formatted == text)
         }
     }
 }

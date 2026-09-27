@@ -110,7 +110,7 @@ public struct StateEmptyView<Content: View>: View {
         Section(header: Text("View with Custom Title and Description Styles")) {
             StateEmptyView(
                 title: "No Results Found",
-                titleTextStyle: .title,
+                titleTextStyle: .headline,
                 description: "Try adjusting your search or filter to find what you're looking for.",
                 descriptionTextStyle: .body,
                 image: Images.EmptyContent.search,

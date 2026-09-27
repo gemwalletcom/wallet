@@ -1,8 +1,8 @@
 use gem_client::{Client as Transport, ClientError, ClientExt};
 
-use crate::model::{Items, PageQuery};
+use crate::model::{Items, NftPage, NftQuery, PageQuery};
 use crate::target::BlockscoutTarget;
-use crate::{TokenBalance, TokenTransfer, Transaction};
+use crate::{NftInstance, NftItem, Token, TokenBalance, TokenTransfer, Transaction};
 
 pub struct Client<C: Transport> {
     client: C,
@@ -41,6 +41,47 @@ impl<C: Transport> Client<C> {
         self.client.get(target).query(&self.api_key_query()).await
     }
 
+    pub async fn get_address_nfts(&self, address: &str, limit: usize) -> Result<Vec<NftItem>, ClientError> {
+        let mut items = Vec::new();
+        let mut page = None;
+
+        loop {
+            let target = BlockscoutTarget::AddressNfts {
+                chain_id: self.chain_id,
+                address: address.to_string(),
+                query: NftQuery::new(page),
+            };
+            let response: NftPage = self.client.get(target).query(&self.api_key_query()).await?;
+            let is_empty = response.items.is_empty();
+            items.extend(response.items);
+
+            match response.next_page_params {
+                Some(next_page) if !is_empty && items.len() < limit => page = Some(next_page),
+                _ => break,
+            }
+        }
+
+        items.truncate(limit);
+        Ok(items)
+    }
+
+    pub async fn get_token(&self, address: &str) -> Result<Token, ClientError> {
+        let target = BlockscoutTarget::Token {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+        };
+        self.client.get(target).query(&self.api_key_query()).await
+    }
+
+    pub async fn get_nft_instance(&self, address: &str, token_id: &str) -> Result<NftInstance, ClientError> {
+        let target = BlockscoutTarget::TokenInstance {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+            token_id: token_id.to_string(),
+        };
+        self.client.get(target).query(&self.api_key_query()).await
+    }
+
     fn api_key_query(&self) -> [(&'static str, &str); 1] {
         [("apikey", self.api_key.as_str())]
     }
@@ -52,7 +93,7 @@ mod tests {
     use num_bigint::BigUint;
 
     use super::*;
-    use crate::testkit::{TOKEN_BALANCES, TOKEN_TRANSFERS, TRANSACTIONS};
+    use crate::testkit::{ADDRESS_NFTS, ADDRESS_NFTS_LAST_PAGE, NFT_COLLECTION, NFT_INSTANCE, TOKEN_BALANCES, TOKEN_TRANSFERS, TRANSACTIONS};
 
     #[tokio::test]
     async fn test_get_transactions() {
@@ -117,5 +158,54 @@ mod tests {
         assert_eq!(balances[0].value, BigUint::from(42u8));
         assert_eq!(balances[2].token.reputation.as_deref(), Some("spam"));
         assert_eq!(balances[3].token.token_type, "ERC-721");
+    }
+
+    #[tokio::test]
+    async fn test_get_address_nfts_follows_pages_up_to_the_limit() {
+        let client = Client::new(
+            MockClient::new().with_get(|path| {
+                let response = match path {
+                    "/5042/api/v2/addresses/0x123/nft?type=ERC-721%2CERC-1155&apikey=key" => ADDRESS_NFTS,
+                    "/5042/api/v2/addresses/0x123/nft?type=ERC-721%2CERC-1155&token_type=ERC-721&token_contract_address_hash=0xb856127c2371b396f92993814d8f64c3204911de&token_id=202640&items_count=50&apikey=key" => ADDRESS_NFTS_LAST_PAGE,
+                    _ => panic!("unexpected path: {path}"),
+                };
+                Ok(response.as_bytes().to_vec())
+            }),
+            5042,
+            "key".to_string(),
+        );
+
+        let items = client.get_address_nfts("0x123", 3).await.unwrap();
+        let first_page = client.get_address_nfts("0x123", 1).await.unwrap();
+
+        assert_eq!(items.iter().map(|item| item.id.as_str()).collect::<Vec<_>>(), vec!["202689", "202688", "202687"]);
+        assert_eq!(items[0].token.address_hash, "0xB856127c2371B396f92993814d8F64c3204911dE");
+        assert_eq!(first_page.iter().map(|item| item.id.as_str()).collect::<Vec<_>>(), vec!["202689"]);
+    }
+
+    #[tokio::test]
+    async fn test_get_nft_collection_and_instance() {
+        let client = Client::new(
+            MockClient::new().with_get(|path| {
+                let response = match path {
+                    "/5042/api/v2/tokens/0xB856/instances/1?apikey=key" => NFT_INSTANCE,
+                    "/5042/api/v2/tokens/0xB856?apikey=key" => NFT_COLLECTION,
+                    _ => panic!("unexpected path: {path}"),
+                };
+                Ok(response.as_bytes().to_vec())
+            }),
+            5042,
+            "key".to_string(),
+        );
+
+        let token = client.get_token("0xB856").await.unwrap();
+        let instance = client.get_nft_instance("0xB856", "1").await.unwrap();
+
+        assert_eq!(token.name.as_deref(), Some("The Arc Begins"));
+        assert_eq!(token.token_type, "ERC-721");
+        let metadata = instance.metadata.unwrap();
+        assert_eq!(metadata.name.as_deref(), Some("The Arc Begins"));
+        assert_eq!(metadata.attributes.unwrap().len(), 6);
+        assert_eq!(instance.image_url.as_deref(), Some("https://dweb.link/ipfs/bafybeidl35yu2hne4jems3wmdqn7vqbda4xdre63bmjgngmiezzw2cwprm"));
     }
 }

@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, EnumIter)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, EnumIter, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum RecentActivityType {
     Search,

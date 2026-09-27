@@ -16,13 +16,6 @@
   "testTargets": [
     {
       "target": {
-        "containerPath": "container:Gem.xcodeproj",
-        "identifier": "C30952C0299C39D80004C0F9",
-        "name": "GemTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features/NFT",
         "identifier": "NFTTests",
         "name": "NFTTests"
@@ -54,20 +47,6 @@
         "containerPath": "container:Features/FiatConnect",
         "identifier": "FiatConnectTests",
         "name": "FiatConnectTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/AppLock",
-        "identifier": "AppLockTests",
-        "name": "AppLockTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages/Validators",
-        "identifier": "ValidatorsTests",
-        "name": "ValidatorsTests"
       }
     },
     {
@@ -128,13 +107,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages/Formatters",
-        "identifier": "GemstoneFormattersTests",
-        "name": "GemstoneFormattersTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages/Primitives",
         "identifier": "PrimitivesTests",
         "name": "PrimitivesTests"
@@ -177,9 +149,9 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/WalletTab",
-        "identifier": "WalletTabTests",
-        "name": "WalletTabTests"
+        "containerPath": "container:Features/Wallet",
+        "identifier": "WalletTests",
+        "name": "WalletTests"
       }
     },
     {
@@ -198,7 +170,7 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/Settings",
+        "containerPath": "container:Features/Rewards",
         "identifier": "RewardsTests",
         "name": "RewardsTests"
       }
@@ -236,13 +208,6 @@
         "containerPath": "container:Packages/PrimitivesComponents",
         "identifier": "PrimitivesComponentsTests",
         "name": "PrimitivesComponentsTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/ManageWallets",
-        "identifier": "ManageWalletsTests",
-        "name": "ManageWalletsTests"
       }
     },
     {

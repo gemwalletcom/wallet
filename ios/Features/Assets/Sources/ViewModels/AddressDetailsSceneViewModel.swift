@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import struct Gemstone.GemAddressDetails
 import protocol Gemstone.GemAddressDetailsServiceProtocol
+import struct Gemstone.GemCopy
 import enum Gemstone.GemListRow
+import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,16 +18,16 @@ public final class AddressDetailsSceneViewModel {
     private let service: any GemAddressDetailsServiceProtocol
     private var details: GemAddressDetails
 
-    public let addressNameQuery: ObservableQuery<AddressNameRequest>
+    public let addressNameQuery: ObservableQuery<AddressNameQuery>
 
-    var copyToast: CopyTypeViewModel?
+    var copyToast: GemCopy?
 
     public init(
         chainAddress: ChainAddress,
         service: any GemAddressDetailsServiceProtocol,
     ) {
         self.service = service
-        addressNameQuery = ObservableQuery(AddressNameRequest(chain: chainAddress.chain, address: chainAddress.address), initialValue: nil)
+        addressNameQuery = ObservableQuery(AddressNameQuery(chain: chainAddress.chain, address: chainAddress.address), initialValue: nil)
         details = service.details(chain: chainAddress.chain.rawValue, address: chainAddress.address)
     }
 
@@ -35,11 +36,9 @@ public final class AddressDetailsSceneViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension AddressDetailsSceneViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
-        details.sections(addressName: addressNameQuery.value?.toGem()).listSections
+public extension AddressDetailsSceneViewModel {
+    var sections: [GemListSection] {
+        details.sections(addressName: addressNameQuery.value?.toGem())
     }
 }
 
@@ -50,7 +49,7 @@ extension AddressDetailsSceneViewModel {
         details = await service.refresh(details: details)
     }
 
-    func onCopy(_ model: CopyTypeViewModel) {
-        copyToast = model
+    func onCopy(_ copy: GemCopy) {
+        copyToast = copy
     }
 }

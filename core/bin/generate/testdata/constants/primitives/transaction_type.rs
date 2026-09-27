@@ -1,4 +1,5 @@
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum TransactionType {
     #[serde(rename = "transferNFT")]

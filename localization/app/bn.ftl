@@ -48,7 +48,6 @@ common_learn_more = আরও জানুন
 common_description = বর্ণনা
 common_emoji = ইমোজি
 common_avatar = অবতার
-common_save = সংরক্ষণ করুন
 common_percentage = শতাংশ
 common_details = বিস্তারিত
 common_info = তথ্য
@@ -58,6 +57,7 @@ common_method = পদ্ধতি
 common_token = টোকেন
 common_expiration = মেয়াদ শেষ
 common_suspicious_address = সন্দেহজনক ঠিকানা
+common_suspicious_address_description = এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।
 common_refresh = রিফ্রেশ
 common_grant_permission = অনুমতি দিন
 common_required_field = %@ প্রয়োজন
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = এই ওয়ালেটটি ই�
 # Wallets
 
 wallets_title = ওয়ালেট
-wallets_watch = পর্যবেক্ষণ
 
 # Receive
 
-receive_title = %@ গ্রহণ করুন
 receive_warning = এটি আপনার ঠিকানা — শুধুমাত্র পাঠান %@ উপরে %@ নেটওয়ার্ক।
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = পাসকোড সক্ষম করুন
 settings_security_authentication = প্রমাণীকরণ
 settings_notifications_title = বিজ্ঞপ্তি
 settings_language = ভাষা
-settings_help_center = সহায়তা কেন্দ্র
 settings_support = সমর্থন
 settings_price_alerts_title = মূল্য সতর্কতা
 settings_hide_balance = ব্যালেন্স লুকান
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = কোনো কোট উপলব্ধ ন�
 errors_swap_not_supported_asset = সমর্থিত সম্পদ নয়।
 errors_connections_no_supported_wallets = কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।
 errors_connections_unsupported_chain = প্রদত্ত চেইনটি সমর্থিত নয়।
+errors_authentication_unavailable = এই ডিভাইসে প্রমাণীকরণ সেট আপ করা নেই। ডিভাইসের সেটিংসে বায়োমেট্রিক্স বা পাসকোড চালু করুন।
+errors_authentication_locked_out = অনেকবার ব্যর্থ চেষ্টা হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।
+errors_authentication_failed = প্রমাণীকরণ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।
+errors_connections_expired = এই সংযোগ লিঙ্কের মেয়াদ শেষ হয়ে গেছে। একটি নতুন QR কোড নিয়ে আবার চেষ্টা করুন।
+errors_connections_not_found = এই সংযোগটি আর নেই।
+errors_connections_relay_unavailable = WalletConnect-এ পৌঁছানো যায়নি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।
 errors_swap_amount_too_small = পরিমাণ খুব কম
 errors_scan_transaction_malicious_description = এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।
 errors_scan_transaction_memo_required = %@ গন্তব্য ওয়ালেট ঠিকানার জন্য একটি গন্তব্য ট্যাগ / মেমো প্রয়োজন।
@@ -322,7 +325,6 @@ asset_verification_warning_message = যে কেউ একটি তৈরি 
 asset_buy_asset = %@ কিনুন
 asset_get_asset = %@ পান
 asset_add_to_wallet = ওয়ালেটে যোগ করুন
-asset_hide_from_wallet = মানিব্যাগ থেকে লুকান
 asset_added_to_wallet = ওয়ালেটে যোগ করা হয়েছে
 asset_hidden_from_wallet = ওয়ালেট থেকে লুকানো হয়েছে
 asset_resources = রিসোর্স
@@ -349,6 +351,7 @@ charts_price_change = পরিবর্তন
 
 date_today = আজ
 date_yesterday = গতকাল
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = স্বাভাবিক
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = কাস্টম
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = যখন দাম বাড়ে
 price_alerts_set_alert_price_decreases_by = যখন দাম কমে যায়
 price_alerts_set_alert_set_target_price = লক্ষ্য মূল্য নির্ধারণ করুন
 price_alerts_set_alert_current_price = বর্তমান মূল্য
-price_alerts_added_for = মূল্য সতর্কতা সেট করুন %@
+price_alerts_added_price_over = দাম %@ এর উপরে গেলে সতর্কতা যোগ করা হয়েছে
+price_alerts_added_price_under = দাম %@ এর নিচে গেলে সতর্কতা যোগ করা হয়েছে
+price_alerts_added_increases_by = দাম %@ বাড়লে সতর্কতা যোগ করা হয়েছে
+price_alerts_added_decreases_by = দাম %@ কমলে সতর্কতা যোগ করা হয়েছে
 price_alerts_state_empty_title = আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে
 price_alerts_state_empty_description = ট্র্যাকে কয়েন যোগ করে এগুলি সক্ষম করুন
 price_alerts_auto_footer = উল্লেখযোগ্য মূল্য পরিবর্তনের সময় সতর্কতাগুলি ট্রিগার করে।
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = এই অ্যাপটি
 
 # Markets
 
-markets_title = বাজার
-markets_state_empty_title = আপনার বাজারের তথ্য এখানে প্রদর্শিত হবে।
 markets_daily_volume = ২৪ ঘন্টা ভলিউম
 
 # Search

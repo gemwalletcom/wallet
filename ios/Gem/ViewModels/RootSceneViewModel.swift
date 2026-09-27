@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import AppService
 import Components
 import Foundation
@@ -12,10 +11,10 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Onboarding
 import Primitives
 import PrimitivesComponents
+import Settings
 import SwiftUI
 import WalletConnector
 
@@ -38,10 +37,10 @@ final class RootSceneViewModel {
     let lockWindow: LockWindow
 
     var currentWallet: Wallet? {
-        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
+        currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
 
-    var currentWalletId: WalletId? { walletSessionService.currentWalletId }
+    var currentWalletId: WalletId? { try? walletSessionService.getCurrentWalletId().map { try WalletId.from(id: $0) } }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
     var isPresentingRootWarning = false
@@ -147,7 +146,7 @@ extension RootSceneViewModel {
         await navigationRouter.open(url: url)
     }
 
-    func createWalletModel() -> CreateWalletModel {
+    func createWalletModel() -> CreateWalletViewModel {
         viewModelFactory.createWalletScene(onComplete: { [weak self] in self?.dismissCreateWallet() })
     }
 
@@ -193,7 +192,7 @@ extension RootSceneViewModel {
 
     private func checkForUpdate() async {
         do {
-            guard let offer = try await appUpdateService.checkForUpdate() else { return }
+            guard let offer = try await appUpdateService.check(store: PlatformStore.current.toGem(), currentVersion: Bundle.main.releaseVersionNumber) else { return }
             updateVersionAlertMessage = makeUpdateAlert(for: offer)
         } catch {
             debugLog("checkForUpdate error: \(error)")
@@ -201,36 +200,41 @@ extension RootSceneViewModel {
     }
 
     private func makeUpdateAlert(for offer: GemAppUpdateOffer) -> AlertMessage {
-        let skipAction = AlertAction(
-            title: Localized.Common.skip,
-            role: .cancel,
-            action: { [appUpdateService] in
-                do {
-                    try appUpdateService.skip(offer: offer)
-                } catch {
-                    debugLog("skipRelease error: \(error)")
+        AlertMessage(
+            title: offer.title.text,
+            message: offer.description.text,
+            actions: offer.actions.map { action in
+                switch action {
+                case .skip:
+                    AlertAction(
+                        title: action.title,
+                        role: .cancel,
+                        action: { [appUpdateService] in
+                            do {
+                                try appUpdateService.skip(offer: offer)
+                            } catch {
+                                debugLog("skipRelease error: \(error)")
+                            }
+                        },
+                    )
+                case .update:
+                    AlertAction(
+                        title: action.title,
+                        isDefaultAction: true,
+                        action: {
+                            Task { @MainActor in
+                                UIApplication.shared.open(AppUrl.page(.appStore))
+                            }
+                        },
+                    )
                 }
             },
-        )
-        let updateAction = AlertAction(
-            title: Localized.UpdateApp.action,
-            isDefaultAction: true,
-            action: {
-                Task { @MainActor in
-                    UIApplication.shared.open(AppUrl.page(.appStore))
-                }
-            },
-        )
-        return AlertMessage(
-            title: Localized.UpdateApp.title,
-            message: Localized.UpdateApp.description(offer.version),
-            actions: offer.canSkip ? [skipAction, updateAction] : [updateAction],
         )
     }
 
     private func requestPushPermissions() {
         Task { [notificationsService] in
-            _ = await notificationsService.enableForNewWallet()
+            _ = await notificationsService.askToEnable()
         }
     }
 }

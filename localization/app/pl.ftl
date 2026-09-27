@@ -48,7 +48,6 @@ common_learn_more = Dowiedz się więcej
 common_description = Opis
 common_emoji = Emoji
 common_avatar = Awatar
-common_save = Zapisz
 common_percentage = Procent
 common_details = Szczegóły
 common_info = Informacje
@@ -58,6 +57,7 @@ common_method = Metoda
 common_token = Token
 common_expiration = Wygaśnięcie
 common_suspicious_address = Podejrzany adres
+common_suspicious_address_description = Ten adres jest powiązany z podejrzaną lub szkodliwą aktywnością.
 common_refresh = Odśwież
 common_grant_permission = Udziel pozwolenia
 common_required_field = %@ jest wymagane
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Ten portfel został już zaimportowany.
 # Wallets
 
 wallets_title = Portfele
-wallets_watch = Obserwowany
 
 # Receive
 
-receive_title = Odbierz %@
 receive_warning = To jest Twój adres — wysyłaj tylko %@ na %@ sieć.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Włącz hasło
 settings_security_authentication = Uwierzytelnianie
 settings_notifications_title = Powiadomienia
 settings_language = Język
-settings_help_center = Centrum pomocy
 settings_support = Wsparcie
 settings_price_alerts_title = Alerty cenowe
 settings_hide_balance = Ukryj saldo
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Brak dostępnej wyceny.
 errors_swap_not_supported_asset = Nieobsługiwany zasób.
 errors_connections_no_supported_wallets = Brak obsługiwanych portfeli.
 errors_connections_unsupported_chain = Podany łańcuch nie jest obsługiwany.
+errors_authentication_unavailable = Uwierzytelnianie nie jest skonfigurowane na tym urządzeniu. Włącz biometrię lub kod w ustawieniach urządzenia.
+errors_authentication_locked_out = Zbyt wiele nieudanych prób. Spróbuj ponownie później.
+errors_authentication_failed = Uwierzytelnianie nie powiodło się. Spróbuj ponownie.
+errors_connections_expired = Ten link połączenia wygasł. Pobierz nowy kod QR i spróbuj ponownie.
+errors_connections_not_found = To połączenie już nie istnieje.
+errors_connections_relay_unavailable = Nie można połączyć się z WalletConnect. Sprawdź połączenie z internetem i spróbuj ponownie.
 errors_swap_amount_too_small = Kwota jest za mała
 errors_scan_transaction_malicious_description = Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.
 errors_scan_transaction_memo_required = %@ adres portfela docelowego wymaga znacznika/notatki docelowej
@@ -322,7 +325,6 @@ asset_verification_warning_message = Każdy może go utworzyć – łącznie z f
 asset_buy_asset = Kup %@
 asset_get_asset = Zdobądź %@
 asset_add_to_wallet = Dodaj do portfela
-asset_hide_from_wallet = Ukryj w portfelu
 asset_added_to_wallet = Dodano do portfela
 asset_hidden_from_wallet = Ukryto w portfelu
 asset_resources = Zasoby
@@ -349,6 +351,7 @@ charts_price_change = Zmiana
 
 date_today = Dzisiaj
 date_yesterday = Wczoraj
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Normalne
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Niestandardowe
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Gdy cena wzrasta o
 price_alerts_set_alert_price_decreases_by = Gdy cena spada o
 price_alerts_set_alert_set_target_price = Ustaw cenę docelową
 price_alerts_set_alert_current_price = Aktualna cena
-price_alerts_added_for = Ustaw alert cenowy %@
+price_alerts_added_price_over = Dodano alert dla ceny powyżej %@
+price_alerts_added_price_under = Dodano alert dla ceny poniżej %@
+price_alerts_added_increases_by = Dodano alert dla wzrostu ceny o %@
+price_alerts_added_decreases_by = Dodano alert dla spadku ceny o %@
 price_alerts_state_empty_title = Twoje alerty będą pojawiać się tutaj
 price_alerts_state_empty_description = Włącz je, dodając monety do śledzenia
 price_alerts_auto_footer = Alerty uruchamiają się w przypadku znacznych wahań cen.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Ta aplikacja nie ma uprawnie
 
 # Markets
 
-markets_title = Rynki
-markets_state_empty_title = Twoje dane rynkowe pojawią się tutaj
 markets_daily_volume = Wolumen 24h
 
 # Search

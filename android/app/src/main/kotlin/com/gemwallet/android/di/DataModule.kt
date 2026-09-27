@@ -1,10 +1,8 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
+import com.gemwallet.android.data.services.store.database.AssetsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +25,6 @@ import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemRecentActivityServiceInterface
@@ -35,7 +32,6 @@ import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSwapService
-import uniffi.gemstone.GemTransactionSigner
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
@@ -59,52 +55,25 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideGemRecentActivityService(recentAssetsService: RecentAssetsService, walletSessionService: GemWalletSessionService): GemRecentActivityService =
-        GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService), walletSessionService)
+    fun provideGemRecentActivityService(assetsDao: AssetsDao, walletSessionService: GemWalletSessionService): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(assetsDao), walletSessionService)
 
     @Provides
     fun provideGemAssetSelectionService(
-        assetsService: GemAssetsService,
         searchService: GemSearchService,
         balanceService: GemBalanceService,
-        priceAlertService: GemPriceAlertService,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
         perpetualService: GemPerpetualService,
         walletSessionService: GemWalletSessionService,
         swapService: GemSwapService,
     ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
-        assetsService,
         searchService,
         balanceService,
-        priceAlertService,
         recentActivity,
         preferencesService,
         perpetualService,
         walletSessionService,
         swapService,
-    )
-
-    @Provides
-    @Singleton
-    fun provideGemConfirmTransferService(
-        confirmService: GemConfirmServiceInterface,
-        explorerService: GemExplorerService,
-        nameService: GemNameService,
-        signer: GemTransactionSigner,
-        passwordStore: PasswordStore,
-        recentActivity: GemRecentActivityService,
-        preferencesService: GemPreferencesService,
-        paymentService: GemPaymentService,
-    ): GemConfirmTransferService = GemConfirmTransferService(
-        confirmService as GemConfirmService,
-        explorerService,
-        nameService,
-        signer,
-        GemstoneKeystorePassword(passwordStore),
-        recentActivity,
-        preferencesService,
-        paymentService,
     )
 
     @Provides

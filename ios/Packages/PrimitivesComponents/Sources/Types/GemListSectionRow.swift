@@ -4,6 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
+import SwiftUI
 
 public struct GemListSectionRow: Identifiable, Sendable {
     public let id: String
@@ -26,8 +27,8 @@ public extension [GemListSection] {
     }
 }
 
-public extension ListSectionProvideable where Item == GemListSectionRow, ItemModel == GemListRow {
-    func itemModel(for row: GemListSectionRow) -> any ItemModelProvidable<GemListRow> {
-        row.row
+public extension ListSectionView where Item == GemListSectionRow {
+    init(sections: [GemListSection], @ViewBuilder content: @escaping (GemListRow) -> Content) {
+        self.init(sections: sections.listSections) { content($0.row) }
     }
 }

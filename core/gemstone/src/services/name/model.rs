@@ -9,10 +9,26 @@ pub enum GemNameRecordState {
     Complete { record: NameRecord },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNameIndicator {
+    Loading,
+    Error,
+    Success,
+}
+
 #[uniffi::export]
 impl GemNameRecordState {
     pub fn record(&self) -> Option<NameRecord> {
         self.record_ref().cloned()
+    }
+
+    pub fn indicator(&self) -> Option<GemNameIndicator> {
+        match self {
+            Self::None => None,
+            Self::Loading { .. } => Some(GemNameIndicator::Loading),
+            Self::Error => Some(GemNameIndicator::Error),
+            Self::Complete { .. } => Some(GemNameIndicator::Success),
+        }
     }
 }
 

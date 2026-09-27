@@ -11,9 +11,9 @@ import Style
 import SwiftUI
 
 public struct ConnectionsScene: View {
-    @State private var model: ConnectionsViewModel
+    @State private var model: ConnectionsSceneViewModel
 
-    public init(model: ConnectionsViewModel) {
+    public init(model: ConnectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -39,7 +39,7 @@ public struct ConnectionsScene: View {
                     ForEach(section.connections, id: \.connection.session.id) { item in
                         let connection = item.connection.toPrimitives()
                         NavigationLink(value: connection) {
-                            ConnectionView(model: ConnectionViewModel(connection: item))
+                            ConnectionView(connection: item)
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
@@ -63,12 +63,12 @@ public struct ConnectionsScene: View {
         }
         .navigationDestination(for: WalletConnection.self) { connection in
             ConnectionScene(
-                model: model.connectionSceneModel(connection: connection),
+                details: model.connectionDetails(connection: connection),
                 onDisconnect: { onSelectDisconnect(connection) },
             )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .walletConnect, action: onHandleScan)
+            QRScannerNavigationStack(scanType: .walletConnect, action: onHandleScan)
         }
         .ifLet(view.docsUrl.asURL) { content, url in
             content.toolbarInfoButton(url: url)

@@ -53,15 +53,17 @@ pub struct GemStoredWallet {
     pub wallet_type: WalletType,
     pub keystore_id: String,
     pub accounts: Vec<GemKeystoreAccount>,
+    pub created: bool,
 }
 
 impl GemStoredWallet {
-    pub(super) fn new(wallet_id: WalletId, wallet_type: WalletType, keystore_id: String, accounts: Vec<Account>) -> Self {
+    pub(super) fn new(wallet_id: WalletId, wallet_type: WalletType, keystore_id: String, accounts: Vec<Account>, created: bool) -> Self {
         Self {
             wallet_id: wallet_id.to_string(),
             wallet_type,
             keystore_id,
             accounts: accounts.into_iter().map(GemKeystoreAccount::from).collect(),
+            created,
         }
     }
 }

@@ -54,7 +54,7 @@ Bitcoin: <https://gemwallet.com/tokens/bitcoin>
 - [Deep link parsing and building](../core/crates/primitives/src/deeplink.rs)
 - [URL action routing](../core/crates/primitives/src/url_action.rs) — WalletConnect and deep links are routed before payments
 - [UniFFI bridge](../core/gemstone/src/deeplink.rs)
-- [Target preparation](../core/gemstone/src/services/navigation/mod.rs) — one `GemNavigationTarget` for a deep link or a push, with the asset opened and the perpetual decided
+- [Target preparation](../core/gemstone/src/services/navigation/mod.rs) — one `GemNavigationTarget` for a deep link or a push, with the asset opened and the perpetual decided, and one `GemCodeOutcome` for a scanned code or link (open, pair, prepare a payment, or the reason it cannot open)
 - [Support message links](../core/crates/support/src/text.rs)
 - iOS: [`NavigationRouter`](../ios/Gem/Navigation/NavigationRouter.swift), schemes and associated domains in `ios/Gem/Resources/Info.plist` and `ios/Gem/Resources/Gem.entitlements`
 - Android: [`routes`](../android/app/src/main/kotlin/com/gemwallet/android/NavigationTargetRoutes.kt), intent filters in `android/app/src/main/AndroidManifest.xml`

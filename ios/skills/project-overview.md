@@ -12,7 +12,7 @@ The app is organized into four main areas:
 3. `Gem/` and `GemPriceWidget/` — App targets and platform integration
 4. `../core/` — Shared Rust source at the monorepo root, exposed through FFI
 
-Feature packages use the directories they need; this layout is not a scaffolding checklist:
+A feature package is one product area, named as its Android module ([Cross-Platform Awareness rule 7](../../skills/cross-platform-awareness.md)). Feature packages use the directories they need; this layout is not a scaffolding checklist:
 
 ```text
 Features/[FeatureName]/

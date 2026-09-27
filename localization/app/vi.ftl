@@ -48,7 +48,6 @@ common_learn_more = Tìm hiểu thêm
 common_description = Sự miêu tả
 common_emoji = Emoji
 common_avatar = Hình đại diện
-common_save = Lưu
 common_percentage = Phần trăm
 common_details = Chi tiết
 common_info = Thông tin
@@ -58,6 +57,7 @@ common_method = Phương thức
 common_token = Token
 common_expiration = Hết hạn
 common_suspicious_address = Địa chỉ đáng ngờ
+common_suspicious_address_description = Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại.
 common_refresh = Làm mới
 common_grant_permission = Cấp phép
 common_required_field = %@ là bắt buộc
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Ví này đã được nhập khẩu.
 # Wallets
 
 wallets_title = Ví
-wallets_watch = Xem
 
 # Receive
 
-receive_title = Nhận %@
 receive_warning = Đây là địa chỉ của bạn — chỉ gửi %@ trên mạng %@.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Kích hoạt mật mã
 settings_security_authentication = Xác thực
 settings_notifications_title = Thông báo
 settings_language = Ngôn ngữ
-settings_help_center = Trung tâm trợ giúp
 settings_support = Ủng hộ
 settings_price_alerts_title = Cảnh báo giá
 settings_hide_balance = Ẩn số dư
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Không có báo giá khả dụng.
 errors_swap_not_supported_asset = Tài sản không được hỗ trợ.
 errors_connections_no_supported_wallets = Không có ví nào được hỗ trợ.
 errors_connections_unsupported_chain = Chuỗi được cung cấp không được hỗ trợ.
+errors_authentication_unavailable = Thiết bị này chưa thiết lập xác thực. Hãy bật sinh trắc học hoặc mật mã trong cài đặt thiết bị.
+errors_authentication_locked_out = Quá nhiều lần thử không thành công. Vui lòng thử lại sau.
+errors_authentication_failed = Xác thực không thành công. Vui lòng thử lại.
+errors_connections_expired = Liên kết kết nối này đã hết hạn. Hãy lấy mã QR mới và thử lại.
+errors_connections_not_found = Kết nối này không còn tồn tại.
+errors_connections_relay_unavailable = Không thể kết nối tới WalletConnect. Hãy kiểm tra kết nối internet và thử lại.
 errors_swap_amount_too_small = Số lượng quá nhỏ
 errors_scan_transaction_malicious_description = Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.
 errors_scan_transaction_memo_required = %@ địa chỉ ví đích yêu cầu thẻ đích / ghi nhớ
@@ -322,7 +325,6 @@ asset_verification_warning_message = Bất cứ ai cũng có thể tạo một c
 asset_buy_asset = Mua %@
 asset_get_asset = Nhận %@
 asset_add_to_wallet = Thêm vào ví
-asset_hide_from_wallet = Ẩn khỏi ví
 asset_added_to_wallet = Đã thêm vào ví
 asset_hidden_from_wallet = Đã ẩn khỏi ví
 asset_resources = Tài nguyên
@@ -349,6 +351,7 @@ charts_price_change = Thay đổi
 
 date_today = Hôm nay
 date_yesterday = Hôm qua
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Bình thường
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Tùy chỉnh
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Khi giá tăng lên
 price_alerts_set_alert_price_decreases_by = Khi giá giảm xuống
 price_alerts_set_alert_set_target_price = Đặt giá mục tiêu
 price_alerts_set_alert_current_price = Giá hiện tại
-price_alerts_added_for = Đặt cảnh báo giá %@
+price_alerts_added_price_over = Đã thêm cảnh báo khi giá trên %@
+price_alerts_added_price_under = Đã thêm cảnh báo khi giá dưới %@
+price_alerts_added_increases_by = Đã thêm cảnh báo khi giá tăng %@
+price_alerts_added_decreases_by = Đã thêm cảnh báo khi giá giảm %@
 price_alerts_state_empty_title = Cảnh báo giá của bạn sẽ xuất hiện ở đây
 price_alerts_state_empty_description = Cho phép chúng bằng cách thêm tiền xu để theo dõi
 price_alerts_auto_footer = Cảnh báo sẽ được kích hoạt khi giá biến động đáng kể.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Ứng dụng này không có
 
 # Markets
 
-markets_title = Thị trường
-markets_state_empty_title = Dữ liệu thị trường của bạn sẽ xuất hiện ở đây
 markets_daily_volume = Khối lượng 24 giờ
 
 # Search

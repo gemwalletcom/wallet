@@ -16,6 +16,7 @@ object GemConstants {
     val fiatQuoteRefreshInterval: Duration = 300.seconds
     val fiatQuoteCurrency: com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.USD
     val connectionBannerSettleDelay: Duration = 10.seconds
+    val connectionBannerEnabled: Boolean = false
     val offlineDebounce: Duration = 500.milliseconds
     val pingInterval: Duration = 30.seconds
     val scanTimeout: Duration = 3.seconds
@@ -31,7 +32,6 @@ object GemConstants {
     val perpetualActivityTypes: List<com.wallet.core.primitives.TransactionType> = listOf<com.wallet.core.primitives.TransactionType>(com.wallet.core.primitives.TransactionType.PerpetualOpenPosition, com.wallet.core.primitives.TransactionType.PerpetualClosePosition, com.wallet.core.primitives.TransactionType.PerpetualModifyPosition)
     val acceptTermsItems: List<uniffi.gemstone.GemAcceptTermsItem> = listOf<uniffi.gemstone.GemAcceptTermsItem>(uniffi.gemstone.GemAcceptTermsItem.SELF_CUSTODY, uniffi.gemstone.GemAcceptTermsItem.RECOVERY, uniffi.gemstone.GemAcceptTermsItem.RESPONSIBILITY)
     val securityReminderItems: List<uniffi.gemstone.GemSecurityReminderItem> = listOf<uniffi.gemstone.GemSecurityReminderItem>(uniffi.gemstone.GemSecurityReminderItem.KEEP_SAFE, uniffi.gemstone.GemSecurityReminderItem.DO_NOT_SHARE, uniffi.gemstone.GemSecurityReminderItem.NO_RECOVERY)
-    val transactionFilters: List<uniffi.gemstone.GemTransactionFilter> = listOf<uniffi.gemstone.GemTransactionFilter>(uniffi.gemstone.GemTransactionFilter.TRANSFERS, uniffi.gemstone.GemTransactionFilter.SWAPS, uniffi.gemstone.GemTransactionFilter.STAKE, uniffi.gemstone.GemTransactionFilter.SMART_CONTRACT, uniffi.gemstone.GemTransactionFilter.PERPETUALS, uniffi.gemstone.GemTransactionFilter.OTHERS)
     val lockPeriods: List<uniffi.gemstone.GemLockPeriod> = listOf<uniffi.gemstone.GemLockPeriod>(uniffi.gemstone.GemLockPeriod.IMMEDIATE, uniffi.gemstone.GemLockPeriod.ONE_MINUTE, uniffi.gemstone.GemLockPeriod.FIVE_MINUTES, uniffi.gemstone.GemLockPeriod.FIFTEEN_MINUTES, uniffi.gemstone.GemLockPeriod.ONE_HOUR, uniffi.gemstone.GemLockPeriod.SIX_HOURS)
     val walletAvatarEmojis: List<String> = listOf<String>("💎", "🦄", "🚀", "❤️", "😍", "🔥", "💩", "😭", "🏆", "🏴‍☠️", "✅", "⚠️", "💰", "🎁", "🎈", "🌈", "⭐️", "👑", "💔", "🔒", "🏦", "🥷", "👨‍💻", "🛢", "🔑", "🛡", "📈", "📉", "💥", "👽", "🔮", "⚡️", "🌍", "⏳", "🤖", "🛰", "🐉", "🐙", "🦅", "👀", "💪", "🔷", "👻", "🌪", "🕶", "👾", "🕵️‍♂️", "⌛️", "✨", "🍀", "☠️", "💀", "🕸", "🕷", "🎰", "☄️", "🏔", "🏜", "🌊", "🎆", "🎖", "🔭", "⛽️", "🏭", "🌉", "🏰", "🔨", "🧰", "💼", "🏷", "♟", "⚓️", "🎡", "🎢", "🎃", "📦")
 }

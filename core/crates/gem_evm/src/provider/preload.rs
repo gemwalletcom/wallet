@@ -1,6 +1,8 @@
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
-use crate::provider::preload_mapper::{bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates, map_transaction_preload};
+use crate::provider::preload_mapper::{
+    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates, map_transaction_preload, pending_permit_gas_limit,
+};
 use crate::rpc::EthereumProvider;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
@@ -56,13 +58,15 @@ impl<C: Client + Clone> EthereumProvider<C> {
             _ => get_transaction_params(self.chain, &input)?,
         };
 
-        let gas_estimate = {
-            let estimate = self
-                .estimate_gas(Some(&input.sender_address), &params.to, Some(&bigint_to_hex_string(&params.value)), Some(&bytes_to_hex_string(&params.data)))
-                .await?;
-            bigint_from_hex_str(&estimate)?
+        let gas_limit = match pending_permit_gas_limit(&input)? {
+            Some(gas_limit) => gas_limit,
+            None => {
+                let estimate = self
+                    .estimate_gas(Some(&input.sender_address), &params.to, Some(&bigint_to_hex_string(&params.value)), Some(&bytes_to_hex_string(&params.data)))
+                    .await?;
+                calculate_gas_limit_with_increase(bigint_from_hex_str(&estimate)?)
+            }
         };
-        let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
         let fee = self.provider.calculate_fee(&input, &params, &gas_limit).await?;
 
         let metadata = if let TransactionInputType::Stake { .. } = &input.input_type {

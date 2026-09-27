@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
+import com.gemwallet.android.data.services.store.database.SupportMessagesDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
 import dagger.Module
 import dagger.Provides

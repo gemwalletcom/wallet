@@ -2,16 +2,17 @@ use chrono::{DateTime, Utc};
 use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
 use super::model::{
-    GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen, GemNftRow,
-    GemNftUnverifiedRow,
+    GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleMenuRow, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen,
+    GemNftRow, GemNftUnverifiedRow,
 };
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
 use crate::config::social::social_links;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSectionTitle};
-use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction};
 use crate::services::assets::rules::asset_text;
+use crate::services::empty_state::{GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
 use crate::services::localization::GemLocalizedText;
 
 const TOKEN_ID_ADDRESS_LENGTH: usize = 16;
@@ -29,11 +30,13 @@ pub fn list_screen(data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
         GemNftList::Unverified => GemLocalizedText::NftUnverified,
         GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
     };
+    let offers_receive = !matches!(list, GemNftList::Unverified);
     let unverified_row = unverified_row(data.clone(), list);
     let items = entries(list_items(data, list));
     GemNftListScreen {
         title,
-        offers_receive: !matches!(list, GemNftList::Unverified),
+        offers_receive,
+        empty_state: screen_empty_state(GemEmptyStateKind::Nfts, false, if offers_receive { &[GemEmptyStateAction::Receive] } else { &[] }),
         syncs_on_appear: matches!(list, GemNftList::Collections | GemNftList::Avatar),
         has_content: !items.is_empty() || unverified_row.is_some(),
         unverified_row,
@@ -136,7 +139,7 @@ pub fn nft_chains() -> Vec<Chain> {
     Chain::all().into_iter().filter(Chain::is_nft_supported).collect()
 }
 
-pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
+fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
     *wallet_type != WalletType::View && supports_nft_transfer(chain) && is_owned
 }
 
@@ -165,18 +168,18 @@ pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_own
         is_verified: data.collection.status == VerificationStatus::Verified,
         header: GemHeaderActions::Buttons {
             buttons: vec![
-                GemHeaderButton {
-                    kind: GemHeaderButtonKind::Send,
-                    is_enabled: can_send(wallet_type, data.asset.chain, is_owned),
-                },
-                GemHeaderButton {
-                    kind: GemHeaderButtonKind::More,
-                    is_enabled: true,
-                },
+                GemHeaderButton::new(GemHeaderButtonAction::SendCollectible, can_send(wallet_type, data.asset.chain, is_owned)),
+                GemHeaderButton::new(GemHeaderButtonAction::CollectibleMenu, true),
             ],
         },
         image_actions: actions.iter().copied().filter(|action| matches!(action, GemCollectibleAction::SaveImage | GemCollectibleAction::SetAvatar)).collect(),
-        actions,
+        actions: actions
+            .into_iter()
+            .map(|action| GemCollectibleMenuRow {
+                action,
+                is_destructive: action == GemCollectibleAction::Report,
+            })
+            .collect(),
         sections: [status, Some(info), attributes, links].into_iter().flatten().collect(),
     }
 }
@@ -197,11 +200,7 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
     let chain = data.asset.chain;
     let token_id = &data.asset.token_id;
     let contract = &data.collection.contract_address;
-    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemListRow::Identifier {
-        title: GemListRowTitle::Contract,
-        copy: address_copy(chain, contract.clone()),
-        explorer: contract_explorer,
-    });
+    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemListRow::identifier(GemListRowTitle::Contract, address_copy(chain, contract.clone()), contract_explorer));
     let token_text = if token_id.chars().count() > TOKEN_ID_ADDRESS_LENGTH {
         format_address(token_id, Some(chain), AddressFormatStyle::Short)
     } else {
@@ -218,15 +217,15 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
             name: asset_text(&Asset::from_chain(chain)).network_name,
         }),
         contract_row,
-        Some(GemListRow::Identifier {
-            title: GemListRowTitle::TokenId,
-            copy: GemCopy {
+        Some(GemListRow::identifier(
+            GemListRowTitle::TokenId,
+            GemCopy {
                 kind: GemCopyKind::Plain,
                 value: token_id.clone(),
                 display: token_text,
             },
-            explorer: token_explorer,
-        }),
+            token_explorer,
+        )),
     ]
     .into_iter()
     .flatten()
@@ -261,6 +260,7 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::assets::model::GemHeaderButtonKind;
     use primitives::{AssetLink, LinkType, NFTAsset, NFTCollection, NFTData};
 
     #[test]
@@ -273,9 +273,10 @@ mod tests {
         assert_eq!(list_screen(data.clone(), GemNftList::Collections).title, GemLocalizedText::NftCollections);
         assert_eq!(list_screen(data.clone(), GemNftList::Unverified).title, GemLocalizedText::NftUnverified);
 
-        assert!(list_screen(data.clone(), GemNftList::Collections).offers_receive);
-        assert!(list_screen(data.clone(), GemNftList::Collection).offers_receive);
-        assert!(!list_screen(data.clone(), GemNftList::Unverified).offers_receive, "nothing unverified is worth asking for");
+        let receives = |list| list_screen(data.clone(), list).empty_state.actions == vec![GemEmptyStateAction::Receive];
+        assert!(receives(GemNftList::Collections));
+        assert!(receives(GemNftList::Collection));
+        assert!(!receives(GemNftList::Unverified), "nothing unverified is worth asking for");
 
         assert!(list_screen(data.clone(), GemNftList::Collections).syncs_on_appear);
         assert!(
@@ -403,11 +404,15 @@ mod tests {
     fn test_the_collectible_menu_only_offers_saving_an_image_where_the_app_can() {
         let data = NFTAssetData::mock();
 
-        assert_eq!(
-            collectible_details(&WalletType::Multicoin, &data, true, None, None, false).actions,
-            vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]
-        );
-        assert_eq!(collectible_details(&WalletType::Multicoin, &data, true, None, None, true).actions.first(), Some(&GemCollectibleAction::SaveImage));
+        let actions = |can_save_image: bool| {
+            collectible_details(&WalletType::Multicoin, &data, true, None, None, can_save_image)
+                .actions
+                .into_iter()
+                .map(|row| row.action)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(actions(false), vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]);
+        assert_eq!(actions(true).first(), Some(&GemCollectibleAction::SaveImage));
         assert_eq!(
             collectible_details(&WalletType::Multicoin, &data, true, None, None, false).image_actions,
             vec![GemCollectibleAction::SetAvatar],
@@ -417,6 +422,13 @@ mod tests {
             collectible_details(&WalletType::Multicoin, &data, true, None, None, true).image_actions,
             vec![GemCollectibleAction::SaveImage, GemCollectibleAction::SetAvatar]
         );
+    }
+
+    #[test]
+    fn test_only_reporting_a_collectible_is_destructive() {
+        let rows = collectible_details(&WalletType::Multicoin, &NFTAssetData::mock(), true, None, None, true).actions;
+
+        assert_eq!(rows.iter().filter(|row| row.is_destructive).map(|row| row.action).collect::<Vec<_>>(), vec![GemCollectibleAction::Report]);
     }
 
     #[test]
@@ -450,24 +462,24 @@ mod tests {
                     chain: Chain::Ethereum,
                     name: "Ethereum".to_string()
                 },
-                GemListRow::Identifier {
-                    title: GemListRowTitle::Contract,
-                    copy: GemCopy {
+                GemListRow::identifier(
+                    GemListRowTitle::Contract,
+                    GemCopy {
                         kind: GemCopyKind::Address { chain: Chain::Ethereum },
                         value: data.collection.contract_address.clone(),
                         display: "0xdAC17...31ec7".to_string(),
                     },
-                    explorer: Some(link.clone()),
-                },
-                GemListRow::Identifier {
-                    title: GemListRowTitle::TokenId,
-                    copy: GemCopy {
+                    Some(link.clone()),
+                ),
+                GemListRow::identifier(
+                    GemListRowTitle::TokenId,
+                    GemCopy {
                         kind: GemCopyKind::Plain,
                         value: "1".to_string(),
                         display: "#1".to_string(),
                     },
-                    explorer: Some(link),
-                },
+                    Some(link),
+                ),
             ]
         );
 

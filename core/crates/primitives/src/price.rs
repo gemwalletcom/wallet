@@ -1,16 +1,16 @@
 use crate::{Asset, AssetLink, AssetMarket, PriceAlert, PriceProvider};
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Price {
     pub price: f64,
     pub price_change_percentage_24h: f64,
     pub updated_at: DateTime<Utc>,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(default)]
     pub provider: PriceProvider,
 }
@@ -31,9 +31,9 @@ impl Price {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Sendable, Equatable")]
+#[model(swift = "Sendable, Equatable")]
 struct PriceData {
     asset: Asset,
     price: Option<Price>,

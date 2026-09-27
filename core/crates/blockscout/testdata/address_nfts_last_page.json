@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "animation_url": null,
+      "external_app_url": null,
+      "id": "202687",
+      "image_url": "https://dweb.link/ipfs/bafybeidl35yu2hne4jems3wmdqn7vqbda4xdre63bmjgngmiezzw2cwprm",
+      "is_unique": null,
+      "media_type": null,
+      "media_url": "ipfs://bafybeidl35yu2hne4jems3wmdqn7vqbda4xdre63bmjgngmiezzw2cwprm",
+      "metadata": {
+        "attributes": [
+          {
+            "trait_type": "Chain",
+            "value": "Arc"
+          },
+          {
+            "trait_type": "Edition",
+            "value": "Launch Commemorative"
+          },
+          {
+            "trait_type": "Theme",
+            "value": "Building the Future"
+          },
+          {
+            "trait_type": "Partner",
+            "value": "OpenSea"
+          },
+          {
+            "trait_type": "Era",
+            "value": "Genesis"
+          },
+          {
+            "trait_type": "Vision",
+            "value": "A New Financial System"
+          }
+        ],
+        "by": "OpenSea",
+        "description": "Commemorating OpenSea’s day-one support for Arc, alongside its builders, believers, and the big ideas shaping what comes next.",
+        "image": "ipfs://bafybeidl35yu2hne4jems3wmdqn7vqbda4xdre63bmjgngmiezzw2cwprm",
+        "name": "The Arc Begins"
+      },
+      "thumbnails": null,
+      "token": {
+        "address_hash": "0xB856127c2371B396f92993814d8F64c3204911dE",
+        "circulating_market_cap": null,
+        "circulating_supply": null,
+        "decimals": null,
+        "exchange_rate": null,
+        "holders_count": "260120",
+        "icon_url": null,
+        "name": "The Arc Begins",
+        "reputation": "ok",
+        "symbol": "ARCxOS",
+        "total_supply": "561537",
+        "type": "ERC-721",
+        "volume_24h": null
+      },
+      "token_type": "ERC-721",
+      "value": "1"
+    }
+  ],
+  "next_page_params": null
+}

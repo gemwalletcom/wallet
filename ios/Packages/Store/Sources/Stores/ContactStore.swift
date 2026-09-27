@@ -13,9 +13,9 @@ public struct ContactStore: Sendable {
 
     public func addContact(_ contact: Contact, addresses: [ContactAddress]) throws {
         try db.write { db in
-            try contact.record.insert(db)
+            try contact.toRecord().insert(db)
             for address in addresses {
-                try address.record.insert(db)
+                try address.toRecord().insert(db)
             }
         }
     }
@@ -38,7 +38,7 @@ public struct ContactStore: Sendable {
             }
 
             for address in addresses {
-                try address.record.upsert(db)
+                try address.toRecord().upsert(db)
             }
         }
     }
@@ -48,7 +48,7 @@ public struct ContactStore: Sendable {
             try ContactAddressRecord
                 .filter(ContactAddressRecord.Columns.contactId == contactId)
                 .fetchAll(db)
-                .map(\.contactAddress)
+                .map { $0.toContactAddress() }
         }
     }
 

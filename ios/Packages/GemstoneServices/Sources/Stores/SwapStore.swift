@@ -2,9 +2,10 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import typealias Gemstone.Chain
+import enum Gemstone.GemAssetFilter
 import struct Gemstone.GemSwapPair
 import protocol Gemstone.GemSwapStore
+import enum Gemstone.RecentActivityType
 import GemstonePrimitives
 import Primitives
 import Store
@@ -29,27 +30,19 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
             .map { GemSwapPair(fromAssetId: $0.fromAsset.identifier, toAssetId: $0.toAsset.identifier) }
     }
 
-    public func getRecentAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+    public func getRecentAssetIds(walletId: String, types: [Gemstone.RecentActivityType], filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
         try recentActivityStore.getRecent(
             walletId: WalletId.from(id: walletId),
-            types: [.swapSelect, .swap],
+            types: types.map { $0.toPrimitives() },
             limit: Int(limit),
-            filters: [.enabled, .swappable],
+            filters: filters.map { $0.map() },
         ).map(\.asset.id.identifier)
     }
 
-    public func getPayAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+    public func getAssetIds(walletId: String, filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
         try assetStore.getAssetsData(
             walletId: WalletId.from(id: walletId),
-            filters: [.enabled, .swappable],
-            limit: Int(limit),
-        ).map(\.asset.id.identifier)
-    }
-
-    public func getReceiveAssetIds(walletId: String, chains: [Gemstone.Chain], assetIds: [Gemstone.AssetId], limit: UInt32) async throws -> [Gemstone.AssetId] {
-        try assetStore.getAssetsData(
-            walletId: WalletId.from(id: walletId),
-            filters: [.enabled, .swappable, .chainsOrAssets(chains, assetIds)],
+            filters: filters.map { $0.map() },
             limit: Int(limit),
         ).map(\.asset.id.identifier)
     }

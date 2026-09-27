@@ -352,6 +352,10 @@ nft:
     url: "https://{network}.g.alchemy.com"
     key:
       secret: ""
+  blockscout:
+    url: "https://api.blockscout.com"
+    key:
+      secret: ""
   magiceden:
     url: "https://api-mainnet.magiceden.dev"
     key:

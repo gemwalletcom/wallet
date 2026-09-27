@@ -5,8 +5,6 @@ pub mod c_withdraw;
 pub mod cancel_order;
 pub mod spot_send;
 pub mod token_delegate;
-pub mod usd_class_transfer;
-pub mod usd_send;
 pub mod withdrawal;
 
 pub use approve_agent::*;
@@ -16,6 +14,4 @@ pub use c_withdraw::*;
 pub use cancel_order::*;
 pub use spot_send::*;
 pub use token_delegate::*;
-pub use usd_class_transfer::*;
-pub use usd_send::*;
 pub use withdrawal::*;

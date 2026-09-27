@@ -1,12 +1,12 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable")]
 pub struct AssetScore {
     pub rank: i32,
-    #[typeshare(skip)]
+    #[model(skip)]
     #[serde(rename = "type")]
     pub rank_type: AssetRank,
 }

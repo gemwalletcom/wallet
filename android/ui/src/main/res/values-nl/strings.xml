@@ -48,7 +48,6 @@
   <string name="common_description">Beschrijving</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Opslaan</string>
   <string name="common_percentage">Percentage</string>
   <string name="common_details">Details</string>
   <string name="common_info">Informatie</string>
@@ -58,6 +57,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Vervaldatum</string>
   <string name="common_suspicious_address">Verdacht adres</string>
+  <string name="common_suspicious_address_description">Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.</string>
   <string name="common_refresh">Vernieuwen</string>
   <string name="common_grant_permission">Geef toestemming</string>
   <string name="common_required_field">%1$s is vereist</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">Portefeuille</string>
   <string name="wallet_import_already_imported_message">Deze portemonnee is al geïmporteerd.</string>
   <string name="wallets_title">Portemonnees</string>
-  <string name="wallets_watch">Volgen</string>
-  <string name="receive_title">Ontvang %1$s</string>
   <string name="receive_warning">Dit is uw adres — alleen verzenden %1$s op de %2$s netwerk.</string>
   <string name="buy_title">Koop %1$s</string>
   <string name="buy_providers_title">Aanbieders</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">Authenticatie</string>
   <string name="settings_notifications_title">Meldingen</string>
   <string name="settings_language">Taal</string>
-  <string name="settings_help_center">Helpcentrum</string>
   <string name="settings_support">Ondersteuning</string>
   <string name="settings_price_alerts_title">Prijswaarschuwingen</string>
   <string name="settings_hide_balance">Saldo verbergen</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Niet-ondersteunde asset.</string>
   <string name="errors_connections_no_supported_wallets">Er zijn geen ondersteunde wallets beschikbaar.</string>
   <string name="errors_connections_unsupported_chain">De meegeleverde keten wordt niet ondersteund.</string>
+  <string name="errors_authentication_unavailable">Verificatie is niet ingesteld op dit apparaat. Zet biometrie of een toegangscode aan in de apparaatinstellingen.</string>
+  <string name="errors_authentication_locked_out">Te veel mislukte pogingen. Probeer het later opnieuw.</string>
+  <string name="errors_authentication_failed">Verificatie mislukt. Probeer het opnieuw.</string>
+  <string name="errors_connections_expired">Deze verbindingslink is verlopen. Haal een nieuwe QR-code op en probeer het opnieuw.</string>
+  <string name="errors_connections_not_found">Deze verbinding bestaat niet meer.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.</string>
   <string name="errors_swap_amount_too_small">Bedrag te klein</string>
   <string name="errors_scan_transaction_malicious_description">Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.</string>
   <string name="errors_scan_transaction_memo_required">%1$s bestemmingswalletadres vereist een bestemmingstag / memo</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">Koop %1$s</string>
   <string name="asset_get_asset">%1$s krijgen</string>
   <string name="asset_add_to_wallet">Toevoegen aan portemonnee</string>
-  <string name="asset_hide_from_wallet">Verbergen voor portemonnee</string>
   <string name="asset_added_to_wallet">Toegevoegd aan portemonnee</string>
   <string name="asset_hidden_from_wallet">Verborgen voor portemonnee</string>
   <string name="asset_resources">Bronnen</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">Wijziging</string>
   <string name="date_today">Vandaag</string>
   <string name="date_yesterday">Gisteren</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Verbinding</string>
   <string name="wallet_connect_disconnect">Verbreek de verbinding</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">Snel</string>
   <string name="fee_rates_normal">Normaal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Aangepast</string>
   <string name="banner_account_activation_title">Accountactivatiekosten</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Als de prijs daalt met</string>
   <string name="price_alerts_set_alert_set_target_price">Stel een doelprijs in</string>
   <string name="price_alerts_set_alert_current_price">Huidige prijs</string>
-  <string name="price_alerts_added_for">Prijswaarschuwing instellen %1$s</string>
+  <string name="price_alerts_added_price_over">Melding toegevoegd voor prijs boven %1$s</string>
+  <string name="price_alerts_added_price_under">Melding toegevoegd voor prijs onder %1$s</string>
+  <string name="price_alerts_added_increases_by">Melding toegevoegd voor prijsstijging van %1$s</string>
+  <string name="price_alerts_added_decreases_by">Melding toegevoegd voor prijsdaling van %1$s</string>
   <string name="price_alerts_state_empty_title">Uw meldingen verschijnen hier</string>
   <string name="price_alerts_state_empty_description">Schakel ze in door munten toe te voegen aan de track</string>
   <string name="price_alerts_auto_footer">Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">Melden</string>
   <string name="permissions_access_denied">Toegang geweigerd</string>
   <string name="permissions_image_photo_access_denied_description">Deze app heeft geen toestemming om toegang te krijgen tot uw fotobibliotheek. Schakel de toegang in via de apparaatinstellingen.</string>
-  <string name="markets_title">Markten</string>
-  <string name="markets_state_empty_title">Uw marktgegevens verschijnen hier</string>
   <string name="markets_daily_volume">24-uurs volume</string>
   <string name="search_state_empty_description">Controleer de spelling of probeer een nieuwe zoekopdracht.</string>
   <string name="networks_state_empty_search_title">Geen netwerken gevonden</string>

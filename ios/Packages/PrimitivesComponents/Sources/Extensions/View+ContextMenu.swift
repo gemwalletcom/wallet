@@ -6,15 +6,27 @@ import SwiftUI
 
 public extension View {
     func contextMenu(_ items: [ContextMenuItemType]) -> some View {
-        contextMenu {
-            ForEach(Array(items.enumerated()), id: \.offset) {
-                build($0.element)
-            }
-        }
+        contextMenuOnOpen { items }
     }
 
     func contextMenu(_ item: ContextMenuItemType) -> some View {
         contextMenu([item])
+    }
+
+    func contextMenuOnOpen(_ items: @escaping () -> [ContextMenuItemType]) -> some View {
+        contextMenu {
+            ContextMenuItems(items: items)
+        }
+    }
+}
+
+private struct ContextMenuItems: View {
+    let items: () -> [ContextMenuItemType]
+
+    var body: some View {
+        ForEach(Array(items().enumerated()), id: \.offset) {
+            build($0.element)
+        }
     }
 
     @ViewBuilder
@@ -25,7 +37,7 @@ public extension View {
                 title: title ?? Localized.Common.copy,
                 systemImage: SystemImage.copy,
             ) {
-                CopyTypeViewModel.copyToClipboard(value, expirationTime: expirationTime)
+                Clipboard.copy(value, expirationTime: expirationTime)
                 onCopied?(value)
             }
         case let .pin(isPinned, onPin):
@@ -34,14 +46,6 @@ public extension View {
                 systemImage: isPinned ? SystemImage.unpin : SystemImage.pin,
                 action: {
                     onPin?()
-                },
-            )
-        case let .hide(onHide):
-            ContextMenuItem(
-                title: Localized.Common.hide,
-                systemImage: SystemImage.hide,
-                action: {
-                    onHide?()
                 },
             )
         case let .delete(onDelete):

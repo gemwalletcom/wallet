@@ -9,9 +9,9 @@ import Style
 import SwiftUI
 
 public struct TransactionsScene: View {
-    private var model: TransactionsViewModel
+    private var model: TransactionsSceneViewModel
 
-    public init(model: TransactionsViewModel) {
+    public init(model: TransactionsSceneViewModel) {
         self.model = model
     }
 

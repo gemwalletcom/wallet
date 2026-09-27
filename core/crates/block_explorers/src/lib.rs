@@ -17,24 +17,6 @@ pub struct ExplorerInput {
     pub memo: Option<String>,
 }
 
-impl ExplorerInput {
-    pub fn new_recipient(recipient: impl Into<String>) -> Self {
-        Self {
-            hash: String::new(),
-            recipient: Some(recipient.into()),
-            memo: None,
-        }
-    }
-
-    pub fn new_memo(recipient: impl Into<String>, memo: impl Into<String>) -> Self {
-        Self {
-            hash: String::new(),
-            recipient: Some(recipient.into()),
-            memo: Some(memo.into()),
-        }
-    }
-}
-
 impl<T: Into<String>> From<T> for ExplorerInput {
     fn from(hash: T) -> Self {
         Self {

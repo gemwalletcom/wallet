@@ -13,13 +13,12 @@ import Transfer
 
 public extension RecipientSceneViewModel {
     static func mock(
-        asset: Asset = .mockEthereum(),
+        asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         type: GemRecipientType? = nil,
         recipient: GemPaymentRecipient? = .none,
         onNavigate: TransferRouteAction = nil,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
-            wallet: .mock(),
             asset: asset,
             service: GemRecipientService.mock(),
             nameService: GemNameService.mock(),

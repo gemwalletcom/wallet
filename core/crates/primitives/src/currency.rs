@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, AsRefStr, EnumIter, EnumString, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, AsRefStr, EnumIter, EnumString, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Currency {
     MXN,

@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.add_asset.views.AddAssetScreen
+import com.gemwallet.android.features.assets.presents.add.AddAssetScreen
 import kotlinx.serialization.Serializable
 
 @Serializable

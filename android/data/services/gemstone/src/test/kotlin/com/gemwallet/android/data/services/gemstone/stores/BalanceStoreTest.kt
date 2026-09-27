@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.mockStoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.mockStoreTransactionRunner
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest

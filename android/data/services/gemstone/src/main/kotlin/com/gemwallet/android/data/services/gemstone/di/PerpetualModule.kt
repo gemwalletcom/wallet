@@ -1,18 +1,17 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.services.gemstone.perpetual.GemstonePerpetualStreamConnection
 import com.gemwallet.android.data.services.gemstone.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.PerpetualDao
+import com.gemwallet.android.data.services.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.wallet.core.primitives.Chain
 import dagger.Module
 import dagger.Provides
@@ -43,8 +42,8 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideGemstonePerpetualStore(perpetualDao: PerpetualDao, searchDao: SearchDao, perpetualPositionDao: PerpetualPositionDao, balancesDao: BalancesDao, transactionRunner: StoreTransactionRunner): GemstonePerpetualStore =
-        GemstonePerpetualStore(perpetualDao, searchDao, perpetualPositionDao, balancesDao, transactionRunner)
+    fun provideGemstonePerpetualStore(perpetualDao: PerpetualDao, perpetualPositionDao: PerpetualPositionDao, balancesDao: BalancesDao, transactionRunner: StoreTransactionRunner): GemstonePerpetualStore =
+        GemstonePerpetualStore(perpetualDao, perpetualPositionDao, balancesDao, transactionRunner)
 
     @Provides
     @Singleton

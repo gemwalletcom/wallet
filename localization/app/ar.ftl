@@ -48,7 +48,6 @@ common_learn_more = يتعلم أكثر
 common_description = وصف
 common_emoji = الرموز التعبيرية
 common_avatar = الصورة الرمزية
-common_save = يحفظ
 common_percentage = نسبة مئوية
 common_details = تفاصيل
 common_info = معلومات
@@ -58,6 +57,7 @@ common_method = طريقة
 common_token = رمز مميز
 common_expiration = انتهاء الصلاحية
 common_suspicious_address = عنوان مشبوه
+common_suspicious_address_description = هذا العنوان مرتبط بنشاط مشبوه أو ضار.
 common_refresh = ينعش
 common_grant_permission = يعطي الأذن
 common_required_field = %@ مطلوب
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = تم استيراد هذه المحفظ
 # Wallets
 
 wallets_title = المحافظ
-wallets_watch = يشاهد
 
 # Receive
 
-receive_title = استقبل %@
 receive_warning = هذا عنوانك — أرسل فقط %@ على %@ شبكة.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = تمكين رمز المرور
 settings_security_authentication = المصادقة
 settings_notifications_title = إشعارات
 settings_language = لغة
-settings_help_center = مركز المساعدة
 settings_support = يدعم
 settings_price_alerts_title = تنبيهات الأسعار
 settings_hide_balance = إخفاء الرصيد
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = لا يوجد عرض سعر متاح.
 errors_swap_not_supported_asset = أصل غير مدعوم.
 errors_connections_no_supported_wallets = لا تتوفر محافظ مدعومة.
 errors_connections_unsupported_chain = السلسلة المقدمة غير مدعومة.
+errors_authentication_unavailable = المصادقة غير مُعدّة على هذا الجهاز. فعّل القياسات الحيوية أو رمز المرور من إعدادات جهازك.
+errors_authentication_locked_out = محاولات فاشلة كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.
+errors_authentication_failed = فشلت المصادقة. يرجى المحاولة مرة أخرى.
+errors_connections_expired = انتهت صلاحية رابط الاتصال هذا. احصل على رمز QR جديد وحاول مرة أخرى.
+errors_connections_not_found = هذا الاتصال لم يعد موجودًا.
+errors_connections_relay_unavailable = تعذّر الوصول إلى WalletConnect. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.
 errors_swap_amount_too_small = المبلغ صغير جدًا
 errors_scan_transaction_malicious_description = لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.
 errors_scan_transaction_memo_required = يتطلب عنوان محفظة الوجهة %@ علامة وجهة/مذكرة
@@ -322,7 +325,6 @@ asset_verification_warning_message = يمكن لأي شخص إنشاء واحد�
 asset_buy_asset = شراء %@
 asset_get_asset = احصل على %@
 asset_add_to_wallet = أضف إلى المحفظة
-asset_hide_from_wallet = إخفاء من المحفظة
 asset_added_to_wallet = تمت الإضافة إلى المحفظة
 asset_hidden_from_wallet = تم الإخفاء من المحفظة
 asset_resources = موارد
@@ -349,6 +351,7 @@ charts_price_change = يتغير
 
 date_today = اليوم
 date_yesterday = أمس
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = طبيعي
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = مخصص
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = عندما يرتفع السعر ب�
 price_alerts_set_alert_price_decreases_by = عندما ينخفض السعر بمقدار
 price_alerts_set_alert_set_target_price = تحديد سعر الهدف
 price_alerts_set_alert_current_price = السعر الحالي
-price_alerts_added_for = تعيين تنبيه السعر %@
+price_alerts_added_price_over = تمت إضافة تنبيه عندما يتجاوز السعر %@
+price_alerts_added_price_under = تمت إضافة تنبيه عندما ينخفض السعر عن %@
+price_alerts_added_increases_by = تمت إضافة تنبيه عند ارتفاع السعر بنسبة %@
+price_alerts_added_decreases_by = تمت إضافة تنبيه عند انخفاض السعر بنسبة %@
 price_alerts_state_empty_title = ستظهر تنبيهاتك هنا
 price_alerts_state_empty_description = قم بتمكينهم عن طريق إضافة عملات معدنية للتتبع
 price_alerts_auto_footer = يتم تشغيل التنبيهات عند حدوث تحركات كبيرة في الأسعار.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = لا يتوفر لهذا ا�
 
 # Markets
 
-markets_title = الأسواق
-markets_state_empty_title = ستظهر بيانات أسواقك هنا
 markets_daily_volume = حجم 24 ساعة
 
 # Search

@@ -18,6 +18,7 @@ pub fn generate_hmac_signature(secret_key: &str, message: &str) -> String {
     encode_base64(&generate_hmac_bytes(secret_key, message))
 }
 
+#[cfg(test)]
 pub fn generate_hmac_signature_hex(secret_key: &str, message: &str) -> String {
     hex::encode(generate_hmac_bytes(secret_key, message))
 }

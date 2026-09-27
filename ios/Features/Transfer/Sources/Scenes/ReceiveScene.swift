@@ -2,22 +2,29 @@
 
 import Components
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 
 public struct ReceiveScene: View {
-    @State private var model: ReceiveViewModel
+    @State private var model: ReceiveSceneViewModel
 
-    public init(model: ReceiveViewModel) {
+    public init(model: ReceiveSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
+        content
+            .bindQuery(model.assetQuery)
+            .task { await model.updateAsset() }
+    }
+
+    private var content: some View {
         VStack(spacing: .large) {
             VStack {
                 Spacer()
                 VStack(spacing: .medium) {
-                    AssetPreviewView(model: model.assetModel)
+                    AssetPreviewView(model: model.assetState.asset)
 
                     Button(action: model.onCopyAddress) {
                         VStack(spacing: .medium) {
@@ -58,12 +65,7 @@ public struct ReceiveScene: View {
             if model.showNetworkSelector {
                 Button(action: model.onSelectNetwork) {
                     HStack {
-                        ChainView(
-                            model: ChainViewModel(
-                                chain: model.assetModel.asset.chain,
-                                assetType: model.assetModel.asset.type,
-                            ),
-                        )
+                        ChainView(model: model.chainModel(for: model.asset.id))
                         Spacer()
                         Images.System.chevronRight
                     }
@@ -98,14 +100,7 @@ public struct ReceiveScene: View {
                 SelectableListNavigationStack(
                     model: model.networkSelectorModel,
                     onFinishSelection: model.onFinishNetworkSelection,
-                    listContent: {
-                        ChainView(
-                            model: ChainViewModel(
-                                chain: $0.chain,
-                                assetType: $0.assetType,
-                            ),
-                        )
-                    },
+                    listContent: { ChainView(model: model.chainModel(for: $0)) },
                 )
                 .presentationDetents([.large])
             case .copy:
@@ -113,14 +108,14 @@ public struct ReceiveScene: View {
             }
         }
         .copyToast(
-            model: model.copyModel,
+            copy: model.copy,
             isPresenting: $model.isPresentingCopyToast,
         )
         .alertSheet($model.isPresentingAlertMessage)
         .task(id: model.address) {
             await model.onLoadImage()
         }
-        .task(id: model.assetModel.asset.id) {
+        .task(id: model.asset.id) {
             await model.onChangeAsset()
         }
     }

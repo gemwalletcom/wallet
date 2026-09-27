@@ -5,14 +5,6 @@ import SwiftUI
 // MARK: - View builders
 
 public extension View {
-    @ViewBuilder func isHidden(_ isHidden: Bool) -> some View {
-        if isHidden {
-            hidden()
-        } else {
-            self
-        }
-    }
-
     @ViewBuilder func isVisible(_ isVisible: Bool) -> some View {
         if isVisible {
             self
@@ -52,50 +44,11 @@ public extension View {
             self
         }
     }
-
-    @ViewBuilder
-    func ifLet<Wrapped>(
-        _ optional: Wrapped?,
-        ifContent: (Self, Wrapped) -> some View,
-        elseContent: (Self) -> some View,
-    ) -> some View {
-        if let value = optional {
-            ifContent(self, value)
-        } else {
-            elseContent(self)
-        }
-    }
 }
 
 // MARK: - Sheet
 
-public extension View {
-    func sheet<T>(
-        presenting data: Binding<T?>,
-        sensoryFeedback: SensoryFeedback? = nil,
-        onDismiss: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping (T) -> some View,
-    ) -> some View {
-        let isPresented = Binding<Bool>(
-            get: { data.wrappedValue != nil },
-            set: { newValue in
-                guard !newValue else { return }
-                data.wrappedValue = nil
-            },
-        )
-
-        return sheet(
-            isPresented: isPresented,
-            onDismiss: onDismiss,
-            content: {
-                data.wrappedValue.map(content)
-            },
-        )
-        .ifLet(sensoryFeedback) { view, value in
-            view.sensoryFeedback(value, trigger: isPresented.wrappedValue) { $1 }
-        }
-    }
-}
+public extension View {}
 
 // MARK: - Syntactic sugar
 

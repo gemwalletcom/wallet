@@ -41,6 +41,19 @@ pub struct SwapQuoteData {
     pub memo: Option<String>,
     pub approval: Option<ApprovalData>,
     pub gas_limit: Option<String>,
+    #[serde(default)]
+    pub permit2: Option<Permit2ApprovalData>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Permit2ApprovalData {
+    pub token: String,
+    pub spender: String,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
+    pub permit2_contract: String,
+    pub permit2_nonce: u64,
 }
 
 impl SwapQuoteData {
@@ -57,6 +70,7 @@ impl SwapQuoteData {
             memo: None,
             approval,
             gas_limit,
+            permit2: None,
         }
     }
 
@@ -69,6 +83,7 @@ impl SwapQuoteData {
             memo,
             approval: None,
             gas_limit: None,
+            permit2: None,
         }
     }
 }

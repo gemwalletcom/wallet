@@ -13,7 +13,7 @@ impl<C: Client + 'static> NFTProvider for OpenSeaClient<C> {
         "OpenSea"
     }
 
-    fn chains(&self) -> &'static [NFTChain] {
+    fn chains(&self) -> &[NFTChain] {
         &[NFTChain::Ethereum, NFTChain::Polygon]
     }
 

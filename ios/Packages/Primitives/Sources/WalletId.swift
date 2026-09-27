@@ -28,27 +28,6 @@ public enum WalletId: Equatable, Hashable, Sendable {
         }
     }
 
-    public var address: String {
-        switch self {
-        case let .multicoin(address),
-             let .single(_, address),
-             let .privateKey(_, address),
-             let .view(_, address):
-            address
-        }
-    }
-
-    public var chain: Chain? {
-        switch self {
-        case .multicoin:
-            nil
-        case let .single(chain, _),
-             let .privateKey(chain, _),
-             let .view(chain, _):
-            chain
-        }
-    }
-
     public var identifier: String { id }
 
     public init(core id: String) {

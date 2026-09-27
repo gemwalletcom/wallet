@@ -1,0 +1,95 @@
+// swift-tools-version: 6.0
+
+import PackageDescription
+
+let package = Package(
+    name: "Wallet",
+    platforms: [
+        .iOS(.v17),
+        .macOS(.v15),
+    ],
+    products: [
+        .library(
+            name: "Wallet",
+            targets: ["Wallet"],
+        ),
+        .library(
+            name: "WalletTestKit",
+            targets: ["WalletTestKit"],
+        ),
+    ],
+    dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
+        .package(name: "Primitives", path: "../../Packages/Primitives"),
+        .package(name: "Localization", path: "../../Packages/Localization"),
+        .package(name: "Style", path: "../../Packages/Style"),
+        .package(name: "Components", path: "../../Packages/Components"),
+        .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
+        .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
+        .package(name: "Store", path: "../../Packages/Store"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
+        .package(name: "Perpetuals", path: "../Perpetuals"),
+        .package(name: "Assets", path: "../Assets"),
+        .package(name: "NFT", path: "../NFT"),
+    ],
+    targets: [
+        .target(
+            name: "Wallet",
+            dependencies: [
+                "Gemstone",
+                "Primitives",
+                "Localization",
+                "Style",
+                "Components",
+                "PrimitivesComponents",
+                "GemstonePrimitives",
+                "InfoSheet",
+                "Store",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                "Perpetuals",
+                "Assets",
+                "NFT",
+            ],
+            path: "Sources",
+        ),
+        .target(
+            name: "WalletTestKit",
+            dependencies: [
+                "Wallet",
+                "Gemstone",
+                "Primitives",
+                "Assets",
+                "NFT",
+                "Store",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "NFTTestKit", package: "NFT"),
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+            path: "TestKit",
+        ),
+        .testTarget(
+            name: "WalletTests",
+            dependencies: [
+                "Wallet",
+                "WalletTestKit",
+                "Gemstone",
+                "Primitives",
+                "GemstonePrimitives",
+                "Store",
+                "NFT",
+                "Components",
+                "PrimitivesComponents",
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+            path: "Tests",
+        ),
+    ],
+)

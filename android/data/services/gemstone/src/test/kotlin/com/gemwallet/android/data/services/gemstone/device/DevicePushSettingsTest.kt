@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,13 +29,13 @@ class DevicePushSettingsTest {
 
     @Test
     fun `a new wallet asks Core and keeps the state it answered`() = runTest {
-        coEvery { notificationsService.enableForNewWallet() } returns GemPushState(isEnabled = true, result = GemPushResult.Stored)
+        coEvery { notificationsService.askToEnable() } returns GemPushState(isEnabled = true, result = GemPushResult.Stored)
         val subject = settings(ConfigStore(mockk(relaxed = true)))
 
         subject.enablePushForNewWallet()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { notificationsService.enableForNewWallet() }
+        coVerify(exactly = 1) { notificationsService.askToEnable() }
     }
 
     @Test

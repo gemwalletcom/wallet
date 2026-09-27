@@ -1,10 +1,10 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{Chain, VerificationStatus, scan::AddressType};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AddressName {
     pub chain: Chain,

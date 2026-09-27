@@ -12,6 +12,7 @@ async-trait = { workspace = true }
 
 primitives = { path = "../primitives" }
 alchemy = { path = "../alchemy", features = ["nft"] }
+blockscout = { path = "../blockscout" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_evm = { path = "../gem_evm" }
 gem_ton = { path = "../gem_ton", features = ["rpc"] }
@@ -19,6 +20,7 @@ settings = { path = "../settings" }
 
 [dev-dependencies]
 tokio = { workspace = true }
+blockscout = { path = "../blockscout", features = ["testkit"] }
 gem_ton = { path = "../gem_ton", features = ["rpc", "testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 

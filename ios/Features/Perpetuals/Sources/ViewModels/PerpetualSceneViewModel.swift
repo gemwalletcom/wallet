@@ -2,13 +2,14 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemPerpetualButton
-import struct Gemstone.GemPerpetualButtonRow
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -28,9 +29,9 @@ public final class PerpetualSceneViewModel {
     public let wallet: Wallet
     public let asset: Asset
 
-    public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
+    public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    public let perpetualQuery: ObservableQuery<PerpetualQuery>
+    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -40,13 +41,13 @@ public final class PerpetualSceneViewModel {
         perpetualQuery.value
     }
 
-    public var transactionSections: [ListSection<TransactionViewModel>] {
+    public var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
 
-    public let chart: PerpetualChartModel
+    public let chart: PerpetualChartViewModel
 
-    public var isPresentingInfoSheet: InfoSheetType?
+    public var isPresentingInfoSheet: GemInfoSheet?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
     public var isPresentingAlertMessage: AlertMessage?
@@ -63,16 +64,16 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.service = service
         self.observerService = observerService
-        chart = PerpetualChartModel(service: service, observerService: observerService)
+        chart = PerpetualChartViewModel(service: service, observerService: observerService)
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
-        perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
+        perpetualQuery = ObservableQuery(PerpetualQuery(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
-            MappedRequest(
-                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
-                transform: TransactionViewModel.sections,
+            MappedQuery(
+                TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
+                transform: transactionListSections,
             ),
             initialValue: [],
         )
@@ -84,14 +85,6 @@ public final class PerpetualSceneViewModel {
 
     public var modifyTitle: String {
         GemPerpetualButton.modify.title
-    }
-
-    public func buttonModels(_ buttons: [GemPerpetualButtonRow]) -> [PerpetualButtonViewModel] {
-        buttons.map { PerpetualButtonViewModel(row: $0) }
-    }
-
-    public func onSelect(_ button: PerpetualButtonViewModel) {
-        onSelectButton(button.button)
     }
 
     public func onSelectButton(_ button: GemPerpetualButton) {
@@ -147,7 +140,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: nil)
+        isPresentingInfoSheet = topic.infoSheet
     }
 
     func onSelectAutoclose() {

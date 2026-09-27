@@ -3,15 +3,13 @@ use serde_json::Value;
 use serde_serializers::deserialize_f64_from_str;
 use strum::{Display, EnumString};
 
-use crate::models::UInt64;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Order {
     pub coin: String,
     pub limit_px: String,
     pub sz: String,
-    pub oid: UInt64,
+    pub oid: u64,
     pub is_trigger: bool,
     pub trigger_px: Option<String>,
     pub is_position_tpsl: bool,
@@ -22,7 +20,7 @@ pub struct Order {
 #[serde(rename_all = "camelCase")]
 pub struct OpenOrder {
     pub coin: String,
-    pub oid: UInt64,
+    pub oid: u64,
     #[serde(deserialize_with = "serde_serializers::deserialize_option_f64_from_str")]
     pub trigger_px: Option<f64>,
     #[serde(deserialize_with = "serde_serializers::deserialize_option_f64_from_str")]
@@ -70,7 +68,7 @@ impl From<FillDirection> for String {
 pub struct UserFill {
     pub coin: String,
     pub hash: String,
-    pub oid: UInt64,
+    pub oid: u64,
     pub sz: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub closed_pnl: f64,

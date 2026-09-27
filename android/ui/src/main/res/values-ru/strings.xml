@@ -48,7 +48,6 @@
   <string name="common_description">Описание</string>
   <string name="common_emoji">Эмодзи</string>
   <string name="common_avatar">Аватар</string>
-  <string name="common_save">Сохранить</string>
   <string name="common_percentage">Процент</string>
   <string name="common_details">Детали</string>
   <string name="common_info">Информация</string>
@@ -58,6 +57,7 @@
   <string name="common_token">Токен</string>
   <string name="common_expiration">Срок действия</string>
   <string name="common_suspicious_address">Подозрительный адрес</string>
+  <string name="common_suspicious_address_description">Этот адрес связан с подозрительной или вредоносной активностью.</string>
   <string name="common_refresh">Обновить</string>
   <string name="common_grant_permission">Предоставить разрешение</string>
   <string name="common_required_field">%1$s является обязательным</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">Портфель</string>
   <string name="wallet_import_already_imported_message">Этот кошелек уже импортирован.</string>
   <string name="wallets_title">Кошельки</string>
-  <string name="wallets_watch">Смотреть</string>
-  <string name="receive_title">Получить %1$s</string>
   <string name="receive_warning">Это ваш адрес — отправляйте только %1$s на %2$s сеть.</string>
   <string name="buy_title">Купить %1$s</string>
   <string name="buy_providers_title">Провайдеры</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">Аутентификация</string>
   <string name="settings_notifications_title">Уведомления</string>
   <string name="settings_language">Язык</string>
-  <string name="settings_help_center">Центр помощи</string>
   <string name="settings_support">Поддержка</string>
   <string name="settings_price_alerts_title">Уведомления о ценах</string>
   <string name="settings_hide_balance">Скрыть баланс</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Неподдерживаемый актив.</string>
   <string name="errors_connections_no_supported_wallets">Поддерживаемые кошельки отсутствуют.</string>
   <string name="errors_connections_unsupported_chain">Предоставленная цепочка не поддерживается.</string>
+  <string name="errors_authentication_unavailable">На этом устройстве не настроена аутентификация. Включите биометрию или код-пароль в настройках устройства.</string>
+  <string name="errors_authentication_locked_out">Слишком много неудачных попыток. Пожалуйста, попробуйте позже.</string>
+  <string name="errors_authentication_failed">Не удалось пройти аутентификацию. Пожалуйста, попробуйте снова.</string>
+  <string name="errors_connections_expired">Срок действия этой ссылки для подключения истёк. Получите новый QR-код и попробуйте снова.</string>
+  <string name="errors_connections_not_found">Это подключение больше не существует.</string>
+  <string name="errors_connections_relay_unavailable">Не удаётся связаться с WalletConnect. Проверьте подключение к интернету и попробуйте снова.</string>
   <string name="errors_swap_amount_too_small">Сумма слишком мала</string>
   <string name="errors_scan_transaction_malicious_description">Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адрес кошелька назначения требует тега назначения / заметки</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">Купить %1$s</string>
   <string name="asset_get_asset">Получить %1$s</string>
   <string name="asset_add_to_wallet">Добавить в кошелек</string>
-  <string name="asset_hide_from_wallet">Скрыть из кошелька</string>
   <string name="asset_added_to_wallet">Добавлено в кошелек</string>
   <string name="asset_hidden_from_wallet">Скрыто из кошелька</string>
   <string name="asset_resources">Ресурсы</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">Изменение</string>
   <string name="date_today">Сегодня</string>
   <string name="date_yesterday">Вчера</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Соединение</string>
   <string name="wallet_connect_disconnect">Отключить</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">Быстрый</string>
   <string name="fee_rates_normal">Нормальный</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свой</string>
   <string name="banner_account_activation_title">Плата за активацию аккаунта</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Когда цена уменьшается на</string>
   <string name="price_alerts_set_alert_set_target_price">Установить целевую цену</string>
   <string name="price_alerts_set_alert_current_price">Текущая цена</string>
-  <string name="price_alerts_added_for">Установить ценовое оповещение %1$s</string>
+  <string name="price_alerts_added_price_over">Оповещение добавлено: цена выше %1$s</string>
+  <string name="price_alerts_added_price_under">Оповещение добавлено: цена ниже %1$s</string>
+  <string name="price_alerts_added_increases_by">Оповещение добавлено: рост цены на %1$s</string>
+  <string name="price_alerts_added_decreases_by">Оповещение добавлено: падение цены на %1$s</string>
   <string name="price_alerts_state_empty_title">Ваши оповещения о ценах будут появляться здесь</string>
   <string name="price_alerts_state_empty_description">Включите их, добавив монеты для отслеживания</string>
   <string name="price_alerts_auto_footer">Оповещения срабатывают при значительных изменениях цены.</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">Пожаловаться</string>
   <string name="permissions_access_denied">Доступ запрещен</string>
   <string name="permissions_image_photo_access_denied_description">У этого приложения нет разрешения на доступ к вашей библиотеке фотографий. Пожалуйста, включите доступ в настройках вашего устройства.</string>
-  <string name="markets_title">Рынки</string>
-  <string name="markets_state_empty_title">Ваши рыночные данные появятся здесь</string>
   <string name="markets_daily_volume">24-часовой объем</string>
   <string name="search_state_empty_description">Проверьте орфографию или попробуйте новый поиск.</string>
   <string name="networks_state_empty_search_title">Сети не найдены</string>

@@ -269,9 +269,9 @@ extension ListItemView {
 #Preview {
     List {
         Section("Simple Text Cases") {
-            ListItemView(model: .text(title: "Simple Title"))
-            ListItemView(model: .text(title: "Title with Subtitle", subtitle: "This is a subtitle"))
-            ListItemView(model: .text(title: "Long Title Long Title Long Title", subtitle: "Long Subtitle Long Subtitle"))
+            ListItemView(model: ListItemModel(title: "Simple Title"))
+            ListItemView(model: ListItemModel(title: "Title with Subtitle", subtitle: "This is a subtitle"))
+            ListItemView(model: ListItemModel(title: "Long Title Long Title Long Title", subtitle: "Long Subtitle Long Subtitle"))
             ListItemView(model: ListItemModel(
                 title: "Custom with Tag",
                 titleTag: "NEW",
@@ -282,7 +282,7 @@ extension ListItemView {
             ListItemView(model: ListItemModel(
                 title: "With Image",
                 subtitle: "Custom with left image",
-                imageStyle: .list(assetImage: AssetImage.image(Images.System.faceid)),
+                imageStyle: .list(assetImage: AssetImage.image(Images.System.settings)),
             ))
 
             ListItemView(model: ListItemModel(
@@ -296,7 +296,7 @@ extension ListItemView {
                 title: "Full Featured",
                 titleTag: "PRO",
                 titleTagStyle: TextStyle(font: .footnote, color: .white, background: .purple),
-                titleTagType: .image(Images.System.book),
+                titleTagType: .image(Images.System.settings),
                 titleExtra: "Extra info",
                 subtitle: "Main subtitle",
                 subtitleExtra: "Extra subtitle",

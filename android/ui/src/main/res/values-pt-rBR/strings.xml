@@ -48,7 +48,6 @@
   <string name="common_description">Descrição</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Salvar</string>
   <string name="common_percentage">Porcentagem</string>
   <string name="common_details">Detalhes</string>
   <string name="common_info">Informações</string>
@@ -58,6 +57,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Expiração</string>
   <string name="common_suspicious_address">Endereço suspeito</string>
+  <string name="common_suspicious_address_description">Este endereço está associado a atividades suspeitas ou prejudiciais.</string>
   <string name="common_refresh">Atualizar</string>
   <string name="common_grant_permission">Conceder permissão</string>
   <string name="common_required_field">%1$s é obrigatório</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfólio</string>
   <string name="wallet_import_already_imported_message">Esta carteira já foi importada.</string>
   <string name="wallets_title">Carteiras</string>
-  <string name="wallets_watch">Monitorar</string>
-  <string name="receive_title">Receber %1$s</string>
   <string name="receive_warning">Este é o seu endereço — envie apenas %1$s na rede %2$s.</string>
   <string name="buy_title">Comprar %1$s</string>
   <string name="buy_providers_title">Provedores</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">Autenticação</string>
   <string name="settings_notifications_title">Notificações</string>
   <string name="settings_language">Idioma</string>
-  <string name="settings_help_center">Central de Ajuda</string>
   <string name="settings_support">Suporte</string>
   <string name="settings_price_alerts_title">Alertas de preço</string>
   <string name="settings_hide_balance">Ocultar saldo</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Ativo não suportado.</string>
   <string name="errors_connections_no_supported_wallets">Não há carteiras suportadas disponíveis.</string>
   <string name="errors_connections_unsupported_chain">A cadeia fornecida não é suportada.</string>
+  <string name="errors_authentication_unavailable">A autenticação não está configurada neste dispositivo. Ative a biometria ou um código nos ajustes do dispositivo.</string>
+  <string name="errors_authentication_locked_out">Muitas tentativas sem sucesso. Tente novamente mais tarde.</string>
+  <string name="errors_authentication_failed">Falha na autenticação. Tente novamente.</string>
+  <string name="errors_connections_expired">Este link de conexão expirou. Obtenha um novo código QR e tente novamente.</string>
+  <string name="errors_connections_not_found">Esta conexão não existe mais.</string>
+  <string name="errors_connections_relay_unavailable">Não foi possível acessar o WalletConnect. Verifique sua conexão com a internet e tente novamente.</string>
   <string name="errors_swap_amount_too_small">Quantidade muito pequena</string>
   <string name="errors_scan_transaction_malicious_description">Esta transação não pode ser concluída — o endereço da carteira de destino está vinculado a atividades suspeitas ou prejudiciais.</string>
   <string name="errors_scan_transaction_memo_required">%1$s O endereço da carteira de destino requer uma etiqueta/memorando de destino</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">Comprar %1$s</string>
   <string name="asset_get_asset">Obter %1$s</string>
   <string name="asset_add_to_wallet">Adicionar à carteira</string>
-  <string name="asset_hide_from_wallet">Ocultar da carteira</string>
   <string name="asset_added_to_wallet">Adicionado à carteira</string>
   <string name="asset_hidden_from_wallet">Oculto da carteira</string>
   <string name="asset_resources">Recursos</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">Mudar</string>
   <string name="date_today">Hoje</string>
   <string name="date_yesterday">Ontem</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Conexão</string>
   <string name="wallet_connect_disconnect">Desconectar</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">Rápido</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizado</string>
   <string name="banner_account_activation_title">Taxa de ativação da conta</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Quando o preço diminui em</string>
   <string name="price_alerts_set_alert_set_target_price">Definir preço-alvo</string>
   <string name="price_alerts_set_alert_current_price">Preço atual</string>
-  <string name="price_alerts_added_for">Definir alerta de preço %1$s</string>
+  <string name="price_alerts_added_price_over">Alerta adicionado para preço acima de %1$s</string>
+  <string name="price_alerts_added_price_under">Alerta adicionado para preço abaixo de %1$s</string>
+  <string name="price_alerts_added_increases_by">Alerta adicionado para alta de preço de %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alerta adicionado para queda de preço de %1$s</string>
   <string name="price_alerts_state_empty_title">Seus alertas aparecerão aqui</string>
   <string name="price_alerts_state_empty_description">Habilite-os adicionando moedas para rastrear</string>
   <string name="price_alerts_auto_footer">Alertas são acionados em movimentos significativos de preços.</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">Denunciar</string>
   <string name="permissions_access_denied">Acesso negado</string>
   <string name="permissions_image_photo_access_denied_description">Este aplicativo não tem permissão para acessar sua biblioteca de fotos. Habilite o acesso nas configurações do seu dispositivo.</string>
-  <string name="markets_title">Mercados</string>
-  <string name="markets_state_empty_title">Os dados do seu mercado aparecerão aqui</string>
   <string name="markets_daily_volume">Volume 24h</string>
   <string name="search_state_empty_description">Verifique a ortografia ou tente uma nova pesquisa.</string>
   <string name="networks_state_empty_search_title">Nenhuma rede encontrada</string>

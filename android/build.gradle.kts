@@ -43,6 +43,7 @@ subprojects {
             .withPropertyName("gemstoneHostLibrary")
             .withPathSensitivity(PathSensitivity.NONE)
         systemProperty("jna.library.path", gemstoneHostLibrary.parentFile.absolutePath)
+        jvmArgs("-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC")
         when (providers.gradleProperty("integrationTests").orNull) {
             "skip" -> exclude("**/integration/**")
             "only" -> filter {

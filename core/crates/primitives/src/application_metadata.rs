@@ -1,15 +1,15 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum ApplicationMetadataSource {
     WalletConnect,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ApplicationMetadata {
     pub name: String,

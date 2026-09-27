@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemConnectionDetails
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -8,27 +9,27 @@ import SwiftUI
 
 struct ConnectionScene: View {
     @Environment(\.dismiss) private var dismiss
-    let model: ConnectionSceneViewModel
+    let details: GemConnectionDetails
     let onDisconnect: () -> Void
 
     var body: some View {
         List {
             Section {
-                ConnectionView(model: ConnectionViewModel(connection: model.details.connection))
+                ConnectionView(connection: details.connection)
             }
             Section {
-                ForEach(model.details.rows, id: \.self) { row in
+                ForEach(details.rows, id: \.self) { row in
                     GemListRowView(row: row)
                 }
             }
             Section {
-                Button(model.disconnectTitle, role: .destructive) {
+                Button(Localized.WalletConnect.disconnect, role: .destructive) {
                     onDisconnect()
                     dismiss()
                 }
             }
         }
         .listSectionSpacing(.compact)
-        .navigationTitle(model.title)
+        .navigationTitle(Localized.WalletConnect.Connection.title)
     }
 }

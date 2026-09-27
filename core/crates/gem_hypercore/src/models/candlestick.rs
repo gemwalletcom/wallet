@@ -2,11 +2,9 @@ use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use serde::{Deserialize, Serialize};
 
-use crate::models::UInt64;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candlestick {
-    pub t: UInt64, // Open time (timestamp in milliseconds)
+    pub t: u64,    // Open time (timestamp in milliseconds)
     pub s: String, // Symbol (coin)
     pub i: String, // Interval
     pub o: String, // Open price

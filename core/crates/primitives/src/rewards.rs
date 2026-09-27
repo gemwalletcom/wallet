@@ -108,6 +108,8 @@ pub struct Rewards {
     pub disable_reason: Option<String>,
     #[serde(default)]
     pub referral_allowance: ReferralAllowance,
+    #[serde(default)]
+    pub use_referral_code_until: Option<DateTime<Utc>>,
 }
 
 fn invite_reward_points() -> i32 {
@@ -128,6 +130,7 @@ impl Default for Rewards {
             redemption_options: vec![],
             disable_reason: None,
             referral_allowance: ReferralAllowance::default(),
+            use_referral_code_until: None,
         }
     }
 }

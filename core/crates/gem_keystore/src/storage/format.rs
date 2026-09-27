@@ -158,6 +158,7 @@ pub(super) fn meta_from_header(header: &Header) -> StoredSecretMeta {
         keystore_id: header.keystore_id.clone(),
         kind: header.kind,
         version: VERSION_V4,
+        created: false,
     }
 }
 

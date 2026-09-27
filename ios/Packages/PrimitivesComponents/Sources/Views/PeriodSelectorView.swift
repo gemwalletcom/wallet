@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
 import Primitives
 import Style
 import SwiftUI

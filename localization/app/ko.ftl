@@ -48,7 +48,6 @@ common_learn_more = 더 알아보기
 common_description = 설명
 common_emoji = 이모티콘
 common_avatar = 아바타
-common_save = 저장
 common_percentage = 백분율
 common_details = 세부
 common_info = 정보
@@ -58,6 +57,7 @@ common_method = 방법
 common_token = 토큰
 common_expiration = 만료
 common_suspicious_address = 의심스러운 주소
+common_suspicious_address_description = 이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.
 common_refresh = 새로고침
 common_grant_permission = 권한 부여
 common_required_field = %@ 이(가) 필요합니다
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = 이 지갑은 이미 가져왔습니다
 # Wallets
 
 wallets_title = 지갑
-wallets_watch = 시계
 
 # Receive
 
-receive_title = %@ 받습니다.
 receive_warning = 이 주소는 귀하의 주소입니다. %@만 %@ 네트워크에서 보내세요.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = 비밀번호 활성화
 settings_security_authentication = 인증
 settings_notifications_title = 알림
 settings_language = 언어
-settings_help_center = 도움말 센터
 settings_support = 지원하다
 settings_price_alerts_title = 가격 알림
 settings_hide_balance = 잔액 숨기기
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = 사용 가능한 견적이 없습니다.
 errors_swap_not_supported_asset = 지원되지 않는 자산입니다.
 errors_connections_no_supported_wallets = 지원되는 지갑이 없습니다.
 errors_connections_unsupported_chain = 제공된 체인은 지원되지 않습니다.
+errors_authentication_unavailable = 이 기기에 인증이 설정되어 있지 않습니다. 기기 설정에서 생체 인식 또는 암호를 켜세요.
+errors_authentication_locked_out = 실패한 시도가 너무 많습니다. 나중에 다시 시도해 주세요.
+errors_authentication_failed = 인증에 실패했습니다. 다시 시도해 주세요.
+errors_connections_expired = 이 연결 링크가 만료되었습니다. 새 QR 코드를 받아 다시 시도해 주세요.
+errors_connections_not_found = 이 연결은 더 이상 존재하지 않습니다.
+errors_connections_relay_unavailable = WalletConnect에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.
 errors_swap_amount_too_small = 금액이 너무 적습니다
 errors_scan_transaction_malicious_description = 이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.
 errors_scan_transaction_memo_required = %@ 대상 지갑 주소에는 대상 태그/메모가 필요합니다.
@@ -322,7 +325,6 @@ asset_verification_warning_message = 가짜 또는 악성 토큰을 포함하여
 asset_buy_asset = %@ 구매
 asset_get_asset = %@ 받기
 asset_add_to_wallet = 지갑에 추가
-asset_hide_from_wallet = 지갑에서 숨기기
 asset_added_to_wallet = 지갑에 추가됨
 asset_hidden_from_wallet = 지갑에서 숨김
 asset_resources = 자원
@@ -349,6 +351,7 @@ charts_price_change = 변화
 
 date_today = 오늘
 date_yesterday = 어제
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = 보통
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = 사용자 지정
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = 가격이 상승하면
 price_alerts_set_alert_price_decreases_by = 가격이 하락하면
 price_alerts_set_alert_set_target_price = 목표 가격 설정
 price_alerts_set_alert_current_price = 현재 가격
-price_alerts_added_for = 가격 알림 설정 %@
+price_alerts_added_price_over = 가격이 %@ 이상일 때 알림이 추가되었습니다
+price_alerts_added_price_under = 가격이 %@ 이하일 때 알림이 추가되었습니다
+price_alerts_added_increases_by = 가격이 %@ 상승할 때 알림이 추가되었습니다
+price_alerts_added_decreases_by = 가격이 %@ 하락할 때 알림이 추가되었습니다
 price_alerts_state_empty_title = 알림이 여기에 표시됩니다.
 price_alerts_state_empty_description = 추적에 동전을 추가하여 활성화하세요
 price_alerts_auto_footer = 가격이 크게 변동하면 알림이 울립니다.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = 이 앱은 사진 라이브�
 
 # Markets
 
-markets_title = 시장
-markets_state_empty_title = 귀하의 시장 데이터가 여기에 표시됩니다.
 markets_daily_volume = 24시간 볼륨
 
 # Search

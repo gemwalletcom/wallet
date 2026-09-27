@@ -2,6 +2,7 @@ use fiat::error::FiatQuoteError;
 use gem_auth::JwtError;
 use gem_client::ClientError;
 use gem_tracing::error_fields;
+use localizer::LanguageLocalizer;
 use primitives::{RequestError, ResponseResult};
 use rewards::{RewardsError, RewardsRedemptionError, UsernameError};
 use rocket::response::{Responder, Response};
@@ -15,6 +16,20 @@ pub struct ErrorContext(pub String);
 
 pub fn cache_error(req: &Request<'_>, message: &str) {
     req.local_cache(|| ErrorContext(message.to_string()));
+}
+
+pub fn localized_fiat_error(error: Box<dyn std::error::Error + Send + Sync>, locale: &str) -> ApiError {
+    let localizer = LanguageLocalizer::new_with_language(locale);
+    if let Some(error) = error.downcast_ref::<RequestError>() {
+        return match error {
+            RequestError::LimitReached => ApiError::OkError(localizer.fiat_error_limit_reached()),
+            RequestError::Forbidden => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
+        };
+    }
+    if error.downcast_ref::<FiatQuoteError>().is_some() {
+        return ApiError::BadRequest(localizer.errors_generic());
+    }
+    ApiError::from(error)
 }
 
 fn ok_error_message(error: &(dyn std::error::Error + 'static)) -> Option<String> {
@@ -199,6 +214,22 @@ mod tests {
     use rewards::{RewardsError, RewardsRedemptionError};
     use rocket::http::Status;
     use services::{CacheError, DatabaseError};
+
+    #[test]
+    fn test_a_fiat_error_reads_in_the_device_language() {
+        let limited = super::localized_fiat_error(Box::new(RequestError::LimitReached), "de");
+        assert_eq!(limited, ApiError::OkError("Zu viele Angebotsanfragen. Bitte versuchen Sie es in ein paar Minuten erneut.".to_string()));
+        assert_eq!(
+            super::localized_fiat_error(Box::new(RequestError::Forbidden), "en"),
+            ApiError::BadRequest("This quote is no longer available. Please try again.".to_string()),
+            "a quote that expired says so instead of a bare Forbidden"
+        );
+        assert_eq!(
+            super::localized_fiat_error(Box::new(fiat::error::FiatQuoteError::InvalidRequest("Missing network".to_string())), "en"),
+            ApiError::BadRequest("An unexpected error occurred. Please try again later.".to_string())
+        );
+        assert_eq!(super::localized_fiat_error("connection refused".into(), "en"), ApiError::Internal("connection refused".to_string()));
+    }
 
     #[test]
     fn test_cache_not_found_maps_to_public_not_found() {

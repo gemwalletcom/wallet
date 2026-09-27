@@ -1,14 +1,14 @@
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 use crate::currency::Currency;
 use crate::portfolio::ChartValuePercentage;
 use crate::{AssetId, Price};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Sendable, Equatable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Sendable, Equatable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPrice {
     pub asset_id: AssetId,
@@ -36,8 +36,8 @@ impl AssetPrice {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetMarket {
     pub market_cap: Option<f64>,
@@ -47,17 +47,17 @@ pub struct AssetMarket {
     pub circulating_supply: Option<f64>,
     pub total_supply: Option<f64>,
     pub max_supply: Option<f64>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_high: Option<f64>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_high_date: Option<DateTime<Utc>>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_high_change_percentage: Option<f64>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_low: Option<f64>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_low_date: Option<DateTime<Utc>>,
-    #[typeshare(skip)]
+    #[model(skip)]
     pub all_time_low_change_percentage: Option<f64>,
     pub all_time_high_value: Option<ChartValuePercentage>,
     pub all_time_low_value: Option<ChartValuePercentage>,
@@ -110,7 +110,6 @@ pub struct Charts {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartValue {
     pub timestamp: i32,
@@ -123,8 +122,8 @@ impl PartialEq for ChartValue {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, AsRefStr, EnumString, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, AsRefStr, EnumString, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum ChartPeriod {

@@ -1,22 +1,22 @@
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::asset_id::AssetId;
 use crate::asset_price::{ChartPeriod, ChartValue};
 use crate::chart::ChartDateValue;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Sendable, CaseIterable, Identifiable, Hashable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, Sendable, CaseIterable, Identifiable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub enum PortfolioType {
     Wallet,
     Perpetuals,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Sendable, CaseIterable, Identifiable, Hashable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, Sendable, CaseIterable, Identifiable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub enum PortfolioChartType {
     Value,
@@ -31,7 +31,6 @@ pub struct PortfolioChartData {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualAccountSummary {
     pub account_value: f64,
@@ -41,7 +40,6 @@ pub struct PerpetualAccountSummary {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualPortfolioTimeframeData {
     pub account_value_history: Vec<ChartDateValue>,
@@ -50,7 +48,6 @@ pub struct PerpetualPortfolioTimeframeData {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualPortfolio {
     pub day: Option<PerpetualPortfolioTimeframeData>,
@@ -82,8 +79,8 @@ pub struct PortfolioAllocation {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartValuePercentage {
     pub date: DateTime<Utc>,

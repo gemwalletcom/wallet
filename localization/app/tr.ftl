@@ -48,7 +48,6 @@ common_learn_more = Daha fazla bilgi edin
 common_description = Tanım
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Kaydet
 common_percentage = Yüzde
 common_details = Detaylar
 common_info = Bilgi
@@ -58,6 +57,7 @@ common_method = Yöntem
 common_token = Jeton
 common_expiration = Son kullanma
 common_suspicious_address = Şüpheli adres
+common_suspicious_address_description = Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.
 common_refresh = Yenile
 common_grant_permission = İzin ver
 common_required_field = %@ gerekli
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Bu cüzdan zaten içe aktarıldı.
 # Wallets
 
 wallets_title = Cüzdanlar
-wallets_watch = İzle
 
 # Receive
 
-receive_title = %@ alın
 receive_warning = Bu sizin adresiniz — yalnızca %@ varlığını %@ ağında gönderin.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Şifreyi Etkinleştir
 settings_security_authentication = Kimlik doğrulama
 settings_notifications_title = Bildirimler
 settings_language = Dil
-settings_help_center = Yardım Merkezi
 settings_support = Destek
 settings_price_alerts_title = Fiyat Uyarıları
 settings_hide_balance = Bakiyeyi Gizle
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Kullanılabilir teklif yok.
 errors_swap_not_supported_asset = Desteklenmeyen varlık.
 errors_connections_no_supported_wallets = Desteklenen cüzdan yok.
 errors_connections_unsupported_chain = Sağlanan zincir desteklenmiyor.
+errors_authentication_unavailable = Bu cihazda kimlik doğrulama ayarlanmamış. Cihaz ayarlarından biyometriyi veya bir parolayı açın.
+errors_authentication_locked_out = Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin.
+errors_authentication_failed = Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.
+errors_connections_expired = Bu bağlantı linkinin süresi doldu. Yeni bir QR kodu alıp tekrar deneyin.
+errors_connections_not_found = Bu bağlantı artık mevcut değil.
+errors_connections_relay_unavailable = WalletConnect'e ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.
 errors_swap_amount_too_small = Miktar çok küçük
 errors_scan_transaction_malicious_description = Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.
 errors_scan_transaction_memo_required = %@ hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor
@@ -322,7 +325,6 @@ asset_verification_warning_message = Sahte veya kötü amaçlı belirteçler de 
 asset_buy_asset = %@ satın al
 asset_get_asset = %@ al
 asset_add_to_wallet = Cüzdana ekle
-asset_hide_from_wallet = Cüzdandan gizle
 asset_added_to_wallet = Cüzdana eklendi
 asset_hidden_from_wallet = Cüzdandan gizlendi
 asset_resources = Kaynaklar
@@ -349,6 +351,7 @@ charts_price_change = Değişim
 
 date_today = Bugün
 date_yesterday = Dün
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Özel
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Fiyat arttığında
 price_alerts_set_alert_price_decreases_by = Fiyat düştüğünde
 price_alerts_set_alert_set_target_price = Hedef fiyatı belirle
 price_alerts_set_alert_current_price = Güncel fiyat
-price_alerts_added_for = Fiyat uyarısı ayarla %@
+price_alerts_added_price_over = Fiyat %@ üzerine çıktığında uyarı eklendi
+price_alerts_added_price_under = Fiyat %@ altına düştüğünde uyarı eklendi
+price_alerts_added_increases_by = Fiyat %@ arttığında uyarı eklendi
+price_alerts_added_decreases_by = Fiyat %@ düştüğünde uyarı eklendi
 price_alerts_state_empty_title = Uyarılarınız burada görünecek
 price_alerts_state_empty_description = Paraları takip sistemine ekleyerek onları etkinleştirin
 price_alerts_auto_footer = Önemli fiyat hareketlerinde uyarılar tetiklenir.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Bu uygulama fotoğraf kütü
 
 # Markets
 
-markets_title = Piyasalar
-markets_state_empty_title = Piyasa verileriniz burada görünecek
 markets_daily_volume = 24 saatlik Hacim
 
 # Search

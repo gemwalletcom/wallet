@@ -1,10 +1,10 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::currency::Currency;
 
-#[typeshare(swift = "Sendable")]
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Model)]
+#[model(swift = "Sendable")]
 pub struct FiatRate {
     pub symbol: Currency,
     pub rate: f64,

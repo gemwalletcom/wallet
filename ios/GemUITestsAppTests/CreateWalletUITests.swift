@@ -65,7 +65,7 @@ final class CreateWalletUITests: XCTestCase {
         }
         app.tapContinue()
 
-        // VerifyPhraseWalletScene
+        // VerifyPhraseScene
         words.forEach { app.buttons[$0].firstMatch.tap() }
         app.tapContinue()
 

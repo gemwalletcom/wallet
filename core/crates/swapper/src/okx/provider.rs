@@ -58,7 +58,7 @@ where
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
-        SwapAmountMode::Flexible
+        SwapAmountMode::Fixed
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -156,7 +156,7 @@ mod tests {
         assert_eq!(provider.provider().id, SwapperProvider::Okx);
         assert_eq!(provider.provider().mode, SwapperProviderMode::OnChain);
         assert!(!provider.supported_assets().is_empty());
-        assert_eq!(provider.amount_mode(&mock_solana_request()), SwapAmountMode::Flexible);
+        assert_eq!(provider.amount_mode(&mock_solana_request()), SwapAmountMode::Fixed, "a contract call spends exactly the quoted amount");
     }
 
     #[tokio::test]

@@ -1,16 +1,15 @@
-use crate::UInt64;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeSyncStatus {
     pub in_sync: bool,
-    pub latest_block_number: Option<UInt64>,
-    pub current_block_number: Option<UInt64>,
+    pub latest_block_number: Option<u64>,
+    pub current_block_number: Option<u64>,
 }
 
 impl NodeSyncStatus {
-    pub fn new(in_sync: bool, latest_block_number: Option<UInt64>, current_block_number: Option<UInt64>) -> Self {
+    pub fn new(in_sync: bool, latest_block_number: Option<u64>, current_block_number: Option<u64>) -> Self {
         Self {
             in_sync,
             latest_block_number,

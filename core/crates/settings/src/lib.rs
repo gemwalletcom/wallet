@@ -437,6 +437,7 @@ impl Settings {
 pub struct NFT {
     pub url: String,
     pub alchemy: ProviderSettings,
+    pub blockscout: ProviderSettings,
     pub magiceden: ProviderSettings,
     pub opensea: ProviderSettings,
     pub ton: ProviderSettings,

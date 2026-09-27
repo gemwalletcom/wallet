@@ -14,7 +14,7 @@ struct GemstoneBannerStoreTests {
     @Test
     func writesAndReadsBackTheStateCoreAsksFor() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), accounts: [.mock(chain: .xrp)])
-        let store = try BannerStore.mock(db: .mockWithWallets([wallet]))
+        let store = BannerStore.mock(db: .mock(wallets: [wallet]))
         let adapter = GemstoneBannerStore(store: store)
         let walletId = wallet.id
         let key = GemBannerKey(walletId: walletId.id, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.toGem())
@@ -31,7 +31,7 @@ struct GemstoneBannerStoreTests {
 
     @Test
     func setStateCreatesTheRowWhenCoreHasNotSeededIt() async throws {
-        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let store = BannerStore.mock(db: .mock(chains: [.cosmos]))
         let adapter = GemstoneBannerStore(store: store)
         let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
 
@@ -42,7 +42,7 @@ struct GemstoneBannerStoreTests {
 
     @Test
     func addBannersLeavesAnExistingStateAlone() async throws {
-        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let store = BannerStore.mock(db: .mock(chains: [.cosmos]))
         let adapter = GemstoneBannerStore(store: store)
         let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
         try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.toGem())

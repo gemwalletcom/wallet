@@ -1,7 +1,7 @@
 use alloy_primitives::U256;
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
-use primitives::Chain;
+use primitives::{Chain, ChainType};
 use std::{collections::HashMap, str::FromStr, sync::LazyLock};
 
 use crate::{QuoteRequest, SwapperError};
@@ -30,6 +30,26 @@ pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLo
 
 pub fn reserved_transaction_fees(chain: Chain) -> Option<&'static str> {
     RESERVED_NATIVE_FEES.get(&chain).copied()
+}
+
+pub fn max_amount_spends_all_but_fee(chain: Chain) -> bool {
+    match chain.chain_type() {
+        ChainType::Ethereum => true,
+        ChainType::Bitcoin
+        | ChainType::Solana
+        | ChainType::Cosmos
+        | ChainType::Ton
+        | ChainType::Tron
+        | ChainType::Aptos
+        | ChainType::Sui
+        | ChainType::Xrp
+        | ChainType::Near
+        | ChainType::Stellar
+        | ChainType::Algorand
+        | ChainType::Polkadot
+        | ChainType::Cardano
+        | ChainType::HyperCore => false,
+    }
 }
 
 fn quote_value_after_reserve(request: &QuoteRequest, reserved: &str) -> Result<BigUint, SwapperError> {

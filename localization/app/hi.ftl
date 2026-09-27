@@ -48,7 +48,6 @@ common_learn_more = और अधिक जानें
 common_description = विवरण
 common_emoji = इमोजी
 common_avatar = अवतार
-common_save = बचाना
 common_percentage = प्रतिशत
 common_details = विवरण
 common_info = जानकारी
@@ -58,6 +57,7 @@ common_method = तरीका
 common_token = टोकन
 common_expiration = समाप्ति
 common_suspicious_address = संदिग्ध पता
+common_suspicious_address_description = यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।
 common_refresh = ताज़ा करना
 common_grant_permission = अनुमति प्रदान करें
 common_required_field = %@ आवश्यक है
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = यह बटुआ पहले ही
 # Wallets
 
 wallets_title = बटुए
-wallets_watch = देखो
 
 # Receive
 
-receive_title = %@ प्राप्त करें
 receive_warning = यह आपका पता है — केवल %@ ही %@ नेटवर्क पर भेजें।
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = पासकोड सक्षम करें
 settings_security_authentication = प्रमाणीकरण
 settings_notifications_title = सूचनाएं
 settings_language = भाषा
-settings_help_center = सहायता केंद्र
 settings_support = सहायता
 settings_price_alerts_title = मूल्य अलर्ट
 settings_hide_balance = बैलेंस छिपाएँ
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = कोई कोट उपलब्ध नह�
 errors_swap_not_supported_asset = समर्थित परिसंपत्ति नहीं.
 errors_connections_no_supported_wallets = कोई समर्थित वॉलेट उपलब्ध नहीं है.
 errors_connections_unsupported_chain = प्रदान की गई श्रृंखला समर्थित नहीं है.
+errors_authentication_unavailable = इस डिवाइस पर प्रमाणीकरण सेट नहीं है। डिवाइस सेटिंग्स में बायोमेट्रिक्स या पासकोड चालू करें।
+errors_authentication_locked_out = बहुत अधिक असफल प्रयास। कृपया बाद में फिर प्रयास करें।
+errors_authentication_failed = प्रमाणीकरण विफल रहा। कृपया फिर प्रयास करें।
+errors_connections_expired = इस कनेक्शन लिंक की समय-सीमा समाप्त हो गई है। नया QR कोड लें और फिर प्रयास करें।
+errors_connections_not_found = यह कनेक्शन अब मौजूद नहीं है।
+errors_connections_relay_unavailable = WalletConnect तक नहीं पहुँच सके। अपना इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।
 errors_swap_amount_too_small = राशि बहुत छोटी है
 errors_scan_transaction_malicious_description = यह लेनदेन पूरा नहीं किया जा सकता - गंतव्य वॉलेट पता संदिग्ध या हानिकारक गतिविधि से जुड़ा हुआ है।
 errors_scan_transaction_memo_required = %@ गंतव्य वॉलेट पते के लिए गंतव्य टैग / मेमो की आवश्यकता है
@@ -322,7 +325,6 @@ asset_verification_warning_message = कोई भी इसे बना सक
 asset_buy_asset = %@ खरीदें
 asset_get_asset = %@ प्राप्त करें
 asset_add_to_wallet = वॉलेट में जोड़ें
-asset_hide_from_wallet = बटुए से छिपाएँ
 asset_added_to_wallet = वॉलेट में जोड़ा गया
 asset_hidden_from_wallet = वॉलेट से छिपाया गया
 asset_resources = संसाधन
@@ -349,6 +351,7 @@ charts_price_change = परिवर्तन
 
 date_today = आज
 date_yesterday = कल
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = सामान्य
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = कस्टम
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = जब कीमत इतनी ब
 price_alerts_set_alert_price_decreases_by = जब कीमत कम हो जाती है
 price_alerts_set_alert_set_target_price = लक्ष्य मूल्य निर्धारित करें
 price_alerts_set_alert_current_price = वर्तमान मूल्य
-price_alerts_added_for = मूल्य अलर्ट सेट करें %@
+price_alerts_added_price_over = कीमत %@ से ऊपर होने पर अलर्ट जोड़ा गया
+price_alerts_added_price_under = कीमत %@ से नीचे होने पर अलर्ट जोड़ा गया
+price_alerts_added_increases_by = कीमत %@ बढ़ने पर अलर्ट जोड़ा गया
+price_alerts_added_decreases_by = कीमत %@ घटने पर अलर्ट जोड़ा गया
 price_alerts_state_empty_title = आपके अलर्ट यहां दिखाई देंगे
 price_alerts_state_empty_description = ट्रैक करने के लिए सिक्के जोड़कर उन्हें सक्षम करें
 price_alerts_auto_footer = महत्वपूर्ण मूल्य परिवर्तन पर अलर्ट सक्रिय हो जाते हैं।
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = इस ऐप को आप�
 
 # Markets
 
-markets_title = बाज़ार
-markets_state_empty_title = आपका बाज़ार डेटा यहाँ दिखाई देगा
 markets_daily_volume = 24 घंटे की मात्रा
 
 # Search

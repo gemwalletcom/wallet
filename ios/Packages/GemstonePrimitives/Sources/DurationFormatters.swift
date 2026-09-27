@@ -2,6 +2,7 @@
 
 import Foundation
 import func Gemstone.estimatedDurationParts
+import func Gemstone.estimatedDurationText
 import struct Gemstone.GemDurationPart
 import enum Gemstone.GemDurationUnit
 
@@ -17,10 +18,7 @@ public struct EstimatedConfirmationFormatter {
     }
 
     public func string(parts: [GemDurationPart]) -> String {
-        guard let duration = parts.string(style: .short, calendar: calendar) else {
-            return ""
-        }
-        return "≈ \(duration)"
+        estimatedDurationText(duration: parts.string(style: .short, calendar: calendar) ?? "")
     }
 }
 
