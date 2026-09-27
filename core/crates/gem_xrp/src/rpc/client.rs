@@ -10,7 +10,7 @@ use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, TransactionStatus};
+use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, TransactionStatus, ValidatedAccountInfoResult};
 
 pub(crate) const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
 
@@ -39,6 +39,11 @@ impl<C: Client + Clone> XrpClient<C> {
 
     pub async fn get_account_info(&self, address: &str) -> Result<Option<AccountInfo>, Box<dyn Error + Send + Sync>> {
         let result = self.get_account_info_full(address).await?;
+        Ok(result.account_data)
+    }
+
+    pub async fn get_validated_account_info(&self, address: &str) -> Result<Option<AccountInfo>, Box<dyn Error + Send + Sync>> {
+        let result: ValidatedAccountInfoResult = self.request(XrpRpc::GetValidatedAccountInfo { address: address.to_string() }).await?;
         Ok(result.account_data)
     }
 

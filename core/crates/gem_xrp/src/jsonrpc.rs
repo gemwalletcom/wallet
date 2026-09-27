@@ -6,6 +6,7 @@ use crate::method;
 #[derive(Clone, Debug)]
 pub enum XrpRpc {
     GetAccountInfo { address: String },
+    GetValidatedAccountInfo { address: String },
     GetAccountObjects { address: String },
     GetAccountTransactions { address: String, limit: usize },
     GetFees,
@@ -19,7 +20,7 @@ pub enum XrpRpc {
 impl ToJsonRpcRequest for XrpRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::GetAccountInfo { .. } => method::ACCOUNT_INFO,
+            Self::GetAccountInfo { .. } | Self::GetValidatedAccountInfo { .. } => method::ACCOUNT_INFO,
             Self::GetAccountObjects { .. } => method::ACCOUNT_OBJECTS,
             Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
             Self::GetFees => method::FEE,
@@ -35,6 +36,10 @@ impl ToJsonRpcRequest for XrpRpc {
             Self::GetAccountInfo { address } => json!([{
                 "account": address,
                 "ledger_index": "current"
+            }]),
+            Self::GetValidatedAccountInfo { address } => json!([{
+                "account": address,
+                "ledger_index": "validated"
             }]),
             Self::GetAccountObjects { address } => json!([{
                 "account": address,
@@ -89,6 +94,15 @@ mod tests {
     #[test]
     fn builds_broadcast_request_with_fail_hard() {
         assert_request(XrpRpc::SubmitTransaction { data: "signed-transaction".into() }, method::SUBMIT, json!([{"tx_blob": "signed-transaction", "fail_hard": true}]));
+    }
+
+    #[test]
+    fn builds_validated_account_info_request() {
+        assert_request(
+            XrpRpc::GetValidatedAccountInfo { address: "rAccount".into() },
+            method::ACCOUNT_INFO,
+            json!([{"account": "rAccount", "ledger_index": "validated"}]),
+        );
     }
 
     #[test]

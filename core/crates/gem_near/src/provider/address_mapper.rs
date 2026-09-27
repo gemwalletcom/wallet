@@ -2,7 +2,7 @@ use primitives::AddressStatus;
 
 use crate::models::{AccountAccessKeyList, AccountAccessKeyPermission};
 
-pub(super) fn map_address_status(public_key: &str, access_keys: &AccountAccessKeyList) -> Vec<AddressStatus> {
+pub(super) fn map_address_status(public_key: &str, access_keys: &AccountAccessKeyList, account_exists: bool) -> Vec<AddressStatus> {
     let has_full_access = access_keys.keys.iter().any(|entry| {
         entry.public_key == public_key
             && match &entry.access_key.permission {
@@ -10,7 +10,7 @@ pub(super) fn map_address_status(public_key: &str, access_keys: &AccountAccessKe
                 AccountAccessKeyPermission::FunctionCall(_) => false,
             }
     });
-    match access_keys.keys.is_empty() || has_full_access {
+    match !account_exists || has_full_access {
         true => vec![],
         false => vec![AddressStatus::ExternallyControlled],
     }

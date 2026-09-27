@@ -218,6 +218,11 @@ pub struct AccountInfoResult {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidatedAccountInfoResult {
+    pub account_data: Option<AccountInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Fee {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub minimum_fee: u64,

@@ -127,6 +127,11 @@ impl<C: Client + Clone> SolanaClient<C> {
         self.client.request(SolanaRpc::GetAccountInfo(address.to_string(), SolanaAccountEncoding::Base64)).await
     }
 
+    pub(crate) async fn get_account_owner(&self, address: &str) -> Result<Option<String>, JsonRpcError> {
+        let account: ValueResult<Option<AccountData>> = self.client.request(SolanaRpc::GetAccountOwner(address.to_string())).await?;
+        Ok(account.value.map(|account| account.owner))
+    }
+
     pub(crate) async fn find_token_account(&self, owner: &str, mint: &str) -> Result<Option<String>, JsonRpcError> {
         let accounts = self.get_token_accounts_by_mint(owner, mint).await?;
         Ok(accounts.value.first().map(|account| account.pubkey.clone()))

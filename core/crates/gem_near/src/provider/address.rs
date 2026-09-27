@@ -12,7 +12,8 @@ impl<C: Client + Clone> ChainAddressStatus for NearProvider<C> {
     async fn get_address_status(&self, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Sync + Send>> {
         let public_key = address_to_public_key(&address)?;
         let access_keys = self.get_account_access_keys(&address).await?;
-        Ok(address_mapper::map_address_status(&public_key, &access_keys))
+        let account_exists = !access_keys.keys.is_empty() || self.account_exists(&address).await?;
+        Ok(address_mapper::map_address_status(&public_key, &access_keys, account_exists))
     }
 }
 
@@ -27,17 +28,24 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_address_status() {
-        for (address, response, expected) in [
-            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_full_access.json"), vec![]),
+        let unknown_account = include_str!("../../testdata/account_unknown.json");
+        let existing_account = include_str!("../../testdata/balance_coin.json");
+        for (address, response, account, expected) in [
+            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_full_access.json"), existing_account, vec![]),
             (
                 TEST_EXTERNALLY_CONTROLLED_ADDRESS,
                 include_str!("../../testdata/access_key_list_externally_controlled.json"),
+                existing_account,
                 vec![AddressStatus::ExternallyControlled],
             ),
-            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_function_call.json"), vec![AddressStatus::ExternallyControlled]),
-            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_unknown_account.json"), vec![]),
+            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_function_call.json"), existing_account, vec![AddressStatus::ExternallyControlled]),
+            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_empty.json"), unknown_account, vec![]),
+            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_empty.json"), existing_account, vec![AddressStatus::ExternallyControlled]),
         ] {
-            let client = MockClient::new().with_post(move |_, _| Ok(response.as_bytes().to_vec()));
+            let client = MockClient::new().with_post(move |_, body| {
+                let is_account_request = String::from_utf8_lossy(body).contains("view_account");
+                Ok(if is_account_request { account } else { response }.as_bytes().to_vec())
+            });
             let provider = NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(client)));
 
             assert_eq!(provider.get_address_status(address.to_string()).await.unwrap(), expected);

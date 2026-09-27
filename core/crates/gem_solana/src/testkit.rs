@@ -3,8 +3,8 @@ use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 use num_bigint::BigUint;
 
 use crate::{
-    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageHeader, Pubkey, SYSTEM_PROGRAM_ID, VersionedTransaction,
-    models::{AccountData, BlockTransaction, EpochInfo, Info, Meta, Parsed, StakeDelegation, StakeInfo, TokenAccountData, TokenAccountInfo, TokenAccountInfoData, TokenAmount, TokenBalance, Transaction, TransactionMessage, ValueData},
+    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageHeader, Pubkey, VersionedTransaction,
+    models::{BlockTransaction, EpochInfo, Info, Meta, Parsed, StakeDelegation, StakeInfo, TokenAccountData, TokenAccountInfo, TokenAccountInfoData, TokenAmount, TokenBalance, Transaction, TransactionMessage},
     siws::SiwsMessage,
 };
 
@@ -100,15 +100,6 @@ impl SiwsMessage {
 
 pub(crate) fn mock_siws_message(body: &str) -> String {
     format!("example.com wants you to sign in with your Solana account:\n{TEST_PRIVATE_KEY_SOLANA_ADDRESS}{body}")
-}
-
-impl AccountData {
-    pub(crate) fn mock() -> Self {
-        ValueData {
-            data: vec![],
-            owner: SYSTEM_PROGRAM_ID.to_string(),
-        }
-    }
 }
 
 impl EpochInfo {

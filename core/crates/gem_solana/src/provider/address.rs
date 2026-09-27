@@ -9,8 +9,8 @@ use crate::{provider::address_mapper, rpc::SolanaProvider};
 #[async_trait]
 impl<C: Client + Clone> ChainAddressStatus for SolanaProvider<C> {
     async fn get_address_status(&self, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Sync + Send>> {
-        let account = self.get_account_info_base64(&address).await?;
-        Ok(address_mapper::map_address_status(account.value.as_ref()))
+        let owner = self.get_account_owner(&address).await?;
+        Ok(address_mapper::map_address_status(owner.as_deref()))
     }
 }
 

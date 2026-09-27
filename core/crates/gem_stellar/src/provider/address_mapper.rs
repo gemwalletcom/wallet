@@ -6,7 +6,9 @@ pub fn map_address_status(address: &str, account: Option<&Account>) -> Vec<Addre
     let Some(account) = account else {
         return vec![];
     };
-    let own_weight: u32 = account.signers.iter().filter(|signer| signer.key == address).map(|signer| signer.weight).sum();
+    let Some(own_weight) = account.signers.iter().find(|signer| signer.key == address).map(|signer| signer.weight) else {
+        return vec![];
+    };
     match own_weight < account.thresholds.med_threshold.max(1) {
         true => vec![AddressStatus::ExternallyControlled],
         false => vec![],
@@ -28,9 +30,14 @@ mod tests {
             thresholds: Thresholds { med_threshold: 2 },
             ..Account::mock(ADDRESS)
         };
+        let without_own_signer = Account {
+            signers: vec![Signer { key: OTHER_ADDRESS.to_string(), weight: 1 }],
+            ..Account::mock(ADDRESS)
+        };
 
         assert!(map_address_status(ADDRESS, Some(&Account::mock(ADDRESS))).is_empty());
         assert!(map_address_status(ADDRESS, Some(&co_signed)).is_empty());
+        assert!(map_address_status(ADDRESS, Some(&without_own_signer)).is_empty());
         assert!(map_address_status(ADDRESS, None).is_empty());
     }
 

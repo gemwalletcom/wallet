@@ -115,7 +115,6 @@ impl TronAccount {
             balance: None,
             address: Some(address.to_string()),
             owner_permission: Some(TronAccountOwnerPermission {
-                permission_name: "owner".to_string(),
                 threshold: Some(1),
                 keys: Some(vec![TronAccountPermissionKey { address: address.to_string(), weight: 1 }]),
             }),

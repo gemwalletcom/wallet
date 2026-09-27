@@ -4,14 +4,11 @@ use async_trait::async_trait;
 use chain_traits::ChainBalances;
 use futures::future::try_join_all;
 use gem_client::Client;
-use gem_jsonrpc::types::JsonRpcError;
 use primitives::{AssetBalance, Chain};
 
 use super::balances_mapper::map_native_balance;
 use super::token_mapper::map_token_balance;
-use crate::rpc::NearProvider;
-
-const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
+use crate::rpc::{NearProvider, client::is_account_missing};
 
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for NearProvider<C> {
@@ -40,10 +37,6 @@ impl<C: Client + Clone> ChainBalances for NearProvider<C> {
     async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         Ok(vec![])
     }
-}
-
-fn is_account_missing(error: &JsonRpcError) -> bool {
-    error.code == ACCOUNT_NOT_FOUND_ERROR_CODE
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
