@@ -1,8 +1,6 @@
 use config_keys::{RateLimitKey, RateLimitWindow};
+use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
-const SECONDS_PER_MINUTE: u64 = 60;
-const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;
-const SECONDS_PER_DAY: u64 = 24 * 60 * 60;
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
 pub enum CacheKey<'a> {

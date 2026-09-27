@@ -2,6 +2,7 @@ use num_bigint::BigUint;
 use std::error::Error;
 use std::str::FromStr;
 
+use primitives::contract_constants::EVM_NATIVE_TOKEN_ADDRESS;
 use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 
 use super::client::chain_id;
@@ -92,7 +93,7 @@ fn map_asset_id(fungible_info: &ZerionFungibleInfo, chain: Chain) -> Result<Asse
 }
 
 fn is_native_address(address: &str) -> bool {
-    address.eq_ignore_ascii_case("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    address.eq_ignore_ascii_case(EVM_NATIVE_TOKEN_ADDRESS)
 }
 
 #[cfg(test)]

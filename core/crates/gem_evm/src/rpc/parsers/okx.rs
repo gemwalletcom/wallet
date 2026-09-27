@@ -7,7 +7,7 @@ use crate::{
     ethereum_address_checksum,
     rpc::{mapper::TRANSFER_TOPIC, model::Log},
 };
-use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata};
+use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, contract_constants::EVM_NATIVE_TOKEN_ADDRESS};
 
 use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 
@@ -15,7 +15,6 @@ pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
 pub(crate) const FUNCTION_OKX_UNXSWAP_BY_ORDER_ID: &str = "0x9871efa4";
 const OKX_SWAP_EVENT_TOPIC: &str = "0x1bb43f2da90e35f7b0cf38521ca95a49e68eb42fac49924930a5bd73cdf7576c";
-const NATIVE_TOKEN_ADDRESS: &str = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 pub struct OkxParser;
 
 struct ReceiptTransfer {
@@ -113,7 +112,7 @@ impl OkxParser {
 
     fn asset_id_from_token(context: &ParseContext<'_>, token: &str) -> Option<AssetId> {
         let token = ethereum_address_checksum(token).ok()?;
-        if token == ethereum_address_checksum(NATIVE_TOKEN_ADDRESS).ok()? || token == Address::ZERO.to_checksum(None) {
+        if token == EVM_NATIVE_TOKEN_ADDRESS || token == Address::ZERO.to_checksum(None) {
             return Some(AssetId::from_chain(*context.metadata.chain));
         }
 
