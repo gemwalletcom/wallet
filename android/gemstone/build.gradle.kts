@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     id("com.android.library")
 }
@@ -25,17 +23,10 @@ val cargoNdkTargets = (System.getenv("GEMSTONE_ANDROID_ABIS") ?: defaultCargoNdk
 
 android {
     namespace = "com.gemwallet.gemstone"
-    compileSdk = 37
     ndkVersion = libs.versions.androidNdk.get()
 
     defaultConfig {
-        minSdk = 28
         consumerProguardFiles(gemstoneRoot.resolve("android/gemstone/consumer-rules.pro"))
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     sourceSets {
@@ -48,12 +39,6 @@ android {
             }
             manifest.srcFile(gemstoneSrc.resolve("main/AndroidManifest.xml"))
         }
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

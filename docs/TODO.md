@@ -20,7 +20,6 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Redundancy sweeps:** CLN389 in section 11.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -193,20 +192,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
-
-## 11. Cleanup sweeps
-
-Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written twice, empty answers every implementer repeats, dependencies and visibility nothing uses. Each item removes duplication without changing what any screen, request or stored value does; it verifies the module it touches (`cd core && just test <CRATE>` with both clippy runs, `just ios test-package <Package>`, `./gradlew :<module>:testDebugUnitTest assembleGoogleDebug`) and says in the commit what went. Code near signing or transaction construction moves only as identical text with its tests ([security](../skills/security.md)).
-
-### Core
-
-
-### iOS
-
-
-### Android
-
-- **CLN389** **M** **Library modules share one build configuration.** The 49 library `build.gradle.kts` files total 3,116 lines, about 2,000 of them in 17 near-identical `android {}` blocks (SDK levels, Java 17 options, JVM target, build types, test options, Compose). A `build-logic` convention plugin for a library module and a Compose library module leaves each file its namespace, its plugins and its dependencies. Verify with `assembleGoogleDebug` and the unit tests.
 
 ## Blocked upstream
 
