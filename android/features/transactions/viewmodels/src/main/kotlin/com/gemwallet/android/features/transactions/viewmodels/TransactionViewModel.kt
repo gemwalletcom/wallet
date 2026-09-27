@@ -13,6 +13,7 @@ import com.gemwallet.android.features.transactions.viewmodels.models.Transaction
 import com.gemwallet.android.features.transactions.viewmodels.models.target
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireString
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -68,9 +69,3 @@ class TransactionViewModel @Inject constructor(
 }
 
 fun GemTransactionDetailRows.chain(): Chain = asset.toPrimitives().chain
-
-private fun SavedStateHandle.requireString(argument: RouteArgument): String {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
-    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
-    return value
-}

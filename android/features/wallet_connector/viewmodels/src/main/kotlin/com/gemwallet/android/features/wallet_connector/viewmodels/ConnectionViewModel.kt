@@ -10,6 +10,7 @@ import com.gemwallet.android.data.services.store.queries.ConnectionQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -68,10 +69,4 @@ class ConnectionViewModel @Inject constructor(
     }
 
     fun clearError() = errorState.update { null }
-}
-
-private fun SavedStateHandle.requireString(argument: RouteArgument): String {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
-    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
-    return value
 }

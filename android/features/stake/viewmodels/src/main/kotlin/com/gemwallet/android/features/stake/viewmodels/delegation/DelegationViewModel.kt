@@ -17,6 +17,7 @@ import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireString
 import com.wallet.core.primitives.StakeProviderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -95,12 +96,6 @@ class DelegationViewModel @Inject constructor(
         val transfer = details.value?.claim ?: return
         call(ConfirmTransferInput(transfer))
     }
-}
-
-private fun SavedStateHandle.requireString(argument: RouteArgument): String {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
-    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
-    return value
 }
 
 private fun SavedStateHandle.getString(argument: RouteArgument): String = get<String>(argument.key).orEmpty()
