@@ -41,12 +41,12 @@ public final class KeychainDefault: Keychain {
 
     // MARK: - Public (get) methods
 
-    public func get(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
-        try getString(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func get(_ key: String) throws -> String? {
+        try getString(key)
     }
 
-    public func getString(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
-        guard let data = try getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable) else {
+    public func getString(_ key: String) throws -> String? {
+        guard let data = try getData(key) else {
             return nil
         }
         guard let string = String(data: data, encoding: .utf8) else {
@@ -55,8 +55,8 @@ public final class KeychainDefault: Keychain {
         return string
     }
 
-    public func getData(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> Data? {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func getData(_ key: String) throws -> Data? {
+        var query = options.query()
 
         query[MatchLimit] = MatchLimitOne
         query[ReturnData] = kCFBooleanTrue
@@ -81,15 +81,15 @@ public final class KeychainDefault: Keychain {
 
     // MARK: - Public (set) methods
 
-    public func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool = true) throws {
+    public func set(_ value: String, key: String) throws {
         guard let data = value.data(using: .utf8, allowLossyConversion: false) else {
             throw Status.conversionError
         }
-        try set(data, key: key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+        try set(data, key: key)
     }
 
-    public func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool = true) throws {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func set(_ value: Data, key: String) throws {
+        var query = options.query()
         query[AttributeAccount] = key
 
         var status = SecItemCopyMatching(query as CFDictionary, nil)
@@ -128,8 +128,8 @@ public final class KeychainDefault: Keychain {
 
     // MARK: - Public (remove) methods
 
-    public func remove(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func remove(_ key: String) throws {
+        var query = options.query()
         query[AttributeAccount] = key
 
         let status = SecItemDelete(query as CFDictionary)

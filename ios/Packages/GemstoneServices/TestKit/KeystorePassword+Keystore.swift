@@ -8,9 +8,11 @@ import Primitives
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
+    public private(set) var passwordAuthentication: KeystoreAuthentication = .none
     public var getAuthenticationError: (any Error)?
     public var getPrivacyLockStatusError: (any Error)?
 
+    private let passwordLock = NSLock()
     private var memoryPassword: String
     private var isAuthenticationEnabled: Bool
     private var lockPeriod: GemLockPeriod?
@@ -31,13 +33,20 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         self.lockPeriod = lockPeriod
     }
 
-    public func setPassword(_ password: String, authentication _: KeystoreAuthentication) throws {
-        memoryPassword = password
-    }
-
-    public func getPassword() throws -> String {
-        getPasswordCallsCount += 1
-        return memoryPassword
+    public func getPassword(createIfMissing: Bool) throws -> String {
+        try passwordLock.withLock {
+            getPasswordCallsCount += 1
+            if memoryPassword.isNotEmpty {
+                return memoryPassword
+            }
+            guard createIfMissing else {
+                throw KeystoreError.missingPassword
+            }
+            let authentication = try getAuthentication()
+            memoryPassword = try SecureRandom.generateKey(length: 32).hex
+            passwordAuthentication = authentication
+            return memoryPassword
+        }
     }
 
     public func getAuthentication() throws -> KeystoreAuthentication {

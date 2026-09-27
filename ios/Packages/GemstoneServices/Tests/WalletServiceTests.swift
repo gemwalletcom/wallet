@@ -53,7 +53,7 @@ struct WalletServiceTests {
         let mockPassword = MockKeystorePassword()
         let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
 
-        #expect(try mockPassword.getPassword().isEmpty)
+        #expect(throws: KeystoreError.missingPassword) { try mockPassword.getPassword() }
 
         _ = try await service.importWallet(request: importRequest(name: "First Wallet"))
 
