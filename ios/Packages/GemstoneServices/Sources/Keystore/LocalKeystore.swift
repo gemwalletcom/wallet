@@ -58,17 +58,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return failures
     }
 
-    public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
-        let password = try await getPassword()
-        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        let chain = input.input.chain()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
-            }
-        }
-    }
-
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {
         try keystorePassword.getAuthentication()
     }

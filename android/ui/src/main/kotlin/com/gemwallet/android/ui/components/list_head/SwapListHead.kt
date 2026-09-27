@@ -15,7 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -25,21 +26,10 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemHeaderAmount
 
 @Composable
-fun SwapListHead(
-    fromAsset: AssetPriceValue?,
-    fromValueText: String,
-    fromEquivalentText: String?,
-    toAsset: AssetPriceValue?,
-    toValueText: String,
-    toEquivalentText: String?,
-    onSwapClick: (() -> Unit)? = null,
-    onAssetClick: ((AssetId) -> Unit)? = null,
-) {
-    if (fromAsset == null || toAsset == null) {
-        return
-    }
+fun SwapListHead(from: GemHeaderAmount, to: GemHeaderAmount, onSwapClick: (() -> Unit)? = null, onAssetClick: ((AssetId) -> Unit)? = null) {
     Column {
         Column(
             modifier = Modifier
@@ -49,9 +39,7 @@ fun SwapListHead(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             SwapItem(
-                assetInfo = fromAsset,
-                valueText = fromValueText,
-                equivalentText = fromEquivalentText,
+                amount = from,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -66,9 +54,7 @@ fun SwapListHead(
             }
             Spacer16()
             SwapItem(
-                assetInfo = toAsset,
-                valueText = toValueText,
-                equivalentText = toEquivalentText,
+                amount = to,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -77,8 +63,7 @@ fun SwapListHead(
 }
 
 @Composable
-private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
-    val asset = assetInfo.asset
+private fun SwapItem(amount: GemHeaderAmount, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -95,7 +80,7 @@ private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentTe
                 ),
         ) {
             Text(
-                text = valueText,
+                text = amount.amount.text(),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
@@ -103,9 +88,9 @@ private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentTe
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start,
             )
-            if (equivalentText != null) {
+            amount.fiat?.let { fiat ->
                 Text(
-                    text = equivalentText,
+                    text = fiat.text(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start,
@@ -114,12 +99,12 @@ private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentTe
         }
         Box(
             modifier = if (onAssetClick != null) {
-                Modifier.clickable { onAssetClick(asset.id) }
+                Modifier.clickable { onAssetClick(amount.asset.toPrimitives().id) }
             } else {
                 Modifier
             },
         ) {
-            HeaderIcon(asset, listItemIconSize)
+            HeaderIcon(amount.icon, listItemIconSize)
         }
     }
 }

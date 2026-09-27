@@ -1,39 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemCopy
 import Style
 import SwiftUI
 
 public extension View {
     func copyToast(
-        model: CopyTypeViewModel,
+        copy: GemCopy,
         isPresenting: Binding<Bool>,
         feedbackGenerator: UINotificationFeedbackGenerator = UINotificationFeedbackGenerator(),
     ) -> some View {
-        toast(isPresenting: isPresenting, message: ToastMessage(title: model.message, image: model.systemImage))
+        toast(isPresenting: isPresenting, message: ToastMessage(title: copy.copiedMessage, image: SystemImage.copy))
             .onChange(of: isPresenting.wrappedValue, initial: true) { _, newValue in
                 if newValue {
-                    model.copy()
+                    Clipboard.copy(copy)
                     feedbackGenerator.notificationOccurred(.success)
                 }
             }
     }
 
     func copyToast(
-        _ model: Binding<CopyTypeViewModel?>,
+        _ copy: Binding<GemCopy?>,
         feedbackGenerator: UINotificationFeedbackGenerator = UINotificationFeedbackGenerator(),
     ) -> some View {
         toast(message: Binding(
-            get: { model.wrappedValue.map { ToastMessage(title: $0.message, image: $0.systemImage) } },
+            get: { copy.wrappedValue.map { ToastMessage(title: $0.copiedMessage, image: SystemImage.copy) } },
             set: { message in
                 if message == nil {
-                    model.wrappedValue = nil
+                    copy.wrappedValue = nil
                 }
             },
         ))
-        .onChange(of: model.wrappedValue) { _, newValue in
+        .onChange(of: copy.wrappedValue) { _, newValue in
             guard let newValue else { return }
-            newValue.copy()
+            Clipboard.copy(newValue)
             feedbackGenerator.notificationOccurred(.success)
         }
     }

@@ -57,8 +57,6 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     var createdAt: Date
     var updatedAt: Date
 
-    static let wallet = belongsTo(WalletRecord.self, key: "wallet", using: ForeignKey(["walletId"], to: ["id"]))
-
     // delete asset / price properties as they could be fetched from assets / prices
     static let asset = belongsTo(AssetRecord.self, key: "asset", using: ForeignKey(["assetId"], to: ["id"]))
     static let feeAsset = belongsTo(AssetRecord.self, key: "feeAsset", using: ForeignKey(["feeAssetId"], to: ["id"]))
@@ -86,7 +84,6 @@ extension TransactionRecord: CreateTable {
                 .indexed()
             $0.column(Columns.walletId.name, .text)
                 .notNull()
-                .indexed()
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.transactionId.name, .text)
                 .notNull()
@@ -119,7 +116,6 @@ extension TransactionRecord: CreateTable {
             $0.column(Columns.sequence.name, .numeric)
                 .notNull()
             $0.column(Columns.date.name, .date)
-                .indexed()
                 .notNull()
             $0.column(Columns.state.name, .text)
                 .notNull()
@@ -137,6 +133,7 @@ extension TransactionRecord: CreateTable {
                 Columns.transactionId.name,
             ])
         }
+        try db.create(indexOn: databaseTableName, columns: [Columns.walletId.name, Columns.date.name])
     }
 }
 

@@ -18,7 +18,7 @@ import Testing
 struct ImportWalletSceneViewModelTests {
     @Test
     func importActivatesTheWalletItStored() async throws {
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService.mock(store: WalletStore.mock(db: db), sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
@@ -39,13 +39,13 @@ struct ImportWalletSceneViewModelTests {
             source: .import,
         ).wallet().toPrimitives()
 
-        #expect(session.currentWalletId == walletB.id, "an import needs no second call to become current")
+        #expect(try session.getCurrentWalletId() == walletB.id.id, "an import needs no second call to become current")
 
         let model = ImportWalletSceneViewModel.mock(service: service)
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
-        #expect(session.currentWalletId == walletA.id)
+        #expect(try session.getCurrentWalletId() == walletA.id.id)
     }
 
     @Test
@@ -55,12 +55,12 @@ struct ImportWalletSceneViewModelTests {
         model.importType = .privateKey
         model.onChangeInput("", newValue: "vitalik.eth")
 
-        #expect(model.nameRecordViewModel.isResolving == false)
+        #expect(model.nameRecordViewModel.state.indicator() != .loading)
 
         model.importType = .address
         model.onChangeInput("", newValue: "vitalik.eth")
 
-        #expect(model.nameRecordViewModel.isResolving == true)
+        #expect(model.nameRecordViewModel.state.indicator() == .loading)
     }
 
     @Test

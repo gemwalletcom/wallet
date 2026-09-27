@@ -10,7 +10,7 @@ import Testing
 struct SelectWalletViewModelTests {
     @Test
     func pinnedWalletsGetTheirOwnSection() {
-        let pinned = GemWalletRow.mock(id: "a", isPinned: true)
+        let pinned = GemWalletRow.mock(id: "a", name: "a", subtitle: .address(value: "a"), placeholder: .multicoin, isPinned: true)
         let model = SelectWalletViewModel(
             sections: [GemWalletSection(kind: .pinned, rows: [pinned]), GemWalletSection(kind: .wallets, rows: [.mock(id: "b"), .mock(id: "c")])],
             selectedRow: pinned,
@@ -28,7 +28,7 @@ struct SelectWalletViewModelTests {
 
     @Test
     func withNoPinnedWalletThereIsOneSection() {
-        let first = GemWalletRow.mock(id: "a")
+        let first = GemWalletRow.mock(id: "a", name: "a", subtitle: .address(value: "a"), placeholder: .multicoin)
         let model = SelectWalletViewModel(sections: [GemWalletSection(kind: .wallets, rows: [first, .mock(id: "b")])], selectedRow: first)
 
         guard case let .data(.section(sections)) = model.state else {

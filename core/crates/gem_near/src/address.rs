@@ -1,4 +1,6 @@
 use primitives::Address as AddressTrait;
+#[cfg(feature = "rpc")]
+use primitives::AddressError;
 
 pub struct NearAddress([u8; 32]);
 
@@ -18,6 +20,12 @@ impl AddressTrait for NearAddress {
 
 pub fn is_valid_address(address: &str) -> bool {
     is_implicit_address(address) || is_valid_account_id(address)
+}
+
+#[cfg(feature = "rpc")]
+pub(crate) fn address_to_public_key(address: &str) -> Result<String, AddressError> {
+    let address = NearAddress::from_str(address)?;
+    Ok(format!("ed25519:{}", bs58::encode(address.as_bytes()).into_string()))
 }
 
 pub fn is_valid_account_id(account_id: &str) -> bool {
@@ -69,5 +77,15 @@ mod tests {
         assert!(!is_implicit_address("0x85f17cf997934a597031b2e18a9ab6ebd4b9f6a4"));
         assert_eq!(parsed.as_bytes().len(), 32);
         assert_eq!(parsed.encode(), implicit_address);
+    }
+
+    #[cfg(feature = "rpc")]
+    #[test]
+    fn test_address_to_public_key() {
+        use crate::provider::testkit::TEST_EXTERNALLY_CONTROLLED_ADDRESS;
+
+        assert_eq!(address_to_public_key(TEST_EXTERNALLY_CONTROLLED_ADDRESS).unwrap(), "ed25519:6j4b6zUaty6fD1awqcGCCU9JYGCWYUgdJhQrzfZhqE25");
+        assert!(address_to_public_key("account.near").is_err());
+        assert!(address_to_public_key("aa").is_err());
     }
 }

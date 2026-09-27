@@ -7,13 +7,3 @@ extension ChartPeriod: Identifiable {
         rawValue
     }
 }
-
-public extension ChartPeriod {
-    init(id: String) throws {
-        if let period = ChartPeriod(rawValue: id) {
-            self = period
-        } else {
-            throw AnyError("invalid chart period: \(id)")
-        }
-    }
-}

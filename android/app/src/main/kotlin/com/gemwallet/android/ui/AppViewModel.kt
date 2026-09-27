@@ -13,13 +13,14 @@ import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -56,6 +57,7 @@ class AppViewModel @Inject constructor(
     val uiState = state.asStateFlow()
     private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
+    val session: StateFlow<Session?> = getSession()
     private val walletReadyState = getWalletSummary.getWalletSummary()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -103,8 +105,8 @@ class AppViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
     }
 
-    fun onCancelUpdate() {
-        if (state.value.update?.canSkip == false) {
+    fun onUpdateOpened() {
+        if (state.value.update?.canSkip() == false) {
             return
         }
         state.update { it.copy(update = null) }

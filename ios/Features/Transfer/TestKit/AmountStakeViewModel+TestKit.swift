@@ -10,9 +10,9 @@ import PrimitivesTestKit
 
 public extension AmountStakeViewModel {
     static func mock(
-        asset: Asset = .mockBNB(),
-        type: GemStakeAmountInput = .stake(validators: [DelegationValidator.mock().toGem()], validator: nil),
+        asset: Asset = .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
+        type: GemStakeAmountInput = .stake(validator: DelegationValidator.mock().toGem()),
     ) -> AmountStakeViewModel {
-        AmountStakeViewModel(asset: asset, type: type, service: GemStakeService.mock())
+        AmountStakeViewModel(asset: asset, type: type)
     }
 }

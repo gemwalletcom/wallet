@@ -26,6 +26,11 @@ android {
             )
         }
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -48,12 +53,15 @@ android {
 }
 
 dependencies {
+    api(project(":ui-models"))
     implementation(project(":gemcore"))
     implementation(project(":ui"))
+    implementation(project(":data:services:store"))
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
     implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)

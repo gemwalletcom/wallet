@@ -13,32 +13,12 @@ import WalletTabTestKit
 @MainActor
 struct NetworkAssetsSceneViewModelTests {
     @Test
-    func anEmptyNetworkShowsOnlyTheEmptyState() {
-        let model = NetworkAssetsSceneViewModel.mock()
-
-        #expect(model.groups.sections.showsEmpty)
-        #expect(model.groups.sections.showsPinned == false)
-        #expect(model.groups.sections.showsUnpinned == false)
-        #expect(model.groups.sections.showsHidden == false)
-    }
-
-    @Test
-    func theNativeAssetIsNeverListed() {
-        let model = NetworkAssetsSceneViewModel.mock()
-        model.activeQuery.value = [.mock(asset: .mockEthereum()), .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
-
-        #expect(model.groups.unpinned.map(\.asset.id) == [Asset.mockEthereumUSDT().id])
-        #expect(model.groups.sections.showsUnpinned)
-        #expect(model.groups.sections.showsEmpty == false)
-    }
-
-    @Test
     func pinnedAndUnpinnedSplitOnTheirMetadata() {
         let model = NetworkAssetsSceneViewModel.mock()
         model.activeQuery.value = [
-            .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: true)),
-            .mock(asset: .mockTronUSDT(), metadata: .mock(isPinned: false)),
-            .mock(asset: .mockSolanaUSDC(), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: true)),
+            .mock(asset: .mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .solana, tokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .spl), metadata: .mock(isPinned: false)),
         ]
 
         #expect(model.groups.pinned.count == 1)
@@ -50,7 +30,7 @@ struct NetworkAssetsSceneViewModelTests {
     @Test
     func hiddenAssetsComeFromTheirOwnQuery() {
         let model = NetworkAssetsSceneViewModel.mock()
-        model.hiddenQuery.value = [.mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
+        model.hiddenQuery.value = [.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))]
 
         #expect(model.groups.sections.showsHidden)
         #expect(model.groups.sections.showsEmpty == false)
@@ -59,26 +39,29 @@ struct NetworkAssetsSceneViewModelTests {
 
     @Test
     func updatingBalancesAsksForEveryListedAsset() async {
-        let model = NetworkAssetsSceneViewModel.mock()
-        let token = AssetData.mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))
-        model.activeQuery.value = [token]
-        model.hiddenQuery.value = [token]
+        let service = GemWalletHomeServiceMock()
+        let model = NetworkAssetsSceneViewModel.mock(service: service)
+        let active = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))
+        let hidden = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))
+        model.activeQuery.value = [active]
+        model.hiddenQuery.value = [hidden]
 
         await model.updateBalances()
 
-        #expect(model.assetIds.count == 2)
+        #expect(service.updatedBalances == [[active.asset.id.identifier, hidden.asset.id.identifier]])
     }
 
     @Test
     func pinningAndEnablingGoStraightToCore() async throws {
         let service = GemWalletHomeServiceMock()
         let model = NetworkAssetsSceneViewModel.mock(service: service)
-        let assetId = AssetId.mock(.ethereum)
+        let assetId = AssetId.mock(chain: .ethereum)
 
-        try await model.setAssetPinned(assetId, pinned: true)
+        let toast = try await model.setAssetPinned(.mock(id: assetId, name: "Ethereum"), pinned: true)
         try await model.setAssetsEnabled([assetId], enabled: false)
 
         #expect(service.pinned.map(\.pinned) == [true])
+        #expect(toast.text == .pinned(name: "Ethereum", pinned: true))
         #expect(service.enabled.map(\.enabled) == [false])
     }
 

@@ -67,9 +67,6 @@ dependencies {
     api(libs.browser)
 
     // QRCode scanner: only for none private data: recipient, memo, amount, etc
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
     // QR Code
     api(libs.zxing.core)
 
@@ -83,6 +80,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.material)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

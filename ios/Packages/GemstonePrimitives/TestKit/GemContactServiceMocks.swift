@@ -65,8 +65,8 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         )
     }
 
-    public func connectionSections(connections _: [Gemstone.WalletConnection]) -> [GemConnectionSection] {
-        connectionSectionsValue
+    public func connectionsView(connections _: [Gemstone.WalletConnection]) -> GemConnectionsView {
+        GemConnectionsView(sections: connectionSectionsValue, docsUrl: "https://docs.gemwallet.com/guides/walletconnect/")
     }
 
     public func deleteSession(sessionId: String) async throws {
@@ -87,6 +87,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         GemSessionProposal(
             proposal: Gemstone.WalletConnectionSessionProposal(defaultWallet: Primitives.Wallet.mock().toGem(), wallets: [], metadata: metadata),
             verificationStatus: validation,
+            canChooseWallet: false,
         )
     }
 
@@ -142,8 +143,15 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public private(set) var retriedMessageIds: [String] = []
     public private(set) var requestedImageUrls: [String] = []
     public private(set) var recoveredInterrupted = 0
+    public var pushState: GemPushState?
+    public private(set) var enableNotificationsCalls = 0
 
     public init() {}
+
+    public func enableNotifications() async -> GemPushState? {
+        enableNotificationsCalls += 1
+        return pushState
+    }
 
     public func imageFile(url: String) async throws -> String {
         requestedImageUrls.append(url)

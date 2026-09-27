@@ -5,7 +5,6 @@ import enum Gemstone.EarnType
 import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemStakeAmountInput
-import Primitives
 
 public enum AmountType: Equatable, Hashable, Sendable {
     case transfer(recipient: GemPaymentRecipient)

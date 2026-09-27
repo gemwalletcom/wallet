@@ -14,9 +14,9 @@ extension PerpetualPositionsInfo {
     func mapToPerpetualPositionData() -> PerpetualPositionData? {
         guard let firstPosition = positions.first else { return nil }
         return PerpetualPositionData(
-            perpetual: perpetual.mapToPerpetual(),
+            perpetual: perpetual.toPerpetual(),
             asset: asset.mapToAsset(),
-            position: firstPosition.mapToPerpetualPosition(),
+            position: firstPosition.toPerpetualPosition(),
         )
     }
 }

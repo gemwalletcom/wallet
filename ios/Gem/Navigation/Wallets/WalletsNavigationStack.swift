@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import ManageWallets
 import Onboarding
 import Primitives
 import Style
 import SwiftUI
+import Wallets
 
 struct WalletsNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -28,7 +28,7 @@ struct WalletsNavigationStack: View {
             .navigationDestination(for: Scenes.WalletDetail.self) {
                 WalletDetailScene(model: viewModelFactory.walletDetailScene(navigationPath: $navigationPath, wallet: $0.wallet))
             }
-            .navigationDestination(for: Scenes.WalletSelectImage.self) {
+            .navigationDestination(for: Scenes.WalletImage.self) {
                 WalletImageScene(model: viewModelFactory.walletImageScene(wallet: $0.wallet))
             }
             .sheet(isPresented: $isPresentingCreateWalletSheet) {

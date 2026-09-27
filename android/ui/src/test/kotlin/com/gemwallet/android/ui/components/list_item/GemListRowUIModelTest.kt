@@ -4,32 +4,66 @@ import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemAssetIcon
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.localization.label
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.textStyle
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
+import uniffi.gemstone.GemInfoTitle
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
 import java.math.BigInteger
 
 class GemListRowUIModelTest {
+    @Test
+    fun `an asset change keeps its sign tone and asset`() {
+        val row = { amount: Double, tone: GemValueTone ->
+            val change = GemListRow.AssetChange(
+                name = "Solana",
+                icon = mockGemAssetIcon(),
+                amount = mockGemFormattedNumber(
+                    value = amount,
+                    unit = GemNumberUnit.Symbol("SOL"),
+                    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+                    notation = GemNumberNotation.SIGNED,
+                    tone = tone,
+                    exact = "0.100005",
+                ),
+            )
+            (change.uiModel(context) as GemListRowUIModel.Item).model
+        }
+
+        val spent = row(-0.100005, GemValueTone.NEGATIVE)
+        assertEquals("Solana", spent.title)
+        assertEquals("-0.100005 SOL", spent.subtitle)
+        assertEquals(GemValueTone.NEGATIVE.textStyle(), spent.subtitleStyle)
+        assertEquals("+0.100005 SOL", row(0.100005, GemValueTone.POSITIVE).subtitle)
+    }
+
     @Test
     fun `latency rows render measurements loading and errors`() {
         every { context.getString(R.string.common_latency_in_ms, *anyVararg()) } returns "125 ms"
@@ -61,36 +95,31 @@ class GemListRowUIModelTest {
     }
 
     @Test
-    fun `an app row opens only the website core gives`() {
-        val withWebsite = GemListRow.App(name = "PancakeSwap", iconUrl = null, websiteUrl = "https://pancakeswap.finance")
-        val withoutWebsite = GemListRow.App(name = "PancakeSwap", iconUrl = null, websiteUrl = null)
-
-        assertEquals(listOf(GemListRowMenuItem.Open("Visit Website", "https://pancakeswap.finance")), withWebsite.menu())
-        assertEquals(emptyList<GemListRowMenuItem>(), withoutWebsite.menu())
-    }
-
-    @Test
-    fun `a wallet row copies its address and opens the explorer`() {
+    fun `menu entries read their titles from core and copy reads Copy`() {
+        every { context.getString(R.string.common_wallet) } returns "Wallet"
+        val website = GemRowMenuItem.Open(title = GemLocalizedText.ViewOn("Etherscan"), url = "https://etherscan.io/address/0x1")
         val row = GemListRow.Wallet(
-            wallet = mockGemWalletRow(),
-            copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1"),
-            explorer = BlockExplorerLink(name = "Etherscan", link = "https://etherscan.io/address/0x1"),
+            title = GemListRowTitle.WALLET,
+            wallet = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin),
+            menu = listOf(GemRowMenuItem.Copy(GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1")), website),
         )
 
+        val item = row.uiModel(context) as GemListRowUIModel.Item
+        assertEquals("Wallet", item.model.title)
         assertEquals(
             listOf(
-                GemListRowMenuItem.Copy("Copy Address", "0x1"),
+                GemListRowMenuItem.Copy("Copy", "0x1"),
                 GemListRowMenuItem.Open("View on Etherscan", "https://etherscan.io/address/0x1"),
             ),
-            row.menu(),
+            item.menu,
         )
     }
 
     @Test
-    fun `only a contract identifier opens its address`() {
+    fun `an identifier opens the address core names`() {
         val copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0xcontract", display = "0xcont...ract")
-        val contract = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
-        val tokenId = GemListRow.Identifier(title = GemListRowTitle.TOKEN_ID, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
+        val contract = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null, address = "0xcontract", menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
+        val tokenId = GemListRow.Identifier(title = GemListRowTitle.TOKEN_ID, copy = copy, explorer = null, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
 
         assertEquals("0xcontract", contract.address)
         assertEquals(null, tokenId.address)
@@ -102,12 +131,6 @@ class GemListRowUIModelTest {
 
         assertEquals("cosmosvaloper1", row.contract)
         assertEquals("Validator", row.model.subtitle)
-    }
-
-    @Test
-    fun `a memo row copies only a real memo`() {
-        assertEquals(listOf(GemListRowMenuItem.Copy("Copy", "12345")), GemListRow.Memo(value = "12345", copy = "12345").menu())
-        assertEquals(emptyList<GemListRowMenuItem>(), GemListRow.Memo(value = "-", copy = null).menu())
     }
 
     @Test
@@ -123,14 +146,14 @@ class GemListRowUIModelTest {
         assertEquals("Auto Close", model.title)
         assertEquals("Take Profit: $65,000", model.subtitle)
         assertEquals("Stop Loss: $55,000", model.subtitleExtra)
-        assertEquals(InfoSheetEntity.AutoCloseInfo, model.info)
+        assertEquals(GemInfoTopic.AutoClose.infoSheet(), model.info)
     }
 
     @Test
     fun `a ranked row carries its rank tag`() {
         every { context.getString(R.string.asset_market_cap) } returns "Market Cap"
 
-        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockFormattedNumber(1.0), 7).uiModel(context) as GemListRowUIModel.Item).model
+        val model = (GemListRow.Ranked(GemListRowTitle.MARKET_CAP, mockGemFormattedNumber(value = 1.0), "#7").uiModel(context) as GemListRowUIModel.Item).model
 
         assertEquals("Market Cap", model.title)
         assertEquals("#7", model.titleTag)
@@ -142,58 +165,41 @@ class GemListRowUIModelTest {
         val copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0xdAC17F958D2ee523a2206206994597C13D831ec7", display = "0xdAC1...1ec7")
         val explorer = BlockExplorerLink(name = "Etherscan", link = "https://etherscan.io/token/0xdAC17F958D2ee523a2206206994597C13D831ec7")
 
-        val linked = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = explorer).uiModel(context) as GemListRowUIModel.Item
-        val plain = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null).uiModel(context) as GemListRowUIModel.Item
+        val linked = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = explorer, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
+        val plain = GemListRow.Identifier(title = GemListRowTitle.CONTRACT, copy = copy, explorer = null, address = null, menu = emptyList()).uiModel(context) as GemListRowUIModel.Item
 
         assertEquals("Contract", linked.model.title)
         assertEquals("0xdAC1...1ec7", linked.model.subtitle)
         assertEquals(explorer.link, linked.url)
-        assertEquals(
-            listOf(GemListRowMenuItem.Copy("Copy Address", copy.value), GemListRowMenuItem.Open("View on Etherscan", explorer.link)),
-            linked.menu,
-        )
         assertNull(plain.url)
-        assertEquals(listOf(GemListRowMenuItem.Copy("Copy Address", copy.value)), plain.menu)
     }
 
     @Test
     fun `an all time row shows its change in the change's tone`() {
-        val change = mockFormattedNumber(-12.0, GemNumberUnit.Percent).copy(tone = GemValueTone.NEGATIVE)
-        val row = GemListRow.AllTime(title = GemListRowTitle.ALL_TIME_HIGH, value = mockFormattedNumber(100.0), date = 0L, change = change)
+        val change = mockGemFormattedNumber(value = -12.0, unit = GemNumberUnit.Percent).copy(tone = GemValueTone.NEGATIVE)
+        val row = GemListRow.AllTime(title = GemListRowTitle.ALL_TIME_HIGH, value = mockGemFormattedNumber(value = 100.0), date = 0L, change = change)
 
         val model = (row.uiModel(context) as GemListRowUIModel.Item).model
 
-        assertEquals(mockFormattedNumber(100.0).text(), model.subtitle)
+        assertEquals(mockGemFormattedNumber(value = 100.0).text(), model.subtitle)
         assertEquals(change.text(), model.subtitleExtra)
         assertEquals(GemValueTone.NEGATIVE.textStyle(), model.subtitleExtraStyle)
     }
 
     @Test
     fun `a below minimum amount names the network the minimum and the buy action`() {
+        every { context.getString(R.string.info_minimum_amount_description, "**Bitcoin**", "**0.0005 BTC**") } returns "Minimum"
         every { context.getString(R.string.asset_buy_asset, "BTC") } returns "Buy BTC"
-        var bought = false
 
-        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null) { bought = true }
+        val sheet = GemInfoTopic.MinimumAmount(mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8).toGem(), BigInteger("50000")).infoSheet().sheet
 
-        assertEquals(R.string.info_minimum_amount_title, sheet.title)
-        assertEquals(listOf("**Bitcoin**", "**0.0005 BTC**"), sheet.descriptionArgs)
-        assertEquals("Buy BTC", sheet.actionLabel)
-        sheet.action?.invoke()
-        assertTrue(bought)
-    }
-
-    @Test
-    fun `a below minimum amount without a buy route offers no action`() {
-        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null)
-
-        assertNull(sheet.action)
-        assertNull(sheet.actionLabel)
+        assertEquals(GemInfoTitle.MinimumAmount, sheet.title)
+        assertEquals("Minimum", sheet.description.string(context))
+        assertEquals("Buy BTC", sheet.action?.label(context))
     }
 
     @Test
     fun `a missing swap quote opens the no quote sheet`() {
-        assertEquals(InfoSheetEntity.NoQuoteInfo, GemInfoTopic.NoQuote.infoSheet(context, null))
+        assertEquals(GemInfoTitle.NoQuote, GemInfoTopic.NoQuote.infoSheet().sheet.title)
     }
-
-    private fun GemListRow.menu(): List<GemListRowMenuItem> = (uiModel(context) as GemListRowUIModel.Item).menu
 }

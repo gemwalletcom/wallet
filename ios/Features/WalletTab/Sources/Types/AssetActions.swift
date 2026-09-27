@@ -3,15 +3,15 @@
 import Components
 import Foundation
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemToast
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
 @MainActor
 protocol AssetActions: AnyObject {
-    var wallet: Wallet { get }
     var isPresentingToastMessage: ToastMessage? { get set }
-    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws
 }
 
@@ -19,8 +19,8 @@ extension AssetActions {
     func onPinAsset(_ asset: Asset, value: Bool) {
         Task {
             do {
-                try await setAssetPinned(asset.id, pinned: value)
-                isPresentingToastMessage = .pin(asset.name, pinned: value)
+                let toast = try await setAssetPinned(asset, pinned: value)
+                isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("\(Self.self) pin asset error: \(error)")
             }
@@ -54,7 +54,7 @@ extension AssetActions {
 @MainActor
 protocol PerpetualPinActions: AnyObject {
     var isPresentingToastMessage: ToastMessage? { get set }
-    func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws
+    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast
 }
 
 extension PerpetualPinActions {
@@ -62,8 +62,8 @@ extension PerpetualPinActions {
         let pinned = !perpetualData.metadata.isPinned
         Task {
             do {
-                try await setPerpetualPinned(perpetualData.perpetual.id, pinned: pinned)
-                isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
+                let toast = try await setPerpetualPinned(perpetualData.perpetual, pinned: pinned)
+                isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("\(Self.self) pin perpetual error: \(error)")
             }

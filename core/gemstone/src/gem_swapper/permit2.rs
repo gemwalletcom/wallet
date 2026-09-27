@@ -1,12 +1,9 @@
-use crate::models::custom_types::GemBigUint;
 use primitives::Chain;
 use swapper::SwapperError;
 
 type Permit2Data = swapper::permit2_data::Permit2Data;
 type PermitSingle = swapper::permit2_data::PermitSingle;
 type Permit2Detail = swapper::permit2_data::Permit2Detail;
-
-pub type Permit2ApprovalData = swapper::models::Permit2ApprovalData;
 
 #[uniffi::remote(Record)]
 pub struct Permit2Detail {
@@ -27,15 +24,6 @@ pub struct PermitSingle {
 pub struct Permit2Data {
     pub permit_single: PermitSingle,
     pub signature: Vec<u8>,
-}
-
-#[uniffi::remote(Record)]
-pub struct Permit2ApprovalData {
-    pub token: String,
-    pub spender: String,
-    pub value: GemBigUint,
-    pub permit2_contract: String,
-    pub permit2_nonce: u64,
 }
 
 pub fn permit2_data_to_eip712_json(chain: Chain, data: PermitSingle, contract: &str) -> Result<String, SwapperError> {

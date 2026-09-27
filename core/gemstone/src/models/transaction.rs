@@ -1,5 +1,6 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::*;
+use crate::services::assets::model::GemFeeAmount;
 use chain_primitives::checksum_address;
 use primitives::contract_call_data::ContractCallData;
 use primitives::solana_nft::SolanaNftStandard;
@@ -63,10 +64,11 @@ pub struct GemSignedTransaction {
     pub transaction_type: TransactionType,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeOptionItem {
     pub option: GemFeeOption,
     pub value: GemBigInt,
+    pub amount: GemFeeAmount,
 }
 
 #[derive(Debug, Default, Clone, uniffi::Record)]
@@ -260,13 +262,14 @@ impl GemFeeOptions {
         self.options.values().sum()
     }
 
-    pub fn items(&self) -> Vec<GemFeeOptionItem> {
+    pub fn items(&self, amount: impl Fn(&GemBigInt) -> GemFeeAmount) -> Vec<GemFeeOptionItem> {
         let mut items = self
             .options
             .iter()
             .map(|(option, value)| GemFeeOptionItem {
                 option: option.clone(),
                 value: value.clone(),
+                amount: amount(value),
             })
             .collect::<Vec<_>>();
         items.sort_by(|left, right| left.option.as_ref().cmp(right.option.as_ref()));
@@ -315,11 +318,13 @@ mod tests {
             fee_asset: AssetId::from_chain(Chain::Solana),
         };
 
+        let amount = |value: &GemBigInt| crate::services::assets::rules::fee_amount(&primitives::Asset::from_chain(Chain::Solana), value, None, primitives::currency::Currency::USD);
         assert_eq!(
-            fee.options.items(),
+            fee.options.items(amount),
             vec![GemFeeOptionItem {
                 option: FeeOption::TokenAccountCreation,
-                value: 1_488_440.into()
+                value: 1_488_440.into(),
+                amount: amount(&1_488_440.into()),
             }]
         );
         assert_eq!(fee.fee, 1_495_940.into());
@@ -329,7 +334,7 @@ mod tests {
             options: GemFeeOptions::default(),
             ..fee
         };
-        assert_eq!(fee.options.items(), vec![]);
+        assert_eq!(fee.options.items(amount), vec![]);
     }
 
     #[test]

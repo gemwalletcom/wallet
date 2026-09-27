@@ -8,10 +8,11 @@ use num_bigint::BigInt;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
+    address::address_to_public_key,
     constants::{FUNGIBLE_TOKEN_FUNCTION_CALL_GAS, TRANSFER_GAS_UNITS},
     models::StorageBalanceBounds,
     provider::{
-        preload_mapper::{address_to_public_key, map_transaction_fee, map_transaction_preload},
+        preload_mapper::{map_transaction_fee, map_transaction_preload},
         state_mapper::map_gas_price_to_priorities,
     },
     rpc::NearProvider,

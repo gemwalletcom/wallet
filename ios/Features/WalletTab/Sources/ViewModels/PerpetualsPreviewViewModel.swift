@@ -10,17 +10,17 @@ import Store
 @Observable
 @MainActor
 final class PerpetualsPreviewViewModel {
-    let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
+    let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
 
     var positions: [PerpetualPositionData] {
         positionsQuery.value
     }
 
     init(walletId: WalletId) {
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: walletId), initialValue: [])
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: walletId), initialValue: [])
         walletBalanceQuery = ObservableQuery(
-            PerpetualWalletBalanceRequest(walletId: walletId, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            PerpetualWalletBalanceQuery(walletId: walletId, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
     }
@@ -38,8 +38,8 @@ final class PerpetualsPreviewViewModel {
     }
 
     func updateWallet(walletId: WalletId) {
-        positionsQuery.request = PerpetualPositionsRequest(walletId: walletId)
-        walletBalanceQuery.request = PerpetualWalletBalanceRequest(
+        positionsQuery.request = PerpetualPositionsQuery(walletId: walletId)
+        walletBalanceQuery.request = PerpetualWalletBalanceQuery(
             walletId: walletId,
             assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
         )

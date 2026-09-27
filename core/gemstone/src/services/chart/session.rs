@@ -6,6 +6,7 @@ use super::rules;
 use crate::services::error::GemServiceError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemChartPhase {
     Loading,
     Data { data: GemChartData },
@@ -47,7 +48,7 @@ impl GemChartSession {
             return GemChartPhase::Loading;
         }
         match (&self.chart, &self.error) {
-            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.currency.clone()) {
+            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.period, self.currency.clone()) {
                 Some(data) => GemChartPhase::Data { data },
                 None => GemChartPhase::NoData,
             },

@@ -5,6 +5,7 @@ use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemAutocloseEstimator;
 use crate::perpetual::GemPerpetual;
 use crate::precision::GemCurrencyStyle;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::plain_number;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
@@ -69,14 +70,15 @@ impl GemAutocloseField {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseFieldState {
     pub tpsl_type: TpslType,
-    pub is_profit: bool,
+    pub text: String,
+    pub estimate_title: GemLocalizedText,
     pub estimate: Option<GemLocalizedText>,
     pub tone: GemValueTone,
     pub suggestions: Vec<GemFormattedNumber>,
     pub validation: AutocloseValidation,
 }
 
-fn autoclose_field_state(field: GemAutocloseField, estimator: &GemAutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
+fn autoclose_field_state(field: GemAutocloseField, text: String, estimator: &GemAutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
     let estimate = field.price.map(|price| {
         let percent = GemFormattedNumber::percentage(estimator.roe(price), GemPercentageStyle::Signed);
         match estimator.has_size() {
@@ -89,7 +91,11 @@ fn autoclose_field_state(field: GemAutocloseField, estimator: &GemAutocloseEstim
     });
     GemAutocloseFieldState {
         tpsl_type: field.tpsl_type,
-        is_profit: estimator.is_profit(field.price, field.tpsl_type),
+        text,
+        estimate_title: match estimator.is_profit(field.price, field.tpsl_type) {
+            true => GemLocalizedText::ExpectedProfit,
+            false => GemLocalizedText::ExpectedLoss,
+        },
         estimate,
         tone: field.price.map(|price| value_tone(estimator.roe(price))).unwrap_or(GemValueTone::Neutral),
         suggestions: estimator
@@ -193,6 +199,9 @@ pub struct GemAutocloseSession {
     pub decimals: i32,
     pub position_row: Option<GemPerpetualPositionRow>,
     pub estimate: GemAutocloseEstimate,
+    pub take_profit_text: String,
+    pub stop_loss_text: String,
+    pub decimal_separator: String,
 }
 
 fn price_row(title: GemListRowTitle, price: f64) -> GemListRow {
@@ -209,33 +218,23 @@ impl GemAutocloseSession {
         Self { submit_attempted: true, ..self.clone() }
     }
 
-    pub fn on_price(&self, tpsl_type: TpslType, price: Option<f64>) -> Self {
-        let field = self.priced(self.field(tpsl_type).clone(), price);
-        let modify = match tpsl_type {
-            TpslType::TakeProfit => GemAutocloseModify { take_profit: field, ..self.modify.clone() },
-            TpslType::StopLoss => GemAutocloseModify { stop_loss: field, ..self.modify.clone() },
-        };
-        Self {
-            modify,
-            submit_attempted: false,
-            ..self.clone()
-        }
+    pub fn on_input(&self, tpsl_type: TpslType, text: String) -> Self {
+        let price = plain_number(&self.decimal_separator, &text).parse().ok();
+        self.on_price(tpsl_type, price).with_text(tpsl_type, text)
     }
 
     pub fn on_percent_selected(&self, tpsl_type: TpslType, percent: i32) -> Self {
         let price = self.estimator().target_price_from_roe(percent, tpsl_type);
-        self.on_price(tpsl_type, Some(price))
-    }
-
-    pub fn input_text(&self, tpsl_type: TpslType, decimal_separator: String) -> Option<String> {
-        self.field(tpsl_type).price.map(|price| GemPerpetual::new(self.provider.clone()).format_input_price(price, self.decimals, decimal_separator))
+        let priced = self.on_price(tpsl_type, Some(price));
+        let text = priced.input_text(tpsl_type).unwrap_or_default();
+        priced.with_text(tpsl_type, text)
     }
 
     pub fn view_state(&self) -> GemAutocloseViewState {
         let estimator = self.estimator();
         GemAutocloseViewState {
-            take_profit: autoclose_field_state(self.modify.take_profit.clone(), &estimator, self.submit_attempted),
-            stop_loss: autoclose_field_state(self.modify.stop_loss.clone(), &estimator, self.submit_attempted),
+            take_profit: autoclose_field_state(self.modify.take_profit.clone(), self.take_profit_text.clone(), &estimator, self.submit_attempted),
+            stop_loss: autoclose_field_state(self.modify.stop_loss.clone(), self.stop_loss_text.clone(), &estimator, self.submit_attempted),
             confirm_enabled: match (self.policy, self.submit_attempted) {
                 (GemAutocloseConfirmPolicy::WhenBuildable, _) => self.modify.is_complete(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.is_complete(),
@@ -261,7 +260,46 @@ impl GemAutocloseSession {
             provider,
             decimals,
             position_row,
+            take_profit_text: String::new(),
+            stop_loss_text: String::new(),
+            decimal_separator: ".".to_string(),
         }
+    }
+
+    pub fn on_price(&self, tpsl_type: TpslType, price: Option<f64>) -> Self {
+        let field = self.priced(self.field(tpsl_type).clone(), price);
+        let modify = match tpsl_type {
+            TpslType::TakeProfit => GemAutocloseModify { take_profit: field, ..self.modify.clone() },
+            TpslType::StopLoss => GemAutocloseModify { stop_loss: field, ..self.modify.clone() },
+        };
+        Self {
+            modify,
+            submit_attempted: false,
+            ..self.clone()
+        }
+    }
+
+    fn input_text(&self, tpsl_type: TpslType) -> Option<String> {
+        self.field(tpsl_type)
+            .price
+            .map(|price| GemPerpetual::new(self.provider.clone()).format_input_price(price, self.decimals, self.decimal_separator.clone()))
+    }
+
+    fn with_text(&self, tpsl_type: TpslType, text: String) -> Self {
+        match tpsl_type {
+            TpslType::TakeProfit => Self { take_profit_text: text, ..self.clone() },
+            TpslType::StopLoss => Self { stop_loss_text: text, ..self.clone() },
+        }
+    }
+
+    fn with_format(self, format: GemNumberFormat) -> Self {
+        let session = Self {
+            decimal_separator: format.decimal_separator,
+            ..self
+        };
+        let take_profit = session.input_text(TpslType::TakeProfit).unwrap_or_default();
+        let stop_loss = session.input_text(TpslType::StopLoss).unwrap_or_default();
+        session.with_text(TpslType::TakeProfit, take_profit).with_text(TpslType::StopLoss, stop_loss)
     }
 
     fn estimator(&self) -> GemAutocloseEstimator {
@@ -290,7 +328,7 @@ impl GemAutocloseSession {
 }
 
 #[uniffi::export]
-pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: PerpetualPosition) -> GemAutocloseSession {
+pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: PerpetualPosition, format: GemNumberFormat) -> GemAutocloseSession {
     let trigger = |tpsl_type: TpslType, order: Option<&primitives::PerpetualTriggerOrder>| GemAutocloseField {
         tpsl_type,
         price: order.map(|order| order.price),
@@ -322,10 +360,11 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
             is_open: false,
         },
     )
+    .with_format(format)
 }
 
 #[uniffi::export]
-pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: i32, provider: PerpetualProvider) -> GemAutocloseSession {
+pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: i32, provider: PerpetualProvider, format: GemNumberFormat) -> GemAutocloseSession {
     let empty = |tpsl_type: TpslType| GemAutocloseField {
         tpsl_type,
         price: None,
@@ -353,6 +392,7 @@ pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, 
             is_open: true,
         },
     )
+    .with_format(format)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -430,12 +470,12 @@ mod tests {
 
     #[test]
     fn test_an_open_position_starts_empty_and_prices_against_the_snapshot_it_was_given() {
-        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore);
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore, GemNumberFormat { decimal_separator: ".".to_string() });
         let state = session.view_state();
 
         assert!(!state.confirm_enabled, "nothing has been entered yet");
         assert_eq!(state.price_rows, vec![price_row(GemListRowTitle::MarketPrice, 100.0)], "an unopened position has no entry price");
-        assert_eq!(session.input_text(TpslType::TakeProfit, ".".to_string()), None);
+        assert_eq!(session.view_state().take_profit.text, "");
 
         let above = session.on_price(TpslType::TakeProfit, Some(120.0));
         assert_eq!(above.modify.take_profit.validation, AutocloseValidation::Valid);
@@ -510,15 +550,28 @@ mod tests {
 
     #[test]
     fn test_a_percent_pick_prices_the_field_and_its_state_comes_with_the_view() {
-        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore);
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore, GemNumberFormat { decimal_separator: ".".to_string() });
 
         let picked = session.on_percent_selected(TpslType::TakeProfit, 50);
         assert!(picked.modify.take_profit.price.is_some_and(|price| price > 100.0));
-        assert!(picked.input_text(TpslType::TakeProfit, ".".to_string()).is_some());
+        assert!(!picked.view_state().take_profit.text.is_empty(), "the picked price fills the field");
         let state = picked.view_state();
         assert!(state.take_profit.estimate.is_some());
         assert!(state.stop_loss.estimate.is_none());
         assert_eq!(state.take_profit.tpsl_type, TpslType::TakeProfit);
+    }
+
+    #[test]
+    fn test_typed_text_is_kept_and_read_in_the_user_locale() {
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore, GemNumberFormat { decimal_separator: ",".to_string() });
+
+        let typed = session.on_input(TpslType::TakeProfit, "120,5".to_string());
+        assert_eq!(typed.modify.take_profit.price, Some(120.5));
+        assert_eq!(typed.view_state().take_profit.text, "120,5");
+
+        let cleared = typed.on_input(TpslType::TakeProfit, String::new());
+        assert_eq!(cleared.modify.take_profit.price, None);
+        assert_eq!(cleared.view_state().take_profit.text, "");
     }
 
     #[test]
@@ -550,20 +603,20 @@ mod tests {
     #[test]
     fn test_a_field_estimates_from_any_typed_price_and_names_its_outcome() {
         let estimator = GemAutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 5);
-        let profit = autoclose_field_state(GemAutocloseField::mock(Some(120.0), None, true, None), &estimator, true);
-        let loss = autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), &estimator, true);
-        let empty = autoclose_field_state(GemAutocloseField::mock(None, None, false, None), &estimator, true);
+        let profit = autoclose_field_state(GemAutocloseField::mock(Some(120.0), None, true, None), String::new(), &estimator, true);
+        let loss = autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), String::new(), &estimator, true);
+        let empty = autoclose_field_state(GemAutocloseField::mock(None, None, false, None), String::new(), &estimator, true);
 
-        assert!(profit.is_profit);
+        assert_eq!(profit.estimate_title, GemLocalizedText::ExpectedProfit);
         assert_eq!(profit.tone, GemValueTone::Positive);
         assert!(matches!(profit.estimate, Some(GemLocalizedText::Pnl { .. })), "a sized position names the amount and the percent");
-        assert!(!loss.is_profit, "a take profit under the market still estimates, as a loss");
+        assert_eq!(loss.estimate_title, GemLocalizedText::ExpectedLoss, "a take profit under the market still estimates, as a loss");
         assert_eq!(loss.tone, GemValueTone::Negative);
         assert_eq!(empty.estimate, None);
         assert_eq!(empty.tone, GemValueTone::Neutral);
         assert!(profit.suggestions.iter().all(|value| value.unit == crate::formatted_number::GemNumberUnit::Percent));
         assert_eq!(
-            autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), &estimator, false).validation,
+            autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), String::new(), &estimator, false).validation,
             AutocloseValidation::Valid,
             "errors wait for a submit attempt"
         );
@@ -670,7 +723,7 @@ mod tests {
             ..PerpetualPosition::mock()
         };
 
-        let session = autoclose_session(perpetual, Asset::from_chain(primitives::Chain::HyperCore), position.clone());
+        let session = autoclose_session(perpetual, Asset::from_chain(primitives::Chain::HyperCore), position.clone(), GemNumberFormat { decimal_separator: ".".to_string() });
 
         assert_eq!(session.modify.asset_index, Some(42));
         assert_eq!(session.modify.take_profit.original_price, Some(120.0));
@@ -680,7 +733,12 @@ mod tests {
         assert_eq!(session.prices.entry, Some(position.entry_price));
         assert!(!session.view_state().confirm_enabled, "an untouched form has nothing to submit");
         assert!(session.view_state().position_row.is_some(), "the modify screen shows the position it edits");
-        assert!(autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore).view_state().position_row.is_none());
+        assert!(
+            autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore, GemNumberFormat { decimal_separator: ".".to_string() })
+                .view_state()
+                .position_row
+                .is_none()
+        );
     }
 
     #[test]
@@ -690,7 +748,7 @@ mod tests {
             ..Perpetual::mock()
         };
 
-        let session = autoclose_session(perpetual, Asset::from_chain(primitives::Chain::HyperCore), PerpetualPosition::mock()).on_price(TpslType::TakeProfit, Some(500.0));
+        let session = autoclose_session(perpetual, Asset::from_chain(primitives::Chain::HyperCore), PerpetualPosition::mock(), GemNumberFormat { decimal_separator: ".".to_string() }).on_price(TpslType::TakeProfit, Some(500.0));
 
         assert_eq!(session.modify.asset_index, None);
         assert!(
@@ -714,6 +772,7 @@ mod tests {
                 stop_loss: None,
                 ..PerpetualPosition::mock()
             },
+            GemNumberFormat { decimal_separator: ".".to_string() },
         );
 
         let below = session.on_price(TpslType::TakeProfit, Some(90.0));

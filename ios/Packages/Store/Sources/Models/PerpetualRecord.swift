@@ -34,38 +34,8 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
     var volume24h: Double
     var funding: Double
     var maxLeverage: UInt8
-    var isIsolatedOnly: Bool
-    var isPinned: Bool
-
-    init(
-        id: PerpetualId,
-        name: String,
-        provider: PerpetualProvider,
-        assetId: AssetId,
-        identifier: String,
-        price: Double,
-        pricePercentChange24h: Double,
-        openInterest: Double,
-        volume24h: Double,
-        funding: Double,
-        maxLeverage: UInt8,
-        isIsolatedOnly: Bool = false,
-        isPinned: Bool = false,
-    ) {
-        self.id = id
-        self.name = name
-        self.provider = provider
-        self.assetId = assetId
-        self.identifier = identifier
-        self.price = price
-        self.pricePercentChange24h = pricePercentChange24h
-        self.openInterest = openInterest
-        self.volume24h = volume24h
-        self.funding = funding
-        self.maxLeverage = maxLeverage
-        self.isIsolatedOnly = isIsolatedOnly
-        self.isPinned = isPinned
-    }
+    var isIsolatedOnly: Bool = false
+    var isPinned: Bool = false
 
     static let positions = hasMany(PerpetualPositionRecord.self).forKey("positions")
     static let asset = belongsTo(AssetRecord.self, using: ForeignKey(["assetId"], to: ["id"]))
@@ -90,43 +60,5 @@ extension PerpetualRecord: CreateTable {
             $0.column(Columns.isIsolatedOnly.name, .boolean).notNull().defaults(to: false)
             $0.column(Columns.isPinned.name, .boolean).notNull().defaults(to: false)
         }
-    }
-}
-
-extension PerpetualRecord {
-    func mapToPerpetual() -> Perpetual {
-        Perpetual(
-            id: id,
-            name: name,
-            provider: provider,
-            assetId: assetId,
-            identifier: identifier,
-            price: price,
-            pricePercentChange24h: pricePercentChange24h,
-            openInterest: openInterest,
-            volume24h: volume24h,
-            funding: funding,
-            maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly,
-        )
-    }
-}
-
-extension Perpetual {
-    var record: PerpetualRecord {
-        PerpetualRecord(
-            id: id,
-            name: name,
-            provider: provider,
-            assetId: assetId,
-            identifier: identifier,
-            price: price,
-            pricePercentChange24h: pricePercentChange24h,
-            openInterest: openInterest,
-            volume24h: volume24h,
-            funding: funding,
-            maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly,
-        )
     }
 }

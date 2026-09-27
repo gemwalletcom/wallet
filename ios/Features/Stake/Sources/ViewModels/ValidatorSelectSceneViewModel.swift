@@ -2,85 +2,73 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemStakeAmountInput
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemValidatorRow
-import func Gemstone.validatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 
+@MainActor
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    public let currentValidator: DelegationValidator?
-    private let recommended: [DelegationValidator]
-    private let validators: [DelegationValidator]
-    public var selectValidator: ((DelegationValidator) -> Void)?
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
+
     private let service: any GemStakeServiceProtocol
-    private let rowsById: [String: GemValidatorRow]
+    private let chain: Chain
+    private let input: GemStakeAmountInput
+    private let currentValidatorId: String
+    private let selectValidator: (GemValidatorRow) -> Void
 
     public init(
         service: any GemStakeServiceProtocol,
-        currentValidator: DelegationValidator?,
-        recommended: [DelegationValidator],
-        validators: [DelegationValidator],
-        selectValidator: ((DelegationValidator) -> Void)? = nil,
+        chain: Chain,
+        input: GemStakeAmountInput,
+        currentValidatorId: String,
+        selectValidator: @escaping (GemValidatorRow) -> Void,
     ) {
         self.service = service
-        self.currentValidator = currentValidator
-        self.recommended = recommended
-        self.validators = validators
+        self.chain = chain
+        self.input = input
+        self.currentValidatorId = currentValidatorId
         self.selectValidator = selectValidator
-
-        let all = recommended + validators
-        rowsById = Dictionary(
-            zip(all.map(\.id), service.validatorRows(validators: all.map { $0.toGem() })),
-            uniquingKeysWith: { first, _ in first },
-        )
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain, providerType: .stake), initialValue: [])
     }
 
     public var title: String {
         Localized.Stake.validators
     }
 
-    public var emptyContent: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.validators))
+    public var emptyContent: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .validators)
     }
 
-    public var list: [ListItemValueSection<DelegationValidator>] {
-        [
-            listSection(title: Localized.Common.recommended, validators: recommended),
-            listSection(title: Localized.Stake.active, validators: validators),
-        ].filter(\.values.isNotEmpty)
-    }
-
-    public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {
-        rowsById[validator.id]?.explorer.map {
-            ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
+    public var list: [ListItemValueSection<GemValidatorRow>] {
+        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() }).sections.map {
+            ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
         }
     }
 
-    public func listSection(title: String, validators: [DelegationValidator]) -> ListItemValueSection<DelegationValidator> {
-        ListItemValueSection(
-            section: title,
-            values: validators.map(listItem),
-        )
+    public func isSelected(_ row: GemValidatorRow) -> Bool {
+        row.validator.id == currentValidatorId
     }
 
-    public func listItem(validator: DelegationValidator) -> ListItemValue<DelegationValidator> {
-        let model = ValidatorViewModel(row: validatorRow(for: validator))
-        return ListItemValue(
-            title: model.name,
-            subtitle: model.aprText,
-            value: validator,
-        )
+    public func onSelect(_ row: GemValidatorRow) {
+        selectValidator(row)
     }
 
-    public func validatorModel(for validator: DelegationValidator) -> ValidatorViewModel {
-        ValidatorViewModel(row: validatorRow(for: validator))
+    public func explorerContext(for row: GemValidatorRow) -> ExplorerContextData? {
+        let validator = row.validator.toPrimitives()
+        return row.explorer.map {
+            ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
+        }
     }
+}
 
-    public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
-        rowsById[validator.id] ?? Gemstone.validatorRow(validator: validator.toGem())
+extension GemValidatorRow: @retroactive Identifiable {
+    public var id: String {
+        validator.id
     }
 }

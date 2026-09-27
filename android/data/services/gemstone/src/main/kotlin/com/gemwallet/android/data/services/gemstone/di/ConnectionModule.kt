@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
+import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.gemstone.connection.InternetConnectionMonitor
@@ -30,4 +31,7 @@ object ConnectionModule {
         ),
         connectionService = connectionService,
     )
+
+    @Provides
+    fun provideObserveRefreshInterval(observer: ConnectionStatusObserver): ObserveRefreshInterval = observer
 }

@@ -13,7 +13,7 @@ struct NFTAssetRecordInfo: Codable, FetchableRecord {
 extension NFTAssetRecordInfo {
     func mapToDetails() -> NFTAssetDetails {
         NFTAssetDetails(
-            assetData: NFTAssetData(collection: collection.mapToCollection(), asset: asset.mapToAsset()),
+            assetData: NFTAssetData(collection: collection.toNFTCollection(), asset: asset.toNFTAsset()),
             isOwned: associations.isNotEmpty,
         )
     }

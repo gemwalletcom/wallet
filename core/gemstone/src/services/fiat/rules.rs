@@ -103,6 +103,8 @@ pub fn transaction_status(status: FiatTransactionStatus) -> GemFiatTransactionSt
 pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow {
     let status = transaction_status(data.status.clone());
     GemFiatTransactionRow {
+        id: data.id.clone(),
+        created_at: data.created_at,
         quote_type: data.transaction_type,
         provider: data.provider,
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
@@ -116,7 +118,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
     }
 }
 
-pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
+fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
     BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
 }
@@ -167,6 +169,7 @@ mod tests {
 
         let row = transaction_row(&data);
 
+        assert_eq!((row.id.as_str(), row.created_at), (data.id.as_str(), data.created_at), "a row keys and dates itself");
         assert_eq!(row.subtitle, "Ethereum (MoonPay)");
         assert_eq!(row.value.value, 1.5);
         assert_eq!(row.value.unit, GemNumberUnit::Symbol { symbol: "ETH".to_string() });

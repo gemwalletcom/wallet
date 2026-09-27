@@ -42,10 +42,6 @@ public final class KeychainDefault: Keychain {
     // MARK: - Public (get) methods
 
     public func get(_ key: String) throws -> String? {
-        try getString(key)
-    }
-
-    public func getString(_ key: String) throws -> String? {
         guard let data = try getData(key) else {
             return nil
         }

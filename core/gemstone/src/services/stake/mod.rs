@@ -11,24 +11,21 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Resource, StakeProviderType, StakeType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
-use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
-    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionKind,
+    GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
 };
 pub use store::GemStakeStore;
 
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transfer::GemTransferData;
-use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -40,6 +37,7 @@ pub struct GemStakeService {
     explorer: Arc<GemExplorerService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
+    platform: Platform,
 }
 
 #[uniffi::export]
@@ -53,6 +51,7 @@ impl GemStakeService {
         explorer: Arc<GemExplorerService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
+        platform: Platform,
     ) -> Self {
         Self {
             gateway,
@@ -62,6 +61,7 @@ impl GemStakeService {
             explorer,
             preferences,
             session,
+            platform,
         }
     }
 
@@ -69,22 +69,26 @@ impl GemStakeService {
         self.preferences.get_currency()
     }
 
-    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
-        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
+    pub fn stake_amount_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeAmountSelection {
+        rules::amount_selection(chain, &input)
     }
 
-    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
-        rules::validator_selection(chain, &input)
-    }
-
-    pub fn validator_rows(&self, validators: Vec<DelegationValidator>) -> Vec<GemValidatorRow> {
-        validators
-            .iter()
-            .map(|validator| GemValidatorRow {
-                explorer: rules::validator_explorer_address(validator).and_then(|address| self.explorer.get_validator_url(validator.chain, address)),
-                ..rules::validator_row(validator)
-            })
-            .collect()
+    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+        let options = rules::validator_options(chain, &input, validators);
+        let with_explorer = |row: GemValidatorRow| GemValidatorRow {
+            explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
+            ..row
+        };
+        GemStakeValidatorOptions {
+            sections: options
+                .sections
+                .into_iter()
+                .map(|section| GemValidatorSection {
+                    rows: section.rows.into_iter().map(with_explorer).collect(),
+                    ..section
+                })
+                .collect(),
+        }
     }
 
     pub async fn refresh(&self, chain: Chain, delegations: Vec<Delegation>) -> GemLoadState {
@@ -99,27 +103,14 @@ impl GemStakeService {
         rules::earn_view(input)
     }
 
-    pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
-        rules::delegation_action_destination(asset, delegation, action, validators)
-    }
-
-    pub fn resource_options(&self, chain: Chain) -> Vec<Resource> {
-        rules::resource_options(chain)
-    }
-
     pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
-        rules::stake_view_state(input)
+        rules::stake_view_state(input, self.platform)
     }
 
-    pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+    pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators)
     }
-}
-
-#[uniffi::export]
-pub fn validator_row(validator: DelegationValidator) -> GemValidatorRow {
-    rules::validator_row(&validator)
 }
 
 impl GemStakeService {

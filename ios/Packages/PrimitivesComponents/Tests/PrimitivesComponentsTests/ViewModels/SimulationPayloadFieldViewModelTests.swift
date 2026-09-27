@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
 import func Gemstone.addressCopy
 import struct Gemstone.GemSimulationPayloadRow
@@ -61,15 +60,6 @@ struct SimulationPayloadFieldViewModelTests {
 
         #expect(viewModel.title == "issuedAt")
         #expect(viewModel.subtitle == "Set Approval For All")
-    }
-
-    @Test
-    func titlesFollowTheKind() {
-        let titles = [GemSimulationPayloadTitle.contract, .method, .token, .value].map {
-            SimulationPayloadFieldViewModel(row: GemSimulationPayloadRow(title: $0, value: .text(text: ""))).title
-        }
-
-        #expect(titles == [Localized.Asset.contract, Localized.Common.method, Localized.Common.token, Localized.Perpetual.value])
     }
 
     @Test

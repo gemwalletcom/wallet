@@ -108,6 +108,7 @@ impl DiscoveryTestkit {
                 Arc::new(GemExplorerService::new(preferences.clone())),
                 preferences.clone(),
                 session.clone(),
+                primitives::Platform::IOS,
             )),
             nft.clone(),
             Arc::new(GemPaymentService::new(provider.clone(), assets.clone())),

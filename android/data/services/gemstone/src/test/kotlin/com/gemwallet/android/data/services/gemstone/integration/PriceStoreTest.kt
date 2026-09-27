@@ -4,13 +4,15 @@ import android.database.sqlite.SQLiteException
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.service.store.database.GemDatabase
-import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
+import com.gemwallet.android.data.services.store.database.GemDatabase
+import com.gemwallet.android.data.services.store.database.entities.DbFiatRate
+import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.GemPriceUpdate
 
 @RunWith(AndroidJUnit4::class)
 class PriceStoreTest {
@@ -56,26 +59,31 @@ class PriceStoreTest {
     }
 
     @Test
-    fun failedConversionRollsBackRatesAndIdenticalRetryCommitsBoth() = runBlocking(Dispatchers.IO) {
+    fun failedConversionRollsBackTheTickAndIdenticalRetryCommitsIt() = runBlocking(Dispatchers.IO) {
         val conversion = FiatRate(Currency.EUR, 0.9).toGem()
         val rates = listOf(conversion, FiatRate(Currency.GBP, 0.7).toGem())
+        val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id.toIdentifier()
+        val prices = listOf(GemPriceUpdate(assetId = ethereum, price = 180.0, priceUsd = 200.0, priceChangePercentage24h = 1.0, updatedAt = 43))
 
-        val failure = runCatching { store.saveRates(rates, conversion) }.exceptionOrNull()
+        val failure = runCatching { store.saveRatesAndPrices(Currency.EUR.toGem(), rates, conversion, prices) }.exceptionOrNull()
 
         assertTrue(failure is SQLiteException)
         assertEquals(listOf(initialRate), database.pricesDao().getRates())
-        assertEquals(listOf(price), database.pricesDao().getByAssets(listOf(price.assetId)))
+        assertEquals(listOf(price), database.pricesDao().getByAssets(listOf(price.assetId, ethereum)))
 
         database.openHelper.writableDatabase.execSQL("DROP TRIGGER reject_price_update")
-        store.saveRates(rates, conversion)
+        store.saveRatesAndPrices(Currency.EUR.toGem(), rates, conversion, prices)
 
         assertEquals(setOf(DbFiatRate(Currency.EUR, 0.9), DbFiatRate(Currency.GBP, 0.7)), database.pricesDao().getRates().toSet())
-        assertEquals(listOf(price.copy(value = 90.0)), database.pricesDao().getByAssets(listOf(price.assetId)))
+        assertEquals(
+            setOf(price.copy(value = 90.0), DbPrice(assetId = ethereum, value = 180.0, usdValue = 200.0, dayChanged = 1.0, currency = Currency.EUR, updatedAt = 43)),
+            database.pricesDao().getByAssets(listOf(price.assetId, ethereum)).toSet(),
+        )
     }
 
     @Test
     fun rateWithoutConversionDoesNotTouchPrices() = runBlocking(Dispatchers.IO) {
-        store.saveRates(listOf(FiatRate(Currency.GBP, 0.7).toGem()), null)
+        store.saveRatesAndPrices(Currency.EUR.toGem(), listOf(FiatRate(Currency.GBP, 0.7).toGem()), null, emptyList())
 
         assertEquals(setOf(initialRate, DbFiatRate(Currency.GBP, 0.7)), database.pricesDao().getRates().toSet())
         assertEquals(listOf(price), database.pricesDao().getByAssets(listOf(price.assetId)))

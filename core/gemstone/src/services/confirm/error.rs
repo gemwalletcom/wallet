@@ -2,6 +2,7 @@ use crate::GemstoneError;
 use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
+use crate::models::list::{GemListRow, GemNoticeKind, suspicious_address_notice};
 use crate::payment::GemPaymentError;
 use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
@@ -9,8 +10,9 @@ use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
+use swapper::SwapperError;
 
-#[derive(Debug, Clone, uniffi::Error)]
+#[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired {
@@ -100,6 +102,55 @@ impl GemConfirmError {
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => false,
+        }
+    }
+
+    pub(crate) fn includes_network_fee(&self, fee_asset_id: &AssetId) -> bool {
+        match self {
+            Self::InsufficientBalance { asset, .. } | Self::MinimumAccountBalanceTooLow { asset, .. } => &asset.id == fee_asset_id,
+            Self::InsufficientNetworkFee { .. } => true,
+            Self::ScanMalicious
+            | Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
+            | Self::BalanceMissing { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => false,
+        }
+    }
+
+    pub(crate) fn notice(&self) -> Option<GemListRow> {
+        match self {
+            Self::ScanMalicious => Some(suspicious_address_notice(GemNoticeKind::Error)),
+            Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
+            | Self::BalanceMissing { .. }
+            | Self::InsufficientBalance { .. }
+            | Self::InsufficientNetworkFee { .. }
+            | Self::MinimumAccountBalanceTooLow { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => None,
         }
     }
 }
@@ -256,16 +307,25 @@ impl GemConfirmError {
 #[uniffi::export]
 impl GemConfirmErrorDisplay {
     pub fn has_info_sheet(&self) -> bool {
+        self.sheet().is_some()
+    }
+}
+
+impl GemConfirmErrorDisplay {
+    pub(crate) fn sheet(&self) -> Option<GemConfirmErrorSheet> {
         match self {
-            Self::Malicious
-            | Self::MemoRequired { .. }
-            | Self::BalanceRequired { .. }
-            | Self::NetworkFeeRequired { .. }
-            | Self::NetworkFeeMissing { .. }
-            | Self::MinimumAccountBalance { .. }
-            | Self::SwapMinimum { .. }
-            | Self::DustThreshold { .. } => true,
-            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => false,
+            Self::Malicious => Some(GemConfirmErrorSheet::Malicious),
+            Self::MemoRequired { symbol } => Some(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }),
+            Self::BalanceRequired { .. } => Some(GemConfirmErrorSheet::BalanceRequired),
+            Self::NetworkFeeRequired { .. } => Some(GemConfirmErrorSheet::NetworkFeeRequired),
+            Self::NetworkFeeMissing { .. } => Some(GemConfirmErrorSheet::NetworkFeeMissing),
+            Self::MinimumAccountBalance { .. } => Some(GemConfirmErrorSheet::MinimumAccountBalance),
+            Self::SwapMinimum { provider, provider_name, .. } => Some(GemConfirmErrorSheet::SwapMinimum {
+                provider: *provider,
+                provider_name: provider_name.clone(),
+            }),
+            Self::DustThreshold { chain } => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
+            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => None,
         }
     }
 }
@@ -329,6 +389,15 @@ impl From<GemServiceError> for GemConfirmError {
     }
 }
 
+impl From<SwapperError> for GemConfirmError {
+    fn from(error: SwapperError) -> Self {
+        match error {
+            SwapperError::Offline => GemConfirmError::Offline,
+            error => GemConfirmError::Load { msg: error.to_string() },
+        }
+    }
+}
+
 pub(super) fn load_error(error: GatewayError) -> GemConfirmError {
     match error {
         GatewayError::Offline => GemConfirmError::Offline,
@@ -348,6 +417,13 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_only_a_flagged_recipient_shows_the_suspicious_address_notice() {
+        assert_eq!(GemConfirmError::ScanMalicious.notice(), Some(suspicious_address_notice(GemNoticeKind::Error)));
+        assert_eq!(GemConfirmError::ScanMemoRequired { symbol: "XRP".to_string() }.notice(), None);
+        assert_eq!(GemConfirmError::Offline.notice(), None);
+    }
 
     #[test]
     fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {

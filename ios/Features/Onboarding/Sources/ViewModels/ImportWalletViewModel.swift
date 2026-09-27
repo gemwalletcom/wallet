@@ -3,7 +3,6 @@
 import Foundation
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
-import GemstonePrimitives
 import GemstoneServices
 import Primitives
 import PrimitivesComponents
@@ -34,10 +33,10 @@ public final class ImportWalletViewModel {
     }
 
     func importWalletModel(type: ImportWalletType) -> ImportWalletSceneViewModel {
-        ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: nameService, type: type, onComplete: onComplete)
+        ImportWalletSceneViewModel(service: service, nameService: nameService, type: type, onComplete: onComplete)
     }
 
-    func importWalletTypeModel() -> ImportWalletTypeViewModel {
-        ImportWalletTypeViewModel()
+    func importWalletTypeModel() -> ImportWalletTypeSceneViewModel {
+        ImportWalletTypeSceneViewModel()
     }
 }

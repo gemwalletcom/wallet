@@ -8,10 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetIcon
 
 @Composable
-fun AssetListHead(asset: Asset, onClick: (() -> Unit)? = null) {
+fun AssetListHead(icon: GemAssetIcon, onClick: (() -> Unit)? = null) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -19,6 +19,6 @@ fun AssetListHead(asset: Asset, onClick: (() -> Unit)? = null) {
             .padding(paddingDefault),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        HeaderIcon(asset)
+        HeaderIcon(icon)
     }
 }

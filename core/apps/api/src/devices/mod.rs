@@ -5,7 +5,7 @@ pub mod error;
 pub mod guard;
 pub mod signature;
 use crate::params::{AddressParam, AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent};
-use crate::responders::{ApiError, ApiResponse};
+use crate::responders::{ApiError, ApiResponse, localized_fiat_error};
 use auth_config::AuthConfig;
 use body::DeviceJson;
 use gem_auth::create_device_token;
@@ -135,7 +135,7 @@ pub async fn get_device_defi_positions_v2(device: AuthenticatedDeviceWallet, cli
 
 #[get("/devices/rewards")]
 pub async fn get_device_rewards_v2(device: AuthenticatedDeviceWallet, client: &State<RewardsClient>) -> Result<ApiResponse<Rewards>, ApiError> {
-    Ok(client.get_rewards_by_wallet_id(device.wallet_id, device.record.device.locale.as_ref()).await?.into())
+    Ok(client.get_rewards_by_wallet_id(&device.record, device.wallet_id, device.record.device.locale.as_ref()).await?.into())
 }
 
 #[get("/devices/rewards/events")]
@@ -168,7 +168,7 @@ pub async fn redeem_device_rewards_v2(device: AuthenticatedDeviceWallet, request
         return Err(ApiError::BadRequest("Wallet signature mismatch".to_string()));
     }
 
-    Ok(client.redeem_by_wallet_id(device.wallet_id, &request.data.id, device.record.id).await?.into())
+    Ok(client.redeem_by_wallet_id(device.wallet_id, &request.data.id, device.record.id, device.record.device.locale.as_ref()).await?.into())
 }
 
 #[put("/devices", format = "json", data = "<device_input>")]
@@ -203,7 +203,7 @@ pub async fn report_device_nft_v2(device: AuthenticatedDevice, request: DeviceJs
 
 #[get("/devices/name/resolve/<name>?<chain>")]
 pub async fn get_device_name_resolve_v2(_device: AuthenticatedDevice, name: &str, chain: ChainParam, client: &State<NameClient>) -> Result<ApiResponse<Option<NameRecord>>, ApiError> {
-    Ok(client.resolve(name, chain.0).await.ok().flatten().into())
+    Ok(client.resolve(name, chain.0).await?.into())
 }
 
 #[post("/devices/scan/transaction", data = "<request>")]
@@ -302,7 +302,7 @@ pub async fn get_fiat_quotes_v2(
         ip_address: ip_address.clone(),
     };
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip_address);
-    let quotes = client.get_device_quotes(quote_request, &context).await?;
+    let quotes = client.get_device_quotes(quote_request, &context).await.map_err(|error| localized_fiat_error(error, device.record.device.locale.as_ref()))?;
     Ok(quotes.into())
 }
 
@@ -311,7 +311,7 @@ pub async fn get_fiat_quote_url_v2(device: AuthenticatedDeviceWallet, quote_id: 
     let locale = device.record.device.locale.as_ref();
     let ip_address = ip.to_string();
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip_address);
-    let url = client.get_quote_url(quote_id, &context, locale).await?;
+    let url = client.get_quote_url(quote_id, &context, locale).await.map_err(|error| localized_fiat_error(error, locale))?;
     Ok(url.into())
 }
 

@@ -7,14 +7,14 @@ import Style
 import SwiftUI
 
 public struct SecurityScene: View {
-    @State private var model: SecurityViewModel
+    @State private var model: SecuritySceneViewModel
 
-    public init(model: SecurityViewModel) {
+    public init(model: SecuritySceneViewModel) {
         self.model = model
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             GemListRowView(row: row, onToggle: model.onToggle, onSelect: model.onSelect)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

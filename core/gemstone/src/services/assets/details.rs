@@ -1,23 +1,28 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{AssetId, BannerEvent, Deeplink};
+use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;
 use crate::models::state::GemLoadState;
-use crate::services::balance::GemBalanceService;
+use crate::services::balance::rules::balance_amount;
+use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use crate::services::localization::GemLocalizedText;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::GemSwapService;
+use crate::services::toast::GemToast;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
 
-use crate::services::failures::{StepFailure, record, record_result};
+use crate::services::failures::{StepFailure, record_result};
 
+use super::icon::asset_icon;
+use super::model::{GemRowText, GemValueHeader};
 use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -103,15 +108,15 @@ impl GemAssetDetailsService {
                 };
             }
         };
-        record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
-
-        record(&mut failures, GemAssetRefreshStep::SyncAsset, self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ())).await;
-
-        let (balances, transactions, price_alerts) = futures::join!(
-            self.balances.update(wallet_id.clone(), vec![asset_id.clone()]),
+        let (prices, associations, balances, transactions, price_alerts) = futures::join!(
+            self.stream.add_prices(vec![asset_id.clone()]),
+            self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ()),
+            self.balances.sync_assets_and_update(wallet_id.clone(), vec![asset_id.clone()]),
             self.transactions.sync_wallet(wallet_id, Some(asset_id.clone())),
             self.price_alerts.sync(Some(asset_id))
         );
+        record_result(&mut failures, GemAssetRefreshStep::AddPrices, prices);
+        record_result(&mut failures, GemAssetRefreshStep::SyncAsset, associations);
         record_result(&mut failures, GemAssetRefreshStep::SyncPriceAlerts, price_alerts);
         record_result(&mut failures, GemAssetRefreshStep::UpdateBalances, balances);
         record_result(&mut failures, GemAssetRefreshStep::SyncTransactions, transactions.clone());
@@ -121,8 +126,9 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset.id, pinned).await?;
+        Ok(GemToast::pinned(asset.name, pinned))
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
@@ -136,26 +142,41 @@ impl GemAssetDetailsService {
     pub fn details(&self, input: GemAssetDetailsInput) -> GemAssetDetails {
         let GemAssetDetailsInput {
             wallet,
-            asset,
-            owner_address,
-            metadata,
-            balance,
-            price,
-            price_change_percentage_24h,
+            asset_data,
             currency,
             banners,
-            price_alerts,
             fee_balance_metadata,
         } = input;
+        let balance = GemAssetBalance::from(&asset_data);
+        let AssetData {
+            asset,
+            account,
+            price,
+            price_alerts,
+            metadata,
+            ..
+        } = asset_data;
+        let owner_address = Some(account.address).filter(|address| !address.is_empty());
+        let price_change_percentage_24h = price.as_ref().map(|price| price.price_change_percentage_24h);
+        let price = price.map(|price| price.price);
         let wallet_type = wallet.wallet_type;
         let visible_banners = self.banners.visible_banners(&GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance), banners);
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;
+        let swap_pair = self.swap.pair_for_asset(asset.id.clone(), has_balance);
         GemAssetDetails {
+            header: GemValueHeader {
+                actions: Some(rules::header_actions(wallet_type, &asset.id, &metadata, &banner_events, &swap_pair)),
+                ..GemValueHeader::asset(
+                    asset_icon(&asset.id),
+                    GemLocalizedText::Number {
+                        number: balance_amount(&balance.total(), &asset),
+                    },
+                    rules::fiat_value(&asset, &balance, price, currency.clone()).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                )
+            },
             title: rules::asset_title(&asset),
-            balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
-            fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),
             state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
             banner: visible_banners.into_iter().next(),
             sections: rules::details_sections(rules::DetailsSectionsInput {
@@ -169,18 +190,19 @@ impl GemAssetDetailsService {
                 price_alerts: &price_alerts,
                 fee_balance_metadata,
             }),
-            explorer_name: self.explorer.get_explorer_name(chain),
-            address_link: owner_address.map(|address| self.explorer.get_address_url(chain, address)),
-            token_link: asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(chain, token_id)),
+            options: rules::asset_options(
+                owner_address.map(|address| self.explorer.get_address_url(chain, address)),
+                asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(chain, token_id)),
+            ),
             verification_status: rules::verification_status(&asset, metadata.rank_score),
             network_destination: rules::network_destination(&asset.id),
             share_url: self.deeplinks.build_url(Deeplink::Asset { asset_id: asset.id.clone() }),
-            swap_pair: self.swap.pair_for_asset(asset.id, has_balance),
+            swap_pair,
         }
     }
 
-    pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        self.price_alerts.set_auto_alert(asset_id, enabled).await
+    pub async fn set_price_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+        self.price_alerts.set_auto_alert(asset, enabled).await
     }
 }
 

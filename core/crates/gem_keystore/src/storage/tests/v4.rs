@@ -7,7 +7,7 @@ use std::thread;
 use crate::{Keystore, KeystoreError, KeystoreId};
 
 use super::super::{
-    constants::{AES_GCM_TAG_LEN, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM, MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM},
+    constants::{MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM, MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM},
     format::{FileV4, parse_v4},
     types::{FileKeystore, KdfParams, SecretKind},
 };
@@ -80,7 +80,7 @@ fn test_v4_header_filename_mismatch_fails_after_authentication() {
 }
 
 #[test]
-fn test_v4_change_password_and_list_inspect() {
+fn test_v4_change_password_and_list() {
     let (dir, keystore) = FileKeystore::mock();
     let old_password = b"old-password";
     let new_password = b"new-password";
@@ -93,11 +93,6 @@ fn test_v4_change_password_and_list_inspect() {
     let listed = keystore.list().unwrap();
     assert_eq!(listed.len(), 1);
     assert_eq!(listed[0].as_ref().unwrap().keystore_id, meta.keystore_id);
-
-    let inspected = FileKeystore::inspect_path(&v4_path(&dir, &meta.keystore_id)).unwrap();
-    assert_eq!(inspected.meta.unwrap().keystore_id, meta.keystore_id);
-    assert!(!inspected.authenticated);
-    assert!(inspected.ciphertext_len >= u64::from(AES_GCM_TAG_LEN));
 
     let path = v4_path(&dir, &meta.keystore_id);
     assert_eq!(FileKeystore::verify_path(&path, new_password).unwrap().keystore_id, meta.keystore_id);

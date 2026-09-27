@@ -1,5 +1,6 @@
 use super::model::{GemAuthPromptOutcome, GemLockPeriod};
 use crate::constants::LOCK_PERIODS;
+use crate::services::error_text::GemErrorText;
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
@@ -25,10 +26,12 @@ impl GemLockPeriod {
 
 #[uniffi::export]
 impl GemAuthPromptOutcome {
-    pub fn is_cancelled(self) -> bool {
+    pub fn error_text(self) -> Option<GemErrorText> {
         match self {
-            Self::CancelledByUser | Self::CancelledBySystem => true,
-            Self::Unavailable | Self::LockedOut | Self::Transient | Self::Failed => false,
+            Self::CancelledByUser | Self::CancelledBySystem => None,
+            Self::Unavailable => Some(GemErrorText::AuthenticationUnavailable),
+            Self::LockedOut => Some(GemErrorText::AuthenticationLockedOut),
+            Self::Transient | Self::Failed => Some(GemErrorText::AuthenticationFailed),
         }
     }
 
@@ -66,11 +69,13 @@ mod tests {
     }
 
     #[test]
-    fn test_cancellation_covers_both_the_user_and_the_system() {
-        assert!(GemAuthPromptOutcome::CancelledByUser.is_cancelled());
-        assert!(GemAuthPromptOutcome::CancelledBySystem.is_cancelled());
-        assert!(!GemAuthPromptOutcome::LockedOut.is_cancelled());
-        assert!(!GemAuthPromptOutcome::Failed.is_cancelled());
+    fn test_a_failed_prompt_names_why_and_a_cancelled_one_says_nothing() {
+        assert_eq!(GemAuthPromptOutcome::CancelledByUser.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::CancelledBySystem.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::Unavailable.error_text(), Some(GemErrorText::AuthenticationUnavailable));
+        assert_eq!(GemAuthPromptOutcome::LockedOut.error_text(), Some(GemErrorText::AuthenticationLockedOut));
+        assert_eq!(GemAuthPromptOutcome::Transient.error_text(), Some(GemErrorText::AuthenticationFailed));
+        assert_eq!(GemAuthPromptOutcome::Failed.error_text(), Some(GemErrorText::AuthenticationFailed));
     }
 
     #[test]

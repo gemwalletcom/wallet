@@ -28,7 +28,7 @@ public struct PerpetualNavigationView: View {
             .onChange(of: isPresentingSheet) { oldValue, newValue in
                 guard newValue == nil else { return }
                 switch oldValue {
-                case .transferData, .perpetualPosition:
+                case .transferData, .amount:
                     Task { await model.load() }
                 default:
                     break

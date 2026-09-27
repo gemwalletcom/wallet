@@ -12,10 +12,10 @@ struct AssetItemsView: View {
     let onSelect: (Asset) -> Void
 
     var body: some View {
-        ForEach(Array(zip(items, itemsModel.items(items))), id: \.0.id) { assetData, model in
+        ForEach(Array(zip(items, itemsModel.rows(items))), id: \.0.id) { assetData, row in
             NavigationCustomLink(
-                with: ListAssetItemView(model: model)
-                    .contextMenu(contextMenuItems(assetData)),
+                with: ListAssetItemView(row: row)
+                    .contextMenuOnOpen { contextMenuItems(assetData) },
                 action: { onSelect(assetData.asset) },
             )
         }

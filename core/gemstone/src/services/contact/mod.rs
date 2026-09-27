@@ -10,7 +10,6 @@ use uuid::Uuid;
 use primitives::contact::ContactAddress;
 use primitives::{Chain, Contact};
 
-use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
 use crate::models::payment::GemPayment;
 use crate::payment::GemPaymentService;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION};
@@ -97,15 +96,14 @@ impl GemContactService {
 #[derive(uniffi::Object)]
 pub struct GemContactEditorService {
     contacts: Arc<GemContactService>,
-    addresses: Arc<GemAddressService>,
     payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemContactEditorService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self {
-        Self { contacts, addresses, payments }
+    pub fn new(contacts: Arc<GemContactService>, payments: Arc<GemPaymentService>) -> Self {
+        Self { contacts, payments }
     }
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
@@ -126,9 +124,5 @@ impl GemContactEditorService {
 
     pub fn new_session(&self, contact: Option<Contact>, addresses: Vec<ContactAddress>) -> GemContactSession {
         rules::new_session(contact, addresses, Uuid::new_v4().to_string())
-    }
-
-    pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
-        self.addresses.format(address, Some(chain), style)
     }
 }

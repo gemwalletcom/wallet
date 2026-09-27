@@ -142,7 +142,7 @@ where
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(response.route.estimate.estimated_route_duration),
+            eta_in_seconds: Some(response.route.estimate.estimated_route_duration).filter(|seconds| *seconds > 0),
         })
     }
 
@@ -168,6 +168,7 @@ where
             memo: None,
             approval: None,
             gas_limit: Some(tx.gas_limit),
+            permit2: None,
         })
     }
 

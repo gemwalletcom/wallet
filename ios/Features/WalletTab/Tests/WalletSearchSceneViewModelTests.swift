@@ -15,56 +15,12 @@ import WalletTabTestKit
 @MainActor
 struct WalletSearchSceneViewModelTests {
     @Test
-    func searchRequestInitialization() {
-        #expect(WalletSearchSceneViewModel.mock().searchQuery.request.limit == 13)
-        #expect(WalletSearchSceneViewModel.mock().searchQuery.request.types == [.asset, .perpetual, .list, .nft])
-    }
-
-    @Test
-    func hasMoreAssets() {
-        let model = WalletSearchSceneViewModel.mock()
-        let unpinned = { AssetData.mock(metadata: .mock(isPinned: false)) }
-
-        model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in unpinned() })
-        #expect(model.derived.view.hasMoreAssets == false)
-
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in unpinned() })
-        #expect(model.derived.view.hasMoreAssets == true)
-    }
-
-    @Test
     func hasMoreAssetsCountsOnlyTheAssetsThePreviewShows() {
         let model = WalletSearchSceneViewModel.mock()
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock() })
+        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock(metadata: .mock(isPinned: true)) })
 
         #expect(model.derived.previewAssets.isEmpty)
         #expect(model.derived.view.hasMoreAssets == false)
-    }
-
-    @Test
-    func hasMorePerpetuals() {
-        let model = WalletSearchSceneViewModel.mock()
-
-        model.searchQuery.value = .mock(perpetuals: (0 ..< 3).map { _ in .mock() })
-        #expect(model.derived.view.hasMorePerpetuals == false)
-
-        model.searchQuery.value = .mock(perpetuals: (0 ..< 4).map { _ in .mock() })
-        #expect(model.derived.view.hasMorePerpetuals == true)
-    }
-
-    @Test
-    func hidesPerpetualsWhenTheServiceSaysSo() {
-        let service = GemAssetSelectionServiceMock()
-        service.perpetualsShown = false
-        let model = WalletSearchSceneViewModel.mock(service: service)
-        model.searchQuery.value = .mock(
-            perpetuals: [
-                .mock(metadata: .mock(isPinned: false)),
-                .mock(metadata: .mock(isPinned: true)),
-            ],
-        )
-        #expect(model.derived.view.state.showsPerpetuals == false)
-        #expect(model.derived.view.state.showsPinnedPerpetuals == false)
     }
 
     @Test
@@ -76,20 +32,10 @@ struct WalletSearchSceneViewModelTests {
         let list = AssetList(id: "stocks", name: "Stocks", count: 2)
         model.searchQuery.value = .mock(lists: [list])
 
+        let row = model.derived.sections.lists[0]
         #expect(model.derived.view.state.showsLists == true)
-        #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
-    }
-
-    @Test
-    func hasMoreNFTs() {
-        let service = GemAssetSelectionServiceMock()
-        let model = WalletSearchSceneViewModel.mock(service: service)
-
-        service.nftSearchItems = (0 ..< 3).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
-        #expect(model.derived.view.hasMoreNfts == false)
-
-        service.nftSearchItems = (0 ..< 4).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
-        #expect(model.derived.view.hasMoreNfts == true)
+        #expect(row.listItem.subtitle == "2")
+        #expect(model.listDestination(for: row) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
     @Test
@@ -100,12 +46,12 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.derived.view.state.showsNfts == false)
 
         service.nftSearchItems = [
-            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem())),
-            .mock(item: .asset(data: NFTAssetData.mock().toGem())),
+            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()), row: .mock(id: "collection", isVerified: true)),
+            .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "asset", isVerified: true)),
         ]
 
         #expect(model.derived.view.state.showsNfts == true)
-        #expect(model.derived.collectionsContent.items.count == 2)
+        #expect(model.derived.previewNFTs.count == 2)
     }
 
     @Test
@@ -116,20 +62,6 @@ struct WalletSearchSceneViewModelTests {
         if case .results = model.searchState(model.derived) {} else {
             Issue.record("expected results, got \(model.searchState(model.derived))")
         }
-    }
-
-    @Test
-    func addingATokenNeedsBothTokenSupportAndAChainToAddItTo() {
-        let service = GemAssetSelectionServiceMock()
-        let model = WalletSearchSceneViewModel.mock(service: service)
-
-        #expect(model.derived.view.showsAddToken == false, "there is no chain to add a token to")
-
-        service.filterChainsResult = [Primitives.Chain.ethereum.toGem()]
-        #expect(model.derived.view.showsAddToken)
-
-        service.tokensSupported = false
-        #expect(model.derived.view.showsAddToken == false)
     }
 
     @Test

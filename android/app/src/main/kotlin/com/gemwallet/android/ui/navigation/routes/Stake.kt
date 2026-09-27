@@ -3,9 +3,9 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.features.earn.delegation.presents.DelegationScene
 import com.gemwallet.android.features.stake.presents.EarnScreen
 import com.gemwallet.android.features.stake.presents.StakeScreen
+import com.gemwallet.android.features.stake.presents.delegation.DelegationScreen
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.assetIdArgument
@@ -54,7 +54,7 @@ fun EntryProviderScope<NavKey>.stake(onAmount: AmountTransactionAction, onConfir
             )
         },
     ) {
-        DelegationScene(
+        DelegationScreen(
             onAmount = onAmount,
             onConfirm = onConfirm,
             onOpenAddress = onOpenAddress,

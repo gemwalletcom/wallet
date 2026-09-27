@@ -36,12 +36,12 @@ impl<C: Client> NameResolver for SnsProvider<C> {
 
     async fn resolve(&self, query: &NameQuery, chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
         match chain {
-            Chain::Solana => Ok(Some(self.client.get_address(&query.domain).await?)),
-            Chain::SmartChain => {
-                let (domain, _) = query.domain.rsplit_once('.').ok_or("invalid SNS domain")?;
-                Ok(Some(self.client.get_record(domain, RECORD_BSC).await?))
-            }
-            _ => Err(format!("unsupported chain: {chain}").into()),
+            Chain::Solana => self.client.get_address(&query.domain).await,
+            Chain::SmartChain => match query.domain.rsplit_once('.') {
+                Some((domain, _)) => self.client.get_record(domain, RECORD_BSC).await,
+                None => Ok(None),
+            },
+            _ => Ok(None),
         }
     }
 }

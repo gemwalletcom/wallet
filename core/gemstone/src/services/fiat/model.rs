@@ -67,6 +67,8 @@ pub struct GemFiatTransactionStatus {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatTransactionRow {
+    pub id: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub quote_type: FiatQuoteType,
     pub provider: FiatProviderName,
     pub subtitle: String,

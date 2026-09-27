@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.perpetualPositionRows
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -21,15 +23,16 @@ public struct PerpetualPositionsList: View {
     }
 
     public var body: some View {
-        ForEach(PerpetualPositionItemViewModel.items(positions, showBalancePrivacy: $showBalancePrivacy), id: \.model.id) { position, model in
+        ForEach(Array(zip(positions, perpetualPositionRows(positions: positions.map { $0.toGem() }))), id: \.1.id) { position, row in
+            let itemView = ListAssetItemView(row: row.row, isPrivacyEnabled: $showBalancePrivacy)
             if let onSelect {
                 NavigationCustomLink(
-                    with: ListAssetItemView(model: model),
+                    with: itemView,
                     action: { onSelect(position.perpetualData.asset) },
                 )
             } else {
                 NavigationLink(value: Scenes.Perpetual(position.perpetualData)) {
-                    ListAssetItemView(model: model)
+                    itemView
                 }
             }
         }

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemCollectibleDetails
 import GemstonePrimitives
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -11,17 +11,18 @@ import Style
 import SwiftUI
 
 public struct CollectibleScene: View {
-    @State private var model: CollectibleViewModel
+    @State private var model: CollectibleSceneViewModel
 
-    public init(model: CollectibleViewModel) {
+    public init(model: CollectibleSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        List {
-            headerSectionView
-            ForEach(model.sections, id: \.self) { section in
-                switch section {
+        let details = model.details
+        return List {
+            headerSectionView(details)
+            ForEach(details.sections, id: \.self) { group in
+                switch group.section {
                 case let .status(status):
                     Section {
                         AssetStatusView(status: status.toPrimitives(), action: model.onSelectStatus)
@@ -33,13 +34,13 @@ public struct CollectibleScene: View {
                         }
                     }
                 case let .attributes(attributes):
-                    Section(Localized.Nft.properties) {
+                    Section(group.title.text ?? .empty) {
                         ForEach(attributes, id: \.self) {
                             ListItemView(model: model.attributeListItem($0))
                         }
                     }
                 case let .links(links):
-                    Section(Localized.Social.links) {
+                    Section(group.title.text ?? .empty) {
                         SocialLinksView(links: links)
                     }
                 }
@@ -54,7 +55,7 @@ public struct CollectibleScene: View {
                 HStack(spacing: .tiny) {
                     Text(model.title)
                         .font(.headline)
-                    if model.isVerified {
+                    if details.isVerified {
                         VerifiedBadgeView(font: .subheadline)
                     }
                 }
@@ -66,7 +67,7 @@ public struct CollectibleScene: View {
             ReportNavigationStack(model: model.reportModel())
         }
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))
+            InfoSheetScene(sheet: $0)
         }
         .bindQuery(model.query)
     }
@@ -75,7 +76,7 @@ public struct CollectibleScene: View {
 // MARK: - UI
 
 extension CollectibleScene {
-    private var headerSectionView: some View {
+    private func headerSectionView(_ details: GemCollectibleDetails) -> some View {
         Section {
             NftImageView(
                 assetImage: model.assetImage,
@@ -85,7 +86,7 @@ extension CollectibleScene {
         } header: {
             Spacer()
         } footer: {
-            HeaderButtonsView(buttons: model.headerButtons, action: model.onSelectHeaderButton(type:))
+            HeaderButtonsView(buttons: details.header.headerButtons, menuTitle: model.title, menuItems: model.menuItems(details), action: model.onSelectHeaderButton)
                 .padding(.top, .medium)
                 .padding(.bottom, .small)
         }
@@ -93,6 +94,6 @@ extension CollectibleScene {
         .textCase(nil)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets())
-        .contextMenu(model.imageContextMenuItems)
+        .contextMenu(model.imageContextMenuItems(details))
     }
 }

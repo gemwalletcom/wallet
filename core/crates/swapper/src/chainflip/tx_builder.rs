@@ -26,6 +26,7 @@ pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: Big
         memo: Some(response.note.clone()),
         approval: None,
         gas_limit: None,
+        permit2: None,
     })
 }
 

@@ -3,21 +3,22 @@
 
 use crate::models::custom_types::{GemBigInt, GemBigUint, GemJsonValue};
 use primitives::{
-    Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFiatValue, AssetFull, AssetLink, AssetList,
-    AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain, ChainAddress, ChainAsset, ChainType,
-    ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContractCallData, CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon,
-    Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl, FiatRate, FiatTransaction,
-    FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType,
-    NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus,
-    PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualAccountSummary, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
-    PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionData, PerpetualProvider, PerpetualReduceData, PerpetualSearchData,
-    PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData,
-    PriceAlertDirection, PriceAlertNotificationType, PriceProvider, RecentActivityType, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, ReportReason, Resource, RewardRedemption,
-    RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage,
-    SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue,
-    TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionState, TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
-    TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
+    Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBalance, AssetBasic, AssetData, AssetFiatValue,
+    AssetFull, AssetLink, AssetList, AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, Balance, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain,
+    ChainAddress, ChainAsset, ChainType, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji,
+    CoreListItem, CoreListItemBadge, CoreListItemIcon, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType,
+    FiatQuoteUrl, FiatRate, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset,
+    NFTAssetData, NFTAttribute, NFTAttributeType, NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice,
+    PaymentQuote, PaymentRequest, PaymentStatus, PaymentType, PaymentVerification, Permit2ApprovalData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection,
+    PerpetualMarginType, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionData, PerpetualProvider,
+    PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider, RecentActivityType, RecentAsset, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release,
+    ReportNft, ReportReason, Resource, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType,
+    SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote,
+    SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput,
+    TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession,
+    WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
 
@@ -30,6 +31,7 @@ pub enum AccountDataType {
 pub enum AddressType {
     Address,
     Contract,
+    Asset,
     Validator,
     Contact,
     InternalWallet,
@@ -893,11 +895,29 @@ pub struct AssetAssociation {
 }
 
 #[uniffi::remote(Record)]
+pub struct AssetBalance {
+    pub asset_id: primitives::AssetId,
+    pub balance: Balance,
+    pub is_active: bool,
+}
+
+#[uniffi::remote(Record)]
 pub struct AssetBasic {
     pub asset: Asset,
     pub properties: AssetProperties,
     pub score: AssetScore,
     pub price: Option<Price>,
+}
+
+#[uniffi::remote(Record)]
+pub struct AssetData {
+    pub asset: Asset,
+    pub balance: Balance,
+    pub account: Account,
+    pub price: Option<Price>,
+    pub price_alerts: Vec<PriceAlert>,
+    pub metadata: AssetMetaData,
+    pub associations: Vec<AssetAssociation>,
 }
 
 #[uniffi::remote(Record)]
@@ -997,6 +1017,21 @@ pub struct AssetScore {
 }
 
 #[uniffi::remote(Record)]
+pub struct Balance {
+    pub available: GemBigUint,
+    pub frozen: GemBigUint,
+    pub locked: GemBigUint,
+    pub staked: GemBigUint,
+    pub pending: GemBigUint,
+    pub pending_unconfirmed: GemBigUint,
+    pub rewards: GemBigUint,
+    pub reserved: GemBigUint,
+    pub earn: GemBigUint,
+    pub withdrawable: GemBigUint,
+    pub metadata: Option<BalanceMetadata>,
+}
+
+#[uniffi::remote(Record)]
 pub struct BalanceMetadata {
     pub votes: u32,
     pub energy_available: u32,
@@ -1022,7 +1057,7 @@ pub struct BlockExplorerLink {
 #[uniffi::remote(Record)]
 pub struct CancelOrderData {
     pub asset_index: i32,
-    pub order_id: primitives::UInt64,
+    pub order_id: u64,
 }
 
 #[uniffi::remote(Record)]
@@ -1084,6 +1119,12 @@ pub struct ContactAddress {
     pub address: String,
     pub chain: Chain,
     pub memo: Option<String>,
+}
+
+#[uniffi::remote(Record)]
+pub struct ContactData {
+    pub contact: Contact,
+    pub addresses: Vec<ContactAddress>,
 }
 
 #[uniffi::remote(Record)]
@@ -1366,6 +1407,15 @@ pub struct PaymentVerification {
 }
 
 #[uniffi::remote(Record)]
+pub struct Permit2ApprovalData {
+    pub token: String,
+    pub spender: String,
+    pub value: GemBigUint,
+    pub permit2_contract: String,
+    pub permit2_nonce: u64,
+}
+
+#[uniffi::remote(Record)]
 pub struct Perpetual {
     pub id: primitives::PerpetualId,
     pub name: String,
@@ -1379,14 +1429,6 @@ pub struct Perpetual {
     pub funding: f64,
     pub max_leverage: u8,
     pub is_isolated_only: bool,
-}
-
-#[uniffi::remote(Record)]
-pub struct PerpetualAccountSummary {
-    pub account_value: f64,
-    pub account_leverage: f64,
-    pub margin_usage: f64,
-    pub unrealized_pnl: f64,
 }
 
 #[uniffi::remote(Record)]
@@ -1449,8 +1491,8 @@ pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
     pub asset_index: i32,
     pub modify_types: Vec<PerpetualModifyPositionType>,
-    pub take_profit_order_id: Option<primitives::UInt64>,
-    pub stop_loss_order_id: Option<primitives::UInt64>,
+    pub take_profit_order_id: Option<u64>,
+    pub stop_loss_order_id: Option<u64>,
 }
 
 #[uniffi::remote(Record)]
@@ -1560,6 +1602,12 @@ pub struct PriceAlertData {
 }
 
 #[uniffi::remote(Record)]
+pub struct RecentAsset {
+    pub asset: Asset,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[uniffi::remote(Record)]
 pub struct RedelegateData {
     pub delegation: Delegation,
     pub to_validator: DelegationValidator,
@@ -1628,6 +1676,7 @@ pub struct Rewards {
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
     pub referral_allowance: ReferralAllowance,
+    pub use_referral_code_until: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[uniffi::remote(Record)]
@@ -1697,7 +1746,7 @@ pub struct SupportMessageImage {
     pub url: String,
     pub thumbnail_url: Option<String>,
     pub file_name: Option<String>,
-    pub file_size: Option<primitives::UInt64>,
+    pub file_size: Option<u64>,
     pub width: Option<i32>,
     pub height: Option<i32>,
 }
@@ -1751,6 +1800,7 @@ pub struct SwapQuoteData {
     pub memo: Option<String>,
     pub approval: Option<ApprovalData>,
     pub gas_limit: Option<String>,
+    pub permit2: Option<Permit2ApprovalData>,
 }
 
 #[uniffi::remote(Record)]
@@ -1793,7 +1843,7 @@ pub struct Transaction {
 
 #[uniffi::remote(Record)]
 pub struct TransactionExtended {
-    pub record_id: primitives::UInt64,
+    pub record_id: u64,
     pub transaction: Transaction,
     pub asset: Asset,
     pub fee_asset: Asset,
@@ -1807,9 +1857,27 @@ pub struct TransactionExtended {
 }
 
 #[uniffi::remote(Record)]
+pub struct TransactionListItem {
+    pub transaction: Transaction,
+    pub asset: Asset,
+    pub assets: Vec<Asset>,
+    pub from_address: Option<AddressName>,
+    pub to_address: Option<AddressName>,
+}
+
+#[uniffi::remote(Record)]
 pub struct TransactionUtxoInput {
     pub address: String,
     pub value: GemBigUint,
+}
+
+#[uniffi::remote(Record)]
+pub struct TransactionsFilter {
+    pub asset_id: Option<primitives::AssetId>,
+    pub chains: Vec<Chain>,
+    pub transaction_types: Vec<TransactionType>,
+    pub states: Vec<TransactionState>,
+    pub asset_rank_greater_than: Option<i32>,
 }
 
 #[uniffi::remote(Record)]
@@ -1827,13 +1895,13 @@ pub struct TransferDataExtra {
 #[uniffi::remote(Record)]
 pub struct TronUnfreeze {
     pub resource: Resource,
-    pub amount: primitives::UInt64,
+    pub amount: u64,
 }
 
 #[uniffi::remote(Record)]
 pub struct TronVote {
     pub validator: String,
-    pub count: primitives::UInt64,
+    pub count: u64,
 }
 
 #[uniffi::remote(Record)]

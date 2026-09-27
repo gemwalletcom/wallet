@@ -7,24 +7,22 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::keystore::decode_password;
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use primitives::unix_seconds;
 use std::sync::Arc;
 
+use primitives::swap::Permit2ApprovalData;
 use primitives::{Asset, Wallet};
-use swapper::permit2_data::Permit2Data;
+use swapper::permit2_data::{Permit2Data, PermitSingle};
 use swapper::{AssetList, FetchQuoteData, Quote, SwapperError};
 
 use crate::config::swap_config::get_swap_config;
 use crate::gem_swapper::{GemSwapper, permit2_data_to_eip712_json};
-use crate::keystore::{GemKeystore, keystore_id_for_wallet};
 use crate::message::sign_type::{SignDigestType, SignMessage};
-use crate::message::signer::MessageSigner;
-use crate::models::swap::GemSwapQuoteData;
+use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
-use crate::services::wallet::GemKeystorePassword;
-pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer, swap_quote_summary, swapper_quote_summary};
+use crate::services::transfer::GemTransferData;
+pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, GemSwapTransfer, swap_quote_summary};
 use primitives::AssetId;
 pub use session::{GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
@@ -32,16 +30,14 @@ pub use store::GemSwapStore;
 #[derive(uniffi::Object)]
 pub struct GemSwapService {
     swapper: Arc<GemSwapper>,
-    keystore: Arc<GemKeystore>,
-    password: Arc<dyn GemKeystorePassword>,
     store: Arc<dyn GemSwapStore>,
 }
 
 #[uniffi::export]
 impl GemSwapService {
     #[uniffi::constructor]
-    pub fn new(swapper: Arc<GemSwapper>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>, store: Arc<dyn GemSwapStore>) -> Self {
-        Self { swapper, keystore, password, store }
+    pub fn new(swapper: Arc<GemSwapper>, store: Arc<dyn GemSwapStore>) -> Self {
+        Self { swapper, store }
     }
 }
 
@@ -55,7 +51,7 @@ impl GemSwapService {
     pub async fn suggest_pair(&self, wallet: Wallet, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
         let pay_asset_id = match pay_asset_id {
             Some(asset_id) => asset_id,
-            None => match self.store.get_pay_asset_ids(wallet.id.clone(), rules::CANDIDATES_LIMIT).await?.into_iter().next() {
+            None => match self.store.get_asset_ids(wallet.id.clone(), rules::pay_candidate_filters(), rules::CANDIDATES_LIMIT).await?.into_iter().next() {
                 Some(asset_id) => asset_id,
                 None => return Ok(None),
             },
@@ -67,8 +63,32 @@ impl GemSwapService {
     }
 
     pub async fn get_transfer(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
-        let data = self.get_quote_data(&wallet, &quote).await?;
+        let data = self.swapper.get_quote_data(&quote, FetchQuoteData::None).await?;
         rules::swap_transfer(&wallet, &quote, data)
+    }
+
+    pub async fn requote(&self, wallet: &Wallet, transfer: &GemTransferData) -> Result<GemSwapRequote, SwapperError> {
+        self.requote_at(wallet, transfer, &transfer.value).await
+    }
+
+    pub async fn requote_at(&self, wallet: &Wallet, transfer: &GemTransferData, value: &GemBigInt) -> Result<GemSwapRequote, SwapperError> {
+        let (provider, request) = rules::requote_request(wallet, transfer, value)?;
+        let quote = self.swapper.get_quote_by_provider(&provider, &request).await?;
+        let transfer = self.build_transfer(wallet, &quote, transfer, FetchQuoteData::None).await?;
+        Ok(GemSwapRequote { quote, transfer })
+    }
+
+    pub async fn transfer_with_permit<E: From<SwapperError>>(
+        &self,
+        wallet: &Wallet,
+        quote: &Quote,
+        transfer: &GemTransferData,
+        approval: &Permit2ApprovalData,
+        sign: impl FnOnce(SignMessage) -> Result<Vec<u8>, E>,
+    ) -> Result<GemTransferData, E> {
+        let (permit_single, message) = self.permit2_message(quote, approval)?;
+        let signature = sign(message)?;
+        Ok(self.build_transfer(wallet, quote, transfer, FetchQuoteData::Permit2(Permit2Data { permit_single, signature })).await?)
     }
 
     pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
@@ -81,48 +101,38 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
+    async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, transfer: &GemTransferData, data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
+        let (from_asset, to_asset) = rules::swap_assets(transfer)?;
+        let data = self.swapper.get_quote_data(quote, data).await?;
+        Ok(rules::swap_transfer(wallet, quote, data)?.transfer_data(from_asset, to_asset))
+    }
+
+    fn permit2_message(&self, quote: &Quote, approval: &Permit2ApprovalData) -> Result<(PermitSingle, SignMessage), SwapperError> {
+        let chain = quote.request.from_asset.chain();
+        let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
+        let permit_single = rules::permit_single(approval, now, &get_swap_config());
+        let json = permit2_data_to_eip712_json(chain, permit_single.clone(), &approval.permit2_contract)?;
+        let message = SignMessage {
+            chain,
+            sign_type: SignDigestType::Eip712,
+            data: json.into_bytes(),
+        };
+        Ok((permit_single, message))
+    }
+
     async fn suggest_receive_asset(&self, wallet: &Wallet, pay_asset_id: &AssetId) -> Result<Option<AssetId>, GemServiceError> {
         let supported = rules::assets_in_wallet(self.supported_assets(pay_asset_id.clone()), wallet);
         let pairs = self.store.get_swap_pairs(wallet.id.clone()).await?;
         if let Some(asset_id) = rules::most_swapped_receive_asset(&pairs, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
-        let recents = self.store.get_recent_asset_ids(wallet.id.clone(), rules::RECENTS_LIMIT).await?;
+        let action = GemAssetAction::SwapReceive;
+        let recents = self.store.get_recent_asset_ids(wallet.id.clone(), action.recent_activity_types(), action.filters(), rules::RECENTS_LIMIT).await?;
         if let Some(asset_id) = rules::first_supported_receive_asset(recents, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
-        let candidates = self.store.get_receive_asset_ids(wallet.id.clone(), supported.chains.clone(), supported.asset_ids.clone(), rules::CANDIDATES_LIMIT).await?;
+        let candidates = self.store.get_asset_ids(wallet.id.clone(), rules::receive_candidate_filters(supported.clone()), rules::CANDIDATES_LIMIT).await?;
         Ok(rules::first_supported_receive_asset(candidates, pay_asset_id, &supported))
-    }
-
-    async fn get_quote_data(&self, wallet: &Wallet, quote: &Quote) -> Result<GemSwapQuoteData, SwapperError> {
-        let data = match self.swapper.get_permit2_for_quote(quote).await? {
-            Some(approval) => FetchQuoteData::Permit2(self.permit2_data(wallet, quote, &approval)?),
-            None => FetchQuoteData::None,
-        };
-        self.swapper.get_quote_data(quote, data).await
-    }
-
-    fn permit2_data(&self, wallet: &Wallet, quote: &Quote, approval: &swapper::Permit2ApprovalData) -> Result<Permit2Data, SwapperError> {
-        let chain = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
-        let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        let permit_single = rules::permit_single(approval, now, &get_swap_config());
-        let json = permit2_data_to_eip712_json(chain, permit_single.clone(), &approval.permit2_contract)?;
-        let signer = MessageSigner::new(SignMessage {
-            chain,
-            sign_type: SignDigestType::Eip712,
-            data: json.into_bytes(),
-        });
-        let password = self
-            .password
-            .get_password(false)
-            .map(|password| decode_password(&password))
-            .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        let signature = signer
-            .sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet.id.id()), password)
-            .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        let signature = primitives::hex::decode_hex(&signature).map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        Ok(Permit2Data { permit_single, signature })
     }
 }
 
@@ -132,6 +142,7 @@ mod tests {
 
     use super::testkit::MemorySwapStore;
     use super::*;
+    use crate::services::assets::GemAssetFilter;
     use futures::executor::block_on;
 
     #[test]
@@ -148,7 +159,7 @@ mod tests {
     fn test_the_pay_asset_comes_from_the_store_only_when_the_caller_names_none() {
         block_on(async {
             let store = Arc::new(MemorySwapStore::default());
-            *store.pay_asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
+            *store.asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
             let service = GemSwapService::mock(store);
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
 
@@ -164,7 +175,7 @@ mod tests {
     fn test_every_candidate_list_is_read_one_page_at_a_time() {
         block_on(async {
             let store = Arc::new(MemorySwapStore::default());
-            *store.pay_asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
+            *store.asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
 
             let _ = GemSwapService::mock(store.clone()).suggest_pair(wallet, None).await.unwrap();
@@ -218,7 +229,7 @@ mod tests {
                 to_asset_id: usdt_smartchain.clone(),
             }];
             *store.recent_asset_ids.lock().unwrap() = vec![usdt_smartchain.clone()];
-            *store.receive_asset_ids.lock().unwrap() = vec![usdt_smartchain];
+            *store.asset_ids.lock().unwrap() = vec![usdt_smartchain];
 
             let wallet = Wallet::mock_with_chains(&[Chain::Bitcoin]);
             let suggestion = GemSwapService::mock(store).suggest_pair(wallet, Some(Chain::Bitcoin.as_asset_id())).await.unwrap().unwrap();
@@ -232,16 +243,37 @@ mod tests {
     fn test_the_last_resort_only_asks_for_chains_the_wallet_has_an_account_on() {
         block_on(async {
             let store = Arc::new(MemorySwapStore::default());
-            *store.receive_asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
+            *store.asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
             let store_ref = store.clone();
 
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
             let suggestion = GemSwapService::mock(store).suggest_pair(wallet, Some(Chain::Ethereum.as_asset_id())).await.unwrap().unwrap();
 
             assert_eq!(suggestion.receive_asset_id, Some(Chain::Solana.as_asset_id()));
-            let (chains, asset_ids) = store_ref.receive_requests.lock().unwrap().first().cloned().unwrap();
+            let filters = store_ref.asset_requests.lock().unwrap().first().cloned().unwrap();
+            let Some(GemAssetFilter::ChainsOrAssetIds { chains, asset_ids }) = filters.last().cloned() else {
+                panic!("the receive candidates are scoped to the supported assets: {filters:?}");
+            };
             assert!(chains.iter().all(|chain| [Chain::Ethereum, Chain::Solana].contains(chain)), "{chains:?}");
             assert!(asset_ids.iter().all(|asset_id| [Chain::Ethereum, Chain::Solana].contains(&asset_id.chain)), "{asset_ids:?}");
+        });
+    }
+
+    #[test]
+    fn test_every_candidate_list_is_asked_with_the_swap_asset_rules() {
+        block_on(async {
+            let store = Arc::new(MemorySwapStore::default());
+            *store.asset_ids.lock().unwrap() = vec![Chain::Ethereum.as_asset_id()];
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
+
+            let _ = GemSwapService::mock(store.clone()).suggest_pair(wallet, None).await.unwrap();
+
+            let action = GemAssetAction::SwapReceive;
+            let asset_requests = store.asset_requests.lock().unwrap().clone();
+            assert_eq!(asset_requests.len(), 2, "{asset_requests:?}");
+            assert_eq!(asset_requests[0], rules::pay_candidate_filters());
+            assert!(asset_requests[1].starts_with(&action.filters()), "{:?}", asset_requests[1]);
+            assert_eq!(store.recent_requests.lock().unwrap().clone(), vec![(action.recent_activity_types(), action.filters())]);
         });
     }
 }

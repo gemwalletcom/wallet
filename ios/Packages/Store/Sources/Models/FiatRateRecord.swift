@@ -15,17 +15,7 @@ public struct FiatRateRecord: Codable, FetchableRecord, PersistableRecord {
 
     public var symbol: Currency
     public var rate: Double
-    public var updatedAt: Date
-}
-
-extension FiatRate {
-    var record: FiatRateRecord {
-        FiatRateRecord(
-            symbol: symbol,
-            rate: rate,
-            updatedAt: .now,
-        )
-    }
+    public var updatedAt: Date = .now
 }
 
 extension FiatRateRecord: CreateTable {

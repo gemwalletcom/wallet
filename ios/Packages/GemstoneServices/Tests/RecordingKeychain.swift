@@ -87,10 +87,6 @@ struct RecordingKeychain: Keychain {
         try getData(key).map { try $0.encodeString() }
     }
 
-    func getString(_ key: String) throws -> String? {
-        try get(key)
-    }
-
     func getData(_ key: String) throws -> Data? {
         if let error = storage.readError(for: key) {
             throw error

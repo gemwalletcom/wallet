@@ -7,6 +7,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemErrorText
 import kotlin.time.Duration.Companion.seconds
 
 class InitialAuthErrorTest {
@@ -59,5 +60,12 @@ class InitialAuthErrorTest {
         ).forEach { canAuthenticateResult ->
             assertFalse(SystemAuthPolicy.isEnrollmentMissing(canAuthenticateResult))
         }
+    }
+
+    @Test
+    fun aFailedPromptNamesWhyAndACancelledOneSaysNothing() {
+        assertEquals(GemErrorText.AuthenticationLockedOut, SystemAuthPolicy.errorText(BiometricPrompt.ERROR_LOCKOUT))
+        assertEquals(GemErrorText.AuthenticationUnavailable, SystemAuthPolicy.errorText(BiometricPrompt.ERROR_NO_BIOMETRICS))
+        assertNull(SystemAuthPolicy.errorText(BiometricPrompt.ERROR_USER_CANCELED))
     }
 }

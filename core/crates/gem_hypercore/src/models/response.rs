@@ -2,8 +2,6 @@ use std::error::Error;
 
 use serde::{Deserialize, Serialize};
 
-use crate::models::UInt64;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "status", content = "response", rename_all = "camelCase")]
 pub enum TransactionBroadcastResponse {
@@ -38,11 +36,11 @@ pub enum OrderStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderId {
-    pub oid: UInt64,
+    pub oid: u64,
 }
 
 impl TransactionBroadcastResponse {
-    pub fn into_result(self) -> Result<Option<UInt64>, Box<dyn Error + Send + Sync>> {
+    pub fn into_result(self) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
         let data = match self {
             Self::Ok(ExchangeResponse::Default) => return Ok(None),
             Self::Ok(ExchangeResponse::Order(data) | ExchangeResponse::Cancel(data)) => data,

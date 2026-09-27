@@ -3,7 +3,9 @@
 import Foundation
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualMarketItem
+import struct Gemstone.GemSearchListRow
 import func Gemstone.perpetualMarketSections
+import func Gemstone.searchListRows
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -18,7 +20,7 @@ struct WalletSearchSections: Equatable {
 
     let nfts: [GemNftEntry]
 
-    let lists: [AssetList]
+    let lists: [GemSearchListRow]
 
     static func from(_ result: WalletSearchResult, nfts: [GemNftEntry]) -> WalletSearchSections {
         let assets = AssetsSections.from(result.assets)
@@ -29,7 +31,7 @@ struct WalletSearchSections: Equatable {
             pinnedPerpetuals: perpetuals.pinned,
             perpetuals: perpetuals.markets,
             nfts: nfts,
-            lists: result.lists,
+            lists: searchListRows(lists: result.lists.map { $0.toGem() }),
         )
     }
 }

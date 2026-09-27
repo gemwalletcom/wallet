@@ -8,7 +8,6 @@ public protocol Keychain: Sendable {
     func authenticationContext(_ authenticationContext: LAContext) -> Keychain
 
     func get(_ key: String) throws -> String?
-    func getString(_ key: String) throws -> String?
     func getData(_ key: String) throws -> Data?
 
     func set(_ value: String, key: String) throws

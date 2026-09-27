@@ -30,7 +30,9 @@ impl GemAddressService {
     pub fn format_all(&self, addresses: Vec<ChainAddress>, style: GemAddressFormatStyle) -> Vec<String> {
         addresses.iter().map(|entry| format_address(&entry.address, Some(entry.chain), style)).collect()
     }
+}
 
+impl GemAddressService {
     pub fn name_text(&self, name: Option<String>, address: String, has_image: bool) -> Option<String> {
         let name = name.filter(|name| !name.is_empty() && *name != address)?;
         Some(match has_image || address.is_empty() {

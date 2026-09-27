@@ -2,7 +2,6 @@
 
 import Foundation
 import protocol Gemstone.GemDeviceKeyServiceProtocol
-import GemstonePrimitives
 import GemstoneServices
 import Primitives
 import WebSocketClient

@@ -48,7 +48,6 @@ common_learn_more = เรียนรู้เพิ่มเติม
 common_description = คำอธิบาย
 common_emoji = อิโมจิ
 common_avatar = อวตาร
-common_save = บันทึก
 common_percentage = เปอร์เซ็นต์
 common_details = รายละเอียด
 common_info = ข้อมูล
@@ -58,6 +57,7 @@ common_method = วิธี
 common_token = โทเค็น
 common_expiration = วันหมดอายุ
 common_suspicious_address = ที่อยู่น่าสงสัย
+common_suspicious_address_description = ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
 common_refresh = รีเฟรช
 common_grant_permission = ให้สิทธิ์
 common_required_field = จำเป็นต้องระบุ %@
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = กระเป๋าสตางค์
 # Wallets
 
 wallets_title = กระเป๋าสตางค์
-wallets_watch = ติดตาม
 
 # Receive
 
-receive_title = รับ %@
 receive_warning = นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %@ บนเครือข่าย %@ เท่านั้น
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = เปิดใช้งานรหัสผ่า�
 settings_security_authentication = การรับรองความถูกต้อง
 settings_notifications_title = การแจ้งเตือน
 settings_language = ภาษา
-settings_help_center = ศูนย์ช่วยเหลือ
 settings_support = สนับสนุน
 settings_price_alerts_title = การแจ้งเตือนราคา
 settings_hide_balance = ซ่อนยอดคงเหลือ
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = ไม่มีราคาเสนอให�
 errors_swap_not_supported_asset = ไม่รองรับสินทรัพย์นี้
 errors_connections_no_supported_wallets = ไม่มีกระเป๋าเงินที่รองรับ
 errors_connections_unsupported_chain = ไม่รองรับโซ่ที่ให้มา
+errors_authentication_unavailable = อุปกรณ์นี้ยังไม่ได้ตั้งค่าการยืนยันตัวตน เปิดไบโอเมตริกซ์หรือรหัสผ่านในการตั้งค่าอุปกรณ์
+errors_authentication_locked_out = ลองไม่สำเร็จหลายครั้งเกินไป โปรดลองใหม่ภายหลัง
+errors_authentication_failed = การยืนยันตัวตนล้มเหลว โปรดลองอีกครั้ง
+errors_connections_expired = ลิงก์เชื่อมต่อนี้หมดอายุแล้ว รับคิวอาร์โค้ดใหม่แล้วลองอีกครั้ง
+errors_connections_not_found = การเชื่อมต่อนี้ไม่มีอยู่แล้ว
+errors_connections_relay_unavailable = เชื่อมต่อ WalletConnect ไม่ได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง
 errors_swap_amount_too_small = จำนวนเงินน้อยเกินไป
 errors_scan_transaction_malicious_description = ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
 errors_scan_transaction_memo_required = ที่อยู่กระเป๋าเงินปลายทาง %@ ต้องมีแท็กปลายทาง / บันทึกช่วยจำ
@@ -322,7 +325,6 @@ asset_verification_warning_message = ใครๆ ก็สามารถสร
 asset_buy_asset = ซื้อ %@
 asset_get_asset = รับ %@
 asset_add_to_wallet = เพิ่มลงในกระเป๋าสตางค์
-asset_hide_from_wallet = ซ่อนจากกระเป๋าสตางค์
 asset_added_to_wallet = เพิ่มลงในกระเป๋าสตางค์แล้ว
 asset_hidden_from_wallet = ซ่อนจากกระเป๋าสตางค์แล้ว
 asset_resources = ทรัพยากร
@@ -349,6 +351,7 @@ charts_price_change = เปลี่ยน
 
 date_today = วันนี้
 date_yesterday = เมื่อวาน
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = ปกติ
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = กำหนดเอง
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = เมื่อราคาเพิ
 price_alerts_set_alert_price_decreases_by = เมื่อราคาลดลง
 price_alerts_set_alert_set_target_price = ตั้งราคาเป้าหมาย
 price_alerts_set_alert_current_price = ราคาปัจจุบัน
-price_alerts_added_for = ตั้งค่าการแจ้งเตือนราคา %@
+price_alerts_added_price_over = เพิ่มการแจ้งเตือนเมื่อราคาสูงกว่า %@ แล้ว
+price_alerts_added_price_under = เพิ่มการแจ้งเตือนเมื่อราคาต่ำกว่า %@ แล้ว
+price_alerts_added_increases_by = เพิ่มการแจ้งเตือนเมื่อราคาเพิ่มขึ้น %@ แล้ว
+price_alerts_added_decreases_by = เพิ่มการแจ้งเตือนเมื่อราคาลดลง %@ แล้ว
 price_alerts_state_empty_title = การแจ้งเตือนของคุณจะปรากฏที่นี่
 price_alerts_state_empty_description = เปิดใช้งานได้โดยการเพิ่มเหรียญเพื่อติดตาม
 price_alerts_auto_footer = การแจ้งเตือนจะเกิดขึ้นเมื่อราคามีการเปลี่ยนแปลงอย่างมีนัยสำคัญ
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = แอพนี้ไม่�
 
 # Markets
 
-markets_title = ตลาด
-markets_state_empty_title = ข้อมูลตลาดของคุณจะปรากฏที่นี่
 markets_daily_volume = ปริมาณ 24 ชั่วโมง
 
 # Search

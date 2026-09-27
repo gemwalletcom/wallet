@@ -16,7 +16,6 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemWalletConnectMessageRequest
 import uniffi.gemstone.GemWalletConnectSigner
-import uniffi.gemstone.GemWalletConnectTransactionAction
 import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.SignMessage as GemSignMessage
@@ -43,7 +42,6 @@ sealed class WalletConnectPendingRequest(val sessionId: String, chainId: String,
 
     class Transaction(private val request: GemWalletConnectTransactionRequest) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val transfer: GemTransferData get() = request.transfer
-        val isSendable: Boolean get() = request.action == GemWalletConnectTransactionAction.SEND
     }
 }
 

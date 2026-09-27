@@ -1,9 +1,9 @@
 use crate::{AssetBasic, NFTCollection, PerpetualSearchData};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Codable, Sendable, Equatable, Hashable, Identifiable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Codable, Sendable, Equatable, Hashable, Identifiable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetList {
     pub id: String,

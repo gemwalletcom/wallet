@@ -48,7 +48,6 @@ common_learn_more = Узнать больше
 common_description = Описание
 common_emoji = Эмодзи
 common_avatar = Аватар
-common_save = Сохранить
 common_percentage = Процент
 common_details = Детали
 common_info = Информация
@@ -58,6 +57,7 @@ common_method = Метод
 common_token = Токен
 common_expiration = Срок действия
 common_suspicious_address = Подозрительный адрес
+common_suspicious_address_description = Этот адрес связан с подозрительной или вредоносной активностью.
 common_refresh = Обновить
 common_grant_permission = Предоставить разрешение
 common_required_field = %@ является обязательным
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Этот кошелек уже импо
 # Wallets
 
 wallets_title = Кошельки
-wallets_watch = Смотреть
 
 # Receive
 
-receive_title = Получить %@
 receive_warning = Это ваш адрес — отправляйте только %@ на %@ сеть.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Включить пароль
 settings_security_authentication = Аутентификация
 settings_notifications_title = Уведомления
 settings_language = Язык
-settings_help_center = Центр помощи
 settings_support = Поддержка
 settings_price_alerts_title = Уведомления о ценах
 settings_hide_balance = Скрыть баланс
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Котировка недоступна.
 errors_swap_not_supported_asset = Неподдерживаемый актив.
 errors_connections_no_supported_wallets = Поддерживаемые кошельки отсутствуют.
 errors_connections_unsupported_chain = Предоставленная цепочка не поддерживается.
+errors_authentication_unavailable = На этом устройстве не настроена аутентификация. Включите биометрию или код-пароль в настройках устройства.
+errors_authentication_locked_out = Слишком много неудачных попыток. Пожалуйста, попробуйте позже.
+errors_authentication_failed = Не удалось пройти аутентификацию. Пожалуйста, попробуйте снова.
+errors_connections_expired = Срок действия этой ссылки для подключения истёк. Получите новый QR-код и попробуйте снова.
+errors_connections_not_found = Это подключение больше не существует.
+errors_connections_relay_unavailable = Не удаётся связаться с WalletConnect. Проверьте подключение к интернету и попробуйте снова.
 errors_swap_amount_too_small = Сумма слишком мала
 errors_scan_transaction_malicious_description = Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.
 errors_scan_transaction_memo_required = %@ адрес кошелька назначения требует тега назначения / заметки
@@ -322,7 +325,6 @@ asset_verification_warning_message = Любой может создать его
 asset_buy_asset = Купить %@
 asset_get_asset = Получить %@
 asset_add_to_wallet = Добавить в кошелек
-asset_hide_from_wallet = Скрыть из кошелька
 asset_added_to_wallet = Добавлено в кошелек
 asset_hidden_from_wallet = Скрыто из кошелька
 asset_resources = Ресурсы
@@ -349,6 +351,7 @@ charts_price_change = Изменение
 
 date_today = Сегодня
 date_yesterday = Вчера
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Нормальный
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Свой
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Когда цена увеличив
 price_alerts_set_alert_price_decreases_by = Когда цена уменьшается на
 price_alerts_set_alert_set_target_price = Установить целевую цену
 price_alerts_set_alert_current_price = Текущая цена
-price_alerts_added_for = Установить ценовое оповещение %@
+price_alerts_added_price_over = Оповещение добавлено: цена выше %@
+price_alerts_added_price_under = Оповещение добавлено: цена ниже %@
+price_alerts_added_increases_by = Оповещение добавлено: рост цены на %@
+price_alerts_added_decreases_by = Оповещение добавлено: падение цены на %@
 price_alerts_state_empty_title = Ваши оповещения о ценах будут появляться здесь
 price_alerts_state_empty_description = Включите их, добавив монеты для отслеживания
 price_alerts_auto_footer = Оповещения срабатывают при значительных изменениях цены.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = У этого приложе
 
 # Markets
 
-markets_title = Рынки
-markets_state_empty_title = Ваши рыночные данные появятся здесь
 markets_daily_volume = 24-часовой объем
 
 # Search

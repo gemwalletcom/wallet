@@ -1,5 +1,5 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::PlatformStore;
 
@@ -17,8 +17,8 @@ pub struct SwapConfig {
     pub enabled_providers: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct Release {
     pub version: String,

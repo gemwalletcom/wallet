@@ -10,6 +10,7 @@ import struct Gemstone.GemSignMessagePreview
 import protocol Gemstone.GemSignMessageServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemValueHeader
 import struct Gemstone.GemWalletConnectMessageRequest
 import func Gemstone.signerFailure
 import GemstonePrimitives
@@ -79,8 +80,8 @@ public final class SignMessageSceneViewModel {
         )
     }
 
-    public var headerModel: AssetValueHeaderViewModel? {
-        headerData.map { AssetValueHeaderViewModel(data: $0) }
+    public var headerModel: GemValueHeader? {
+        headerData?.header
     }
 
     public var headerData: GemSimulationValue? {

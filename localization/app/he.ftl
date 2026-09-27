@@ -48,7 +48,6 @@ common_learn_more = למידע נוסף
 common_description = תֵאוּר
 common_emoji = אימוג'י
 common_avatar = גִלגוּל
-common_save = שמור
 common_percentage = אֲחוּזִים
 common_details = פרטים
 common_info = מידע
@@ -58,6 +57,7 @@ common_method = אמצעי
 common_token = אֲסִימוֹן
 common_expiration = תפוגה
 common_suspicious_address = כתובת חשודה
+common_suspicious_address_description = כתובת זו קשורה לפעילות חשודה או מזיקה.
 common_refresh = לְרַעֲנֵן
 common_grant_permission = תן רשות
 common_required_field = %@ נדרש
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = ארנק זה כבר יובא.
 # Wallets
 
 wallets_title = ארנקים
-wallets_watch = מעקב
 
 # Receive
 
-receive_title = קבל %@
 receive_warning = זוהי הכתובת שלך - שליחה בלבד %@ על ה- %@ רֶשֶׁת.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = אפשר קוד גישה
 settings_security_authentication = אימות
 settings_notifications_title = התראות
 settings_language = שפה
-settings_help_center = מרכז העזרה
 settings_support = תְמִיכָה
 settings_price_alerts_title = התראות על מחירים
 settings_hide_balance = הסתר יתרה
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = אין הצעת מחיר זמינה.
 errors_swap_not_supported_asset = נכס לא נתמך.
 errors_connections_no_supported_wallets = אין ארנקים נתמכים זמינים.
 errors_connections_unsupported_chain = השרשרת שסופקה אינה נתמכת.
+errors_authentication_unavailable = אימות לא מוגדר במכשיר הזה. הפעל זיהוי ביומטרי או קוד גישה בהגדרות המכשיר.
+errors_authentication_locked_out = יותר מדי ניסיונות כושלים. אנא נסה שוב מאוחר יותר.
+errors_authentication_failed = האימות נכשל. אנא נסה שוב.
+errors_connections_expired = תוקף קישור החיבור הזה פג. קבל קוד QR חדש ונסה שוב.
+errors_connections_not_found = החיבור הזה כבר לא קיים.
+errors_connections_relay_unavailable = לא ניתן להגיע ל-WalletConnect. בדוק את החיבור לאינטרנט ונסה שוב.
 errors_swap_amount_too_small = סכום קטן מדי
 errors_scan_transaction_malicious_description = לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.
 errors_scan_transaction_memo_required = כתובת ארנק היעד %@ דורשת תגית יעד / תזכיר
@@ -322,7 +325,6 @@ asset_verification_warning_message = כל אחד יכול ליצור אחד - כ
 asset_buy_asset = קנה %@
 asset_get_asset = קבל %@
 asset_add_to_wallet = הוסף לארנק
-asset_hide_from_wallet = הסתר מהארנק
 asset_added_to_wallet = נוסף לארנק
 asset_hidden_from_wallet = הוסתר מהארנק
 asset_resources = משאבים
@@ -349,6 +351,7 @@ charts_price_change = לְשַׁנוֹת
 
 date_today = היום
 date_yesterday = אתמול
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = רגיל
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = מותאם אישית
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = כאשר המחיר עולה ב-
 price_alerts_set_alert_price_decreases_by = כאשר המחיר יורד ב-
 price_alerts_set_alert_set_target_price = קביעת מחיר יעד
 price_alerts_set_alert_current_price = מחיר נוכחי
-price_alerts_added_for = הגדר התראת מחיר %@
+price_alerts_added_price_over = נוספה התראה למחיר מעל %@
+price_alerts_added_price_under = נוספה התראה למחיר מתחת ל-%@
+price_alerts_added_increases_by = נוספה התראה לעליית מחיר של %@
+price_alerts_added_decreases_by = נוספה התראה לירידת מחיר של %@
 price_alerts_state_empty_title = ההתראות שלך יופיעו כאן
 price_alerts_state_empty_description = אפשרו להם על ידי הוספת מטבעות למעקב
 price_alerts_auto_footer = התראות מופעלות על תנודות משמעותיות במחיר.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = לאפליקציה הזו א
 
 # Markets
 
-markets_title = שווקים
-markets_state_empty_title = נתוני השווקים שלך יופיעו כאן
 markets_daily_volume = נפח של 24 שעות
 
 # Search

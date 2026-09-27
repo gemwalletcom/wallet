@@ -87,15 +87,6 @@ public extension ButtonStyle where Self == ColorButtonStyle {
         .styled(.blueGrayPressed, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
     }
 
-    static func gray(
-        paddingHorizontal: CGFloat = .button.paddingHorizontal,
-        paddingVertical: CGFloat = .button.paddingVertical,
-        cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive,
-    ) -> ColorButtonStyle {
-        .styled(.gray, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
-    }
-
     static func lightGray(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
@@ -103,15 +94,6 @@ public extension ButtonStyle where Self == ColorButtonStyle {
         glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         .styled(.lightGray, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
-    }
-
-    static func white(
-        paddingHorizontal: CGFloat = .button.paddingHorizontal,
-        paddingVertical: CGFloat = .button.paddingVertical,
-        cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive,
-    ) -> ColorButtonStyle {
-        .styled(.white, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
     }
 
     static func empty(
@@ -178,14 +160,10 @@ public extension ButtonStyle where Self == ColorButtonStyle {
                 .buttonStyle(.blue())
             Button("Blue Gray Pressed") {}
                 .buttonStyle(.blueGrayPressed())
-            Button("Gray") {}
-                .buttonStyle(.gray())
             Button("Light Gray") {}
                 .buttonStyle(.lightGray())
             Button("List Style Color") {}
                 .buttonStyle(.listStyleColor())
-            Button("White") {}
-                .buttonStyle(.white())
             Button("Empty") {}
                 .buttonStyle(.empty())
             Button("Amount") {}

@@ -21,7 +21,7 @@ pub fn address_name_update(name: AddressName) -> GemAddressNameUpdate {
 fn names_the_user_owns(address_type: &AddressType) -> bool {
     match address_type {
         AddressType::Contact | AddressType::InternalWallet => true,
-        AddressType::Address | AddressType::Contract | AddressType::Validator => false,
+        AddressType::Address | AddressType::Contract | AddressType::Asset | AddressType::Validator => false,
     }
 }
 
@@ -69,6 +69,23 @@ pub fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_the_indicator_follows_the_lookup() {
+        use super::super::model::GemNameIndicator;
+        use primitives::NameRecord;
+
+        assert_eq!(GemNameRecordState::None.indicator(), None);
+        assert_eq!(loading("vitalik.eth", Chain::Ethereum).indicator(), Some(GemNameIndicator::Loading));
+        assert_eq!(GemNameRecordState::Error.indicator(), Some(GemNameIndicator::Error));
+        assert_eq!(
+            GemNameRecordState::Complete {
+                record: NameRecord::mock("vitalik.eth", "0x1")
+            }
+            .indicator(),
+            Some(GemNameIndicator::Success)
+        );
+    }
 
     #[test]
     fn test_an_empty_or_unsupported_name_resets_and_a_repeat_changes_nothing() {
@@ -176,12 +193,15 @@ mod tests {
             .replaces_types
         };
 
-        assert_eq!(update(AddressType::Address), vec![AddressType::Address, AddressType::Contract, AddressType::Validator]);
+        assert_eq!(update(AddressType::Address), vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator]);
         assert_eq!(
             update(AddressType::Contact),
-            vec![AddressType::Address, AddressType::Contract, AddressType::Validator, AddressType::Contact],
+            vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator, AddressType::Contact],
             "a contact replaces a remote name and its own, never the wallet's"
         );
-        assert_eq!(update(AddressType::InternalWallet), vec![AddressType::Address, AddressType::Contract, AddressType::Validator, AddressType::InternalWallet]);
+        assert_eq!(
+            update(AddressType::InternalWallet),
+            vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator, AddressType::InternalWallet]
+        );
     }
 }

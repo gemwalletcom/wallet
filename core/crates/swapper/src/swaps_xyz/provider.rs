@@ -161,7 +161,7 @@ where
         let action_request = Self::build_action_request(request, source, destination)?;
         let response = self.client.get_action(&action_request).await?;
         Self::validate_response(&response, request, source, destination)?;
-        let eta_in_seconds = if response.estimated_tx_time.is_finite() && response.estimated_tx_time >= 0.0 && response.estimated_tx_time <= u32::MAX as f64 {
+        let eta_in_seconds = if response.estimated_tx_time.is_finite() && response.estimated_tx_time > 0.0 && response.estimated_tx_time <= u32::MAX as f64 {
             Some(response.estimated_tx_time.ceil() as u32)
         } else {
             None

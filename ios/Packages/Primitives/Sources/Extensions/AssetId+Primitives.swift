@@ -60,11 +60,4 @@ public extension AssetId {
             String(format: "%@_%@", chain.rawValue, tokenId ?? "")
         }
     }
-
-    func getTokenId() throws -> String {
-        guard let tokenId else {
-            throw AnyError("tokenId is null")
-        }
-        return tokenId
-    }
 }

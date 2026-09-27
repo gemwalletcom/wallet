@@ -1,6 +1,7 @@
 pub mod rules;
 
 use crate::services::error::GemServiceError;
+use crate::services::localization::GemLocalizedText;
 use std::sync::Arc;
 
 use primitives::{PlatformStore, Release, is_version_higher};
@@ -8,11 +9,27 @@ use primitives::{PlatformStore, Release, is_version_higher};
 use crate::services::config::GemConfigService;
 use crate::services::preferences::GemPreferencesService;
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAppUpdateAction {
+    Skip,
+    Update,
+}
+
+/// The update prompt: what it says and which buttons it offers.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAppUpdateOffer {
     pub version: String,
-    pub can_skip: bool,
+    pub title: GemLocalizedText,
+    pub description: GemLocalizedText,
+    pub actions: Vec<GemAppUpdateAction>,
     pub apk_url: Option<String>,
+}
+
+#[uniffi::export]
+impl GemAppUpdateOffer {
+    pub fn can_skip(&self) -> bool {
+        self.actions.contains(&GemAppUpdateAction::Skip)
+    }
 }
 
 #[derive(uniffi::Object)]
@@ -46,7 +63,7 @@ impl GemAppUpdateService {
     }
 
     pub fn skip(&self, offer: GemAppUpdateOffer) -> Result<(), GemServiceError> {
-        if !offer.can_skip {
+        if !offer.can_skip() {
             return Err(GemServiceError::InvalidInput {
                 msg: format!("update {} is required", offer.version),
             });
@@ -69,21 +86,11 @@ mod tests {
         let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
         let service = GemAppUpdateService::new(Arc::new(GemConfigService::mock(Arc::new(crate::testkit::TestAlienProvider::with_status(500)))), preferences.clone());
 
-        let required = GemAppUpdateOffer {
-            version: "2.0.0".to_string(),
-            can_skip: false,
-            apk_url: None,
-        };
+        let required = rules::update_offer(Release::new(PlatformStore::AppStore, "2.0.0".into(), true));
         assert!(service.skip(required).is_err());
         assert_eq!(preferences.get_skipped_app_version(), None);
 
-        service
-            .skip(GemAppUpdateOffer {
-                version: "2.1.0".to_string(),
-                can_skip: true,
-                apk_url: None,
-            })
-            .unwrap();
+        service.skip(rules::update_offer(Release::new(PlatformStore::AppStore, "2.1.0".into(), false))).unwrap();
         assert_eq!(preferences.get_skipped_app_version(), Some("2.1.0".to_string()));
     }
 }

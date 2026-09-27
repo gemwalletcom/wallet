@@ -3,13 +3,9 @@
 import Foundation
 import Gemstone
 import NativeProviderService
-import Primitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
-    private let nodes: GemNodeService
-    private let preferences: any GemPreferencesStore
-    private let securePreferences: any GemSecureStore
 
     public init(
         provider: NativeProvider,
@@ -17,19 +13,12 @@ public actor GatewayService: Sendable {
         preferences: any GemPreferencesStore,
         securePreferences: any GemSecureStore,
     ) {
-        self.nodes = nodes
-        self.preferences = preferences
-        self.securePreferences = securePreferences
         gateway = GemGateway(
             provider: provider,
             nodes: nodes,
             preferences: preferences,
             securePreferences: securePreferences,
         )
-    }
-
-    public nonisolated func with(provider: NativeProvider) -> GatewayService {
-        GatewayService(provider: provider, nodes: nodes, preferences: preferences, securePreferences: securePreferences)
     }
 
     public nonisolated func chainSettingsService(nodes: GemNodeService, explorer: GemExplorerService) -> GemChainSettingsService {
@@ -44,7 +33,7 @@ public actor GatewayService: Sendable {
         preferences: GemPreferencesService,
         session: GemWalletSessionService,
     ) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session)
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session, platform: .ios)
     }
 
     public nonisolated func transactionStateService(
