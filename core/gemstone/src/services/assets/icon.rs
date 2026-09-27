@@ -1,5 +1,6 @@
-use primitives::known_assets::{USDC_ASSETS, USDT_ASSETS};
+use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDC_ASSETS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS, USDT_ASSETS};
 use primitives::{Asset, AssetId, Chain};
+use strum::{EnumIter, IntoEnumIterator};
 
 use crate::config::chain::{badge_chain, icon_chain, is_ether_layer2};
 use crate::config::image::GemImage;
@@ -11,10 +12,29 @@ pub struct GemAssetIcon {
     pub placeholder: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter, uniffi::Enum)]
 pub enum GemLocalTokenIcon {
     Usdt,
     Usdc,
+    Usds,
+    Usde,
+    Usd1,
+    Usdg,
+    Pyusd,
+}
+
+impl GemLocalTokenIcon {
+    fn draws(&self, asset_id: &AssetId) -> bool {
+        match self {
+            Self::Usdt => USDT_ASSETS.iter().any(|asset| asset.id == *asset_id),
+            Self::Usdc => USDC_ASSETS.iter().any(|asset| asset.id == *asset_id),
+            Self::Usds => USDS_ASSET_IDS.contains(asset_id),
+            Self::Usde => USDE_ASSET_IDS.contains(asset_id),
+            Self::Usd1 => USD1_ASSET_IDS.contains(asset_id),
+            Self::Usdg => USDG_ASSET_IDS.contains(asset_id),
+            Self::Pyusd => PYUSD_ASSET_IDS.contains(asset_id),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -58,13 +78,7 @@ fn icon_asset_id(asset_id: &AssetId) -> AssetId {
 }
 
 fn local_token_icon(asset_id: &AssetId) -> Option<GemLocalTokenIcon> {
-    if USDT_ASSETS.iter().any(|asset| asset.id == *asset_id) {
-        return Some(GemLocalTokenIcon::Usdt);
-    }
-    if USDC_ASSETS.iter().any(|asset| asset.id == *asset_id) {
-        return Some(GemLocalTokenIcon::Usdc);
-    }
-    None
+    GemLocalTokenIcon::iter().find(|token| token.draws(asset_id))
 }
 
 fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
@@ -204,6 +218,45 @@ mod tests {
         assert_eq!(
             asset_icon(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001")).image,
             GemAssetIconImage::mock_remote(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001"))
+        );
+    }
+
+    #[test]
+    fn test_known_stablecoins_draw_their_bundled_logo_badged_with_their_chain() {
+        use primitives::asset_constants::USDE_OFT_TOKEN_ID;
+        use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS};
+
+        for (token, asset_ids) in [
+            (GemLocalTokenIcon::Usds, &*USDS_ASSET_IDS),
+            (GemLocalTokenIcon::Usde, &*USDE_ASSET_IDS),
+            (GemLocalTokenIcon::Usd1, &*USD1_ASSET_IDS),
+            (GemLocalTokenIcon::Usdg, &*USDG_ASSET_IDS),
+            (GemLocalTokenIcon::Pyusd, &*PYUSD_ASSET_IDS),
+        ] {
+            for asset_id in asset_ids {
+                assert_eq!(asset_icon(asset_id).image, GemAssetIconImage::LocalToken { token }, "{asset_id}");
+            }
+        }
+        assert_eq!(
+            asset_icon(&AssetId::from_token(Chain::Base, USDE_OFT_TOKEN_ID)),
+            GemAssetIcon {
+                image: GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usde },
+                badge: Some(Chain::Base),
+                placeholder: Some("ERC20".to_string())
+            }
+        );
+
+        let same_symbol_elsewhere = AssetId::from_token(Chain::SmartChain, "0x0c6Ed1E73BA73B8441868538E210ebD5DD240FA0");
+        assert_eq!(
+            asset_icon(&same_symbol_elsewhere).image,
+            GemAssetIconImage::mock_remote(&same_symbol_elsewhere),
+            "a token is matched by id, never by its USDS symbol"
+        );
+        let unlisted_chain = AssetId::from_token(Chain::Fantom, USDE_OFT_TOKEN_ID);
+        assert_eq!(
+            asset_icon(&unlisted_chain).image,
+            GemAssetIconImage::mock_remote(&unlisted_chain),
+            "the shared OFT address only counts on the chains Ethena deployed it to"
         );
     }
 

@@ -73,7 +73,12 @@ fun Chain.iconResource(): Int? = when (string) {
 
 @DrawableRes
 fun GemLocalTokenIcon.iconResource(): Int = when (this) {
+    GemLocalTokenIcon.PYUSD -> R.drawable.token_pyusd
+    GemLocalTokenIcon.USD1 -> R.drawable.token_usd1
     GemLocalTokenIcon.USDC -> R.drawable.token_usdc
+    GemLocalTokenIcon.USDE -> R.drawable.token_usde
+    GemLocalTokenIcon.USDG -> R.drawable.token_usdg
+    GemLocalTokenIcon.USDS -> R.drawable.token_usds
     GemLocalTokenIcon.USDT -> R.drawable.token_usdt
 }
 

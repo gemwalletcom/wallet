@@ -151,3 +151,72 @@ pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
 pub fn default_token_rank(asset_id: &AssetId) -> i32 {
     WALLET_DEFAULT_ASSETS.iter().find(|default| default.asset.id == *asset_id).map(|default| default.rank).unwrap_or(AssetScore::default().rank)
 }
+
+fn token_ids(chains: &[Chain], token_id: &str) -> impl Iterator<Item = AssetId> {
+    chains.iter().map(move |chain| AssetId::from_token(*chain, token_id))
+}
+
+pub static USDS_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    vec![
+        ETHEREUM_USDS_ASSET_ID.clone(),
+        AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDS_TOKEN_ID),
+        BASE_USDS_ASSET_ID.clone(),
+        SOLANA_USDS_ASSET_ID.clone(),
+    ]
+});
+
+pub static USDE_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    [
+        AssetId::from_token(Chain::Ethereum, ETHEREUM_USDE_TOKEN_ID),
+        AssetId::from_token(Chain::ZkSync, ZKSYNC_USDE_TOKEN_ID),
+        AssetId::from_token(Chain::Solana, SOLANA_USDE_TOKEN_ID),
+        AssetId::from_token(Chain::Ton, TON_USDE_TOKEN_ID),
+    ]
+    .into_iter()
+    .chain(token_ids(
+        &[
+            Chain::SmartChain,
+            Chain::Arbitrum,
+            Chain::AvalancheC,
+            Chain::Base,
+            Chain::Blast,
+            Chain::Hyperliquid,
+            Chain::Linea,
+            Chain::Manta,
+            Chain::Mantle,
+            Chain::Monad,
+            Chain::Optimism,
+            Chain::Plasma,
+            Chain::Robinhood,
+            Chain::XLayer,
+        ],
+        USDE_OFT_TOKEN_ID,
+    ))
+    .collect()
+});
+
+pub static USD1_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    [AssetId::from_token(Chain::Solana, SOLANA_USD1_TOKEN_ID), AssetId::from_token(Chain::Tron, TRON_USD1_TOKEN_ID)]
+        .into_iter()
+        .chain(token_ids(&[Chain::Ethereum, Chain::SmartChain], USD1_TOKEN_ID))
+        .chain(token_ids(&[Chain::Mantle, Chain::Monad], USD1_OFT_TOKEN_ID))
+        .collect()
+});
+
+pub static USDG_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    [ROBINHOOD_USDG_ASSET_ID.clone(), SOLANA_USDG_ASSET_ID.clone(), AssetId::from_token(Chain::XLayer, XLAYER_USDG_TOKEN_ID)]
+        .into_iter()
+        .chain(token_ids(&[Chain::Ethereum, Chain::Ink], USDG_TOKEN_ID))
+        .collect()
+});
+
+pub static PYUSD_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    vec![
+        AssetId::from_token(Chain::Ethereum, ETHEREUM_PYUSD_TOKEN_ID),
+        AssetId::from_token(Chain::Arbitrum, ARBITRUM_PYUSD_TOKEN_ID),
+        AssetId::from_token(Chain::Ink, INK_PYUSD_TOKEN_ID),
+        AssetId::from_token(Chain::Polygon, POLYGON_PYUSD_TOKEN_ID),
+        AssetId::from_token(Chain::XLayer, XLAYER_PYUSD_TOKEN_ID),
+        AssetId::from_token(Chain::Solana, SOLANA_PYUSD_TOKEN_ID),
+    ]
+});

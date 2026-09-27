@@ -14,6 +14,11 @@ public enum Images {
     public enum Tokens {
         public static let usdt = Image(.usdt)
         public static let usdc = Image(.usdc)
+        public static let usds = Image(.usds)
+        public static let usde = Image(.usde)
+        public static let usd1 = Image(.usd1)
+        public static let usdg = Image(.usdg)
+        public static let pyusd = Image(.pyusd)
     }
 
     public enum Chains {
