@@ -53,7 +53,6 @@ dependencies {
     implementation(project(":data:services:store"))
     implementation(project(":gemcore"))
     implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:market:viewmodels"))
     implementation(libs.ktx.core)
     implementation(libs.okhttp)
 

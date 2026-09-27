@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.market.presents
+package com.gemwallet.android.ui.components.chart
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -8,26 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.market.viewmodels.ChartValuesViewModel
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIState
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.chart.ChartPoint
-import com.gemwallet.android.ui.components.chart.ChartStateView
-import com.gemwallet.android.ui.components.chart.GemLineChart
 import com.gemwallet.android.ui.format.rowDateFormatter
+import com.gemwallet.android.ui.models.ChartUIState
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import java.time.ZoneId
 import java.util.Locale
-
-@Composable
-fun Chart(viewModel: ChartValuesViewModel = hiltViewModel()) {
-    val state by viewModel.chartUIState.collectAsStateWithLifecycle()
-
-    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod)
-}
 
 @Composable
 fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {

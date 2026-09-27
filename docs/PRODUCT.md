@@ -20,8 +20,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 - [Onboarding](product/onboarding.md) — create a wallet, import a wallet, and what happens right after
 - [Wallet](product/wallet_tab.md) — the wallet screen, balances, search
-- [Assets](product/assets.md) — the asset screen, manage tokens, recent assets
-- [Market](product/market.md) — an asset's price chart and market data
+- [Assets](product/assets.md) — the asset screen with its price chart and market data, manage tokens, recent assets
 - [Wallets](product/wallets.md) — the wallets list, switching, pinning, rename, avatar, secrets, delete
 - [Transfer](product/transfer.md) — send, recipient, amount, confirm, and scanned payment codes and links
 - [Transactions](product/transactions.md) — activity, filters, transaction details, pending tracking

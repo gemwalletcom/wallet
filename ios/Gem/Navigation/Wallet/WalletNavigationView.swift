@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import Market
 import NFT
 import Perpetuals
 import PriceAlerts

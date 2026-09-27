@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Contacts
 import GemstoneServices
 import InAppNotifications
-import Market
 import PriceAlerts
 import Primitives
 import PrimitivesComponents

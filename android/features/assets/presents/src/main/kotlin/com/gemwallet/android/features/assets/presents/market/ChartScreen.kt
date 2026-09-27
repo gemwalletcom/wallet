@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.market.presents
+package com.gemwallet.android.features.assets.presents.market
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,8 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.market.viewmodels.ChartValuesViewModel
-import com.gemwallet.android.features.market.viewmodels.ChartViewModel
+import com.gemwallet.android.features.assets.viewmodels.market.ChartValuesViewModel
+import com.gemwallet.android.features.assets.viewmodels.market.ChartViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.list_item.gemListSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox

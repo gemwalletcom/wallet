@@ -56,8 +56,6 @@ dependencies {
     implementation(project(":features:wallet_tab:viewmodels"))
     implementation(project(":features:assets:presents"))
     implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:market:presents"))
-    implementation(project(":features:market:viewmodels"))
     implementation(project(":features:perpetuals:presents"))
     implementation(project(":features:nft:presents"))
 

@@ -17,12 +17,31 @@ flowchart LR
     B --> J[Pin, hide, explorer, share, Price Alerts]
 ```
 
-1. Tapping an asset shows its balance and value, the price with its change, the actions the asset allows (Send, Receive, Buy, Swap, Stake), its price chart and market data ([Market](market.md)), its balance breakdown, and its transactions.
+1. Tapping an asset shows its balance and value, the price with its change, the actions the asset allows (Send, Receive, Buy, Swap, Stake), its price chart and market data ([Market](#market)), its balance breakdown, and its transactions.
 2. The user can pin or hide the asset, open it on the explorer, share it, and set Price Alerts.
 
 | When | Expected | Why |
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
+
+## Market
+
+```mermaid
+flowchart LR
+    A[Asset screen opens] --> B[Header usable at once]
+    A --> C[Chart loads]
+    A --> D[Market data loads]
+    C --> E{Chart answered?}
+    E -- yes --> F[Price chart]
+    E -- no --> G[No data]
+    E -- offline --> H[Error]
+```
+
+1. The asset screen shows the price chart and the asset's market data under the header.
+
+| When | Expected | Why |
+|---|---|---|
+| The price chart cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
 
 ## Manage tokens
 

@@ -9,7 +9,6 @@ import class Gemstone.GemChartService
 import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
 import GemstoneServices
-import Market
 import NFT
 import Primitives
 import PrimitivesComponents

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.market.viewmodels
+package com.gemwallet.android.features.assets.viewmodels.market
 
 import android.content.Context
 import android.util.Log
@@ -14,9 +14,8 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.market.viewmodels.models.ChartUIState
-import com.gemwallet.android.features.market.viewmodels.models.StopTimeoutMillis
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ChartUIState
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
@@ -42,6 +41,8 @@ import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
+
+private const val StopTimeoutMillis = 5_000L
 
 @HiltViewModel
 class ChartValuesViewModel internal constructor(
