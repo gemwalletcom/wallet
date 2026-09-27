@@ -13,7 +13,6 @@ android {
     defaultConfig {
         minSdk = 28
 
-        consumerProguardFiles("consumer-rules.pro")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -23,10 +22,6 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
     compileOptions {
