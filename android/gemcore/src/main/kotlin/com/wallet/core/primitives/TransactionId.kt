@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable(with = TransactionIdSerializer::class)
 data class TransactionId(val chain: Chain, val hash: String) {
     constructor(identifier: String) : this(
-        chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
+        chain = identifierChain(identifier)
             ?: throw IllegalArgumentException("Invalid transaction id: $identifier"),
         hash = identifier.substringAfter("_", "").ifEmpty { throw IllegalArgumentException("Invalid transaction id: $identifier") },
     )

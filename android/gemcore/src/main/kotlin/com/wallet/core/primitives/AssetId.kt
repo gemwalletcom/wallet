@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable(with = AssetIdSerializer::class)
 data class AssetId(val chain: Chain, val tokenId: String? = null) {
     constructor(identifier: String) : this(
-        chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
+        chain = identifierChain(identifier)
             ?: throw IllegalArgumentException("Invalid asset ID: $identifier"),
         tokenId = identifier.substringAfter("_").takeIf { "_" in identifier }
             ?.ifEmpty { throw IllegalArgumentException("Invalid asset ID: $identifier") },
@@ -22,3 +22,5 @@ data class AssetId(val chain: Chain, val tokenId: String? = null) {
         return result
     }
 }
+
+internal fun identifierChain(identifier: String): Chain? = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
