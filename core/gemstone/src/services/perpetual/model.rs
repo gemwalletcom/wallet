@@ -180,7 +180,7 @@ impl PerpetualMarketLine {
             title: self.title,
             title_extra: None,
             subtitle_extra: self.price.change.filter(|_| price.is_some()).map(GemRowText::number),
-            subtitle: price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })),
+            subtitle: price.map(GemRowText::neutral_number),
             trailing: GemAssetItemTrailing::Value {
                 value: GemRowText::number(self.volume_24h),
                 extra: None,

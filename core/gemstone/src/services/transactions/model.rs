@@ -243,11 +243,7 @@ pub enum GemTransactionHeader {
 impl GemTransactionHeader {
     pub fn amount(amount: GemHeaderAmount) -> Self {
         Self::Amount {
-            header: GemValueHeader::asset(
-                amount.icon,
-                GemLocalizedText::Number { number: amount.amount },
-                amount.fiat.map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
-            ),
+            header: GemValueHeader::asset(amount.icon, GemLocalizedText::Number { number: amount.amount }, amount.fiat.map(GemRowText::neutral_number)),
         }
     }
 

@@ -20,8 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN404 in section 12.
-3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
+2. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -213,14 +212,6 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 - **CLN391** **S** **One route-string helper.** `DelegationViewModel`, `TransactionViewModel` and `ConnectionViewModel` each keep a private `SavedStateHandle.requireString`; [`RouteArgumentExt.kt`](../android/ui-models/src/main/kotlin/com/gemwallet/android/ui/models/navigation/RouteArgumentExt.kt) gains it and its `require*` helpers reuse its missing-argument check.
 - **CLN392** **S** **One receive picker screen.** `SelectReceiveCollectionScreen` repeats `SelectReceiveScreen` line for line except the default view model; the collection route passes its view model to `SelectReceiveScreen` and the copy goes.
 - **CLN393** **S** **Hiding an asset is written once.** `WalletViewModel.hideAsset` and `NetworkAssetsViewModel.hideAsset` are the same call and log line; one internal helper in the wallet view models serves both.
-
-## 12. Conversion sweeps
-
-The same conversion written at many call sites, found on 2026-09-27: ids turned into strings and back at every Gemstone call, one error or text shape spelled out each time. Each item gives the conversion one owner and removes the call-site copies without changing a request, a stored value or a screen. It verifies the modules it touches the same way as section 11 and states the count removed in the commit.
-
-### Core
-
-- **CLN404** **S** **A neutral number row once.** `GemRowText::neutral(GemLocalizedText::Number { number })` is written 8 times beside the existing `GemRowText::number`; a `GemRowText::neutral_number` constructor replaces them.
 
 ## Blocked upstream
 

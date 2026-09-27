@@ -277,7 +277,7 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
     let text = asset_row_text(asset, style);
     let prices = price_row(price, change, currency.clone(), GemCurrencyStyle::Short);
     let (subtitle, subtitle_extra) = match style.subtitle {
-        GemAssetSubtitleStyle::Price => (prices.price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })), prices.change.map(GemRowText::number)),
+        GemAssetSubtitleStyle::Price => (prices.price.map(GemRowText::neutral_number), prices.change.map(GemRowText::number)),
         GemAssetSubtitleStyle::Network => (text.network.map(|network| GemRowText::neutral(GemLocalizedText::Text { text: network })), None),
     };
     GemAssetItemRow {
@@ -289,7 +289,7 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
         trailing: match style.trailing {
             GemAssetTrailingStyle::Balance => GemAssetItemTrailing::Value {
                 value: balance_text(&value, asset),
-                extra: fiat_amount(asset, &value, price, currency.clone(), GemCurrencyStyle::Short).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                extra: fiat_amount(asset, &value, price, currency.clone(), GemCurrencyStyle::Short).map(GemRowText::neutral_number),
             },
             GemAssetTrailingStyle::Toggle => GemAssetItemTrailing::Toggle { is_on: data.metadata.is_balance_enabled },
             GemAssetTrailingStyle::Copy => GemAssetItemTrailing::Copy,
@@ -864,7 +864,7 @@ mod tests {
         let prices = price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short);
         assert_eq!(
             (total.subtitle.clone(), total.subtitle_extra.clone()),
-            (prices.price.map(|price| GemRowText::neutral(GemLocalizedText::Number { number: price })), prices.change.map(GemRowText::number)),
+            (prices.price.map(GemRowText::neutral_number), prices.change.map(GemRowText::number)),
             "the row's price is the list-width one"
         );
         assert_eq!(amount.tone, GemValueTone::Plain);

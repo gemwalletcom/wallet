@@ -173,7 +173,7 @@ impl GemAssetDetailsService {
                     GemLocalizedText::Number {
                         number: balance_amount(&balance.total(), &asset),
                     },
-                    rules::fiat_value(&asset, &balance, price, currency.clone()).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+                    rules::fiat_value(&asset, &balance, price, currency.clone()).map(GemRowText::neutral_number),
                 )
             },
             title: rules::asset_title(&asset),

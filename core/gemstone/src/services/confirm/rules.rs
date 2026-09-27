@@ -327,7 +327,7 @@ pub fn fee_asset_row(asset: &Asset, balance: &GemAssetBalance, price: Option<f64
         subtitle_extra: None,
         trailing: GemAssetItemTrailing::Value {
             value: balance_text(&balance.available, asset),
-            extra: crate::services::assets::rules::fiat_amount_of(asset, &balance.available, price, currency.clone(), GemCurrencyStyle::Currency).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            extra: crate::services::assets::rules::fiat_amount_of(asset, &balance.available, price, currency.clone(), GemCurrencyStyle::Currency).map(GemRowText::neutral_number),
         },
         masks_balance: false,
     }

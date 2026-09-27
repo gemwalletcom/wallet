@@ -211,7 +211,7 @@ pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asse
                 placeholder: Some(header.validator.placeholder.clone()),
             }),
             title: GemLocalizedText::Number { number: amount(&delegation.base.balance) },
-            subtitle: fiat(&delegation.base.balance).map(|fiat| GemRowText::neutral(GemLocalizedText::Number { number: fiat })),
+            subtitle: fiat(&delegation.base.balance).map(GemRowText::neutral_number),
             subtitle_icon: None,
             actions: None,
         },

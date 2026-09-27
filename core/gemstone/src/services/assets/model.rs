@@ -138,6 +138,10 @@ impl GemRowText {
     pub fn neutral(text: GemLocalizedText) -> Self {
         Self { text, tone: GemValueTone::Neutral }
     }
+
+    pub fn neutral_number(number: GemFormattedNumber) -> Self {
+        Self::neutral(GemLocalizedText::Number { number })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
