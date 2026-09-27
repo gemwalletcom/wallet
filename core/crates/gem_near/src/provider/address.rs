@@ -35,6 +35,7 @@ mod tests {
                 vec![AddressStatus::ExternallyControlled],
             ),
             (TEST_ADDRESS, include_str!("../../testdata/access_key_list_function_call.json"), vec![AddressStatus::ExternallyControlled]),
+            (TEST_ADDRESS, include_str!("../../testdata/access_key_list_unknown_account.json"), vec![]),
         ] {
             let client = MockClient::new().with_post(move |_, _| Ok(response.as_bytes().to_vec()));
             let provider = NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(client)));

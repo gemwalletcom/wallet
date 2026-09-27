@@ -10,7 +10,7 @@ pub(super) fn map_address_status(public_key: &str, access_keys: &AccountAccessKe
                 AccountAccessKeyPermission::FunctionCall(_) => false,
             }
     });
-    match has_full_access {
+    match access_keys.keys.is_empty() || has_full_access {
         true => vec![],
         false => vec![AddressStatus::ExternallyControlled],
     }
