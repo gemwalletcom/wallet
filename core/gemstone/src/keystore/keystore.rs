@@ -181,14 +181,14 @@ impl GemKeystore {
     pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, address: &str, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
         let password = Zeroizing::new(password);
         let private_key = self.load_private_key(keystore_id, chain, &password)?;
-        if key_derives_address(&private_key, chain, address)? {
+        if account_matches_address(&derive_account_from_private_key(&private_key, chain)?, address) {
             return Ok(private_key);
         }
         if chain == Chain::Solana
             && let Ok(phrase) = self.inner.decrypt_mnemonic(keystore_id, &password)
         {
             let legacy_key = derive_legacy_solana_private_key_from_mnemonic(&phrase)?;
-            if key_derives_address(&legacy_key, chain, address)? {
+            if account_matches_address(&derive_account_from_private_key(&legacy_key, chain)?, address) {
                 return Ok(legacy_key);
             }
         }
@@ -243,10 +243,6 @@ impl GemKeystore {
         }
         Ok(())
     }
-}
-
-fn key_derives_address(private_key: &[u8], chain: Chain, address: &str) -> Result<bool, GemstoneError> {
-    Ok(account_matches_address(&derive_account_from_private_key(private_key, chain)?, address))
 }
 
 fn derive_mnemonic_wallet(words: Vec<String>, requested_chains: Vec<Chain>, wallet_type: WalletType, wallet_id_chain: Chain) -> Result<(WalletId, Vec<Account>, Zeroizing<String>), GemstoneError> {

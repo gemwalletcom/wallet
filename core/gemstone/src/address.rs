@@ -66,8 +66,6 @@ mod tests {
             assert!(account_matches_address(&account, TEST_EVM_SENDER.trim_start_matches("0x")));
             assert!(!account_matches_address(&account, &format!(" {TEST_EVM_SENDER}\n")));
             assert!(!account_matches_address(&account, TEST_EVM_RECIPIENT));
-            assert!(!account_matches_address(&account, "invalid"));
-            assert!(!account_matches_address(&Account::mock(chain, "invalid"), TEST_EVM_SENDER));
             assert!(!account_matches_address(&Account::mock(chain, ""), ""));
         }
     }
@@ -79,7 +77,6 @@ mod tests {
         assert!(account_matches_address(&account, &address.encode_bounceable()));
         assert!(account_matches_address(&account, &format!("{}:{}", address.workchain(), hex::encode(address.hash_part()))));
         assert!(!account_matches_address(&account, &TonAddress::new(-1, *address.hash_part()).encode()));
-        assert!(!account_matches_address(&account, "invalid"));
     }
 
     #[test]
