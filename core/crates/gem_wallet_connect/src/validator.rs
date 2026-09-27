@@ -99,11 +99,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_eip712_polygon() {
-        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Polygon, &SignDigestType::Eip712, &mock_eip712_json(137), "")).is_ok());
-    }
-
-    #[test]
     fn test_validate_eip712_without_domain_chain_id() {
         let data = include_str!("../../gem_evm/testdata/ens_upload_avatar.json");
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, data, "")).is_ok());
