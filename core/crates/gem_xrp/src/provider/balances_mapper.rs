@@ -67,7 +67,6 @@ mod tests {
     use primitives::{AssetId, Chain};
 
     const FIXTURE_ADDRESS: &str = "rnZmVGX6f4pUYyS4oXYJzoLdRojQV8y297";
-    const RLUSD_CURRENCY: &str = "524C555344000000000000000000000000000000";
 
     #[test]
     fn test_map_balance_coin() {
@@ -124,25 +123,18 @@ mod tests {
 
     #[test]
     fn test_map_balance_tokens_trust_line_sides() {
-        let issuer = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De";
-        let objects = |low: &str, high: &str, balance: &str| -> AccountObjects {
-            serde_json::from_value(serde_json::json!({
-                "account_objects": [{
-                    "LowLimit": { "currency": RLUSD_CURRENCY, "issuer": low },
-                    "HighLimit": { "currency": RLUSD_CURRENCY, "issuer": high },
-                    "Balance": { "currency": RLUSD_CURRENCY, "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji", "value": balance }
-                }]
-            }))
-            .unwrap()
-        };
-        let holder = "rsHolderHighSide";
+        let response: XRPResult<AccountObjects> = serde_json::from_str(include_str!("../testdata/account_objects_trust_line_sides.json")).unwrap();
+        let rlusd = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De";
+        let usdc = "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE";
 
-        let fresh = map_balance_tokens(&objects(FIXTURE_ADDRESS, issuer, "0"), FIXTURE_ADDRESS, vec![issuer.to_string()], Chain::Xrp);
-        let high = map_balance_tokens(&objects(issuer, holder, "-5"), holder, vec![issuer.to_string()], Chain::Xrp);
+        let result = map_balance_tokens(&response.result, "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW", vec![rlusd.to_string(), usdc.to_string()], Chain::Xrp);
 
-        assert!(fresh[0].is_active);
-        assert_eq!(fresh[0].balance.available, BigUint::ZERO);
-        assert!(high[0].is_active);
-        assert_eq!(high[0].balance.available, BigUint::from(5_000_000_000_000_000u64));
+        assert_eq!(
+            result,
+            vec![
+                AssetBalance::new_with_active(AssetId::from_token(Chain::Xrp, rlusd), Balance::coin_balance(BigUint::ZERO), true),
+                AssetBalance::new_with_active(AssetId::from_token(Chain::Xrp, usdc), Balance::coin_balance(BigUint::from(5_000_000_000_000_000u64)), true),
+            ]
+        );
     }
 }
