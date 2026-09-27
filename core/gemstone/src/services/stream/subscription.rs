@@ -98,7 +98,7 @@ impl GemStreamSubscriptionService {
     }
 
     async fn send(&self, message: StreamMessage) -> Result<(), GemServiceError> {
-        let message = serde_json::to_string(&message).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let message = serde_json::to_string(&message).map_err(GemServiceError::core)?;
         self.connection.send(message).await
     }
 

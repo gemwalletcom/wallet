@@ -167,7 +167,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
-        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let now = unix_seconds().map_err(GemServiceError::core)?;
         self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
     }
 
@@ -378,7 +378,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_pushed_device(&self, device: &Device) -> Result<(), GemServiceError> {
-        let json = serde_json::to_string(device).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let json = serde_json::to_string(device).map_err(GemServiceError::core)?;
         self.store.set(PUSHED_DEVICE.to_string(), json)
     }
 

@@ -181,7 +181,7 @@ async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId,
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+    let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(GemServiceError::core)?;
     if next_state == current_state && !fields.has_field_changes() {
         return Ok(Some(GemTransactionStateResult {
             transaction_id,

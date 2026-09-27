@@ -64,8 +64,14 @@ impl From<GatewayError> for GemServiceError {
     }
 }
 
+impl GemServiceError {
+    pub(crate) fn core(error: impl std::fmt::Display) -> Self {
+        Self::Core { msg: error.to_string() }
+    }
+}
+
 impl From<GemstoneError> for GemServiceError {
     fn from(error: GemstoneError) -> Self {
-        Self::Core { msg: error.to_string() }
+        Self::core(error)
     }
 }

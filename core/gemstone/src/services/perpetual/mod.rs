@@ -169,7 +169,7 @@ impl GemPerpetualService {
     }
 
     pub async fn on_socket_message(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<GemPerpetualSocketUpdate, GemServiceError> {
-        let message = parse_websocket_data(&data, mode).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let message = parse_websocket_data(&data, mode).map_err(GemServiceError::core)?;
         match message {
             HyperliquidSocketMessage::AccountState { balance, positions } => {
                 let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
@@ -252,7 +252,7 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn update_balance(&self, wallet_id: WalletId, balance: PerpetualBalance) -> Result<(), GemServiceError> {
-        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let update = rules::balance_update(&balance).map_err(GemServiceError::core)?;
         self.balance.update_balances(wallet_id, vec![update]).await
     }
 
