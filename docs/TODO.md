@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN400 to CLN404 in section 12, one item per change.
+2. **Conversion sweeps:** CLN401 to CLN404 in section 12, one item per change.
 3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -220,7 +220,6 @@ The same conversion written at many call sites, found on 2026-09-27: ids turned 
 
 ### Android
 
-- **CLN400** **S** **One serializer for string ids.** `NFTAssetIdSerializer`, `NFTCollectionIdSerializer`, `PerpetualIdSerializer`, `TransactionIdSerializer` and `WalletIdSerializer` repeat one string serializer with a different parse; a shared base takes the parse and the identifier, as `IdentifierCodable` does on iOS. `AssetIdSerializer` keeps its keyed fallback.
 - **CLN401** **S** **One id prefix parse.** `AssetId`, `NFTAssetId`, `NFTCollectionId`, `TransactionId` and `PerpetualId` each find their chain or provider with `entries.firstOrNull { it.string == identifier.substringBefore("_") }`; one helper does it.
 
 ### Core
