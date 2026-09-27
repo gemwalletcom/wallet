@@ -21,12 +21,3 @@ pub enum ChainType {
     Cardano,
     HyperCore,
 }
-
-impl ChainType {
-    pub fn network_fee_is_total_cost(&self) -> bool {
-        match self {
-            Self::Ethereum => true,
-            Self::Bitcoin | Self::Solana | Self::Cosmos | Self::Ton | Self::Tron | Self::Aptos | Self::Sui | Self::Xrp | Self::Near | Self::Stellar | Self::Algorand | Self::Polkadot | Self::Cardano | Self::HyperCore => false,
-        }
-    }
-}

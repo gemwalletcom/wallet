@@ -64,14 +64,8 @@ impl GemConfirmation {
     async fn load_screen(&self, options: &GemConfirmLoadOptions) -> Result<ConfirmState, GemConfirmError> {
         let now = Instant::now();
         let transfer = self.transfer();
-        let swap = self.stored().as_ref().and_then(|state| state.swap.clone()).or_else(|| ConfirmSwapQuote::initial(&transfer, self.created_at));
-        let (transfer, swap) = match swap {
-            Some(swap) => {
-                let (transfer, swap) = self.service.refreshed_swap(&self.wallet, transfer, swap, now).await?;
-                (transfer, Some(swap))
-            }
-            None => (transfer, None),
-        };
+        let held = self.stored().as_ref().and_then(|state| state.swap.clone()).or_else(|| ConfirmSwapQuote::initial(&transfer, self.created_at));
+        let (transfer, swap) = Box::pin(self.service.refreshed_swap(&self.wallet, transfer, held, now)).await?;
         let input = self.service.confirm_input(self.wallet.clone(), transfer)?;
         let requested = async {
             match &self.simulation {
@@ -80,11 +74,7 @@ impl GemConfirmation {
             }
         };
         let (screen, fee, requested) = futures::join!(Box::pin(self.state()), Box::pin(self.load_fee(&input, options)), Box::pin(requested));
-        let (fee, fitted) = self.service.fitted_max_swap(&self.wallet, fee?).await?;
-        let swap = match fitted {
-            Some(quote) => Some(ConfirmSwapQuote::requoted(quote, now)),
-            None => swap,
-        };
+        let (fee, swap) = Box::pin(self.service.fitted_max_swap(&self.wallet, fee?, swap, now)).await?;
         let requested = requested.transpose()?;
         let screen = GemConfirmLoad {
             transfer: fee.confirm_data.input.transfer.clone(),

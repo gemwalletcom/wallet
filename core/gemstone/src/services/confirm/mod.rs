@@ -6,6 +6,7 @@ pub(crate) mod header;
 mod model;
 pub(crate) mod rules;
 pub(crate) mod screen;
+mod swap;
 #[cfg(test)]
 mod testkit;
 mod transfer;
@@ -16,6 +17,7 @@ use std::time::Duration;
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
 pub use model::*;
+pub use swap::ConfirmSwapQuote;
 pub use transfer::GemConfirmTransferService;
 
 use crate::GemstoneError;

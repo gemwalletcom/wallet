@@ -1,6 +1,8 @@
+use crate::ranking::{RankedQuote, rank_quotes};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across,
-    alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz, thorchain, uniswap,
+    alien::RpcProvider, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
+    thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -50,14 +52,6 @@ impl GemSwapper {
             }
         }
         gas_limit
-    }
-
-    fn sort_quotes_by_output_amount(quotes: &mut [Quote]) {
-        quotes.sort_by(Self::compare_quotes_by_output_amount);
-    }
-
-    fn compare_quotes_by_output_amount(a: &Quote, b: &Quote) -> std::cmp::Ordering {
-        b.to_value.cmp(&a.to_value)
     }
 }
 
@@ -179,8 +173,9 @@ impl GemSwapper {
         let quotes_futures = providers.into_iter().map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
-                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
-                x.get_quote(&request).await.map_err(|e| (provider_id, e))
+                let amount_mode = x.amount_mode(request);
+                let request = Self::quote_request_for_mode(amount_mode, request).map_err(|e| (provider_id.clone(), e))?;
+                x.get_quote(&request).await.map(|quote| RankedQuote { quote, amount_mode }).map_err(|e| (provider_id, e))
             }
         });
 
@@ -195,7 +190,7 @@ impl GemSwapper {
             }
         }
 
-        Self::sort_quotes_by_output_amount(&mut quotes);
+        let quotes = rank_quotes(request, quotes, &quote_preferences());
         Ok(SwapQuotes { quotes, errors })
     }
 
@@ -503,47 +498,6 @@ mod tests {
             Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
         ]);
         assert_eq!(partly_offline.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
-    }
-
-    #[test]
-    fn test_sort_quotes_by_output_amount_desc() {
-        let mut quotes = [
-            Quote::mock_with_provider(SwapperProvider::UniswapV3, "101"),
-            Quote::mock_with_provider(SwapperProvider::UniswapV4, "100"),
-            Quote::mock_with_provider(SwapperProvider::PancakeswapV3, "102"),
-        ];
-
-        GemSwapper::sort_quotes_by_output_amount(&mut quotes);
-
-        assert_eq!(quotes[0].to_value, BigUint::from(102u64));
-        assert_eq!(quotes[1].to_value, BigUint::from(101u64));
-        assert_eq!(quotes[2].to_value, BigUint::from(100u64));
-    }
-
-    #[test]
-    fn test_sort_quotes_keeps_equal_outputs_in_discovery_order_and_compares_whole_amounts() {
-        let mut quotes = [
-            Quote::mock_with_provider(SwapperProvider::UniswapV3, "100"),
-            Quote::mock_with_provider(SwapperProvider::UniswapV4, "100"),
-            Quote::mock_with_provider(SwapperProvider::PancakeswapV3, "100"),
-        ];
-
-        GemSwapper::sort_quotes_by_output_amount(&mut quotes);
-
-        assert_eq!(
-            quotes.iter().map(|quote| quote.data.provider.id).collect::<Vec<_>>(),
-            vec![SwapperProvider::UniswapV3, SwapperProvider::UniswapV4, SwapperProvider::PancakeswapV3],
-            "equal outputs keep the order the providers answered in"
-        );
-
-        let mut large = [
-            Quote::mock_with_provider(SwapperProvider::UniswapV3, "9999999999999999999"),
-            Quote::mock_with_provider(SwapperProvider::Jupiter, "10000000000000000000"),
-        ];
-
-        GemSwapper::sort_quotes_by_output_amount(&mut large);
-
-        assert_eq!(large[0].to_value, BigUint::from(10_000_000_000_000_000_000u64));
     }
 }
 
