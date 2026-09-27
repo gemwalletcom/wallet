@@ -43,7 +43,9 @@ impl FileKeystore {
     pub fn import_v3(&self, v3_path: &Path, v3_password: &[u8], new_password: &[u8], keystore_id: Option<String>) -> Result<StoredSecretMeta, KeystoreError> {
         let _queue = queue::lock()?;
         // Idempotent retry: authenticate an existing staged v4 file by id+password; replace it only when corrupt.
-        if let Some(parsed_id) = keystore_id.as_deref().and_then(|id| KeystoreId::parse(id).ok()).filter(|parsed_id| self.path_for_id(parsed_id).exists()) {
+        if let Some(parsed_id) = keystore_id.as_deref().and_then(|id| KeystoreId::parse(id).ok())
+            && self.file_exists(&parsed_id)?
+        {
             match self.verify_unlocked(parsed_id.as_str(), new_password) {
                 Ok(meta) => return Ok(meta),
                 Err(KeystoreError::CorruptFile(_)) => fs::remove_file(self.path_for_id(&parsed_id))?,
@@ -92,21 +94,21 @@ impl FileKeystore {
             Some(keystore_id) => KeystoreId::parse(&keystore_id)?,
             None => KeystoreId::new(),
         };
-        if self.path_for_id(&id).exists() {
+        if self.file_exists(&id)? {
             return self.verify_unlocked(id.as_str(), password);
         }
         let body = encrypt_secret(&self.default_kdf, payload, password, &id)?;
         self.write_new_file(&id, &body, false)?;
-        self.get_meta_unlocked(id.as_str())?.ok_or(KeystoreError::NotFound)
+        let meta = self.get_meta_unlocked(id.as_str())?.ok_or(KeystoreError::NotFound)?;
+        Ok(StoredSecretMeta { created: true, ..meta })
     }
 
     fn get_meta_unlocked(&self, keystore_id: &str) -> Result<Option<StoredSecretMeta>, KeystoreError> {
         let id = KeystoreId::parse(keystore_id)?;
-        let path = self.path_for_id(&id);
-        if !path.exists() {
+        if !self.file_exists(&id)? {
             return Ok(None);
         }
-        let bytes = read_capped(&path, WHOLE_FILE_CAP)?;
+        let bytes = read_capped(&self.path_for_id(&id), WHOLE_FILE_CAP)?;
         Ok(Some(parsed_meta(&bytes, &id)?))
     }
 
@@ -133,7 +135,7 @@ impl FileKeystore {
     fn write_new_file(&self, id: &KeystoreId, bytes: &[u8], replace: bool) -> Result<(), KeystoreError> {
         fs::create_dir_all(&self.base_dir)?;
         let path = self.path_for_id(id);
-        if !replace && path.exists() {
+        if !replace && self.file_exists(id)? {
             return Err(KeystoreError::AlreadyExists);
         }
         let temp_path = self.base_dir.join(format!("{}.{FILE_EXTENSION}.tmp.{}", id.as_str(), KeystoreId::new()));
@@ -155,6 +157,14 @@ impl FileKeystore {
 
     fn path_for_id(&self, id: &KeystoreId) -> PathBuf {
         self.base_dir.join(format!("{}.{FILE_EXTENSION}", id.as_str()))
+    }
+
+    fn file_exists(&self, id: &KeystoreId) -> Result<bool, KeystoreError> {
+        match fs::metadata(self.path_for_id(id)) {
+            Ok(_) => Ok(true),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+            Err(error) => Err(error.into()),
+        }
     }
 }
 

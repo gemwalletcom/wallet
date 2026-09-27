@@ -38,17 +38,17 @@ impl GemKeystore {
                 let imported = import_account_from_private_key(&value, chain)?;
                 let wallet_id = derive_wallet_id_from_account(&imported.account, WalletType::PrivateKey)?;
                 let meta = self.inner.import_private_key(&imported.private_key, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::PrivateKey, meta.keystore_id, vec![imported.account]))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::PrivateKey, meta.keystore_id, vec![imported.account], meta.created))
             }
             GemImportType::MulticoinPhrase { words, chains } => {
                 let (wallet_id, accounts, phrase) = derive_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
                 let meta = self.inner.import_mnemonic(&phrase, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::Multicoin, meta.keystore_id, accounts))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::Multicoin, meta.keystore_id, accounts, meta.created))
             }
             GemImportType::SinglePhrase { words, chain } => {
                 let (wallet_id, accounts, phrase) = derive_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
                 let meta = self.inner.import_mnemonic(&phrase, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::Single, meta.keystore_id, accounts))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::Single, meta.keystore_id, accounts, meta.created))
             }
         }
     }
@@ -100,8 +100,8 @@ impl GemKeystore {
 }
 
 impl GemKeystore {
-    pub fn exists(&self, keystore_id: String) -> bool {
-        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
+    pub fn exists(&self, keystore_id: String) -> Result<bool, GemstoneError> {
+        Ok(self.inner.get_meta(&keystore_id)?.is_some())
     }
 
     pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
