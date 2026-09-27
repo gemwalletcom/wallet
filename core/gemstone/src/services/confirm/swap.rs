@@ -317,7 +317,7 @@ mod tests {
             let mut quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
             quote.request.wallet_address = TEST_EVM_RECIPIENT.to_string();
 
-            let error = testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
 
             let GemConfirmError::Sign { chain: Chain::Ethereum, msg, .. } = error else {
                 panic!("the permit is refused before anything is built: {error:?}");
