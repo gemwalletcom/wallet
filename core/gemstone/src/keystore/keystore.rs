@@ -55,7 +55,7 @@ impl GemKeystore {
 
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
         let password = Zeroizing::new(password);
-        Ok(self.inner.decrypt_mnemonic(&keystore_id, &password)?.split_whitespace().map(|word| word.to_string()).collect())
+        Ok(self.inner.decrypt_mnemonic(&keystore_id, &password)?.split_whitespace().map(ToString::to_string).collect())
     }
 
     pub fn export_private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<String, GemstoneError> {

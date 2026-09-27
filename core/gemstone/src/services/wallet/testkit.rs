@@ -192,7 +192,7 @@ impl WalletTestkit {
 
     pub async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
         let import = GemWalletImportType::MulticoinPhrase {
-            words: words.iter().map(|word| word.to_string()).collect(),
+            words: words.iter().map(ToString::to_string).collect(),
             chains: vec![Chain::Ethereum],
         };
         self.service.store_import(name.to_string(), import, WalletSource::Import).await.unwrap().wallet()

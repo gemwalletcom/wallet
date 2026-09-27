@@ -8,7 +8,7 @@ use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSe
 
 pub fn targets() -> Vec<GemServiceStatusTarget> {
     std::iter::once(GEM_API_HOST)
-        .chain(NodeRegion::all().into_iter().map(|region| region.host()))
+        .chain(NodeRegion::all().into_iter().map(NodeRegion::host))
         .map(|host| GemServiceStatusTarget::Endpoint { host: host.to_string() })
         .chain(std::iter::once(GemServiceStatusTarget::Stream))
         .collect()

@@ -454,7 +454,7 @@ impl SendInput {
                     .map_err(|msg| GemConfirmError::Record { msg }),
                 )
             })
-            .map(|result| result.map(|transaction| transaction.into_iter()))
+            .map(|result| result.map(IntoIterator::into_iter))
             .collect::<Result<Vec<_>, _>>()
             .map(|transactions| transactions.into_iter().flatten().collect())
     }

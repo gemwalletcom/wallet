@@ -44,7 +44,7 @@ impl PusherClient {
         let notification = GorushNotification::for_token_validation(token.to_string(), platform);
         let result = self.push_notifications(vec![notification]).await?;
 
-        let has_invalid_token = result.response.logs.iter().any(|log| log.is_device_invalid());
+        let has_invalid_token = result.response.logs.iter().any(push_notification::PushErrorLog::is_device_invalid);
         Ok(!has_invalid_token)
     }
 

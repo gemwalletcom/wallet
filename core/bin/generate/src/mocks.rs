@@ -460,7 +460,7 @@ impl Generator {
             return zero.to_string();
         }
         if let Some((_, identifier)) = syntax.core_identifiers.iter().find(|(identifier, _)| *identifier == name) {
-            imports.extend(syntax.core_imports.iter().map(|import| import.to_string()));
+            imports.extend(syntax.core_imports.iter().map(ToString::to_string));
             return identifier.to_string();
         }
         if self.config.codes.iter().any(|code| code == name) {
@@ -477,7 +477,7 @@ impl Generator {
             return syntax.reference.replace("{function}", &uniffi_type_name(name));
         }
         if self.mocked.iter().any(|mock| mock.name() == name) && self.types.iter().any(|remote| remote.name() == name && remote.app_model()) {
-            imports.extend(syntax.core_imports.iter().map(|import| import.to_string()));
+            imports.extend(syntax.core_imports.iter().map(ToString::to_string));
             return syntax.to_core.replace("{type}", name).replace("{function}", &uniffi_type_name(name));
         }
         match self.core_variants(name).and_then(|variants| variants.first().map(|first| (first, variants))) {

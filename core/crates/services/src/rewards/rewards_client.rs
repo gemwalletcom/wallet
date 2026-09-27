@@ -102,7 +102,7 @@ impl RewardsClient {
     }
 
     pub async fn get_rewards_leaderboard(&self) -> Result<ReferralLeaderboard, Box<dyn Error + Send + Sync>> {
-        Ok(self.db.run(|client| client.get_rewards_leaderboard()).await?)
+        Ok(self.db.run(RewardsRepository::get_rewards_leaderboard).await?)
     }
 
     pub async fn get_rewards_redemption_option(&self, code: &str) -> Result<RewardRedemptionOption, Box<dyn Error + Send + Sync>> {

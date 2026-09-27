@@ -93,14 +93,14 @@ impl NFTClient {
     }
 
     async fn preload(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let collection_ids: HashSet<NFTCollectionId> = assets.iter().map(|x| x.get_collection_id()).collect();
+        let collection_ids: HashSet<NFTCollectionId> = assets.iter().map(NFTAssetId::get_collection_id).collect();
         self.preload_collections(collection_ids.into_iter().collect()).await?;
         self.preload_assets(&assets).await?;
         self.get_nfts(assets).await
     }
 
     async fn preload_collections(&self, collection_ids: Vec<NFTCollectionId>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let identifiers: Vec<String> = collection_ids.iter().map(|x| x.to_string()).collect();
+        let identifiers: Vec<String> = collection_ids.iter().map(ToString::to_string).collect();
         let existing: HashSet<NFTCollectionId> = self.database.run(move |client| client.get_nft_collection_ids(identifiers)).await?.into_iter().collect();
 
         let mut new_collections: Vec<NFTCollection> = Vec::new();
@@ -118,7 +118,7 @@ impl NFTClient {
     }
 
     async fn preload_assets(&self, asset_ids: &[NFTAssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let identifiers: Vec<String> = asset_ids.iter().map(|x| x.to_string()).collect();
+        let identifiers: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
         let existing: HashSet<NFTAssetId> = self.database.run(move |client| client.get_nft_asset_ids(identifiers)).await?.into_iter().collect();
 
         let mut new_assets: Vec<NFTAsset> = Vec::new();
@@ -176,7 +176,7 @@ impl NFTClient {
         }
 
         let asset_ids: Vec<NFTAssetId> = all_asset_ids.into_iter().collect();
-        let collection_ids: Vec<NFTCollectionId> = asset_ids.iter().map(|x| x.get_collection_id()).collect::<HashSet<_>>().into_iter().collect();
+        let collection_ids: Vec<NFTCollectionId> = asset_ids.iter().map(NFTAssetId::get_collection_id).collect::<HashSet<_>>().into_iter().collect();
         self.preload_collections(collection_ids).await?;
         self.preload_assets(&asset_ids).await?;
 

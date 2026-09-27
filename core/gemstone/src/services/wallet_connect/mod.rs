@@ -239,7 +239,7 @@ impl GemWalletConnectService {
 
 impl GemWalletConnectService {
     pub fn should_process_message(&self, message_id: String) -> bool {
-        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let mut seen = self.seen_messages.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
     }
 

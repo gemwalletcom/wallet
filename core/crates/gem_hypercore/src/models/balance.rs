@@ -70,7 +70,7 @@ impl Validator {
     }
 
     pub fn max_apr(validators: &[Validator]) -> f64 {
-        validators.iter().filter(|x| x.is_active).filter_map(|x| x.predicted_apr()).fold(0.0, f64::max)
+        validators.iter().filter(|x| x.is_active).filter_map(Validator::predicted_apr).fold(0.0, f64::max)
     }
 }
 

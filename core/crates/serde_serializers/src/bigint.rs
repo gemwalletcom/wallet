@@ -53,7 +53,7 @@ where
 }
 
 pub fn bigint_from_hex_str(hex_str: &str) -> Result<BigInt, Box<dyn std::error::Error + Send + Sync>> {
-    parse_bigint_hex(hex_str).map_err(|err| err.into())
+    parse_bigint_hex(hex_str).map_err(Into::into)
 }
 
 pub fn deserialize_bigint_vec_from_hex_str<'de, D>(deserializer: D) -> Result<Vec<BigInt>, D::Error>

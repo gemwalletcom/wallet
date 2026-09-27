@@ -368,7 +368,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
-            send: TREASURY_ADDRESSES.iter().map(|s| s.to_string()).collect(),
+            send: TREASURY_ADDRESSES.iter().map(ToString::to_string).collect(),
         })
     }
 }

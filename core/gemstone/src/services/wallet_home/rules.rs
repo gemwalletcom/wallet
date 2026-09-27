@@ -54,7 +54,7 @@ fn header_buttons(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -
 fn swaps(wallet_type: WalletType, chains: &[Chain]) -> bool {
     match wallet_type {
         WalletType::Multicoin => true,
-        WalletType::Single | WalletType::PrivateKey => chains.first().is_some_and(|chain| chain.is_swap_supported()),
+        WalletType::Single | WalletType::PrivateKey => chains.first().is_some_and(Chain::is_swap_supported),
         WalletType::View => false,
     }
 }

@@ -127,7 +127,7 @@ pub(crate) fn primary_price_rows(client: &mut DatabaseClient, asset_ids: &[Asset
         return Ok(vec![]);
     }
     let providers = price_provider_rows(client)?;
-    let string_ids: Vec<String> = asset_ids.iter().map(|id| id.to_string()).collect();
+    let string_ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
     let mut rows_by_asset: HashMap<String, Vec<PriceRow>> = prices_for_asset_ids(client, &string_ids)?.into_iter().fold(HashMap::new(), |mut acc, (id, row)| {
         acc.entry(id).or_default().push(row);
         acc

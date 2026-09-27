@@ -6,7 +6,7 @@ use chrono::NaiveDateTime;
 use diesel::{prelude::*, upsert::excluded};
 use primitives::{Asset, AssetAssociation, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata};
 
-use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow};
+use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow, PriceRow};
 use crate::repositories::assets_links_repository::AssetsLinksRepository;
 use crate::repositories::perpetuals_repository::PerpetualsRepository;
 use crate::repositories::prices_repository::primary_price_rows;
@@ -236,7 +236,7 @@ impl AssetsRepository for DatabaseClient {
         let asset = asset_row(self, &id).or_not_found(id.clone())?;
         let price_row = primary_price_rows(self, slice::from_ref(asset_id), max_age)?.into_iter().next().map(|(_, row)| row);
         let market = price_row.as_ref().map(|x| x.as_market_primitive(&asset));
-        let price = price_row.as_ref().map(|x| x.as_primitive());
+        let price = price_row.as_ref().map(PriceRow::as_primitive);
         let links = self.get_asset_links(asset_id)?;
         let associations = asset_associations(self, &id)?.into_iter().map(AssetAssociationRow::into_primitive).collect();
         let tags = asset_tag_ids(self, asset_id)?;
@@ -280,7 +280,7 @@ impl AssetsRepository for DatabaseClient {
 
     fn get_assets_with_prices(&mut self, filters: Vec<AssetFilter>, max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
         let assets: Vec<AssetRow> = filter_assets(filters).select(AssetRow::as_select()).load(&mut self.connection)?;
-        let prices = primary_price_rows(self, &assets.iter().map(|asset| asset.as_asset_id()).collect::<Vec<_>>(), max_age)?
+        let prices = primary_price_rows(self, &assets.iter().map(AssetRow::as_asset_id).collect::<Vec<_>>(), max_age)?
             .into_iter()
             .map(|(asset_id, price)| (asset_id, price.as_primitive()))
             .collect::<HashMap<_, _>>();

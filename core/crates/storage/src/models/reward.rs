@@ -180,7 +180,7 @@ impl RedemptionOptionFull {
     }
 
     pub fn as_primitive(&self) -> Result<RewardRedemptionOption, DatabaseError> {
-        self.option.as_primitive(self.asset.as_ref().map(|a| a.as_primitive()))
+        self.option.as_primitive(self.asset.as_ref().map(AssetRow::as_primitive))
     }
 }
 

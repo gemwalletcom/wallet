@@ -42,7 +42,7 @@ mod tests {
     use push_notification::{PushNotification, PushNotificationReward};
 
     fn envelope(notification: &PushNotification) -> (String, Option<String>) {
-        (notification.notification_type.as_ref().to_string(), notification.data.as_ref().map(|data| data.to_string()))
+        (notification.notification_type.as_ref().to_string(), notification.data.as_ref().map(ToString::to_string))
     }
 
     fn parse(envelope: &PushNotification) -> Option<GemPushNotification> {

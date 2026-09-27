@@ -76,7 +76,7 @@ where
 }
 
 pub fn biguint_from_hex_str(hex_value: &str) -> Result<BigUint, Box<dyn std::error::Error + Send + Sync>> {
-    parse_biguint_hex(hex_value).map_err(|err| err.into())
+    parse_biguint_hex(hex_value).map_err(Into::into)
 }
 
 #[cfg(test)]

@@ -74,7 +74,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
             .await?;
 
         let asset_id = option.asset.as_ref().map(|a| a.id.clone());
-        let asset_id_str = asset_id.as_ref().map(|a| a.to_string());
+        let asset_id_str = asset_id.as_ref().map(ToString::to_string);
         let value = option.value.clone();
         let points = option.points;
 

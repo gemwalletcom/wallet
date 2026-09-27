@@ -186,7 +186,7 @@ impl InternalTransaction {
             transfer_to_address: TronAddress::from_hex_or_base58(transfer_to),
             call_value_info: vec![InternalTransactionCallValue {
                 call_value,
-                token_id: token_id.map(|token_id| token_id.to_string()),
+                token_id: token_id.map(ToString::to_string),
             }],
             rejected,
         }

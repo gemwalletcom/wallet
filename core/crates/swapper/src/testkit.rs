@@ -64,7 +64,7 @@ impl Options {
 impl QuoteRequest {
     pub fn mock(chain: Chain, token_id: Option<&str>) -> Self {
         QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from(chain, token_id.map(|s| s.to_string()))),
+            from_asset: SwapperQuoteAsset::from(AssetId::from(chain, token_id.map(ToString::to_string))),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(chain)),
             wallet_address: "address".to_string(),
             destination_address: "address".to_string(),

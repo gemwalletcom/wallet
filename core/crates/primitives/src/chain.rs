@@ -179,7 +179,7 @@ impl Chain {
     }
 
     pub fn stakeable() -> Vec<Self> {
-        Self::all().into_iter().filter(|x| x.is_stake_supported()).collect()
+        Self::all().into_iter().filter(Chain::is_stake_supported).collect()
     }
 
     pub fn perpetual_chains() -> Vec<Self> {

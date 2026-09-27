@@ -25,7 +25,7 @@ use streamer::ConsumerStatusReporter;
 #[tokio::main]
 pub async fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let service_arg = args.iter().skip(1).map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
+    let service_arg = args.iter().skip(1).map(String::as_str).collect::<Vec<_>>().join(" ");
 
     let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
         panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
@@ -80,7 +80,7 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
         schedules.push((*worker, services.job_schedule(worker.as_ref()).await?));
     }
 
-    let service_name = workers.first().map(|s| s.as_ref()).unwrap_or("worker");
+    let service_name = workers.first().map(AsRef::as_ref).unwrap_or("worker");
     let job_metrics = Arc::new(metrics::job::JobMetrics::new(service_name));
     let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone()]));
     let health_state = health::spawn_server(composite);

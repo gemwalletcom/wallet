@@ -163,7 +163,7 @@ impl GemGateway {
     }
     pub async fn get_fee_rates(&self, chain: Chain, input: TransactionInputType) -> Result<Vec<GemFeeRate>, GatewayError> {
         let fees = self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await?;
-        Ok(fees.into_iter().map(|f| f.into()).collect())
+        Ok(fees.into_iter().map(Into::into).collect())
     }
     pub async fn get_transaction_preload(&self, chain: Chain, input: GemTransactionPreloadInput) -> Result<GemTransactionLoadMetadata, GatewayError> {
         let preload_input: primitives::TransactionPreloadInput = input.into();

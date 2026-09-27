@@ -43,7 +43,7 @@ impl PriceAlertsRepository for DatabaseClient {
     }
 
     fn get_price_alerts_for_device_id(&mut self, device_id_value: &str, asset_id_value: Option<&AssetId>) -> Result<Vec<DevicePriceAlert>, DatabaseError> {
-        let asset_id_value = asset_id_value.map(|value| value.to_string());
+        let asset_id_value = asset_id_value.map(ToString::to_string);
         use crate::schema::devices;
         use crate::schema::price_alerts::dsl::*;
 

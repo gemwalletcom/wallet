@@ -89,12 +89,7 @@ impl GemTransactionsService {
     pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
-        let response = self
-            .api
-            .client
-            .get_transactions(wallet_id.id(), asset_id.as_ref().map(|asset_id| asset_id.to_string()), from_timestamp)
-            .await
-            .map_err(GemApiError::from)?;
+        let response = self.api.client.get_transactions(wallet_id.id(), asset_id.as_ref().map(ToString::to_string), from_timestamp).await.map_err(GemApiError::from)?;
 
         let new_asset_ids = self.assets.sync_missing_assets(rules::transaction_asset_ids(&response.transactions)).await?;
         if !new_asset_ids.is_empty() {

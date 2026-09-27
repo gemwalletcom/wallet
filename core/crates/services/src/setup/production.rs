@@ -106,7 +106,7 @@ async fn setup_queues(services: &Services) -> Result<(), Box<dyn std::error::Err
     info_with_fields!(
         "setup",
         step = "queue exchanges for chain-based consumers",
-        queues = format!("{:?}", chain_queues.iter().map(|q| q.to_string()).collect::<Vec<_>>()),
+        queues = format!("{:?}", chain_queues.iter().map(ToString::to_string).collect::<Vec<_>>()),
         chains = format!("{:?}", chains)
     );
 
@@ -127,7 +127,7 @@ async fn setup_queues(services: &Services) -> Result<(), Box<dyn std::error::Err
             "setup",
             step = "exchange bindings",
             exchange = exchange.to_string(),
-            queues = format!("{:?}", exchange_queues.iter().map(|q| q.to_string()).collect::<Vec<_>>())
+            queues = format!("{:?}", exchange_queues.iter().map(ToString::to_string).collect::<Vec<_>>())
         );
         for queue in &exchange_queues {
             for chain in queue_supported_chains(queue, &chains) {

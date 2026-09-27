@@ -572,7 +572,7 @@ mod tests {
         assert_eq!(traces.traces.len(), 2);
 
         let transactions = map_trace_transactions(traces.traces);
-        let hashes = transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>();
+        let hashes = transactions.iter().map(Transaction::hash).collect::<Vec<_>>();
 
         assert_eq!(hashes, vec![SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH]);
         assert_eq!(transactions[0].state, TransactionState::Confirmed);

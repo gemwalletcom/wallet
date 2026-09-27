@@ -34,7 +34,7 @@ impl Yielder {
 
     pub async fn get_balance(&self, chain: Chain, address: &str, token_ids: &[String]) -> Vec<AssetBalance> {
         let futures: Vec<_> = self.providers.iter().map(|p| p.get_balance(chain, address, token_ids)).collect();
-        let balances = futures::future::join_all(futures).await.into_iter().filter_map(|r| r.ok()).flatten().collect();
+        let balances = futures::future::join_all(futures).await.into_iter().filter_map(Result::ok).flatten().collect();
         Self::map_earn_balances(balances)
     }
 

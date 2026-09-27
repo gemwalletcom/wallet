@@ -299,7 +299,7 @@ fn test_v4_concurrent_import_same_wallet_is_idempotent() {
         .collect::<Vec<_>>();
 
     let results = handles.into_iter().map(|handle| handle.join().unwrap()).collect::<Vec<_>>();
-    assert!(results.iter().all(|result| result.is_ok()));
+    assert!(results.iter().all(Result::is_ok));
     assert_eq!(keystore.decrypt_mnemonic(&id, &password).unwrap().as_str(), PHRASE);
 
     // Re-importing under the same id with a different password must not clobber the existing keystore.

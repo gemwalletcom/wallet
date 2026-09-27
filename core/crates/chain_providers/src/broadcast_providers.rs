@@ -19,7 +19,7 @@ impl BroadcastProviders {
     }
 
     fn get_provider(&self, chain: Chain) -> Option<&dyn BroadcastProvider> {
-        self.providers.get(&chain).map(|provider| provider.as_ref())
+        self.providers.get(&chain).map(AsRef::as_ref)
     }
 
     pub fn classify_request(&self, chain: Chain, request: ChainRequest<'_>) -> ChainRequestType {

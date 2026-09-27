@@ -61,7 +61,7 @@ impl ListsClient {
     }
 
     pub async fn update_lists(&self, provider: ListProviderName) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let tags = self.database.run(|client| client.get_list_tags()).await?;
+        let tags = self.database.run(TagRepository::get_list_tags).await?;
         let mut count = 0;
         for tag in tags {
             let Some(list_id) = tag.list_id else {

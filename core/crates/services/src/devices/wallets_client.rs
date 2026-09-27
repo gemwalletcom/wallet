@@ -129,7 +129,7 @@ impl WalletsClient {
         let payload: Vec<ChainAddressPayload> = wallet_subscriptions
             .iter()
             .filter(|x| x.source == Some(WalletSource::Import))
-            .flat_map(|x| x.chain_addresses())
+            .flat_map(WalletSubscription::chain_addresses)
             .map(ChainAddressPayload::from)
             .collect();
         let count = self

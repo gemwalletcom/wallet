@@ -61,7 +61,7 @@ test-database:
 format:
     cargo fmt -q --all
 
-clippy_lints := "-W clippy::redundant_clone -W clippy::implicit_clone"
+clippy_lints := "-W clippy::redundant_clone -W clippy::implicit_clone -W clippy::redundant_closure_for_method_calls"
 
 fix:
     @cargo clippy --fix --workspace --all-targets --allow-dirty -- {{clippy_lints}}

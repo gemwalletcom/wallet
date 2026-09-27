@@ -113,8 +113,8 @@ mod tests {
     use super::*;
 
     fn setup(words: &[&str], choices: &[&str]) -> GemVerifyPhraseSetup {
-        let words: Vec<String> = words.iter().map(|word| word.to_string()).collect();
-        GemVerifyPhraseSetup::shuffled(&words, choices.iter().map(|word| word.to_string()).collect())
+        let words: Vec<String> = words.iter().map(ToString::to_string).collect();
+        GemVerifyPhraseSetup::shuffled(&words, choices.iter().map(ToString::to_string).collect())
     }
 
     fn session(words: &[&str], choices: &[&str]) -> GemVerifyPhraseSession {

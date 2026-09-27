@@ -14,6 +14,6 @@ impl SwapClient {
     }
 
     pub async fn get_swap_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        Ok(FiatAssets::new(self.database.run(|client| client.get_swap_assets()).await?))
+        Ok(FiatAssets::new(self.database.run(AssetsRepository::get_swap_assets).await?))
     }
 }

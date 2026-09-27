@@ -508,7 +508,7 @@ mod tests {
             let wallet = context.import("Wallet", PHRASE).await;
             fs::remove_file(context.keystore_path(&wallet)).unwrap();
             let import = GemWalletImportType::MulticoinPhrase {
-                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                words: PHRASE.iter().map(ToString::to_string).collect(),
                 chains: vec![Chain::Ethereum],
             };
 
@@ -535,7 +535,7 @@ mod tests {
             let unreadable = "not a keystore";
             fs::write(&path, unreadable).unwrap();
             let import = GemWalletImportType::MulticoinPhrase {
-                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                words: PHRASE.iter().map(ToString::to_string).collect(),
                 chains: vec![Chain::Ethereum],
             };
 
@@ -559,7 +559,7 @@ mod tests {
             context.wallets.wallets.lock().unwrap().clear();
             *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
             let import = GemWalletImportType::MulticoinPhrase {
-                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                words: PHRASE.iter().map(ToString::to_string).collect(),
                 chains: vec![Chain::Ethereum],
             };
 
@@ -574,7 +574,7 @@ mod tests {
         block_on(async {
             let context = WalletTestkit::new();
             let import = GemWalletImportType::MulticoinPhrase {
-                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                words: PHRASE.iter().map(ToString::to_string).collect(),
                 chains: vec![Chain::Ethereum],
             };
             *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
@@ -607,7 +607,7 @@ mod tests {
             assert_eq!(
                 context.service.export_secret(phrase.id.clone()).await.unwrap(),
                 GemWalletSecret::Words {
-                    words: PHRASE.iter().map(|word| word.to_string()).collect()
+                    words: PHRASE.iter().map(ToString::to_string).collect()
                 }
             );
             assert_eq!(context.service.export_secret(private.id.clone()).await.unwrap(), GemWalletSecret::PrivateKey { key });

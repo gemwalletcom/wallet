@@ -50,5 +50,5 @@ pub const INDEX_CONFIGS: &[IndexConfig] = &[
 ];
 
 pub fn sanitize_index_primary_id(input: &str) -> String {
-    input.chars().filter(|c| c.is_ascii_alphanumeric()).collect()
+    input.chars().filter(char::is_ascii_alphanumeric).collect()
 }

@@ -243,7 +243,7 @@ impl Permit2Permit {
 }
 
 pub fn encode_commands(commands: &[UniversalRouterCommand], deadline: U256) -> Vec<u8> {
-    let commands_bytes: Vec<u8> = commands.iter().map(|command| command.raw_value()).collect();
+    let commands_bytes: Vec<u8> = commands.iter().map(UniversalRouterCommand::raw_value).collect();
     let inputs: Vec<Bytes> = commands.iter().map(|command| Bytes::from_iter(command.encode().iter())).collect();
     let call = IUniversalRouter::executeCall {
         commands: Bytes::from_iter(commands_bytes.iter()),

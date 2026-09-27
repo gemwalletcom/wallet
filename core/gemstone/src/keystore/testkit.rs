@@ -4,7 +4,7 @@ use primitives::testkit::ABANDON_PHRASE;
 use super::GemImportType;
 
 pub fn mock_phrase_words() -> Vec<String> {
-    ABANDON_PHRASE.split_whitespace().map(|word| word.to_string()).collect()
+    ABANDON_PHRASE.split_whitespace().map(ToString::to_string).collect()
 }
 
 impl GemImportType {

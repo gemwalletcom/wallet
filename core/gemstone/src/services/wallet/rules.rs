@@ -97,7 +97,7 @@ pub fn import_name(name_record: Option<&NameRecord>, default_name: &str) -> Stri
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
-    let words: Vec<String> = words.iter().flat_map(|word| word.split_whitespace()).map(|word| word.to_lowercase()).collect();
+    let words: Vec<String> = words.iter().flat_map(|word| word.split_whitespace()).map(str::to_lowercase).collect();
     let phrase = words.join(" ");
     let invalid = Mnemonic::invalid_words(&phrase);
     if !invalid.is_empty() {
@@ -277,7 +277,7 @@ fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
 pub fn show_collections(wallet_type: WalletType, chains: &[Chain]) -> bool {
     match wallet_type {
         WalletType::Multicoin => true,
-        WalletType::Single | WalletType::PrivateKey | WalletType::View => chains.first().is_some_and(|chain| chain.is_nft_supported()),
+        WalletType::Single | WalletType::PrivateKey | WalletType::View => chains.first().is_some_and(Chain::is_nft_supported),
     }
 }
 

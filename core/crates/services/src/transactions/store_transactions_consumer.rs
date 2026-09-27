@@ -47,7 +47,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 
         let min_amount = config.min_amount_usd;
 
-        let addresses: Vec<_> = transactions.iter().flat_map(|transaction| transaction.addresses()).collect::<HashSet<_>>().into_iter().collect();
+        let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
         let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
         let notification_subscriptions = Self::unique_subscriptions_per_device(subscriptions.clone());
 
@@ -56,7 +56,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         let asset_ids: Vec<AssetId> = transactions
             .iter()
             .filter(|x| x.addresses().iter().any(|addr| subscription_addresses.contains(addr)))
-            .flat_map(|x| x.asset_ids())
+            .flat_map(Transaction::asset_ids)
             .collect::<HashSet<_>>()
             .into_iter()
             .collect();
@@ -69,7 +69,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         let nft_asset_ids: Vec<NFTAssetId> = transactions
             .iter()
             .filter(|x| x.addresses().iter().any(|addr| subscription_addresses.contains(addr)))
-            .filter_map(|x| x.nft_asset_id())
+            .filter_map(Transaction::nft_asset_id)
             .collect::<HashSet<_>>()
             .into_iter()
             .collect();
@@ -236,7 +236,7 @@ impl StoreTransactionsConsumer {
         if nft_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let identifiers: Vec<String> = nft_asset_ids.iter().map(|id| id.to_string()).collect();
+        let identifiers: Vec<String> = nft_asset_ids.iter().map(ToString::to_string).collect();
         let existing_ids: HashSet<NFTAssetId> = self.database.run(move |client| client.get_nft_asset_ids(identifiers)).await?.into_iter().collect();
         Ok(nft_asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect())
     }

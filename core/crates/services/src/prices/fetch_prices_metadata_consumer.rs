@@ -21,7 +21,7 @@ pub struct FetchPricesMetadataConsumer {
 #[async_trait]
 impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
     async fn should_process(&self, price_id: &PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let providers = self.database.run(|client| client.get_prices_providers()).await?;
+        let providers = self.database.run(PricesProvidersRepository::get_prices_providers).await?;
         Ok(providers.into_iter().any(|provider| provider.provider == price_id.provider && provider.enabled))
     }
 

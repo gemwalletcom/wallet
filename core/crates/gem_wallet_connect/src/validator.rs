@@ -70,7 +70,7 @@ pub fn validate_send_transaction(transaction_type: &WalletConnectTransactionType
 
     let json: serde_json::Value = serde_json::from_str(data).map_err(|_| "Invalid JSON".to_string())?;
 
-    if let Some(valid_until) = json.get("valid_until").and_then(|v| v.as_i64())
+    if let Some(valid_until) = json.get("valid_until").and_then(serde_json::Value::as_i64)
         && current_timestamp() >= valid_until
     {
         return Err("Transaction expired".to_string());

@@ -105,7 +105,7 @@ impl AssetId {
     }
 
     pub fn decode_token_id(token_id: &str) -> Vec<String> {
-        token_id.split(TOKEN_ID_SEPARATOR).map(|s| s.to_string()).collect()
+        token_id.split(TOKEN_ID_SEPARATOR).map(ToString::to_string).collect()
     }
 
     pub fn get_token_id(&self) -> Result<&String, crate::SignerError> {
@@ -176,7 +176,7 @@ pub trait AssetIdVecExt {
 
 impl AssetIdVecExt for Vec<AssetId> {
     fn ids(&self) -> Vec<String> {
-        self.iter().map(|x| x.to_string()).collect()
+        self.iter().map(ToString::to_string).collect()
     }
 }
 

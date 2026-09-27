@@ -42,7 +42,7 @@ impl Config {
         config::Config::builder()
             .add_source(File::from_str(yaml, FileFormat::Yaml))
             .build()
-            .and_then(|config| config.try_deserialize())
+            .and_then(config::Config::try_deserialize)
             .expect("remote_types.yml is malformed")
     }
 

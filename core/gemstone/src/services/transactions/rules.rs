@@ -59,7 +59,7 @@ pub fn pending_transactions(transactions: &[Transaction]) -> Vec<Transaction> {
 }
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
-    unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
+    unique(transactions.iter().flat_map(Transaction::associated_asset_ids))
 }
 
 pub fn row(item: &TransactionListItem) -> GemTransactionRow {
@@ -1117,9 +1117,9 @@ mod tests {
                 ..Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::SelfTransfer)
             },
         ]);
-        asset_ids.sort_by_key(|asset_id| asset_id.to_string());
+        asset_ids.sort_by_key(ToString::to_string);
         let mut expected = vec![usdc, solana, ethereum];
-        expected.sort_by_key(|asset_id| asset_id.to_string());
+        expected.sort_by_key(ToString::to_string);
 
         assert_eq!(asset_ids, expected);
     }

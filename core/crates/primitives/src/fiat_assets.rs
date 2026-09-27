@@ -62,7 +62,7 @@ mod tests {
     use super::*;
 
     fn ids(values: &[&str]) -> Vec<String> {
-        values.iter().map(|value| value.to_string()).collect()
+        values.iter().map(ToString::to_string).collect()
     }
 
     #[test]

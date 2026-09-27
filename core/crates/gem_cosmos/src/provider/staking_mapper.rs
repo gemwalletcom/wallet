@@ -62,7 +62,7 @@ pub fn map_staking_delegations(active_delegations: Vec<Delegation>, unbonding_de
             return None;
         }
 
-        let rewards = rewards_map.get(&delegation.delegation.validator_address).map(|r| r.to_string()).unwrap_or_else(|| "0".to_string());
+        let rewards = rewards_map.get(&delegation.delegation.validator_address).map(ToString::to_string).unwrap_or_else(|| "0".to_string());
 
         Some(DelegationBase {
             asset_id: asset_id.clone(),

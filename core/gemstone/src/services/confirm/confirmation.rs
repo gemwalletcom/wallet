@@ -45,7 +45,7 @@ impl GemConfirmation {
     }
 
     fn stored(&self) -> MutexGuard<'_, Option<ConfirmState>> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
     fn store_latest(&self, load: u64, result: Result<ConfirmState, GemConfirmError>) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -55,7 +55,7 @@ impl GemConfirmation {
         }
         let state = result?;
         let loaded = state.load.clone();
-        *self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = loaded.transfer.clone();
+        *self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = loaded.transfer.clone();
         *stored = Some(state);
         Ok(loaded)
     }
@@ -223,7 +223,7 @@ impl GemConfirmation {
     }
 
     pub fn transfer(&self) -> GemTransferData {
-        self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clone()
+        self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner).clone()
     }
 
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -264,7 +264,7 @@ impl GemConfirmation {
             GemPaymentLoad::Sign { transfer } => transfer,
             GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().quote_transfer_data(invoice, asset_id, PaymentVerification { url }).await?,
         };
-        *self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = transfer;
+        *self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = transfer;
         *self.stored() = None;
         Ok(())
     }

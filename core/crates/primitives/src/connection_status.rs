@@ -13,7 +13,7 @@ pub enum ConnectionStatus {
 
 impl ConnectionStatus {
     pub fn from_unhealthy_components(components: &[ConnectionComponent]) -> Self {
-        components.iter().map(|component| component.failure_status()).max_by_key(|status| status.severity()).unwrap_or(Self::Online)
+        components.iter().map(ConnectionComponent::failure_status).max_by_key(ConnectionStatus::severity).unwrap_or(Self::Online)
     }
 
     fn severity(&self) -> u8 {

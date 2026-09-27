@@ -104,7 +104,7 @@ impl TypeMappings {
         config::Config::builder()
             .add_source(File::from_str(yaml, FileFormat::Yaml))
             .build()
-            .and_then(|config| config.try_deserialize::<MappingsConfig>())
+            .and_then(config::Config::try_deserialize::<MappingsConfig>)
             .expect("invalid type_mappings")
             .type_mappings
     }
@@ -730,7 +730,7 @@ fn swift_model(model: &Model, mappings: &BTreeMap<String, String>) -> String {
     let declared = |always: &[&str]| {
         always
             .iter()
-            .map(|conformance| conformance.to_string())
+            .map(ToString::to_string)
             .chain(model.conformances.iter().filter(|conformance| !always.contains(&conformance.as_str())).cloned())
             .collect::<Vec<_>>()
             .join(", ")
