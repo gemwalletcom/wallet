@@ -40,7 +40,7 @@ public final class SetPriceAlertSceneViewModel {
         currency = service.getCurrency().toPrimitives()
         currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
-        session = service.newAlertSession(assetId: asset.id.identifier, format: NumberInput.format())
+        session = service.newAlertSession(assetId: asset.id, format: NumberInput.format())
         assetQuery = ObservableQuery(AssetQuery(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 

@@ -215,7 +215,7 @@ private extension PerpetualSceneViewModel {
     }
 
     func refreshStored() async {
-        for failure in await service.refresh(assetId: asset.id.identifier) {
+        for failure in await service.refresh(assetId: asset.id) {
             debugLog("perpetual scene refresh error: \(failure.step) \(failure.message)")
         }
     }

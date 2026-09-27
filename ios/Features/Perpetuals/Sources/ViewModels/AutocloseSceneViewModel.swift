@@ -79,7 +79,7 @@ public final class AutocloseSceneViewModel {
     func positionRow(_ viewState: GemAutocloseViewState) -> GemAssetItemRow? {
         switch type {
         case .modify: viewState.positionRow?.row
-        case let .open(data, _): perpetualOpenRow(assetId: data.assetId.identifier, title: data.symbol, direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
+        case let .open(data, _): perpetualOpenRow(assetId: data.assetId, title: data.symbol, direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
         }
     }
 

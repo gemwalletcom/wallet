@@ -88,7 +88,7 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
 
 extension AssetPriceAlertsSceneViewModel {
     func load() async {
-        loadState = await service.refresh(assetId: asset.id.identifier, hasAlerts: priceAlerts.isNotEmpty)
+        loadState = await service.refresh(assetId: asset.id, hasAlerts: priceAlerts.isNotEmpty)
     }
 
     func toggleAutoAlert(enabled: Bool) async {

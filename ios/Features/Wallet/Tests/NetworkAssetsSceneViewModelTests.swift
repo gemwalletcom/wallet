@@ -48,7 +48,7 @@ struct NetworkAssetsSceneViewModelTests {
 
         await model.updateBalances()
 
-        #expect(service.updatedBalances == [[active.asset.id.identifier, hidden.asset.id.identifier]])
+        #expect(service.updatedBalances == [[active.asset.id, hidden.asset.id]])
     }
 
     @Test

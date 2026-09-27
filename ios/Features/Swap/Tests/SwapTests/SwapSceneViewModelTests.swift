@@ -18,7 +18,7 @@ import Testing
 struct SwapSceneViewModelTests {
     @Test
     func suggestPairAppliesTheCoreSuggestion() async {
-        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum).identifier, receiveAssetId: AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7").identifier)
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum), receiveAssetId: AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
         let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(pairSuggestion: suggestion))
 
         await model.suggestPair()
@@ -29,7 +29,7 @@ struct SwapSceneViewModelTests {
 
     @Test
     func suggestPairKeepsAnAlreadySelectedReceiveAsset() async {
-        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum).identifier, receiveAssetId: AssetId.mock(chain: .solana).identifier)
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum), receiveAssetId: AssetId.mock(chain: .solana))
         let model = SwapSceneViewModel.mock(
             service: GemSwapQuoteServiceMock(pairSuggestion: suggestion),
             pairSelector: SwapPairSelectorViewModel(fromAssetId: .mock(chain: .ethereum), toAssetId: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
@@ -270,7 +270,7 @@ struct SwapSceneViewModelTests {
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 1)
         #expect(service.balanceUpdates.count == 1, "the balance the Max button spends from is refreshed with the prices")
-        #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mock(chain: .ethereum), AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")].map(\.identifier)))
+        #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mock(chain: .ethereum), AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")]))
 
         model.amountInputModel.text = "2"
         model.onChangeFromValue("1", "2")

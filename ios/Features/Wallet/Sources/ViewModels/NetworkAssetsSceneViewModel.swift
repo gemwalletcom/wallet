@@ -62,12 +62,12 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     var groups: NetworkAssetGroups {
         let active = activeQuery.value
         let ids = networkAssetSections(
-            active: active.map(\.asset.id.identifier),
-            pinned: active.filter(\.metadata.isPinned).map(\.asset.id.identifier),
-            hidden: hiddenQuery.value.map(\.asset.id.identifier),
+            active: active.map(\.asset.id),
+            pinned: active.filter(\.metadata.isPinned).map(\.asset.id),
+            hidden: hiddenQuery.value.map(\.asset.id),
         )
-        let byId = Dictionary((active + hiddenQuery.value).map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
-        let assets = { (assetIds: [String]) in assetIds.compactMap { byId[$0] } }
+        let byId = Dictionary((active + hiddenQuery.value).map { ($0.asset.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let assets = { (assetIds: [AssetId]) in assetIds.compactMap { byId[$0] } }
         return NetworkAssetGroups(pinned: assets(ids.pinned), unpinned: assets(ids.unpinned), hidden: assets(ids.hidden), sections: ids.sections)
     }
 
@@ -87,7 +87,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     func updateBalances() async {
         do {
-            try await service.updateBalances(assetIds: assetIds.ids)
+            try await service.updateBalances(assetIds: assetIds)
         } catch {
             debugLog("update balance error: \(error)")
         }
@@ -104,7 +104,7 @@ extension NetworkAssetsSceneViewModel {
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
 
     var assetItems: ListAssetItemsViewModel {

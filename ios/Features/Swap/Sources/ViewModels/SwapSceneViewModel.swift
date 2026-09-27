@@ -197,7 +197,7 @@ extension SwapSceneViewModel {
     func suggestPair() async {
         guard
             pairSelectorModel.toAssetId == nil,
-            let pair = await service.suggestPair(payAssetId: pairSelectorModel.fromAssetId?.identifier)?.map()
+            let pair = await service.suggestPair(payAssetId: pairSelectorModel.fromAssetId)?.map()
         else { return }
         pairSelectorModel = pair
     }
@@ -261,7 +261,7 @@ extension SwapSceneViewModel {
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
-        for failure in await service.refreshPair(assetIds: Array(assetIds).ids) {
+        for failure in await service.refreshPair(assetIds: Array(assetIds)) {
             debugLog("SwapScene pair refresh error: \(failure.step) \(failure.message)")
         }
     }
@@ -303,14 +303,14 @@ extension SwapSceneViewModel {
         }
         let selection = service.selectPairAsset(
             selection: GemSwapPairSelection(
-                payAssetId: pairSelectorModel.fromAssetId?.identifier,
-                receiveAssetId: pairSelectorModel.toAssetId?.identifier,
+                payAssetId: pairSelectorModel.fromAssetId,
+                receiveAssetId: pairSelectorModel.toAssetId,
             ),
             side: side,
-            assetId: asset.id.identifier,
+            assetId: asset.id,
         )
-        pairSelectorModel.fromAssetId = selection.payAssetId.map { AssetId(core: $0) }
-        pairSelectorModel.toAssetId = selection.receiveAssetId.map { AssetId(core: $0) }
+        pairSelectorModel.fromAssetId = selection.payAssetId
+        pairSelectorModel.toAssetId = selection.receiveAssetId
         isPresentingInfoSheet = nil
     }
 }
@@ -403,8 +403,8 @@ extension SwapSceneViewModel {
     private func fetchQuotes(input: GemSwapQuoteInput) async {
         guard
             !isTransferDataLoading,
-            let fromAsset, fromAsset.asset.id.identifier == input.request.payAssetId,
-            let toAsset, toAsset.asset.id.identifier == input.request.receiveAssetId
+            let fromAsset, fromAsset.asset.id == input.request.payAssetId,
+            let toAsset, toAsset.asset.id == input.request.receiveAssetId
         else { return }
         session = session.onFetchStarted(request: input.request)
         do {

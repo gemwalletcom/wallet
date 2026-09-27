@@ -66,7 +66,7 @@ struct RecentActivityQueryTests {
         try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
-        try assetStore.setAssetIsBuyable(for: [btc.identifier], value: false)
+        try assetStore.setAssetIsBuyable(for: [btc], value: false)
 
         try db.dbQueue.read { db in
             let noFilter = try RecentActivityQuery(walletId: walletId, limit: 10).fetch(db)

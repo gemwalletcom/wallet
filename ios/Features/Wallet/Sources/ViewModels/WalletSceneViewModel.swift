@@ -250,7 +250,7 @@ extension WalletSceneViewModel {
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
 
     var assetItems: ListAssetItemsViewModel {

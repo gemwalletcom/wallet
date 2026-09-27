@@ -97,8 +97,8 @@ struct AssetsQueryTests {
         let assetStore = AssetStore(db: db)
 
         let assetId = AssetId(chain: .bitcoin)
-        try assetStore.setAssetIsBuyable(for: [assetId.identifier], value: false)
-        try assetStore.setAssetIsSwappable(for: [assetId.identifier], value: false)
+        try assetStore.setAssetIsBuyable(for: [assetId], value: false)
+        try assetStore.setAssetIsSwappable(for: [assetId], value: false)
 
         try db.dbQueue.read { db in
             let assets = try AssetsQuery.mock(filters: [.buyable, .swappable]).fetch(db)

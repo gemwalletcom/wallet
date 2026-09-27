@@ -20,8 +20,8 @@ struct GemstoneAssetStoreTests {
         let adapter = GemstoneAssetStore.mock(db: db)
         let balanceStore = BalanceStore.mock(db: db)
 
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum.identifier], enabled: true)
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [cosmos.identifier], enabled: false)
+        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum], enabled: true)
+        try await adapter.addBalances(walletId: wallet.id, assetIds: [cosmos], enabled: false)
 
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
@@ -32,9 +32,9 @@ struct GemstoneAssetStoreTests {
         let db = DB.mock(wallets: [wallet])
         let adapter = GemstoneAssetStore.mock(db: db)
         let balanceStore = BalanceStore.mock(db: db)
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum.identifier], enabled: true)
+        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum], enabled: true)
 
-        try await adapter.addMissingBalances(walletId: wallet.id, assetIds: [ethereum.identifier, cosmos.identifier])
+        try await adapter.addMissingBalances(walletId: wallet.id, assetIds: [ethereum, cosmos])
 
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
         #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
@@ -48,12 +48,12 @@ struct GemstoneAssetStoreTests {
         try balanceStore.addBalance(assetIds: [ethereum, cosmos], isEnabled: true, for: wallet.id)
         try balanceStore.updateBalances([.mock(assetId: ethereum, available: 5)], for: wallet.id)
 
-        #expect(try await adapter.getWalletAssets(walletId: wallet.id, filters: [.hasBalance]).map(\.id) == [ethereum.identifier])
+        #expect(try await adapter.getWalletAssets(walletId: wallet.id, filters: [.hasBalance]).map(\.id) == [ethereum])
         #expect(try await adapter.getWalletAssets(walletId: wallet.id, filters: []).count == 2)
     }
 
     @Test
     func chainsOrAssetIdsFilterMapsBothSlots() {
-        #expect(GemAssetFilter.chainsOrAssetIds(chains: ["ethereum"], assetIds: ["smartchain_0x123"]).map() == .chainsOrAssets(["ethereum"], ["smartchain_0x123"]))
+        #expect(GemAssetFilter.chainsOrAssetIds(chains: ["ethereum"], assetIds: [AssetId(chain: .smartChain, tokenId: "0x123")]).map() == .chainsOrAssets(["ethereum"], ["smartchain_0x123"]))
     }
 }

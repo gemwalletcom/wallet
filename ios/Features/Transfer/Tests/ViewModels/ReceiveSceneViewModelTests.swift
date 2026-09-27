@@ -23,8 +23,8 @@ struct ReceiveSceneViewModelTests {
         let service = GemReceiveServiceMock()
         service.networksValue = GemReceiveNetworks(
             networks: [
-                GemReceiveNetwork(assetId: bitcoin.id.identifier, row: .mock(chain: bitcoin.chain.rawValue)),
-                GemReceiveNetwork(assetId: ethereum.id.identifier, row: .mock(chain: ethereum.chain.rawValue, standard: .text(text: "ERC20"))),
+                GemReceiveNetwork(assetId: bitcoin.id, row: .mock(chain: bitcoin.chain.rawValue)),
+                GemReceiveNetwork(assetId: ethereum.id, row: .mock(chain: ethereum.chain.rawValue, standard: .text(text: "ERC20"))),
             ],
             showsSelector: true,
         )
@@ -50,7 +50,7 @@ struct ReceiveSceneViewModelTests {
 
         await model.updateAsset()
 
-        #expect(service.updatedAssetIds == [AssetId.mock(chain: .bitcoin).identifier])
+        #expect(service.updatedAssetIds == [AssetId.mock(chain: .bitcoin)])
     }
 
     @Test
@@ -77,7 +77,7 @@ struct ReceiveSceneViewModelTests {
 
         await model.onChangeAsset()
 
-        #expect(service.enabledAssetIds == [bitcoin.id.identifier])
+        #expect(service.enabledAssetIds == [bitcoin.id])
     }
 
     @Test
@@ -118,16 +118,16 @@ struct ReceiveSceneViewModelTests {
         await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
-        #expect(service.requestedAssetIds == [ethereum.id.identifier])
+        #expect(service.requestedAssetIds == [ethereum.id])
         #expect(model.asset.chain == .ethereum)
         #expect(model.address == "0xabc")
-        #expect(service.enabledAssetIds == [ethereum.id.identifier])
+        #expect(service.enabledAssetIds == [ethereum.id])
     }
 
     @Test
     func aSlowerNetworkSwapDoesNotReplaceTheOneChosenAfterIt() async {
         let service = GemReceiveServiceMock()
-        service.assetsById = [ethereum.id.identifier: ethereum.toGem(), solana.id.identifier: solana.toGem()]
+        service.assetsById = [ethereum.id: ethereum.toGem(), solana.id: solana.toGem()]
         let model = ReceiveSceneViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ethereum.id])
@@ -137,7 +137,7 @@ struct ReceiveSceneViewModelTests {
 
         #expect(model.asset.chain == .solana)
         #expect(model.address == "So1ana")
-        #expect(service.enabledAssetIds == [solana.id.identifier], "the network the user left is not enabled behind their back")
+        #expect(service.enabledAssetIds == [solana.id], "the network the user left is not enabled behind their back")
     }
 
     @Test

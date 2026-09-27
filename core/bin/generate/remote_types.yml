@@ -213,6 +213,7 @@ identifiers:
 # mappers pass them through and core mocks build the app type.
 typed_identifiers:
   swift:
+    - AssetId
     - PerpetualId
     - TransactionId
     - WalletId

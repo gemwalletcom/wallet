@@ -39,8 +39,8 @@ public extension SelectAssetType {
         case .receive(.collection): .receiveCollection
         case .buy: .buy
         case .swap(.pay): .swapPay
-        case let .swap(.receive(payAssetId)): .swapReceive(payAssetId: payAssetId?.identifier)
-        case let .payment(assetIds): .payment(assetIds: assetIds.map(\.identifier))
+        case let .swap(.receive(payAssetId)): .swapReceive(payAssetId: payAssetId)
+        case let .payment(assetIds): .payment(assetIds: assetIds)
         case .manage: .manage
         case .priceAlert: .priceAlert
         case .deposit: .deposit

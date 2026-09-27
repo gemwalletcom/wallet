@@ -18,7 +18,7 @@ public final class GemstoneSearchStore: GemSearchStore, @unchecked Sendable {
     }
 
     public func setAssets(key: String, assetIds: [Gemstone.AssetId]) async throws {
-        try store.add(type: .asset, query: key, ids: assetIds)
+        try store.add(type: .asset, query: key, ids: assetIds.map(\.identifier))
     }
 
     public func setPerpetuals(key: String, perpetualIds: [String]) async throws {

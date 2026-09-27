@@ -66,7 +66,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     private var currentPrice: AssetPrice? {
         priceData?.price.map {
             AssetPrice(
-                assetId: asset.id.identifier,
+                assetId: asset.id,
                 price: $0.price,
                 priceChangePercentage24h: $0.priceChangePercentage24h,
                 updatedAt: $0.updatedAt,
@@ -100,7 +100,7 @@ public extension ChartSceneViewModel {
         let period = selectedPeriod.toGem()
         session = session.onRefresh()
         do {
-            let chart = try await service.syncCharts(assetId: asset.id.identifier, period: period)
+            let chart = try await service.syncCharts(assetId: asset.id, period: period)
             session = session.onLoaded(chart: chart, period: period)
         } catch let error as GemServiceError {
             session = session.onFailed(error: error, period: period)

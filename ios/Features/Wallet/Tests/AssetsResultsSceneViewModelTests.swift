@@ -121,11 +121,11 @@ private final class CallRecorder: @unchecked Sendable {
     private(set) var pinned: [Bool] = []
     private(set) var enabled: [Bool] = []
 
-    func record(assetId _: String, pinned value: Bool) {
+    func record(assetId _: AssetId, pinned value: Bool) {
         pinned.append(value)
     }
 
-    func record(assetIds _: [String], enabled value: Bool) {
+    func record(assetIds _: [AssetId], enabled value: Bool) {
         enabled.append(value)
     }
 }

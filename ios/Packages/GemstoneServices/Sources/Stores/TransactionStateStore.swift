@@ -59,7 +59,7 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
             blockNumber: update.blockNumber.flatMap { Int($0) },
             metadata: update.metadata,
             confirmationEtaSeconds: update.confirmationEtaSeconds,
-            assetIds: update.assetIds?.map { Primitives.AssetId(core: $0) },
+            assetIds: update.assetIds,
         ) > 0
     }
 }

@@ -173,7 +173,7 @@ extension SelectAssetSceneViewModel {
         switch flow.rowAction {
         case .toggle:
             do {
-                try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
+                try await service.setAssetsEnabled(assetIds: [assetId], enabled: enabled)
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.text().text)
             } catch {
@@ -291,7 +291,7 @@ extension SelectAssetSceneViewModel {
 
     private func selectPayment(_ payment: GemPaymentRecipient, assetData: AssetData) async {
         do {
-            switch try await paymentService.prepareAsset(payment: payment, assetId: assetData.asset.id.identifier) {
+            switch try await paymentService.prepareAsset(payment: payment, assetId: assetData.asset.id) {
             case let .confirm(transfer): route = .transfer(.confirm(transfer))
             case let .amount(payment): route = .transfer(.amount(AmountInput(type: .transfer(recipient: payment), asset: assetData.asset)))
             case let .recipient(payment): route = .asset(SelectAssetInput(type: .send(payment), assetData: assetData))

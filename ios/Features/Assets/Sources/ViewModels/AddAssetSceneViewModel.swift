@@ -155,7 +155,7 @@ extension AddAssetSceneViewModel {
         session = session.onAdding(isAdding: true)
         Task {
             do {
-                try await service.add(wallet: wallet.toGem(), assetId: asset.id.identifier)
+                try await service.add(wallet: wallet.toGem(), assetId: asset.id)
                 onComplete?()
             } catch {
                 session = session.onAdding(isAdding: false)

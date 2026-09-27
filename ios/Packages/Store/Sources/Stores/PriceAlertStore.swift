@@ -19,10 +19,10 @@ public struct PriceAlertStore: Sendable {
         }
     }
 
-    public func getPriceAlerts(for assetId: String) throws -> [PriceAlert] {
+    public func getPriceAlerts(for assetId: AssetId) throws -> [PriceAlert] {
         try db.read { db in
             try PriceAlertRecord
-                .filter(PriceAlertRecord.Columns.assetId == assetId)
+                .filter(PriceAlertRecord.Columns.assetId == assetId.identifier)
                 .fetchAll(db)
                 .map { $0.toPriceAlert() }
         }

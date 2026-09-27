@@ -25,7 +25,7 @@ struct PriceStoreTests {
             try priceStore.saveRates([rate], conversion: rate)
         }
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.8)
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == 80)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == 80)
 
         try db.dbQueue.write { db in
             try db.execute(sql: "DROP TRIGGER reject_repricing")
@@ -33,7 +33,7 @@ struct PriceStoreTests {
         try priceStore.saveRates([rate], conversion: rate)
 
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.9)
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == 90)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == 90)
     }
 
     @Test
@@ -43,7 +43,7 @@ struct PriceStoreTests {
         let ethereum = Chain.ethereum.assetId
         let bitcoin = Chain.bitcoin.assetId
         let rate = FiatRate(symbol: .eur, rate: 0.9)
-        let price = { (assetId: AssetId) in try priceStore.getPrices(for: [assetId.identifier]).first?.price }
+        let price = { (assetId: AssetId) in try priceStore.getPrices(for: [assetId]).first?.price }
         try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
         try priceStore.updatePrices([.mock(assetId: ethereum, price: 100, rate: 0.8)])
         try db.dbQueue.write { db in
@@ -76,7 +76,7 @@ struct PriceStoreTests {
         try priceStore.saveRates([FiatRate(symbol: .gbp, rate: 0.7)])
 
         #expect(try priceStore.getRate(currency: "GBP")?.rate == 0.7)
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == 80)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == 80)
     }
 
     @Test
@@ -100,10 +100,10 @@ struct PriceStoreTests {
         let priceUsd = 2500.0
 
         try priceStore.updatePrices([.mock(assetId: assetId, price: priceUsd, rate: 90)])
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == priceUsd * 90)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == priceUsd * 90)
 
         try priceStore.convertPrices(rate: 2)
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == priceUsd * 2)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == priceUsd * 2)
     }
 
     @Test
@@ -114,7 +114,7 @@ struct PriceStoreTests {
 
         try priceStore.updatePrices([.mock(assetId: assetId, price: 0)])
 
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.price == 0)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.price == 0)
     }
 
     @Test
@@ -126,6 +126,6 @@ struct PriceStoreTests {
 
         try priceStore.updatePrices([.mock(assetId: assetId, updatedAt: updatedAt)])
 
-        #expect(try priceStore.getPrices(for: [assetId.identifier]).first?.updatedAt == updatedAt)
+        #expect(try priceStore.getPrices(for: [assetId]).first?.updatedAt == updatedAt)
     }
 }

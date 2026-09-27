@@ -10,8 +10,8 @@ struct AssetStoreTests {
     func availabilityUpdatesOnlyChangedRows() throws {
         let db = DB.mock(chains: [.ethereum, .bitcoin, .solana])
         let store = AssetStore(db: db)
-        let ethereum = Chain.ethereum.assetId.identifier
-        let bitcoin = Chain.bitcoin.assetId.identifier
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
 
         _ = try store.updateBuyableAssets(assetIds: [])
 
@@ -27,17 +27,17 @@ struct AssetStoreTests {
         let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: true))
 
         try store.add(assets: [asset])
-        #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == true)
+        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == true)
 
         try store.add(assets: [AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: false))])
-        #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == false)
+        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == false)
     }
 
     @Test
     func swappableFlagIsSetOnlyWhereMissing() throws {
         let db = DB.mock(chains: [.ethereum, .bitcoin])
         let store = AssetStore(db: db)
-        let assetIds = [Chain.ethereum.assetId.identifier, Chain.bitcoin.assetId.identifier]
+        let assetIds = [Chain.ethereum.assetId, Chain.bitcoin.assetId]
 
         _ = try store.setAssetIsSwappable(for: assetIds, value: false)
 
@@ -49,8 +49,8 @@ struct AssetStoreTests {
     func anAssetDroppedFromTheSwapListStopsBeingSwappable() throws {
         let db = DB.mock(chains: [.ethereum, .bitcoin])
         let store = AssetStore(db: db)
-        let ethereum = Chain.ethereum.assetId.identifier
-        let bitcoin = Chain.bitcoin.assetId.identifier
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
         _ = try store.updateSwappableAssets(assetIds: [])
 
         #expect(try store.updateSwappableAssets(assetIds: [ethereum, bitcoin]) == 2)

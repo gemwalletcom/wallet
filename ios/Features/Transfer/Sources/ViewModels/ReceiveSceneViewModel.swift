@@ -68,14 +68,14 @@ public final class ReceiveSceneViewModel: Sendable {
     var networks: GemReceiveNetworks {
         service.networks(
             asset: asset.toGem(),
-            associations: (assetQuery.value?.associations ?? []).map(\.assetId.identifier),
+            associations: (assetQuery.value?.associations ?? []).map(\.assetId),
             wallet: wallet.toGem(),
         )
     }
 
     func updateAsset() async {
         do {
-            try await service.updateAsset(assetId: asset.id.identifier)
+            try await service.updateAsset(assetId: asset.id)
         } catch {
             debugLog("receive asset update error: \(error)")
         }
@@ -109,12 +109,12 @@ public final class ReceiveSceneViewModel: Sendable {
 
     var networkSelectorModel: ReceiveNetworkSelectorViewModel {
         ReceiveNetworkSelectorViewModel(
-            assetIds: networks.networks.map { AssetId(core: $0.assetId) },
+            assetIds: networks.networks.map(\.assetId),
         )
     }
 
     func chainModel(for assetId: AssetId) -> GemChainRow {
-        networks.networks.first { $0.assetId == assetId.identifier }?.row ?? chainRow(chain: assetId.chain.rawValue)
+        networks.networks.first { $0.assetId == assetId }?.row ?? chainRow(chain: assetId.chain.rawValue)
     }
 
     var isPresentingSheet: ReceivePresentationType? {
@@ -150,7 +150,7 @@ public final class ReceiveSceneViewModel: Sendable {
 
     private func selectNetwork(assetId: AssetId) async {
         do {
-            let asset = try await service.asset(assetId: assetId.identifier).toPrimitives()
+            let asset = try await service.asset(assetId: assetId).toPrimitives()
             let account = try wallet.account(for: asset.chain)
             try Task.checkCancellation()
             assetState = service.assetState(asset: asset.toGem())
@@ -178,7 +178,7 @@ public final class ReceiveSceneViewModel: Sendable {
 extension ReceiveSceneViewModel {
     func onChangeAsset() async {
         do {
-            try await service.enableAsset(walletId: wallet.id, assetId: asset.id.identifier)
+            try await service.enableAsset(walletId: wallet.id, assetId: asset.id)
         } catch {
             debugLog("ReceiveSceneViewModel enableAsset error: \(error)")
         }

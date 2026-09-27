@@ -24,7 +24,7 @@ public struct AssetSceneInput: Sendable {
         assetRequest = ChainAssetQuery(
             walletId: wallet.id,
             assetId: asset.id,
-            feeAssetId: (try? AssetId.from(id: feeAssetId(assetId: asset.id.identifier))) ?? asset.id,
+            feeAssetId: feeAssetId(assetId: asset.id),
         )
 
         transactionsRequest = MappedQuery(

@@ -93,7 +93,7 @@ extension TransactionSceneViewModel {
         case .header:
             onHeaderAction(headerAction)
         case let .asset(assetId):
-            onHeaderAction(.asset(assetId: assetId.identifier))
+            onHeaderAction(.asset(assetId: assetId))
         }
     }
 

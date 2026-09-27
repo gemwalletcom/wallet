@@ -7,8 +7,8 @@ import Primitives
 extension Gemstone.GemSwapPairSuggestion {
     func map() -> SwapPairSelectorViewModel {
         SwapPairSelectorViewModel(
-            fromAssetId: AssetId(core: payAssetId),
-            toAssetId: receiveAssetId.map { AssetId(core: $0) },
+            fromAssetId: payAssetId,
+            toAssetId: receiveAssetId,
         )
     }
 }
@@ -16,8 +16,8 @@ extension Gemstone.GemSwapPairSuggestion {
 public extension Gemstone.GemSwapPairSelection {
     func map() -> SwapPairSelectorViewModel {
         SwapPairSelectorViewModel(
-            fromAssetId: payAssetId.map { AssetId(core: $0) },
-            toAssetId: receiveAssetId.map { AssetId(core: $0) },
+            fromAssetId: payAssetId,
+            toAssetId: receiveAssetId,
         )
     }
 }

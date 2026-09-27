@@ -26,11 +26,11 @@ public struct AssetsSections: Hashable, Sendable {
 public extension AssetsSections {
     static func from(_ assets: [AssetData], showsPopular: Bool = false) -> AssetsSections {
         let sections = GemAssetConfigService.shared.assetSections(
-            ids: assets.map(\.asset.id.identifier),
-            pinnedIds: assets.filter(\.metadata.isPinned).map(\.asset.id.identifier),
+            ids: assets.map(\.asset.id),
+            pinnedIds: assets.filter(\.metadata.isPinned).map(\.asset.id),
             showsPopular: showsPopular,
         )
-        let byId = Dictionary(assets.map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
+        let byId = Dictionary(assets.map { ($0.asset.id, $0) }, uniquingKeysWith: { first, _ in first })
         return AssetsSections(sections: sections.map { AssetsSection(kind: $0.kind, assets: $0.assetIds.compactMap { byId[$0] }) })
     }
 }

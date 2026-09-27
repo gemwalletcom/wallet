@@ -35,7 +35,7 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
         try NewBanner(
             id: key.identifier(),
             walletId: key.walletId?.id,
-            assetId: key.assetId.map { try Primitives.AssetId.from(id: $0) },
+            assetId: key.assetId,
             event: key.event.toPrimitives(),
             state: state,
         )

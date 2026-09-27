@@ -22,7 +22,7 @@ struct AssetSceneViewModelTests {
         let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let model = AssetSceneViewModel.mock(
             .mock(asset: asset, balance: .mock()),
-            service: GemAssetDetailsServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
+            service: GemAssetDetailsServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id, receiveAssetId: nil)),
         )
 
         #expect(model.swapAssetType == .swap(asset.id, nil))
@@ -34,7 +34,7 @@ struct AssetSceneViewModelTests {
         let model = AssetSceneViewModel.mock(
             .mock(asset: asset, balance: .zero),
             service: GemAssetDetailsServiceMock(
-                assetPair: GemSwapPairSuggestion(payAssetId: asset.chain.assetId.identifier, receiveAssetId: asset.id.identifier),
+                assetPair: GemSwapPairSuggestion(payAssetId: asset.chain.assetId, receiveAssetId: asset.id),
             ),
         )
 

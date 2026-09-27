@@ -50,7 +50,7 @@ public extension NetworkFeeSceneViewModel {
                 fee: feeAmount.map(formatted),
                 additionalFees: additionalFees.map { GemFeeOptionItem(option: $0.0, value: $0.1, amount: formatted($0.1)) },
                 rates: rates,
-                feeAsset: showsFeeAssets ? assets.first(where: { $0.asset.id == feeAsset.id.identifier }) : nil,
+                feeAsset: showsFeeAssets ? assets.first(where: { $0.asset.id == feeAsset.id }) : nil,
                 feeAssets: assets,
                 custom: rates.map {
                     GemCustomFeeSession(

@@ -77,9 +77,9 @@ extension NavigationPresenter {
         to toAssetId: AssetId?,
         wallet: Wallet,
     ) async throws {
-        let fromAsset = try await assetsService.ensureAsset(assetId: fromAssetId.identifier).toPrimitives()
+        let fromAsset = try await assetsService.ensureAsset(assetId: fromAssetId).toPrimitives()
         if let toAssetId {
-            _ = try await assetsService.ensureAsset(assetId: toAssetId.identifier)
+            _ = try await assetsService.ensureAsset(assetId: toAssetId)
         }
         try presentAssetInput(type: .swap(fromAssetId, toAssetId), for: fromAsset, wallet: wallet)
     }
@@ -95,8 +95,8 @@ extension NavigationPresenter {
             try await navigationState.openAsset(target: navigationService.openAsset(assetId: assetId))
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(
-                from: AssetId(core: fromAssetId),
-                to: AssetId(core: toAssetId),
+                from: fromAssetId,
+                to: toAssetId,
                 wallet: wallet,
             )
         case let .nft(assetId):
@@ -106,7 +106,7 @@ extension NavigationPresenter {
     }
 
     func completeSwap(fromAssetId: AssetId, navigationState: NavigationStateManager) async throws {
-        let asset = try await assetsService.ensureAsset(assetId: fromAssetId.identifier).toPrimitives()
+        let asset = try await assetsService.ensureAsset(assetId: fromAssetId).toPrimitives()
         switch navigationState.selectedTab {
         case .wallet:
             navigationState.wallet.setPath([Scenes.Asset(asset: asset)])

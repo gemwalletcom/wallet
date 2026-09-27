@@ -27,7 +27,7 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
 
     public func getSwapPairs(walletId: WalletId) async throws -> [Gemstone.GemSwapPair] {
         try transactionStore.getSwapHistory(walletId: walletId)
-            .map { GemSwapPair(fromAssetId: $0.fromAsset.identifier, toAssetId: $0.toAsset.identifier) }
+            .map { GemSwapPair(fromAssetId: $0.fromAsset, toAssetId: $0.toAsset) }
     }
 
     public func getRecentAssetIds(walletId: WalletId, types: [Gemstone.RecentActivityType], filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
@@ -36,7 +36,7 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
             types: types.map { $0.toPrimitives() },
             limit: Int(limit),
             filters: filters.map { $0.map() },
-        ).map(\.asset.id.identifier)
+        ).map(\.asset.id)
     }
 
     public func getAssetIds(walletId: WalletId, filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
@@ -44,6 +44,6 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
             walletId: walletId,
             filters: filters.map { $0.map() },
             limit: Int(limit),
-        ).map(\.asset.id.identifier)
+        ).map(\.asset.id)
     }
 }

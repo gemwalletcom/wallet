@@ -44,65 +44,67 @@ public struct AssetStore: Sendable {
         }
     }
 
-    public func getAssetBasics(for assetIds: [String]) throws -> [AssetBasic] {
+    public func getAssetBasics(for assetIds: [AssetId]) throws -> [AssetBasic] {
         try db.read { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
                 .fetchAll(db)
                 .map { $0.mapToAssetBasic() }
         }
     }
 
-    public func getAssets(for assetIds: [String]) throws -> [Asset] {
+    public func getAssets(for assetIds: [AssetId]) throws -> [Asset] {
         try db.read { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
                 .fetchAll(db)
                 .map { $0.mapToAsset() }
         }
     }
 
-    public func getAssetIds(for assetIds: [String]) throws -> [String] {
+    public func getAssetIds(for assetIds: [AssetId]) throws -> [AssetId] {
         try db.read { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
                 .select(AssetRecord.Columns.id, as: String.self)
                 .fetchAll(db)
+                .map { try AssetId.from(id: $0) }
         }
     }
 
     @discardableResult
-    public func setAssetIsBuyable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsBuyable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isBuyable, value: value)
     }
 
     @discardableResult
-    public func setAssetIsSwappable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsSwappable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isSwappable, value: value)
     }
 
     @discardableResult
-    public func setAssetIsStakeable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsStakeable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
     }
 
     @discardableResult
-    public func updateBuyableAssets(assetIds: [String]) throws -> Int {
+    public func updateBuyableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isBuyable, enabledAssetIds: assetIds)
     }
 
     @discardableResult
-    public func updateSellableAssets(assetIds: [String]) throws -> Int {
+    public func updateSellableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isSellable, enabledAssetIds: assetIds)
     }
 
     @discardableResult
-    public func updateSwappableAssets(assetIds: [String]) throws -> Int {
+    public func updateSwappableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isSwappable, enabledAssetIds: assetIds)
     }
 
-    private func updateColumn(column: Column, enabledAssetIds: [String]) throws -> Int {
-        try db.write { db in
+    private func updateColumn(column: Column, enabledAssetIds: [AssetId]) throws -> Int {
+        let enabledAssetIds = enabledAssetIds.map(\.identifier)
+        return try db.write { db in
             let enabled = try AssetRecord
                 .filter(enabledAssetIds.contains(AssetRecord.Columns.id) && column == false)
                 .updateAll(db, column.set(to: true))
@@ -113,10 +115,10 @@ public struct AssetStore: Sendable {
         }
     }
 
-    private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {
+    private func setColumn(for assetIds: [AssetId], column: Column, value: Bool) throws -> Int {
         try db.write { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id) && column != value)
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id) && column != value)
                 .updateAll(db, column.set(to: value))
         }
     }

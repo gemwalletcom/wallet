@@ -12,7 +12,7 @@ public extension GemAssetFilter {
         case .swappable: .swappable
         case .hasBalance: .hasBalance
         case .hasAvailableBalance: .hasAvailableBalance
-        case let .chainsOrAssetIds(chains, assetIds): .chainsOrAssets(chains, assetIds)
+        case let .chainsOrAssetIds(chains, assetIds): .chainsOrAssets(chains, assetIds.map(\.identifier))
         case let .chains(chains): .chains(chains)
         }
     }

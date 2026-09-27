@@ -131,19 +131,20 @@ public struct BalanceStore: Sendable {
         }
     }
 
-    public func getBalanceAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [String] {
+    public func getBalanceAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetId] {
         try db.read { db in
             try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
                 .select(BalanceRecord.Columns.assetId, as: String.self)
                 .fetchAll(db)
+                .map { try AssetId.from(id: $0) }
         }
     }
 
     private func getMissingAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetId] {
         let existingAssetIds = try getBalanceAssetIds(walletId: walletId, assetIds: assetIds).asSet()
-        return assetIds.filter { !existingAssetIds.contains($0.identifier) }
+        return assetIds.filter { !existingAssetIds.contains($0) }
     }
 
     @discardableResult

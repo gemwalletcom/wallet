@@ -179,7 +179,7 @@ extension FiatSceneViewModel {
         session = session.onFetchStarted(request: request)
         let results: GemFiatQuotesResult
         do {
-            let quotes = try await service.quotes(quoteType: request.quoteType, assetId: asset.id.identifier, amount: request.amount)
+            let quotes = try await service.quotes(quoteType: request.quoteType, assetId: asset.id, amount: request.amount)
             results = GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
         } catch let error as GemServiceError {
             guard !error.isCancelled, !Task.isCancelled else { return }
@@ -252,7 +252,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await service.quoteUrl(assetId: asset.id.identifier, quoteId: quote.quoteId).redirectUrl.asURL else {
+                guard let url = try await service.quoteUrl(assetId: asset.id, quoteId: quote.quoteId).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }

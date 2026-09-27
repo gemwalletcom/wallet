@@ -80,7 +80,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         available * BigInt(percent) / BigInt(100)
     }
 
-    public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
+    public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: AssetId) -> GemSwapPairSelection {
         switch side {
         case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)
         case .receive: GemSwapPairSelection(payAssetId: selection.payAssetId, receiveAssetId: assetId)

@@ -171,7 +171,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        .swap(AssetId(core: details.swapPair.payAssetId), details.swapPair.receiveAssetId.map { AssetId(core: $0) })
+        .swap(details.swapPair.payAssetId, details.swapPair.receiveAssetId)
     }
 }
 
@@ -188,7 +188,7 @@ public extension AssetSceneViewModel {
         switch action {
         case .buy: onSelectBuy()
         case .send: onSelect(assetType: .send(.asset(asset: assetData.asset.toGem())))
-        case let .swap(payAssetId?, receiveAssetId): onSelect(assetType: .swap(AssetId(core: payAssetId), receiveAssetId.map { AssetId(core: $0) }))
+        case let .swap(payAssetId?, receiveAssetId): onSelect(assetType: .swap(payAssetId, receiveAssetId))
         case .receive: onSelectReceive()
         case .swap, .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
@@ -310,7 +310,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await service.setAssetsEnabled(assetIds: [asset.id.identifier], enabled: enabled)
+                try await service.setAssetsEnabled(assetIds: [asset.id], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.text().text)
@@ -330,7 +330,7 @@ extension AssetSceneViewModel {
     }
 
     func refresh() async {
-        let refresh = await service.refresh(assetId: asset.id.identifier, hasTransactions: showTransactions)
+        let refresh = await service.refresh(assetId: asset.id, hasTransactions: showTransactions)
         transactionsState = refresh.transactions
         for failure in refresh.failures {
             debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")

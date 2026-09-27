@@ -19,18 +19,18 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     public func getAvailableBalances(walletId: WalletId, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetBalance] {
-        try store.getBalances(walletId: walletId, assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) })
+        try store.getBalances(walletId: walletId, assetIds: assetIds)
             .map { $0.toGem() }
     }
 
     public func getBalanceAssetIds(walletId: WalletId, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetId] {
-        try store.getBalanceAssetIds(walletId: walletId, assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) })
+        try store.getBalanceAssetIds(walletId: walletId, assetIds: assetIds)
     }
 
     public func updateBalances(walletId: WalletId, balances: [GemBalanceRecord]) async throws {
         let updates = try balances.map { balance in
             try UpdateBalance(
-                assetId: Primitives.AssetId.from(id: balance.assetId),
+                assetId: balance.assetId,
                 available: value(balance.available),
                 frozen: value(balance.frozen),
                 locked: value(balance.locked),
@@ -50,13 +50,13 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     public func getEnabledAssetIds(walletId: WalletId) async throws -> [Gemstone.AssetId] {
-        try store.getEnabledAssetIds(walletId: walletId).map(\Primitives.AssetId.identifier)
+        try store.getEnabledAssetIds(walletId: walletId)
     }
 
     public func setAssetConfiguration(walletId: WalletId, assetIds: [Gemstone.AssetId], configuration: GemAssetConfiguration) async throws {
         try store.setConfiguration(
             walletId: walletId,
-            assetIds: assetIds.map { try Primitives.AssetId.from(id: $0) },
+            assetIds: assetIds,
             configuration: AssetConfiguration(isEnabled: configuration.isEnabled, isPinned: configuration.isPinned),
         )
     }

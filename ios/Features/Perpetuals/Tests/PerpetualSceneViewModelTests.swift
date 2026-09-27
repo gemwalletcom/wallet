@@ -126,7 +126,7 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(service.syncPositionsCount == 1)
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test
@@ -141,7 +141,7 @@ struct PerpetualSceneViewModelTests {
         }
 
         #expect(service.syncPositionsCount == 1, "a position closed while the app was away shows on return")
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test

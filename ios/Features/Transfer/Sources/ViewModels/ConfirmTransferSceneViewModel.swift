@@ -257,17 +257,17 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectPaymentAsset() {
-        let assetIds = rowContents.lazy.compactMap { content -> [String]? in
+        let assetIds = rowContents.lazy.compactMap { content -> [AssetId]? in
             guard case let .paymentAsset(_, _, selectable, assetIds) = content, selectable else { return nil }
             return assetIds
         }.first
         guard let assetIds else { return }
-        isPresentingSheet = .paymentAsset(.payment(assetIds.map { AssetId(core: $0) }))
+        isPresentingSheet = .paymentAsset(.payment(assetIds))
     }
 
     public func selectPaymentAsset(_ asset: Asset) {
         isPresentingSheet = nil
-        loadOptions = loadOptions.onPaymentAsset(picked: asset.id.identifier, transfer: transfer)
+        loadOptions = loadOptions.onPaymentAsset(picked: asset.id, transfer: transfer)
     }
 
     func onSelectVerification() {
@@ -343,7 +343,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func selectFeeAsset(_ assetId: AssetId) {
-        loadOptions = loadOptions.onFeeAsset(picked: assetId.identifier, loadedFeeAsset: state.feeAsset.id.identifier)
+        loadOptions = loadOptions.onFeeAsset(picked: assetId, loadedFeeAsset: state.feeAsset.id)
     }
 }
 

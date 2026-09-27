@@ -262,7 +262,7 @@ struct SignMessageSceneViewModelTests {
                 .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                 .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
                 .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
-            ], header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),
+            ], header: SimulationHeader(assetId: asset.id, value: nil, isUnlimited: true)),
             message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
             assets: [asset.toGem()],
         )

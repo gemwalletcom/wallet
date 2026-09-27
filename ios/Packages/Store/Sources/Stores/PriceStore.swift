@@ -72,10 +72,10 @@ public struct PriceStore: Sendable {
         }
     }
 
-    public func getPrices(for assetIds: [String]) throws -> [AssetPrice] {
+    public func getPrices(for assetIds: [AssetId]) throws -> [AssetPrice] {
         try db.read { db in
             try PriceRecord
-                .filter(assetIds.contains(PriceRecord.Columns.assetId))
+                .filter(assetIds.map(\.identifier).contains(PriceRecord.Columns.assetId))
                 .fetchAll(db)
                 .map { $0.mapToAssetPrice() }
         }

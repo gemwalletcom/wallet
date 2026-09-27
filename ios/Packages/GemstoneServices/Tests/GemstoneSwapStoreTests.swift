@@ -30,7 +30,7 @@ struct GemstoneSwapStoreTests {
 
         let candidates = try await store.getAssetIds(walletId: wallet.id, filters: [.enabled, .swappable], limit: 10)
 
-        #expect(candidates == [pinned.identifier])
+        #expect(candidates == [pinned])
     }
 
     @Test

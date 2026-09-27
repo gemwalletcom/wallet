@@ -66,14 +66,14 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func pinAssetPinsThroughTheService() async {
-        let pinned: (assetId: String, pinned: Bool) = await withCheckedContinuation { continuation in
+        let pinned: (assetId: AssetId, pinned: Bool) = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
                 service: GemAssetSelectionServiceMock(onSetAssetPinned: { assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
             )
             model.onPinAsset(.mock(), value: true)
         }
 
-        #expect(pinned.assetId == AssetId.mock().identifier)
+        #expect(pinned.assetId == AssetId.mock())
         #expect(pinned.pinned)
     }
 }

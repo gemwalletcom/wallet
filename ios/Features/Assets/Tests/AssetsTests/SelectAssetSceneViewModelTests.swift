@@ -56,7 +56,7 @@ struct SelectAssetSceneViewModelTests {
     func toggleFlowEnablesAssets() async {
         await confirmation { enabledAssets in
             let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { assetIds, enabled in
-                #expect(assetIds == [AssetId.mock().identifier])
+                #expect(assetIds == [AssetId.mock()])
                 #expect(enabled == true)
                 enabledAssets()
             })

@@ -124,7 +124,7 @@ public extension Gemstone.GemAppUpdateOffer {
 
 public extension Gemstone.GemAssetBalance {
     static func mock(
-        assetId: String = Primitives.AssetId.mock().identifier,
+        assetId: Primitives.AssetId = .mock(),
         available: BigUInt = 0,
         frozen: BigUInt = 0,
         locked: BigUInt = 0,
@@ -417,8 +417,8 @@ public extension Gemstone.GemConfirmLoad {
 public extension Gemstone.GemConfirmLoadOptions {
     static func mock(
         feeSelection: Gemstone.GemConfirmFeeSelection = .mock(),
-        feeAssetId: String? = nil,
-        assetId: String? = nil,
+        feeAssetId: Primitives.AssetId? = nil,
+        assetId: Primitives.AssetId? = nil,
     ) -> Gemstone.GemConfirmLoadOptions {
         Gemstone.GemConfirmLoadOptions(
             feeSelection: feeSelection,
@@ -990,8 +990,8 @@ public extension Gemstone.GemStakeValidatorOptions {
 
 public extension Gemstone.GemSwapPairSuggestion {
     static func mock(
-        payAssetId: String = Primitives.AssetId.mock().identifier,
-        receiveAssetId: String? = nil,
+        payAssetId: Primitives.AssetId = .mock(),
+        receiveAssetId: Primitives.AssetId? = nil,
     ) -> Gemstone.GemSwapPairSuggestion {
         Gemstone.GemSwapPairSuggestion(
             payAssetId: payAssetId,
@@ -1028,8 +1028,8 @@ public extension Gemstone.GemSwapQuotesResult {
 
 public extension Gemstone.GemSwapRequest {
     static func mock(
-        payAssetId: String = Primitives.AssetId.mock().identifier,
-        receiveAssetId: String = Primitives.AssetId.mock().identifier,
+        payAssetId: Primitives.AssetId = .mock(),
+        receiveAssetId: Primitives.AssetId = .mock(),
         value: BigUInt = 0,
         slippageBps: UInt32? = nil,
     ) -> Gemstone.GemSwapRequest {
@@ -1437,7 +1437,7 @@ public extension Gemstone.PaymentPrice {
 public extension Gemstone.PaymentQuote {
     static func mock(
         id: String = "",
-        assetId: String = Primitives.AssetId.mock().identifier,
+        assetId: Primitives.AssetId = .mock(),
         value: BigUInt = 0,
     ) -> Gemstone.PaymentQuote {
         Gemstone.PaymentQuote(
@@ -1726,7 +1726,7 @@ public extension Gemstone.SimulationWarning {
 
 public extension Gemstone.SimulationWarningApproval {
     static func mock(
-        assetId: String = Primitives.AssetId.mock().identifier,
+        assetId: Primitives.AssetId = .mock(),
         value: BigInt? = nil,
     ) -> Gemstone.SimulationWarningApproval {
         Gemstone.SimulationWarningApproval(
