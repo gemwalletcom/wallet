@@ -142,10 +142,7 @@ struct SelectedAssetNavigationStack: View {
 
 extension SelectedAssetNavigationStack {
     private func navigate(to route: TransferRoute) {
-        switch route {
-        case let .amount(input): navigationPath.append(input)
-        case let .confirm(data): navigationPath.append(ConfirmTransferInput(data: data))
-        }
+        navigationPath.append(transfer: route)
     }
 
     private func navigate(to route: StakeRoute) {
