@@ -1837,7 +1837,7 @@ public extension Primitives.BalanceMetadata {
 public extension Gemstone.Banner {
     func toPrimitives() -> Primitives.Banner {
         Primitives.Banner(
-            walletId: walletId.map { Primitives.WalletId(core: $0) },
+            walletId: walletId,
             asset: asset.map { $0.toPrimitives() },
             event: event.toPrimitives(),
             state: state.toPrimitives(),
@@ -1848,7 +1848,7 @@ public extension Gemstone.Banner {
 public extension Primitives.Banner {
     func toGem() -> Gemstone.Banner {
         Gemstone.Banner(
-            walletId: walletId.map { $0.identifier },
+            walletId: walletId,
             asset: asset.map { $0.toGem() },
             event: event.toGem(),
             state: state.toGem(),
@@ -2280,7 +2280,7 @@ public extension Primitives.FiatTransactionData {
 public extension Gemstone.InAppNotification {
     func toPrimitives() -> Primitives.InAppNotification {
         Primitives.InAppNotification(
-            walletId: Primitives.WalletId(core: walletId),
+            walletId: walletId,
             readAt: readAt,
             createdAt: createdAt,
             item: item.toPrimitives(),
@@ -2291,7 +2291,7 @@ public extension Gemstone.InAppNotification {
 public extension Primitives.InAppNotification {
     func toGem() -> Gemstone.InAppNotification {
         Gemstone.InAppNotification(
-            walletId: walletId.identifier,
+            walletId: walletId,
             readAt: readAt,
             createdAt: createdAt,
             item: item.toGem(),
@@ -3064,7 +3064,7 @@ public extension Primitives.TransactionsFilter {
 public extension Gemstone.Wallet {
     func toPrimitives() -> Primitives.Wallet {
         Primitives.Wallet(
-            id: Primitives.WalletId(core: id),
+            id: id,
             externalId: externalId,
             name: name,
             index: index,
@@ -3080,7 +3080,7 @@ public extension Gemstone.Wallet {
 public extension Primitives.Wallet {
     func toGem() -> Gemstone.Wallet {
         Gemstone.Wallet(
-            id: id.identifier,
+            id: id,
             externalId: externalId,
             name: name,
             index: index,

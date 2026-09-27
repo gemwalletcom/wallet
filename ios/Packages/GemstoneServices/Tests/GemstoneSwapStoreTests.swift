@@ -28,7 +28,7 @@ struct GemstoneSwapStoreTests {
         try balanceStore.addMissingBalances(walletId: wallet.id, assetIds: [pinned, disabled, unswappable], isEnabled: true)
         _ = try balanceStore.setConfiguration(walletId: wallet.id, assetIds: [pinned], configuration: .pinned(true))
 
-        let candidates = try await store.getAssetIds(walletId: wallet.id.id, filters: [.enabled, .swappable], limit: 10)
+        let candidates = try await store.getAssetIds(walletId: wallet.id, filters: [.enabled, .swappable], limit: 10)
 
         #expect(candidates == [pinned.identifier])
     }
@@ -45,8 +45,8 @@ struct GemstoneSwapStoreTests {
         try assetStore.add(assets: assetIds.map { .mock(asset: .mock(id: $0), properties: .mock(isEnabled: true, isSwapable: true)) })
         try balanceStore.addMissingBalances(walletId: wallet.id, assetIds: assetIds, isEnabled: true)
 
-        let capped = try await store.getAssetIds(walletId: wallet.id.id, filters: [.enabled, .swappable], limit: 2)
-        let all = try await store.getAssetIds(walletId: wallet.id.id, filters: [.enabled, .swappable], limit: 10)
+        let capped = try await store.getAssetIds(walletId: wallet.id, filters: [.enabled, .swappable], limit: 2)
+        let all = try await store.getAssetIds(walletId: wallet.id, filters: [.enabled, .swappable], limit: 10)
 
         #expect(capped.count == 2)
         #expect(all.count == 3)

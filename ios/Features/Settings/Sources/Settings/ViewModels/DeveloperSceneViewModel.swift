@@ -81,13 +81,13 @@ public final class DeveloperSceneViewModel {
 
     func clearTransactionsTimestamp() {
         toastResult {
-            try service.resetTransactionsTimestamp(walletId: walletId.id)
+            try service.resetTransactionsTimestamp(walletId: walletId)
         }
     }
 
     func clearWalletPreferences() {
         toastResult {
-            try service.deleteWalletPreferences(walletId: walletId.id)
+            try service.deleteWalletPreferences(walletId: walletId)
         }
     }
 
@@ -120,7 +120,7 @@ public final class DeveloperSceneViewModel {
     }
 
     func addTransactions() {
-        toastTaskResult { try await self.service.addSampleTransactions(walletId: self.walletId.id) }
+        toastTaskResult { try await self.service.addSampleTransactions(walletId: self.walletId) }
     }
 
     func deeplink(deeplink: Deeplink) {

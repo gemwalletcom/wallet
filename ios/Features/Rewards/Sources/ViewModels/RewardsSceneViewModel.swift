@@ -56,7 +56,7 @@ public final class RewardsSceneViewModel: Sendable {
         let core = wallets.map { $0.toGem() }
         guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
-        let session = rewardsSession().onSelectWallet(walletId: wallet.id.id)
+        let session = rewardsSession().onSelectWallet(walletId: wallet.id)
         self.session = session
         viewState = session.viewState(now: Date())
         selectedWallet = wallet
@@ -179,12 +179,12 @@ public final class RewardsSceneViewModel: Sendable {
     func selectWallet(id: String) {
         guard let wallet = wallets.first(where: { $0.id.id == id }) else { return }
         selectedWallet = wallet
-        session = session.onSelectWallet(walletId: wallet.id.id)
+        session = session.onSelectWallet(walletId: wallet.id)
         Task { await refresh() }
     }
 
     func refresh() async {
-        let result = await service.refresh(walletId: selectedWallet.id.id)
+        let result = await service.refresh(walletId: selectedWallet.id)
         session = session.onResult(result: result)
     }
 

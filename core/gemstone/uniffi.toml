@@ -49,3 +49,9 @@ type_name = "Primitives.TransactionId"
 imports = ["Primitives"]
 lift = "Primitives.TransactionId(core: {})"
 lower = "{}.identifier"
+
+[bindings.swift.custom_types.WalletId]
+type_name = "Primitives.WalletId"
+imports = ["Primitives"]
+lift = "Primitives.WalletId(core: {})"
+lower = "{}.identifier"

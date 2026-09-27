@@ -37,13 +37,13 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         try store.deactivateValidators(assetId: Primitives.AssetId.from(id: assetId), validatorIds: validatorIds)
     }
 
-    public func getDelegationIds(walletId: String, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
-        try store.getDelegationIds(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId.from(id: assetId), providerType: providerType.toPrimitives())
+    public func getDelegationIds(walletId: WalletId, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
+        try store.getDelegationIds(walletId: walletId, assetId: Primitives.AssetId.from(id: assetId), providerType: providerType.toPrimitives())
     }
 
-    public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
+    public func updateDelegations(walletId: WalletId, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
-            walletId: WalletId.from(id: walletId),
+            walletId: walletId,
             delegations: delegations.map { $0.toPrimitives() },
             deleteIds: deleteIds,
         )

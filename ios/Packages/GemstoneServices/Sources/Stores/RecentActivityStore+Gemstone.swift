@@ -17,10 +17,10 @@ public final class GemstoneRecentActivityStore: GemRecentActivityStore, @uncheck
     }
 
     public func add(activity: GemRecentActivity, walletId: Gemstone.WalletId) async throws {
-        try store.add(RecentActivityData(activity), walletId: Primitives.WalletId.from(id: walletId))
+        try store.add(RecentActivityData(activity), walletId: walletId)
     }
 
     public func clear(walletId: Gemstone.WalletId, types: [Gemstone.RecentActivityType]) async throws {
-        try store.clear(walletId: Primitives.WalletId.from(id: walletId), types: types.map { $0.toPrimitives() })
+        try store.clear(walletId: walletId, types: types.map { $0.toPrimitives() })
     }
 }

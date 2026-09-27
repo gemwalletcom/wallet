@@ -15,7 +15,7 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
     public var redeemError: Error?
 
     public private(set) var rewardsCalls: [WalletId] = []
-    public private(set) var usedReferralCodes: [(walletId: String, code: String)] = []
+    public private(set) var usedReferralCodes: [(walletId: WalletId, code: String)] = []
     public private(set) var redeemedIds: [String] = []
     public private(set) var createdReferrals: [String] = []
 

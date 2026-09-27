@@ -178,7 +178,7 @@ public final class ReceiveSceneViewModel: Sendable {
 extension ReceiveSceneViewModel {
     func onChangeAsset() async {
         do {
-            try await service.enableAsset(walletId: wallet.id.id, assetId: asset.id.identifier)
+            try await service.enableAsset(walletId: wallet.id, assetId: asset.id.identifier)
         } catch {
             debugLog("ReceiveSceneViewModel enableAsset error: \(error)")
         }

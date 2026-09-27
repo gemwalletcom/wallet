@@ -40,7 +40,7 @@ final class RootSceneViewModel {
         currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
 
-    var currentWalletId: WalletId? { try? walletSessionService.getCurrentWalletId().map { try WalletId.from(id: $0) } }
+    var currentWalletId: WalletId? { try? walletSessionService.getCurrentWalletId() }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
     var isPresentingRootWarning = false

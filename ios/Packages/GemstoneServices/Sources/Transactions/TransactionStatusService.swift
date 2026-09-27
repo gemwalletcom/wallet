@@ -13,7 +13,7 @@ public final class GemstoneTransactionStatusService: GemTransactionStatusService
         self.service = service
     }
 
-    public func track(walletId: String, transactions: [Gemstone.Transaction]) {
+    public func track(walletId: WalletId, transactions: [Gemstone.Transaction]) {
         Task {
             do {
                 try await service.track(walletId: walletId, transactions: transactions)

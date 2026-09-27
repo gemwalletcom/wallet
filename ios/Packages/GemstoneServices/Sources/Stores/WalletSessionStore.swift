@@ -3,8 +3,8 @@
 import Foundation
 import protocol Gemstone.GemPreferencesStore
 import protocol Gemstone.GemWalletSessionStore
-import typealias Gemstone.WalletId
 import Observation
+import Primitives
 
 @Observable
 public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked Sendable {
@@ -17,18 +17,18 @@ public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked
     }
 
     @ObservationIgnored
-    public var currentWalletId: Gemstone.WalletId? {
+    public var currentWalletId: WalletId? {
         access(keyPath: \.currentWalletId)
-        return store.get(key: Self.key)
+        return store.get(key: Self.key).flatMap { try? WalletId.from(id: $0) }
     }
 
-    public func getCurrentWalletId() throws -> Gemstone.WalletId? {
+    public func getCurrentWalletId() throws -> WalletId? {
         currentWalletId
     }
 
-    public func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
+    public func setCurrentWalletId(walletId: WalletId?) throws {
         switch walletId {
-        case let .some(walletId): try store.set(key: Self.key, value: walletId)
+        case let .some(walletId): try store.set(key: Self.key, value: walletId.id)
         case .none: try store.remove(key: Self.key)
         }
         withMutation(keyPath: \.currentWalletId) {}

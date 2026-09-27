@@ -91,7 +91,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
 extension PortfolioSceneViewModel {
     public func load() async {
-        update(session.onSelectWallet(walletId: wallet.id.id, currency: preferences.currency.toGem()))
+        update(session.onSelectWallet(walletId: wallet.id, currency: preferences.currency.toGem()))
         let result = await service.refresh(wallet: wallet.toGem(), request: session.request())
         update(session.onResult(result: result))
     }

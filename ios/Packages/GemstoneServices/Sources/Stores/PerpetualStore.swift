@@ -35,8 +35,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.clear(collateralAssetIds: collateralAssetIds.map { try Primitives.AssetId.from(id: $0) })
     }
 
-    public func getPositions(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {
-        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.toPrimitives()).map { $0.toGem() }
+    public func getPositions(walletId: WalletId, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {
+        try store.getPositions(walletId: walletId, provider: provider.toPrimitives()).map { $0.toGem() }
     }
 
     public func updateMarket(market: Gemstone.PerpetualMarketData) async throws {
@@ -54,15 +54,15 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.updatePrices(prices)
     }
 
-    public func getPositionIds(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [String] {
-        try store.getPositions(walletId: WalletId.from(id: walletId), provider: provider.toPrimitives()).map(\.id)
+    public func getPositionIds(walletId: WalletId, provider: Gemstone.PerpetualProvider) async throws -> [String] {
+        try store.getPositions(walletId: walletId, provider: provider.toPrimitives()).map(\.id)
     }
 
-    public func updatePositions(walletId: String, positions: [Gemstone.PerpetualPosition], deleteIds: [String]) async throws {
+    public func updatePositions(walletId: WalletId, positions: [Gemstone.PerpetualPosition], deleteIds: [String]) async throws {
         try store.diffPositions(
             deleteIds: deleteIds,
             positions: positions.map { $0.toPrimitives() },
-            walletId: WalletId.from(id: walletId),
+            walletId: walletId,
         )
     }
 }

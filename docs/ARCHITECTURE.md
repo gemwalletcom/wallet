@@ -978,7 +978,7 @@ private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session,
 
 - Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of generated models and database columns, which are strings by generation.
 - Ids cross as their Core custom types (`core/gemstone/src/models/custom_types.rs`), never as a `String` parameter, for the same reason.
-  iOS: `uniffi.toml` maps each id to its `Primitives` type and `typed_identifiers` in `remote_types.yml` passes it through the generated mappers and mocks, so Swift never parses an id Core produced; the ids still arriving as strings are TODO CLN397 and CLN398.
+  iOS: `uniffi.toml` maps each id to its `Primitives` type and `typed_identifiers` in `remote_types.yml` passes it through the generated mappers and mocks, so Swift never parses an id Core produced; `AssetId` still arrives as a string until TODO CLN397.
   Android: receives the identifier string; its id types live in `:gemcore`, which depends on the `:gemstone` bindings module, so the bindings cannot name them.
   Expected: intentional until the Android id types sit below `:gemstone`.
 - `amount` is for `f64`. `value` is for big integers. Do not mix them.

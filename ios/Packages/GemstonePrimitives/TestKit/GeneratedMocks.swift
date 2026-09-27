@@ -916,7 +916,7 @@ public extension Gemstone.GemRecipient {
 
 public extension Gemstone.GemRewardsResult {
     static func mock(
-        walletId: String = Primitives.WalletId.mock().id,
+        walletId: Primitives.WalletId = .mock(),
         state: Gemstone.GemLoadState = .noData,
         rewards: Gemstone.Rewards? = nil,
     ) -> Gemstone.GemRewardsResult {

@@ -166,11 +166,11 @@ extension NavigationRouter {
         selectTab(target.tab())
     }
 
-    private func openTarget(path: [any Hashable & Codable], walletId: String?) throws {
+    private func openTarget(path: [any Hashable & Codable], walletId: WalletId?) throws {
         guard let walletId else {
             return navigationState.openWallet(path: path)
         }
-        try openWallet(Primitives.WalletId.from(id: walletId), path: path)
+        try openWallet(walletId, path: path)
     }
 }
 
@@ -273,10 +273,10 @@ extension NavigationRouter {
     }
 
     private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
-        guard try walletSessionService.getCurrentWalletId() != walletId.id else {
+        guard try walletSessionService.getCurrentWalletId() != walletId else {
             return navigationState.openWallet(path: path)
         }
-        try walletSessionService.setCurrentWalletId(walletId: walletId.id)
+        try walletSessionService.setCurrentWalletId(walletId: walletId)
         navigationState.pendingWalletPath = path
     }
 

@@ -43,7 +43,7 @@ struct RewardsSceneViewModelTests {
 
         await model.refresh()
 
-        #expect(service.rewardsCalls == [first.id.id])
+        #expect(service.rewardsCalls == [first.id])
         #expect(model.rewardsState.referralCode == "test123")
         #expect(model.referralLink == "https://gemwallet.com/join?code=test123")
     }
@@ -73,7 +73,7 @@ struct RewardsSceneViewModelTests {
         model.selectWallet(id: second.id.id)
         await model.refresh()
 
-        #expect(model.session.walletId == second.id.id)
+        #expect(model.session.walletId == second.id)
     }
 
     @Test

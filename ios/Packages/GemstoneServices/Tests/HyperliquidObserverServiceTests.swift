@@ -92,7 +92,7 @@ struct HyperliquidObserverServiceTests {
         let streamService = PerpetualStreamServiceStub()
         let perpetualService = GemPerpetualServiceMock()
         perpetualService.connectionGate = { wallet in
-            guard wallet.id == walletA.id.id else { return }
+            guard wallet.id == walletA.id else { return }
             await withCheckedContinuation { gate.continuation.yield($0) }
         }
         let service = HyperliquidObserverService(webSocket: socket, perpetualService: perpetualService, streamService: streamService)

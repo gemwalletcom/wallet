@@ -36,7 +36,7 @@ struct WalletServiceTests {
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let wallet = try await service.importWallet(request: importRequest()).wallet().toPrimitives()
-        try session.setCurrentWalletId(walletId: wallet.id.id)
+        try session.setCurrentWalletId(walletId: wallet.id)
 
         try await confirmation { confirm in
             withObservationTracking {
@@ -44,7 +44,7 @@ struct WalletServiceTests {
             } onChange: {
                 confirm()
             }
-            _ = try await service.deleteWallet(walletId: wallet.id.id)
+            _ = try await service.deleteWallet(walletId: wallet.id)
         }
     }
 
@@ -86,7 +86,7 @@ struct WalletServiceTests {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for wallet in wallets {
-                group.addTask { _ = try await service.deleteWallet(walletId: wallet.id.id) }
+                group.addTask { _ = try await service.deleteWallet(walletId: wallet.id) }
             }
             try await group.waitForAll()
         }

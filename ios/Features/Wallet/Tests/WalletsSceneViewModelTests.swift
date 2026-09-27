@@ -23,7 +23,7 @@ struct WalletsSceneViewModelTests {
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
-        try session.setCurrentWalletId(walletId: WalletId.multicoin(address: "0x1").id)
+        try session.setCurrentWalletId(walletId: WalletId.multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)
         model.walletsQuery.value = try await session.getWallets().map { $0.toPrimitives() }

@@ -109,6 +109,6 @@ public struct ViewModelFactory: Sendable {
     }
 
     func currentWallet(in wallets: [Wallet]) -> Wallet? {
-        (try? walletSessionService.getCurrentWalletId()).flatMap { walletId in wallets.first { $0.id.id == walletId } }
+        (try? walletSessionService.getCurrentWalletId()).flatMap { walletId in wallets.first { $0.id == walletId } }
     }
 }

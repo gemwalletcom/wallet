@@ -17,7 +17,7 @@ struct GemstoneBannerStoreTests {
         let store = BannerStore.mock(db: .mock(wallets: [wallet]))
         let adapter = GemstoneBannerStore(store: store)
         let walletId = wallet.id
-        let key = GemBannerKey(walletId: walletId.id, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.toGem())
+        let key = GemBannerKey(walletId: walletId, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.toGem())
 
         try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.toGem())
 
