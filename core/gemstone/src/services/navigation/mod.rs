@@ -245,7 +245,7 @@ mod tests {
     #[test]
     fn test_only_a_perpetual_opens_the_perpetual_screen() {
         let testkit = DiscoveryTestkit::with_status(200);
-        let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+        let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state);
         let coin = Asset::from_chain(Chain::Ethereum);
         let perpetual = Asset {
             asset_type: AssetType::PERPETUAL,

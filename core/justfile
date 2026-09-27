@@ -61,12 +61,14 @@ test-database:
 format:
     cargo fmt -q --all
 
+clippy_lints := "-W clippy::redundant_clone -W clippy::implicit_clone"
+
 fix:
-    @cargo clippy --fix --workspace --all-targets --allow-dirty
+    @cargo clippy --fix --workspace --all-targets --allow-dirty -- {{clippy_lints}}
 
 lint:
     @cargo clippy --version
-    cargo clippy -- -D warnings
+    cargo clippy -- -D warnings {{clippy_lints}}
 
 audit:
     @command -v cargo-audit >/dev/null || cargo install cargo-audit --locked --version 0.22.0

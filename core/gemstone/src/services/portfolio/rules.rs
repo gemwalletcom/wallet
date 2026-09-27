@@ -305,7 +305,7 @@ mod tests {
             unrealized_pnl: 7.0,
         });
 
-        let data = perpetual_portfolio_data(portfolio.clone(), ChartPeriod::Day);
+        let data = perpetual_portfolio_data(portfolio, ChartPeriod::Day);
 
         assert_eq!(data.charts.iter().map(|chart| chart.chart_type).collect::<Vec<_>>(), vec![PortfolioChartType::Pnl, PortfolioChartType::Value]);
         assert_eq!(

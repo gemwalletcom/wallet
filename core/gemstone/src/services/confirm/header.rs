@@ -324,7 +324,7 @@ mod tests {
         let payment = GemTransferData {
             value: 250_000u32.into(),
             ..transfer(TransactionInputType::Payment {
-                asset: asset.clone(),
+                asset,
                 invoice: PaymentInvoice {
                     price: Some(PaymentPrice { currency: "USD".to_string(), amount: 0.1 }),
                     ..PaymentInvoice::mock()

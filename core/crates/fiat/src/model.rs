@@ -36,7 +36,7 @@ impl FiatProviderAsset {
     pub fn asset_id(&self) -> Option<AssetId> {
         match self.clone().chain {
             Some(chain) => match &self.token_id {
-                Some(token_id) => format_token_id(chain, token_id.to_string()).map(|formatted_token_id| AssetId::from(chain, Some(formatted_token_id))),
+                Some(token_id) => format_token_id(chain, token_id.clone()).map(|formatted_token_id| AssetId::from(chain, Some(formatted_token_id))),
                 None => Some(chain.as_asset_id()),
             },
             None => None,

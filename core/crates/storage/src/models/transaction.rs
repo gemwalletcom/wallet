@@ -75,10 +75,10 @@ impl TransactionRow {
         let value = BigUint::from_str(self.value.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
 
         Ok(Transaction {
-            id: transaction_id.clone(),
+            id: transaction_id,
             asset_id,
-            from: from.clone(),
-            to: to_address.clone(),
+            from,
+            to: to_address,
             contract: None,
             transaction_type,
             state: self.state.0,

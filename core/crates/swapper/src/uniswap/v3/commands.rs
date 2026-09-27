@@ -365,7 +365,7 @@ mod tests {
         let permit2_data = Permit2Data {
             permit_single: PermitSingle {
                 details: Permit2Detail {
-                    token: request.from_asset.asset_id().token_id.clone().unwrap(),
+                    token: request.from_asset.asset_id().token_id.unwrap(),
                     amount: "1461501637330902918203684832716283019655932542975".into(),
                     expiration: 1732667502,
                     nonce: 0,
@@ -412,7 +412,7 @@ mod tests {
         };
 
         let input = RoutedAsset::mock_value(OPTIMISM_WETH_TOKEN_ID);
-        let output = RoutedAsset::mock_permit2(&request.to_asset.asset_id().token_id.clone().unwrap());
+        let output = RoutedAsset::mock_permit2(&request.to_asset.asset_id().token_id.unwrap());
         let (token_in, token_out) = (input.address, output.address);
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 

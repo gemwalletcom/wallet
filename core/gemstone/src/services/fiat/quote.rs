@@ -87,7 +87,7 @@ mod tests {
         let testkit = FiatQuoteTestkit::new(&asset);
 
         let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Sell, asset.id.clone(), 50.0));
-        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Buy, asset.id.clone(), 50.0));
+        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Buy, asset.id, 50.0));
 
         let recorded: Vec<primitives::RecentActivityType> = testkit.recents.added.lock().unwrap().iter().map(|(activity, _)| activity.activity_type.clone()).collect();
         assert_eq!(

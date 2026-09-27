@@ -97,8 +97,8 @@ mod tests {
 
         block_on(service(files.clone(), wallets.clone()).set_image(wallet.id.clone(), vec![1])).unwrap();
 
-        let stored = block_on(wallets.get_wallet(wallet.id.clone())).unwrap().unwrap();
-        assert_eq!(*files.files.lock().unwrap(), vec![stored.image_url.clone().unwrap()], "the replaced file is retired only once its replacement is published");
+        let stored = block_on(wallets.get_wallet(wallet.id)).unwrap().unwrap();
+        assert_eq!(*files.files.lock().unwrap(), vec![stored.image_url.unwrap()], "the replaced file is retired only once its replacement is published");
         assert_eq!(*files.removed.lock().unwrap(), vec!["old.png".to_string()]);
     }
 
@@ -120,7 +120,7 @@ mod tests {
         *wallets.set_image_url_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
         let files = Arc::new(MemoryFileStore::with_file("old.png"));
 
-        assert!(block_on(service(files.clone(), wallets.clone()).remove_image(wallet.id)).is_err());
+        assert!(block_on(service(files.clone(), wallets).remove_image(wallet.id)).is_err());
 
         assert_eq!(*files.files.lock().unwrap(), vec!["old.png".to_string()], "a wallet that still points at its avatar keeps the file");
     }

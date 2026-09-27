@@ -99,7 +99,7 @@ mod tests {
         let wallet_id = WalletId::Multicoin("address".to_string());
 
         block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id.clone())).add_recent(GemAssetAction::Receive, asset.clone())).unwrap();
-        assert_eq!(store.added.lock().unwrap()[0].1, wallet_id.clone());
+        assert_eq!(store.added.lock().unwrap()[0].1, wallet_id);
         block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id)).add_recent(GemAssetAction::Send, asset.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
         assert!(block_on(GemRecentActivityService::mock(store.clone(), None).add_recent(GemAssetAction::Receive, asset)).is_err());

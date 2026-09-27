@@ -21,7 +21,7 @@ pub fn map_transactions(chain: Chain, block: Block) -> Vec<Transaction> {
 pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTime<Utc>) -> Vec<Option<Transaction>> {
     match &transaction.args.clone() {
         ExtrinsicArguments::Transfer(transfer) => {
-            vec![map_transfer(chain, transaction.clone(), transaction.method.method.clone(), transfer.dest.id.clone(), transfer.value.clone(), created_at)]
+            vec![map_transfer(chain, transaction.clone(), transaction.method.method, transfer.dest.id.clone(), transfer.value.clone(), created_at)]
         }
         ExtrinsicArguments::Transfers(transfers) => transfers
             .calls
@@ -37,7 +37,7 @@ fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address
         return None;
     }
 
-    let from_address = transaction.signature?.signer.id.clone();
+    let from_address = transaction.signature?.signer.id;
     let state = if transaction.success { TransactionState::Confirmed } else { TransactionState::Failed };
 
     Some(Transaction::new(

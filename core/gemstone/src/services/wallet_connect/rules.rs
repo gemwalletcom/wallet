@@ -484,7 +484,7 @@ mod tests {
         };
         let view = Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]);
         let bitcoin_only = Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin]);
-        let wallets = vec![single.clone(), view, bitcoin_only, multicoin.clone()];
+        let wallets = vec![single, view, bitcoin_only, multicoin];
 
         let required = session_wallets(wallets.clone(), &[Chain::Ethereum, Chain::Solana], &[]);
         assert_eq!(required.iter().map(|wallet| wallet.name.as_str()).collect::<Vec<_>>(), vec!["multi"]);
@@ -506,8 +506,8 @@ mod tests {
             name: "second".to_string(),
             ..Wallet::mock_with_id(WalletId::Multicoin("second".to_string()), &[Chain::Ethereum])
         };
-        let wallets = vec![first.clone(), second.clone()];
-        assert_eq!(default_wallet(&wallets, Some(second.id.clone())).map(|wallet| wallet.name), Some("second".to_string()));
+        let wallets = vec![first, second.clone()];
+        assert_eq!(default_wallet(&wallets, Some(second.id)).map(|wallet| wallet.name), Some("second".to_string()));
         assert_eq!(default_wallet(&wallets, Some(WalletId::Multicoin("other".to_string()))).map(|wallet| wallet.name), Some("first".to_string()));
         assert!(default_wallet(&[], None).is_none());
     }

@@ -321,7 +321,7 @@ impl WalletsRepository for DatabaseClient {
             .map(|(wallet, sub, addr, device)| DeviceSubscription {
                 wallet_row_id: wallet.id,
                 device: device.as_primitive(),
-                wallet_id: wallet.wallet_id.0.clone(),
+                wallet_id: wallet.wallet_id.0,
                 chain: sub.chain.0,
                 address: addr.address,
             })

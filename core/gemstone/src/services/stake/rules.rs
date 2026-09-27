@@ -1062,7 +1062,7 @@ mod tests {
             Some(&GemListRow::Provider {
                 title: GemListRowTitle::Validator,
                 name: "Test Validator".to_string(),
-                contract: Some(pending.validator.id.clone()),
+                contract: Some(pending.validator.id),
             }),
             "a validator opens its address details"
         );
@@ -1084,7 +1084,7 @@ mod tests {
 
         let no_apr = Delegation {
             validator: DelegationValidator { apr: 0.0, ..active.validator.clone() },
-            ..active.clone()
+            ..active
         };
         assert!(!delegation_rows(&no_apr, now).iter().any(|row| matches!(row, GemListRow::Amount { .. })));
 
@@ -1357,7 +1357,7 @@ mod tests {
                 wallet_type: WalletType::Multicoin,
                 asset_data: AssetData::mock(asset.clone(), Balance::coin_balance(0u32.into())),
                 currency: Currency::USD,
-                validators: validators.clone(),
+                validators,
                 delegations: delegations.clone(),
             },
             Platform::IOS,
@@ -1654,7 +1654,7 @@ mod tests {
 
         let rewards = options(GemStakeAmountInput::Rewards {
             delegations: vec![Delegation::mock_with_validator(current.clone()), Delegation::mock_with_validator(DelegationValidator::mock_cosmos("second"))],
-            validator: current.clone(),
+            validator: current,
         });
         assert_eq!(
             rewards.sections.iter().map(|section| section.kind).collect::<Vec<_>>(),
@@ -1703,7 +1703,7 @@ mod tests {
         );
         assert_eq!(
             selected(GemStakeAmountInput::Rewards {
-                delegations: vec![Delegation::mock_with_validator(current.clone()), Delegation::mock_with_validator(other.clone())],
+                delegations: vec![Delegation::mock_with_validator(current), Delegation::mock_with_validator(other.clone())],
                 validator: other,
             }),
             Some(("other".to_string(), true))
@@ -1744,7 +1744,7 @@ mod tests {
         assert!(matches!(stake_type(&with_validator(&rewards, other.clone())), StakeType::Rewards(validators) if validators.len() == 1 && validators[0].id == "other"));
 
         let unstake = GemStakeAmountInput::Unstake {
-            delegation: Delegation::mock_with_validator(current.clone()),
+            delegation: Delegation::mock_with_validator(current),
         };
         assert!(matches!(stake_type(&with_validator(&unstake, other)), StakeType::Unstake(delegation) if delegation.validator.id == "current"));
 

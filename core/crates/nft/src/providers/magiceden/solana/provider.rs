@@ -29,7 +29,7 @@ impl<C: Client + 'static> NFTProvider for MagicEdenSolanaClient<C> {
 
     async fn get_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
         let nft = self.get_asset_id(&asset_id.token_id).await?;
-        Ok(map_asset(nft.clone(), asset_id, nft.owner.clone()).ok_or("Asset not found")?)
+        Ok(map_asset(nft.clone(), asset_id, nft.owner).ok_or("Asset not found")?)
     }
 }
 

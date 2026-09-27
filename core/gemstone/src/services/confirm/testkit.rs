@@ -76,13 +76,13 @@ impl ConfirmTestkit {
             wallets: Mutex::new(vec![wallet.clone(), selected_wallet]),
             ..Default::default()
         });
-        let session = Arc::new(GemWalletSessionService::new(selected.clone(), wallets.clone()));
+        let session = Arc::new(GemWalletSessionService::new(selected, wallets));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let api = Arc::new(GemApiClient::new(provider.clone()));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let price = Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore);
-        let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store.clone(), price.clone(), preferences.clone(), session.clone()));
+        let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store, price.clone(), preferences.clone(), session.clone()));
         let balances = Arc::new(MemoryBalanceStore::with_balances(
             wallet.id.clone(),
             wallet
@@ -115,7 +115,7 @@ impl ConfirmTestkit {
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(GemNodeService::mock()))),
-            Arc::new(GemScanService::new(device_api.clone())),
+            Arc::new(GemScanService::new(device_api)),
             transactions,
             balance,
             price,

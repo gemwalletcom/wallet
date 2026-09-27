@@ -118,7 +118,7 @@ mod tests {
         };
         let addresses = vec![ContactAddress::mock("0xabc")];
 
-        let editing = new_session(Some(contact.clone()), addresses.clone(), "unused".to_string());
+        let editing = new_session(Some(contact.clone()), addresses, "unused".to_string());
         assert_eq!(editing.id, contact.id);
         assert_eq!(editing.name, contact.name);
         assert_eq!(editing.description, "a friend");

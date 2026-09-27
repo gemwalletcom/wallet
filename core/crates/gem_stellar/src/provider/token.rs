@@ -31,7 +31,7 @@ impl<C: Client> ChainToken for StellarClient<C> {
         let token_id = AssetId::sub_token_id(&[issuer.to_string(), symbol.clone()]);
 
         Ok(Asset {
-            id: AssetId::from(self.chain, Some(token_id.clone())),
+            id: AssetId::from(self.chain, Some(token_id)),
             name: symbol.clone(),
             symbol,
             decimals: STELLAR_TOKEN_DECIMALS,

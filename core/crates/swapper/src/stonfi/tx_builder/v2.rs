@@ -237,7 +237,7 @@ mod tests {
                 address: "EQDx--jUU9PUtHltPYZX7wdzIi0SPY3KZ8nvOs0iZvQJd6Ql".to_string(),
                 ..swap_from_intermediary.router.clone()
             },
-            ..swap_from_intermediary.clone()
+            ..swap_from_intermediary
         };
         let forward_transaction = build_swap_transaction(SwapTransactionParams {
             next_swap: Some(NextSwapParams {

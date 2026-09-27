@@ -44,7 +44,7 @@ where
 
     if allowance < amount {
         return Ok(ApprovalType::Approve(ApprovalData {
-            token: token.to_string(),
+            token: token.clone(),
             spender: spender.to_string(),
             value: u256_to_biguint(&amount),
             is_unlimited: true,

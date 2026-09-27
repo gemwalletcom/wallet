@@ -548,7 +548,7 @@ pub fn position_action(perpetual: &Perpetual, asset: &Asset, position: Option<Pe
         GemPerpetualPositionKind::Increase => {
             let position = position_for(perpetual, position)?;
             GemPerpetualPositionAction::Increase {
-                data: data(position.direction.clone(), position.leverage, position.margin_type.clone()),
+                data: data(position.direction.clone(), position.leverage, position.margin_type),
             }
         }
         GemPerpetualPositionKind::Reduce => {
@@ -1208,8 +1208,8 @@ mod tests {
     #[test]
     fn test_chart_layout_colours_each_candle_by_its_move() {
         let rising = ChartCandleStick::mock_range(9.0, 12.0);
-        let falling = ChartCandleStick { open: 12.0, close: 9.0, ..rising.clone() };
-        let flat = ChartCandleStick { open: 10.0, close: 10.0, ..rising.clone() };
+        let falling = ChartCandleStick { open: 12.0, close: 9.0, ..rising };
+        let flat = ChartCandleStick { open: 10.0, close: 10.0, ..rising };
 
         let layout = chart_layout(&[rising, falling, flat], None);
 
@@ -1793,7 +1793,7 @@ mod tests {
             }
         );
 
-        let open = confirm_details(&PerpetualType::Open { data: data.clone() }).unwrap();
+        let open = confirm_details(&PerpetualType::Open { data }).unwrap();
         assert_eq!(
             open.summary,
             GemPerpetualConfirmDetailsSummary {

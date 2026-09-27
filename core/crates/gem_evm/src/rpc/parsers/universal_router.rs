@@ -319,7 +319,7 @@ mod tests {
             receipt.logs[0] = invalid;
             assert_eq!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &receipt, DateTime::default()), None);
         }
-        let mut duplicate = receipt.clone();
+        let mut duplicate = receipt;
         duplicate.logs.push(original);
         assert_eq!(ProtocolParsers::map_transaction(&Chain::SmartChain, &transaction, &duplicate, DateTime::default()), None);
     }

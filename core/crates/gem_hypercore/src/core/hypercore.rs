@@ -166,7 +166,7 @@ mod tests {
         let nonce = 1677777606040u64;
         let hash = action_hash(&action_value, None, nonce, None).unwrap();
         let expected_connection_id = "0x0fcbeda5ae3c4950a548021552a4fea2226858c4453571bf3f24ba017eac2908";
-        let phantom_agent = PhantomAgent::new(hash.clone());
+        let phantom_agent = PhantomAgent::new(hash);
 
         assert_eq!(phantom_agent.source, "a");
         assert_eq!(phantom_agent.connection_id, expected_connection_id);

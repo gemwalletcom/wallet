@@ -516,7 +516,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
         let fee = base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee);
         let display_value = match unit_type {
             FeeUnitType::Native => fee.clone().unwrap_or_else(|| unit_value.clone()),
-            FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value.clone(),
+            FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value,
         };
         let is_selected = matches!(selection, GemConfirmFeeSelection::Priority { priority } if *priority == rate.priority);
         let value = fee_rate_text(unit_type, &display_value, unit_decimals, &fee_asset.symbol);
@@ -813,7 +813,7 @@ mod tests {
         let matching = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
         assert!(matching.signer_input().is_ok());
 
-        let mut switched = matching.clone();
+        let mut switched = matching;
         switched.confirm.input.from = Account::mock(Chain::Solana, "other");
 
         assert!(matches!(
@@ -985,7 +985,7 @@ mod tests {
         };
 
         let rows = fee_rate_rows(Chain::Solana, &solana, &rates, &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }, &loaded);
-        assert_eq!(rows.rows[0].fee, Some(loaded.fee.clone()), "the selected rate shows the fee that was loaded");
+        assert_eq!(rows.rows[0].fee, Some(loaded.fee), "the selected rate shows the fee that was loaded");
         assert_eq!(rows.rows[1].fee, Some(BigInt::from(20_000) + &rent), "the rent does not grow with the priority");
 
         let fast = fee_rate_rows(
@@ -1274,7 +1274,7 @@ mod tests {
         assert_eq!(transactions[0].id.hash, "hash");
         assert_eq!(transactions[0].from, "sender");
 
-        let mut no_account = input.clone();
+        let mut no_account = input;
         no_account.wallet.accounts.clear();
         assert!(matches!(no_account.pending_transactions(&["hash".to_string()], &signed), Err(GemConfirmError::Record { .. })));
     }
@@ -1449,7 +1449,7 @@ mod tests {
                 ..GemAssetBalance::mock_with_available(1)
             },
             GemAssetBalance {
-                asset_id: empty.id.clone(),
+                asset_id: empty.id,
                 ..GemAssetBalance::mock_with_available(0)
             },
         ];
@@ -1592,7 +1592,7 @@ mod tests {
             },
         ];
 
-        let metadata = build_metadata(asset_id.clone(), fee_asset_id.clone(), balances, vec![]).unwrap();
+        let metadata = build_metadata(asset_id, fee_asset_id, balances, vec![]).unwrap();
 
         assert_eq!(metadata.asset_balance.available, GemBigUint::from(3u32));
         assert_eq!(metadata.fee_asset_balance.available, GemBigUint::from(7u32));
@@ -1619,7 +1619,7 @@ mod tests {
             asset_id.clone(),
             fee_asset_id.clone(),
             vec![GemAssetBalance {
-                asset_id: asset_id.clone(),
+                asset_id,
                 ..GemAssetBalance::mock_with_available(3)
             }],
             vec![],

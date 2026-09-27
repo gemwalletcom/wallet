@@ -159,7 +159,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
 
     let chain = CHAIN;
     let account_keys = &transaction.transaction.message.account_keys;
-    let hash = transaction.transaction.signatures.first()?.to_string();
+    let hash = transaction.transaction.signatures.first()?.clone();
     let fee = transaction.meta.fee;
     let state = if transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed };
     let fee_asset_id = chain.as_asset_id();
@@ -223,8 +223,8 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
                 return None;
             }
             let value = from_value - to_value;
-            let from = sender.owner.clone();
-            let to = recipient.owner.clone();
+            let from = sender.owner;
+            let to = recipient.owner;
 
             let is_nft = is_nft_token_transfer(transaction, account_keys, token_id, &value);
             let (transaction_type, asset_id, metadata) = if is_nft {
@@ -234,7 +234,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
                 (TransactionType::Transfer, AssetId { chain, token_id: Some(token_id.clone()) }, None)
             };
 
-            let transaction = Transaction::new(hash, asset_id, from, to, None, transaction_type, state, BigUint::from(fee), fee_asset_id, value.clone(), memo, metadata, created_at);
+            let transaction = Transaction::new(hash, asset_id, from, to, None, transaction_type, state, BigUint::from(fee), fee_asset_id, value, memo, metadata, created_at);
             return Some(transaction);
         }
     }
@@ -264,10 +264,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         let swap = map_swap_metadata(transaction, &sender, provider)?;
 
         let transaction = Transaction::new(
-            hash.clone(),
+            hash,
             swap.from_asset.clone(),
             sender.clone(),
-            sender.clone(),
+            sender,
             Some(program_id.to_string()),
             TransactionType::Swap,
             state,
@@ -297,7 +297,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         chain.as_asset_id(),
         sender.clone(),
         sender,
-        Some(contract.to_string()),
+        Some(contract.clone()),
         TransactionType::SmartContractCall,
         state,
         BigUint::from(fee),

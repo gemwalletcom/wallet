@@ -422,11 +422,7 @@ mod tests {
             "a shortfall in the asset that pays the fee shows the fee amount the user has to cover"
         );
         assert_eq!(row(load(short_of(Asset::mock_ethereum_usdc()))), text(fiat.clone(), None), "a token shortfall does not involve the fee");
-        assert_eq!(
-            row(picker.clone()),
-            text(fiat.clone(), Some(GemLocalizedText::Text { text: eth.symbol.clone() })),
-            "a fee paid in a picked asset names that asset"
-        );
+        assert_eq!(row(picker.clone()), text(fiat, Some(GemLocalizedText::Text { text: eth.symbol })), "a fee paid in a picked asset names that asset");
         assert_eq!(
             row(GemConfirmLoad {
                 fee: Some(GemConfirmFee::mock(GemTransferAmountResult::mock())),

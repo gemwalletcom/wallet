@@ -199,7 +199,7 @@ impl GemFiatSession {
         GemFiatViewState {
             quote_type: operation.quote_type,
             amount: operation.amount.clone(),
-            phase: operation.phase.clone(),
+            phase: operation.phase,
             provider_rows: self.provider_rows(asset_price),
             rate_row: selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
                 title: GemListRowTitle::Rate,
@@ -669,7 +669,7 @@ mod tests {
         assert!(!session.refreshes_quotes(false), "a backgrounded screen asks for nothing");
 
         let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
-            request: request.clone(),
+            request,
             quotes: vec![],
             error: Some(GemServiceError::Offline),
         });

@@ -153,14 +153,7 @@ impl TransactionContext {
         let token_id = contract_value.contract_address.as_ref()?;
         let approval = trc20::decode_approval_hex(contract_value.data.as_deref()?)?;
 
-        Some(self.build_transaction(
-            AssetId::from_token(self.chain, token_id),
-            self.from.clone(),
-            approval.spender.encode(),
-            TransactionType::TokenApproval,
-            approval.value.clone(),
-            None,
-        ))
+        Some(self.build_transaction(AssetId::from_token(self.chain, token_id), self.from.clone(), approval.spender.encode(), TransactionType::TokenApproval, approval.value, None))
     }
 
     fn map_swap(&self, contract_value: &ContractParameterValue, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<Transaction> {
@@ -181,7 +174,7 @@ impl TransactionContext {
         let (_, from, to, value) = decode_token_transfer(logs.first()?)?;
         let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
 
-        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value.clone(), None))
+        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value, None))
     }
 
     fn map_gasfree_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
@@ -203,7 +196,7 @@ impl TransactionContext {
         Some(Transaction {
             fee,
             fee_asset_id: asset_id.clone(),
-            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value.clone(), None)
+            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value, None)
         })
     }
 

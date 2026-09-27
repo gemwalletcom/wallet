@@ -80,7 +80,7 @@ mod tests {
         assert_eq!(without_owned_objects.balance.available, BigUint::from(9_000_000_u64));
         assert_eq!(without_owned_objects.balance.reserved, BigUint::from(1_000_000_u64));
 
-        let balance_below_reserve = map_balance_coin(Some(AccountInfo::mock_with_balance(500_000, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        let balance_below_reserve = map_balance_coin(Some(AccountInfo::mock_with_balance(500_000, 2)), asset_id, base_reserve, owner_reserve).unwrap();
         assert_eq!(balance_below_reserve.balance.available, BigUint::ZERO);
         assert_eq!(balance_below_reserve.balance.reserved, BigUint::from(1_400_000_u64));
     }

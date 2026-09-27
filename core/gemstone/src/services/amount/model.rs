@@ -524,10 +524,7 @@ mod tests {
             }
             .display()
             .info(),
-            Some(GemInfoTopic::MinimumAmount {
-                asset: asset.clone(),
-                minimum: minimum.clone()
-            })
+            Some(GemInfoTopic::MinimumAmount { asset: asset.clone(), minimum })
         );
         let GemAmountErrorDisplay::BelowMinimum { minimum: formatted, .. } = GemAmountError::BelowMinimum {
             asset,

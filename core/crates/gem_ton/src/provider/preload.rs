@@ -43,7 +43,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
         _ => base_fee.clone(),
     };
 
-    Ok(TransactionFee::new_gas_price_type(GasPriceType::regular(fee.clone()), fee.clone(), BigInt::from(1), options, AssetId::from_chain(Chain::Ton)))
+    Ok(TransactionFee::new_gas_price_type(GasPriceType::regular(fee.clone()), fee, BigInt::from(1), options, AssetId::from_chain(Chain::Ton)))
 }
 
 fn swap_attachment(from_asset: &Asset, swap_data: &SwapData) -> Result<BigUint, Box<dyn Error + Send + Sync>> {

@@ -88,7 +88,7 @@ impl GemAmountService {
                     GemAmountTransfer::Withdraw => {
                         let wallet = self.session.require_current_wallet().await?;
                         let account = required_account(&wallet, asset.chain())?;
-                        Some(GemRecipient::named(account.address.clone(), wallet.name.clone()))
+                        Some(GemRecipient::named(account.address, wallet.name))
                     }
                     GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => None,
                 };

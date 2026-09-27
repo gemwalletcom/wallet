@@ -104,7 +104,7 @@ mod tests {
         assert_eq!(
             GemLoad::<Vec<String>>::loading().data(Err(error.clone())),
             GemLoad {
-                state: GemLoadState::Error { error: error.clone() },
+                state: GemLoadState::Error { error },
                 value: Vec::new()
             }
         );

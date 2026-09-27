@@ -151,7 +151,7 @@ fn balance_rows(chain: Chain, coin: AssetBalance, stake: Option<AssetBalance>) -
         GemBalanceRow::Available { .. } => false,
         GemBalanceRow::Staked { .. } | GemBalanceRow::Earn { .. } | GemBalanceRow::PendingUnconfirmed { .. } | GemBalanceRow::Reserved { .. } => true,
     });
-    once(GemBalanceRow::Available { value: balance.available.clone() }).chain(breakdown).collect()
+    once(GemBalanceRow::Available { value: balance.available }).chain(breakdown).collect()
 }
 
 fn balance_section(details: &GemAddressDetails, asset: &Asset) -> Vec<GemListRow> {

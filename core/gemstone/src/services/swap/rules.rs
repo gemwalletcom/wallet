@@ -495,7 +495,7 @@ mod tests {
         );
 
         let swapped_back = select_pair_asset(pair.clone(), GemSwapSide::Receive, eth.clone());
-        assert_eq!((swapped_back.pay_asset_id, swapped_back.receive_asset_id), (Some(btc.clone()), Some(eth.clone())));
+        assert_eq!((swapped_back.pay_asset_id, swapped_back.receive_asset_id), (Some(btc.clone()), Some(eth)));
 
         let replaced = select_pair_asset(pair, GemSwapSide::Pay, sol.clone());
         assert_eq!((replaced.pay_asset_id, replaced.receive_asset_id), (Some(sol.clone()), Some(btc)), "any other asset only replaces the side it was chosen for");

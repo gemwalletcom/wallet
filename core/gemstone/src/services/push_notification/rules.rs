@@ -86,10 +86,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             notification(PushNotificationTypes::SwapAsset.as_ref(), Some(&swap_payload)),
-            Some(GemPushNotification::SwapAsset {
-                from_asset_id: bitcoin.clone(),
-                to_asset_id: solana.clone(),
-            })
+            Some(GemPushNotification::SwapAsset { from_asset_id: bitcoin, to_asset_id: solana })
         );
 
         let transaction = Transaction::mock();

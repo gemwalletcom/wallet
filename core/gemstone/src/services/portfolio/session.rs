@@ -272,7 +272,7 @@ mod tests {
             currency: Currency::USD,
         };
 
-        assert_eq!(selected.on_result(loaded(stale.clone(), data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
+        assert_eq!(selected.on_result(loaded(stale, data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
         assert_eq!(
             selected.on_result(failed(
                 GemPortfolioRequest {

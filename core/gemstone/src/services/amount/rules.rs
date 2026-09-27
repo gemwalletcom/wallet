@@ -1070,7 +1070,7 @@ mod tests {
         let input = GemAmountType::Transfer.input(&ether, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
         assert_eq!(input.available_value, BigInt::from(1_500_000_000_000_000_000u64), "the raw value stays, because entry reads it back");
         let balance = GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, GemValueStyle::Auto);
-        assert_eq!(balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol.clone() }, "the symbol travels with the number");
+        assert_eq!(balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol }, "the symbol travels with the number");
         assert_eq!(balance.value, 1.5);
         assert_eq!(input.balance, GemLocalizedText::AmountBalance { balance }, "the screen reads Balance: with the number");
     }
@@ -1333,7 +1333,7 @@ mod tests {
         );
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Rewards {
-                delegations: vec![other.clone(), delegation.clone()],
+                delegations: vec![other, delegation.clone()],
                 validator: delegation.validator.clone(),
             }),
             GemAmountType::Stake {
@@ -1379,7 +1379,7 @@ mod tests {
             recipient: recipient.clone(),
             amount: Some("1.5".into()),
         };
-        let send = transfer_data(Asset::mock_hypercore_usdc(), GemAmountTransfer::Send { payment: payment.clone() }, None, GemBigInt::from(1), false).unwrap();
+        let send = transfer_data(Asset::mock_hypercore_usdc(), GemAmountTransfer::Send { payment }, None, GemBigInt::from(1), false).unwrap();
         assert!(matches!(send.input_type, TransactionInputType::Transfer { .. }));
         assert_eq!(send.recipient, recipient);
 

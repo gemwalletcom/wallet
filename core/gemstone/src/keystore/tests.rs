@@ -24,7 +24,7 @@ fn test_gem_keystore_private_key_create_export_delete() {
         keystore.add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon]).unwrap_err().to_string(),
         "add_accounts does not support private-key wallets"
     );
-    assert!(keystore.delete(stored.keystore_id.clone()).unwrap());
+    assert!(keystore.delete(stored.keystore_id).unwrap());
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
         "1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
     );
 
-    let added = keystore.add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon, Chain::Tron]).unwrap();
+    let added = keystore.add_accounts(stored.keystore_id, b"password".to_vec(), vec![Chain::Polygon, Chain::Tron]).unwrap();
     assert_eq!(added[0].chain, Chain::Polygon);
     assert_eq!(added[0].address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     assert_eq!(added[1].chain, Chain::Tron);

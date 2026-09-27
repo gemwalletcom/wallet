@@ -435,7 +435,7 @@ mod tests {
                     },
                     alert_ids: vec![
                         PriceAlert::new_price(bitcoin.clone(), Currency::USD, 120.0, PriceAlertDirection::Up).id(),
-                        PriceAlert::new_price(bitcoin.clone(), Currency::USD, 100.0, PriceAlertDirection::Up).id(),
+                        PriceAlert::new_price(bitcoin, Currency::USD, 100.0, PriceAlertDirection::Up).id(),
                     ],
                 },
                 GemPriceAlertSection {
@@ -539,7 +539,7 @@ mod tests {
     #[test]
     fn test_each_kind_names_which_slot_holds_the_price_and_which_the_percent() {
         let asset = Asset::from_chain(Chain::Bitcoin);
-        let asset_id = asset.id.clone();
+        let asset_id = asset.id;
         let row = |alert: PriceAlert| price_alert_line(&PriceAlertData::mock(alert, Some(100.0), Some(-2.0)), Currency::USD);
         let is_price = |text: &GemPriceAlertText| matches!(text, GemPriceAlertText::Number { value } if matches!(value.unit, GemNumberUnit::Currency { .. }));
         let is_percent = |text: &GemPriceAlertText| matches!(text, GemPriceAlertText::Number { value } if matches!(value.unit, GemNumberUnit::Percent));
@@ -564,8 +564,8 @@ mod tests {
     #[test]
     fn test_the_row_picks_the_percent_style_from_the_kind_not_from_the_stored_percent() {
         let asset = Asset::from_chain(Chain::Bitcoin);
-        let asset_id = asset.id.clone();
-        let directed = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
+        let asset_id = asset.id;
+        let directed = PriceAlert::new_price_percent(asset_id, Currency::USD, 5.0, PriceAlertDirection::Up);
         assert_eq!(
             price_alert_line(&PriceAlertData::mock(directed.clone(), Some(100.0), None), Currency::USD).suffix,
             GemPriceAlertText::Number {
@@ -574,7 +574,7 @@ mod tests {
         );
 
         let undirected = PriceAlert { price_direction: None, ..directed };
-        let row = price_alert_line(&PriceAlertData::mock(undirected.clone(), Some(100.0), None), Currency::USD);
+        let row = price_alert_line(&PriceAlertData::mock(undirected, Some(100.0), None), Currency::USD);
         assert_eq!(row.kind, GemPriceAlertKind::Auto);
         assert_eq!(
             row.suffix,
@@ -611,7 +611,7 @@ mod tests {
 
         let over = PriceAlert::new_price(asset_id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
         assert_eq!(
-            price_alert_line(&PriceAlertData::mock(over.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
+            price_alert_line(&PriceAlertData::mock(over, Some(100.0), Some(-2.0)), Currency::EUR),
             PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
@@ -628,7 +628,7 @@ mod tests {
         );
 
         let increase = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
-        let increase_row = price_alert_line(&PriceAlertData::mock(increase.clone(), Some(100.0), None), Currency::USD);
+        let increase_row = price_alert_line(&PriceAlertData::mock(increase, Some(100.0), None), Currency::USD);
         assert_eq!(increase_row.kind, GemPriceAlertKind::Increase);
         assert_eq!(
             (increase_row.prefix, increase_row.suffix),
@@ -643,7 +643,7 @@ mod tests {
 
         let under = PriceAlert::new_price(asset_id.clone(), Currency::USD, 80.0, PriceAlertDirection::Down);
         assert_eq!(
-            price_alert_line(&PriceAlertData::mock(under.clone(), Some(100.0), Some(2.0)), Currency::USD),
+            price_alert_line(&PriceAlertData::mock(under, Some(100.0), Some(2.0)), Currency::USD),
             PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
@@ -658,8 +658,8 @@ mod tests {
             }
         );
 
-        let decrease = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Down);
-        assert_eq!(price_alert_line(&PriceAlertData::mock(decrease.clone(), Some(100.0), None), Currency::USD).kind, GemPriceAlertKind::Decrease);
+        let decrease = PriceAlert::new_price_percent(asset_id, Currency::USD, 5.0, PriceAlertDirection::Down);
+        assert_eq!(price_alert_line(&PriceAlertData::mock(decrease, Some(100.0), None), Currency::USD).kind, GemPriceAlertKind::Decrease);
 
         assert_eq!(
             price_alert_line(&PriceAlertData::mock(auto.clone(), None, None), Currency::USD).direction,
@@ -667,9 +667,9 @@ mod tests {
             "an alert with no price to compare shows no direction"
         );
 
-        let priced = PriceAlert { price: Some(120.0), ..auto.clone() };
+        let priced = PriceAlert { price: Some(120.0), ..auto };
         assert_eq!(
-            price_alert_line(&PriceAlertData::mock(priced.clone(), Some(100.0), Some(-2.0)), Currency::USD),
+            price_alert_line(&PriceAlertData::mock(priced, Some(100.0), Some(-2.0)), Currency::USD),
             PriceAlertLine {
                 asset_id: asset.id.clone(),
                 icon: asset_icon(&asset.id),
@@ -721,7 +721,7 @@ mod tests {
         let low_down = PriceAlert::new_price(asset_id.clone(), Currency::USD, 100.0, PriceAlertDirection::Down);
         let percent = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
         let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);
-        let mut notified = PriceAlert::new_price(asset_id.clone(), Currency::USD, 5000.0, PriceAlertDirection::Up);
+        let mut notified = PriceAlert::new_price(asset_id, Currency::USD, 5000.0, PriceAlertDirection::Up);
         notified.last_notified_at = DateTime::<Utc>::from_timestamp(10, 0);
         let mut notified_auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Bitcoin), Currency::USD);
         notified_auto.last_notified_at = DateTime::<Utc>::from_timestamp(10, 0);

@@ -178,7 +178,7 @@ impl BalanceTestkit {
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let wallets = Arc::new(MemoryWalletStore::default());
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
         let assets = Arc::new(MemoryAssetStore::default());
         let assets_service = Arc::new(GemAssetsService::new(
             Arc::new(GemApiClient::new(provider)),

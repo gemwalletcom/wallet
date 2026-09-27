@@ -388,7 +388,7 @@ mod tests {
         let testkit = WalletTestkit::new();
         let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum], "0xabc"));
 
-        let details = testkit.service.wallet_details(wallet.clone());
+        let details = testkit.service.wallet_details(wallet);
 
         assert_eq!(details.address.as_ref().map(|address| address.address.as_str()), Some("0xabc"));
         assert!(

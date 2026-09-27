@@ -227,7 +227,7 @@ mod tests {
         let priced = GemPriceAlertSession {
             current_price: Some(100.0),
             input: Some(120.0),
-            ..session.clone()
+            ..session
         };
         assert_eq!(priced.view_state().prompt, GemPriceAlertPrompt::PriceOver);
         assert_eq!(GemPriceAlertSession { input: Some(80.0), ..priced.clone() }.view_state().prompt, GemPriceAlertPrompt::PriceUnder);

@@ -39,7 +39,7 @@ Cargo accepts one positional test filter. Run multiple filters as separate comma
 
 ```sh
 just format                     # Format all code (prefer per-file below)
-just lint                       # Run clippy with warnings as errors
+just lint                       # Run clippy with warnings as errors and the extra lints in `clippy_lints`
 just fix                        # Auto-fix clippy issues
 just unused                     # Find unused dependencies with cargo-machete
 ```

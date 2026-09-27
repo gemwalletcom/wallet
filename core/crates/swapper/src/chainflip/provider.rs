@@ -574,7 +574,7 @@ mod tests {
         assert_eq!(egress_amount.to_string(), "4080934615929730944");
         assert_eq!(route_data.boost_fee, Some(5));
 
-        let mut warned_best = response.clone();
+        let mut warned_best = response;
         warned_best[1]["lowLiquidityWarning"] = serde_json::json!(true);
         warned_best[1]["boostQuote"]["lowLiquidityWarning"] = serde_json::json!(true);
         let (egress_amount, _, _, _) = get_best_quote(serde_json::from_value(warned_best.clone()).unwrap(), &request).unwrap();

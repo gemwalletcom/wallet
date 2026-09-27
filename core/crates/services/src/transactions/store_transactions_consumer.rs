@@ -404,10 +404,7 @@ mod tests {
             TransactionState::Pending
         );
 
-        let near_intents = Transaction {
-            to: near_vault.clone(),
-            ..Transaction::mock()
-        };
+        let near_intents = Transaction { to: near_vault, ..Transaction::mock() };
         assert_eq!(
             StoreTransactionsConsumer::transactions_for_storage(vec![near_intents], &deposit_addresses, &SendAddressMap::new())[0].state,
             TransactionState::InTransit
@@ -424,7 +421,7 @@ mod tests {
         );
 
         let outbound = Transaction {
-            from: thorchain_vault.clone(),
+            from: thorchain_vault,
             ..Transaction::mock()
         };
         let regular = Transaction::mock();
@@ -487,7 +484,7 @@ mod tests {
             wallet_id: WalletId::View(Chain::Ethereum, "0xABC".to_string()),
             ..DeviceSubscription::mock()
         };
-        let result = StoreTransactionsConsumer::unique_subscriptions_per_device(vec![multicoin.clone(), other_device.clone()]);
+        let result = StoreTransactionsConsumer::unique_subscriptions_per_device(vec![multicoin, other_device]);
         assert_eq!(result.len(), 2);
     }
 }

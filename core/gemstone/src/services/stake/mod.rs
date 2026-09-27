@@ -164,7 +164,7 @@ impl GemStakeService {
     async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
         let wallet = self.session.require_current_wallet().await?;
         let account = required_account(&wallet, chain)?;
-        Ok((wallet.id.clone(), account.address.clone()))
+        Ok((wallet.id, account.address))
     }
     async fn save_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Result<(), GemServiceError> {
         if !validators.is_empty() {

@@ -398,7 +398,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Solana,
             sign_type: SignDigestType::Base58,
-            data: data.clone(),
+            data,
         });
 
         match decoder.preview() {

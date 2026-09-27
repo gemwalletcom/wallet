@@ -66,7 +66,7 @@ impl ChainClientFactory {
                 url,
                 Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
             )))),
-            ChainType::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
+            ChainType::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client)))),
             ChainType::Algorand => Ok(Arc::new(AlgorandProvider::new_rpc_only(AlgorandClient::new(alien_client)))),
             ChainType::Near => Ok(Arc::new(NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(alien_client))))),
             ChainType::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
@@ -75,7 +75,7 @@ impl ChainClientFactory {
             ChainType::Tron => Ok(Arc::new(TronProvider::new_rpc_only(TronClient::new(alien_client)))),
             ChainType::Polkadot => Ok(Arc::new(PolkadotProvider::new_rpc_only(PolkadotClient::new(alien_client)))),
             ChainType::Solana => {
-                let client = JsonRpcClient::new(alien_client.clone());
+                let client = JsonRpcClient::new(alien_client);
                 Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
             }
             ChainType::Ethereum => {

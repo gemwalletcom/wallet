@@ -314,7 +314,7 @@ mod migration_tests {
         let wallet_id = MNEMONIC_WALLET_ID.to_string();
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
-        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone()).unwrap();
+        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id).unwrap();
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
         assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);

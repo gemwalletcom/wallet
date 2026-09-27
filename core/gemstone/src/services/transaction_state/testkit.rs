@@ -101,7 +101,7 @@ pub struct TestTransactionUpdater {
 #[async_trait::async_trait]
 impl GemTransactionUpdater for TestTransactionUpdater {
     async fn update(&self, _wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        self.requested.lock().unwrap().push(transaction.id.clone());
+        self.requested.lock().unwrap().push(transaction.id);
         let mut results = self.results.lock().unwrap();
         if results.is_empty() {
             return Ok(None);

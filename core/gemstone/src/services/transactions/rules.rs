@@ -896,7 +896,7 @@ mod tests {
         );
         assert_eq!(transaction_title(&open), GemTransactionTitle::PerpetualOpen { direction: Some(PerpetualDirection::Short) });
 
-        let mut close = open.clone();
+        let mut close = open;
         close.transaction_type = TransactionType::PerpetualClosePosition;
         assert_eq!(transaction_title(&close), GemTransactionTitle::PerpetualClose { direction: Some(PerpetualDirection::Short) });
     }
@@ -936,7 +936,7 @@ mod tests {
         freeze.metadata = Some(serde_json::to_value(TransactionResourceTypeMetadata::new(Resource::Energy)).unwrap());
         assert_eq!(transaction_subtitle(&freeze), GemTransactionSubtitle::ToResource { resource: Resource::Energy });
 
-        let mut unfreeze = freeze.clone();
+        let mut unfreeze = freeze;
         unfreeze.transaction_type = TransactionType::StakeUnfreeze;
         assert_eq!(transaction_subtitle(&unfreeze), GemTransactionSubtitle::FromResource { resource: Resource::Energy });
 
@@ -989,7 +989,7 @@ mod tests {
         let mut named = extended.clone();
         named.to_address = Some(primitives::AddressName {
             chain: extended.transaction.asset_id.chain,
-            address: unnamed.address.clone(),
+            address: unnamed.address,
             name: "Binance".to_string(),
             address_type: primitives::AddressType::Address,
             status: primitives::VerificationStatus::Verified,
@@ -1426,7 +1426,7 @@ mod tests {
             detail_rows(&confirmed, WalletType::Multicoin, None, explorer.clone(), Currency::USD).provider_contract.is_none(),
             "a deposit-address swap has no contract to open"
         );
-        let mut routed = confirmed.clone();
+        let mut routed = confirmed;
         routed.transaction.contract = Some("0xrouter".to_string());
         let routed_rows = detail_rows(&routed, WalletType::Multicoin, None, explorer.clone(), Currency::USD);
         let provider_contract = detail_sections(&routed_rows).into_iter().flat_map(|section| section.rows).find_map(|row| match row {

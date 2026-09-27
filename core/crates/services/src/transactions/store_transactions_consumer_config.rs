@@ -134,8 +134,8 @@ mod tests {
             (transaction_transfer.clone(), &token_asset, price_low, 0.01, true),
             (transaction_transfer.clone(), &token_asset, price_high, 0.5, true),
             (transaction_transfer.clone(), &native_asset, price_low, 0.01, true),
-            (transaction_transfer.clone(), &token_asset, None, 0.01, false),
-            (transaction_swap.clone(), &token_asset, price_low, 0.01, false),
+            (transaction_transfer, &token_asset, None, 0.01, false),
+            (transaction_swap, &token_asset, price_low, 0.01, false),
         ];
 
         for (transaction, asset, price, min_amount, expected) in test_cases {

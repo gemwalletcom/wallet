@@ -205,7 +205,7 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let balance = GemAssetBalance::mock_with_available(2_000_000_000_000_000_000);
 
-        let GemLocalizedText::Balance { amount } = available_balance_text(asset.clone(), balance) else {
+        let GemLocalizedText::Balance { amount } = available_balance_text(asset, balance) else {
             panic!("a balance sentence carries an amount");
         };
 
@@ -351,7 +351,7 @@ mod tests {
         let sei_evm_token = AssetId::from_token(Chain::SeiEvm, "0xtoken");
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
-        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei.clone(), sei_evm_token, ethereum_token.clone()]);
+        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei, sei_evm_token, ethereum_token.clone()]);
 
         assert_eq!(
             requests,

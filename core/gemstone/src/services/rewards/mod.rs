@@ -178,7 +178,7 @@ mod tests {
             );
             assert_eq!(incoming_referral_code(Some("  ".to_string()), vec![testkit.wallet.clone()]), None);
             assert_eq!(incoming_referral_code(Some("friend".to_string()), vec![]), None, "no wallet decides nothing yet");
-            assert_eq!(incoming_referral_code(None, vec![testkit.wallet.clone()]), None);
+            assert_eq!(incoming_referral_code(None, vec![testkit.wallet]), None);
         })
     }
 

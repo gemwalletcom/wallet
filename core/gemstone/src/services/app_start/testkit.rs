@@ -50,7 +50,7 @@ impl AppStartTestkit {
             banners.clone(),
             discovery.assets.clone(),
             discovery.balance.clone(),
-            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners.clone(), discovery.wallet_preferences.clone())),
+            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners, discovery.wallet_preferences.clone())),
             wallets.service.clone(),
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
@@ -75,7 +75,7 @@ impl AppStartTestkit {
             support: support_store,
             wallets,
             banners: banner_store,
-            assets: discovery.asset_store.clone(),
+            assets: discovery.asset_store,
             first,
             second,
         }

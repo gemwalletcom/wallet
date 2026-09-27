@@ -145,7 +145,7 @@ pub(super) fn map_inspect_result(response: proto::SimulateTransactionResponse) -
                     .into_iter()
                     .filter_map(|value| {
                         let value = value.value?;
-                        Some((value.value.unwrap_or_default().to_vec(), value.name.unwrap_or_default()))
+                        Some((value.value.unwrap_or_default(), value.name.unwrap_or_default()))
                     })
                     .collect(),
             })

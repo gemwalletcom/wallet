@@ -211,7 +211,7 @@ where
                 from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
                 from_value: status.amount_in.amount.clone(),
                 to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount.clone(),
+                to_value: status.amount_out.amount,
                 provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
             })
         });

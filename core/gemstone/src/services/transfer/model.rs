@@ -142,7 +142,7 @@ mod tests {
             transfer.identifier(),
             GemTransferData {
                 recipient: GemRecipient::address("bc1r".to_string()),
-                ..transfer.clone()
+                ..transfer
             }
             .identifier()
         );

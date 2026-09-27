@@ -51,7 +51,7 @@ fn catalog_entries(localizations: &BTreeMap<String, Vec<(String, String)>>, excl
 fn ios_key(key: &str, key_map: &BTreeMap<String, String>) -> String {
     let mapped_key = key_map.get(key);
     if mapped_key.is_some_and(|key| key.contains('.')) {
-        return mapped_key.expect("mapped key was checked").to_string();
+        return mapped_key.expect("mapped key was checked").clone();
     }
     let Some(prefix) = key_map
         .values()

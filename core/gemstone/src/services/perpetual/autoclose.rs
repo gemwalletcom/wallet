@@ -648,7 +648,7 @@ mod tests {
         assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), none.clone()).is_complete());
         assert!(GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, None), none.clone()).is_complete());
         assert!(GemAutocloseModify::mock(none.clone(), GemAutocloseField::mock(Some(90.0), None, true, None)).is_complete());
-        assert!(!GemAutocloseModify::mock(none.clone(), none.clone()).is_complete());
+        assert!(!GemAutocloseModify::mock(none.clone(), none).is_complete());
         assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).is_complete());
         assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).is_complete());
     }
@@ -659,7 +659,7 @@ mod tests {
         let set_only = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), None, true, None), none.clone()).build(5);
         assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl { order }] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
 
-        let cancel_only = GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, Some(12345)), none.clone()).build(5);
+        let cancel_only = GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, Some(12345)), none).build(5);
         assert!(matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel { orders: cancels }] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5));
 
         let both = GemAutocloseModify::mock(GemAutocloseField::mock(Some(120.0), Some(100.0), true, Some(12345)), GemAutocloseField::mock(Some(80.0), Some(90.0), true, Some(67890))).build(5);

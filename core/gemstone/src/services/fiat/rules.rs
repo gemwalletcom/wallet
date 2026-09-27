@@ -196,7 +196,7 @@ mod tests {
 
         let row = quote_row(&buy, Some(30.0));
         assert_eq!(row.fiat_amount.unit, GemNumberUnit::Currency { code: buy.fiat_currency.clone() });
-        assert_eq!(row.crypto_amount.unit, GemNumberUnit::Symbol { symbol: buy.asset.symbol.clone() });
+        assert_eq!(row.crypto_amount.unit, GemNumberUnit::Symbol { symbol: buy.asset.symbol });
     }
 
     #[test]

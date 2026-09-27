@@ -182,7 +182,7 @@ mod tests {
         assert_eq!(changes.delete_ids, vec![local[1].id()]);
         assert_eq!(changes.alerts.iter().map(PriceAlert::id).collect::<Vec<_>>(), vec![remote[1].id()]);
 
-        let unchanged = reconcile(local.clone(), local.clone());
+        let unchanged = reconcile(local.clone(), local);
         assert!(unchanged.delete_ids.is_empty() && unchanged.alerts.is_empty());
 
         let changes = reconcile(Vec::new(), Vec::new());

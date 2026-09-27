@@ -67,7 +67,7 @@ impl NFTAsset {
             id: id.clone(),
             collection_id: id.get_collection_id(),
             contract_address: Some(id.token_id.clone()),
-            token_id: id.token_id.clone(),
+            token_id: id.token_id,
             token_type: NFTType::JETTON,
             name: "TON NFT".to_string(),
             description: None,

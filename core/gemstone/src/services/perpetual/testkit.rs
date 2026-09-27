@@ -181,7 +181,7 @@ impl PerpetualTestkit {
             device_api.clone(),
             Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
             Arc::new(MemoryTransactionStateStore::default()),
-            Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default()))),
+            Arc::new(GemNameService::new(device_api, Arc::new(MemoryAddressStore::default()))),
             self.wallet_preferences.clone(),
             self.session.clone(),
             Arc::new(RecordingTransactionStatus::default()),

@@ -639,7 +639,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     } = input;
     let chain = asset.chain();
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
-    let quoted = price_row(price, price_change_percentage_24h, currency.clone(), GemCurrencyStyle::Currency);
+    let quoted = price_row(price, price_change_percentage_24h, currency, GemCurrencyStyle::Currency);
     let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
         row: GemListRow::Link { title, value, icon, action: action.clone() },
@@ -1884,7 +1884,7 @@ mod tests {
         notified.last_notified_at = Some(Utc::now());
         let state = |alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, &plain, &[], &alerts);
 
-        assert_eq!(state(vec![auto.clone(), manual.clone(), notified]).price_alert, GemPriceAlertToggle::Enabled);
+        assert_eq!(state(vec![auto, manual.clone(), notified]).price_alert, GemPriceAlertToggle::Enabled);
         assert_eq!(state(vec![manual]).price_alert, GemPriceAlertToggle::Disabled);
     }
 
@@ -1959,7 +1959,7 @@ mod tests {
             is_swap_enabled: true,
             ..AssetMetaData::mock()
         };
-        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable.clone() };
+        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable };
         let actions = |wallet_type, metadata: &AssetMetaData| state(wallet_type, metadata, &[]).empty_state.actions;
         assert_eq!(actions(WalletType::Multicoin, &tradable), vec![GemEmptyStateAction::Buy]);
         assert_eq!(actions(WalletType::Multicoin, &swappable), vec![GemEmptyStateAction::Swap]);

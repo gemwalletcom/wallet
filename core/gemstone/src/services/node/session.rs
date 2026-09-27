@@ -177,12 +177,12 @@ mod tests {
         let session = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checking();
 
         assert_eq!(
-            session.clone().on_check_failed("https://node".to_string(), Some(GemAddNodeError::Gateway(GatewayError::Offline))).error,
+            session.on_check_failed("https://node".to_string(), Some(GemAddNodeError::Gateway(GatewayError::Offline))).error,
             Some(GemErrorText::NetworkOffline),
             "a transport failure does not pretend to be a bad url"
         );
         assert_eq!(
-            session.clone().on_add_failed(Some(GemServiceError::Store { msg: "disk full".to_string() })).error,
+            session.on_add_failed(Some(GemServiceError::Store { msg: "disk full".to_string() })).error,
             Some(GemErrorText::Unknown),
             "storage text is internal"
         );

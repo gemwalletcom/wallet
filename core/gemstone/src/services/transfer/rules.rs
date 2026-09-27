@@ -926,7 +926,7 @@ mod tests {
         );
         let sent = GemTransferData::mock(TransactionInputType::Transfer { asset: eth.clone() });
         assert_eq!(sent.destination(), Some(GemConfirmDestination::Recipient { name: None, address: "recipient".into() }));
-        let mut unaddressed = sent.clone();
+        let mut unaddressed = sent;
         unaddressed.recipient.address = String::new();
         assert_eq!(unaddressed.destination(), None);
 
@@ -955,7 +955,7 @@ mod tests {
         assert_eq!(
             GemTransferData::mock(TransactionInputType::Stake {
                 asset: eth.clone(),
-                stake_type: StakeType::Rewards(vec![validator.clone(), validator.clone()]),
+                stake_type: StakeType::Rewards(vec![validator.clone(), validator]),
             })
             .destination(),
             None
@@ -990,7 +990,7 @@ mod tests {
             swap(contract.clone()),
             Some(GemConfirmDestination::Provider {
                 name: contract.quote.provider_data.name.clone(),
-                address: contract.data.to.clone()
+                address: contract.data.to
             }),
             "a contract quote shows the router it calls"
         );
@@ -1290,7 +1290,7 @@ mod tests {
                 },
             },
         };
-        assert!(GemPendingTransactionInput::mock(hypercore_swap.clone(), TransactionType::Swap, "0xhash", 0, 2).pending_transaction().unwrap().is_some());
+        assert!(GemPendingTransactionInput::mock(hypercore_swap, TransactionType::Swap, "0xhash", 0, 2).pending_transaction().unwrap().is_some());
         let hypercore_stake = TransactionInputType::Stake {
             asset: Asset::from_chain(Chain::HyperCore),
             stake_type: StakeType::Rewards(vec![]),

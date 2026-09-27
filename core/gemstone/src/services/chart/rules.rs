@@ -431,7 +431,7 @@ mod tests {
         assert_eq!(current.date, now);
         assert_eq!(current.change_percentage, 4.2);
         assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 3.0).unwrap().change_percentage, 200.0);
-        assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
+        assert_eq!(current_value(&points, Some(newer), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
 
         assert_eq!(current_value(&points, Some(same_age.clone()), now, ChartPeriod::Day, 1.0), None);
         assert_eq!(current_value(&points, None, now, ChartPeriod::Day, 1.0), None);
@@ -586,7 +586,7 @@ mod tests {
                 }]
             ))
         );
-        assert_eq!(first(Some(1.0), vec![notified.clone()]), Some(set_price_alert()));
+        assert_eq!(first(Some(1.0), vec![notified]), Some(set_price_alert()));
         assert_eq!(first(Some(0.0), vec![auto.clone()]), None);
         assert_eq!(first(None, vec![auto]), None);
         assert_eq!(first(None, vec![]), None);

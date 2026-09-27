@@ -216,7 +216,7 @@ mod tests {
         assert_eq!(valid.address, CHECKSUMMED);
 
         assert!(!validation(Chain::Ethereum, "other.eth", &GemNameRecordState::Complete { record: ens.clone() }).is_valid);
-        assert!(!validation(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }).is_valid);
+        assert!(!validation(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens }).is_valid);
         assert!(
             !validation(
                 Chain::Ethereum,
@@ -242,7 +242,7 @@ mod tests {
         assert_eq!(plain.address, CHECKSUMMED);
         assert_eq!(plain.name, None);
         assert_eq!(
-            recipient(Chain::Ethereum, "other.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
+            recipient(Chain::Ethereum, "other.eth", &GemNameRecordState::Complete { record: ens }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch { chain: Chain::Ethereum })
         );
         assert_eq!(
@@ -278,7 +278,7 @@ mod tests {
             Err(GemRecipientError::NameRecordMismatch { chain: Chain::Ethereum })
         );
         assert_eq!(
-            recipient(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
+            recipient(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch { chain: Chain::Polygon })
         );
 
@@ -287,7 +287,7 @@ mod tests {
             recipient(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: empty.clone() }, None, vec![]),
             Err(GemRecipientError::InvalidAddress { chain: Chain::Ethereum })
         );
-        let fallback = validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: empty.clone() });
+        let fallback = validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: empty });
         assert!(!fallback.is_valid);
         assert_eq!(fallback.address, "vitalik.eth");
     }
@@ -393,7 +393,7 @@ mod tests {
         let scanned = GemRecipientSession::default().on_memo_changed("typed".to_string()).on_payment(payment.clone());
         assert_eq!(scanned.address, ADDRESS);
         assert_eq!(scanned.memo, "42", "a scanned memo replaces the typed one");
-        assert_eq!(scanned.on_address_changed(ADDRESS.to_string()).payment, Some(payment.clone()));
+        assert_eq!(scanned.on_address_changed(ADDRESS.to_string()).payment, Some(payment));
         assert_eq!(scanned.on_address_changed("0x1".to_string()).payment, None, "editing the address drops the scanned amount");
 
         match scanned.next(asset.clone(), GemNameRecordState::None).unwrap() {

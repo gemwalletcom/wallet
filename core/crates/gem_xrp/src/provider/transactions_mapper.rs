@@ -68,7 +68,7 @@ fn map_transaction_common(
 
         return Some(Transaction::new(
             hash,
-            asset_id.clone(),
+            asset_id,
             account.unwrap_or_default(),
             destination.unwrap_or_default(),
             None,

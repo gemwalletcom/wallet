@@ -81,7 +81,7 @@ impl OkxParser {
             from_asset,
             from_value: event.from_amount.clone(),
             to_asset,
-            to_value: event.to_amount.clone(),
+            to_value: event.to_amount,
             provider: Some(Self::provider()),
         })
     }
