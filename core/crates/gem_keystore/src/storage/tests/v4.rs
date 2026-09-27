@@ -30,6 +30,38 @@ fn test_v4_secret_file_is_owner_read_write_only() {
 }
 
 #[test]
+fn test_v4_import_reports_whether_it_wrote_the_file() {
+    let (_dir, keystore) = FileKeystore::mock();
+    let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+    assert!(meta.created);
+
+    let reused = keystore.import_mnemonic(PHRASE, b"password", Some(meta.keystore_id.clone())).unwrap();
+    assert!(!reused.created);
+    assert_eq!(reused.keystore_id, meta.keystore_id);
+}
+
+#[cfg(unix)]
+#[test]
+fn test_v4_lookup_failure_is_an_error_not_absence() {
+    let (dir, keystore) = FileKeystore::mock();
+    let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+    let permissions = fs::metadata(&dir).unwrap().permissions();
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o000)).unwrap();
+    let lookup_denied = fs::metadata(dir.as_ref().join("probe")).err().map(|error| error.kind()) == Some(std::io::ErrorKind::PermissionDenied);
+
+    let lookup = keystore.get_meta(&meta.keystore_id);
+    let import = keystore.import_mnemonic(PHRASE, b"password", Some(meta.keystore_id.clone()));
+    fs::set_permissions(&dir, permissions).unwrap();
+
+    if !lookup_denied {
+        return;
+    }
+    assert!(lookup.is_err(), "{lookup:?}");
+    assert!(import.is_err(), "{import:?}");
+    assert_eq!(keystore.decrypt_mnemonic(&meta.keystore_id, b"password").unwrap().as_str(), PHRASE);
+}
+
+#[test]
 fn test_v4_mnemonic_roundtrip() {
     let (_dir, keystore) = FileKeystore::mock();
     let password = b"password";

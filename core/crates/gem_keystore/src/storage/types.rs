@@ -19,6 +19,7 @@ pub struct StoredSecretMeta {
     pub keystore_id: String,
     pub kind: SecretKind,
     pub version: u8,
+    pub created: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -303,7 +303,6 @@ impl GemWalletService {
             ),
             import => {
                 let keystore_id = keystore_id_for_wallet(wallet_id.id());
-                let is_new_secret = !self.keystore.exists(keystore_id.clone())?;
                 let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 let wallet = Wallet {
@@ -317,7 +316,7 @@ impl GemWalletService {
                     image_url: None,
                     source,
                 };
-                (wallet, is_new_secret.then_some(keystore_id))
+                (wallet, stored.created.then_some(keystore_id))
             }
         };
         if let Err(error) = self.store_wallet(&wallet).await {
@@ -550,6 +549,24 @@ mod tests {
             let without_record = context.service.store_import("Again".to_string(), import, WalletSource::Import).await;
             assert!(without_record.is_err());
             assert_eq!(fs::read_to_string(&path).unwrap(), unreadable, "a store failure never rolls back a file this import did not create");
+        });
+    }
+
+    #[test]
+    fn test_a_failed_wallet_write_keeps_a_secret_the_import_reused() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let wallet = context.import("Wallet", PHRASE).await;
+            context.wallets.wallets.lock().unwrap().clear();
+            *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
+            let import = GemWalletImportType::MulticoinPhrase {
+                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                chains: vec![Chain::Ethereum],
+            };
+
+            assert!(context.service.store_import("Again".to_string(), import, WalletSource::Import).await.is_err());
+
+            assert!(context.keystore_path(&wallet).exists(), "the rollback deletes only a file this import wrote");
         });
     }
 
