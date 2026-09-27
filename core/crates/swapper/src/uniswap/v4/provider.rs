@@ -7,7 +7,7 @@ use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
 
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
-    alien::{RpcClient, RpcProvider},
+    alien::RpcProvider,
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     fees::{apply_slippage_in_bp, default_referral_fees},
     uniswap::{
@@ -28,7 +28,7 @@ use gem_evm::{
     },
 };
 use gem_hash::keccak::keccak256;
-use gem_jsonrpc::client::JsonRpcClient;
+use gem_jsonrpc::alien::create_client;
 use primitives::{AssetId, Chain, EVMChain};
 
 use super::{
@@ -63,12 +63,6 @@ impl UniswapV4 {
         vec![FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand]
     }
 
-    fn client_for(&self, chain: Chain) -> Result<JsonRpcClient<RpcClient>, SwapperError> {
-        let endpoint = self.rpc_provider.get_endpoint(chain).map_err(SwapperError::from)?;
-        let client = RpcClient::new(endpoint, self.rpc_provider.clone());
-        Ok(JsonRpcClient::new(client))
-    }
-
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
         let Some(base_pair) = base_pair(*evm_chain, PROTOCOL) else {
             return false;
@@ -88,7 +82,7 @@ impl UniswapV4 {
         let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
-        let client = self.client_for(chain)?;
+        let client = create_client(self.rpc_provider.clone(), chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
         let pools = self
@@ -167,7 +161,7 @@ impl Swapper for UniswapV4 {
             .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
             .collect::<Vec<_>>();
         let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
-        let results = self.client_for(from_chain)?.batch_request(calls).await?;
+        let results = create_client(self.rpc_provider.clone(), from_chain)?.batch_request(calls).await?;
         let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 
         let fee_tier_idx = quote_result.fee_tier_idx;
@@ -218,7 +212,7 @@ impl Swapper for UniswapV4 {
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let to_amount = u128::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
-        let client = self.client_for(from_asset.chain)?;
+        let client = create_client(self.rpc_provider.clone(), from_asset.chain)?;
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let (approval, permit2) = if input.funding == Funding::Permit2 {
