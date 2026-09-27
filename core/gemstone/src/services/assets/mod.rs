@@ -240,7 +240,7 @@ impl GemAssetsService {
         let lookups = chains.into_iter().filter(|chain| chain.default_asset_type().is_some()).map(|chain| {
             let token_id = token_id.clone();
             async move {
-                if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
+                if self.gateway.get_is_token_address(chain, token_id.clone()).ok()? {
                     let asset = self.gateway.get_token_data(chain, token_id).await.ok()?;
                     (!asset.id.is_native_mirror()).then(|| rules::default_asset_basic(asset))
                 } else {

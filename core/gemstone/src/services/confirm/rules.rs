@@ -190,11 +190,11 @@ impl GemConfirmData {
         }
     }
 
-    pub(super) fn fee_load(self, metadata: GemConfirmMetadata, fee_asset: Asset, currency: Currency) -> Result<GemConfirmFeeLoad, GemConfirmError> {
-        let amount = self.preload_amount(&metadata, &fee_asset)?;
+    pub(super) fn fee_load(self, metadata: GemConfirmMetadata, fee_asset: Asset, currency: Currency) -> GemConfirmFeeLoad {
+        let amount = self.preload_amount(&metadata, &fee_asset);
         let price = metadata.fee_price().map(|price| price.price);
         let formatted = |value: &GemBigInt| fee_amount(&fee_asset, value, price, currency.clone());
-        Ok(GemConfirmFeeLoad {
+        GemConfirmFeeLoad {
             fee: GemConfirmFee {
                 value: self.fee.fee.clone(),
                 formatted: formatted(&self.fee.fee),
@@ -206,12 +206,12 @@ impl GemConfirmData {
             metadata,
             confirm_data: self,
             simulation: None,
-        })
+        }
     }
 
-    pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> Result<GemTransferAmountResult, GemConfirmError> {
+    pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> GemTransferAmountResult {
         let transfer = &self.input.transfer;
-        let available_value = transfer.available_value(&metadata.asset_balance).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let available_value = transfer.available_value(&metadata.asset_balance);
         let input = GemTransferAmountInput {
             input_type: transfer.input_type.clone(),
             value: transfer.value.clone(),
@@ -222,12 +222,12 @@ impl GemConfirmData {
             is_max_amount: transfer.use_max_amount,
             destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
         };
-        Ok(match input.calculate() {
+        match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
             Err(error) => GemTransferAmountResult::Error {
                 error: amount_error(error, transfer.input_type.get_asset(), fee_asset),
             },
-        })
+        }
     }
 }
 
@@ -1479,7 +1479,7 @@ mod tests {
 
         let metadata = GemConfirmMetadata::mock(&asset.id, 50_200);
 
-        match data.preload_amount(&metadata, &asset).unwrap() {
+        match data.preload_amount(&metadata, &asset) {
             GemTransferAmountResult::Error {
                 error: GemConfirmError::BelowSwapMinimum {
                     asset: error_asset,
@@ -1511,7 +1511,7 @@ mod tests {
         let short = GemConfirmMetadata::mock(&asset.id, 10);
         let funded = GemConfirmMetadata::mock(&asset.id, 2_000_000);
 
-        match data.preload_amount(&short, &asset).unwrap() {
+        match data.preload_amount(&short, &asset) {
             GemTransferAmountResult::Error {
                 error: GemConfirmError::InsufficientBalance { asset: error_asset, requirement },
             } => {
@@ -1522,7 +1522,7 @@ mod tests {
             }
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }
-        assert!(matches!(data.preload_amount(&funded, &asset).unwrap(), GemTransferAmountResult::Amount { .. }));
+        assert!(matches!(data.preload_amount(&funded, &asset), GemTransferAmountResult::Amount { .. }));
     }
 
     #[test]

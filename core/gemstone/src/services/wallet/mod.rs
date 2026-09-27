@@ -164,7 +164,7 @@ impl GemWalletService {
         if remaining.is_empty() || self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
-        self.invalidate_subscriptions().await?;
+        self.invalidate_subscriptions()?;
         Ok(match remaining.is_empty() {
             true => GemWalletDeletion::LastWalletDeleted,
             false => GemWalletDeletion::WalletsRemaining,
@@ -327,7 +327,7 @@ impl GemWalletService {
         if wallet.source == WalletSource::Create {
             self.preferences.complete_initial_synchronization(wallet.id.clone())?;
         }
-        self.invalidate_subscriptions().await?;
+        self.invalidate_subscriptions()?;
         Ok(GemWalletImportResult::New { wallet })
     }
 
@@ -349,7 +349,7 @@ impl GemWalletService {
             }
         }
         if !outcome.wallets.is_empty() {
-            self.invalidate_subscriptions().await?;
+            self.invalidate_subscriptions()?;
         }
         Ok(outcome)
     }
@@ -365,7 +365,7 @@ impl GemWalletService {
         self.names.save_names(rules::wallet_address_names(wallet)).await
     }
 
-    async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
+    fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
         self.app_preferences.set_subscriptions_version(self.app_preferences.get_subscriptions_version() + 1)
     }
 }

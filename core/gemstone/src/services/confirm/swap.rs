@@ -77,7 +77,7 @@ impl GemConfirmTransferService {
             input: GemConfirmInput { transfer, ..fee.confirm_data.input },
             ..fee.confirm_data
         };
-        let fitted = confirm_data.fee_load(fee.metadata, fee.fee_asset, self.get_currency())?;
+        let fitted = confirm_data.fee_load(fee.metadata, fee.fee_asset, self.get_currency());
         Ok((GemConfirmFeeLoad { simulation: fee.simulation, ..fitted }, Some(ConfirmSwapQuote::requoted(quote, now))))
     }
 
@@ -250,7 +250,7 @@ mod tests {
                     fee_asset: Asset::mock_eth().id,
                     ..GemTransactionLoadFee::mock(10)
                 };
-                confirm.fee_load(GemConfirmMetadata::mock(&Asset::mock_eth().id, 1_000), Asset::mock_eth(), Currency::USD).unwrap()
+                confirm.fee_load(GemConfirmMetadata::mock(&Asset::mock_eth().id, 1_000), Asset::mock_eth(), Currency::USD)
             };
             let sent = |fee: &GemConfirmFeeLoad| match &fee.fee.amount {
                 GemTransferAmountResult::Amount { amount } => Some((amount.value.clone(), amount.network_fee.clone())),

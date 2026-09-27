@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
 use serde::Deserialize;
@@ -106,7 +104,7 @@ struct GraphqlPackage {
     address: String,
 }
 
-pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Result<Digest, Box<dyn Error + Send + Sync>> {
+pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Digest {
     let status = match transaction.effects.status {
         GraphqlExecutionStatus::Success => STATUS_SUCCESS,
         GraphqlExecutionStatus::Failure => STATUS_FAILURE,
@@ -135,7 +133,7 @@ pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Result<Digest,
         })
         .collect();
 
-    Ok(Digest {
+    Digest {
         digest: transaction.digest,
         effects: Effect {
             gas_used: GasUsed {
@@ -153,7 +151,7 @@ pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Result<Digest,
         balance_changes: Some(balance_changes),
         events,
         timestamp_ms: transaction.effects.timestamp.timestamp_millis() as u64,
-    })
+    }
 }
 
 fn address_owner(address: String) -> Owner {

@@ -11,7 +11,6 @@ use primitives::{
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{transaction_metadata_block_number, transaction_metadata_sequence};
-use crate::services::amount::model::GemAmountError;
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transactions::GemTransactionHeaderKind;
@@ -490,10 +489,9 @@ impl GemTransferData {
         self.input_type.application_short_name()
     }
 
-    #[allow(clippy::result_large_err)]
-    pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> Result<BigInt, GemAmountError> {
+    pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> BigInt {
         let asset = self.input_type.get_asset();
-        Ok(match &self.input_type {
+        match &self.input_type {
             TransactionInputType::Withdrawal { .. } => BigInt::from(balance.withdrawable.clone()),
             TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
@@ -516,7 +514,7 @@ impl GemTransferData {
             | TransactionInputType::TransferNft { .. }
             | TransactionInputType::Account { .. }
             | TransactionInputType::Perpetual { .. } => BigInt::from(balance.available.clone()),
-        })
+        }
     }
 }
 
@@ -1099,13 +1097,11 @@ mod tests {
         };
         assert_eq!(unfreeze.metadata().unwrap().unwrap()["resourceType"], "bandwidth");
         assert_eq!(
-            GemTransferData::mock(unfreeze)
-                .available_value(&GemAssetBalance {
-                    frozen: BigUint::from(20u64),
-                    locked: BigUint::from(30u64),
-                    ..GemAssetBalance::mock_with_available(10)
-                })
-                .unwrap(),
+            GemTransferData::mock(unfreeze).available_value(&GemAssetBalance {
+                frozen: BigUint::from(20u64),
+                locked: BigUint::from(30u64),
+                ..GemAssetBalance::mock_with_available(10)
+            }),
             BigInt::from(20)
         );
 
@@ -1113,7 +1109,7 @@ mod tests {
             asset: Asset::from_chain(Chain::Cosmos),
             stake_type: StakeType::Unstake(Delegation::mock_base(DelegationBase::mock_with_balance(700, 5))),
         };
-        assert_eq!(GemTransferData::mock(unstake).available_value(&GemAssetBalance::mock_with_available(10)).unwrap(), BigInt::from(700));
+        assert_eq!(GemTransferData::mock(unstake).available_value(&GemAssetBalance::mock_with_available(10)), BigInt::from(700));
         let rewards = TransactionInputType::Stake {
             asset: Asset::from_chain(Chain::Cosmos),
             stake_type: StakeType::Rewards(vec![]),
@@ -1123,8 +1119,7 @@ mod tests {
                 value: BigInt::from(42),
                 ..GemTransferData::mock(rewards)
             }
-            .available_value(&GemAssetBalance::mock_with_available(10))
-            .unwrap(),
+            .available_value(&GemAssetBalance::mock_with_available(10)),
             BigInt::from(42)
         );
         let tron_stake = TransactionInputType::Stake {
@@ -1132,16 +1127,14 @@ mod tests {
             stake_type: StakeType::Stake(Delegation::mock_base(DelegationBase::mock_with_balance(0, 5)).validator),
         };
         assert_eq!(
-            GemTransferData::mock(tron_stake)
-                .available_value(&GemAssetBalance {
-                    metadata: Some(BalanceMetadata { votes: 2, ..BalanceMetadata::default() }),
-                    ..GemAssetBalance {
-                        frozen: BigUint::from(5000000u64),
-                        locked: BigUint::from(3000000u64),
-                        ..GemAssetBalance::mock_with_available(1)
-                    }
-                })
-                .unwrap(),
+            GemTransferData::mock(tron_stake).available_value(&GemAssetBalance {
+                metadata: Some(BalanceMetadata { votes: 2, ..BalanceMetadata::default() }),
+                ..GemAssetBalance {
+                    frozen: BigUint::from(5000000u64),
+                    locked: BigUint::from(3000000u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            }),
             BigInt::from(6_000_000)
         );
         let overvoted = TransactionInputType::Stake {
@@ -1149,26 +1142,22 @@ mod tests {
             stake_type: StakeType::Stake(Delegation::mock_base(DelegationBase::mock_with_balance(0, 5)).validator),
         };
         assert_eq!(
-            GemTransferData::mock(overvoted)
-                .available_value(&GemAssetBalance {
-                    metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
-                    ..GemAssetBalance {
-                        frozen: BigUint::from(5000000u64),
-                        locked: BigUint::from(3000000u64),
-                        ..GemAssetBalance::mock_with_available(1)
-                    }
-                })
-                .unwrap(),
+            GemTransferData::mock(overvoted).available_value(&GemAssetBalance {
+                metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
+                ..GemAssetBalance {
+                    frozen: BigUint::from(5000000u64),
+                    locked: BigUint::from(3000000u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            }),
             BigInt::from(0)
         );
         let withdrawal = TransactionInputType::Withdrawal { asset: Asset::from_chain(Chain::HyperCore) };
         assert_eq!(
-            GemTransferData::mock(withdrawal)
-                .available_value(&GemAssetBalance {
-                    withdrawable: BigUint::from(9u32),
-                    ..GemAssetBalance::mock_with_available(10)
-                })
-                .unwrap(),
+            GemTransferData::mock(withdrawal).available_value(&GemAssetBalance {
+                withdrawable: BigUint::from(9u32),
+                ..GemAssetBalance::mock_with_available(10)
+            }),
             BigInt::from(9)
         );
     }

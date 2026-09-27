@@ -501,7 +501,7 @@ mod tests {
             data.input.transfer.value = 1_000_000u64.into();
             data.fee.fee = fee.into();
             data.fee.fee_asset = load.fee_asset.id.clone();
-            let amount = data.preload_amount(&load.metadata, &load.fee_asset).unwrap();
+            let amount = data.preload_amount(&load.metadata, &load.fee_asset);
             match &amount {
                 GemTransferAmountResult::Amount { amount } => assert_eq!(
                     amount,

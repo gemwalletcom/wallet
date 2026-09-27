@@ -477,7 +477,7 @@ fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delegation
         Some(item(GemStakeActionKind::Stake, None, requires_frozen_balance)),
         uses_freeze.then(|| item(GemStakeActionKind::Freeze, None, false)),
         uses_freeze.then(|| item(GemStakeActionKind::Unfreeze, None, false)),
-        can_claim_stake_rewards(chain, &rewards).then(|| item(GemStakeActionKind::ClaimRewards, rewards_amount(chain, &rewards), false)),
+        can_claim_stake_rewards(chain, &rewards).then(|| item(GemStakeActionKind::ClaimRewards, Some(rewards_amount(chain, &rewards)), false)),
     ]
     .into_iter()
     .flatten()
@@ -493,9 +493,9 @@ fn action_title(action: GemStakeActionKind) -> GemListRowTitle {
     }
 }
 
-fn rewards_amount(chain: Chain, rewards: &BigUint) -> Option<GemFormattedNumber> {
+fn rewards_amount(chain: Chain, rewards: &BigUint) -> GemFormattedNumber {
     let asset = Asset::from_chain(chain);
-    Some(GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals as u32), Some(asset.symbol), GemValueStyle::Auto))
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals as u32), Some(asset.symbol), GemValueStyle::Auto)
 }
 
 fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> Option<GemStakeDestination> {

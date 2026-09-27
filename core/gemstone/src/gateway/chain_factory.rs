@@ -47,11 +47,11 @@ impl ChainClientFactory {
         }
     }
 
-    pub async fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
-        self.create_with_url(chain, self.nodes.node_url(chain)).await
+    pub fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
+        self.create_with_url(chain, self.nodes.node_url(chain))
     }
 
-    pub async fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
+    pub fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
         let alien_client = new_alien_client(url.clone(), self.alien.clone());
         match chain.chain_type() {
             ChainType::HyperCore => {
@@ -114,7 +114,7 @@ mod tests {
             let alien = Arc::new(TestAlienProvider::with_status(404));
             let factory = ChainClientFactory::new(alien.clone(), nodes, Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
 
-            let _ = factory.create(Chain::Arc).await.unwrap().get_block_latest_number().await;
+            let _ = factory.create(Chain::Arc).unwrap().get_block_latest_number().await;
 
             assert_eq!(alien.requested_paths(), vec![selected_url.to_string()]);
         });
@@ -124,7 +124,7 @@ mod tests {
     fn test_get_is_token_address_matches_chain_config() {
         let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(GemNodeService::mock()), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
         for chain in Chain::all() {
-            let client = block_on(factory.create(chain)).unwrap();
+            let client = factory.create(chain).unwrap();
             let is_token_supported = chain.default_asset_type().is_some();
             match chain.chain_type().mock_token_id() {
                 Some(token_id) => assert_eq!(
