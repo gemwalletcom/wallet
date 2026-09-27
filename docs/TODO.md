@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN399 to CLN404 in section 12, one item per change.
+2. **Conversion sweeps:** CLN400 to CLN404 in section 12, one item per change.
 3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -217,10 +217,6 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 ## 12. Conversion sweeps
 
 The same conversion written at many call sites, found on 2026-09-27: ids turned into strings and back at every Gemstone call, one error or text shape spelled out each time. Each item gives the conversion one owner and removes the call-site copies without changing a request, a stored value or a screen. It verifies the modules it touches the same way as section 11 and states the count removed in the commit.
-
-### iOS
-
-- **CLN399** **S** **Service error text once.** `error.text().text` is written 18 times in 13 files; one `GemServiceError` property returns it.
 
 ### Android
 

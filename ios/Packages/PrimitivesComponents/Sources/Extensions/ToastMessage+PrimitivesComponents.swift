@@ -54,6 +54,6 @@ public extension ToastMessage {
     }
 
     static func error(_ error: any Error) -> ToastMessage {
-        .error((error as? GemServiceError)?.text().text ?? Localized.Errors.errorOccurred)
+        .error((error as? GemServiceError)?.localizedDescription ?? Localized.Errors.errorOccurred)
     }
 }

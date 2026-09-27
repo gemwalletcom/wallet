@@ -94,7 +94,7 @@ extension WalletDetailSceneViewModel {
         do {
             try await rename(name: nameInput)
         } catch let error as GemServiceError {
-            isPresentingAlertMessage = AlertMessage(message: error.text().text)
+            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         } catch {
             debugLog("wallet detail error: \(error)")
         }
@@ -120,7 +120,7 @@ extension WalletDetailSceneViewModel {
             try await delete()
             return true
         } catch let error as GemServiceError {
-            isPresentingAlertMessage = AlertMessage(message: error.text().text)
+            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             return false
         } catch {
             debugLog("wallet detail error: \(error)")

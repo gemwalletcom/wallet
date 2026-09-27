@@ -95,7 +95,7 @@ extension AssetPriceAlertsSceneViewModel {
         do {
             _ = try await service.setAutoAlert(asset: asset.toGem(), enabled: enabled)
         } catch let error as GemServiceError {
-            isPresentingToastMessage = .error(error.text().text)
+            isPresentingToastMessage = .error(error.localizedDescription)
         } catch {
             debugLog("price alerts error: \(error)")
         }
@@ -105,7 +105,7 @@ extension AssetPriceAlertsSceneViewModel {
         do {
             try await service.deletePriceAlerts(alerts: [priceAlert.toGem()])
         } catch let error as GemServiceError {
-            isPresentingToastMessage = .error(error.text().text)
+            isPresentingToastMessage = .error(error.localizedDescription)
         } catch {
             debugLog("price alerts error: \(error)")
         }

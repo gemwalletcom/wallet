@@ -52,7 +52,7 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
             _ = try await service.useReferralCode(wallet: wallet.toGem(), code: text)
             onSuccess(text)
         } catch let error as GemServiceError {
-            errorMessage = error.text().text
+            errorMessage = error.localizedDescription
         } catch {
             debugLog("rewards code error: \(error)")
         }

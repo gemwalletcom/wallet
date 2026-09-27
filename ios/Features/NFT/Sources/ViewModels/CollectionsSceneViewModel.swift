@@ -62,7 +62,7 @@ public final class CollectionsSceneViewModel: Sendable {
         let result = await service.refresh(hasContent: screen.hasContent)
         loadState = result.state
         if let toast = result.toast {
-            isPresentingToastMessage = .error(toast.text().text)
+            isPresentingToastMessage = .error(toast.localizedDescription)
         }
     }
 

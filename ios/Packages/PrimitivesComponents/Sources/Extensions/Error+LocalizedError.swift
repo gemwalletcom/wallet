@@ -1,10 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Gemstone
+import enum Gemstone.AlienError
+import enum Gemstone.GatewayError
+import enum Gemstone.GemAddNodeError
+import enum Gemstone.GemPaymentError
+import enum Gemstone.GemServiceError
+import enum Gemstone.GemstoneError
+import enum Gemstone.GemWalletConnectError
+import enum Gemstone.SwapperError
+import func Gemstone.alienErrorText
+import func Gemstone.paymentErrorText
+import func Gemstone.swapErrorDisplay
 import Localization
 import Primitives
-import PrimitivesComponents
 
 extension KeystoreError: @retroactive LocalizedError {
     public var errorDescription: String? {

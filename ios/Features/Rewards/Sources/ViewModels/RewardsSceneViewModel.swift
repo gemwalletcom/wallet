@@ -209,7 +209,7 @@ public final class RewardsSceneViewModel: Sendable {
             session = session.onRewards(rewards: rewards)
             showActivatedToast()
         } catch let error as GemServiceError {
-            showError(error.text().text)
+            showError(error.localizedDescription)
         } catch {
             debugLog("rewards error: \(error)")
         }
@@ -244,7 +244,7 @@ public final class RewardsSceneViewModel: Sendable {
             _ = try await service.redeem(wallet: selectedWallet.toGem(), redemptionId: redemptionId)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch let error as GemServiceError {
-            showError(error.text().text)
+            showError(error.localizedDescription)
         } catch {
             debugLog("rewards error: \(error)")
         }

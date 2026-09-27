@@ -175,7 +175,7 @@ extension SelectAssetSceneViewModel {
             do {
                 try await service.setAssetsEnabled(assetIds: [assetId], enabled: enabled)
             } catch let error as GemServiceError {
-                isPresentingToastMessage = .error(error.text().text)
+                isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
                 debugLog("SelectAssetSceneViewModel set asset enabled error: \(error)")
             }

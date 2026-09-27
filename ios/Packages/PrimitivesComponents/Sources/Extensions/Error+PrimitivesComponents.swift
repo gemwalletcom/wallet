@@ -8,7 +8,7 @@ import Primitives
 public extension Error {
     var networkOrNoDataDescription: String {
         if let error = self as? GemServiceError, error == .Offline {
-            return error.text().text
+            return error.localizedDescription
         }
         return isNetworkError(self) ? localizedDescription : Localized.Errors.noDataAvailable
     }

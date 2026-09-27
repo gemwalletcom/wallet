@@ -43,7 +43,7 @@ extension AssetActions {
                 try await setAssetsEnabled([assetId], enabled: true)
                 isPresentingToastMessage = .addedToWallet()
             } catch let error as GemServiceError {
-                isPresentingToastMessage = .error(error.text().text)
+                isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
                 debugLog("\(Self.self) enable asset error: \(error)")
             }

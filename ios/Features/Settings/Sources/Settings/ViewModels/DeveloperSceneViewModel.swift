@@ -41,14 +41,14 @@ public final class DeveloperSceneViewModel {
         do {
             deviceId = try await service.deviceId()
         } catch let error as GemServiceError {
-            deviceId = error.text().text
+            deviceId = error.localizedDescription
         } catch {
             debugLog("developer device id error: \(error)")
         }
         do {
             deviceToken = try await service.pushToken()
         } catch let error as GemServiceError {
-            deviceToken = error.text().text
+            deviceToken = error.localizedDescription
         } catch {
             debugLog("developer push token error: \(error)")
         }

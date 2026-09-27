@@ -278,7 +278,7 @@ public extension AssetSceneViewModel {
                 let toast = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled)
                 isPresentingToastMessage = ToastMessage(toast: toast)
             } catch let error as GemServiceError {
-                isPresentingToastMessage = .error(error.text().text)
+                isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
                 debugLog("asset scene: price alert error \(error)")
             }
@@ -313,7 +313,7 @@ public extension AssetSceneViewModel {
                 try await service.setAssetsEnabled(assetIds: [asset.id], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch let error as GemServiceError {
-                isPresentingToastMessage = .error(error.text().text)
+                isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
             }

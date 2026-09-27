@@ -101,7 +101,7 @@ public struct RewardsScene: View {
         Section {
             StateEmptyView(
                 title: model.errorTitle,
-                description: error.text().text,
+                description: error.localizedDescription,
                 image: nil,
             ) {
                 Button(Localized.Common.tryAgain) {

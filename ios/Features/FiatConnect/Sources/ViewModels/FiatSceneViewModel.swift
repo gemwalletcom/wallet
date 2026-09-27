@@ -263,7 +263,7 @@ extension FiatSceneViewModel {
                 urlState = .error(error)
                 isPresentingAlertMessage = AlertMessage(
                     title: Localized.Errors.errorOccurred,
-                    message: error.text().text,
+                    message: error.localizedDescription,
                 )
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")
             } catch {
