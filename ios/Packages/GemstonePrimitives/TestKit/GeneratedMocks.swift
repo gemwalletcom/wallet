@@ -1102,7 +1102,7 @@ public extension Gemstone.GemTransactionAmount {
 
 public extension Gemstone.GemTransactionDetailRows {
     static func mock(
-        id: String = Primitives.TransactionId.mock().identifier,
+        id: Primitives.TransactionId = .mock(),
         asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
         transactionType: Gemstone.TransactionType = .transfer,
         direction: Gemstone.TransactionDirection = .selfTransfer,

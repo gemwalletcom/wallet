@@ -16,6 +16,8 @@ pub struct Config {
     remote: Vec<String>,
     pub(crate) codes: Vec<String>,
     pub(crate) identifiers: Vec<String>,
+    #[serde(default)]
+    typed_identifiers: BTreeMap<String, Vec<String>>,
     scalars: Vec<String>,
     declared: BTreeMap<String, String>,
     #[serde(default)]
@@ -48,6 +50,11 @@ impl Config {
 
     pub(crate) fn is_scalar(&self, name: &str) -> bool {
         self.scalars.iter().any(|scalar| scalar == name)
+    }
+
+    /// An identifier this language's bindings already type (`uniffi.toml` custom types), so it crosses without conversion.
+    pub(crate) fn is_typed_identifier(&self, name: &str, language: &str) -> bool {
+        self.typed_identifiers.get(language).is_some_and(|names| names.iter().any(|typed| typed == name))
     }
 
     /// A type gemstone declares under another name, such as a big integer or a date.
@@ -842,7 +849,7 @@ impl Language {
             name if config.conversion(name, self.name, index).is_some() => {
                 return config.conversion(name, self.name, index).unwrap_or_default().replace("{}", expression);
             }
-            name if config.is_scalar(name) || config.declared(name).is_some() => return expression.to_string(),
+            name if config.is_scalar(name) || config.declared(name).is_some() || config.is_typed_identifier(name, self.name) => return expression.to_string(),
             name if config.codes.iter().any(|code| code == name) => self.codes[index],
             name if config.identifiers.iter().any(|identifier| identifier == name) => self.identifiers[index],
             _ => return format!("{expression}.{}()", self.functions[index]),

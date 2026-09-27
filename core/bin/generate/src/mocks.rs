@@ -3,6 +3,7 @@ use crate::remote_mappers::{Field, Generator, HEADER, RemoteType, Variant, Wrapp
 /// The syntax of one app's test mocks. The app side mocks the app models; the core side
 /// mocks the records and enums UniFFI generates for gemstone.
 pub(crate) struct MockSyntax {
+    language: &'static str,
     header: &'static str,
     core_header: &'static str,
     import: &'static str,
@@ -31,6 +32,7 @@ pub(crate) struct MockSyntax {
     core_types: &'static [(&'static str, &'static str, &'static str)],
     core_bytes: (&'static str, &'static str),
     core_identifiers: &'static [(&'static str, &'static str)],
+    core_typed_identifier: &'static str,
     core_code: &'static str,
     core_imports: &'static [&'static str],
     unit_case: [fn(&str) -> String; 2],
@@ -41,6 +43,7 @@ pub(crate) struct MockSyntax {
 }
 
 pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
+    language: "swift",
     header: "import BigInt\nimport Foundation\nimport Primitives\n",
     core_header: "import BigInt\nimport Foundation\nimport Gemstone\nimport GemstonePrimitives\nimport Primitives\nimport PrimitivesTestKit\n",
     import: "",
@@ -112,6 +115,7 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("TransactionId", "Primitives.TransactionId.mock().identifier"),
         ("WalletId", "Primitives.WalletId.mock().id"),
     ],
+    core_typed_identifier: "Primitives.{type}",
     core_code: "Primitives.{type}.{case}.rawValue",
     core_imports: &[],
     unit_case: [uniffi_swift_case, uniffi_swift_case],
@@ -122,6 +126,7 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
 };
 
 pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
+    language: "kotlin",
     header: "package com.gemwallet.android.testkit\n",
     core_header: "",
     import: "import {}\n",
@@ -189,6 +194,7 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     ],
     core_bytes: ("ByteArray", "byteArrayOf()"),
     core_identifiers: &[("AssetId", "mockAssetId().toIdentifier()"), ("TransactionId", "mockTransactionId().toIdentifier()"), ("WalletId", "mockWalletId().id")],
+    core_typed_identifier: "",
     core_code: "com.wallet.core.primitives.{type}.{case}.string",
     core_imports: &["com.gemwallet.android.ext.toGem", "com.gemwallet.android.ext.toIdentifier"],
     unit_case: [screaming_words, uniffi_type_name_case],
@@ -407,6 +413,9 @@ impl Generator {
                 if let Some((_, core, _)) = syntax.core_types.iter().find(|(rust, ..)| *rust == name) {
                     return core.to_string();
                 }
+                if self.config.is_typed_identifier(name, syntax.language) {
+                    return syntax.core_typed_identifier.replace("{type}", name);
+                }
                 if self.config.identifiers.iter().chain(&self.config.codes).any(|identifier| identifier == name) {
                     return "String".to_string();
                 }
@@ -458,6 +467,9 @@ impl Generator {
         };
         if let Some((_, _, zero)) = syntax.core_types.iter().find(|(rust, _, zero)| *rust == name && !zero.is_empty()) {
             return zero.to_string();
+        }
+        if self.config.is_typed_identifier(name, syntax.language) {
+            return syntax.reference.replace("{function}", &uniffi_type_name(name));
         }
         if let Some((_, identifier)) = syntax.core_identifiers.iter().find(|(identifier, _)| *identifier == name) {
             imports.extend(syntax.core_imports.iter().map(ToString::to_string));

@@ -2911,7 +2911,7 @@ public extension Primitives.SupportTyping {
 public extension Gemstone.Transaction {
     func toPrimitives() -> Primitives.Transaction {
         Primitives.Transaction(
-            id: Primitives.TransactionId(core: id),
+            id: id,
             assetId: Primitives.AssetId(core: assetId),
             from: from,
             to: to,
@@ -2936,7 +2936,7 @@ public extension Gemstone.Transaction {
 public extension Primitives.Transaction {
     func toGem() -> Gemstone.Transaction {
         Gemstone.Transaction(
-            id: id.identifier,
+            id: id,
             assetId: assetId.identifier,
             from: from,
             to: to,

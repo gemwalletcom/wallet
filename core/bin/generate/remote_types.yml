@@ -209,6 +209,13 @@ identifiers:
   - TransactionId
   - WalletId
 
+# Identifiers a language's bindings already type through `core/gemstone/uniffi.toml` custom types:
+# mappers pass them through and core mocks build the app type.
+typed_identifiers:
+  swift:
+    - PerpetualId
+    - TransactionId
+
 # The types `just generate-models` writes a test mock for, one per type on both apps, with the
 # defaults the generator's rules give each field. An entry that maps a type to fields overrides
 # those fields where the rule would build an invalid value.
@@ -412,10 +419,6 @@ defaults:
   AssetRank: Unknown
 
 conversions:
-  PerpetualId:
-    swift:
-      - "{}"
-      - "{}"
   u64:
     kotlin:
       - "{}.toLong()"

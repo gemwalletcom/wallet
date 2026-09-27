@@ -17,10 +17,6 @@ public func transactionListSections(_ transactions: [TransactionListItem]) -> [L
 }
 
 public extension GemTransactionRow {
-    var transactionId: TransactionId {
-        TransactionId(core: id)
-    }
-
     var assetImage: AssetImage {
         let asset = AssetImage(icon: icon)
         return AssetImage(

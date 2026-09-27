@@ -16,7 +16,7 @@ public struct TransactionsList: View {
         ForEach(sections) { section in
             Section {
                 ForEach(section.values) { row in
-                    NavigationLink(value: Scenes.Transaction(id: row.transactionId)) {
+                    NavigationLink(value: Scenes.Transaction(id: row.id)) {
                         TransactionView(row: row)
                     }
                 }

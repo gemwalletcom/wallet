@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Conversion sweeps:** CLN396 to CLN404 in section 12, one item per change; the typed ids go smallest first (CLN396, then CLN397 and CLN398).
+2. **Conversion sweeps:** CLN397 to CLN404 in section 12, one item per change; the typed ids go smallest first (CLN397, then CLN398).
 3. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
@@ -220,9 +220,8 @@ The same conversion written at many call sites, found on 2026-09-27: ids turned 
 
 ### Typed ids across the FFI boundary (iOS)
 
-Core passes these ids as UniFFI custom types ([`custom_types.rs`](../core/gemstone/src/models/custom_types.rs)), but Swift received them as strings and converted them by hand at every call (for example `assetIds.map { try Primitives.AssetId.from(id: $0) }`). `PerpetualId` shows the fix: a Swift `custom_types` entry in [`uniffi.toml`](../core/gemstone/uniffi.toml) lifts it with `init(core:)` and lowers it with `identifier`, a Swift pass-through in [`remote_types.yml`](../core/bin/generate/remote_types.yml) removes the generated mapper conversions, and the Gemstone package depends on `Primitives`. Each item does the same for one id, changes any remaining `String` id parameter in the exports to the id type, and deletes the Swift call-site conversions the compiler then flags. Android keeps strings ([ARCHITECTURE](ARCHITECTURE.md#field-types)); its conversions are CLN400 and CLN401.
+Core passes these ids as UniFFI custom types ([`custom_types.rs`](../core/gemstone/src/models/custom_types.rs)), but Swift received them as strings and converted them by hand at every call (for example `assetIds.map { try Primitives.AssetId.from(id: $0) }`). `PerpetualId` and `TransactionId` show the fix: a Swift `custom_types` entry in [`uniffi.toml`](../core/gemstone/uniffi.toml) lifts each with `init(core:)` and lowers it with `identifier`, its `typed_identifiers` entry in [`remote_types.yml`](../core/bin/generate/remote_types.yml) removes the generated mapper and mock conversions, and the Gemstone package depends on `Primitives`. Each item does the same for one id, changes any remaining `String` id parameter in the exports to the id type, and deletes the Swift call-site conversions the compiler then flags. Android keeps strings ([ARCHITECTURE](ARCHITECTURE.md#field-types)); its conversions are CLN400 and CLN401.
 
-- **CLN396** **M** **`TransactionId`.** 46 Core mentions; `TransactionId.from(id:)` and `init(core:)` at the transaction state and store calls.
 - **CLN397** **L** **`AssetId`.** 716 Core mentions; `AssetId.from(id:)` (29), `AssetId(core:)` (16) and the `.identifier` passed to Gemstone. Split by service family if one change grows too large to review.
 - **CLN398** **L** **`WalletId`.** 332 Core mentions; `WalletId.from(id:)` (45, 34 of them in the GemstoneServices stores) and `.id.id` passed to Gemstone. Split by service family if needed.
 
