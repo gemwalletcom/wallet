@@ -8,7 +8,6 @@ import Primitives
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
-    public private(set) var passwordAuthentication: KeystoreAuthentication = .none
     public var getAuthenticationError: (any Error)?
     public var getPrivacyLockStatusError: (any Error)?
 
@@ -42,9 +41,8 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
             guard createIfMissing else {
                 throw KeystoreError.missingPassword
             }
-            let authentication = try getAuthentication()
+            _ = try getAuthentication()
             memoryPassword = try SecureRandom.generateKey(length: 32).hex
-            passwordAuthentication = authentication
             return memoryPassword
         }
     }
