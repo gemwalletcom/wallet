@@ -128,6 +128,12 @@ fun GemLineChart(points: List<ChartPoint>, bounds: GemChartBounds, lineColor: Co
             fun renderScreenX(originalX: Float) = curveLeft + originalX / lastPointX * curveWidth
             fun valueToScreenY(value: Float) = plotTop + valueToY(value, paddedMin, paddedRange, plotHeight)
 
+            val screenPoints = remember(renderPoints, chartSize, paddedMin, paddedRange) {
+                renderPoints.map { point -> Offset(renderScreenX(point.x), valueToScreenY(point.y)) }
+            }
+            val curvePath = remember(screenPoints) { buildCurvePath(screenPoints) }
+            val screenYRange = remember(screenPoints) { screenPoints.maxOf { it.y } - screenPoints.minOf { it.y } }
+
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,12 +143,6 @@ fun GemLineChart(points: List<ChartPoint>, bounds: GemChartBounds, lineColor: Co
                         onSelectionChanged = onSelectionChanged,
                     ),
             ) {
-                val screenPoints = renderPoints.map { point ->
-                    Offset(renderScreenX(point.x), valueToScreenY(point.y))
-                }
-                val curvePath = buildCurvePath(screenPoints)
-
-                val screenYRange = screenPoints.maxOf { it.y } - screenPoints.minOf { it.y }
                 if (screenYRange > 2f) {
                     drawAreaGradient(curvePath, screenPoints, plotBottom, plotTop, lineColor, isDark)
                 }

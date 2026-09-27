@@ -12,7 +12,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_session;
 
-pub use rules::{GemAboutViewState, GemPerpetualDefaults, GemPerpetualPickers, GemPickerOption, GemPreferencesInput, GemSecurityInput};
+pub use rules::{GemAboutViewState, GemPerpetualDefaults, GemPerpetualPickers, GemPickerOption, GemSecurityInput};
 
 #[derive(uniffi::Object)]
 pub struct GemSettingsService {
@@ -26,8 +26,14 @@ impl GemSettingsService {
         Self { preferences }
     }
 
-    pub fn preferences_sections(&self, input: GemPreferencesInput) -> Vec<GemListSection> {
-        rules::preferences_sections(input)
+    pub fn preferences_sections(&self, language: Option<String>, appearance: String) -> Vec<GemListSection> {
+        rules::preferences_sections(rules::PreferencesInput {
+            currency: self.preferences.get_currency(),
+            language,
+            appearance,
+            perpetuals_enabled: self.preferences.is_perpetual_enabled(),
+            perpetual_defaults: self.perpetual_defaults(),
+        })
     }
 
     pub fn perpetual_pickers(&self) -> GemPerpetualPickers {
@@ -49,7 +55,7 @@ impl GemSettingsService {
     }
 
     pub fn security_sections(&self, input: GemSecurityInput) -> Vec<GemListSection> {
-        rules::security_sections(input)
+        rules::security_sections(input, self.preferences.is_hide_balance_enabled())
     }
 
     pub fn sections(&self, wallets: Vec<Wallet>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemListSection> {
@@ -101,5 +107,47 @@ mod tests {
         service.set_perpetual_defaults(written).unwrap();
 
         assert_eq!(service.perpetual_defaults(), written);
+    }
+
+    #[test]
+    fn test_the_settings_screens_show_what_the_preference_store_holds() {
+        use crate::models::list::{GemListRow, GemListRowTitle, GemRowAction};
+
+        let service = GemSettingsService::mock();
+        let toggle_on = |sections: Vec<GemListSection>, action: GemRowAction| {
+            sections.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
+                GemListRow::Toggle { is_on, action: row_action, .. } if row_action == action => Some(is_on),
+                _ => None,
+            })
+        };
+        let security = || {
+            service.security_sections(GemSecurityInput {
+                authentication_enabled: false,
+                authentication_name: None,
+                lock_period: String::new(),
+                privacy_lock_enabled: false,
+                privacy_lock_supported: false,
+            })
+        };
+
+        assert_eq!(toggle_on(service.preferences_sections(None, String::new()), GemRowAction::Perpetuals), Some(false));
+        assert_eq!(toggle_on(security(), GemRowAction::HideBalance), Some(false));
+
+        service.preferences.set_perpetual_enabled(true).unwrap();
+        service.preferences.set_hide_balance_enabled(true).unwrap();
+
+        let preferences = service.preferences_sections(None, String::new());
+        assert_eq!(toggle_on(preferences.clone(), GemRowAction::Perpetuals), Some(true));
+        assert!(
+            preferences.iter().flat_map(|section| section.rows.iter()).any(|row| matches!(
+                row,
+                GemListRow::Picker {
+                    title: GemListRowTitle::PerpetualLeverage,
+                    ..
+                }
+            )),
+            "the stored switch opens the perpetual defaults"
+        );
+        assert_eq!(toggle_on(security(), GemRowAction::HideBalance), Some(true));
     }
 }

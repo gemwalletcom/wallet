@@ -13,8 +13,8 @@ struct AssetRateViewModelTests {
     func textShowsOneBaseUnitInEachDirection() {
         let model = AssetRateViewModel(
             rate: GemSwapRate(
-                direct: GemAssetRate(baseSymbol: "ETH", value: .mock(value: 250_000, unit: .symbol(symbol: "USDT"), notation: .plain)),
-                inverse: GemAssetRate(baseSymbol: "USDT", value: .mock(value: 0.000004, unit: .symbol(symbol: "ETH"), display: .number(precision: .significant(max: 4)), notation: .plain)),
+                direct: GemAssetRate(baseSymbol: "ETH", value: .mock(value: 250_000, unit: .symbol(symbol: "USDT"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest)),
+                inverse: GemAssetRate(baseSymbol: "USDT", value: .mock(value: 0.000004, unit: .symbol(symbol: "ETH"), display: .number(precision: .significant(max: 4)), notation: .plain, tone: .plain, rounding: .toNearest)),
             ),
             locale: Locale(identifier: "en_US"),
         )

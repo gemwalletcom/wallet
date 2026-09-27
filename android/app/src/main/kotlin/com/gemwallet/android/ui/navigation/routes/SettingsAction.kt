@@ -8,8 +8,8 @@ sealed interface SettingsAction {
     data object Contacts : SettingsAction
     data object Networks : SettingsAction
     data object PriceAlerts : SettingsAction
-    data class AddPriceAlertTarget(val assetId: AssetId) : SettingsAction
-    data class PriceAlertTargetComplete(val message: String) : SettingsAction
+    data class SetPriceAlert(val assetId: AssetId) : SettingsAction
+    data class SetPriceAlertComplete(val message: String) : SettingsAction
     data class Chart(val assetId: AssetId) : SettingsAction
     data object InAppNotifications : SettingsAction
     data object DeveloperPayments : SettingsAction

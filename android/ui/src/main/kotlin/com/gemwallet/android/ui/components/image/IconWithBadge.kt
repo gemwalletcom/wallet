@@ -13,21 +13,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.icon
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.assetText
 
 @Composable
 fun AssetIcon(asset: Asset, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
-    IconWithBadge(
-        icon = asset.iconModel(),
-        placeholder = asset.id.icon().placeholder,
-        supportIcon = asset.supportIconModel(),
-        size = size,
-        badgeBackgroundColor = badgeBackgroundColor,
-    )
+    AssetIcon(assetText(asset.toGem()).icon, size, badgeBackgroundColor)
 }
 
 @Composable

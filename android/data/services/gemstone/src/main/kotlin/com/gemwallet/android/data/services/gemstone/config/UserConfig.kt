@@ -5,7 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
+import com.gemwallet.android.application.security.cases.SecurityPreferences
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -27,18 +29,20 @@ import uniffi.gemstone.lockPeriodFromMinutes
 
 private val Context.dataStore by preferencesDataStore(name = "user_config")
 
-class UserConfig(private val context: Context, private val configStore: ConfigStore, private val preferencesService: GemPreferencesServiceInterface, private val secureStore: GemSecureStore) {
+class UserConfig(private val context: Context, private val configStore: ConfigStore, private val preferencesService: GemPreferencesServiceInterface, private val secureStore: GemSecureStore) :
+    ObservablePreferences,
+    SecurityPreferences {
 
-    fun authRequired(): Boolean = secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
+    override fun authRequired(): Boolean = secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
 
-    fun setAuthRequired(enabled: Boolean) {
+    override fun setAuthRequired(enabled: Boolean) {
         secureStore.set(SecureKey.Auth.string, enabled.toString())
         configStore.putBoolean(ConfigKey.Auth.string, enabled)
     }
 
-    fun developEnabled(): Boolean = preferencesService.isDeveloperEnabled()
+    override fun developEnabled(): Boolean = preferencesService.isDeveloperEnabled()
 
-    fun developEnabled(enabled: Boolean) = preferencesService.setDeveloperEnabled(enabled)
+    override fun developEnabled(enabled: Boolean) = preferencesService.setDeveloperEnabled(enabled)
 
     fun increaseLaunchNumber() {
         preferencesService.incrementLaunchesCount()
@@ -56,23 +60,23 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt(),
     )
 
-    fun isHideBalances(): Flow<Boolean> = hideBalancesState
+    override fun isHideBalances(): Flow<Boolean> = hideBalancesState
 
-    fun hideBalances() {
+    override fun hideBalances() {
         preferencesService.setHideBalanceEnabled(!preferencesService.isHideBalanceEnabled())
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
     }
 
-    fun isPerpetualEnabled(): Flow<Boolean> = perpetualEnabledState
+    override fun isPerpetualEnabled(): Flow<Boolean> = perpetualEnabledState
 
-    fun setPerpetualEnabled(enabled: Boolean) {
+    override fun setPerpetualEnabled(enabled: Boolean) {
         preferencesService.setPerpetualEnabled(enabled)
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
     }
 
-    fun appearance(): Flow<Appearance> = appearanceState
+    override fun appearance(): Flow<Appearance> = appearanceState
 
-    fun setAppearance(appearance: Appearance) {
+    override fun setAppearance(appearance: Appearance) {
         preferencesService.setAppearance(appearance.toGem())
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
     }
@@ -92,9 +96,9 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
     }
 
-    fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
+    override fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
 
-    suspend fun setLockInterval(minutes: Int) {
+    override suspend fun setLockInterval(minutes: Int) {
         secureStore.set(SecureKey.LockInterval.string, minutes.toString())
         lockIntervalState.value = minutes
     }

@@ -3,10 +3,10 @@
 import Assets
 import Components
 import FiatConnect
+import enum Gemstone.GemAcquireOption
 import struct Gemstone.GemSwapPairSelection
 import GemstonePrimitives
 import InfoSheet
-import Perpetuals
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -22,12 +22,12 @@ struct ConfirmTransferNavigationView: View {
         ConfirmTransferScene(model: model)
             .sheet(item: $model.isPresentingSheet) {
                 switch $0 {
-                case let .info(type):
-                    InfoSheetScene(type: type)
+                case let .info(sheet):
+                    InfoSheetScene(sheet: sheet, onAction: model.onInfoAction)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
                 case let .paymentAsset(type):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.assetAcquisitionWallet,
                             selectType: type,
@@ -55,6 +55,7 @@ struct ConfirmTransferNavigationView: View {
                 case let .getAsset(asset, acquire):
                     GetAssetNavigationStack(
                         asset: asset,
+                        options: acquire.options,
                         buyAmount: acquire.buyAmount.map(Int.init),
                         swapPair: acquire.swapPair,
                         model: model,
@@ -67,9 +68,9 @@ struct ConfirmTransferNavigationView: View {
                         onComplete: { model.isPresentingSheet = nil },
                     )
                 case .swapDetails:
-                    if case let .swapDetails(model) = model.detailsViewModel.itemModel {
+                    if case let .swapDetails(details) = model.detailsItemModel {
                         NavigationStack {
-                            SwapDetailsView(model: Bindable(model))
+                            SwapDetailsView(details: details)
                         }
                         .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }
@@ -89,18 +90,20 @@ private struct GetAssetNavigationStack: View {
     private static let optionsDetent = PresentationDetent.height(360)
 
     let asset: Asset
+    let options: [GemAcquireOption]
     let buyAmount: Int?
     let swapPair: GemSwapPairSelection
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
 
-    @State private var selectedAction: GetAssetAction?
+    @State private var selectedAction: GemAcquireOption?
     @State private var actionNavigationPath = NavigationPath()
 
     var body: some View {
         NavigationStack {
             GetAssetScene(
                 asset: asset,
+                options: options,
                 onSelect: {
                     actionNavigationPath = NavigationPath()
                     selectedAction = $0
@@ -129,7 +132,7 @@ private struct GetAssetNavigationStack: View {
     }
 
     @ViewBuilder
-    private func destination(for type: GetAssetAction) -> some View {
+    private func destination(for type: GemAcquireOption) -> some View {
         switch type {
         case .buy:
             FiatConnectNavigationView(

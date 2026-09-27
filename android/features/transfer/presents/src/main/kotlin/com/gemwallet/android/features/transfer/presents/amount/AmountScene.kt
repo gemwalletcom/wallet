@@ -1,0 +1,188 @@
+package com.gemwallet.android.features.transfer.presents.amount
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.fields.AmountField
+import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
+import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
+import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.components.isKeyboardVisible
+import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.style.amountSymbol
+import com.gemwallet.android.ui.style.keyboardType
+import com.gemwallet.android.ui.theme.SceneSizing
+import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.secondaryFaded
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAmountField
+import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.assetText
+
+@Composable
+internal fun AmountScene(
+    title: String,
+    amount: String,
+    field: GemAmountField?,
+    asset: Asset,
+    icon: GemAssetIcon?,
+    currency: Currency,
+    canSwitchInputType: Boolean,
+    readOnly: Boolean,
+    focusesInput: Boolean,
+    showsAssetBalance: Boolean,
+    error: String,
+    errorTopic: GemInfoTopic?,
+    equivalent: String,
+    availableBalance: String,
+    reserveForFee: String? = null,
+    buttonState: ButtonState,
+    onAction: (AmountAction) -> Unit,
+    additionParams: (@Composable () -> Unit)? = null,
+) {
+    val focusRequester = remember { FocusRequester() }
+    var showsErrorInfo by remember { mutableStateOf(false) }
+    val isKeyBoardOpen = WindowInsets.isKeyboardVisible
+    val density = LocalDensity.current
+    val isSmallScreen = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp() < SceneSizing.compactContentHeight
+    }
+
+    Scene(
+        title = title,
+        onClose = { onAction(AmountAction.Cancel) },
+        mainAction = {
+            if (!isKeyBoardOpen || !isSmallScreen) {
+                MainActionButton(
+                    title = stringResource(id = R.string.common_continue),
+                    state = buttonState,
+                    onClick = { onAction(AmountAction.Next) },
+                )
+            }
+        },
+        actions = {
+            TextButton(
+                onClick = { onAction(AmountAction.Next) },
+                enabled = buttonState == ButtonState.Enabled,
+                colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.primary),
+            ) { Text(stringResource(R.string.common_continue).uppercase()) }
+        },
+    ) {
+        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+            item {
+                Spacer16()
+                AmountField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    amount = amount,
+                    symbol = field?.amountSymbol() ?: AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),
+                    onInputTypeClick = if (canSwitchInputType) {
+                        { onAction(AmountAction.SwitchInputType) }
+                    } else {
+                        null
+                    },
+                    equivalent = equivalent,
+                    readOnly = readOnly,
+                    keyboardType = field?.keyboard?.keyboardType() ?: KeyboardType.Decimal,
+                    error = error,
+                    errorInfo = errorTopic?.let { { showsErrorInfo = true } },
+                    onValueChange = { onAction(AmountAction.SetAmount(it)) },
+                    onNext = { onAction(AmountAction.Next) },
+                )
+            }
+            if (showsAssetBalance) {
+                item {
+                    PropertyAssetInfoItem(
+                        asset = asset,
+                        icon = icon ?: assetText(asset.toGem()).icon,
+                        balance = availableBalance,
+                        onMaxAmount = { onAction(AmountAction.SetMaxAmount) },
+                    )
+                }
+            }
+            reserveForFee?.let {
+                item {
+                    ReserveForFeeItem(asset = asset, reserveForFee = it)
+                }
+            }
+            item { additionParams?.invoke() }
+        }
+    }
+
+    if (showsErrorInfo && errorTopic != null) {
+        InfoBottomSheet(errorTopic.infoSheet { onAction(AmountAction.Buy) }) { showsErrorInfo = false }
+    }
+
+    LaunchedEffect(focusesInput) {
+        if (focusesInput) {
+            focusRequester.requestFocusIfAttached()
+        }
+    }
+}
+
+@Composable
+private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
+    var showInfoSheet by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .listItem()
+            .clickable { showInfoSheet = true }
+            .padding(paddingMiddle),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingMiddle),
+    ) {
+        Icon(
+            modifier = Modifier.size(smallIconSize),
+            imageVector = AppIcons.InfoOutlined,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondaryFaded,
+        )
+        Text(
+            text = reserveForFee,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+    }
+    if (showInfoSheet) {
+        InfoBottomSheet(GemInfoTopic.StakingReservedFees(asset.toGem()).infoSheet()) {
+            showInfoSheet = false
+        }
+    }
+}

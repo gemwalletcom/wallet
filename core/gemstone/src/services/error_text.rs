@@ -26,6 +26,12 @@ pub enum GemErrorText {
     InvalidPrivateKey,
     InvalidAddress,
     NoAccountForChain,
+    AuthenticationUnavailable,
+    AuthenticationLockedOut,
+    AuthenticationFailed,
+    ConnectionExpired,
+    ConnectionNotFound,
+    RelayUnavailable,
     Unknown,
     Message { text: String },
 }
@@ -118,6 +124,22 @@ impl GemWalletConnectError {
 }
 
 #[uniffi::export]
+pub fn wallet_connect_error_text(message: String) -> GemErrorText {
+    let text = message.to_lowercase();
+    let mentions = |phrases: &[&str]| phrases.iter().any(|phrase| text.contains(phrase));
+    if mentions(&["uri has expired", "uri expired", "pairing expired", "proposal expired"]) {
+        return GemErrorText::ConnectionExpired;
+    }
+    if mentions(&["matching the topic", "sequence for given topic", "no matching key"]) {
+        return GemErrorText::ConnectionNotFound;
+    }
+    if mentions(&["web socket", "websocket", "relay request timeout", "internet connection", "connection closed"]) {
+        return GemErrorText::RelayUnavailable;
+    }
+    GemErrorText::message(message)
+}
+
+#[uniffi::export]
 pub fn alien_error_text(error: AlienError) -> GemErrorText {
     match error {
         AlienError::RequestError { msg } | AlienError::ResponseError { msg } => GemErrorText::network_message(msg),
@@ -205,5 +227,21 @@ mod tests {
         assert_eq!(GemAddNodeError::InvalidUrl.text(), GemErrorText::InvalidUrl);
         assert_eq!(GemAddNodeError::Gateway(GatewayError::Offline).text(), GemErrorText::NetworkOffline);
         assert_eq!(alien_error_text(AlienError::Http { status: 503, len: 0 }), GemErrorText::NetworkStatus { status: 503 });
+    }
+
+    #[test]
+    fn test_a_wallet_connect_failure_reads_as_what_went_wrong_on_either_sdk() {
+        assert_eq!(wallet_connect_error_text("The WalletConnect Pairing URI has expired.".to_string()), GemErrorText::ConnectionExpired);
+        assert_eq!(wallet_connect_error_text("Pairing URI expired: 1700000000".to_string()), GemErrorText::ConnectionExpired);
+        assert_eq!(wallet_connect_error_text("Session proposal expired".to_string()), GemErrorText::ConnectionExpired);
+        assert_eq!(wallet_connect_error_text("There is no existing session matching the topic: abc.".to_string()), GemErrorText::ConnectionNotFound);
+        assert_eq!(wallet_connect_error_text("Cannot find sequence for given topic: abc".to_string()), GemErrorText::ConnectionNotFound);
+        assert_eq!(wallet_connect_error_text("Web socket is not connected to any URL or networking connection error".to_string()), GemErrorText::RelayUnavailable);
+        assert_eq!(wallet_connect_error_text("Connection error: Please check your Internet connection".to_string()), GemErrorText::RelayUnavailable);
+        assert_eq!(
+            wallet_connect_error_text("Methods set is invalid.".to_string()),
+            GemErrorText::Message { text: "Methods set is invalid.".to_string() },
+            "anything else keeps the SDK's own words"
+        );
     }
 }

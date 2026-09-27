@@ -30,7 +30,7 @@ Before running checks, confirm the active checkout/worktree and command director
 | Core-only Rust change with no mobile API impact | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just format` |
 | Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
 | Shared localization input change | `just localize`<br>Rebuild the affected app(s) if the generated strings are consumed by the change |
-| Core enum mapper change (`Gemstone+Localized.swift`, `GemstoneText.kt`) | `just check-mappers` |
+| Core enum mapper change (`Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt`, `GemstoneStyle.kt`) | `just check-mappers` |
 | New or removed `#[uniffi::export]` function | `just check-ffi` |
 | Service construction or a Core key rendered outside its mapper, or a backend crate depending on an infra crate | `just check-boundaries` |
 | Documentation-only change | `git diff --check`<br>`just check-docs`<br>Inspect changed links, paths, commands, and instructions |

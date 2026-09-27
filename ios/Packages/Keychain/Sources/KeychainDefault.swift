@@ -42,10 +42,6 @@ public final class KeychainDefault: Keychain {
     // MARK: - Public (get) methods
 
     public func get(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
-        try getString(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
-    }
-
-    public func getString(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
         guard let data = try getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable) else {
             return nil
         }

@@ -24,10 +24,6 @@ public extension ButtonStyle where Self == ClearButtonStyle {
     static var clear: ClearButtonStyle {
         ClearButtonStyle(foregroundStyle: Colors.black, foregroundStylePressed: Colors.gray)
     }
-
-    static var clearBlue: ClearButtonStyle {
-        ClearButtonStyle(foregroundStyle: Colors.blue, foregroundStylePressed: Colors.blueDark)
-    }
 }
 
 // MARK: – Previews
@@ -37,9 +33,6 @@ public extension ButtonStyle where Self == ClearButtonStyle {
         Section("ClearButtonStyle presets") {
             Button("Clear") {}
                 .buttonStyle(.clear)
-
-            Button("Clear Blue") {}
-                .buttonStyle(.clearBlue)
         }
     }
     .padding()

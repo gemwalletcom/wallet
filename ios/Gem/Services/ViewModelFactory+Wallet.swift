@@ -9,14 +9,12 @@ import class Gemstone.GemChartService
 import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
 import GemstoneServices
-import MarketInsight
 import NFT
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import SwiftUI
-import WalletTab
+import Wallet
 
 public extension ViewModelFactory {
     @MainActor
@@ -85,7 +83,7 @@ public extension ViewModelFactory {
         WalletSearchSceneViewModel(
             wallet: wallet,
             service: assetSelectionService(),
-            recentModel: RecentAssetsModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
+            recentModel: RecentAssetsViewModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
             onDismissSearch: onDismissSearch,
             onSelectAssetAction: onSelectAssetAction,
             onAddToken: onAddToken,
@@ -110,10 +108,8 @@ public extension ViewModelFactory {
 
     private func assetSelectionService() -> GemAssetSelectionService {
         GemAssetSelectionService(
-            assets: assetsService,
             search: searchService,
             balances: balanceService,
-            priceAlerts: priceAlertService,
             recentActivity: recentAssetsService,
             preferences: preferencesService,
             perpetuals: perpetualService,
@@ -136,7 +132,7 @@ public extension ViewModelFactory {
                 explorer: explorerService,
             ),
             preferences: observablePreferences,
-            assetModel: AssetViewModel(asset: asset),
+            asset: asset,
             onSetPriceAlert: onSetPriceAlert,
             onSelectAddress: onSelectAddress,
         )
@@ -151,7 +147,7 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
+    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetSceneViewModel? {
         currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
@@ -161,11 +157,12 @@ public extension ViewModelFactory {
         selectType: SelectAssetType,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
-    ) -> SelectAssetViewModel {
-        SelectAssetViewModel(
+    ) -> SelectAssetSceneViewModel {
+        SelectAssetSceneViewModel(
             wallet: wallet,
             selectType: selectType,
             service: assetSelectionService(),
+            paymentService: paymentService,
             recentAssetsService: recentAssetsService,
             selectAssetAction: selectAssetAction,
             chains: chains,
@@ -175,7 +172,7 @@ public extension ViewModelFactory {
     @MainActor
     func assetsResultsScene(
         wallet: Wallet,
-        request: WalletSearchRequest,
+        request: WalletSearchQuery,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
     ) -> AssetsResultsSceneViewModel {

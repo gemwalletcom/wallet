@@ -44,11 +44,6 @@ public final class NavigationPathState {
         guard !path.isEmpty else { return }
         path.removeLast(path.count)
     }
-
-    public func removeLast(_ k: Int = 1) {
-        guard k > 0, !path.isEmpty else { return }
-        path.removeLast(min(path.count, k))
-    }
 }
 
 // MARK: - Private

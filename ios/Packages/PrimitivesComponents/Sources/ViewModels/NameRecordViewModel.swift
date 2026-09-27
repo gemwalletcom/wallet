@@ -5,7 +5,6 @@ import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
-import Style
 import SwiftUI
 
 @Observable
@@ -36,27 +35,12 @@ public final class NameRecordViewModel {
     private func loadNameRecord(name: String, chain: Chain, debounceMilliseconds: UInt64) async {
         do {
             try await Task.sleep(for: .milliseconds(debounceMilliseconds))
-            let resolved = try await nameService.getNameRecord(name: name, chain: chain)
+            let resolved = try await nameService.getNameRecord(name: name, chain: chain.rawValue)
             try Task.checkCancellation()
             state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: resolved)
         } catch {
             guard !error.isCancelled else { return }
             state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: .error)
-        }
-    }
-
-    public var isResolving: Bool {
-        if case .loading = state {
-            return true
-        }
-        return false
-    }
-
-    public var resolveImage: Image? {
-        switch state {
-        case .none, .loading: nil
-        case .error: Images.NameResolve.error
-        case .complete: Images.NameResolve.success
         }
     }
 

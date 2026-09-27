@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartCandleStick {
     pub date: DateTime<Utc>,
@@ -14,8 +14,8 @@ pub struct ChartCandleStick {
     pub volume: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartCandleUpdate {
     pub coin: String,
@@ -23,8 +23,8 @@ pub struct ChartCandleUpdate {
     pub candle: ChartCandleStick,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartDateValue {
     pub date: DateTime<Utc>,

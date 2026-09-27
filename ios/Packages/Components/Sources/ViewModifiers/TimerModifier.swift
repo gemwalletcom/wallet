@@ -20,10 +20,6 @@ private struct TimerModifier<ID: Equatable & Sendable>: ViewModifier {
 }
 
 public extension View {
-    func onTimer(every interval: TimeInterval, action: @Sendable @escaping () async -> Void) -> some View {
-        modifier(TimerModifier(interval: interval, id: 0, action: action))
-    }
-
     func onTimer(every interval: TimeInterval, id: some Equatable & Sendable, action: @Sendable @escaping () async -> Void) -> some View {
         modifier(TimerModifier(interval: interval, id: id, action: action))
     }

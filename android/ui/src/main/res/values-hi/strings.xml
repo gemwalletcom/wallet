@@ -48,7 +48,6 @@
   <string name="common_description">विवरण</string>
   <string name="common_emoji">इमोजी</string>
   <string name="common_avatar">अवतार</string>
-  <string name="common_save">बचाना</string>
   <string name="common_percentage">प्रतिशत</string>
   <string name="common_details">विवरण</string>
   <string name="common_info">जानकारी</string>
@@ -58,6 +57,7 @@
   <string name="common_token">टोकन</string>
   <string name="common_expiration">समाप्ति</string>
   <string name="common_suspicious_address">संदिग्ध पता</string>
+  <string name="common_suspicious_address_description">यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।</string>
   <string name="common_refresh">ताज़ा करना</string>
   <string name="common_grant_permission">अनुमति प्रदान करें</string>
   <string name="common_required_field">%1$s आवश्यक है</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">पोर्टफोलियो</string>
   <string name="wallet_import_already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है।</string>
   <string name="wallets_title">बटुए</string>
-  <string name="wallets_watch">देखो</string>
-  <string name="receive_title">%1$s प्राप्त करें</string>
   <string name="receive_warning">यह आपका पता है — केवल %1$s ही %2$s नेटवर्क पर भेजें।</string>
   <string name="buy_title">%1$s खरीदें</string>
   <string name="buy_providers_title">प्रदाता</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">प्रमाणीकरण</string>
   <string name="settings_notifications_title">सूचनाएं</string>
   <string name="settings_language">भाषा</string>
-  <string name="settings_help_center">सहायता केंद्र</string>
   <string name="settings_support">सहायता</string>
   <string name="settings_price_alerts_title">मूल्य अलर्ट</string>
   <string name="settings_hide_balance">बैलेंस छिपाएँ</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">समर्थित परिसंपत्ति नहीं.</string>
   <string name="errors_connections_no_supported_wallets">कोई समर्थित वॉलेट उपलब्ध नहीं है.</string>
   <string name="errors_connections_unsupported_chain">प्रदान की गई श्रृंखला समर्थित नहीं है.</string>
+  <string name="errors_authentication_unavailable">इस डिवाइस पर प्रमाणीकरण सेट नहीं है। डिवाइस सेटिंग्स में बायोमेट्रिक्स या पासकोड चालू करें।</string>
+  <string name="errors_authentication_locked_out">बहुत अधिक असफल प्रयास। कृपया बाद में फिर प्रयास करें।</string>
+  <string name="errors_authentication_failed">प्रमाणीकरण विफल रहा। कृपया फिर प्रयास करें।</string>
+  <string name="errors_connections_expired">इस कनेक्शन लिंक की समय-सीमा समाप्त हो गई है। नया QR कोड लें और फिर प्रयास करें।</string>
+  <string name="errors_connections_not_found">यह कनेक्शन अब मौजूद नहीं है।</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect तक नहीं पहुँच सके। अपना इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।</string>
   <string name="errors_swap_amount_too_small">राशि बहुत छोटी है</string>
   <string name="errors_scan_transaction_malicious_description">यह लेनदेन पूरा नहीं किया जा सकता - गंतव्य वॉलेट पता संदिग्ध या हानिकारक गतिविधि से जुड़ा हुआ है।</string>
   <string name="errors_scan_transaction_memo_required">%1$s गंतव्य वॉलेट पते के लिए गंतव्य टैग / मेमो की आवश्यकता है</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">%1$s खरीदें</string>
   <string name="asset_get_asset">%1$s प्राप्त करें</string>
   <string name="asset_add_to_wallet">वॉलेट में जोड़ें</string>
-  <string name="asset_hide_from_wallet">बटुए से छिपाएँ</string>
   <string name="asset_added_to_wallet">वॉलेट में जोड़ा गया</string>
   <string name="asset_hidden_from_wallet">वॉलेट से छिपाया गया</string>
   <string name="asset_resources">संसाधन</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">परिवर्तन</string>
   <string name="date_today">आज</string>
   <string name="date_yesterday">कल</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">कनेक्शन</string>
   <string name="wallet_connect_disconnect">डिस्कनेक्ट करें</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">तेज</string>
   <string name="fee_rates_normal">सामान्य</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">कस्टम</string>
   <string name="banner_account_activation_title">खाता सक्रियण शुल्क</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">जब कीमत कम हो जाती है</string>
   <string name="price_alerts_set_alert_set_target_price">लक्ष्य मूल्य निर्धारित करें</string>
   <string name="price_alerts_set_alert_current_price">वर्तमान मूल्य</string>
-  <string name="price_alerts_added_for">मूल्य अलर्ट सेट करें %1$s</string>
+  <string name="price_alerts_added_price_over">कीमत %1$s से ऊपर होने पर अलर्ट जोड़ा गया</string>
+  <string name="price_alerts_added_price_under">कीमत %1$s से नीचे होने पर अलर्ट जोड़ा गया</string>
+  <string name="price_alerts_added_increases_by">कीमत %1$s बढ़ने पर अलर्ट जोड़ा गया</string>
+  <string name="price_alerts_added_decreases_by">कीमत %1$s घटने पर अलर्ट जोड़ा गया</string>
   <string name="price_alerts_state_empty_title">आपके अलर्ट यहां दिखाई देंगे</string>
   <string name="price_alerts_state_empty_description">ट्रैक करने के लिए सिक्के जोड़कर उन्हें सक्षम करें</string>
   <string name="price_alerts_auto_footer">महत्वपूर्ण मूल्य परिवर्तन पर अलर्ट सक्रिय हो जाते हैं।</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">रिपोर्ट करें</string>
   <string name="permissions_access_denied">पहुंच अस्वीकृत</string>
   <string name="permissions_image_photo_access_denied_description">इस ऐप को आपकी फोटो लाइब्रेरी तक पहुंचने की अनुमति नहीं है। कृपया अपनी डिवाइस सेटिंग में पहुंच सक्षम करें।</string>
-  <string name="markets_title">बाज़ार</string>
-  <string name="markets_state_empty_title">आपका बाज़ार डेटा यहाँ दिखाई देगा</string>
   <string name="markets_daily_volume">24 घंटे की मात्रा</string>
   <string name="search_state_empty_description">वर्तनी की जाँच करें या नई खोज का प्रयास करें।</string>
   <string name="networks_state_empty_search_title">कोई नेटवर्क नहीं मिला</string>

@@ -6,9 +6,9 @@ import PrimitivesComponents
 import SwiftUI
 
 struct ReportSelectReasonScene: View {
-    @Bindable private var model: ReportNftViewModel
+    @Bindable private var model: ReportNftSceneViewModel
 
-    init(model: ReportNftViewModel) {
+    init(model: ReportNftSceneViewModel) {
         self.model = model
     }
 

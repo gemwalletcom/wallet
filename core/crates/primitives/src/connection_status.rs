@@ -1,10 +1,10 @@
 use crate::ConnectionComponent;
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Equatable, Sendable")]
+#[model(swift = "Equatable, Sendable")]
 pub enum ConnectionStatus {
     Online,
     NoInternet,

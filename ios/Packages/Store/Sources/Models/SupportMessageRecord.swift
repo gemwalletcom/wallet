@@ -43,29 +43,3 @@ extension SupportMessageRecord: CreateTable {
         }
     }
 }
-
-extension SupportMessageRecord {
-    var message: SupportMessage {
-        SupportMessage(
-            id: id,
-            content: content,
-            sender: sender,
-            status: status,
-            createdAt: createdAt,
-            images: images,
-        )
-    }
-}
-
-extension SupportMessage {
-    var record: SupportMessageRecord {
-        SupportMessageRecord(
-            id: id,
-            content: content,
-            sender: sender,
-            status: status,
-            createdAt: createdAt,
-            images: images,
-        )
-    }
-}

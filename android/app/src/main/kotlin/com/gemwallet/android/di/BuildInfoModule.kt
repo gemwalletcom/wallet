@@ -22,11 +22,10 @@ object BuildInfoModule {
 
     @Provides
     @Singleton
-    fun provideBuildInfo(platformStore: PlatformStore, requestPushToken: RequestPushToken): BuildInfo = BuildInfo(
+    fun provideBuildInfo(platformStore: PlatformStore): BuildInfo = BuildInfo(
         platformStore = platformStore,
         versionName = com.gemwallet.android.BuildConfig.VERSION_NAME,
         versionCode = com.gemwallet.android.BuildConfig.VERSION_CODE,
-        requestPushToken = requestPushToken,
     )
 
     @Provides

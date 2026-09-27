@@ -1,13 +1,13 @@
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(tag = "type", content = "content")]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub enum StakeType {
     Stake(DelegationValidator),
     Unstake(Delegation),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
     pub validator: DelegationValidator,
@@ -21,8 +21,8 @@ pub enum StakeAction {
     Wait,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Sendable")]
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
 pub enum StakeOwner {
     Wallet,

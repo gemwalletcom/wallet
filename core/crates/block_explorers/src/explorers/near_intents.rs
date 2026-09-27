@@ -45,7 +45,12 @@ mod tests {
         let recipient = "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK";
         let base = format!("{}/transactions/{recipient}", NearIntents::BASE_URL);
 
-        assert_eq!(NearIntents.get_swap_tx_url(&ExplorerInput::new_recipient(recipient)), base);
-        assert_eq!(NearIntents.get_swap_tx_url(&ExplorerInput::new_memo(recipient, "48694126")), format!("{base}?depositMemo=48694126"));
+        let input = ExplorerInput {
+            recipient: Some(recipient.to_string()),
+            ..Default::default()
+        };
+
+        assert_eq!(NearIntents.get_swap_tx_url(&input), base);
+        assert_eq!(NearIntents.get_swap_tx_url(&ExplorerInput { memo: Some("48694126".to_string()), ..input }), format!("{base}?depositMemo=48694126"));
     }
 }

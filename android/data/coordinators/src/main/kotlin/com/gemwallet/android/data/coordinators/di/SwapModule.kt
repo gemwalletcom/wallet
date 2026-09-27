@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneSwapStore
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.TransactionsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +28,10 @@ object SwapModule {
     @Provides
     fun provideGemSwapper(alienProvider: AlienProvider, nodes: GemNodeService): GemSwapper = GemSwapper(alienProvider, nodes)
 
+    @Singleton
+    @Provides
+    fun provideGemSwapService(swapper: GemSwapper, assetsDao: AssetsDao, transactionsDao: TransactionsDao): GemSwapService = GemSwapService(swapper, GemstoneSwapStore(assetsDao, transactionsDao))
+
     @Provides
     fun provideGemSwapServiceInterface(service: GemSwapService): GemSwapServiceInterface = service
 
@@ -46,8 +50,4 @@ object SwapModule {
         stream = streamSubscriptionService,
         session = walletSessionService,
     )
-
-    @Singleton
-    @Provides
-    fun provideRequestSwapQuotes(swapService: GemSwapQuoteServiceInterface): RequestSwapQuotes = RequestSwapQuotesImpl(swapService)
 }

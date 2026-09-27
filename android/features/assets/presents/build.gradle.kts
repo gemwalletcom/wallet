@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
+    id("kotlinx-serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -37,6 +38,7 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
+
     buildFeatures {
         compose = true
     }
@@ -53,13 +55,12 @@ android {
 
 dependencies {
     implementation(project(":ui"))
+    implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:assets:viewmodels"))
-    implementation(project(":features:asset_select:presents"))
-    implementation(project(":features:asset_select:viewmodels"))
-    implementation(project(":features:update_app:presents"))
-    implementation(project(":features:banner:presents"))
-    implementation(project(":features:perpetual:presents"))
-    implementation(project(":features:nft:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.navigation3.runtime)
+
+    debugImplementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
 }

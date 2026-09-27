@@ -49,5 +49,5 @@ impl FiatCacherClient {
 }
 
 fn quote_key<'a>(context: &'a FiatDeviceContext, quote_id: &'a str) -> CacheKey<'a> {
-    CacheKey::FiatQuote(context.device_id, context.wallet_id, &context.ip_address, quote_id)
+    CacheKey::FiatQuote(context.device_id, context.wallet_id, quote_id)
 }

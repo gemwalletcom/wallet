@@ -37,7 +37,7 @@ impl<C: Client + Send + Sync> NFTProvider for TonNftProvider<C> {
         "Ton"
     }
 
-    fn chains(&self) -> &'static [NFTChain] {
+    fn chains(&self) -> &[NFTChain] {
         &[NFTChain::Ton]
     }
 

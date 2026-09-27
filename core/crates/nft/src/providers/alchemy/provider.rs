@@ -9,27 +9,38 @@ use crate::provider::NFTProvider;
 
 const PAGE_SIZE: usize = 50;
 
+pub struct AlchemyProvider<C: Client> {
+    client: AlchemyClient<C>,
+    chain: NFTChain,
+}
+
+impl<C: Client> AlchemyProvider<C> {
+    pub fn new(client: AlchemyClient<C>, chain: NFTChain) -> Self {
+        Self { client, chain }
+    }
+}
+
 #[async_trait::async_trait]
-impl<C: Client + 'static> NFTProvider for AlchemyClient<C> {
+impl<C: Client + 'static> NFTProvider for AlchemyProvider<C> {
     fn name(&self) -> &'static str {
         "Alchemy"
     }
 
-    fn chains(&self) -> &'static [NFTChain] {
-        &[NFTChain::SmartChain]
+    fn chains(&self) -> &[NFTChain] {
+        std::slice::from_ref(&self.chain)
     }
 
     async fn get_assets(&self, chain: Chain, address: String) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
-        Ok(map_assets(self.get_nfts_by_owner(&address, PAGE_SIZE).await?, chain))
+        Ok(map_assets(self.client.get_nfts_by_owner(&address, PAGE_SIZE).await?, chain))
     }
 
     async fn get_collection(&self, collection_id: NFTCollectionId) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
-        let metadata = self.get_contract_metadata(&collection_id.contract_address).await?;
+        let metadata = self.client.get_contract_metadata(&collection_id.contract_address).await?;
         Ok(map_collection(metadata, collection_id))
     }
 
     async fn get_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
-        let metadata = self.get_nft_metadata(&asset_id.contract_address, &asset_id.token_id).await?;
+        let metadata = self.client.get_nft_metadata(&asset_id.contract_address, &asset_id.token_id).await?;
         map_asset(metadata, asset_id).ok_or_else(|| "Asset not found".into())
     }
 }

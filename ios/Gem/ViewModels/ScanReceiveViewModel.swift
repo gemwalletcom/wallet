@@ -11,11 +11,11 @@ final class ScanReceiveViewModel {
     var mode: ScanReceiveMode = .scan
     var isPresentingReceive: SelectedAssetInput?
 
-    let selectAssetModel: SelectAssetViewModel
+    let selectAssetModel: SelectAssetSceneViewModel
 
     let onScan: StringAction
 
-    init(selectAssetModel: SelectAssetViewModel, onScan: StringAction) {
+    init(selectAssetModel: SelectAssetSceneViewModel, onScan: StringAction) {
         self.selectAssetModel = selectAssetModel
         self.onScan = onScan
     }
@@ -24,9 +24,9 @@ final class ScanReceiveViewModel {
 // MARK: - Business Logic
 
 extension ScanReceiveViewModel {
-    func onChangeAssetSelection(_: SelectAssetInput?, _ selection: SelectAssetInput?) {
-        guard let selection else { return }
-        selectAssetModel.assetSelection = nil
+    func onChangeRoute(_: SelectAssetRoute?, _ route: SelectAssetRoute?) {
+        guard case let .asset(selection) = route else { return }
+        selectAssetModel.route = nil
         isPresentingReceive = SelectedAssetInput(type: .receive(.asset), assetData: selection.assetData)
     }
 

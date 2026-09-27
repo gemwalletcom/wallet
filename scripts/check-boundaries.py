@@ -46,9 +46,9 @@ IOS_MIGRATIONS = ROOT / "ios/Packages/Store/Sources/Migrations.swift"
 IOS_START_MIGRATIONS = re.compile(r"mutating func run\(.*?mutating func runChanges\(", re.S)
 ALTERATION = re.compile(r"\balter\(table:|\baddColumnIfMissing\(|\bdrop\(column:")
 
-ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/GemDatabase.kt"
+ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/GemDatabase.kt"
 ROOM_MIGRATIONS = ROOM_DATABASE.parent / "di"
-ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.service.store.database.GemDatabase"
+ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.services.store.database.GemDatabase"
 ROOM_VERSION = re.compile(r"^\s*version\s*=\s*(\d+)", re.M)
 ROOM_MIGRATION = re.compile(r"\b(?:object|class)\s+(\w+)[^:{]*:\s*Migration\((\d+),\s*(\d+)\)")
 DESTRUCTIVE_FALLBACK = re.compile(r"\bfallbackToDestructiveMigration\w*\(")
@@ -224,6 +224,54 @@ def only_services_reach_infra():
                 yield f"{path} no longer depends on {crate}; remove it from INFRA_DEPENDENTS"
 
 
+ANDROID_FEATURES = ROOT / "android/features"
+DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
+DATA_INTERNAL_DEPENDENTS = set()
+
+
+def android_features_stay_off_data_internals():
+    """§ 5: an Android feature observes through requests and calls Core services, never the data layer behind them."""
+    found = set()
+    for path in sorted(ANDROID_FEATURES.rglob("build.gradle.kts")):
+        if "build" in path.relative_to(ANDROID_FEATURES).parts[:-1]:
+            continue
+        relative = str(path.relative_to(ROOT))
+        if DATA_INTERNALS.search(path.read_text()):
+            found.add(relative)
+            if relative not in DATA_INTERNAL_DEPENDENTS:
+                yield f"{relative} depends on :data:services:gemstone or :data:coordinators"
+    for relative in sorted(DATA_INTERNAL_DEPENDENTS - found):
+        yield f"{relative} no longer depends on the data internals; remove it from DATA_INTERNAL_DEPENDENTS"
+
+
+IOS_STORES = ROOT / "ios/Packages/Store/Sources/Stores"
+IOS_STORE_TYPE = re.compile(r"^public (?:final )?(?:class|struct|actor) (\w+Store)\b", re.M)
+ANDROID_STORE_TYPE = re.compile(r"\b(?:Gemstone\w*Store|\w+Dao)\b")
+STORE_HOLDING_FEATURES = set()
+
+
+def features_never_hold_a_store():
+    """§ 7: a feature reads through queries and calls services; a store is the database side of a Core service."""
+    ios_stores = {name for path in IOS_STORES.rglob("*.swift") for name in IOS_STORE_TYPE.findall(path.read_text())}
+    ios_store_type = re.compile(r"\b(?:" + "|".join(sorted(ios_stores)) + r")\b")
+    found = set()
+    for path in app_files():
+        relative = str(path.relative_to(ROOT))
+        if relative.startswith("ios/Features/"):
+            pattern = ios_store_type
+        elif relative.startswith("android/features/"):
+            pattern = ANDROID_STORE_TYPE
+        else:
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if pattern.search(line):
+                found.add(relative)
+                if relative not in STORE_HOLDING_FEATURES:
+                    yield f"{relative}:{number} holds a store; read through a query and call the service"
+    for relative in sorted(STORE_HOLDING_FEATURES - found):
+        yield f"{relative} no longer holds a store; remove it from STORE_HOLDING_FEATURES"
+
+
 RULES = [
     ("services are injected, never constructed at a call site", services_are_injected),
     ("one localization mapper names every Core key it renders", one_localization_mapper),
@@ -235,6 +283,8 @@ RULES = [
     ("the Room version ships with its migration", room_version_ships_with_its_migration),
     ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
+    ("Android features stay off the data internals", android_features_stay_off_data_internals),
+    ("features never hold a store", features_never_hold_a_store),
 ]
 
 

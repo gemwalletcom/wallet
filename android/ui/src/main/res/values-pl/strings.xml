@@ -48,7 +48,6 @@
   <string name="common_description">Opis</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Awatar</string>
-  <string name="common_save">Zapisz</string>
   <string name="common_percentage">Procent</string>
   <string name="common_details">Szczegóły</string>
   <string name="common_info">Informacje</string>
@@ -58,6 +57,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Wygaśnięcie</string>
   <string name="common_suspicious_address">Podejrzany adres</string>
+  <string name="common_suspicious_address_description">Ten adres jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="common_refresh">Odśwież</string>
   <string name="common_grant_permission">Udziel pozwolenia</string>
   <string name="common_required_field">%1$s jest wymagane</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfel inwestycyjny</string>
   <string name="wallet_import_already_imported_message">Ten portfel został już zaimportowany.</string>
   <string name="wallets_title">Portfele</string>
-  <string name="wallets_watch">Obserwowany</string>
-  <string name="receive_title">Odbierz %1$s</string>
   <string name="receive_warning">To jest Twój adres — wysyłaj tylko %1$s na %2$s sieć.</string>
   <string name="buy_title">Kup %1$s</string>
   <string name="buy_providers_title">Dostawcy</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">Uwierzytelnianie</string>
   <string name="settings_notifications_title">Powiadomienia</string>
   <string name="settings_language">Język</string>
-  <string name="settings_help_center">Centrum pomocy</string>
   <string name="settings_support">Wsparcie</string>
   <string name="settings_price_alerts_title">Alerty cenowe</string>
   <string name="settings_hide_balance">Ukryj saldo</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Nieobsługiwany zasób.</string>
   <string name="errors_connections_no_supported_wallets">Brak obsługiwanych portfeli.</string>
   <string name="errors_connections_unsupported_chain">Podany łańcuch nie jest obsługiwany.</string>
+  <string name="errors_authentication_unavailable">Uwierzytelnianie nie jest skonfigurowane na tym urządzeniu. Włącz biometrię lub kod w ustawieniach urządzenia.</string>
+  <string name="errors_authentication_locked_out">Zbyt wiele nieudanych prób. Spróbuj ponownie później.</string>
+  <string name="errors_authentication_failed">Uwierzytelnianie nie powiodło się. Spróbuj ponownie.</string>
+  <string name="errors_connections_expired">Ten link połączenia wygasł. Pobierz nowy kod QR i spróbuj ponownie.</string>
+  <string name="errors_connections_not_found">To połączenie już nie istnieje.</string>
+  <string name="errors_connections_relay_unavailable">Nie można połączyć się z WalletConnect. Sprawdź połączenie z internetem i spróbuj ponownie.</string>
   <string name="errors_swap_amount_too_small">Kwota jest za mała</string>
   <string name="errors_scan_transaction_malicious_description">Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="errors_scan_transaction_memo_required">%1$s adres portfela docelowego wymaga znacznika/notatki docelowej</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">Kup %1$s</string>
   <string name="asset_get_asset">Zdobądź %1$s</string>
   <string name="asset_add_to_wallet">Dodaj do portfela</string>
-  <string name="asset_hide_from_wallet">Ukryj w portfelu</string>
   <string name="asset_added_to_wallet">Dodano do portfela</string>
   <string name="asset_hidden_from_wallet">Ukryto w portfelu</string>
   <string name="asset_resources">Zasoby</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">Zmiana</string>
   <string name="date_today">Dzisiaj</string>
   <string name="date_yesterday">Wczoraj</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Połączenie</string>
   <string name="wallet_connect_disconnect">Rozłącz</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">Szybko</string>
   <string name="fee_rates_normal">Normalne</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Niestandardowe</string>
   <string name="banner_account_activation_title">Opłata za aktywację konta</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Gdy cena spada o</string>
   <string name="price_alerts_set_alert_set_target_price">Ustaw cenę docelową</string>
   <string name="price_alerts_set_alert_current_price">Aktualna cena</string>
-  <string name="price_alerts_added_for">Ustaw alert cenowy %1$s</string>
+  <string name="price_alerts_added_price_over">Dodano alert dla ceny powyżej %1$s</string>
+  <string name="price_alerts_added_price_under">Dodano alert dla ceny poniżej %1$s</string>
+  <string name="price_alerts_added_increases_by">Dodano alert dla wzrostu ceny o %1$s</string>
+  <string name="price_alerts_added_decreases_by">Dodano alert dla spadku ceny o %1$s</string>
   <string name="price_alerts_state_empty_title">Twoje alerty będą pojawiać się tutaj</string>
   <string name="price_alerts_state_empty_description">Włącz je, dodając monety do śledzenia</string>
   <string name="price_alerts_auto_footer">Alerty uruchamiają się w przypadku znacznych wahań cen.</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">Zgłoś</string>
   <string name="permissions_access_denied">Odmowa dostępu</string>
   <string name="permissions_image_photo_access_denied_description">Ta aplikacja nie ma uprawnień dostępu do Twojej biblioteki zdjęć. Włącz dostęp w ustawieniach urządzenia.</string>
-  <string name="markets_title">Rynki</string>
-  <string name="markets_state_empty_title">Twoje dane rynkowe pojawią się tutaj</string>
   <string name="markets_daily_volume">Wolumen 24h</string>
   <string name="search_state_empty_description">Sprawdź pisownię lub spróbuj wyszukać ponownie.</string>
   <string name="networks_state_empty_search_title">Nie znaleziono sieci</string>

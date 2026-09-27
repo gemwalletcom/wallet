@@ -15,7 +15,7 @@ public struct PriceAlertStore: Sendable {
         try db.read { db in
             try PriceAlertRecord
                 .fetchAll(db)
-                .map { $0.map() }
+                .map { $0.toPriceAlert() }
         }
     }
 
@@ -24,16 +24,7 @@ public struct PriceAlertStore: Sendable {
             try PriceAlertRecord
                 .filter(PriceAlertRecord.Columns.assetId == assetId)
                 .fetchAll(db)
-                .map { $0.map() }
-        }
-    }
-
-    @discardableResult
-    public func deletePriceAlerts(_ alertsIds: [String]) throws -> Int {
-        try db.write { (db: Database) in
-            try PriceAlertRecord
-                .filter(alertsIds.contains(PriceAlertRecord.Columns.id))
-                .deleteAll(db)
+                .map { $0.toPriceAlert() }
         }
     }
 
@@ -48,16 +39,9 @@ public struct PriceAlertStore: Sendable {
 
             for value in alerts {
                 try value.alert
-                    .mapToRecord(id: value.id)
+                    .toRecord(id: value.id)
                     .upsert(db)
             }
-        }
-    }
-
-    public func clear() throws -> Int {
-        try db.write {
-            try PriceAlertRecord
-                .deleteAll($0)
         }
     }
 }

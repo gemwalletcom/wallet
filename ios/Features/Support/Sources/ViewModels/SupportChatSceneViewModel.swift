@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import enum Gemstone.GemLoadState
-import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
 import func Gemstone.loadError
 import GemstonePrimitives
@@ -19,19 +18,17 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
-    private let notifications: any GemNotificationsServiceProtocol
     private let typing: ObservableSupportTyping
-    public let query: ObservableQuery<SupportMessagesRequest>
+    public let query: ObservableQuery<SupportMessagesQuery>
     var previewURL: URL?
     var isPresentingAlertMessage: AlertMessage?
 
     private var loadState: GemLoadState = .loading
 
-    public init(service: any GemSupportServiceProtocol, notifications: any GemNotificationsServiceProtocol, typing: ObservableSupportTyping) {
+    public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
-        self.notifications = notifications
         self.typing = typing
-        query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
+        query = ObservableQuery(SupportMessagesQuery(), initialValue: [])
     }
 
     var title: String { Localized.Settings.support }
@@ -52,11 +49,7 @@ public final class SupportChatSceneViewModel {
     )
 
     var days: [SupportChatDay] {
-        SupportChatDayBuilder(
-            messages: query.value,
-            retryAction: { [weak self] in self?.onRetry($0) },
-            imageAction: { [weak self] in self?.onOpenPreview($0) },
-        ).build()
+        SupportChatDayBuilder(messages: query.value).build()
     }
 
     func load() async {
@@ -65,7 +58,7 @@ public final class SupportChatSceneViewModel {
     }
 
     func enableNotificationsForSupport() async {
-        guard case let .notRegistered(error) = await notifications.enableForSupport()?.result else { return }
+        guard case let .notRegistered(error) = await service.enableNotifications()?.result else { return }
         isPresentingAlertMessage = AlertMessage(message: error.text)
     }
 
@@ -83,7 +76,7 @@ public final class SupportChatSceneViewModel {
 
     func sendText(_ content: String) async {
         await alertOnFailure {
-            try await service.sendMessage(.text(content))
+            try await service.sendText(content: content)
         }
     }
 
@@ -93,14 +86,14 @@ public final class SupportChatSceneViewModel {
                 guard let attachment = try await item.imageAttachment() else {
                     throw AnyError(Localized.Errors.notSupported)
                 }
-                try await service.sendMessage(.image(attachment))
+                try await service.sendImage(image: attachment)
             }
         }
     }
 
     func retry(_ message: SupportMessage) async {
         await alertOnFailure {
-            try await service.retryMessage(message)
+            try await service.retryMessage(message: message.toGem())
         }
     }
 
@@ -109,6 +102,18 @@ public final class SupportChatSceneViewModel {
         await alertOnFailure {
             previewURL = try await URL(fileURLWithPath: service.imageFile(url: url.absoluteString))
         }
+    }
+}
+
+// MARK: - Actions
+
+extension SupportChatSceneViewModel {
+    func onRetry(_ message: SupportMessage) {
+        Task { await retry(message) }
+    }
+
+    func onOpenPreview(_ image: SupportMessageImage) {
+        Task { await openPreview(image) }
     }
 }
 
@@ -121,14 +126,6 @@ private extension SupportChatSceneViewModel {
 
     func onSendImages(_ items: [PhotosPickerItem]) {
         Task { await sendImages(items) }
-    }
-
-    func onRetry(_ message: SupportMessage) {
-        Task { await retry(message) }
-    }
-
-    func onOpenPreview(_ image: SupportMessageImage) {
-        Task { await openPreview(image) }
     }
 
     func alertOnFailure(_ operation: () async throws -> Void) async {

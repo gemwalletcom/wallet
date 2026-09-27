@@ -3,14 +3,13 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Wallet, WalletId};
 
-use super::{
-    GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransactionSigner, GemTransferAmountResult,
-    SendInput,
-};
-use crate::GemstoneError;
+use super::GemConfirmError;
+use super::{GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransferAmountResult, SendInput};
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
-use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::keystore::GemKeystore;
+use crate::keystore::{GemImportType, decode_password};
+use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
@@ -26,17 +25,22 @@ use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stake::GemStakeService;
 use crate::services::stake::testkit::UnusedStakeStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
+use crate::services::swap::GemSwapService;
+use crate::services::swap::testkit::MemorySwapStore;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::services::transaction_state::testkit::{MemoryTransactionStateStore, RecordingTransactionStatus};
-use crate::services::transfer::GemTransferData;
 use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentActivityStore};
-use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
+use crate::services::transfer::{GemRecipient, GemTransferData};
+use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use crate::transfer_amount::GemTransferAmount;
 use num_bigint::BigInt;
-use primitives::{Account, FeePriority, GasPriceType, TransactionInputType};
+use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
+use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType};
+use swapper::Quote;
+use tempfile::TempDir;
 
 pub struct ConfirmTestkit {
     pub service: Arc<GemConfirmTransferService>,
@@ -44,6 +48,9 @@ pub struct ConfirmTestkit {
     pub balances: Arc<MemoryBalanceStore>,
     pub transaction_store: Arc<MemoryTransactionStateStore>,
     pub status: Arc<RecordingTransactionStatus>,
+    pub keystore: Arc<GemKeystore>,
+    pub passwords: Arc<MemoryKeystorePassword>,
+    pub _directory: TempDir,
 }
 
 impl ConfirmTestkit {
@@ -52,6 +59,14 @@ impl ConfirmTestkit {
     }
 
     pub fn with_provider(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>) -> Self {
+        Self::build(wallet, selected_wallet, provider, Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))))
+    }
+
+    pub fn with_swap(wallet: Wallet, swap: Arc<GemSwapService>) -> Self {
+        Self::build(wallet.clone(), wallet, Arc::new(TestAlienProvider::with_status(503)), swap)
+    }
+
+    fn build(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>, swap: Arc<GemSwapService>) -> Self {
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let selected = Arc::new(MemoryWalletSessionStore {
@@ -107,15 +122,19 @@ impl ConfirmTestkit {
             assets,
             status.clone(),
         ));
+        let directory = TempDir::new().unwrap();
+        let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
+        let passwords = Arc::new(MemoryKeystorePassword::default());
         let service = Arc::new(GemConfirmTransferService::new(
             confirm.clone(),
             explorer,
             names,
-            Arc::new(UnusedSigner),
-            Arc::new(MemoryKeystorePassword::default()),
+            keystore.clone(),
+            passwords.clone(),
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
             payment,
+            swap,
         ));
         Self {
             service,
@@ -123,6 +142,9 @@ impl ConfirmTestkit {
             balances,
             transaction_store,
             status,
+            keystore,
+            passwords,
+            _directory: directory,
         }
     }
 }
@@ -169,15 +191,6 @@ impl GemAssetStore for MemoryAssetStore {
     }
 }
 
-struct UnusedSigner;
-
-#[async_trait]
-impl GemTransactionSigner for UnusedSigner {
-    async fn sign(&self, _: Wallet, _: GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
-        panic!("unexpected signing")
-    }
-}
-
 impl GemConfirmData {
     pub fn mock(chain: Chain, input_type: TransactionInputType) -> Self {
         GemConfirmData {
@@ -213,6 +226,7 @@ impl SendInput {
             value: BigInt::from(9),
             network_fee: BigInt::from(1),
             simulation: None,
+            swap_quote: None,
         }
     }
 }
@@ -277,6 +291,55 @@ impl GemConfirmLoad {
             simulation: GemConfirmSimulationState::mock(),
             address_name: None,
             fee: None,
+        }
+    }
+}
+
+pub fn mock_swap_transfer(address: &str, permit2: Option<Permit2ApprovalData>) -> GemTransferData {
+    GemTransferData {
+        recipient: GemRecipient::address(address.to_string()),
+        value: 5.into(),
+        ..GemTransferData::mock(TransactionInputType::Swap {
+            from_asset: Asset::mock_eth(),
+            to_asset: Asset::mock_erc20(),
+            swap_data: SwapData {
+                data: SwapQuoteData { permit2, ..SwapQuoteData::mock() },
+                ..SwapData::mock_with_provider(SwapProvider::UniswapV3)
+            },
+        })
+    }
+}
+
+pub fn broadcast_failed(error: &GemConfirmError) -> bool {
+    matches!(error, GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. })
+}
+
+impl ConfirmTestkit {
+    pub fn keystore_wallet(&self) -> Wallet {
+        let stored = self.keystore.create_store(GemImportType::mock_private_key(), decode_password(TEST_PASSWORD)).unwrap();
+        Wallet {
+            id: WalletId::from_id(&stored.wallet_id).unwrap(),
+            ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, &stored.accounts[0].address)])
+        }
+    }
+}
+
+impl SendInput {
+    pub fn mock_signed_by(wallet: Wallet, transfer: GemTransferData, swap_quote: Option<Quote>) -> Self {
+        let address = wallet.accounts[0].address.clone();
+        let confirm = GemConfirmData::mock(Chain::Ethereum, transfer.input_type.clone());
+        SendInput {
+            wallet,
+            confirm: GemConfirmData {
+                input: GemConfirmInput {
+                    from: Account::mock(Chain::Ethereum, &address),
+                    transfer,
+                },
+                metadata: GemTransactionLoadMetadata::Evm { nonce: 0, chain_id: 1, contract_call: None },
+                ..confirm
+            },
+            swap_quote,
+            ..SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() })
         }
     }
 }

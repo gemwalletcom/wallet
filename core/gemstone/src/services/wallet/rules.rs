@@ -1,9 +1,13 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle};
+use super::model::{
+    GemSecretPhraseRow, GemSecretScreen, GemSecretWarning, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind,
+    GemWalletSubtitle,
+};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::models::list::{GemAddressRow, GemListRowTitle};
 use crate::services::localization::GemLocalizedText;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
@@ -135,6 +139,23 @@ pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
     pairs.chain(odd_last).collect()
 }
 
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+    GemSecretScreen {
+        title: match is_new {
+            true => GemLocalizedText::NewWallet,
+            false => GemLocalizedText::SecretKind { kind },
+        },
+        warning: match is_new {
+            true => GemSecretWarning::SaveSafely,
+            false => GemSecretWarning::DoNotShare,
+        },
+        rows: match kind {
+            GemWalletSecretKind::Phrase => secret_phrase_rows(word_count),
+            GemWalletSecretKind::PrivateKey => Vec::new(),
+        },
+    }
+}
+
 pub fn row(wallet: &Wallet) -> GemWalletRow {
     let common = |subtitle, placeholder, shows_watch_badge| GemWalletRow {
         id: wallet.id.id(),
@@ -143,8 +164,10 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
         placeholder,
         shows_watch_badge,
         is_pinned: wallet.is_pinned,
+        is_current: false,
         has_avatar: wallet.image_url.as_ref().is_some_and(|url| !url.is_empty()),
         image_url: wallet.image_url.clone(),
+        delete_prompt: GemLocalizedText::DeleteConfirmation { name: wallet.name.clone() },
     };
     match &wallet.id {
         WalletId::Multicoin(_) => common(GemWalletSubtitle::Multicoin, GemWalletPlaceholder::Multicoin, false),
@@ -158,12 +181,14 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
     }
 }
 
-pub fn rows(wallets: &[Wallet]) -> Vec<GemWalletRow> {
-    wallets.iter().map(row).collect()
-}
-
-pub fn sections(wallets: &[Wallet]) -> Vec<GemWalletSection> {
-    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = rows(wallets).into_iter().partition(|row| row.is_pinned);
+pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&str>) -> Vec<GemWalletSection> {
+    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_wallets(wallets)
+        .iter()
+        .map(|wallet| GemWalletRow {
+            is_current: current_wallet_id == Some(wallet.id.id().as_str()),
+            ..row(wallet)
+        })
+        .partition(|row| row.is_pinned);
     [(GemWalletSectionKind::Pinned, pinned), (GemWalletSectionKind::Wallets, rest)]
         .into_iter()
         .filter(|(_, rows)| !rows.is_empty())
@@ -171,15 +196,21 @@ pub fn sections(wallets: &[Wallet]) -> Vec<GemWalletSection> {
         .collect()
 }
 
-pub fn details(wallet: &Wallet) -> GemWalletDetails {
+pub fn details(wallet: &Wallet, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemWalletDetails {
     GemWalletDetails {
         row: row(wallet),
         secret_kind: secret_kind(wallet),
+        show_secret: secret_kind(wallet).map(|kind| GemLocalizedText::ShowSecret { kind }),
         address: match wallet.accounts.as_slice() {
-            [account] => Some(ChainAddress::new(account.chain, account.address.clone())),
+            [account] => Some(GemAddressRow::new(
+                GemLocalizedText::RowTitle { title: GemListRowTitle::Address },
+                account.chain,
+                account.address.clone(),
+                None,
+                &address_url(account.chain, account.address.clone()),
+            )),
             _ => None,
         },
-        address_explorer: None,
     }
 }
 
@@ -289,12 +320,12 @@ mod tests {
             ..Wallet::mock()
         };
 
-        let sections = sections(&[plain.clone(), pinned.clone()]);
+        let sections = sections(vec![plain.clone(), pinned.clone()], Some(&plain.id.id()));
         assert_eq!(sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemWalletSectionKind::Pinned, GemWalletSectionKind::Wallets]);
         assert_eq!(sections[0].rows, vec![row(&pinned)]);
-        assert_eq!(sections[1].rows, vec![row(&plain)]);
+        assert_eq!(sections[1].rows, vec![GemWalletRow { is_current: true, ..row(&plain) }], "the current wallet is marked where it is listed");
 
-        assert_eq!(super::sections(&[plain]).len(), 1, "no empty pinned section");
+        assert_eq!(super::sections(vec![plain], None).len(), 1, "no empty pinned section");
     }
 
     #[test]
@@ -477,15 +508,31 @@ mod tests {
     }
 
     #[test]
+    fn test_the_secret_screen_frames_an_export_and_a_new_phrase_differently() {
+        let export = secret_screen(GemWalletSecretKind::Phrase, 12, false);
+        assert_eq!(export.title, GemLocalizedText::SecretKind { kind: GemWalletSecretKind::Phrase });
+        assert_eq!(export.warning, GemSecretWarning::DoNotShare);
+        assert_eq!(export.rows, secret_phrase_rows(12));
+
+        let new = secret_screen(GemWalletSecretKind::Phrase, 12, true);
+        assert_eq!(new.title, GemLocalizedText::NewWallet);
+        assert_eq!(new.warning, GemSecretWarning::SaveSafely);
+
+        assert!(secret_screen(GemWalletSecretKind::PrivateKey, 0, false).rows.is_empty(), "a key has no word grid");
+    }
+
+    #[test]
     fn test_details_show_one_address_only_when_the_wallet_has_one_account() {
         let single = Wallet::mock_with_id(WalletId::Single(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
         let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::Bitcoin]);
 
-        let single_details = details(&single);
+        let link = |_: Chain, address: String| BlockExplorerLink::mock_with_address(&address);
+        let single_details = details(&single, link);
         assert_eq!(single_details.row.id, single.id.id());
         assert_eq!(single_details.secret_kind, Some(GemWalletSecretKind::Phrase));
-        assert_eq!(single_details.address, Some(ChainAddress::new(Chain::Ethereum, "address".to_string())));
-        assert_eq!(details(&multicoin).address, None);
+        assert_eq!(single_details.show_secret, Some(GemLocalizedText::ShowSecret { kind: GemWalletSecretKind::Phrase }));
+        assert_eq!(single_details.address.map(|row| (row.chain, row.address)), Some((Chain::Ethereum, "address".to_string())));
+        assert_eq!(details(&multicoin, link).address, None);
     }
 
     #[test]
@@ -507,6 +554,7 @@ mod tests {
 
         let single = row(&Wallet::mock_with_id(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), &[Chain::Bitcoin]));
         assert!(!single.shows_watch_badge);
+        assert_eq!(single.delete_prompt, GemLocalizedText::DeleteConfirmation { name: single.name.clone() }, "deleting asks about the wallet by name");
     }
 
     #[test]

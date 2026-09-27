@@ -119,7 +119,7 @@ struct LocalKeystoreTests {
     func deriveAddress() {
         #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let chains = AssetConfiguration.allChains
+            let chains = Chain.allCases
             let wallet = try keystore.importWallet(
                 name: "test",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: chains.map { $0.toGem() }),

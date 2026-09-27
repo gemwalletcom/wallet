@@ -31,6 +31,7 @@ nft = { path = "../../crates/nft" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
 rewards = { path = "../../crates/rewards" }
+localizer = { path = "../../crates/localizer" }
 
 security = { path = "../../crates/security" }
 gem_auth = { path = "../../crates/gem_auth", features = ["jwt"] }

@@ -4,8 +4,6 @@ import Foundation
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import NativeProviderService
-import Primitives
-import PrimitivesTestKit
 
 public extension GatewayService {
     static func mock() -> GatewayService {

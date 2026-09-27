@@ -4,7 +4,7 @@ import enum Gemstone.GemAssetFilter
 import Store
 
 public extension GemAssetFilter {
-    func map() -> AssetsRequestFilter {
+    func map() -> AssetsQueryFilter {
         switch self {
         case .enabled: .enabled
         case .buyable: .buyable

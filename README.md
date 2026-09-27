@@ -50,7 +50,7 @@ To install dependencies for both apps on macOS, with Homebrew, Xcode, and Androi
 just install
 ```
 
-This installs shared Rust and TypeShare tools once, then iOS tools and targets, followed by Android's JDK, targets, and NDK. The JDK installer may prompt for a password. For a single platform, run `just core install-rust` and `just core install-typeshare`, followed by its install command below.
+This installs the shared Rust toolchain once, then iOS tools and targets, followed by Android's JDK, targets, and NDK. The JDK installer may prompt for a password. For a single platform, run `just core install-rust`, followed by its install command below.
 
 ### iOS
 

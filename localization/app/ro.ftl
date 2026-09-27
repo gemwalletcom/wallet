@@ -48,7 +48,6 @@ common_learn_more = Aflați mai multe
 common_description = Descriere
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Salvați
 common_percentage = Procent
 common_details = Detalii
 common_info = Informații
@@ -58,6 +57,7 @@ common_method = Metodă
 common_token = Token
 common_expiration = Expirare
 common_suspicious_address = Adresă suspectă
+common_suspicious_address_description = Această adresă este asociată cu o activitate suspectă sau dăunătoare.
 common_refresh = Reîmprospăta
 common_grant_permission = Acordați permisiunea
 common_required_field = %@ este necesar
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Acest portofel a fost deja importat.
 # Wallets
 
 wallets_title = Portofele
-wallets_watch = Privește
 
 # Receive
 
-receive_title = Primește %@
 receive_warning = Aceasta este adresa dvs. — trimiteți doar %@ în rețeaua %@.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Activați codul de acces
 settings_security_authentication = Autentificare
 settings_notifications_title = Notificări
 settings_language = Limba
-settings_help_center = Centrul de ajutor
 settings_support = Sprijin
 settings_price_alerts_title = Alerte de preț
 settings_hide_balance = Ascundeți soldul
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Nu există nicio cotație disponibilă.
 errors_swap_not_supported_asset = Activ neacceptat.
 errors_connections_no_supported_wallets = Nu sunt disponibile portofele acceptate.
 errors_connections_unsupported_chain = Lanțul furnizat nu este acceptat.
+errors_authentication_unavailable = Autentificarea nu este configurată pe acest dispozitiv. Activați biometria sau un cod de acces din setările dispozitivului.
+errors_authentication_locked_out = Prea multe încercări nereușite. Vă rugăm să încercați din nou mai târziu.
+errors_authentication_failed = Autentificarea a eșuat. Vă rugăm să încercați din nou.
+errors_connections_expired = Acest link de conexiune a expirat. Obțineți un cod QR nou și încercați din nou.
+errors_connections_not_found = Această conexiune nu mai există.
+errors_connections_relay_unavailable = WalletConnect nu poate fi accesat. Verificați conexiunea la internet și încercați din nou.
 errors_swap_amount_too_small = Cantitate prea mică
 errors_scan_transaction_malicious_description = Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.
 errors_scan_transaction_memo_required = Adresa portofelului de destinație %@ necesită o etichetă/un memo de destinație
@@ -322,7 +325,6 @@ asset_verification_warning_message = Oricine poate crea unul - inclusiv jetoane 
 asset_buy_asset = Cumpără %@
 asset_get_asset = Obține %@
 asset_add_to_wallet = Adaugă în portofel
-asset_hide_from_wallet = Ascunde din portofel
 asset_added_to_wallet = Adăugat în portofel
 asset_hidden_from_wallet = Ascuns din portofel
 asset_resources = Resurse
@@ -349,6 +351,7 @@ charts_price_change = Variație
 
 date_today = Astăzi
 date_yesterday = Ieri
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizat
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Când prețul crește cu
 price_alerts_set_alert_price_decreases_by = Când prețul scade cu
 price_alerts_set_alert_set_target_price = Stabiliți prețul țintă
 price_alerts_set_alert_current_price = Preț curent
-price_alerts_added_for = Setează alertă de preț %@
+price_alerts_added_price_over = Alertă adăugată pentru preț peste %@
+price_alerts_added_price_under = Alertă adăugată pentru preț sub %@
+price_alerts_added_increases_by = Alertă adăugată pentru creșterea prețului cu %@
+price_alerts_added_decreases_by = Alertă adăugată pentru scăderea prețului cu %@
 price_alerts_state_empty_title = Alertele tale vor apărea aici
 price_alerts_state_empty_description = Activează-le adăugând monede la urmărire
 price_alerts_auto_footer = Alertele se declanșează la mișcări semnificative ale prețurilor.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Această aplicație nu are p
 
 # Markets
 
-markets_title = Piețele
-markets_state_empty_title = Datele dvs. de piață vor apărea aici
 markets_daily_volume = Volum 24h
 
 # Search

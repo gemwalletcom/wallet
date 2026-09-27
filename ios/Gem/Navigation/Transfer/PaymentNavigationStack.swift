@@ -25,10 +25,12 @@ struct PaymentNavigationStack: View {
             ConfirmTransferNavigationStack(wallet: wallet, transferData: transfer, onComplete: onComplete)
         case let .verify(url, link):
             PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: { onVerified(link) }, onError: onVerificationFailed))
+        case let .amount(input):
+            AmountNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .recipient(input):
             SelectedAssetNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .selectAsset(type, chains):
-            SelectAssetSceneNavigationStack(
+            SelectAssetNavigationStack(
                 model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: type, chains: chains),
             )
         }

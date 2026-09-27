@@ -48,7 +48,6 @@ common_learn_more = En savoir plus
 common_description = Descriptif
 common_emoji = Émoji
 common_avatar = Avatar
-common_save = Sauvegarder
 common_percentage = Pourcentage
 common_details = Détails
 common_info = Informations
@@ -58,6 +57,7 @@ common_method = Méthode
 common_token = Jeton
 common_expiration = Expiration
 common_suspicious_address = Adresse suspecte
+common_suspicious_address_description = Cette adresse est associée à une activité suspecte ou malveillante.
 common_refresh = Rafraîchir
 common_grant_permission = Donner la permission
 common_required_field = %@ est requis
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Ce portefeuille a déjà été importé
 # Wallets
 
 wallets_title = Portefeuilles
-wallets_watch = Regarder
 
 # Receive
 
-receive_title = Recevez %@
 receive_warning = Voici votre adresse — envoyez uniquement %@ sur le réseau %@.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Activer le mot de passe
 settings_security_authentication = Authentification
 settings_notifications_title = Notifications
 settings_language = Langue
-settings_help_center = Centre d'aide
 settings_support = Assistance
 settings_price_alerts_title = Alertes de prix
 settings_hide_balance = Masquer le solde
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Aucun devis disponible.
 errors_swap_not_supported_asset = Actif non pris en charge.
 errors_connections_no_supported_wallets = Aucun portefeuille pris en charge n'est disponible.
 errors_connections_unsupported_chain = La chaîne fournie n'est pas prise en charge.
+errors_authentication_unavailable = L'authentification n'est pas configurée sur cet appareil. Activez la biométrie ou un code dans les réglages de l'appareil.
+errors_authentication_locked_out = Trop de tentatives échouées. Veuillez réessayer plus tard.
+errors_authentication_failed = L'authentification a échoué. Veuillez réessayer.
+errors_connections_expired = Ce lien de connexion a expiré. Obtenez un nouveau code QR et réessayez.
+errors_connections_not_found = Cette connexion n'existe plus.
+errors_connections_relay_unavailable = Impossible de joindre WalletConnect. Vérifiez votre connexion Internet et réessayez.
 errors_swap_amount_too_small = Montant trop petit
 errors_scan_transaction_malicious_description = Cette transaction ne peut être effectuée — l'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.
 errors_scan_transaction_memo_required = %@ L'adresse du portefeuille de destination nécessite une étiquette/un mémo de destination
@@ -322,7 +325,6 @@ asset_verification_warning_message = N'importe qui peut en créer un, y compris 
 asset_buy_asset = Achetez %@
 asset_get_asset = Obtenir %@
 asset_add_to_wallet = Ajouter au portefeuille
-asset_hide_from_wallet = Masquer du portefeuille
 asset_added_to_wallet = Ajouté au portefeuille
 asset_hidden_from_wallet = Masqué du portefeuille
 asset_resources = Ressources
@@ -349,6 +351,7 @@ charts_price_change = Changement
 
 date_today = Aujourd'hui
 date_yesterday = Hier
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Normale
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Personnalisé
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Lorsque le prix augmente de
 price_alerts_set_alert_price_decreases_by = Lorsque le prix diminue de
 price_alerts_set_alert_set_target_price = Définir le prix cible
 price_alerts_set_alert_current_price = Prix actuel
-price_alerts_added_for = Définir une alerte de prix %@
+price_alerts_added_price_over = Alerte ajoutée pour un prix supérieur à %@
+price_alerts_added_price_under = Alerte ajoutée pour un prix inférieur à %@
+price_alerts_added_increases_by = Alerte ajoutée pour une hausse de prix de %@
+price_alerts_added_decreases_by = Alerte ajoutée pour une baisse de prix de %@
 price_alerts_state_empty_title = Vos alertes apparaîtront ici
 price_alerts_state_empty_description = Activez-les en ajoutant des pièces à suivre
 price_alerts_auto_footer = Les alertes se déclenchent en cas de mouvements de prix importants.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Cette application n'a pas l'
 
 # Markets
 
-markets_title = Marchés
-markets_state_empty_title = Vos données de marché apparaîtront ici
 markets_daily_volume = Volume 24h
 
 # Search

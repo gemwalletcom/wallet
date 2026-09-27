@@ -13,6 +13,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when (notation) {
     GemNumberNotation.PARENTHESISED -> "(${body(locale)})"
@@ -31,7 +32,7 @@ private val GemFormattedNumber.numberRounding: RoundingMode
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
     is GemNumberDisplay.Number -> when (unit) {
         is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision, showsSign, numberRounding, locale)
-        else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision, locale))
+        else -> appendSymbol(numberText(decimalValue, display.precision, locale))
     }
 
     is GemNumberDisplay.Abbreviated -> appendSymbol(abbreviatedText(BigDecimal.valueOf(value), locale))
@@ -40,6 +41,9 @@ private fun GemFormattedNumber.body(locale: Locale): String = when (val display 
         "$signText<${numberText(BigDecimal.valueOf(display.threshold), GemPrecision.Fraction(display.places, display.places), locale, withSign = false)}",
     )
 }
+
+private val GemFormattedNumber.decimalValue: BigDecimal
+    get() = exact?.let { BigDecimal(it).let { magnitude -> if (value < 0) magnitude.negate() else magnitude } } ?: BigDecimal.valueOf(value)
 
 private val GemFormattedNumber.signText: String
     get() = when {
@@ -55,7 +59,7 @@ private val GemFormattedNumber.symbol: String?
     get() = (unit as? GemNumberUnit.Symbol)?.symbol
 
 private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, rounding: RoundingMode, locale: Locale): String {
-    val formatter = (NumberFormat.getPercentInstance(locale) as DecimalFormat).apply {
+    val formatter = (percentFormats.getOrPut(locale) { NumberFormat.getPercentInstance(locale) as DecimalFormat }.clone() as DecimalFormat).apply {
         when (precision) {
             is GemPrecision.Fraction -> {
                 minimumFractionDigits = precision.min.toInt()
@@ -92,7 +96,7 @@ private fun GemFormattedNumber.appendSymbol(text: String): String = when (val un
 
 private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale, withSign: Boolean = showsSign): String {
     val rounding = numberRounding
-    val formatter = (numberFormat(locale) as DecimalFormat).apply {
+    val formatter = numberFormat(locale).apply {
         roundingMode = rounding
         if (withSign) {
             positivePrefix = "+" + positivePrefix
@@ -118,9 +122,13 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
     }
 }
 
-private fun GemFormattedNumber.numberFormat(locale: Locale): NumberFormat = currencyCode?.let { code ->
-    NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) }
-} ?: NumberFormat.getInstance(locale)
+private val numberFormats = ConcurrentHashMap<Pair<Locale, String?>, DecimalFormat>()
+
+private val percentFormats = ConcurrentHashMap<Locale, DecimalFormat>()
+
+private fun GemFormattedNumber.numberFormat(locale: Locale): DecimalFormat = numberFormats.getOrPut(locale to currencyCode) {
+    (currencyCode?.let { code -> NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) } } ?: NumberFormat.getInstance(locale)) as DecimalFormat
+}.clone() as DecimalFormat
 
 fun GemTransactionRowValue.text(): String? = when (this) {
     GemTransactionRowValue.None -> null

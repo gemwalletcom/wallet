@@ -1,10 +1,10 @@
 use crate::{CoreListItem, WalletId};
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct InAppNotification {
     pub wallet_id: WalletId,

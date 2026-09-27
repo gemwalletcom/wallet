@@ -48,7 +48,6 @@ common_learn_more = 了解更多
 common_description = 描述
 common_emoji = 表情符号
 common_avatar = 头像
-common_save = 保存
 common_percentage = 百分比
 common_details = 详情
 common_info = 信息
@@ -58,6 +57,7 @@ common_method = 方法
 common_token = 代币
 common_expiration = 有效期
 common_suspicious_address = 可疑地址
+common_suspicious_address_description = 此地址与可疑或恶意行为有关。
 common_refresh = 刷新
 common_grant_permission = 授予权限
 common_required_field = %@为必填项
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = 此钱包已导入。
 # Wallets
 
 wallets_title = 钱包
-wallets_watch = 观察
 
 # Receive
 
-receive_title = 接收%@
 receive_warning = 请仅向此地址发送 %2$@ 网络上的 %1$@。
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = 启用密码
 settings_security_authentication = 身份验证
 settings_notifications_title = 通知
 settings_language = 语言
-settings_help_center = 帮助中心
 settings_support = 支持
 settings_price_alerts_title = 价格提醒
 settings_hide_balance = 隐藏余额
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = 暂无报价
 errors_swap_not_supported_asset = 暂不支持该资产。
 errors_connections_no_supported_wallets = 暂无可用钱包
 errors_connections_unsupported_chain = 暂不支持该区块链网络
+errors_authentication_unavailable = 此设备未设置身份验证。请在设备设置中开启生物识别或密码。
+errors_authentication_locked_out = 失败次数过多，请稍后再试。
+errors_authentication_failed = 身份验证失败，请重试。
+errors_connections_expired = 此连接链接已过期。请获取新的二维码后重试。
+errors_connections_not_found = 此连接已不存在。
+errors_connections_relay_unavailable = 无法连接 WalletConnect。请检查网络连接后重试。
 errors_swap_amount_too_small = 金额太小，请输入更大的数额试试
 errors_scan_transaction_malicious_description = 无法完成此交易：目标钱包地址与可疑或恶意行为有关。
 errors_scan_transaction_memo_required = %@ 收款地址需要填写目标标签或备注
@@ -322,7 +325,6 @@ asset_verification_warning_message = 任何人都可以创建代币，请谨防�
 asset_buy_asset = 购买%@
 asset_get_asset = 获取 %@
 asset_add_to_wallet = 添加到钱包
-asset_hide_from_wallet = 从钱包隐藏
 asset_added_to_wallet = 已添加到钱包
 asset_hidden_from_wallet = 已从钱包隐藏
 asset_resources = 资源
@@ -349,6 +351,7 @@ charts_price_change = 涨跌幅
 
 date_today = 今天
 date_yesterday = 昨天
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = 聪/vB
-fee_rate_satB = %@ 聪/B
 fee_rate_gwei = gwei
 fee_rate_custom = 自定义
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = 当价格上涨
 price_alerts_set_alert_price_decreases_by = 当价格下跌
 price_alerts_set_alert_set_target_price = 设定目标价格
 price_alerts_set_alert_current_price = 当前价格
-price_alerts_added_for = 为 %@ 设置价格提醒
+price_alerts_added_price_over = 已添加价格高于 %@ 时的提醒
+price_alerts_added_price_under = 已添加价格低于 %@ 时的提醒
+price_alerts_added_increases_by = 已添加价格上涨 %@ 时的提醒
+price_alerts_added_decreases_by = 已添加价格下跌 %@ 时的提醒
 price_alerts_state_empty_title = 价格提醒将显示在这里
 price_alerts_state_empty_description = 请添加币种，即可开始追踪资产
 price_alerts_auto_footer = 当价格发生重大变动时，警报就会触发。
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = 此应用无权访问照片�
 
 # Markets
 
-markets_title = 市场
-markets_state_empty_title = 市场信息将显示在此处
 markets_daily_volume = 24小时交易量
 
 # Search

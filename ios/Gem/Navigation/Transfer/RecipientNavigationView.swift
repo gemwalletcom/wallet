@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
 import Primitives
 import QRScanner
 import SwiftUI
@@ -19,7 +18,7 @@ struct RecipientNavigationView: View {
             model: model,
         )
         .sheet(item: $model.isPresentingScanner) { value in
-            ScanQRCodeNavigationStack(scanType: model.scanType(for: value)) {
+            QRScannerNavigationStack(scanType: model.scanType(for: value)) {
                 model.onHandleScan($0, for: value)
             }
         }

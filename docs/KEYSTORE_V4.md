@@ -10,7 +10,7 @@ Gem Keystore v4 stores one encrypted secret file per controlled wallet. Wallet/a
 
 ## Core Ownership
 
-- `gem_keystore`: BIP-39 helpers, v4 encrypted file format, v3 WalletCore reader, raw secret storage. The `Keystore` trait is the backend-neutral contract (import, decrypt, verify, change password, list, delete); `FileKeystore` is its unix file backend (owner-only files, atomic rename, process-global lock). Sealing and opening a v4 secret lives in `storage/secret.rs`, so a browser backend only has to supply record IO. `open`, `import_v3`, `delete_v3`, `inspect_path`, and `verify_path` are file-backend-only.
+- `gem_keystore`: BIP-39 helpers, v4 encrypted file format, v3 WalletCore reader, raw secret storage. The `Keystore` trait is the backend-neutral contract (import, decrypt, verify, change password, list, delete); `FileKeystore` is its unix file backend (owner-only files, atomic rename, process-global lock). Sealing and opening a v4 secret lives in `storage/secret.rs`, so a browser backend only has to supply record IO. `open`, `import_v3` and `delete_v3` are file-backend-only.
 - `gem_derivation`: wallet id derivation, account derivation, private-key import validation, chain address creation, account public keys (`Account.extended_public_key`).
 - `gem_auth`: shared device-auth header format (Ed25519 build + verify), used by both the client and the backend.
 - `gemstone`: UniFFI boundary over `gem_keystore` and `gem_derivation`, plus keystore-internal signing (`GemKeystore.sign`/`sign_auth`, `MessageSigner.sign_with_keystore`) routed over the per-chain `gem_*` signer crates, and the client device-auth wrappers.
@@ -142,11 +142,11 @@ Boundaries:
 - Raw-key signers are not on the UniFFI surface: `ChainTransactionSigner`, `MessageSigner.sign(private_key)`, and `sign_auth_message_hash` are internal Rust only (used by `GemKeystore` and tests).
 - `export_private_key` and `export_recovery_phrase` remain for explicit reveal/backup only, never for routine signing. The raw `private_key` helper is Rust-test-only and is not exported over UniFFI.
 - The signing router (`ChainTransactionSigner`) lives in `gemstone`, over the per-chain `gem_*` signer crates. `gem_keystore` stays storage-only.
-- App-side password bytes are zeroized after each call (Android `withGemKeystore`, iOS `withV4Password`).
+- Password bytes are zeroized after each call: Core wraps them in `Zeroizing` for every keystore read, and iOS `withV4Password` does the same for the app-side export and migration calls.
 
 App entrypoints:
 
-- Transaction signing uses the platform `KeystoreTransactionSigner`: [iOS](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift) delegates to `LocalKeystore.sign`, while [Android](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/keystore/KeystoreTransactionSigner.kt) uses `withGemKeystore`.
+- Transaction signing is owned by [`GemConfirmTransferService`](../core/gemstone/src/services/confirm/transfer.rs): one password read per submit signs the transaction and, for a swap that needs one, its Permit2 permit. Neither app signs a transaction.
 - WalletConnect message signing is owned by [`GemSignMessageService`](../core/gemstone/src/services/wallet_connect/sign_message.rs).
 - Wallet authentication signing is owned by [`GemAuthService`](../core/gemstone/src/services/auth/mod.rs).
 
@@ -164,7 +164,6 @@ Keystore side:
 Source paths:
 
 - [Local keystore and Wallet legacy-id extension](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore.swift)
-- [Transaction signer adapter](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift)
 - [Core wallet service](../core/gemstone/src/services/wallet/mod.rs)
 - [Core GemKeystore API](../core/gemstone/src/keystore/keystore.rs)
 
@@ -219,6 +218,7 @@ Rules:
 - If the target v4 file already exists, Rust authenticates it with the supplied new password, re-verifies the binding, and finishes the v3 cleanup (crash-safe idempotent retry).
 - A corrupt staged v4 file (parse/authenticated-header corruption, not a wrong password) is deleted and rebuilt from the v3 file on the next migration run.
 - Wrong password never overwrites an existing v4 file.
+- Importing the phrase of a wallet that already has a record but no v4 file rebuilds the file and answers `Existing`. A file is absent only on a not-found result; a file that exists but cannot be read or looked up is an error, never treated as absent, so it is neither rebuilt nor rolled back. The rollback after a failed record write deletes only a file that import itself wrote (`StoredSecretMeta.created`; gemstone tests `test_importing_the_phrase_again_rebuilds_a_missing_secret`, `test_an_unreadable_secret_is_never_rebuilt_or_removed`, `test_a_failed_wallet_write_keeps_a_secret_the_import_reused`).
 - `GemWalletService.delete_wallet` removes every on-disk copy (the v4 file and any v3 file that never migrated) before deleting wallet metadata, so no secret is orphaned. Deleting one wallet must not delete the shared app-wide password.
 - Downgrading to a pre-v4 build after migration is not supported: the v3 file is gone once the wallet has migrated.
 - Legacy v3 files written by WalletCore can carry an empty scrypt salt. The v3 reader accepts salt lengths from zero up to the maximum and relies on the MAC for authentication. Do not reintroduce a minimum salt length; it strands real wallets with a blank phrase or a missing-password error (fixture `core/crates/gem_keystore/testdata/v3_empty_salt_mnemonic.json`, gemstone test `migrate_v3_empty_salt_mnemonic_round_trip`).

@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import Gemstone
 import enum Gemstone.GemNameInputStep
+import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
@@ -19,7 +20,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         self.setEnabledError = setEnabledError
     }
 
-    public func newAlertSession(assetId: Gemstone.AssetId) -> GemPriceAlertSession {
+    public func newAlertSession(assetId: Gemstone.AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
         GemPriceAlertSession(
             assetId: assetId,
             currency: getCurrency(),
@@ -29,6 +30,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
             currentPrice: nil,
             priceChange: nil,
             isSaving: false,
+            format: format,
         )
     }
 
@@ -57,8 +59,9 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func setAutoAlert(assetId _: Gemstone.AssetId, enabled isEnabled: Bool) async throws {
+    public func setAutoAlert(asset: Gemstone.Asset, enabled isEnabled: Bool) async throws -> GemToast {
         lock.withLock { enabled = isEnabled }
+        return GemToast(text: .priceAlertsToggled(name: asset.name, enabled: isEnabled), icon: .priceAlert)
     }
 
     public func priceAlertId(alert: Gemstone.PriceAlert) -> String {
@@ -94,10 +97,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
             _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: .scheduled)
         }
         return connects
-    }
-
-    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
-        isPerpetualEnabled && connects
     }
 
     private func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
@@ -154,7 +153,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var candlesticksError: GemServiceError?
     public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
-    public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock()))
+    public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock(direction: .long, price: 100, leverage: 3)))
     public var syncPositionsError: Error?
     public var syncTransactionsError: Error?
 

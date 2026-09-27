@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Appearance, Chain, ConfigResponse, Device, WalletType};
+use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -31,6 +31,7 @@ const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
 const SELL_ASSETS_VERSION: &str = "sell_assets_version";
 const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
+const ASSET_UPDATED_AT: &str = "asset_updated_at";
 const EXPLORER_NAME: &str = "explorer_name";
 const PERPETUAL_MARKETS_UPDATED_AT: &str = "perpetual_markets_updated_at";
 const PERPETUAL_PRICES_UPDATED_AT: &str = "perpetual_prices_updated_at";
@@ -197,7 +198,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
+        self.set_observed(PERPETUAL_LEVERAGE, leverage.to_string())
     }
 
     pub fn get_perpetual_take_profit_percent(&self) -> u8 {
@@ -205,7 +206,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_TAKE_PROFIT, percent.to_string())
     }
 
     pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
@@ -213,7 +214,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_STOP_LOSS, percent.to_string())
     }
 
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {
@@ -298,6 +299,14 @@ impl GemPreferencesService {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
 
+    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Result<Option<i64>, GemServiceError> {
+        self.get_timestamp(&asset_updated_at_key(asset_id))
+    }
+
+    pub fn set_asset_updated_at(&self, asset_id: &AssetId, timestamp: i64) -> Result<(), GemServiceError> {
+        self.set_timestamp(&asset_updated_at_key(asset_id), Some(timestamp))
+    }
+
     pub fn get_explorer_name(&self, chain: Chain) -> Option<String> {
         self.store.get(explorer_name_key(chain))
     }
@@ -314,6 +323,10 @@ impl GemPreferencesService {
 
 fn explorer_name_key(chain: Chain) -> String {
     format!("{EXPLORER_NAME}_{}", chain.as_ref())
+}
+
+fn asset_updated_at_key(asset_id: &AssetId) -> String {
+    format!("{ASSET_UPDATED_AT}_{asset_id}")
 }
 
 fn assets_version_key(list: AssetList) -> &'static str {

@@ -10,7 +10,6 @@ import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstoneServices
-import Primitives
 import PrimitivesComponents
 import StreamService
 import WalletConnector

@@ -1,6 +1,7 @@
 pub mod add;
 pub mod config;
 pub mod details;
+pub mod filter;
 pub mod icon;
 pub mod model;
 pub mod rules;
@@ -12,13 +13,14 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
+use chrono::Utc;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
 pub use model::{
-    AssetList, GemAssetAction, GemAssetDetails, GemAssetDetailsInput, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemPriceRow, GemSelectAssetFlow,
-    GemSelectAssetType, GemSelectRowAction, GemWalletSearchLimits,
+    AssetList, GemAssetAction, GemAssetDetails, GemAssetDetailsInput, GemAssetDetailsState, GemAssetFilter, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemPriceRow, GemSelectAssetFlow, GemSelectAssetType,
+    GemSelectRowAction, GemWalletSearchLimits,
 };
 pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
@@ -121,20 +123,16 @@ impl GemAssetsService {
         self.store.save_assets(changed).await
     }
 
-    pub async fn sync_asset_associations(&self, asset_id: AssetId) -> Result<Vec<AssetId>, GemServiceError> {
-        let asset = self.sync_asset(asset_id).await?;
+    pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+        if !rules::asset_outdated(self.preferences.get_asset_updated_at(&asset_id)?, Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
+            return Ok(());
+        }
+        let asset = self.sync_asset(asset_id.clone()).await?;
         let associations: Vec<AssetId> = asset.associations.into_iter().map(|association| association.asset_id).collect();
         if !associations.is_empty() {
-            self.sync_missing_assets(associations.clone()).await?;
+            self.sync_missing_assets(associations).await?;
         }
-        Ok(associations)
-    }
-
-    pub(crate) async fn prepare_for_action(&self, action: GemAssetAction, asset_id: AssetId) -> Result<(), GemServiceError> {
-        match action {
-            GemAssetAction::Receive => self.sync_asset_associations(asset_id).await.map(|_| ()),
-            GemAssetAction::Open | GemAssetAction::Send | GemAssetAction::Buy | GemAssetAction::Sell | GemAssetAction::SwapPay | GemAssetAction::SwapReceive => Ok(()),
-        }
+        self.preferences.set_asset_updated_at(&asset_id, Utc::now().timestamp())
     }
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
@@ -339,19 +337,26 @@ mod tests {
     }
 
     #[test]
-    fn test_only_a_receive_pick_prefetches_the_asset_associations() {
+    fn test_an_asset_is_updated_at_most_once_an_hour() {
         block_on(async {
             let token = AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7");
+            let now = Utc::now().timestamp();
 
-            let sent = Arc::new(TestAlienProvider::offline());
-            let service = GemAssetsService::mock(sent.clone(), Arc::new(MemoryAssetStore::default()));
-            service.prepare_for_action(GemAssetAction::Send, token.clone()).await.unwrap();
-            assert!(sent.requested_paths().is_empty(), "sending needs no associations");
+            let never = Arc::new(TestAlienProvider::offline());
+            let _ = GemAssetsService::mock(never.clone(), Arc::new(MemoryAssetStore::default())).update_asset(token.clone()).await;
+            assert!(!never.requested_paths().is_empty(), "an asset that was never fully updated is asked for");
 
-            let received = Arc::new(TestAlienProvider::offline());
-            let service = GemAssetsService::mock(received.clone(), Arc::new(MemoryAssetStore::default()));
-            let _ = service.prepare_for_action(GemAssetAction::Receive, token).await;
-            assert!(!received.requested_paths().is_empty(), "receiving asks for the asset and its associations");
+            let fresh = Arc::new(TestAlienProvider::offline());
+            let service = GemAssetsService::mock(fresh.clone(), Arc::new(MemoryAssetStore::default()));
+            service.preferences.set_asset_updated_at(&token, now - 3_599).unwrap();
+            service.update_asset(token.clone()).await.unwrap();
+            assert!(fresh.requested_paths().is_empty(), "an asset updated within the hour is not asked for again");
+
+            let stale = Arc::new(TestAlienProvider::offline());
+            let service = GemAssetsService::mock(stale.clone(), Arc::new(MemoryAssetStore::default()));
+            service.preferences.set_asset_updated_at(&token, now - 3_600).unwrap();
+            let _ = service.update_asset(token).await;
+            assert!(!stale.requested_paths().is_empty(), "an hour later the whole asset is asked for again");
         })
     }
 

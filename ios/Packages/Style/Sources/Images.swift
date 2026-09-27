@@ -5,8 +5,6 @@ import SwiftUI
 public enum Images {
     public enum Logo {
         public static let logo = Image(.logo)
-        public static let logoDark = Image(.logoDark)
-        public static let icon = Image(.gemIcon)
     }
 
     public enum Support {
@@ -88,8 +86,6 @@ public enum Images {
         public static let thorchain = Image(.thorchain)
         public static let mayachain = Images.Chains.mayachain
         public static let orca = Image(.orca)
-        public static let stargate = Image(.stargate)
-        public static let raydium = Image(.raydium)
         public static let oku = Image(.oku)
         public static let wagmi = Image(.wagmi)
         public static let chainflip = Image(.chainflip)
@@ -122,22 +118,17 @@ public enum Images {
         public static let receive = Image(.receive)
         public static let buy = Image(.buy)
         public static let manage = Image(.manage)
-        public static let sell = Image(.sell)
         public static let more = Image(.ellipsis)
-        public static let avatar = Image(.avatar)
     }
 
     public enum Settings {
         public static let priceAlerts = Image(.settingsPriceAlerts)
         public static let currency = Image(.settingsCurrency)
-        public static let rate = Image(.settingsRate)
         public static let developer = Image(.settingsDeveloper)
         public static let security = Image(.settingsSecurity)
         public static let gem = Image(.settingsGem)
         public static let aboutUs = Image(.settingsAboutUs)
         public static let support = Image(.settingsSupport)
-        public static let helpCenter = Image(.settingsHelpCenter)
-        public static let version = Image(.settingsVersion)
         public static let language = Image(.settingsLanguage)
         public static let wallets = Image(.settingsWallets)
         public static let networks = Image(.settingsNetworks)
@@ -172,10 +163,8 @@ public enum Images {
 
     public enum Tabs {
         public static let settings = Image(.tabSettings)
-        public static let collections = Image(.tabCollections)
         public static let activity = Image(.tabActivity)
         public static let wallet = Image(.tabWallet)
-        public static let markets = Image(.tabDiscover)
     }
 
     public enum Transaction {
@@ -190,7 +179,6 @@ public enum Images {
     }
 
     public enum Wallets {
-        public static let edit = Image(.edit)
         public static let create = Image(.create)
         public static let `import` = Image(.import)
         public static let watch = Image(.watch)
@@ -242,7 +230,6 @@ public enum Images {
     let imageCategories = [
         ("Logo", [
             (Images.Logo.logo, "Logo"),
-            (Images.Logo.logoDark, "Logo Dark"),
         ]),
         ("Chains", [
             (Images.Chains.aptos, "Aptos"),
@@ -292,19 +279,15 @@ public enum Images {
             (Images.Actions.receive, "Receive"),
             (Images.Actions.buy, "Buy"),
             (Images.Actions.manage, "Manage"),
-            (Images.Actions.avatar, "Avatar"),
         ]),
         ("Settings", [
             (Images.Settings.priceAlerts, "Price Alerts"),
             (Images.Settings.currency, "Currency"),
-            (Images.Settings.rate, "Rate"),
             (Images.Settings.developer, "Developer"),
             (Images.Settings.security, "Security"),
             (Images.Settings.gem, "Gem"),
             (Images.Settings.aboutUs, "About Us"),
             (Images.Settings.support, "Support"),
-            (Images.Settings.helpCenter, "Help Center"),
-            (Images.Settings.version, "Version"),
             (Images.Settings.language, "Language"),
             (Images.Settings.wallets, "Wallets"),
             (Images.Settings.networks, "Networks"),
@@ -336,7 +319,6 @@ public enum Images {
             (Images.Transaction.State.success, "Success"),
         ]),
         ("Wallets", [
-            (Images.Wallets.edit, "Edit"),
             (Images.Wallets.create, "Create"),
             (Images.Wallets.import, "Import"),
             (Images.Wallets.watch, "Watch"),
@@ -362,10 +344,8 @@ public enum Images {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 40, height: 40)
-                            .padding(.tiny)
                         Text(category.1[index].1)
                     }
-                    .listRowBackground(Colors.greenLight)
                 }
             }
         }

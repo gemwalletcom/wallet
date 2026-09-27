@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -8,20 +9,20 @@ import SwiftUI
 
 public struct TransactionsFilterScene: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding private var model: TransactionsFilterViewModel
+    @Binding private var model: TransactionsFilterSceneViewModel
 
-    public init(model: Binding<TransactionsFilterViewModel>) {
+    public init(model: Binding<TransactionsFilterSceneViewModel>) {
         _model = model
     }
 
     public var body: some View {
         List {
             SelectFilterView(
-                typeModel: model.chainsFilter.typeModel,
+                typeModel: model.chainsTypeModel,
                 action: model.onSelectChainsFilter,
             )
             SelectFilterView(
-                typeModel: model.transactionTypesFilter.typeModel,
+                typeModel: model.typesTypeModel,
                 action: model.onSelectTypesFilter,
             )
         }
@@ -49,7 +50,7 @@ public struct TransactionsFilterScene: View {
                         dismiss()
                     }
                 },
-                listContent: { ChainView(model: ChainViewModel(chain: $0)) },
+                listContent: { ChainView(model: chainRow(chain: $0.rawValue)) },
             )
         }
         .sheet(isPresented: $model.isPresentingTypes) {
@@ -72,8 +73,7 @@ public struct TransactionsFilterScene: View {
 
 extension TransactionsFilterScene {
     private func onSelectClear() {
-        model.chainsFilter.selectedChains = []
-        model.transactionTypesFilter.selectedTypes = []
+        model.onClear()
     }
 
     private func onSelectDone() {

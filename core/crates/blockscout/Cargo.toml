@@ -12,6 +12,7 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 num-bigint = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }

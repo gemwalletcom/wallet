@@ -7,7 +7,7 @@ plugins {
 val gemstoneRoot = rootProject.projectDir.resolve("../core/gemstone")
 val coreRoot = gemstoneRoot.parentFile
 val gemstoneSrc = gemstoneRoot.resolve("android/gemstone/src")
-val jniLibsDir = gemstoneSrc.resolve("main/jniLibs")
+val jniLibsDir = layout.buildDirectory.dir("jniLibs").get().asFile
 val generatedKotlinDir = gemstoneSrc.resolve("main/java")
 val isRelease = System.getenv("BUILD_MODE") == "release"
 val cargoBuildFlag = if (isRelease) "--release" else ""
@@ -95,8 +95,10 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
 val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     description = "Build gemstone native libraries using cargo-ndk"
     workingDir = gemstoneRoot
-    outputs.dir(jniLibsDir)
+    val outputDir = jniLibsDir
+    outputs.dir(outputDir)
     outputs.upToDateWhen { false }
+    doFirst { outputDir.deleteRecursively() }
     commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib $cargoBuildFlag")
 }
 

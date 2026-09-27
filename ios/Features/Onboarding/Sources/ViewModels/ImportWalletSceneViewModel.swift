@@ -1,5 +1,7 @@
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import struct Gemstone.GemWalletImportScreen
@@ -7,6 +9,7 @@ import protocol Gemstone.GemWalletServiceProtocol
 import func Gemstone.phraseSuggestions
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -17,7 +20,6 @@ import SwiftUI
 @MainActor
 final class ImportWalletSceneViewModel {
     private let service: any GemWalletServiceProtocol
-    let preferences: ObservablePreferences
     let type: ImportWalletType
     private let importScreen: GemWalletImportScreen
 
@@ -43,19 +45,17 @@ final class ImportWalletSceneViewModel {
 
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
-    var isPresentingExistingWalletName: String?
+    var isPresentingExistingWallet: GemInfoSheet?
 
     private let onComplete: VoidAction
 
     init(
         service: any GemWalletServiceProtocol,
-        preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: VoidAction,
     ) {
         self.service = service
-        self.preferences = preferences
         self.type = type
         importScreen = service.importScreen(chain: type.chain?.toGem())
         self.onComplete = onComplete
@@ -164,7 +164,7 @@ extension ImportWalletSceneViewModel {
         inputCursor = nil
 
         if shouldProtectInput {
-            CopyTypeViewModel.clearClipboard()
+            Clipboard.clear()
         }
     }
 
@@ -187,7 +187,7 @@ extension ImportWalletSceneViewModel {
         isImporting = false
         switch result {
         case .new: onComplete?()
-        case let .existing(wallet): isPresentingExistingWalletName = wallet.name
+        case let .existing(wallet): isPresentingExistingWallet = GemInfoTopic.existingWalletImported(name: wallet.name).infoSheet
         }
     }
 }

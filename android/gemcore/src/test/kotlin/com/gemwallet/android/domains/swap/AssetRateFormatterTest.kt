@@ -1,9 +1,10 @@
 package com.gemwallet.android.domains.swap
 
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemAssetRate
+import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemSwapRate
@@ -36,7 +37,7 @@ class AssetRateFormatterTest {
         )
     }
 
-    private fun places(value: Double, symbol: String) = mockFormattedNumber(value, GemNumberUnit.Symbol(symbol))
+    private fun places(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2u, max = 2u)))
 
-    private fun significant(value: Double, symbol: String) = mockFormattedNumber(value, GemNumberUnit.Symbol(symbol), precision = GemPrecision.Significant(4u))
+    private fun significant(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Significant(4u)))
 }

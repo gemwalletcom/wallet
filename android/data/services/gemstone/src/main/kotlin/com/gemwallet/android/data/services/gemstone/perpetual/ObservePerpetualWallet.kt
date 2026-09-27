@@ -2,7 +2,7 @@ package com.gemwallet.android.data.services.gemstone.perpetual
 
 import android.util.Log
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.session.cases.GetCurrentWallet
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -12,18 +12,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemPerpetualEnablementTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import javax.inject.Inject
 
 class ObservePerpetualWallet @Inject constructor(
-    private val getCurrentWallet: GetCurrentWallet,
+    private val getSession: GetSession,
     private val userConfig: UserConfig,
     private val perpetualService: GemPerpetualServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(): Flow<Wallet?> = combine(
-        getCurrentWallet.observe(),
+        getSession().map { it?.wallet }.distinctUntilChanged(),
         userConfig.isPerpetualEnabled(),
     ) { wallet, _ ->
         val connects = runCatchingCancellable { perpetualService.syncEnablement(wallet?.toGem(), GemPerpetualEnablementTrigger.WALLET_CHANGED) }

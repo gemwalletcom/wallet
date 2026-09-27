@@ -1,5 +1,5 @@
 use bigdecimal::num_bigint::BigInt;
-use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive};
+use bigdecimal::{BigDecimal, RoundingMode};
 use std::num::NonZeroU64;
 use std::str::FromStr;
 
@@ -13,10 +13,6 @@ impl CryptoFiatConverter {
     pub fn fiat_amount(value: &str, decimals: u32, price: f64) -> BigDecimal {
         let digits = BigInt::from_str(value).unwrap_or_default();
         BigDecimal::new(digits, decimals as i64) * Self::price_value(price).unwrap_or_default()
-    }
-
-    pub fn fiat_f64(value: &str, decimals: u32, price: f64) -> f64 {
-        Self::fiat_amount(value, decimals, price).to_f64().unwrap_or_default()
     }
 
     pub fn to_fiat(value: &str, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
@@ -59,14 +55,6 @@ impl CryptoFiatConverter {
 
 #[cfg(test)]
 mod tests {
-
-    #[test]
-    fn test_fiat_f64_multiplies_the_price_without_the_caller_parsing_a_string() {
-        assert_eq!(CryptoFiatConverter::fiat_f64("1000000000000000000", 18, 2500.0), 2500.0);
-        assert_eq!(CryptoFiatConverter::fiat_f64("500000", 6, 1.0), 0.5);
-        assert_eq!(CryptoFiatConverter::fiat_f64("0", 18, 2500.0), 0.0);
-        assert_eq!(CryptoFiatConverter::fiat_f64("not a number", 18, 2500.0), 0.0, "an unreadable amount is zero, not a panic");
-    }
     use super::*;
 
     #[test]

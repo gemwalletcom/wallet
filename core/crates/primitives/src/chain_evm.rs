@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
 use crate::Chain;
 use crate::chain_config::EvmChainConfig;
@@ -18,7 +17,6 @@ pub enum EvmNativeCurrency {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Hashable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum EVMChain {

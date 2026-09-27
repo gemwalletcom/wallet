@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
@@ -21,11 +23,12 @@ import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.mainActionHeight
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 @Composable
-fun MainActionButton(title: String, modifier: Modifier = Modifier, state: ButtonState = ButtonState.Enabled, colors: ButtonColors = mainActionButtonColors(), onClick: () -> Unit) {
+fun MainActionButton(title: String, modifier: Modifier = Modifier, state: ButtonState = ButtonState.Enabled, colors: ButtonColors = mainActionButtonColors(), icon: ImageVector? = null, onClick: () -> Unit) {
     MainActionButton(modifier, state, colors, onClick) {
         if (state == ButtonState.Loading) {
             CircularProgressIndicator20(color = colors.contentColor)
         } else {
+            icon?.let { Icon(imageVector = it, contentDescription = null) }
             Text(
                 modifier = Modifier.padding(paddingHalfSmall),
                 text = title,

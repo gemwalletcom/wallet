@@ -46,12 +46,10 @@ private extension DB {
 
 @Suite(.serialized)
 struct WalletIdMigrationTests {
-    private let currentWalletKey = "currentWallet"
-
     @Test
     func migrateMulticoinWallet() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-multicoin-1"
@@ -75,7 +73,7 @@ struct WalletIdMigrationTests {
     @Test
     func migrateViewWallet() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-view-1"
@@ -99,7 +97,7 @@ struct WalletIdMigrationTests {
     @Test
     func migrateSingleWallet() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.bitcoin])
+        let db = DB.mock(chains: [.bitcoin])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-single-1"
@@ -123,7 +121,7 @@ struct WalletIdMigrationTests {
     @Test
     func migratePrivateKeyWallet() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-pk-1"
@@ -147,7 +145,7 @@ struct WalletIdMigrationTests {
     @Test
     func removeDuplicateMulticoinWallets() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let ethAddress = "0xsameaddress"
@@ -184,7 +182,7 @@ struct WalletIdMigrationTests {
     @Test
     func mixedWalletTypes() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum, .bitcoin, .solana])
+        let db = DB.mock(chains: [.ethereum, .bitcoin, .solana])
         let walletStore = WalletStore(db: db)
 
         try db.insertLegacyWallet(
@@ -222,7 +220,7 @@ struct WalletIdMigrationTests {
     @Test
     func updateChildTableReferences() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let assetStore = AssetStore(db: db)
 
         let oldId = "uuid-with-balances"
@@ -233,7 +231,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .ethereum, address: ethAddress)],
         )
 
-        let asset = AssetBasic.mock(asset: .mock(id: .mockEthereum()))
+        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum)))
         try assetStore.add(assets: [asset])
         try db.dbQueue.write { db in
             try db.execute(
@@ -259,7 +257,7 @@ struct WalletIdMigrationTests {
     @Test
     func removeUnmappedInvalidLegacyWallets() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let walletStore = WalletStore(db: db)
 
         let validAddress = "0xvalid"
@@ -290,7 +288,7 @@ struct WalletIdMigrationTests {
     @Test
     func multipleDuplicateGroups() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let address1 = "0xaddress1"
@@ -327,7 +325,7 @@ struct WalletIdMigrationTests {
     @Test
     func duplicateViewWallets() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let address = "0xviewaddr"
@@ -347,7 +345,7 @@ struct WalletIdMigrationTests {
     @Test
     func duplicateSingleWallets() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.bitcoin])
+        let db = DB.mock(chains: [.bitcoin])
         let walletStore = WalletStore(db: db)
 
         let address = "bc1qsingle"
@@ -368,7 +366,7 @@ struct WalletIdMigrationTests {
     @Test
     func keepWalletWithLowestOrder() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let address = "0xordertest"
@@ -390,7 +388,7 @@ struct WalletIdMigrationTests {
     @Test
     func accountsUpdatedAfterMigration() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-accounts"
@@ -421,7 +419,7 @@ struct WalletIdMigrationTests {
     @Test
     func walletAlreadyInNewFormat() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let ethAddress = "0xalreadymigrated"
@@ -461,7 +459,7 @@ struct WalletIdMigrationTests {
     @Test
     func multipleAccountsConsistentSelection() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
         let walletStore = WalletStore(db: db)
 
         let oldId = "uuid-multi-accounts"
@@ -493,7 +491,7 @@ struct WalletIdMigrationPreferenceTests {
     @Test
     func migrateCurrentWalletPreference() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
 
         let oldId = "uuid-current"
         let ethAddress = "0xcurrent"
@@ -516,7 +514,7 @@ struct WalletIdMigrationPreferenceTests {
     @Test
     func setCurrentWalletWhenNoneSet() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
 
         try db.insertLegacyWallet(id: "uuid-first", type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0xfirst")], order: 0)
 
@@ -531,7 +529,7 @@ struct WalletIdMigrationPreferenceTests {
     @Test
     func fallbackCurrentWalletWhenInvalid() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
 
         userDefaults.set("deleted-wallet-id", forKey: currentWalletKey)
 
@@ -548,7 +546,7 @@ struct WalletIdMigrationPreferenceTests {
     @Test
     func preserveCurrentWalletWhenAlreadyMigrated() throws {
         let userDefaults = UserDefaults.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore(db: db)
 
         let ethAddress = "0xalready"

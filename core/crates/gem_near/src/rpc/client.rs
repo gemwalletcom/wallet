@@ -1,6 +1,6 @@
 use crate::{
     jsonrpc::NearRpc,
-    models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
+    models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
 };
 use gem_client::Client;
 use gem_encoding::encode_base64;
@@ -49,6 +49,10 @@ impl<C: Client + Clone> NearClient<C> {
                 public_key: public_key.to_string(),
             })
             .await
+    }
+
+    pub async fn get_account_access_keys(&self, address: &str) -> Result<AccountAccessKeyList, JsonRpcError> {
+        self.client.request(NearRpc::GetAccountAccessKeys { address: address.to_string() }).await
     }
 
     pub async fn get_latest_block(&self) -> Result<Block, JsonRpcError> {

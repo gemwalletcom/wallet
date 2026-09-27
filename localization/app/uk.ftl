@@ -48,7 +48,6 @@ common_learn_more = Дізнайтеся більше
 common_description = Опис
 common_emoji = Емодзі
 common_avatar = Аватар
-common_save = Зберегти
 common_percentage = Відсоток
 common_details = Деталі
 common_info = Інформація
@@ -58,6 +57,7 @@ common_method = Метод
 common_token = Токен
 common_expiration = Термін дії
 common_suspicious_address = Підозріла адреса
+common_suspicious_address_description = Ця адреса пов'язана з підозрілою або шкідливою активністю.
 common_refresh = Оновити
 common_grant_permission = Надати дозвіл
 common_required_field = %@ є обов'язковим
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Цей гаманець вже імпо
 # Wallets
 
 wallets_title = Гаманці
-wallets_watch = Дивитися
 
 # Receive
 
-receive_title = Отримати %@
 receive_warning = Це ваша адреса - надсилайте тільки %@ в мережі %@.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Увімкнути пароль
 settings_security_authentication = Аутентифікація
 settings_notifications_title = Сповіщення
 settings_language = Мова
-settings_help_center = Довідковий центр
 settings_support = Підтримка
 settings_price_alerts_title = Оповіщення про ціни
 settings_hide_balance = Приховати баланс
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Котирування недоступне.
 errors_swap_not_supported_asset = Не підтримуваний актив.
 errors_connections_no_supported_wallets = Немає підтримуваних гаманців.
 errors_connections_unsupported_chain = Наданий ланцюжок не підтримується.
+errors_authentication_unavailable = На цьому пристрої не налаштовано автентифікацію. Увімкніть біометрію або код-пароль у налаштуваннях пристрою.
+errors_authentication_locked_out = Забагато невдалих спроб. Будь ласка, спробуйте пізніше.
+errors_authentication_failed = Не вдалося пройти автентифікацію. Будь ласка, спробуйте ще раз.
+errors_connections_expired = Термін дії цього посилання для підключення минув. Отримайте новий QR-код і спробуйте ще раз.
+errors_connections_not_found = Цього підключення більше не існує.
+errors_connections_relay_unavailable = Не вдається зв'язатися з WalletConnect. Перевірте підключення до інтернету і спробуйте ще раз.
 errors_swap_amount_too_small = Сума занадто мала
 errors_scan_transaction_malicious_description = Цю транзакцію неможливо завершити — адреса гаманця призначення пов'язана з підозрілою або шкідливою активністю.
 errors_scan_transaction_memo_required = %@ адреса гаманця призначення вимагає тегу / мемо призначення
@@ -322,7 +325,6 @@ asset_verification_warning_message = Будь-хто може створити �
 asset_buy_asset = Купити %@
 asset_get_asset = Отримати %@
 asset_add_to_wallet = Додати до гаманця
-asset_hide_from_wallet = Приховати від гаманця
 asset_added_to_wallet = Додано до гаманця
 asset_hidden_from_wallet = Приховано з гаманця
 asset_resources = Ресурси
@@ -349,6 +351,7 @@ charts_price_change = Зміна
 
 date_today = Сьогодні
 date_yesterday = Вчора
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Нормальний
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Свій
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Коли ціна зростає н�
 price_alerts_set_alert_price_decreases_by = Коли ціна знизиться на
 price_alerts_set_alert_set_target_price = Встановити цільову ціну
 price_alerts_set_alert_current_price = Поточна ціна
-price_alerts_added_for = Встановити сповіщення про ціну %@
+price_alerts_added_price_over = Сповіщення додано: ціна вище %@
+price_alerts_added_price_under = Сповіщення додано: ціна нижче %@
+price_alerts_added_increases_by = Сповіщення додано: зростання ціни на %@
+price_alerts_added_decreases_by = Сповіщення додано: падіння ціни на %@
 price_alerts_state_empty_title = Ваші сповіщення про ціни з'являтимуться тут
 price_alerts_state_empty_description = Увімкніть їх, додавши монети до відстеження
 price_alerts_auto_footer = Сповіщення спрацьовують у разі значних змін цін.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Ця програма не �
 
 # Markets
 
-markets_title = Ринки
-markets_state_empty_title = Дані вашого ринку з'являться тут
 markets_daily_volume = 24-годинний обсяг
 
 # Search

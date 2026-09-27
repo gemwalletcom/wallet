@@ -14,10 +14,6 @@ public struct SharedPreferences {
         userDefaults = UserDefaults(suiteName: Constants.appGroupIdentifier)
     }
 
-    public init(userDefaults: UserDefaults?) {
-        self.userDefaults = userDefaults
-    }
-
     public var currency: String {
         get {
             userDefaults?.string(forKey: SharedPreferenceConstants.currencyKey) ?? Currency.usd.rawValue

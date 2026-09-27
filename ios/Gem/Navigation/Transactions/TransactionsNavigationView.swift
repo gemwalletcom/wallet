@@ -15,9 +15,9 @@ struct TransactionsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
 
-    @State private var model: TransactionsViewModel
+    @State private var model: TransactionsSceneViewModel
 
-    init(model: TransactionsViewModel) {
+    init(model: TransactionsSceneViewModel) {
         _model = State(wrappedValue: model)
     }
 
@@ -77,14 +77,14 @@ struct TransactionsNavigationView: View {
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
                 case let .selectAsset(selectType):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: selectType,
                         ),
                     )
                 case let .addContact(action):
-                    AddContactNavigationView(action: action)
+                    AddContactNavigationStack(action: action)
                 case let .addressDetails(chainAddress):
                     AddressDetailsDestination(chainAddress: chainAddress)
                 }

@@ -2,7 +2,6 @@
 
 import Foundation
 import enum Gemstone.GemTransactionStateTone
-import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -18,14 +17,6 @@ public struct TransactionStateViewModel: Equatable, Sendable {
 
     public var title: String {
         state.statusTitle
-    }
-
-    public var description: String {
-        tone.infoDescription
-    }
-
-    public var stateImage: Image {
-        tone.image
     }
 
     public var color: Color {

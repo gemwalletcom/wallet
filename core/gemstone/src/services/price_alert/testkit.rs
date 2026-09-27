@@ -14,7 +14,7 @@ use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 impl GemPriceAlertSession {
     pub fn mock() -> Self {
-        Self::new(AssetId::from_chain(Chain::Ethereum), Currency::USD).on_price(Some(100.0), None)
+        Self::new(AssetId::from_chain(Chain::Ethereum), Currency::USD, crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }).on_price(Some(100.0), None)
     }
 }
 

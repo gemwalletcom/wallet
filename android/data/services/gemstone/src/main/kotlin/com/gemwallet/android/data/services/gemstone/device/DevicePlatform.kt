@@ -2,9 +2,7 @@ package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
-import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.RequestPushToken
-import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.ext.toGem
@@ -21,8 +19,7 @@ import java.util.Locale
 
 class GemstoneDevicePlatform(
     private val context: Context,
-    private val getPushToken: GetPushToken,
-    private val setPushToken: SetPushToken,
+    private val pushSettings: DevicePushSettings,
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
     private val notificationsAvailable: NotificationsAvailable,
@@ -43,11 +40,11 @@ class GemstoneDevicePlatform(
     )
 
     override suspend fun pushToken(): String {
-        val token = getPushToken.getPushToken()
+        val token = pushSettings.getPushToken()
         if (token.isEmpty()) {
             requestPushToken.requestToken { requested ->
                 if (requested.isNotEmpty()) {
-                    setPushToken.setPushToken(requested)
+                    pushSettings.setPushToken(requested)
                 }
             }
         }

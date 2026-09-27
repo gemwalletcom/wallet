@@ -14,7 +14,7 @@ public struct InAppNotificationStore: Sendable {
     public func addNotifications(_ notifications: [Primitives.InAppNotification]) throws {
         try db.write { db in
             for notification in notifications {
-                try notification.record().upsert(db)
+                try notification.toRecord().upsert(db)
             }
         }
     }

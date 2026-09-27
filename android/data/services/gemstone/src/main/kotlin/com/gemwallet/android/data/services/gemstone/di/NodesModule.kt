@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.NodesDao
+import com.gemwallet.android.data.services.store.database.NodesDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNodeStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import dagger.Module

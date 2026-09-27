@@ -12,7 +12,7 @@ import Style
 import SwiftUI
 import Transactions
 import Transfer
-import WalletTab
+import Wallet
 
 struct MainTabView: View {
     @Environment(\.navigationState) private var navigationState

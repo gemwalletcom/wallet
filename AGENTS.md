@@ -30,7 +30,7 @@ Read the relevant platform guide(s) before editing code in that area:
 
 - [iOS](ios/AGENTS.md) — SwiftUI, MVVM, SPM modules, testing conventions
 - [Android](android/AGENTS.md) — Kotlin, Compose, Hilt, Gradle workflow
-- [Core](core/AGENTS.md) — Rust crates, UniFFI/TypeShare, clippy, defensive programming
+- [Core](core/AGENTS.md) — Rust crates, UniFFI, generated models, clippy, defensive programming
 
 If a task spans platforms, read every affected guide. Generation and parity requirements live in [Cross-Platform Awareness](skills/cross-platform-awareness.md); verification commands live in [Quality Checks](skills/quality-checks.md).
 

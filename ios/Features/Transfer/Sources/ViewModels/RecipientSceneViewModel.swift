@@ -21,7 +21,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class RecipientSceneViewModel {
-    public let wallet: Wallet
     public let asset: Asset
     let type: GemRecipientType
 
@@ -38,15 +37,14 @@ public final class RecipientSceneViewModel {
         set { session = session.onMemoChanged(memo: newValue) }
     }
 
-    public let contactsQuery: ObservableQuery<ContactsRequest>
+    public let contactsQuery: ObservableQuery<ContactsQuery>
     var contacts: [ContactData] {
         contactsQuery.value
     }
 
-    public let walletsQuery = ObservableQuery(WalletsRequest(isPinned: .none), initialValue: [Wallet]())
+    public let walletsQuery = ObservableQuery(WalletsQuery(isPinned: .none), initialValue: [Wallet]())
 
     public init(
-        wallet: Wallet,
         asset: Asset,
         service: any GemRecipientServiceProtocol,
         nameService: any GemNameServiceProtocol,
@@ -54,7 +52,6 @@ public final class RecipientSceneViewModel {
         recipient: GemPaymentRecipient? = .none,
         onNavigate: TransferRouteAction,
     ) {
-        self.wallet = wallet
         self.asset = asset
         self.service = service
         self.type = type
@@ -62,7 +59,7 @@ public final class RecipientSceneViewModel {
 
         addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
-        contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
+        contactsQuery = ObservableQuery(ContactsQuery(chain: asset.chain), initialValue: [])
 
         if let recipient {
             update(from: recipient)
@@ -103,16 +100,12 @@ public final class RecipientSceneViewModel {
         asset.chain.isMemoSupported
     }
 
-    var chain: Chain {
-        asset.chain
-    }
-
     func listItem(for item: ListItemValue<GemRecipient>) -> ListItemModel {
         ListItemModel(title: item.title ?? item.value.name, subtitle: item.subtitle)
     }
 
     var recipientSections: [ListItemValueSection<GemRecipient>] {
-        service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, contacts: contactRecipients)
+        service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
             .map {
                 ListItemValueSection(
                     section: $0.kind.title,
@@ -179,12 +172,6 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private var contactRecipients: [GemRecipient] {
-        contacts.flatMap { data in
-            data.addresses.map { GemRecipient(address: $0.address, name: data.contact.name, memo: $0.memo) }
-        }
-    }
-
     private func scanRecipient(_ string: String) throws {
         switch try service.scan(url: string, recipientType: type) {
         case let .confirm(transfer): onNavigate?(.confirm(transfer))

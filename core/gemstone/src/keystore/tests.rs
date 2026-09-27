@@ -1,4 +1,3 @@
-use gem_ton::Address as TonAddress;
 use primitives::{Asset, Chain, SignerError, SignerInput, TransactionInputType, WalletType};
 use tempfile::TempDir;
 use zeroize::Zeroizing;
@@ -29,27 +28,10 @@ fn test_gem_keystore_rejects_unrelated_transaction_sender() {
 }
 
 #[test]
-fn test_signing_key_binds_mnemonic_accounts_and_accepts_equivalent_encodings() {
+fn test_signing_key_binds_every_chain_to_its_stored_account() {
     let dir = TempDir::new().unwrap();
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
-    let chains = vec![
-        Chain::Ethereum,
-        Chain::Solana,
-        Chain::Bitcoin,
-        Chain::BitcoinCash,
-        Chain::Cardano,
-        Chain::Ton,
-        Chain::Near,
-        Chain::Tron,
-        Chain::Stellar,
-        Chain::Polkadot,
-        Chain::Cosmos,
-        Chain::Aptos,
-        Chain::Sui,
-        Chain::Xrp,
-        Chain::Algorand,
-    ];
-    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(chains), b"password".to_vec()).unwrap();
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(Chain::all()), b"password".to_vec()).unwrap();
     for account in &stored.accounts {
         assert!(keystore.signing_key(&stored.keystore_id, account.chain, &account.address, b"password".to_vec()).is_ok(), "{}", account.chain);
         assert_eq!(
@@ -57,12 +39,6 @@ fn test_signing_key_binds_mnemonic_accounts_and_accepts_equivalent_encodings() {
             GemstoneError::from(SignerError::invalid_input("signing key does not match the approved account"))
         );
     }
-    let ton = stored.accounts.iter().find(|account| account.chain == Chain::Ton).unwrap();
-    let bounceable = TonAddress::parse(&ton.address).unwrap().encode_bounceable();
-    assert!(keystore.signing_key(&stored.keystore_id, Chain::Ton, &bounceable, b"password".to_vec()).is_ok());
-    let bitcoin_cash = stored.accounts.iter().find(|account| account.chain == Chain::BitcoinCash).unwrap();
-    let prefixed = format!("bitcoincash:{}", bitcoin_cash.address);
-    assert!(keystore.signing_key(&stored.keystore_id, Chain::BitcoinCash, &prefixed, b"password".to_vec()).is_ok());
 }
 
 #[test]

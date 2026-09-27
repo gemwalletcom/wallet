@@ -47,3 +47,26 @@ fn test_price_alert_target_uses_target_and_current_price() {
     assert_eq!(message.title, "\u{1f3af} \u{2068}Bitcoin (BTC)\u{2069} reached \u{2068}$81,000.00\u{2069}");
     assert_eq!(message.description, "Now at \u{2068}$80,954.00\u{2069} (\u{2068}-0.27%\u{2069}).");
 }
+
+#[test]
+fn test_the_referral_window_names_the_device_and_wallet_age_in_the_right_plural() {
+    let english = LanguageLocalizer::new_with_language("en");
+    assert_eq!(
+        english.rewards_error_referral_eligibility_expired(30),
+        "Referral codes can only be used on a device and wallet set up in the last \u{2068}\u{2068}30\u{2069} days\u{2069}."
+    );
+    assert_eq!(
+        english.rewards_error_referral_eligibility_expired(1),
+        "Referral codes can only be used on a device and wallet set up in the last \u{2068}day\u{2069}."
+    );
+
+    let russian = LanguageLocalizer::new_with_language("ru");
+    assert!(russian.rewards_error_referral_eligibility_expired(30).contains("за последние \u{2068}30\u{2069} дней"));
+    assert!(russian.rewards_error_referral_eligibility_expired(3).contains("за последние \u{2068}3\u{2069} дня"));
+    assert!(russian.rewards_error_referral_eligibility_expired(21).contains("за последний \u{2068}21\u{2069} день"));
+
+    for language in ["ar", "de", "es", "fa", "fr", "he", "hi", "id", "it", "ja", "ko", "pl", "pt-BR", "ru", "th", "tr", "uk", "vi", "zh-Hans", "zh-Hant"] {
+        let text = LanguageLocalizer::new_with_language(language).rewards_error_referral_eligibility_expired(30);
+        assert_ne!(text, english.rewards_error_referral_eligibility_expired(30), "{language} reads its own translation, not the English fallback");
+    }
+}

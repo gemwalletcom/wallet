@@ -38,23 +38,9 @@ public struct AssetStore: Sendable {
         }
     }
 
-    public func getAssetsData(walletId: WalletId, filters: [AssetsRequestFilter], limit: Int? = nil) throws -> [AssetData] {
+    public func getAssetsData(walletId: WalletId, filters: [AssetsQueryFilter], limit: Int? = nil) throws -> [AssetData] {
         try db.read { db in
-            try AssetsRequest(walletId: walletId, filters: filters, limit: limit).fetch(db)
-        }
-    }
-
-    public func getAssetData(walletId: WalletId, assetId: AssetId) throws -> AssetData {
-        try db.read { db in
-            try AssetRequest(walletId: walletId, assetId: assetId).fetch(db)
-        }
-    }
-
-    public func getAssets() throws -> [Asset] {
-        try db.read { db in
-            try AssetRecord
-                .fetchAll(db)
-                .map { $0.mapToAsset() }
+            try AssetsQuery(walletId: walletId, filters: filters, limit: limit).fetch(db)
         }
     }
 
@@ -147,7 +133,7 @@ public struct AssetStore: Sendable {
     public func updateLinks(assetId: AssetId, _ links: [AssetLink]) throws {
         try db.write { db in
             for link in links {
-                try link.record(assetId: assetId).upsert(db)
+                try link.toRecord(assetId: assetId).upsert(db)
             }
         }
     }
