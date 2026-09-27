@@ -7,13 +7,13 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct ChartStateView: View {
+struct ChartStateView: View {
     private let state: StateViewType<GemChartData>
     private let periods: [ChartPeriod]
 
     @Binding private var selectedPeriod: ChartPeriod
 
-    public init(
+    init(
         state: StateViewType<GemChartData>,
         selectedPeriod: Binding<ChartPeriod>,
         periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],

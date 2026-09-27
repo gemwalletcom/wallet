@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 
 public struct CurrencyFormatter: Sendable, Hashable {
-    public let locale: Locale
+    let locale: Locale
     public let currencyCode: String
 
     public init(

@@ -59,7 +59,7 @@ public final class SignMessageSceneViewModel {
         preview.title.text
     }
 
-    public var buttonTitle: String {
+    var buttonTitle: String {
         Localized.Transfer.confirm
     }
 
@@ -80,11 +80,11 @@ public final class SignMessageSceneViewModel {
         )
     }
 
-    public var headerModel: GemValueHeader? {
+    var headerModel: GemValueHeader? {
         headerData?.header
     }
 
-    public var headerData: GemSimulationValue? {
+    var headerData: GemSimulationValue? {
         preview.header
     }
 
@@ -92,19 +92,19 @@ public final class SignMessageSceneViewModel {
         preview.text
     }
 
-    public var simulationWarnings: [GemListRow] {
+    var simulationWarnings: [GemListRow] {
         preview.warnings
     }
 
-    public var primaryPayloadFields: [GemSimulationPayloadRow] {
+    var primaryPayloadFields: [GemSimulationPayloadRow] {
         preview.primaryFields
     }
 
-    public var secondaryPayloadFields: [GemSimulationPayloadRow] {
+    var secondaryPayloadFields: [GemSimulationPayloadRow] {
         preview.secondaryFields
     }
 
-    public var hasPayloadFields: Bool {
+    var hasPayloadFields: Bool {
         primaryPayloadFields.isNotEmpty || secondaryPayloadFields.isNotEmpty
     }
 
@@ -112,7 +112,7 @@ public final class SignMessageSceneViewModel {
         !simulationWarnings.isEmpty
     }
 
-    public var isButtonDisabled: Bool {
+    var isButtonDisabled: Bool {
         preview.hasCriticalWarning
     }
 
@@ -120,7 +120,7 @@ public final class SignMessageSceneViewModel {
         .primary(isButtonDisabled ? .disabled : .normal)
     }
 
-    public func signMessage() async throws {
+    func signMessage() async throws {
         let signature = try await service.sign(walletId: request.wallet.id, message: request.message)
         confirmTransferDelegate(.success(signature))
     }

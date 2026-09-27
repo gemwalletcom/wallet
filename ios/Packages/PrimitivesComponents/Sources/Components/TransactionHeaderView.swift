@@ -6,11 +6,11 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionHeaderView: View {
-    public let header: GemTransactionHeader
+struct TransactionHeaderView: View {
+    let header: GemTransactionHeader
     private let action: TransactionHeaderActionHandler?
 
-    public init(
+    init(
         header: GemTransactionHeader,
         action: TransactionHeaderActionHandler? = nil,
     ) {

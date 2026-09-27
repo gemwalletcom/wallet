@@ -28,7 +28,7 @@ public struct ChartView: View {
 
     @State private var selectedIndex: Int?
 
-    public init(chart: GemChartData, lineColor: Color = Colors.blue) {
+    init(chart: GemChartData, lineColor: Color = Colors.blue) {
         self.chart = chart
         self.lineColor = lineColor
     }

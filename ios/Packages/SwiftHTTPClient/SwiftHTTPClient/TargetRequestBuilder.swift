@@ -2,7 +2,7 @@
 
 import Foundation
 
-public struct TargetRequestBuilder {
+struct TargetRequestBuilder {
     let baseUrl: URL
     let method: HTTPMethod
     let path: String

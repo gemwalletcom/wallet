@@ -41,7 +41,7 @@ public final class AssetSceneViewModel: Sendable {
 
     private var transactionsState: GemLoadState = .loading
 
-    public var input: AssetSceneInput
+    var input: AssetSceneInput
     public let assetQuery: ObservableQuery<ChainAssetQuery>
     public let bannersQuery: ObservableQuery<BannersQuery>
     public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>

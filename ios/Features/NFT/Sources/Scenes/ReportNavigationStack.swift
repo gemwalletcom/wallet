@@ -4,14 +4,14 @@ import Components
 import Primitives
 import SwiftUI
 
-public struct ReportNavigationStack: View {
+struct ReportNavigationStack: View {
     @State private var model: ReportNftSceneViewModel
 
-    public init(model: ReportNftSceneViewModel) {
+    init(model: ReportNftSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             ReportSelectReasonScene(model: model)
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)

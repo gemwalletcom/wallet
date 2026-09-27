@@ -2,14 +2,14 @@
 
 import Foundation
 
-public enum RewardsSheetType: Identifiable, Sendable {
+enum RewardsSheetType: Identifiable, Sendable {
     case walletSelector
     case share
     case createCode
     case activateCode(code: String)
     case url(URL)
 
-    public var id: String {
+    var id: String {
         switch self {
         case .walletSelector: "walletSelector"
         case .share: "share"

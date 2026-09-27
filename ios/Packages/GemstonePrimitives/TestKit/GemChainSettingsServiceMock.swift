@@ -10,9 +10,9 @@ public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol,
     public var explorerRowsValue: [GemExplorerRow] = []
     public var checkResult: Result<GemNodeCheck, GemAddNodeError> = .failure(.InvalidUrl)
 
-    public private(set) var selectedNodes: [String] = []
+    private(set) var selectedNodes: [String] = []
     public private(set) var deletedNodes: [String] = []
-    public private(set) var addedNodes: [String] = []
+    private(set) var addedNodes: [String] = []
     public private(set) var setExplorerNames: [String] = []
     public private(set) var nodesCalls = 0
     private let statusCallsStorage = Locked(wrappedValue: [String]())

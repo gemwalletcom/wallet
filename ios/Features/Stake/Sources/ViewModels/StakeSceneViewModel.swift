@@ -36,7 +36,7 @@ public final class StakeSceneViewModel {
     public let validatorsQuery: ObservableQuery<ValidatorsQuery>
     public let assetQuery: ObservableQuery<AssetQuery>
 
-    public var assetData: AssetData {
+    var assetData: AssetData {
         assetQuery.value
     }
 
@@ -61,7 +61,7 @@ public final class StakeSceneViewModel {
         Localized.Transfer.Stake.title
     }
 
-    public var viewState: GemStakeViewState {
+    var viewState: GemStakeViewState {
         service.stakeViewState(
             input: GemStakeInput(
                 walletType: wallet.type.toGem(),

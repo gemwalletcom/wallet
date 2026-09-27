@@ -37,29 +37,29 @@ public final class ValidatorSelectSceneViewModel {
         validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain, providerType: .stake), initialValue: [])
     }
 
-    public var title: String {
+    var title: String {
         Localized.Stake.validators
     }
 
-    public var emptyContent: EmptyStateViewModel {
+    var emptyContent: EmptyStateViewModel {
         EmptyStateViewModel(kind: .validators)
     }
 
-    public var list: [ListItemValueSection<GemValidatorRow>] {
+    var list: [ListItemValueSection<GemValidatorRow>] {
         service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() }).sections.map {
             ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
         }
     }
 
-    public func isSelected(_ row: GemValidatorRow) -> Bool {
+    func isSelected(_ row: GemValidatorRow) -> Bool {
         row.validator.id == currentValidatorId
     }
 
-    public func onSelect(_ row: GemValidatorRow) {
+    func onSelect(_ row: GemValidatorRow) {
         selectValidator(row)
     }
 
-    public func explorerContext(for row: GemValidatorRow) -> ExplorerContextData? {
+    func explorerContext(for row: GemValidatorRow) -> ExplorerContextData? {
         let validator = row.validator.toPrimitives()
         return row.explorer.map {
             ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())

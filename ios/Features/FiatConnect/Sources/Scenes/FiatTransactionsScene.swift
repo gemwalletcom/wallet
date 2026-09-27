@@ -11,7 +11,7 @@ import SwiftUI
 public struct FiatTransactionsScene: View {
     @State private var model: FiatTransactionsSceneViewModel
 
-    public init(model: FiatTransactionsSceneViewModel) {
+    init(model: FiatTransactionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 

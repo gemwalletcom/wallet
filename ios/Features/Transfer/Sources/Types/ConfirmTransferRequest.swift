@@ -7,7 +7,7 @@ import WalletConnector
 
 public struct ConfirmTransferRequest: Sendable {
     public let data: GemTransferData
-    public let delegate: TransferDataCallback.ConfirmTransferDelegate?
+    let delegate: TransferDataCallback.ConfirmTransferDelegate?
 
     public init(
         data: GemTransferData,

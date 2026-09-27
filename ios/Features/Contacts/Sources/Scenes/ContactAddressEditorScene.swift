@@ -9,7 +9,7 @@ import QRScanner
 import Style
 import SwiftUI
 
-public struct ContactAddressEditorScene: View {
+struct ContactAddressEditorScene: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: ContactAddressEditorSceneViewModel
@@ -20,7 +20,7 @@ public struct ContactAddressEditorScene: View {
         case memo
     }
 
-    public init(model: ContactAddressEditorSceneViewModel) {
+    init(model: ContactAddressEditorSceneViewModel) {
         _model = State(initialValue: model)
     }
 

@@ -5,15 +5,15 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 
-public struct ExportWalletNavigationStack: View {
+struct ExportWalletNavigationStack: View {
     private let flow: GemWalletSecret
     @State private var navigationPath: NavigationPath = .init()
 
-    public init(flow: GemWalletSecret) {
+    init(flow: GemWalletSecret) {
         self.flow = flow
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack(path: $navigationPath) {
             SecurityReminderScene(
                 model: SecurityReminderViewModel(

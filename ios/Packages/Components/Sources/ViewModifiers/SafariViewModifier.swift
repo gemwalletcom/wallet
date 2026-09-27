@@ -3,10 +3,10 @@
 import Foundation
 import SwiftUI
 
-public struct SafariViewModifier: ViewModifier {
+struct SafariViewModifier: ViewModifier {
     @Binding var url: URL?
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .sheet(item: $url) { url in
                 SFSafariView(url: url)

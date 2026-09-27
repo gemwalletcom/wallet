@@ -33,8 +33,8 @@ public struct NetworkFeeSceneViewModel {
 
     public var title: String { Localized.Transfer.networkFee }
     public var infoIcon: String { Localized.FeeRates.info }
-    public var value: String? { screen?.fee?.amount.text() }
-    public var fiatValue: String? { screen?.fee?.fiat?.text() }
+    var value: String? { screen?.fee?.amount.text() }
+    var fiatValue: String? { screen?.fee?.fiat?.text() }
     public var showFeeRates: Bool { screen?.rates?.showsOptions ?? false }
 
     var feeItems: [ListItemModel] {
@@ -63,7 +63,7 @@ public struct NetworkFeeSceneViewModel {
         screen?.rates?.rows ?? []
     }
 
-    public func rowItem(for row: GemFeeRateRow) -> ListItemModel {
+    func rowItem(for row: GemFeeRateRow) -> ListItemModel {
         ListItemModel(
             title: row.title.text,
             subtitle: row.value?.text,
@@ -76,7 +76,7 @@ public struct NetworkFeeSceneViewModel {
     // MARK: - Custom Fee
 
     @MainActor
-    public func customFeeModel() -> NetworkFeeCustomViewModel? {
+    func customFeeModel() -> NetworkFeeCustomViewModel? {
         screen?.custom.map { session in
             NetworkFeeCustomViewModel(session: session, onSelect: { onSelect?(.custom(gasPrice: $0)) })
         }

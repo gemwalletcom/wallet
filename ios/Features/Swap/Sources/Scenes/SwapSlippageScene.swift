@@ -6,7 +6,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct SwapSlippageScene: View {
+struct SwapSlippageScene: View {
     private enum Field: Hashable {
         case slippage
     }
@@ -16,11 +16,11 @@ public struct SwapSlippageScene: View {
     @State private var model: SwapSlippageSceneViewModel
     @FocusState private var focusedField: Field?
 
-    public init(model: SwapSlippageSceneViewModel) {
+    init(model: SwapSlippageSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationStack {
             List {
                 Section {

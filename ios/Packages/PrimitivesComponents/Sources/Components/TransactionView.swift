@@ -8,10 +8,10 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionView: View {
+struct TransactionView: View {
     private let row: GemTransactionRow
 
-    public init(row: GemTransactionRow) {
+    init(row: GemTransactionRow) {
         self.row = row
     }
 

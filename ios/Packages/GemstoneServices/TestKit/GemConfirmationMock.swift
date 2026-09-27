@@ -64,7 +64,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         self.warnings = warnings
     }
 
-    public var headerValue: GemConfirmHeader = .mock()
+    var headerValue: GemConfirmHeader = .mock()
 
     public func screen() -> GemConfirmScreen {
         .mock()

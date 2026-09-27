@@ -62,7 +62,7 @@ public struct AlertToast: View {
     }
 }
 
-public struct AlertToastModifier: ViewModifier {
+struct AlertToastModifier: ViewModifier {
     @Binding var isPresenting: Bool
 
     var duration: TimeInterval = 2
@@ -94,7 +94,7 @@ public struct AlertToastModifier: ViewModifier {
         }
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .overlay(
                 ZStack {

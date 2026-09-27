@@ -6,7 +6,7 @@ public struct LiquidGlassModifier: ViewModifier {
     private let interactive: Bool
     private let shape: AnyShape
 
-    public init(tint: Color?, interactive: Bool, shape: AnyShape) {
+    init(tint: Color?, interactive: Bool, shape: AnyShape) {
         self.tint = tint
         self.interactive = interactive
         self.shape = shape

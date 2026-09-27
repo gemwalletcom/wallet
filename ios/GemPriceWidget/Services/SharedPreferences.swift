@@ -7,10 +7,10 @@ private enum SharedPreferenceConstants {
     static let currencyKey = "currency"
 }
 
-public struct SharedPreferences {
+struct SharedPreferences {
     private let userDefaults: UserDefaults?
 
-    public init() {
+    init() {
         userDefaults = UserDefaults(suiteName: Constants.appGroupIdentifier)
     }
 

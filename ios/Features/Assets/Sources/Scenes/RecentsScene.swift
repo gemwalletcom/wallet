@@ -8,14 +8,14 @@ import Store
 import Style
 import SwiftUI
 
-public struct RecentsScene: View {
+struct RecentsScene: View {
     @State private var model: RecentsSceneViewModel
 
-    public init(model: RecentsSceneViewModel) {
+    init(model: RecentsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         let state = model.viewState
         NavigationStack {
             List {

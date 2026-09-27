@@ -4,10 +4,10 @@ import Foundation
 import GRDB
 import Primitives
 
-public struct ContactAddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable, Equatable {
-    public static let databaseTableName: String = "contacts_addresses"
+struct ContactAddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable, Equatable {
+    static let databaseTableName: String = "contacts_addresses"
 
-    public enum Columns {
+    enum Columns {
         static let id = Column("id")
         static let contactId = Column("contactId")
         static let address = Column("address")
@@ -15,11 +15,11 @@ public struct ContactAddressRecord: Codable, FetchableRecord, PersistableRecord,
         static let memo = Column("memo")
     }
 
-    public var id: String
-    public var contactId: String
-    public var address: String
-    public var chain: Chain
-    public var memo: String?
+    var id: String
+    var contactId: String
+    var address: String
+    var chain: Chain
+    var memo: String?
 }
 
 extension ContactAddressRecord: CreateTable {

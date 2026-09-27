@@ -3,14 +3,14 @@
 import Style
 import SwiftUI
 
-public struct SecretDataTypeView: View {
+struct SecretDataTypeView: View {
     private let type: SecretPhraseDataType
 
-    public init(type: SecretPhraseDataType) {
+    init(type: SecretPhraseDataType) {
         self.type = type
     }
 
-    public var body: some View {
+    var body: some View {
         switch type {
         case let .words(rows):
             SecretPhraseGridView(rows: rows)

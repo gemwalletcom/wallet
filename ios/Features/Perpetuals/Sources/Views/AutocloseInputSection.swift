@@ -8,13 +8,13 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct AutocloseInputSection<Field: Hashable>: View {
+struct AutocloseInputSection<Field: Hashable>: View {
     @Binding var text: String
     let state: GemAutocloseFieldState
     let field: Field
     var focusedField: FocusState<Field?>.Binding
 
-    public init(
+    init(
         text: Binding<String>,
         state: GemAutocloseFieldState,
         field: Field,

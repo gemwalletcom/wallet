@@ -9,8 +9,8 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct ImportWalletTypeSceneViewModel: Hashable {
-    public init() {}
+struct ImportWalletTypeSceneViewModel: Hashable {
+    init() {}
 
     var title: String {
         Localized.Wallet.Import.title

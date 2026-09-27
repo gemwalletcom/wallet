@@ -27,7 +27,7 @@ public final class PerpetualSceneViewModel {
     private let onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?
 
     public let wallet: Wallet
-    public let asset: Asset
+    let asset: Asset
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
     public let perpetualQuery: ObservableQuery<PerpetualQuery>
@@ -37,15 +37,15 @@ public final class PerpetualSceneViewModel {
         positionsQuery.value
     }
 
-    public var perpetualData: PerpetualData {
+    var perpetualData: PerpetualData {
         perpetualQuery.value
     }
 
-    public var transactionSections: [ListSection<GemTransactionRow>] {
+    var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
 
-    public let chart: PerpetualChartViewModel
+    let chart: PerpetualChartViewModel
 
     public var isPresentingInfoSheet: GemInfoSheet?
     public var isPresentingModifyAlert: Bool?
@@ -79,11 +79,11 @@ public final class PerpetualSceneViewModel {
         )
     }
 
-    public var details: GemPerpetualDetails {
+    var details: GemPerpetualDetails {
         service.details(perpetual: perpetual.toGem(), asset: asset.toGem(), positions: positions.map { $0.position.toGem() })
     }
 
-    public var modifyTitle: String {
+    var modifyTitle: String {
         GemPerpetualButton.modify.title
     }
 

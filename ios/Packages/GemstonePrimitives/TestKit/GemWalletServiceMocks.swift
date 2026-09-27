@@ -352,10 +352,10 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
 
 public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecked Sendable {
     public var sectionsValue: [GemListSection] = []
-    public var securitySectionsValue: [GemListSection] = []
+    var securitySectionsValue: [GemListSection] = []
     public var perpetualDefaultsValue = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
-    public var preferencesSectionsValue: [GemListSection] = []
-    public var pickersValue = GemSettingsService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())).perpetualPickers()
+    var preferencesSectionsValue: [GemListSection] = []
+    var pickersValue = GemSettingsService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())).perpetualPickers()
     public var setDefaultsError: Error?
 
     public private(set) var storedDefaults: [GemPerpetualDefaults] = []
@@ -394,7 +394,7 @@ public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecke
 }
 
 public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchecked Sendable {
-    public var newestValue: Gemstone.Release?
+    var newestValue: Gemstone.Release?
     public var newestError: Error?
 
     public private(set) var skippedVersions: [String] = []

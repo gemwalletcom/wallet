@@ -6,7 +6,7 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct NetworkFeeScene: View {
+struct NetworkFeeScene: View {
     @Environment(\.dismiss) private var dismiss
 
     private var model: NetworkFeeSceneViewModel
@@ -14,11 +14,11 @@ public struct NetworkFeeScene: View {
     @State private var isPresentingCustomFee = false
     @State private var isPresentingFeeAssetSelection = false
 
-    public init(model: NetworkFeeSceneViewModel) {
+    init(model: NetworkFeeSceneViewModel) {
         self.model = model
     }
 
-    public var body: some View {
+    var body: some View {
         List {
             if model.showFeeAssets, let selectedFeeAsset = model.selectedFeeAssetItem {
                 Section {

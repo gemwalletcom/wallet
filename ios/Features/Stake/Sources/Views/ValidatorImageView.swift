@@ -9,7 +9,7 @@ import SwiftUI
 public struct ValidatorImageView: View {
     private let row: GemValidatorRow
 
-    public init(row: GemValidatorRow) {
+    init(row: GemValidatorRow) {
         self.row = row
     }
 

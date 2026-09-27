@@ -22,7 +22,7 @@ public final class EarnSceneViewModel {
     private var viewState: GemLoadState = .loading
 
     public let wallet: Wallet
-    public let asset: Asset
+    let asset: Asset
 
     public let assetQuery: ObservableQuery<AssetQuery>
     public let positionsQuery: ObservableQuery<DelegationsQuery>

@@ -34,7 +34,7 @@ public final class FiatSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let locale: Locale
 
-    public let priceUsdQuery: ObservableQuery<PriceUsdQuery>
+    let priceUsdQuery: ObservableQuery<PriceUsdQuery>
     public let assetQuery: ObservableQuery<AssetQuery>
     var assetData: AssetData {
         assetQuery.value

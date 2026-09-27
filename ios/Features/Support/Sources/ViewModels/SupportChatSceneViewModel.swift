@@ -19,7 +19,7 @@ import SwiftUI
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
     private let typing: ObservableSupportTyping
-    public let query: ObservableQuery<SupportMessagesQuery>
+    let query: ObservableQuery<SupportMessagesQuery>
     var previewURL: URL?
     var isPresentingAlertMessage: AlertMessage?
 

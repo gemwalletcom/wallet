@@ -218,7 +218,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         )
     }
 
-    public func delegationRows(delegation _: Gemstone.Delegation) -> [GemListRow] {
+    func delegationRows(delegation _: Gemstone.Delegation) -> [GemListRow] {
         []
     }
 
@@ -231,7 +231,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         return details
     }
 
-    public func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
+    func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
         .details
     }
 
@@ -243,7 +243,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         refreshState
     }
 
-    public func syncEarn(assetId _: Gemstone.AssetId) async throws {}
+    func syncEarn(assetId _: Gemstone.AssetId) async throws {}
 
     public func refreshEarn(assetId _: Gemstone.AssetId, hasRows _: Bool) async -> GemLoadState {
         refreshState
@@ -298,7 +298,7 @@ public extension GemTransactionDetailsService {
 
 public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked Sendable {
     public var networksValue: GemReceiveNetworks?
-    public var updateError: Error?
+    var updateError: Error?
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
     public var assetsById: [Gemstone.AssetId: Gemstone.Asset] = [:]

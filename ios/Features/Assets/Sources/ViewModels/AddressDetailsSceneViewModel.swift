@@ -18,7 +18,7 @@ public final class AddressDetailsSceneViewModel {
     private let service: any GemAddressDetailsServiceProtocol
     private var details: GemAddressDetails
 
-    public let addressNameQuery: ObservableQuery<AddressNameQuery>
+    let addressNameQuery: ObservableQuery<AddressNameQuery>
 
     var copyToast: GemCopy?
 

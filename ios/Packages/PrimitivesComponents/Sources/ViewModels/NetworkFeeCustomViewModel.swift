@@ -23,7 +23,7 @@ public final class NetworkFeeCustomViewModel {
         self.onSelect = onSelect
     }
 
-    public var input: String {
+    var input: String {
         get { session.input }
         set { update(session.onInput(text: newValue)) }
     }
@@ -33,17 +33,17 @@ public final class NetworkFeeCustomViewModel {
         ListItemModel(title: networkFeeTitle, subtitle: value, subtitleExtra: fiatValue)
     }
 
-    public var networkFeeTitle: String { Localized.Transfer.networkFee }
+    var networkFeeTitle: String { Localized.Transfer.networkFee }
 
-    public var suffix: String {
+    var suffix: String {
         session.rows.unitType.toPrimitives().suffix(symbol: session.feeAsset.symbol)
     }
 
-    public var placeholder: String {
+    var placeholder: String {
         estimate.placeholder?.text() ?? ""
     }
 
-    public var value: String? {
+    var value: String? {
         estimate.fee?.amount.text()
     }
 
@@ -51,11 +51,11 @@ public final class NetworkFeeCustomViewModel {
         estimate.fee?.fiat?.text()
     }
 
-    public var errorText: String? {
+    var errorText: String? {
         estimate.check.errorText
     }
 
-    public var isConfirmEnabled: Bool {
+    var isConfirmEnabled: Bool {
         estimate.isValid
     }
 
@@ -63,7 +63,7 @@ public final class NetworkFeeCustomViewModel {
         session.onInput(text: text).input
     }
 
-    public func confirm() {
+    func confirm() {
         guard let rate = estimate.rate, estimate.isValid else { return }
         onSelect(rate)
     }

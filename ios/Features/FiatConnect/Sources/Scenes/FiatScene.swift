@@ -7,7 +7,7 @@ import Store
 import Style
 import SwiftUI
 
-public struct FiatScene: View {
+struct FiatScene: View {
     @State private var model: FiatSceneViewModel
 
     public init(model: FiatSceneViewModel) {

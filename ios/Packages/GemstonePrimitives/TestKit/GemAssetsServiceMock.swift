@@ -36,58 +36,58 @@ public final class GemAssetStoreMock: GemAssetStore, @unchecked Sendable {
     public func setStakeableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
 }
 
-public final class GemPriceStoreMock: GemPriceStore, @unchecked Sendable {
-    public init() {}
+final class GemPriceStoreMock: GemPriceStore, @unchecked Sendable {
+    init() {}
 
-    public func getPrices(assetIds _: [Gemstone.AssetId]) async throws -> [Gemstone.AssetPrice] {
+    func getPrices(assetIds _: [Gemstone.AssetId]) async throws -> [Gemstone.AssetPrice] {
         []
     }
 
-    public func getRate(currency _: Gemstone.Currency) async throws -> Gemstone.FiatRate? {
+    func getRate(currency _: Gemstone.Currency) async throws -> Gemstone.FiatRate? {
         nil
     }
 
-    public func getRates() async throws -> [Gemstone.FiatRate] {
+    func getRates() async throws -> [Gemstone.FiatRate] {
         []
     }
 
-    public func saveRatesAndPrices(currency _: Gemstone.Currency, rates _: [Gemstone.FiatRate], conversion _: Gemstone.FiatRate?, prices _: [Gemstone.GemPriceUpdate]) async throws {}
-    public func savePrices(currency _: Gemstone.Currency, prices _: [Gemstone.GemPriceUpdate]) async throws {}
-    public func convertPrices(currency _: Gemstone.Currency, rate _: Double) async throws {}
-    public func saveMarket(assetId _: Gemstone.AssetId, market _: Gemstone.AssetMarket) async throws {}
+    func saveRatesAndPrices(currency _: Gemstone.Currency, rates _: [Gemstone.FiatRate], conversion _: Gemstone.FiatRate?, prices _: [Gemstone.GemPriceUpdate]) async throws {}
+    func savePrices(currency _: Gemstone.Currency, prices _: [Gemstone.GemPriceUpdate]) async throws {}
+    func convertPrices(currency _: Gemstone.Currency, rate _: Double) async throws {}
+    func saveMarket(assetId _: Gemstone.AssetId, market _: Gemstone.AssetMarket) async throws {}
 }
 
-public final class GemWalletStoreMock: GemWalletStore, @unchecked Sendable {
-    public init() {}
+final class GemWalletStoreMock: GemWalletStore, @unchecked Sendable {
+    init() {}
 
-    public func getWallets() async throws -> [Gemstone.Wallet] {
+    func getWallets() async throws -> [Gemstone.Wallet] {
         []
     }
 
-    public func getWallet(walletId _: Gemstone.WalletId) async throws -> Gemstone.Wallet? {
+    func getWallet(walletId _: Gemstone.WalletId) async throws -> Gemstone.Wallet? {
         nil
     }
 
-    public func addWallet(wallet _: Gemstone.Wallet) async throws {}
-    public func deleteWallet(walletId _: Gemstone.WalletId) async throws -> Bool {
+    func addWallet(wallet _: Gemstone.Wallet) async throws {}
+    func deleteWallet(walletId _: Gemstone.WalletId) async throws -> Bool {
         false
     }
 
-    public func setPinned(walletId _: Gemstone.WalletId, pinned _: Bool) async throws {}
-    public func setName(walletId _: Gemstone.WalletId, name _: String) async throws {}
-    public func setImageUrl(walletId _: Gemstone.WalletId, imageUrl _: String?) async throws {}
+    func setPinned(walletId _: Gemstone.WalletId, pinned _: Bool) async throws {}
+    func setName(walletId _: Gemstone.WalletId, name _: String) async throws {}
+    func setImageUrl(walletId _: Gemstone.WalletId, imageUrl _: String?) async throws {}
 }
 
-public final class GemWalletSessionStoreMock: GemWalletSessionStore, @unchecked Sendable {
+final class GemWalletSessionStoreMock: GemWalletSessionStore, @unchecked Sendable {
     private var currentWalletId: Gemstone.WalletId?
 
-    public init() {}
+    init() {}
 
-    public func getCurrentWalletId() throws -> Gemstone.WalletId? {
+    func getCurrentWalletId() throws -> Gemstone.WalletId? {
         currentWalletId
     }
 
-    public func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
+    func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
         currentWalletId = walletId
     }
 }

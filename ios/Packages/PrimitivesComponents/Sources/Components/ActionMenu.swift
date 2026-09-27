@@ -11,7 +11,7 @@ enum ActionMenuBuilder {
     }
 }
 
-public struct ActionMenu<Label: View>: View {
+struct ActionMenu<Label: View>: View {
     private let items: [ActionMenuItemType]
     private let label: Label
 
