@@ -111,6 +111,7 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::swap::{Permit2ApprovalData, SwapData};
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
     use primitives::{Asset, Chain, Currency, SwapProvider, TransactionInputType, Wallet};
     use swapper::testkit::MockSwapper;
     use swapper::{FetchQuoteData, Quote, SwapperProvider};
@@ -302,6 +303,27 @@ mod tests {
             assert_eq!(permit.permit_single.details.nonce, Permit2ApprovalData::mock().permit2_nonce);
             assert_eq!(permit.signature.len(), 65);
             assert!(broadcast_failed(&error), "signing succeeded and only the broadcast failed: {error:?}");
+        });
+    }
+
+    #[test]
+    fn test_a_submit_refuses_to_sign_a_permit_for_a_quote_sender_the_wallet_does_not_hold() {
+        block_on(async {
+            let swapper = MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)));
+            let builds = swapper.builds();
+            let testkit = ConfirmTestkit::with_swap(Wallet::mock_with_chains(&[Chain::Ethereum]), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper)])));
+            let wallet = testkit.keystore_wallet();
+            let transfer = mock_swap_transfer(&wallet.accounts[0].address, Some(Permit2ApprovalData::mock()));
+            let mut quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
+            quote.request.wallet_address = TEST_EVM_RECIPIENT.to_string();
+
+            let error = testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote))).await.unwrap_err();
+
+            let GemConfirmError::Sign { chain: Chain::Ethereum, msg, .. } = error else {
+                panic!("the permit is refused before anything is built: {error:?}");
+            };
+            assert_eq!(msg, "Invalid input: signing key does not match the approved account");
+            assert!(builds.lock().unwrap().is_empty());
         });
     }
 
