@@ -55,7 +55,6 @@ pub enum SolanaRpcConfig {
 #[derive(Clone, Debug)]
 pub enum SolanaRpc {
     GetAccountInfo(String, SolanaAccountEncoding),
-    GetAccountOwner(String),
     GetBalance(String),
     GetBlock(u64),
     GetEpochInfo(SolanaRpcConfig),
@@ -78,7 +77,7 @@ pub enum SolanaRpc {
 impl ToJsonRpcRequest for SolanaRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::GetAccountInfo(_, _) | Self::GetAccountOwner(_) => method::GET_ACCOUNT_INFO,
+            Self::GetAccountInfo(_, _) => method::GET_ACCOUNT_INFO,
             Self::GetBalance(_) => method::GET_BALANCE,
             Self::GetBlock(_) => method::GET_BLOCK,
             Self::GetEpochInfo(_) => method::GET_EPOCH_INFO,
@@ -102,7 +101,6 @@ impl ToJsonRpcRequest for SolanaRpc {
     fn params(&self) -> Value {
         match self {
             Self::GetAccountInfo(address, encoding) => json!([address, confirmed_encoding_config(*encoding)]),
-            Self::GetAccountOwner(address) => json!([address, confirmed_config(json!({ "encoding": "base64", "dataSlice": { "offset": 0, "length": 0 } }))]),
             Self::GetBalance(address) => json!([address, confirmed_config(json!({}))]),
             Self::GetBlock(slot) => json!([
                 slot,
@@ -226,15 +224,6 @@ mod tests {
             SolanaRpc::GetAccountInfo("address".into(), SolanaAccountEncoding::Base64),
             method::GET_ACCOUNT_INFO,
             json!(["address", {"commitment": "confirmed", "encoding": "base64"}]),
-        );
-    }
-
-    #[test]
-    fn builds_account_owner_request_without_data() {
-        assert_request(
-            SolanaRpc::GetAccountOwner("address".into()),
-            method::GET_ACCOUNT_INFO,
-            json!(["address", {"commitment": "confirmed", "encoding": "base64", "dataSlice": {"offset": 0, "length": 0}}]),
         );
     }
 
