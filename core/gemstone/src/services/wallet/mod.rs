@@ -334,22 +334,16 @@ impl GemWalletService {
     }
 
     pub async fn setup_chains_outcome(&self, chains: Vec<Chain>) -> Result<SetupChainsOutcome, GemServiceError> {
-        let mut outcome = SetupChainsOutcome::default();
-        let mut candidates: Vec<(Wallet, Vec<Chain>)> = Vec::new();
-        for (wallet, missing) in rules::wallets_missing_chains(self.store.get_wallets().await?, &chains) {
-            if candidates.len() == SETUP_CHAINS_WALLETS_LIMIT {
-                break;
-            }
-            match self.keystore.exists(keystore_id_for_wallet(wallet.id.id())) {
-                Ok(true) => candidates.push((wallet, missing)),
-                Ok(false) => {}
-                Err(error) => outcome.failures.push((wallet.id, error.into())),
-            }
-        }
+        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets().await?, &chains)
+            .into_iter()
+            .filter(|(wallet, _)| self.keystore.exists(keystore_id_for_wallet(wallet.id.id())).unwrap_or(false))
+            .take(SETUP_CHAINS_WALLETS_LIMIT)
+            .collect();
         if candidates.is_empty() {
-            return Ok(outcome);
+            return Ok(SetupChainsOutcome::default());
         }
         let password = decode_password(&self.password.get_password(false)?);
+        let mut outcome = SetupChainsOutcome::default();
         for (mut wallet, missing) in candidates {
             match self.add_chains(&mut wallet, missing, password.clone()).await {
                 Ok(()) => outcome.wallets.push(wallet),
