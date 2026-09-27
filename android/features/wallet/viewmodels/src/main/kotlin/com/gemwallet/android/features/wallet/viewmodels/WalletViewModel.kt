@@ -115,8 +115,7 @@ class WalletViewModel @Inject constructor(
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), false) }
-            .onFailure { Log.e(TAG, "hiding ${assetId.toIdentifier()} failed", it) }
+        service.hideAsset(assetId, TAG)
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {

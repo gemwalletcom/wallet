@@ -20,7 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Redundancy sweeps:** CLN388 to CLN393 in section 11, one item per change, in any order.
+2. **Redundancy sweeps:** CLN388 and CLN389 in section 11, one item per change.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -208,7 +208,6 @@ Redundancy found by reviewing Core, iOS and Android on 2026-09-27: code written 
 ### Android
 
 - **CLN389** **M** **Library modules share one build configuration.** The 49 library `build.gradle.kts` files total 3,116 lines, about 2,000 of them in 17 near-identical `android {}` blocks (SDK levels, Java 17 options, JVM target, build types, test options, Compose). A `build-logic` convention plugin for a library module and a Compose library module leaves each file its namespace, its plugins and its dependencies. Verify with `assembleGoogleDebug` and the unit tests.
-- **CLN393** **S** **Hiding an asset is written once.** `WalletViewModel.hideAsset` and `NetworkAssetsViewModel.hideAsset` are the same call and log line; one internal helper in the wallet view models serves both.
 
 ## Blocked upstream
 
