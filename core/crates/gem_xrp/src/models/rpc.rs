@@ -15,7 +15,7 @@ where
     BigNumberFormatter::value_from_amount_biguint(&amount, XRP_DEFAULT_ASSET_DECIMALS).map_err(de::Error::custom)
 }
 
-fn deserialize_issued_balance<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
+fn deserialize_balance<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
 where
     D: de::Deserializer<'de>,
 {
@@ -62,7 +62,7 @@ pub struct AccountObject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Balance {
-    #[serde(deserialize_with = "deserialize_issued_balance")]
+    #[serde(deserialize_with = "deserialize_balance")]
     pub value: BigInt,
 }
 
