@@ -1,0 +1,51 @@
+{
+  "resCode": 100,
+  "resMsg": "success",
+  "data": {
+    "list": [
+      {
+        "id": 8280570,
+        "orderId": "pb6nnq0p_aw52_khxu_2e3n_duiouz0pi94s",
+        "fromTokenAddress": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "toTokenAddress": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "fromTokenAmount": "0.02",
+        "toTokenAmount": "9.887073",
+        "fromAmount": "20000000000000000",
+        "toAmount": "9887073000",
+        "fromDecimals": "18",
+        "toDecimals": "9",
+        "fromAddress": "0x1085c5f70F7F7591D97da281A64688385455c2bD",
+        "slippage": "0.01",
+        "fromChain": "opBNB",
+        "toChain": "TON",
+        "hash": "0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5",
+        "depositHashExplore": "https://mainnet.opbnbscan.com/tx/0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5",
+        "dexName": "",
+        "status": "receive_complete",
+        "createTime": "2026-09-30 12:53:08",
+        "finishTime": "2026-09-30 12:54:13",
+        "source": "gemwallet",
+        "toAddress": "UQABwQVNDN9ed-RWtGvITbd0_W5uBGrpjhvcrIN2JGUcJHn4",
+        "toHash": "b596ed2a3614935fb77c9a2d0eece18b372d0842ca03d8541e61c0a8e16fd82d",
+        "receiveHashExplore": "https://tonviewer.com/transaction/b596ed2a3614935fb77c9a2d0eece18b372d0842ca03d8541e61c0a8e16fd82d",
+        "equipmentNo": "0x1085c5f70F7F7591D97da281A64688",
+        "refundCoinAmt": "",
+        "refundHash": "",
+        "refundHashExplore": "",
+        "refundReason": "",
+        "fromCoinCode": "BNB(opBNB)",
+        "toCoinCode": "GRAM(TON)",
+        "estimatedTime": 10,
+        "fromGas": "30663000000",
+        "toGas": "376547",
+        "platformSource": "_bridgers_gemwallet_null",
+        "fee": "0.008",
+        "confirms": "461/30",
+        "chainFee": "0.030000",
+        "refundChainFee": 0
+      }
+    ],
+    "total": 1,
+    "pageNo": 1
+  }
+}

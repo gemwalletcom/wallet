@@ -721,6 +721,7 @@ public extension SwapProvider {
         case .okx: Images.SwapProviders.okx
         case .squid: Images.SwapProviders.squid
         case .swapsXyz: Images.SwapProviders.swapsXyz
+        case .bridgers: Images.SwapProviders.bridgers
         }
     }
 }
