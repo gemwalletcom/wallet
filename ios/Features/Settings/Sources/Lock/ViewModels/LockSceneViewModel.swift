@@ -101,6 +101,7 @@ extension LockSceneViewModel {
             if state == .unlocked, shouldLock {
                 state = .locked
             }
+            backgroundedAt = nil
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
             }

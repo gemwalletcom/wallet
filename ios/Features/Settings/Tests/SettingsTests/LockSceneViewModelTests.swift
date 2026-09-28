@@ -265,6 +265,22 @@ struct LockSceneViewModelTests {
     }
 
     @Test
+    func timeInTheAppAfterAShortTripOutDoesNotCountTowardTheLockPeriod() {
+        let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(20)
+
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.active)
+
+        #expect(viewModel.state == .unlocked)
+        #expect(viewModel.backgroundedAt == nil)
+        #expect(mockService.authenticateCallsCount == 0)
+    }
+
+    @Test
     func gracePeriodExtendedDuringBackgrounding() {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)

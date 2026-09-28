@@ -32,6 +32,7 @@ flowchart LR
 | The user opens Language | the system's per-app language setting opens | |
 | Hide Balance is turned on | balances are masked everywhere, with no prompt | |
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
+| The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
