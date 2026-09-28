@@ -27,14 +27,12 @@ class TextPainter(val circleColor: Color, val circleSize: Size, val textMeasurer
     override val intrinsicSize: Size get() = circleSize
 
     override fun DrawScope.onDraw() {
-        // the circle background
         drawCircle(
             color = circleColor,
             radius = this.size.maxDimension / 2,
         )
 
         val textSize = textLayoutResult.size
-        // The text
         drawText(
             textLayoutResult = textLayoutResult,
             topLeft = Offset(

@@ -94,7 +94,6 @@ private const val ASSET_INFO = "($ASSET_INFO_SELECT) AS asset_info"
 @Dao
 interface AssetsDao {
 
-    // Do not use REPLACE: it deletes the old asset row first and cascades into balances/accounts.
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(asset: DbAsset)
 

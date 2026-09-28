@@ -5,7 +5,6 @@ import com.google.android.play.core.review.ReviewManagerFactory
 
 class ReviewManager {
     fun open(activity: Activity) {
-        //    private val reviewManager = FakeReviewManager(context)
         val reviewManager = ReviewManagerFactory.create(activity)
         reviewManager.requestReviewFlow().addOnCompleteListener {
             if (it.isSuccessful) {

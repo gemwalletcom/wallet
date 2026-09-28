@@ -35,8 +35,8 @@ data class DbTransaction(
     val type: TransactionType,
     val blockNumber: String,
     val sequence: String,
-    val fee: String, // Atomic value - BigInteger
-    val value: String, // Atomic value - BigInteger
+    val fee: String,
+    val value: String,
     val payload: String? = null,
     val direction: TransactionDirection,
     val createdAt: Long,
