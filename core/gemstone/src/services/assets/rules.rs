@@ -733,7 +733,7 @@ pub fn header_actions(wallet_type: WalletType, asset_id: &AssetId, metadata: &As
     if wallet_type == WalletType::View {
         return GemHeaderActions::WatchOnly;
     }
-    let buttons_enabled = !banner_events.iter().any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
+    let buttons_enabled = allows_actions(banner_events);
     let asset_id = Some(asset_id.clone());
     GemHeaderActions::Buttons {
         buttons: [
@@ -761,13 +761,17 @@ pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_e
         empty_state: screen_empty_state(
             GemEmptyStateKind::Asset,
             is_view_only,
-            match (metadata.is_buy_enabled, metadata.is_swap_enabled) {
-                (true, _) => &[GemEmptyStateAction::Buy],
-                (false, true) => &[GemEmptyStateAction::Swap],
-                (false, false) => &[],
+            match (allows_actions(banner_events), metadata.is_buy_enabled, metadata.is_swap_enabled) {
+                (true, true, _) => &[GemEmptyStateAction::Buy],
+                (true, false, true) => &[GemEmptyStateAction::Swap],
+                (true, false, false) | (false, _, _) => &[],
             },
         ),
     }
+}
+
+fn allows_actions(banner_events: &[BannerEvent]) -> bool {
+    !banner_events.iter().any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature))
 }
 
 #[cfg(test)]
@@ -1606,6 +1610,21 @@ mod tests {
         }
         let stake_only = actions(WalletType::Multicoin, &tradable, &[BannerEvent::Stake]);
         assert!(buttons(&stake_only).iter().all(|button| button.is_enabled));
+    }
+
+    #[test]
+    fn test_details_state_offers_no_empty_state_action_behind_an_activation_or_multi_signature_banner() {
+        let swappable = AssetMetaData {
+            is_swap_enabled: true,
+            ..AssetMetaData::mock()
+        };
+        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable.clone() };
+        for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
+            for metadata in [&tradable, &swappable] {
+                assert_eq!(state(WalletType::Multicoin, metadata, &[event]).empty_state.actions, vec![], "{event:?} locks the empty state like the header");
+            }
+        }
+        assert_eq!(state(WalletType::Multicoin, &tradable, &[BannerEvent::Stake]).empty_state.actions, vec![GemEmptyStateAction::Buy]);
     }
 
     #[test]
