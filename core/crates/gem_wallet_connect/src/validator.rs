@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use primitives::unix_timestamp;
 
 use crate::actions::WalletConnectTransactionType;
 use crate::sign_type::SignDigestType;
@@ -15,7 +15,7 @@ pub struct SignMessageValidation<'a> {
 }
 
 fn current_timestamp() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
+    unix_timestamp() as i64
 }
 
 pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String> {

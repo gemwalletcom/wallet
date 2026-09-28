@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN408** **S** **Clock reads go through `primitives::time`.** About 13 call sites outside auth, signer and transaction construction read `SystemTime::now().duration_since(UNIX_EPOCH)` by hand beside `unix_seconds`, `unix_milliseconds` and `unix_timestamp`, and `daemon`'s `now_unix` repeats `unix_timestamp`.
 - **CLN409** **S** **Simulated balance changes take their assets once.** EVM, Sui and Tron simulation each zip balance changes with looked-up assets through the same `match asset { Some(asset) => change.with_asset(asset), None => change }`; one helper beside `with_asset` does it.
 - **CLN410** **S** **Optional string parsers share one wrapper.** `serde_serializers` repeats the `Option<String>` deserialize-then-parse body in `deserialize_option_bigint_from_str`, `deserialize_option_biguint_from_str`, `deserialize_option_u64_from_str` and `deserialize_option_f64_from_str`; one generic wrapper takes the parse function.
 - **CLN411** **M** **Rust spells transaction in full.** `tx`, `txs` and `*_tx` name a transaction in about 60 files; they become `transaction`, `transactions` and `*_transaction`. Channel senders (`shutdown_tx`), external protocol fields and signer code keep their names.

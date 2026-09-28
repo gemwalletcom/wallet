@@ -1,6 +1,6 @@
+use primitives::unix_timestamp;
 use std::error::Error;
 use std::ops::Range;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use gem_solana::Pubkey;
 
@@ -35,7 +35,7 @@ impl NameRecord {
         if self.expires_at == 0 {
             return true;
         }
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+        let now = unix_timestamp();
         self.expires_at + GRACE_PERIOD_SECONDS > now
     }
 }

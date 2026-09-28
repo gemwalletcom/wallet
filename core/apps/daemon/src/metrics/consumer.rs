@@ -1,3 +1,4 @@
+use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -32,7 +33,7 @@ impl ConsumerMetrics {
     pub fn record_success(&self, name: &str, duration: u64, _result: &str) {
         let mut consumers = super::locked(&self.consumers);
         let state = consumers.entry(name.to_string()).or_default();
-        let timestamp = super::now_unix();
+        let timestamp = unix_timestamp();
 
         state.total_processed += 1;
         state.last_success = Some(timestamp);
