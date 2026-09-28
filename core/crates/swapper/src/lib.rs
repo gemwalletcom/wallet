@@ -36,7 +36,6 @@ pub mod uniswap;
 
 use number_formatter::BigNumberFormatter;
 
-/// Converts a human-readable amount string to base units value.
 pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {
     let cleaned = token.replace([',', '_'], "");
     if cleaned.is_empty() {

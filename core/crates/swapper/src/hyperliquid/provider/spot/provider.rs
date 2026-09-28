@@ -137,7 +137,6 @@ impl Swapper for HyperCoreSpot {
             return Err(SwapperError::NoQuoteAvailable);
         }
 
-        // Round to sz_decimals before simulation to ensure quote matches execution.
         let (raw_output, base_limit_price, size_rounded, actual_from_value) = match side {
             SpotSide::Sell => {
                 let rounded_input = round_size_down(&amount_in, base_token.sz_decimals);
@@ -159,7 +158,6 @@ impl Swapper for HyperCoreSpot {
             }
         };
 
-        // Check minimum USD value (quote token is USDC)
         let quote_amount = match side {
             SpotSide::Sell => &raw_output,
             SpotSide::Buy => &amount_in,
@@ -189,7 +187,6 @@ impl Swapper for HyperCoreSpot {
 
         let asset_index = spot_asset_index(market.index);
 
-        // Adjust from_value for use_max_amount to reflect actual swapped amount after sz_decimals rounding.
         let from_value = actual_from_value.unwrap_or_else(|| request.value.clone());
 
         let quote = Quote {

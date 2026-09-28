@@ -78,7 +78,6 @@ impl MoonPayClient {
 
         let token_id = filter_token_id(Some(chain), contract_address);
 
-        // Skip tokens without contract address (only base assets can have no token_id)
         if token_id.is_none() && !asset.is_base_asset.unwrap_or(false) {
             return None;
         }

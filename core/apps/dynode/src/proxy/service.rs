@@ -180,7 +180,6 @@ fn cacheable_response(chain: Chain, path: &str, status: u16, body: &[u8]) -> boo
     if status != StatusCode::OK.as_u16() || body.is_empty() {
         return false;
     }
-    // TODO(2027-01-01): Remove v2 cache validation with Dynode legacy wallet routes.
     if chain == Chain::Ton && path == "/api/v2/runGetMethod" {
         return serde_json::from_slice::<Value>(body).is_ok_and(|response| response.get("ok") == Some(&Value::Bool(true)) && response.get_value("result").and_then(|result| result.get_i64("exit_code")) == Ok(0));
     }

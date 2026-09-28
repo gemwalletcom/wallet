@@ -78,21 +78,20 @@ impl FiatDeviceContext {
     }
 }
 
-// used to filter out fiat tokens that have specific token ids for native coins
 pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option<String> {
     let token_id = token_id.filter(|contract_address| {
         ![
-            "0x0000000000000000000000000000000000001010", // matic
+            "0x0000000000000000000000000000000000001010",
             EVM_ZERO_ADDRESS,
-            "0x471ece3750da237f93b8e339c536989b8978a438", // celo
-            WORLD_WETH_TOKEN_ID,                          // worldchain
-            CosmosDenom::Uosmo.as_ref(),                  // osmosis
-            CosmosDenom::Usei.as_ref(),                   // sei
-            CosmosDenom::Inj.as_ref(),                    // osmosis
-            CosmosDenom::Uusdc.as_ref(),                  // noble
-            CosmosDenom::Uatom.as_ref(),                  // atom
-            CosmosDenom::Rune.as_ref(),                   // rune
-            CosmosDenom::Utia.as_ref(),                   // celestia
+            "0x471ece3750da237f93b8e339c536989b8978a438",
+            WORLD_WETH_TOKEN_ID,
+            CosmosDenom::Uosmo.as_ref(),
+            CosmosDenom::Usei.as_ref(),
+            CosmosDenom::Inj.as_ref(),
+            CosmosDenom::Uusdc.as_ref(),
+            CosmosDenom::Uatom.as_ref(),
+            CosmosDenom::Rune.as_ref(),
+            CosmosDenom::Utia.as_ref(),
             SOLANA_SYSTEM_PROGRAM_ID,
         ]
         .contains(&contract_address.as_str())

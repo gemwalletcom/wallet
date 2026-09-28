@@ -18,7 +18,6 @@ impl InactiveDevicesObserver {
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        // 7 days to 14 days
         let devices = self.database.run(|client| client.devices_inactive_days(10, 14, Some(true))).await?;
         for device in &devices {
             let device_id = device.id.clone();

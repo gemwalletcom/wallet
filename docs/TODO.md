@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 2. **Consistency sweeps:** CLN405 to CLN423 in section 11, one item per change, in any order.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X169, X170, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN414** **M** **Swapper, fiat and backend code carry no comments.** The same for `swapper`, `fiat`, `rewards`, `services`, `storage` and the apps.
 - **CLN415** **S** **Gemstone, primitives and the remaining crates carry no comments.** The same for the rest of Core, keeping license headers and tool directives.
 
 ### iOS
@@ -220,4 +219,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 ## Blocked upstream
 
 - **X168** **S** `WalletConfiguration.multi_signature_accounts` ([`wallet_configuration.rs`](../core/crates/primitives/src/wallet_configuration.rs)) is the old name of `externally_controlled_accounts`, which also covers Solana accounts assigned to another program. The API fills both because shipped apps read only the old field. Delete the field, its fill in [`wallet_configuration.rs`](../core/crates/services/src/devices/wallet_configuration_client.rs) and the merge in [`externally_controlled_banners`](../core/gemstone/src/services/wallet_configuration/rules.rs) on 2026-12-18, three months after the release that reads `externally_controlled_accounts`.
+- **X169** **S** The legacy singular `GET /devices/transaction/<id>` route (`get_device_transaction_v2` in [`devices/mod.rs`](../core/apps/api/src/devices/mod.rs)) goes on 2026-11-15, with its mount.
+- **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.
 - **X163** **M** iOS pins the `Gemstone` package to Swift 5 language mode. Re-tested on 2026-09-16 against uniffi 0.32.1: both `uniffiTraitInterfaceCallAsync` sites still fail with "passing closure as a 'sending' parameter" because the generated `Task { }` captures three `@escaping` non-`Sendable` parameters. Nothing to decide and nothing to do until a uniffi release changes that function; re-test then. Rechecked on 2026-09-22 with `cargo search uniffi`: 0.32.1 is still the latest uniffi release, and the fix is already merged upstream as uniffi #2929 (`694fda6a05`, 2026-07-15, marks the async trait-interface closures `@Sendable`) but is not in 0.32.1. Bump uniffi to the first release that contains #2929, regenerate, and move the `Gemstone` package to Swift 6 mode.

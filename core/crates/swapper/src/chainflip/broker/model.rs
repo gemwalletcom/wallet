@@ -43,7 +43,7 @@ pub struct VaultSwapChainExtras {
 pub struct VaultSwapSolanaExtras {
     pub chain: String,
     pub from: String,
-    pub seed: String, // random bytes (up to 32 bytes) in hex string
+    pub seed: String,
     pub input_amount: u64,
     pub refund_parameters: RefundParameters,
 }
@@ -68,7 +68,7 @@ pub struct EvmVaultSwapResponse {
 pub struct SolanaVaultSwapResponse {
     pub program_id: String,
     pub accounts: Vec<AccountMeta>,
-    pub data: String, // hex string
+    pub data: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

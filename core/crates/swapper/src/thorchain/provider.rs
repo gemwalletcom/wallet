@@ -498,7 +498,7 @@ mod swap_integration_tests {
         let from_asset = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());
         let mut request = mock_quote(from_asset, to_asset);
-        request.value = BigUint::from(5000000u64); // 0.05 BTC (1e8)
+        request.value = BigUint::from(5000000u64);
         request.destination_address = "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238".to_string();
 
         let quote = mayachain.get_quote(&request).await?;

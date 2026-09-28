@@ -758,7 +758,6 @@ mod tests {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider.clone());
 
-        // Swap ID: 902663
         let tx_hash = "3sbA7vTDa8tmuokNeQxWJBPpxG3A1Vw5rhDxSm63w7hW31bo2nbci8CfLr27JsbhcebLwcJcwqbL8UP5aVCMFLGb";
         let chain = Chain::Solana;
 
@@ -780,7 +779,6 @@ mod tests {
             to_asset: SwapperQuoteAsset::mock_with_asset_id(primitives::known_assets::ARBITRUM_USDC.id.clone(), "USDC", 6),
             wallet_address: "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            // Route-specific minimums can exceed the global minimum returned by /assets.
             value: BigUint::from(100000000u64),
             options: Options::default(),
         };

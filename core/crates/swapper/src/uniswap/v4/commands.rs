@@ -212,7 +212,6 @@ mod tests {
         let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
         let routes = vec![Route::mock(AssetId::from(Chain::Celo, Some(CELO_WETH_TOKEN_ID.into())), AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())))];
 
-        // CELO -> USDT: no wrap, direct swap through token path
         let request = QuoteRequest {
             from_asset: AssetId::from(Chain::Celo, None).into(),
             to_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
@@ -232,7 +231,6 @@ mod tests {
         };
         assert_eq!(sweep.amount_min, U256::from(14_804_757u64));
 
-        // USDT -> CELO with fees: sweep instead of unwrap
         let request = QuoteRequest {
             from_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
             to_asset: AssetId::from(Chain::Celo, None).into(),

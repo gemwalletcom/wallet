@@ -166,7 +166,6 @@ mod tests {
     #[test]
     fn test_build_commands_eth_to_token() {
         let request = QuoteRequest {
-            // ETH -> USDC
             from_asset: AssetId::from(Chain::Ethereum, None).into(),
             to_asset: AssetId::from(Chain::Ethereum, Some(ETHEREUM_USDC_TOKEN_ID.into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
@@ -267,7 +266,6 @@ mod tests {
     #[test]
     fn test_build_commands_usdc_to_usdt() {
         let request = QuoteRequest {
-            // USDC -> USDT
             from_asset: AssetId::from(Chain::Optimism, Some(OPTIMISM_USDC_TOKEN_ID.into())).into(),
             to_asset: AssetId::from(Chain::Optimism, Some(OPTIMISM_USDT_TOKEN_ID.into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
@@ -312,7 +310,6 @@ mod tests {
     #[test]
     fn test_build_commands_usdc_to_aave() {
         let request = QuoteRequest {
-            // USDC -> AAVE
             from_asset: AssetId::from(Chain::Optimism, Some("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85".into())).into(),
             to_asset: AssetId::from(Chain::Optimism, Some("0x76fb31fb4af56892a25e32cfc43de717950c9278".into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
@@ -327,7 +324,6 @@ mod tests {
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::FiveHundred);
-        // fee token is output token
         let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(33377662359182269u64), &path, None, false, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 3);
@@ -336,7 +332,6 @@ mod tests {
         assert!(matches!(commands[1], UniversalRouterCommand::PAY_PORTION(_)));
         assert!(matches!(commands[2], UniversalRouterCommand::SWEEP(_)));
 
-        // fee token is input token
         let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(33377662359182269u64), &path, None, true, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 2);
@@ -348,7 +343,6 @@ mod tests {
     #[test]
     fn test_build_commands_usdce_to_eth() {
         let request = QuoteRequest {
-            // USDCE -> ETH
             from_asset: AssetId::from(Chain::Optimism, Some(OPTIMISM_USDC_E_TOKEN_ID.into())).into(),
             to_asset: AssetId::from(Chain::Ethereum, None).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
@@ -400,9 +394,7 @@ mod tests {
 
     #[test]
     fn test_build_commands_eth_to_uni_with_input_fee() {
-        // Replicate https://optimistic.etherscan.io/tx/0x18277deea3e273a7fb9abc985269dcdabe3d34c2b604fbd82dcd0a5a5204f72c
         let request = QuoteRequest {
-            // ETH -> UNI
             from_asset: AssetId::from(Chain::Optimism, None).into(),
             to_asset: AssetId::from(Chain::Optimism, Some("0x6fd9d7ad17242c41f7131d257212c54a0e816691".into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
@@ -433,7 +425,6 @@ mod tests {
         let (token_celo, token_usdt) = (celo.address, usdt.address);
         let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
 
-        // CELO -> USDT: no wrap, just a direct swap through token path
         let request = QuoteRequest {
             from_asset: AssetId::from(Chain::Celo, None).into(),
             to_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
@@ -450,7 +441,6 @@ mod tests {
         assert!(matches!(commands[1], UniversalRouterCommand::PAY_PORTION(_)));
         assert!(matches!(commands[2], UniversalRouterCommand::SWEEP(_)));
 
-        // USDT -> CELO with fees: sweep instead of unwrap
         let request = QuoteRequest {
             from_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
             to_asset: AssetId::from(Chain::Celo, None).into(),

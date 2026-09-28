@@ -44,16 +44,12 @@ mod tests {
         let uni = FeeToken::new(ETHEREUM_UNI_TOKEN_ID.parse().unwrap(), "UNI");
         let usdc = FeeToken::new(ETHEREUM_USDC_TOKEN_ID.parse().unwrap(), "USDC");
 
-        // WETH -> UNI (fee_token is WETH)
         assert!(is_input_fee_token(base_pair.as_ref(), &weth, &uni));
 
-        // WETH -> USDC (fee_token is WETH)
         assert!(is_input_fee_token(base_pair.as_ref(), &weth, &usdc));
 
-        // USDC -> WETH (fee_token is WETH)
         assert!(!is_input_fee_token(base_pair.as_ref(), &usdc, &weth));
 
-        // USDC -> UNI (fee_token is USDC)
         assert!(is_input_fee_token(base_pair.as_ref(), &usdc, &uni));
     }
 
