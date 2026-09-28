@@ -270,7 +270,7 @@ mod tests {
         assert_eq!(transactions[0].hash(), "0xshared");
         assert_eq!(transactions[1].hash(), "0xshared");
 
-        let mut fees = transactions.iter().map(|tx| tx.fee.to_string()).collect::<Vec<_>>();
+        let mut fees = transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>();
         fees.sort_unstable();
         assert_eq!(fees, vec!["24236", "85686"]);
     }

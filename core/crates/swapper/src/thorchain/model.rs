@@ -135,7 +135,7 @@ pub struct TransactionStatusOutTx {
 
 impl TransactionStatus {
     pub fn swap_status(&self) -> SwapStatus {
-        let has_output = self.out_txs.as_ref().is_some_and(|txs| !txs.is_empty());
+        let has_output = self.out_txs.as_ref().is_some_and(|transactions| !transactions.is_empty());
         let swap_done = self.stages.swap_status.as_ref().is_some_and(|s| !s.pending);
         let outbound_done = self.stages.outbound_signed.as_ref().is_none_or(|s| s.completed);
 
@@ -153,15 +153,19 @@ impl TransactionStatus {
             return None;
         }
 
-        let real_out = self.out_txs.as_ref().and_then(|txs| txs.iter().find(|x| x.id != ZERO_HASH && !x.id.is_empty())).and_then(|tx| tx.coins.first());
+        let real_out = self
+            .out_txs
+            .as_ref()
+            .and_then(|transactions| transactions.iter().find(|x| x.id != ZERO_HASH && !x.id.is_empty()))
+            .and_then(|transaction| transaction.coins.first());
         if real_out.is_some() {
             return real_out;
         }
-        let planned = self.planned_out_txs.as_ref().and_then(|txs| txs.iter().find(|t| !t.refund)).map(|t| &t.coin);
+        let planned = self.planned_out_txs.as_ref().and_then(|transactions| transactions.iter().find(|t| !t.refund)).map(|t| &t.coin);
         if planned.is_some() {
             return planned;
         }
-        self.out_txs.as_ref().and_then(|txs| txs.first()).and_then(|tx| tx.coins.first())
+        self.out_txs.as_ref().and_then(|transactions| transactions.first()).and_then(|transaction| transaction.coins.first())
     }
 
     pub(super) fn eta_in_seconds(&self) -> Option<u32> {

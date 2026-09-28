@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN411** **M** **Rust spells transaction in full.** `tx`, `txs` and `*_tx` name a transaction in about 60 files; they become `transaction`, `transactions` and `*_transaction`. Channel senders (`shutdown_tx`), external protocol fields and signer code keep their names.
 - **CLN412** **S** **The last string ids take their type.** `set_perpetual_pinned`, the perpetual service's `set_pinned`, the perpetual and search store callbacks (`perpetual_ids`) and `wallet_sections` (`current_wallet_id`) still take `String`; they take `PerpetualId` and `WalletId`, and the Swift call sites drop `.identifier` and `.id`. The keystore's `wallet_id` parameters stay as written.
 - **CLN413** **M** **Chain crates carry no comments.** The `gem_*` chain crates hold most of Core's inline comments; each is removed or replaced by a name that says the same.
 - **CLN414** **M** **Swapper, fiat and backend code carry no comments.** The same for `swapper`, `fiat`, `rewards`, `services`, `storage` and the apps.
