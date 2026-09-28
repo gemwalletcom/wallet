@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::collections::{HashMap, HashSet};
 
 use crate::services::assets::icon::asset_icon;
@@ -6,12 +5,12 @@ use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderI
 use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
-use primitives::AddressName;
 use primitives::Platform;
 use primitives::{
     AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
     VerificationStatus, WalletType, YieldProvider,
 };
+use primitives::{AddressName, OptionStringExt};
 use rand::seq::IndexedRandom;
 use std::str::FromStr;
 

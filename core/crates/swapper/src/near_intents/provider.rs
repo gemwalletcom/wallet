@@ -21,8 +21,7 @@ use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
-use primitives::OptionStringExt;
-use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
+use primitives::{Chain, OptionStringExt, TransactionSwapMetadata, swap::SwapStatus};
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 

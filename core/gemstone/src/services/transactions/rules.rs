@@ -1,12 +1,12 @@
-use primitives::OptionStringExt;
 use std::str::FromStr;
 
 use strum::IntoEnumIterator;
 
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionListItem, TransactionNFTTransferMetadata,
-    TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransactionsFilter, TransferDataOutputAction, WalletType,
+    AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, OptionStringExt, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionListItem,
+    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransactionsFilter, TransferDataOutputAction,
+    WalletType,
 };
 
 use super::model::{

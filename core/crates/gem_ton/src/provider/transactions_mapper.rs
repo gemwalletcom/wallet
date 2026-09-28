@@ -6,8 +6,7 @@ use crate::models::{
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
-use primitives::OptionStringExt;
-use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
+use primitives::{AssetId, NFTAssetId, OptionStringExt, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
 
 pub fn map_transaction_broadcast(broadcast_result: BroadcastTransaction) -> Result<String, Box<dyn Error + Sync + Send>> {

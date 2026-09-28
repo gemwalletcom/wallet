@@ -1,7 +1,6 @@
 use fiat::FiatWebhookRequest;
 use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
-use primitives::OptionStringExt;
-use primitives::{TransactionId, WebhookKind};
+use primitives::{OptionStringExt, TransactionId, WebhookKind};
 use rocket::data::{Data, ToByteUnit};
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};

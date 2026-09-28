@@ -1,6 +1,5 @@
-use primitives::OptionStringExt;
-use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact};
+use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::rules;
 use crate::address_formatter::{GemAddressFormatStyle, format_address};

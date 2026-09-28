@@ -1,10 +1,9 @@
 use num_bigint::BigUint;
-use primitives::OptionStringExt;
 use std::error::Error;
 use std::str::FromStr;
 
-use primitives::contract_constants::EVM_NATIVE_TOKEN_ADDRESS;
 use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
+use primitives::{OptionStringExt, contract_constants::EVM_NATIVE_TOKEN_ADDRESS};
 
 use super::client::chain_id;
 use super::model::{ZerionFungibleInfo, ZerionPosition, ZerionPositionAttributes, ZerionPositionsResponse};

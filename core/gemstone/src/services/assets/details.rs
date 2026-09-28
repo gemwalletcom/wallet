@@ -1,7 +1,6 @@
-use primitives::OptionStringExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink};
+use primitives::{Asset, AssetData, AssetId, BannerEvent, Deeplink, OptionStringExt};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;

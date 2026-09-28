@@ -1,9 +1,8 @@
-use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use coingecko::{Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin, model::MarketChart};
-use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, Price, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, Price, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 

@@ -1,7 +1,6 @@
 use gem_ton::address::Address;
 use gem_ton::models::{NftCollectionsResponse, NftItem, NftItemsResponse, NftOffchainMetadata, TokenInfo, TokenMetadata};
-use primitives::OptionStringExt;
-use primitives::{Address as _, Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, VerificationStatus};
+use primitives::{Address as _, Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, OptionStringExt, VerificationStatus};
 
 use super::verified::is_verified;
 

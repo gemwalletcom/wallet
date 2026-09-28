@@ -5,15 +5,14 @@ use super::{
 use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 
 use gem_evm::ethereum_address_checksum;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
-use primitives::SolanaInstruction;
 use primitives::swap::{SlippageMode, SwapStatus};
+use primitives::{OptionStringExt, SolanaInstruction};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]

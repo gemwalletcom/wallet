@@ -1,12 +1,11 @@
 use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
-use primitives::OptionStringExt;
 
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
-use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
+use primitives::{AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
 use super::parsers::ProtocolParsers;
 

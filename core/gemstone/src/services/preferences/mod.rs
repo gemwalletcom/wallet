@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
@@ -8,9 +7,9 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::{Arc, Mutex};
 
-use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
+use primitives::{ChartPeriod, OptionStringExt};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;

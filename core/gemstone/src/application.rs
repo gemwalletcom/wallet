@@ -1,5 +1,4 @@
-use primitives::ApplicationMetadata;
-use primitives::OptionStringExt;
+use primitives::{ApplicationMetadata, OptionStringExt};
 use url::{Host, Url, form_urlencoded};
 
 use crate::config::public::ASSETS_URL;

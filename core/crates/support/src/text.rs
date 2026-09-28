@@ -1,5 +1,4 @@
-use primitives::OptionStringExt;
-use primitives::{GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, UrlAction};
+use primitives::{GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, OptionStringExt, UrlAction};
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

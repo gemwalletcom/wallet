@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::borrow::Cow;
 
 use super::parsers::{ProtocolParser, ProtocolParsers};
@@ -11,7 +10,7 @@ use crate::{
 use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType,
+    AssetId, NFTAssetId, OptionStringExt, Transaction as PrimitivesTransaction, TransactionType,
     chain::Chain,
     hex::decode_hex_utf8,
     transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata, TransactionNFTTransferMetadata},

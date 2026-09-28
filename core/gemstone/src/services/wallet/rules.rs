@@ -1,6 +1,5 @@
 use gem_keystore::Mnemonic;
-use primitives::OptionStringExt;
-use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::{

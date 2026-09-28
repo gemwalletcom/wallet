@@ -1,6 +1,5 @@
-use primitives::OptionStringExt;
-use primitives::name::NameRecord;
 use primitives::{Asset, Chain, ChainAsset, ContactData, Wallet, WalletType};
+use primitives::{OptionStringExt, name::NameRecord};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
 use crate::address::validate_address;

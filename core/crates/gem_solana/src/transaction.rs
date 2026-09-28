@@ -1,7 +1,6 @@
 use gem_encoding::{decode_base64, encode_base64};
 use num_bigint::BigUint;
-use primitives::OptionStringExt;
-use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
+use primitives::{AssetId, Chain, OptionStringExt, SolanaInstruction, TransactionType};
 
 use crate::{
     AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,

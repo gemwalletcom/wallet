@@ -1,8 +1,7 @@
-use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chain_primitives::format_token_id;
-use primitives::{AssetId, chain::Chain};
+use primitives::{AssetId, OptionStringExt, chain::Chain};
 
 const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Ethereum, "ethereum"),

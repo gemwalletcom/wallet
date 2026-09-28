@@ -1,5 +1,4 @@
 use num_traits::ToPrimitive;
-use primitives::OptionStringExt;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
@@ -8,7 +7,7 @@ use gem_sui::{build_transfer_message_bytes, rpc::SuiClient};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, Chain, TransactionSwapMetadata,
+    AssetId, Chain, OptionStringExt, TransactionSwapMetadata,
     contract_constants::EVM_ZERO_ADDRESS,
     swap::{HUNDRED_PERCENT_IN_BPS, SwapStatus},
 };

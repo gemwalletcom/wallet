@@ -1,10 +1,9 @@
-use primitives::OptionStringExt;
 use std::fmt;
 use std::str::FromStr;
 
 use crc::Crc;
 use gem_encoding::{decode_base64_no_pad, decode_base64_url, encode_base64_url};
-use primitives::{Address as AddressTrait, AddressError, SignerError};
+use primitives::{Address as AddressTrait, AddressError, OptionStringExt, SignerError};
 use serde::{Deserialize, Deserializer, de::Error as _};
 
 #[cfg(feature = "tvm")]
