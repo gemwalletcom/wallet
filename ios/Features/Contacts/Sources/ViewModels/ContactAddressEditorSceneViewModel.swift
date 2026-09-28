@@ -2,10 +2,10 @@
 
 import Components
 import Foundation
-import func Gemstone.contactAddressFields
 import class Gemstone.GemChainService
 import enum Gemstone.GemContactAddressField
 import struct Gemstone.GemContactAddressInput
+import struct Gemstone.GemContactAddressSession
 import protocol Gemstone.GemContactEditorServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
@@ -38,15 +38,13 @@ public final class ContactAddressEditorSceneViewModel {
         }
     }
 
-    private let contactId: String
     private let mode: Mode
     private let chains: [Chain]
     private let service: any GemContactEditorServiceProtocol
     private let onComplete: (GemContactAddressInput) -> Void
 
     var addressInputModel: AddressInputViewModel
-    var memo: String = ""
-    private(set) var fields: [GemContactAddressField]
+    private(set) var session: GemContactAddressSession
     var isPresentingScanner = false
 
     public init(
@@ -56,24 +54,22 @@ public final class ContactAddressEditorSceneViewModel {
         mode: Mode,
         onComplete: @escaping (GemContactAddressInput) -> Void,
     ) {
-        self.contactId = contactId
         self.mode = mode
         chains = GemChainService.shared.chainRows(chains: nil, query: .empty).map { Chain(core: $0.chain) }
         self.service = service
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? Chain(core: service.defaultChain())
+        let session = service.newAddressSession(contactId: contactId, existing: mode.contactAddress?.toGem())
+        self.session = session
         addressInputModel = AddressInputViewModel(
-            chain: chain,
+            chain: Chain(core: session.chain),
             nameService: nameService,
             placeholder: title,
         )
-        fields = contactAddressFields(chain: chain.rawValue)
 
         if let address = mode.contactAddress {
             addressInputModel.text = address.address
-            memo = address.memo ?? ""
         }
     }
 
@@ -81,6 +77,15 @@ public final class ContactAddressEditorSceneViewModel {
 
     var chain: Chain {
         addressInputModel.chain
+    }
+
+    var memo: String {
+        get { session.memo }
+        set { session = session.onMemoChanged(memo: newValue) }
+    }
+
+    var fields: [GemContactAddressField] {
+        session.fields
     }
 
     var networkTitle: String {
@@ -105,13 +110,7 @@ public final class ContactAddressEditorSceneViewModel {
     }
 
     private var input: GemContactAddressInput {
-        GemContactAddressInput(
-            contactId: contactId,
-            chain: chain.rawValue,
-            address: addressInputModel.resolvedAddress,
-            memo: memo,
-            replacingId: mode.contactAddress?.id,
-        )
+        session.input(address: addressInputModel.resolvedAddress)
     }
 }
 
@@ -120,8 +119,7 @@ public final class ContactAddressEditorSceneViewModel {
 extension ContactAddressEditorSceneViewModel {
     func onSelectChain(_ chain: Chain) {
         addressInputModel.chain = chain
-        fields = contactAddressFields(chain: chain.rawValue)
-        memo = ""
+        session = session.onChainChanged(chain: chain.rawValue)
     }
 
     func onSelectScan() {
@@ -136,9 +134,7 @@ extension ContactAddressEditorSceneViewModel {
     func onScan(_ result: String) {
         let scan = service.scannedAddress(input: result)
         addressInputModel.update(text: scan.address)
-        if let scannedMemo = scan.memo {
-            memo = scannedMemo
-        }
+        session = session.onScanned(scan: scan)
     }
 
     func complete() {

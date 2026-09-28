@@ -4,7 +4,7 @@ use primitives::OptionStringExt;
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
 
-use super::model::{GemContactAddressField, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
+use super::model::{GemContactAddressField, GemContactAddressSession, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
 use crate::config::chain::is_memo_supported;
 use std::collections::HashSet;
 
@@ -31,8 +31,15 @@ pub fn new_session(contact: Option<Contact>, addresses: Vec<ContactAddress>, new
     }
 }
 
-pub fn default_contact_chain() -> Chain {
-    Chain::Bitcoin
+pub fn new_address_session(contact_id: String, existing: Option<ContactAddress>) -> GemContactAddressSession {
+    let chain = existing.as_ref().map_or(Chain::Bitcoin, |address| address.chain);
+    GemContactAddressSession {
+        contact_id,
+        replacing_id: existing.as_ref().map(|address| address.id.clone()),
+        chain,
+        memo: existing.and_then(|address| address.memo).unwrap_or_default(),
+        fields: contact_address_fields(chain),
+    }
 }
 
 pub fn contact(existing: Option<&Contact>, id: String, name: String, description: String, image_url: Option<String>, now: DateTime<Utc>) -> Contact {
@@ -260,7 +267,22 @@ mod tests {
     }
 
     #[test]
-    fn test_a_new_contact_address_starts_on_bitcoin() {
-        assert_eq!(super::default_contact_chain(), primitives::Chain::Bitcoin);
+    fn test_a_new_address_session_starts_on_bitcoin_and_an_edited_one_keeps_its_address() {
+        let adding = new_address_session("contact".into(), None);
+        assert_eq!(adding.chain, Chain::Bitcoin);
+        assert_eq!(adding.replacing_id, None);
+        assert_eq!(adding.memo, "");
+        assert_eq!(adding.fields, contact_address_fields(Chain::Bitcoin));
+
+        let existing = ContactAddress {
+            chain: Chain::Cosmos,
+            memo: Some("tag".into()),
+            ..ContactAddress::mock("old")
+        };
+        let editing = new_address_session("contact".into(), Some(existing));
+        assert_eq!(editing.chain, Chain::Cosmos);
+        assert_eq!(editing.replacing_id.as_deref(), Some("old"));
+        assert_eq!(editing.memo, "tag");
+        assert_eq!(editing.fields, contact_address_fields(Chain::Cosmos));
     }
 }

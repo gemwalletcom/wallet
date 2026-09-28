@@ -3,6 +3,7 @@
 import struct Gemstone.Chain
 import struct Gemstone.Contact
 import struct Gemstone.ContactAddress
+import struct Gemstone.GemContactAddressSession
 import class Gemstone.GemContactEditorService
 import protocol Gemstone.GemContactEditorServiceProtocol
 import struct Gemstone.GemContactInput
@@ -25,15 +26,15 @@ public final class GemContactEditorServiceMock: GemContactEditorServiceProtocol,
         service.scannedAddress(input: input)
     }
 
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
-    }
-
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
     }
 
     public func newSession(contact: Gemstone.Contact?, addresses: [Gemstone.ContactAddress]) -> GemContactSession {
         service.newSession(contact: contact, addresses: addresses)
+    }
+
+    public func newAddressSession(contactId: String, existing: Gemstone.ContactAddress?) -> GemContactAddressSession {
+        service.newAddressSession(contactId: contactId, existing: existing)
     }
 }

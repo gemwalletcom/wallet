@@ -10,7 +10,6 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorPage
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
@@ -36,12 +35,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemContactAddressField
 import uniffi.gemstone.GemContactAddressInput
+import uniffi.gemstone.GemContactAddressSession
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactAvatarChoice
 import uniffi.gemstone.GemContactEditorServiceInterface
 import uniffi.gemstone.GemContactSession
 import uniffi.gemstone.GemNameServiceInterface
-import uniffi.gemstone.contactAddressFields
 import javax.inject.Inject
 
 @HiltViewModel
@@ -64,7 +63,7 @@ class ContactEditorViewModel @Inject constructor(
         val isEdit: Boolean,
         val emojiBackground: Int = 0,
         val page: ContactEditorPage = ContactEditorPage.Form,
-        val form: ContactAddressForm? = null,
+        val addressSession: GemContactAddressSession? = null,
         val saved: Boolean = false,
         val errorText: String? = null,
     )
@@ -109,16 +108,15 @@ class ContactEditorViewModel @Inject constructor(
             saved = current.saved,
             errorText = current.errorText,
             isSaveEnabled = session.canSave(),
-            addressInput = current.form?.let { form ->
+            addressInput = current.addressSession?.let { addressSession ->
                 ContactAddressInput(
-                    editingId = form.editingId,
-                    chain = form.chain,
-                    memo = form.memo,
+                    chain = addressSession.chain.requireChain(),
+                    memo = addressSession.memo,
                     address = address,
                     nameResolveIndicator = resolve.indicator(),
                     isAddressValid = isValid,
                     addressError = addressError?.string(context).orEmpty(),
-                    showsMemo = GemContactAddressField.MEMO in form.fields,
+                    showsMemo = GemContactAddressField.MEMO in addressSession.fields,
                 )
             },
         )
@@ -167,26 +165,18 @@ class ContactEditorViewModel @Inject constructor(
     fun deleteAddress(address: ContactAddress) = updateSession { it.onAddressDeleted(address.id) }
 
     fun addAddress() {
-        val form = ContactAddressForm(chain = service.defaultChain().requireChain())
+        val addressSession = service.newAddressSession(state.value.session.id, null)
         addressInput.reset()
-        addressInput.setChain(form.chain)
-        state.update { it.copy(page = ContactEditorPage.Address, form = form) }
+        addressInput.setChain(addressSession.chain.requireChain())
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = addressSession) }
     }
 
     fun editAddress(address: ContactAddress) {
+        val addressSession = service.newAddressSession(state.value.session.id, address.toGem())
         addressInput.reset()
         addressInput.setChain(address.chain)
         addressInput.onTextChange(address.address)
-        state.update {
-            it.copy(
-                page = ContactEditorPage.Address,
-                form = ContactAddressForm(
-                    editingId = address.id,
-                    chain = address.chain,
-                    memo = address.memo ?: "",
-                ),
-            )
-        }
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = addressSession) }
     }
 
     fun cancelAddress() {
@@ -196,7 +186,7 @@ class ContactEditorViewModel @Inject constructor(
 
     fun setAddress(value: String) = addressInput.onTextChange(value)
 
-    fun setMemo(value: String) = updateInput { it.copy(memo = value) }
+    fun setMemo(value: String) = updateAddressSession { it.onMemoChanged(value) }
 
     fun scanAddress(data: String) = setScannedAddress(data)
 
@@ -205,7 +195,7 @@ class ContactEditorViewModel @Inject constructor(
     private fun setScannedAddress(data: String) {
         val scan = service.scannedAddress(data)
         addressInput.setScannedAddress(scan.address)
-        updateInput { it.copy(memo = scan.memo ?: it.memo) }
+        updateAddressSession { it.onScanned(scan) }
     }
 
     fun selectChain() = state.update { it.copy(page = ContactEditorPage.SelectChain) }
@@ -214,36 +204,21 @@ class ContactEditorViewModel @Inject constructor(
 
     fun setChain(chain: Chain) {
         addressInput.setChain(chain)
-        state.update {
-            it.copy(page = ContactEditorPage.Address, form = it.form?.copy(chain = chain, memo = "", fields = contactAddressFields(chain.string)))
-        }
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = it.addressSession?.onChainChanged(chain.string)) }
     }
 
-    private fun updateInput(transform: (ContactAddressForm) -> ContactAddressForm) = state.update { current ->
-        val form = current.form ?: return@update current
-        current.copy(form = transform(form))
+    private fun updateAddressSession(transform: (GemContactAddressSession) -> GemContactAddressSession) = state.update { current ->
+        val addressSession = current.addressSession ?: return@update current
+        current.copy(addressSession = transform(addressSession))
     }
 
     fun confirmAddress() {
-        val input = uiState.value.addressInput ?: return
-        if (!input.isAddressValid) return
+        val addressSession = state.value.addressSession ?: return
+        if (!addressInput.validate()) return
 
-        val address = addressInput.resolvedAddress
+        val input = addressSession.input(addressInput.resolvedAddress)
         addressInput.reset()
-        state.update { current ->
-            current.copy(
-                session = current.session.onAddressSaved(
-                    GemContactAddressInput(
-                        contactId = current.session.id,
-                        chain = input.chain.string,
-                        address = address,
-                        memo = input.memo,
-                        replacingId = input.editingId,
-                    ),
-                ),
-                page = ContactEditorPage.Form,
-            )
-        }
+        state.update { it.copy(session = it.session.onAddressSaved(input), page = ContactEditorPage.Form) }
     }
 
     fun save() {

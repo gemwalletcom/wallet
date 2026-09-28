@@ -136,9 +136,46 @@ pub enum GemContactAddressField {
     Memo,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemContactAddressSession {
+    pub contact_id: String,
+    pub replacing_id: Option<String>,
+    pub chain: Chain,
+    pub memo: String,
+    pub fields: Vec<GemContactAddressField>,
+}
+
 #[uniffi::export]
-pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
-    rules::contact_address_fields(chain)
+impl GemContactAddressSession {
+    pub fn on_chain_changed(&self, chain: Chain) -> Self {
+        Self {
+            chain,
+            memo: String::new(),
+            fields: rules::contact_address_fields(chain),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_memo_changed(&self, memo: String) -> Self {
+        Self { memo, ..self.clone() }
+    }
+
+    pub fn on_scanned(&self, scan: GemContactScannedAddress) -> Self {
+        Self {
+            memo: scan.memo.unwrap_or_else(|| self.memo.clone()),
+            ..self.clone()
+        }
+    }
+
+    pub fn input(&self, address: String) -> GemContactAddressInput {
+        GemContactAddressInput {
+            contact_id: self.contact_id.clone(),
+            chain: self.chain,
+            address,
+            memo: Some(self.memo.clone()),
+            replacing_id: self.replacing_id.clone(),
+        }
+    }
 }
 
 #[derive(uniffi::Record)]
@@ -229,6 +266,35 @@ mod tests {
 
         assert_eq!((input.id.as_str(), input.name.as_str(), input.description.as_str()), ("contact", "Ada", "Friend"));
         assert!(matches!(input.avatar, GemContactAvatar::Rendered { .. }));
+    }
+
+    #[test]
+    fn test_an_address_session_clears_the_memo_with_the_chain_and_takes_a_scanned_memo() {
+        let session = rules::new_address_session("contact".into(), None).on_memo_changed("note".into());
+        assert_eq!(session.memo, "note");
+
+        let cosmos = session.on_chain_changed(Chain::Cosmos);
+        assert_eq!(cosmos.memo, "", "a new chain starts without the old memo");
+        assert_eq!(cosmos.fields, rules::contact_address_fields(Chain::Cosmos));
+
+        let typed = cosmos.on_memo_changed("typed".into());
+        assert_eq!(typed.on_scanned(GemContactScannedAddress { address: "cosmos1".into(), memo: None }).memo, "typed", "a scan without a memo keeps the typed one");
+        assert_eq!(
+            typed
+                .on_scanned(GemContactScannedAddress {
+                    address: "cosmos1".into(),
+                    memo: Some("tag".into())
+                })
+                .memo,
+            "tag"
+        );
+
+        let input = rules::new_address_session("contact".into(), Some(ContactAddress::mock("old"))).on_memo_changed("note".into()).input("0xnew".into());
+        assert_eq!(input.contact_id, "contact");
+        assert_eq!(input.chain, Chain::Ethereum);
+        assert_eq!(input.address, "0xnew");
+        assert_eq!(input.memo.as_deref(), Some("note"));
+        assert_eq!(input.replacing_id.as_deref(), Some("old"));
     }
 
     #[test]

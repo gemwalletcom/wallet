@@ -2,10 +2,8 @@ package com.gemwallet.android.features.contacts.viewmodels.models
 
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemContactAddressField
 import uniffi.gemstone.GemContactAddressRow
 import uniffi.gemstone.GemNameIndicator
-import uniffi.gemstone.contactAddressFields
 
 enum class ContactEditorPage {
     Form,
@@ -29,10 +27,7 @@ data class ContactEditorUIState(
     val isSaveEnabled: Boolean = false,
 )
 
-data class ContactAddressForm(val editingId: String? = null, val chain: Chain, val memo: String = "", val fields: List<GemContactAddressField> = contactAddressFields(chain.string))
-
 data class ContactAddressInput(
-    val editingId: String? = null,
     val chain: Chain,
     val address: String = "",
     val memo: String = "",
