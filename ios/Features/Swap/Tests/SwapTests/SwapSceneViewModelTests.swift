@@ -51,7 +51,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchDoesNotRunWhileTransferDataLoading() async throws {
+    func loadDoesNotRunWhileTransferDataLoading() async throws {
         let model = SwapSceneViewModel.mock()
         await model.load()
         let previousToValue = model.toValue

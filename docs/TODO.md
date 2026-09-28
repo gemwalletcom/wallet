@@ -203,7 +203,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### iOS
 
-- **CLN418** **S** **Swift drops the last fetch and apply names.** Outside GRDB's `fetch(_ db:)`, functions such as `fetchQuotes`, `fetchExtended`, `fetchNativeAsset` and `applyAmount` take the action they perform, and so do test helpers.
 - **CLN419** **S** **Swift carries no comments.** 152 comments in 74 files, keeping license headers and tool directives.
 
 ### Android
