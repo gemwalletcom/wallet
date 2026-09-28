@@ -147,7 +147,8 @@ impl GemAssetsService {
     async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let assets = self.api.client.get_assets(asset_ids, None).await.map_err(GemApiError::from)?;
         let asset_ids = assets.iter().map(|asset| asset.asset.id.clone()).collect();
-        self.store.save_assets(assets).await?;
+        self.store.save_assets(assets.clone()).await?;
+        self.price.update_prices(rules::asset_prices(&assets)).await?;
         Ok(asset_ids)
     }
 
@@ -289,6 +290,7 @@ impl GemAssetsService {
 mod tests {
     use super::*;
     use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::services::price::testkit::MemoryPriceStore;
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
     use primitives::AssetRank;
@@ -380,7 +382,7 @@ mod tests {
         "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
         "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": true, "earnApr": 4.68, "hasImage": true, "hasPrice": true},
         "score": {"rank": 34, "type": "low"},
-        "price": null
+        "price": {"price": 0.9998, "priceChangePercentage24h": -0.01, "updatedAt": "2026-09-27T22:44:30Z"}
     }]"#;
 
     #[test]
@@ -405,7 +407,8 @@ mod tests {
         block_on(async {
             let provider = Arc::new(TestAlienProvider::with_json(200, USDT_RESPONSE));
             let store = Arc::new(MemoryAssetStore::default());
-            let service = GemAssetsService::mock(provider.clone(), store.clone());
+            let prices = Arc::new(MemoryPriceStore::default());
+            let service = GemAssetsService::mock_with_price_store(provider.clone(), store.clone(), prices.clone());
 
             let ids = service.sync_missing_assets(vec![ETHEREUM_USDT_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone()]).await.unwrap();
 
@@ -413,6 +416,11 @@ mod tests {
             let saved = store.assets.lock().unwrap().clone();
             assert_eq!(saved.len(), 1);
             assert_eq!(saved[0].score.rank, 34, "the saved batch keeps the backend metadata");
+            assert_eq!(
+                *prices.prices.lock().unwrap(),
+                vec![AssetPrice::new(ETHEREUM_USDT_ASSET_ID.clone(), 0.9998, -0.01, chrono::DateTime::parse_from_rfc3339("2026-09-27T22:44:30Z").unwrap().to_utc())],
+                "the batch sync saves the prices the backend attaches, like the single sync and search do"
+            );
             assert!(service.sync_missing_assets(vec![ETHEREUM_USDT_ASSET_ID.clone()]).await.unwrap().is_empty(), "a stored asset is no longer missing");
         });
     }
