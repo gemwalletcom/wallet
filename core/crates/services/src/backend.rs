@@ -91,7 +91,7 @@ impl Services {
 
     pub async fn stream_producer(&self, name: &str, shutdown_rx: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
         let rabbitmq = &self.settings.rabbitmq;
-        let config = StreamProducerConfig::new(rabbitmq.url.clone(), Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout));
+        let config = StreamProducerConfig::new(rabbitmq.url.clone(), Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout), rabbitmq.maxbytes);
         StreamProducer::new(&config, name, shutdown_rx).await
     }
 

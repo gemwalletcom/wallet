@@ -95,7 +95,7 @@ async fn run_fetch_assets(services: Services, shutdown_rx: ShutdownReceiver, rep
     let settings = services.settings();
     let queue = QueueName::FetchAssets;
     let queue_reader = queue_reader(&settings, &queue).await?;
-    let stream_producer = StreamProducer::from_connection(&queue_reader.connection, shutdown_rx.clone()).await?;
+    let stream_producer = StreamProducer::from_connection(&queue_reader.connection, settings.rabbitmq.maxbytes, shutdown_rx.clone()).await?;
     let consumer = services.fetch_assets_consumer(&consumer_user_agent(&queue_reader.name), stream_producer).await?;
     run_consumer::<FetchAssetsPayload, _, usize>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }

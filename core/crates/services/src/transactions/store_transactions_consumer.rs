@@ -4,7 +4,6 @@ use std::time::Duration;
 use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
-use futures::{StreamExt, stream};
 use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
 use streamer::{AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
@@ -71,8 +70,8 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         )?;
         let existing_assets_map: HashMap<AssetId, primitives::AssetPriceMetadata> = existing_assets.into_iter().map(|asset| (asset.asset.asset.id.clone(), asset)).collect();
 
-        let _ = self.stream_producer.publish_fetch_assets(missing_assets).await;
-        let _ = self.stream_producer.publish_fetch_nft_assets(missing_nft_assets).await;
+        self.stream_producer.publish_fetch_assets(missing_assets).await?;
+        self.stream_producer.publish_fetch_nft_assets(missing_nft_assets).await?;
 
         let subscribed_transactions = subscriptions
             .iter()
@@ -122,15 +121,10 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                 })
             })
             .collect::<Vec<_>>();
-        let notifications = stream::iter(notification_requests)
-            .filter_map(|(subscription, transaction, assets)| async move {
-                match self.pusher.get_messages(&subscription, transaction, assets).await {
-                    Ok(messages) => Some(NotificationsPayload::new(messages)),
-                    Err(_) => None,
-                }
-            })
-            .collect::<Vec<_>>()
-            .await;
+        let mut notifications = Vec::with_capacity(notification_requests.len());
+        for (subscription, transaction, assets) in notification_requests {
+            notifications.push(NotificationsPayload::new(self.pusher.get_messages(&subscription, transaction, assets).await?));
+        }
 
         let wallet_events = subscriptions
             .iter()
@@ -163,8 +157,8 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         if !assets_addresses.is_empty() {
             self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
         }
-        let _ = self.stream_producer.publish_notifications_transactions(notifications).await;
-        let _ = self.stream_producer.publish_wallet_stream_events(wallet_events).await;
+        self.stream_producer.publish_notifications_transactions(notifications).await?;
+        self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
 
         Ok(transaction_count)
     }

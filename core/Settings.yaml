@@ -12,6 +12,7 @@ meilisearch:
 rabbitmq:
   url: "amqp://username:password@localhost:5672"
   prefetch: 50
+  maxbytes: 2000000000
   retry:
     delay: 1s
     timeout: 30s

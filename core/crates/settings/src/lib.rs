@@ -109,6 +109,7 @@ pub struct Retry {
 pub struct RabbitMQ {
     pub url: String,
     pub prefetch: u16,
+    pub maxbytes: i64,
     pub retry: Retry,
 }
 

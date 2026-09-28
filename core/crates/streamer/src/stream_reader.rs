@@ -27,6 +27,11 @@ pub struct StreamReader {
     channel: Channel,
 }
 
+pub struct StreamMessage<T> {
+    pub payload: T,
+    pub published_at: Option<u64>,
+}
+
 impl StreamReader {
     pub async fn new(config: StreamReaderConfig, shutdown_rx: &ShutdownReceiver) -> Result<Option<Self>, Box<dyn Error + Send + Sync>> {
         let channel = with_retry(&config.retry, &config.name, shutdown_rx, || Self::try_connect(&config)).await?;
@@ -67,7 +72,7 @@ impl StreamReader {
     pub async fn read<T, F, Fut>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown_rx: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
-        F: FnMut(T) -> Fut,
+        F: FnMut(StreamMessage<T>) -> Fut,
         Fut: Future<Output = Result<(), Box<dyn Error + Send + Sync>>>,
     {
         let (queue_name, consumer_tag) = match routing_key {
@@ -101,7 +106,7 @@ impl StreamReader {
     async fn consume<T, F, Fut>(&mut self, consumer: &mut lapin::Consumer, callback: &mut F, mut shutdown_rx: ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
-        F: FnMut(T) -> Fut,
+        F: FnMut(StreamMessage<T>) -> Fut,
         Fut: Future<Output = Result<(), Box<dyn Error + Send + Sync>>>,
     {
         loop {
@@ -113,9 +118,10 @@ impl StreamReader {
             match delivery {
                 Some(Ok(delivery)) => {
                     let delivery_tag = delivery.delivery_tag;
+                    let published_at = *delivery.properties.timestamp();
                     let data = serde_json::from_slice::<T>(&delivery.data);
                     match data {
-                        Ok(obj) => match callback(obj).await {
+                        Ok(payload) => match callback(StreamMessage { payload, published_at }).await {
                             Ok(_) => self.ack(delivery_tag).await?,
                             Err(_) => self.nack(delivery_tag, true).await?,
                         },
