@@ -1,12 +1,14 @@
 use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
-use num_bigint::BigInt;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
-use crate::{provider::preload_mapper::map_transaction_preload, rpc::XrpClient};
+use crate::{
+    provider::preload_mapper::{map_fee_rates, map_transaction_preload},
+    rpc::XrpClient,
+};
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
@@ -24,13 +26,7 @@ impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        let fees = self.get_fees().await?;
-        let median_fee = fees.drops.median_fee;
-
-        Ok(vec![
-            FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(median_fee))),
-            FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(median_fee * 2))),
-        ])
+        Ok(map_fee_rates(&self.get_fees().await?.drops))
     }
 }
 
@@ -38,7 +34,18 @@ impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, create_xrp_test_client};
-    use primitives::{AccountDataType, Asset, Chain};
+    use primitives::{AccountDataType, Asset, Chain, FeePriority};
+
+    #[tokio::test]
+    async fn test_xrp_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_xrp_test_client();
+
+        let rates = client.get_transaction_fee_rates(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Xrp) }).await?;
+
+        assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
+        assert!(rates[0].gas_price_type.gas_price() < rates[1].gas_price_type.gas_price());
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_xrp_get_transaction_preload_activation() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
