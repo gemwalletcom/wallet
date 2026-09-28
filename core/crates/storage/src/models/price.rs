@@ -9,8 +9,6 @@ use crate::repositories::prices_repository::PriceUpdate;
 
 use crate::sql_types::{AssetId, PriceId, PriceProviderRow};
 
-use super::AssetRow;
-
 #[derive(Debug, Queryable, Selectable, Identifiable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::prices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -23,8 +21,13 @@ pub(crate) struct PriceRow {
     pub all_time_high_date: Option<NaiveDateTime>,
     pub all_time_low: f64,
     pub all_time_low_date: Option<NaiveDateTime>,
+    pub market_cap: Option<f64>,
+    pub market_cap_fdv: Option<f64>,
     pub market_cap_rank: Option<i32>,
     pub total_volume: Option<f64>,
+    pub circulating_supply: Option<f64>,
+    pub total_supply: Option<f64>,
+    pub max_supply: Option<f64>,
     pub last_updated_at: NaiveDateTime,
 }
 
@@ -40,7 +43,12 @@ pub(crate) struct NewPriceRow {
     pub all_time_high_date: Option<NaiveDateTime>,
     pub all_time_low: f64,
     pub all_time_low_date: Option<NaiveDateTime>,
+    pub market_cap: Option<f64>,
+    pub market_cap_fdv: Option<f64>,
     pub total_volume: Option<f64>,
+    pub circulating_supply: Option<f64>,
+    pub total_supply: Option<f64>,
+    pub max_supply: Option<f64>,
 }
 
 #[derive(Default, AsChangeset)]
@@ -86,7 +94,12 @@ impl NewPriceRow {
             all_time_high_date: data.all_time_high_date.map(|date| date.naive_utc()),
             all_time_low: data.all_time_low,
             all_time_low_date: data.all_time_low_date.map(|date| date.naive_utc()),
+            market_cap: data.market_cap,
+            market_cap_fdv: data.market_cap_fdv,
             total_volume: data.total_volume,
+            circulating_supply: data.circulating_supply,
+            total_supply: data.total_supply,
+            max_supply: data.max_supply,
         }
     }
 }
@@ -193,19 +206,17 @@ impl PriceRow {
         Price::new(self.price, self.price_change_percentage_24h.unwrap_or(0.0), self.last_updated_at.and_utc(), self.provider_value())
     }
 
-    pub fn as_market_primitive(&self, asset: &AssetRow) -> AssetMarket {
+    pub fn as_market_primitive(&self) -> AssetMarket {
         let ath_percentage = if self.all_time_high > 0.0 { Some((self.price - self.all_time_high) / self.all_time_high * 100.0) } else { None };
         let atl_percentage = if self.all_time_low > 0.0 { Some((self.price - self.all_time_low) / self.all_time_low * 100.0) } else { None };
-        let market_cap = asset.circulating_supply.map(|supply| self.price * supply);
-        let market_cap_fdv = asset.total_supply.or(asset.max_supply).map(|supply| self.price * supply);
         AssetMarket {
-            market_cap,
-            market_cap_fdv,
+            market_cap: self.market_cap,
+            market_cap_fdv: self.market_cap_fdv,
             market_cap_rank: self.market_cap_rank,
             total_volume: self.total_volume,
-            circulating_supply: asset.circulating_supply,
-            total_supply: asset.total_supply,
-            max_supply: asset.max_supply,
+            circulating_supply: self.circulating_supply,
+            total_supply: self.total_supply,
+            max_supply: self.max_supply,
             all_time_high: Some(self.all_time_high),
             all_time_high_date: self.all_time_high_date.map(|d| d.and_utc()),
             all_time_high_change_percentage: ath_percentage,
@@ -225,11 +236,11 @@ impl PriceRow {
         }
     }
 
-    pub fn as_price_asset_info(&self, asset: &AssetRow) -> AssetPriceInfo {
+    pub fn as_price_asset_info(&self, asset_id: PrimitiveAssetId) -> AssetPriceInfo {
         AssetPriceInfo {
-            asset_id: asset.as_asset_id(),
+            asset_id,
             price: self.as_primitive(),
-            market: self.as_market_primitive(asset),
+            market: self.as_market_primitive(),
         }
     }
 
@@ -244,8 +255,13 @@ impl PriceRow {
             all_time_high_date: self.all_time_high_date.map(|d| d.and_utc()),
             all_time_low: self.all_time_low,
             all_time_low_date: self.all_time_low_date.map(|d| d.and_utc()),
+            market_cap: self.market_cap,
+            market_cap_fdv: self.market_cap_fdv,
             market_cap_rank: self.market_cap_rank,
             total_volume: self.total_volume,
+            circulating_supply: self.circulating_supply,
+            total_supply: self.total_supply,
+            max_supply: self.max_supply,
             last_updated_at: self.last_updated_at.and_utc(),
         }
     }
@@ -260,8 +276,13 @@ impl PriceRow {
             all_time_high_date: data.all_time_high_date.map(|d| d.naive_utc()),
             all_time_low: data.all_time_low,
             all_time_low_date: data.all_time_low_date.map(|d| d.naive_utc()),
+            market_cap: data.market_cap,
+            market_cap_fdv: data.market_cap_fdv,
             market_cap_rank: data.market_cap_rank,
             total_volume: data.total_volume,
+            circulating_supply: data.circulating_supply,
+            total_supply: data.total_supply,
+            max_supply: data.max_supply,
             last_updated_at: data.last_updated_at.naive_utc(),
         }
     }
@@ -277,15 +298,27 @@ mod tests {
     }
 
     #[test]
-    fn test_total_volume_market_roundtrip() {
-        let mut price = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
-        price.total_volume = Some(123.0);
+    fn test_market_roundtrip() {
+        let price = PriceRow {
+            market_cap: Some(1_000.0),
+            market_cap_fdv: Some(1_500.0),
+            total_volume: Some(123.0),
+            circulating_supply: Some(20.0),
+            total_supply: Some(30.0),
+            max_supply: Some(40.0),
+            ..PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000))
+        };
 
         let price_data = price.as_price_data();
         let price_row = PriceRow::from_price_data(price_data);
+        let market = price_row.as_market_primitive();
 
-        assert_eq!(price_row.total_volume, Some(123.0));
-        assert_eq!(price_row.as_market_primitive(&AssetRow::mock()).total_volume, Some(123.0));
+        assert_eq!(market.market_cap, Some(1_000.0));
+        assert_eq!(market.market_cap_fdv, Some(1_500.0));
+        assert_eq!(market.total_volume, Some(123.0));
+        assert_eq!(market.circulating_supply, Some(20.0));
+        assert_eq!(market.total_supply, Some(30.0));
+        assert_eq!(market.max_supply, Some(40.0));
     }
 
     #[test]

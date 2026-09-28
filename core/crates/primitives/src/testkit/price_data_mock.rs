@@ -18,8 +18,13 @@ impl PriceData {
             all_time_high_date: None,
             all_time_low: 67.81,
             all_time_low_date: None,
+            market_cap: Some(1_673_309_064_328.0),
+            market_cap_fdv: Some(1_673_309_064_328.0),
             market_cap_rank: Some(1),
             total_volume: None,
+            circulating_supply: Some(19_920_000.0),
+            total_supply: Some(19_920_000.0),
+            max_supply: Some(21_000_000.0),
             last_updated_at: Utc::now(),
         }
     }

@@ -375,8 +375,13 @@ fn setup_dev_assets(client: &mut DatabaseClient) -> Result<(), Box<dyn Error + S
             all_time_high_date: None,
             all_time_low: 0.0,
             all_time_low_date: None,
+            market_cap: None,
+            market_cap_fdv: None,
             market_cap_rank: None,
             total_volume: None,
+            circulating_supply: None,
+            total_supply: None,
+            max_supply: None,
             last_updated_at: Utc::now(),
         })
         .collect();

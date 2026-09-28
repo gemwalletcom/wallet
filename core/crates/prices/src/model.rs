@@ -90,8 +90,13 @@ impl AssetPriceFull {
             all_time_high_date: market.all_time_high_date,
             all_time_low: market.all_time_low.unwrap_or_default(),
             all_time_low_date: market.all_time_low_date,
+            market_cap: market.market_cap,
+            market_cap_fdv: market.market_cap_fdv,
             market_cap_rank: market.market_cap_rank,
             total_volume: market.total_volume,
+            circulating_supply: market.circulating_supply,
+            total_supply: market.total_supply,
+            max_supply: market.max_supply,
             last_updated_at: self.price.updated_at,
         }
     }

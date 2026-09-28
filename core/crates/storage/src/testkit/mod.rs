@@ -1,5 +1,3 @@
-#[cfg(test)]
-mod asset_mock;
 pub mod database_mock;
 #[cfg(test)]
 mod fiat_transaction_mock;

@@ -9,7 +9,7 @@ use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
 use primitives::{AssetId, PriceData, PriceId};
-use storage::{AssetFilter, AssetSupply, AssetUpdate, AssetsRepository, Database, DatabaseClient, DatabaseError, PriceFilter, PricesRepository};
+use storage::{AssetFilter, AssetsRepository, Database, DatabaseClient, DatabaseError, PriceFilter, PricesRepository};
 use streamer::{PricesPayload, QueueName, StreamProducer, StreamProducerQueue};
 
 const BATCH_SIZE: usize = 1000;
@@ -108,14 +108,13 @@ impl PricesUpdater {
 
         for chunk in assets.chunks(BATCH_SIZE) {
             let asset_ids: Vec<AssetId> = chunk.iter().map(|a| a.mapping.asset_id.clone()).collect();
-            let existing: HashMap<String, AssetSupply> = self
+            let existing: HashSet<AssetId> = self
                 .database
-                .run(move |client| client.get_assets_supply(asset_ids))
+                .run(move |client| client.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())]))
                 .await?
                 .into_iter()
-                .map(|(asset_id, supply)| (asset_id.to_string(), supply))
                 .collect();
-            let (known, missing): (Vec<&PriceProviderAsset>, Vec<&PriceProviderAsset>) = chunk.iter().partition(|a| existing.contains_key(&a.mapping.asset_id.to_string()));
+            let (known, missing): (Vec<&PriceProviderAsset>, Vec<&PriceProviderAsset>) = chunk.iter().partition(|asset| existing.contains(&asset.mapping.asset_id));
 
             if !missing.is_empty() {
                 self.stream_producer.publish_fetch_assets(missing.iter().map(|a| a.mapping.asset_id.clone()).collect()).await?;
@@ -128,9 +127,6 @@ impl PricesUpdater {
             let assets_by_id: HashMap<String, PriceProviderAsset> = known.iter().map(|a| (a.mapping.asset_id.to_string(), (*a).clone())).collect();
             let prices: Vec<AssetPriceFull> = assets_by_id.values().cloned().map(|a| AssetPriceFull::from_provider_asset(a, provider)).collect();
             saved += self.price_client.save_prices(provider, &prices).await?;
-
-            let supply_updates: Vec<_> = assets_by_id.iter().filter_map(|(id, asset)| asset_supply_update(asset, existing.get(id)?)).collect();
-            self.store_asset_updates(supply_updates).await?;
         }
 
         info_with_fields!("update prices assets", provider = provider.id(), saved = saved, queued_for_fetch = queued);
@@ -152,18 +148,6 @@ impl PricesUpdater {
         info_with_fields!("update prices", provider = provider.id(), count = count);
         Ok(count)
     }
-
-    async fn store_asset_updates(&self, updates: Vec<(AssetId, AssetUpdate)>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.database
-            .run(move |client| -> Result<(), DatabaseError> {
-                for (asset_id, update) in updates {
-                    client.update_assets(vec![asset_id], vec![update])?;
-                }
-                Ok(())
-            })
-            .await?;
-        Ok(())
-    }
 }
 
 fn asset_price_mappings(client: &mut DatabaseClient, prices: Vec<PriceData>) -> Result<Vec<AssetPriceMapping>, DatabaseError> {
@@ -177,15 +161,4 @@ fn asset_price_mappings(client: &mut DatabaseClient, prices: Vec<PriceData>) -> 
         .into_iter()
         .map(|mapping| AssetPriceMapping::new(mapping.asset_id, mapping.price_id.provider_price_id))
         .collect())
-}
-
-fn asset_supply_update(asset: &PriceProviderAsset, current: &AssetSupply) -> Option<(AssetId, AssetUpdate)> {
-    let market = asset.market.as_ref()?;
-    let circulating = market.circulating_supply.filter(|v| *v > 0.0).or(current.circulating);
-    let total = market.total_supply.filter(|v| *v > 0.0).or(current.total);
-    let max = market.max_supply.filter(|v| *v > 0.0).or(current.max);
-    if circulating == current.circulating && total == current.total && max == current.max {
-        return None;
-    }
-    Some((asset.mapping.asset_id.clone(), AssetUpdate::supply(circulating, total, max)?))
 }

@@ -29,8 +29,13 @@ impl PriceRow {
             all_time_high_date,
             all_time_low,
             all_time_low_date,
+            market_cap: None,
+            market_cap_fdv: None,
             market_cap_rank,
             total_volume,
+            circulating_supply: None,
+            total_supply: None,
+            max_supply: None,
         }
     }
 
@@ -44,8 +49,13 @@ impl PriceRow {
             all_time_high_date: None,
             all_time_low: 0.0,
             all_time_low_date: None,
+            market_cap: None,
+            market_cap_fdv: None,
             market_cap_rank: None,
             total_volume: None,
+            circulating_supply: None,
+            total_supply: None,
+            max_supply: None,
             last_updated_at: (Utc::now() - Duration::seconds(seconds_ago)).naive_utc(),
         }
     }
