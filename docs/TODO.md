@@ -206,7 +206,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Android
 
-- **CLN420** **S** **Unused Kotlin values go.** `bannerEmojiFontSize` in `Banner.kt` and `acceptTermsItems` in `GemConstants.kt` have no reader.
 - **CLN421** **S** **A focused field shows the keyboard through one modifier.** `AddNodeScene`, `AddressChainField` and `MemoTextField` repeat the `onFocusChanged` keyboard show and hide; one `Modifier` extension serves them.
 - **CLN422** **S** **Kotlin drops its fetch names.** `ServiceStatusViewModel.fetch`, `SupportChatViewModel.fetch`, `ConfirmTransferViewModel.fetch` and `AssetsResultsViewModel.fetch` take the action they perform.
 - **CLN423** **S** **Kotlin carries no comments.** Production Kotlin comments go; frozen database migrations keep theirs.

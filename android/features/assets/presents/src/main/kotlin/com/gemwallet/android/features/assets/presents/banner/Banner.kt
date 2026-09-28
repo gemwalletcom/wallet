@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -39,8 +38,6 @@ import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemBannerStyle
-
-private val bannerEmojiFontSize = 32.sp
 
 @Composable
 fun Banner(banner: GemBannerRow, onSelect: (GemBannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
