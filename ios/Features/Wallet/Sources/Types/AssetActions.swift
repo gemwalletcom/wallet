@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemToast
 import GemstonePrimitives
@@ -66,6 +67,35 @@ extension PerpetualPinActions {
                 isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("\(Self.self) pin perpetual error: \(error)")
+            }
+        }
+    }
+}
+
+@MainActor
+protocol SearchResultActions: AssetActions, PerpetualPinActions {
+    var service: any GemAssetSelectionServiceProtocol { get }
+}
+
+extension SearchResultActions {
+    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
+        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
+    }
+
+    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
+        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
+    }
+
+    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
+        try await service.setPerpetualPinned(perpetualId: perpetual.id, name: perpetual.name, pinned: pinned)
+    }
+
+    func addRecent(_ asset: Asset) {
+        Task { [service] in
+            do {
+                try await service.addRecent(action: .open, asset: asset.toGem())
+            } catch {
+                debugLog("\(Self.self) add recent error: \(error)")
             }
         }
     }

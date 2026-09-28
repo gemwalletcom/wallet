@@ -8,7 +8,6 @@ import protocol Gemstone.GemAssetSelectionServiceProtocol
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemSearchListRow
-import struct Gemstone.GemToast
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchView
@@ -23,8 +22,8 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
-    private let service: any GemAssetSelectionServiceProtocol
+public final class WalletSearchSceneViewModel: Sendable, SearchResultActions {
+    let service: any GemAssetSelectionServiceProtocol
 
     let wallet: Wallet
     private let onDismissSearch: VoidAction
@@ -181,7 +180,7 @@ extension WalletSearchSceneViewModel {
 
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
-        updateRecent(asset)
+        addRecent(asset)
     }
 
     func onSelectRecent(asset: Asset) {
@@ -211,16 +210,6 @@ extension WalletSearchSceneViewModel {
 // MARK: - Private
 
 extension WalletSearchSceneViewModel {
-    private func updateRecent(_ asset: Asset) {
-        Task { [service] in
-            do {
-                try await service.addRecent(action: .open, asset: asset.toGem())
-            } catch {
-                debugLog("UpdateRecent error: \(error)")
-            }
-        }
-    }
-
     private func updateRequest() {
         var request = searchQuery.request
         request.searchBy = searchableQuery
@@ -245,18 +234,6 @@ extension WalletSearchSceneViewModel {
 }
 
 extension WalletSearchSceneViewModel {
-    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
-        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
-    }
-
-    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
-    }
-
-    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
-        try await service.setPerpetualPinned(perpetualId: perpetual.id, name: perpetual.name, pinned: pinned)
-    }
-
     var assetItems: ListAssetItemsViewModel {
         ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearch).rowStyle)
     }

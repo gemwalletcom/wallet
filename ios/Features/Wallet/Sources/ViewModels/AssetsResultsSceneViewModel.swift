@@ -4,7 +4,6 @@ import Components
 import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import struct Gemstone.GemToast
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchState
 import func Gemstone.walletSearchState
@@ -18,8 +17,8 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
-    private let service: any GemAssetSelectionServiceProtocol
+public final class AssetsResultsSceneViewModel: SearchResultActions {
+    let service: any GemAssetSelectionServiceProtocol
     let wallet: Wallet
 
     let title: String
@@ -130,29 +129,11 @@ extension AssetsResultsSceneViewModel {
 
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
-        Task { [service] in
-            do {
-                try await service.addRecent(action: .open, asset: asset.toGem())
-            } catch {
-                debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
-            }
-        }
+        addRecent(asset)
     }
 }
 
 extension AssetsResultsSceneViewModel {
-    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
-        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
-    }
-
-    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
-    }
-
-    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
-        try await service.setPerpetualPinned(perpetualId: perpetual.id, name: perpetual.name, pinned: pinned)
-    }
-
     var assetItems: ListAssetItemsViewModel {
         ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearchResults).rowStyle)
     }
