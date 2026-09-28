@@ -1,7 +1,7 @@
 use crate::models::balance::{Validator, ValidatorStats};
 pub use crate::models::metadata::{AssetMetadata, UniverseAsset};
 pub use crate::models::order::OpenOrder;
-pub use crate::models::portfolio::{HypercoreDataPoint, HypercorePortfolioResponse, HypercorePortfolioTimeframeData};
+pub use crate::models::portfolio::{HypercoreDataPoint, HypercorePortfolioTimeframeData};
 pub use crate::models::position::{AssetPositions, MarginSummary};
 pub use crate::models::spot::OrderbookLevel;
 use crate::models::user::{AgentSession, DelegatorHistoryDelta, DelegatorHistoryUpdate, DelegatorWithdrawalDelta};

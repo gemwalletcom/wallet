@@ -1,11 +1,9 @@
+use number_formatter::BigNumberFormatter;
+use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapQuoteData};
+
 use crate::config::swap_config::get_swap_config;
 use crate::models::custom_types::GemBigUint;
-use number_formatter::BigNumberFormatter;
 
-pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
-pub use swapper::SwapperProvider;
-
-pub type GemApprovalData = ApprovalData;
 pub type GemSwapQuoteData = SwapQuoteData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
