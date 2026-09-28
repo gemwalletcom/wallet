@@ -216,7 +216,7 @@ impl GemConfirmData {
             value: transfer.value.clone(),
             available_value,
             fee_asset: fee_asset.id.clone(),
-            fee_asset_balance: metadata.fee_asset_balance.available.clone().into(),
+            fee_asset_balance: transfer.fee_available_value(&metadata.fee_asset_balance),
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
             destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
@@ -761,7 +761,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::FeeOption;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferDataExtra, TransferDataOutputAction,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferAmount, TransferDataExtra, TransferDataOutputAction,
+        known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{ApprovalData, SwapData},
     };
     use primitives::{AddressName, AddressType, Delegation, DelegationValidator, VerificationStatus};
@@ -1520,6 +1521,36 @@ mod tests {
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }
         assert!(matches!(data.preload_amount(&funded, &asset), GemTransferAmountResult::Amount { .. }));
+    }
+
+    #[test]
+    fn test_preload_amount_hypercore_withdrawal() {
+        let usdc = HYPERCORE_PERPETUAL_USDC.clone();
+        let mut data = SendInput::mock(Chain::HyperCore, TransactionInputType::Withdrawal { asset: usdc.clone() }).confirm;
+        data.input.transfer.value = BigInt::from(305_000_000);
+        data.fee.fee = BigInt::from(1_000_000);
+        let underwater = GemAssetBalance {
+            asset_id: usdc.id.clone(),
+            withdrawable: GemBigUint::from(305_000_000u32),
+            ..GemAssetBalance::mock_with_available(0)
+        };
+        let metadata = GemConfirmMetadata {
+            asset_balance: underwater.clone(),
+            fee_asset_balance: underwater,
+            ..GemConfirmMetadata::mock(&usdc.id, 0)
+        };
+
+        assert_eq!(
+            data.preload_amount(&metadata, &usdc),
+            GemTransferAmountResult::Amount {
+                amount: TransferAmount {
+                    value: BigInt::from(304_000_000),
+                    network_fee: BigInt::from(1_000_000),
+                    is_max_amount: true,
+                },
+            },
+            "the withdrawable balance pays the fee even when nothing is available for margin"
+        );
     }
 
     #[test]

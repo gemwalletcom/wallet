@@ -15,7 +15,7 @@ flowchart LR
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
 6. After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
 7. A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it.
-8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`; Withdraw moves the withdrawable balance back, at least `2 USDC`.
+8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
 
 ```mermaid
 flowchart LR
@@ -39,6 +39,7 @@ flowchart LR
 | The user sets Auto Close while opening a position | Confirm turns on only when the change can be placed | |
 | An order is placed | it is priced `2%` against the trader | it must fill while the price moves |
 | The user taps Close on a position | straight to confirmation, with the expected PnL | |
+| The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
