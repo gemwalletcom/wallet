@@ -108,16 +108,16 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
         let reward_percentiles_clone = args.reward_percentiles.clone();
         let etherscan_api_key_clone = etherscan_api_key.clone();
 
-        let fee_history_future = gemstone_client_clone.fetch_base_priority_fees(args.blocks, reward_percentiles_clone, args.min_priority_fee);
+        let fee_history_future = gemstone_client_clone.get_base_priority_fees(args.blocks, reward_percentiles_clone, args.min_priority_fee);
 
         let etherscan_future = async move {
             let client = EtherscanClient::new(etherscan_api_key_clone);
-            client.fetch_gas_oracle().await
+            client.get_gas_oracle().await
         };
 
         let gasflow_future = async {
             let client = GasflowClient::new();
-            client.fetch_prediction().await
+            client.get_prediction().await
         };
 
         let (gemstone_res, etherscan_res, gasflow_res) = tokio::join!(fee_history_future, etherscan_future, gasflow_future);
@@ -262,16 +262,16 @@ async fn run_solana(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             eprintln!("gas-bench: fetching Solana fee data...");
         }
 
-        let solana_future = solana_client.fetch_fee_data();
+        let solana_future = solana_client.get_fee_data();
         let jito_future = async {
             match &jito_client {
-                Some(client) => Some(client.fetch_tip_floor().await),
+                Some(client) => Some(client.get_tip_floor().await),
                 None => None,
             }
         };
         let helius_future = async {
             match &helius_client {
-                Some(client) => Some(client.fetch_priority_fee_estimate(Some(vec![JUPITER_PROGRAM_ID.to_string()])).await),
+                Some(client) => Some(client.get_priority_fee_estimate(Some(vec![JUPITER_PROGRAM_ID.to_string()])).await),
                 None => None,
             }
         };

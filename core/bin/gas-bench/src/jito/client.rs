@@ -34,7 +34,7 @@ impl JitoClient {
         }
     }
 
-    pub async fn fetch_tip_floor(&self) -> Result<JitoTipFloor, Box<dyn Error + Send + Sync>> {
+    pub async fn get_tip_floor(&self) -> Result<JitoTipFloor, Box<dyn Error + Send + Sync>> {
         let entries: Vec<JitoTipFloorEntry> = self.client.get(JitoTarget::TipFloor).await?;
         let entry = entries.first().ok_or("No tip floor data returned from Jito API")?;
         Ok(JitoTipFloor::from_entry(entry))

@@ -54,7 +54,7 @@ pub async fn new_stream(redis_url: &str, device_stream: &DeviceStreamClient, obs
                     error_fields!("websocket redis connection lost");
                     break;
                 }
-                match observer.handle_redis_message(&message) {
+                match observer.receive_redis_message(&message) {
                     Ok(Some(event)) => {
                         if let Err(e) = observer.send_event(&mut stream, event).await {
                             error_fields!("websocket send event error", message = format!("{e:?}"));
@@ -70,7 +70,7 @@ pub async fn new_stream(redis_url: &str, device_stream: &DeviceStreamClient, obs
             message = stream.next() => {
                 match message {
                     Some(Ok(message)) => {
-                        if let Err(e) = observer.handle_ws_message(message, &mut redis_connection, &mut stream).await {
+                        if let Err(e) = observer.respond_to_ws_message(message, &mut redis_connection, &mut stream).await {
                             error_fields!("websocket message handler error", message = format!("{e:?}"));
                             break;
                         }

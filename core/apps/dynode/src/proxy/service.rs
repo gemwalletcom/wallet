@@ -60,7 +60,7 @@ impl ProxyRequestService {
         headers
     }
 
-    pub async fn handle_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
+    pub async fn forward_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
@@ -80,7 +80,7 @@ impl ProxyRequestService {
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
 
         if let RequestType::JsonRpc(rpc_request) = request_type {
-            return JsonRpcHandler::handle_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
+            return JsonRpcHandler::forward_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
         }
 
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);

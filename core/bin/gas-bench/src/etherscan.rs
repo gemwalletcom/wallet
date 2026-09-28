@@ -83,7 +83,7 @@ impl EtherscanClient {
         }
     }
 
-    pub async fn fetch_gas_oracle(&self) -> Result<EtherscanResponse, Box<dyn Error + Send + Sync>> {
+    pub async fn get_gas_oracle(&self) -> Result<EtherscanResponse, Box<dyn Error + Send + Sync>> {
         let response: EtherscanResponse = self.client.get(EtherscanTarget::GasOracle).query(&[("apikey", self.api_key.as_str())]).await?;
         if response.status != "1" {
             return Err(format!("Etherscan API error: {}", response.message).into());

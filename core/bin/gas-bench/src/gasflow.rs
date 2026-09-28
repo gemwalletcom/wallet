@@ -81,7 +81,7 @@ impl GasflowClient {
         }
     }
 
-    pub async fn fetch_prediction(&self) -> Result<GasflowResponse, ClientError> {
+    pub async fn get_prediction(&self) -> Result<GasflowResponse, ClientError> {
         self.client.get(GasflowTarget::Predict).await
     }
 }

@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN407** **S** **Rust drops the last fetch, handle, execute and manage names.** The EVM fee estimators (`fetch_gas_oracle`, `fetch_fee_data`, `fetch_priority_fee_estimate`, `fetch_base_priority_fees`, `fetch_prediction`, `fetch_tip_floor`) take the `get_` verb the providers use, and the handlers and helpers named `handle_*`, `execute_*` or `manage_*` in `api`, `dynode`, `streamer` and `swapper` take the action they perform. Framework-owned signatures and `resolve` for name resolution stay.
 - **CLN408** **S** **Clock reads go through `primitives::time`.** About 13 call sites outside auth, signer and transaction construction read `SystemTime::now().duration_since(UNIX_EPOCH)` by hand beside `unix_seconds`, `unix_milliseconds` and `unix_timestamp`, and `daemon`'s `now_unix` repeats `unix_timestamp`.
 - **CLN409** **S** **Simulated balance changes take their assets once.** EVM, Sui and Tron simulation each zip balance changes with looked-up assets through the same `match asset { Some(asset) => change.with_asset(asset), None => change }`; one helper beside `with_asset` does it.
 - **CLN410** **S** **Optional string parsers share one wrapper.** `serde_serializers` repeats the `Option<String>` deserialize-then-parse body in `deserialize_option_bigint_from_str`, `deserialize_option_biguint_from_str`, `deserialize_option_u64_from_str` and `deserialize_option_f64_from_str`; one generic wrapper takes the parse function.
