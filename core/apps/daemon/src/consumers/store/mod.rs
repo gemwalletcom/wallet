@@ -6,6 +6,7 @@ use services::Services;
 use settings::Settings;
 use streamer::{ConsumerStatusReporter, PricesPayload, QueueName, ShutdownReceiver, TransactionsPayload, WalletStreamPayload, run_consumer};
 
+use crate::consumers::runner::ChainConsumerRunner;
 use crate::consumers::{consumer_config, reader_for_queue};
 
 pub async fn run_consumer_store(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -22,11 +23,16 @@ pub async fn run_consumer_store(settings: Settings, shutdown_rx: ShutdownReceive
 }
 
 async fn run_store_transactions(services: Services, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let settings = services.settings();
-    let queue = QueueName::StoreTransactions;
-    let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
-    let consumer = services.store_transactions_consumer(&name, shutdown_rx.clone()).await?;
-    run_consumer::<TransactionsPayload, _, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
+    ChainConsumerRunner::new(services, QueueName::StoreTransactions, shutdown_rx, reporter)
+        .await?
+        .run(|runner, chain| async move {
+            let queue = QueueName::StoreTransactions;
+            let name = format!("{}.{}", queue, chain.as_ref());
+            let stream_reader = runner.stream_reader().await?;
+            let consumer = runner.services.store_transactions_consumer(runner.stream_producer().await?).await?;
+            run_consumer::<TransactionsPayload, _, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
+        })
+        .await
 }
 
 async fn run_store_prices(services: Services, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
