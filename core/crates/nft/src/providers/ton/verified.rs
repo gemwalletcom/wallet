@@ -4,9 +4,9 @@ use primitives::Address as _;
 
 const VERIFIED_MARKETPLACES: &[&str] = &["getgems.io"];
 const VERIFIED_COLLECTIONS: &[&str] = &[
-    "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi", // Telegram Usernames
-    "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz", // TON DNS (.ton domains)
-    "EQAOQdwdw8kGftJCSFgOErM1mBjYPe4DBPq8-AhF6vr9si5N", // Anonymous Telegram Numbers
+    "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi",
+    "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz",
+    "EQAOQdwdw8kGftJCSFgOErM1mBjYPe4DBPq8-AhF6vr9si5N",
 ];
 
 pub fn is_verified(address: &Address, info: &TokenInfo) -> bool {

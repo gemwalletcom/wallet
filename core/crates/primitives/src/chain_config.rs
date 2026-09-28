@@ -63,7 +63,6 @@ pub struct ChainConfig {
     pub stake: Option<StakeChainConfig>,
 }
 
-// Centralized chain configurations. Add new chains here.
 static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
     vec![
         ChainConfig {

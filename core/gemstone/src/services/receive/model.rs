@@ -9,7 +9,6 @@ pub enum GemReceiveWarning {
     NoMemoRequired,
 }
 
-/// The asset the receive screen shows, with the warnings under its address.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemReceiveAssetState {
     pub asset: GemAssetText,

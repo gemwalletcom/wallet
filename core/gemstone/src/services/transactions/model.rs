@@ -357,7 +357,6 @@ pub struct GemSwapProgress {
     pub eta_seconds: Option<u32>,
 }
 
-/// One step of a cross-chain swap: its title, what it moves, where it stands, and whether the estimate shows beside it.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapProgressRow {
     pub title: GemLocalizedText,

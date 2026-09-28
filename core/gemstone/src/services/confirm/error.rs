@@ -247,7 +247,6 @@ pub struct GemConfirmErrorInfo {
     pub acquire: Option<GemAcquireAsset>,
 }
 
-/// The one rule behind `GemConfirmation::error_info`, exported so a test double can answer it faithfully.
 #[uniffi::export]
 pub fn confirm_error_info(error: GemConfirmError, prices: Vec<primitives::AssetPrice>, currency: primitives::currency::Currency, input_asset_id: AssetId, fee_asset_id: AssetId) -> Option<GemConfirmErrorInfo> {
     super::rules::error_info(&error.display(), &prices, currency, &input_asset_id, &fee_asset_id)

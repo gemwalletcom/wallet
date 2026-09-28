@@ -83,7 +83,6 @@ pub struct GemEmptyState {
     pub actions: Vec<GemEmptyStateAction>,
 }
 
-/// The empty state of a screen whose actions depend on nothing but its kind.
 #[uniffi::export]
 pub fn empty_state(kind: GemEmptyStateKind) -> GemEmptyState {
     screen_empty_state(kind, false, &[GemEmptyStateAction::ManageTokenList, GemEmptyStateAction::ClearFilters])

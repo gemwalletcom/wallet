@@ -1,7 +1,5 @@
 use crate::remote_mappers::{Field, Generator, HEADER, RemoteType, Variant, Wrapper, camel_case, uniffi_swift_case, uniffi_type_name, unwrap};
 
-/// The syntax of one app's test mocks. The app side mocks the app models; the core side
-/// mocks the records and enums UniFFI generates for gemstone.
 pub(crate) struct MockSyntax {
     language: &'static str,
     header: &'static str,
@@ -208,7 +206,6 @@ fn uniffi_type_name_case(variant: &str) -> String {
     uniffi_type_name(variant)
 }
 
-/// UniFFI writes a Kotlin enum entry in `SHOUTY_SNAKE_CASE`, splitting a run of capitals as one word.
 pub(crate) fn screaming_words(variant: &str) -> String {
     let camel = uniffi_type_name(variant);
     let mut out = String::new();
@@ -221,10 +218,8 @@ pub(crate) fn screaming_words(variant: &str) -> String {
     out
 }
 
-/// Gemstone's custom types, which gemstone also declares as aliases of the primitives types they wrap.
 const CORE_CUSTOM_TYPES: &[&str] = &["GemBigInt", "GemBigUint", "GemJsonValue", "DateTimeUtc", "NaiveDateTimeUtc"];
 
-/// Which type system a mock is written for.
 #[derive(Clone, Copy, PartialEq)]
 enum Side {
     App,
@@ -244,9 +239,6 @@ impl Generator {
         self.mocks(&KOTLIN_MOCKS, &[Side::App, Side::Core])
     }
 
-    /// One `mock(...)` per type listed under `mocks:`, taking every field with the default the
-    /// rules give its type: the app model where primitives declares one, otherwise the
-    /// record or enum UniFFI generates for gemstone.
     fn mocks(&self, syntax: &MockSyntax, sides: &[Side]) -> String {
         let mut body = String::new();
         let mut imports = Vec::new();
@@ -307,8 +299,6 @@ impl Generator {
         out
     }
 
-    /// The names under `mocks:` that primitives does not declare as an app model struct, so the
-    /// mock is written for the UniFFI type.
     fn core_mocked(&self) -> Vec<&str> {
         let mut names = self.config.mocked().into_iter().filter(|name| !self.mocked.iter().any(|mock| mock.name() == *name)).collect::<Vec<_>>();
         names.sort_unstable();
@@ -326,7 +316,6 @@ impl Generator {
         }
     }
 
-    /// The app types a field type names, which a Kotlin mock file imports.
     fn app_imports(&self, syntax: &MockSyntax, type_name: &str) -> Vec<String> {
         match unwrap(type_name) {
             (inner, Wrapper::Option | Wrapper::Vec) => self.app_imports(syntax, inner),
@@ -362,8 +351,6 @@ impl Generator {
         }
     }
 
-    /// An override from `mocks:`, written as the field's type spells it: a string is quoted, an
-    /// enum names its variant, a number or a flag stays as written.
     fn app_literal(&self, syntax: &MockSyntax, record: &str, field: &Field, value: &str) -> String {
         let name = match unwrap(&field.type_name) {
             (inner, Wrapper::Option) => inner,
@@ -378,7 +365,6 @@ impl Generator {
         }
     }
 
-    /// The name UniFFI gives a field type, after the declared renames of primitives types.
     fn core_name<'a>(&'a self, name: &'a str) -> &'a str {
         if CORE_CUSTOM_TYPES.contains(&name) {
             return name;
@@ -434,7 +420,6 @@ impl Generator {
         }
     }
 
-    /// An override from `mocks:` for a gemstone field, spelled as in `app_literal`.
     fn core_literal(&self, syntax: &MockSyntax, record: &str, field: &Field, value: &str) -> String {
         let name = match unwrap(&field.type_name) {
             (inner, Wrapper::Option) => self.core_name(inner),
@@ -509,7 +494,6 @@ impl Generator {
         }
     }
 
-    /// A listed enum's mock is its first variant, carrying the default of each of its fields.
     fn core_enum_value(&self, syntax: &MockSyntax, name: &str, variants: &[Variant], imports: &mut Vec<String>) -> String {
         let core_type = format!("{}{}", syntax.core_qualifier, uniffi_type_name(name));
         let variant = variants.first().unwrap_or_else(|| panic!("{name} has no variants"));
@@ -553,7 +537,6 @@ fn record_mock(syntax: &MockSyntax, type_name: &str, function: &str, parameters:
     out
 }
 
-/// A label that is a keyword of the app's language, quoted so it reads as a name.
 fn identifier(syntax: &MockSyntax, label: &str) -> String {
     match syntax.keywords.split(' ').any(|keyword| keyword == label) {
         true => format!("`{label}`"),
@@ -561,7 +544,6 @@ fn identifier(syntax: &MockSyntax, label: &str) -> String {
     }
 }
 
-/// UniFFI names a field in lower camel case and drops the raw-identifier prefix.
 fn core_label(field: &Field) -> String {
     camel_case(field.rust.trim_start_matches("r#"))
 }

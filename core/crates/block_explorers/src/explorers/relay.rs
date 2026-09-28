@@ -8,7 +8,6 @@ impl RelayScan {
     }
 }
 
-// Custom implementation needed for query parameter pattern
 struct RelayExplorer;
 
 impl BlockExplorer for RelayExplorer {

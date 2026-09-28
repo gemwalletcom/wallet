@@ -4,68 +4,54 @@ use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
 pub enum CacheKey<'a> {
-    // Referral keys
     ReferralIpCheck(&'a str),
 
-    // Device keys
     InactiveDeviceObserver(&'a str),
     DeviceStreamEvents(&'a str, u64),
 
-    // Fetch consumer keys (chain, address)
     FetchCoinAddresses(&'a str, &'a str),
     FetchTokenAddresses(&'a str, &'a str),
     FetchNftAssetsAddresses(&'a str, &'a str),
     FetchAddressTransactions(&'a str, &'a str),
 
-    // Asset keys
     FetchAssets(&'a str),
     FetchNftAsset(&'a str),
     Price(&'a str),
     PriceMetadata(&'a str, u64),
     PriceMissingMapping(&'a str, &'a str, u64),
 
-    // Fiat keys
     FiatRates,
     FiatQuote(i32, i32, &'a str),
     FiatIpCheck(&'a str),
 
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
 
-    // Auth keys (device_id, nonce)
     AuthNonce(&'a str, &'a str),
 
-    // Address keys
     AddressStatus(&'a str, &'a str),
 
-    // Status keys
     JobStatus(&'a str),
 
-    // Pricer keys
     Markets,
     ObservedAssets,
 
     SwapDepositAddresses(&'a str),
     SwapSendAddresses(&'a str),
 
-    // Charts keys
     ChartsHistory(&'a str),
 
-    // Alerter keys
     AlerterStakeRewards(&'a str, &'a str),
 
-    // Perpetual keys
     PerpetualTrackedAddresses(&'a str),
     PerpetualActiveAddresses(&'a str),
     PerpetualPriorityAddresses(&'a str),
     PerpetualObserverCheckpoint(&'a str, &'a str),
 
-    // Transaction keys
     FetchTransaction(&'a str, &'a str),
     PendingTransactions(&'a str),
     TransactionFeeEstimates(&'a str),
     TransactionFeeEstimatesFresh(&'a str),
 
-    // Security scan keys (scan type, target, ttl)
     ScanSafe(&'a str, &'a str, u64),
 }
 

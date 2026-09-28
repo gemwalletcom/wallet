@@ -1,8 +1,6 @@
 use rust_decimal::Decimal;
 use std::str::FromStr;
 
-// Currency formatting inspired by https://github.com/paupino/rust-decimal
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Currency {
     pub iso_alpha_code: &'static str,
@@ -10,7 +8,6 @@ pub struct Currency {
     pub name: &'static str,
     pub decimal_places: u8,
 }
-/// ISO 4217 currency definitions
 pub mod iso {
     use super::Currency;
     pub const USD: Currency = Currency {
@@ -370,7 +367,6 @@ impl Money {
     }
 }
 
-/// Formatting parameters for money display
 #[derive(Debug, Default)]
 pub struct Params {
     pub symbol: Option<&'static str>,
@@ -380,11 +376,9 @@ pub struct Params {
     pub decimal_separator: Option<char>,
 }
 
-/// Formatter for money values
 pub struct Formatter;
 
 impl Formatter {
-    /// Format a Money value with the given parameters
     pub fn format(money: &Money, params: Params) -> String {
         let amount = money.amount();
         let currency = money.currency();

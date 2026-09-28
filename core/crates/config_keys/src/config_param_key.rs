@@ -15,26 +15,22 @@ pub enum RateLimitWindow {
 #[derive(Debug, Clone, Copy, AsRefStr, EnumIter)]
 #[strum(serialize_all = "camelCase")]
 pub enum RateLimitKey {
-    // Fiat
     FiatQuoteRequestPerDeviceLimit,
     FiatQuoteRequestPerIpLimit,
     FiatQuoteUrlRequestPerDeviceLimit,
     FiatQuoteUrlRequestPerIpLimit,
 
-    // Rewards username creation
     UsernameCreationGlobalLimit,
     UsernameCreationPerCountryLimit,
     UsernameCreationPerDeviceLimit,
     UsernameCreationPerIpLimit,
 
-    // Rewards referrals
     ReferralGlobalLimit,
     ReferralPerCountryLimit,
     ReferralPerDeviceLimit,
     ReferralPerIpLimit,
     ReferralPerUserLimit,
 
-    // Rewards redemptions
     RedemptionPerUserLimit,
 }
 

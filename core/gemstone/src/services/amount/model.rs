@@ -303,7 +303,6 @@ impl GemNumberFormat {
     }
 }
 
-/// The amount field: its text and whether it is typed in the asset or in fiat.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountSession {
     pub text: String,

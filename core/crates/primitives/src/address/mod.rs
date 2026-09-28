@@ -2,7 +2,6 @@ mod error;
 
 pub use error::AddressError;
 
-/// Common trait for blockchain addresses.
 pub trait Address: Sized {
     fn try_parse(address: &str) -> Option<Self>;
 

@@ -6,7 +6,7 @@ use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Sendable, Equatable, Hashable")]
 pub struct TransactionUtxoInput {
-    pub address: String, // Coinbase / OP_Return will be filtered
+    pub address: String,
     #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
     pub value: BigUint,
 }

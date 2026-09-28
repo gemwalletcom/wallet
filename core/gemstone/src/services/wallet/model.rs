@@ -132,8 +132,6 @@ pub enum GemSecretWarning {
     SaveSafely,
 }
 
-/// What the secret screen shows around the secret, never the secret itself: the words stay in the app and
-/// fill `rows` by index, so this record is built from the kind and the word count alone.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSecretScreen {
     pub title: GemLocalizedText,

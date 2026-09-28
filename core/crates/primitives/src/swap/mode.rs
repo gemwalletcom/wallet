@@ -9,7 +9,7 @@ pub enum SwapProviderMode {
     OnChain,
     CrossChain,
     Bridge,
-    OmniChain(Vec<Chain>), // supports both on-chain and cross-chain. Specify the chain for on-chain swaps
+    OmniChain(Vec<Chain>),
 }
 
 impl SwapProviderMode {

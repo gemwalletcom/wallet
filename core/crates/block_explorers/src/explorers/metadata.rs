@@ -26,7 +26,6 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    /// Create a common explorer with /tx and /address paths (most common pattern)
     pub fn new(name: &'static str, base_url: &'static str) -> Self {
         Self {
             name,
@@ -39,7 +38,6 @@ impl Metadata {
         }
     }
 
-    /// Create a common explorer with /tx, /address, /token, and /nft paths
     pub fn with_token(name: &'static str, base_url: &'static str) -> Self {
         Self {
             name,
@@ -52,7 +50,6 @@ impl Metadata {
         }
     }
 
-    /// Create a full-featured explorer with all standard paths
     pub fn full(name: &'static str, base_url: &'static str) -> Self {
         Self {
             name,
@@ -65,7 +62,6 @@ impl Metadata {
         }
     }
 
-    /// Create an explorer using /transaction path instead of /tx (Blockchair style)
     pub fn blockchair(name: &'static str, base_url: &'static str) -> Self {
         Self {
             name,
@@ -78,7 +74,6 @@ impl Metadata {
         }
     }
 
-    /// Create a Mintscan-style explorer with assets and validators
     pub fn mintscan(name: &'static str, base_url: &'static str) -> Self {
         Self {
             name,

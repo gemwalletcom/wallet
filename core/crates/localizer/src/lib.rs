@@ -90,7 +90,6 @@ impl LanguageLocalizer {
         }
     }
 
-    // notifications
     pub fn test(&self) -> String {
         fl!(self.loader.as_ref(), "notification_test")
     }
@@ -167,7 +166,6 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "notification_swap_description", from_value = from_value, to_value = to_value)
     }
 
-    // onboarding
     pub fn notification_onboarding_buy_asset(&self, name: &str) -> (String, String) {
         (
             fl!(self.loader.as_ref(), "notification_onboarding_buy_asset_title", name = name),
@@ -183,12 +181,10 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "notification_fiat_sale_title", value = value)
     }
 
-    // support
     pub fn notification_support_new_message_title(&self) -> String {
         fl!(self.loader.as_ref(), "support_new_message_title")
     }
 
-    // rewards
     pub fn notification_reward_title(&self, points: i32) -> String {
         fl!(self.loader.as_ref(), "notification_reward_title", value = points)
     }

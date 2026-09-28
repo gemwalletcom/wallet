@@ -11,16 +11,11 @@ use primitives::{Chain, PriorityFeeValue, fee::FeePriority};
 use std::fmt::Display;
 use std::sync::Arc;
 
-/// Represents unified gas fee data collected from a source.
 #[derive(Debug)]
 pub struct GemstoneFeeData {
-    /// The latest block number.
     pub latest_block: u64,
-    /// The suggested base fee in gwei.
     pub suggest_base_fee: String,
-    /// Gas used ratio for the block, if available (e.g., "50.5%").
     pub gas_used_ratio: Option<String>,
-    /// A list of priority fees for different priority levels.
     pub priority_fees: Vec<PriorityFeeValue>,
 }
 

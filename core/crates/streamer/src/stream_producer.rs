@@ -129,8 +129,6 @@ impl StreamProducer {
         }
     }
 
-    // Queue methods
-
     pub async fn declare_queue(&self, name: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| async move {
             channel.queue_declare(name.into(), QueueDeclareOptions { durable: true, ..Default::default() }, queue_args()).await?;
@@ -145,8 +143,6 @@ impl StreamProducer {
         }
         Ok(())
     }
-
-    // Exchange methods
 
     pub async fn declare_exchange(&self, name: &str, kind: ExchangeKind) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| {
@@ -166,8 +162,6 @@ impl StreamProducer {
         Ok(())
     }
 
-    // Bind methods
-
     pub async fn bind_queue(&self, queue: &str, exchange: &str, routing_key: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| async move {
             channel.queue_bind(queue.into(), exchange.into(), routing_key.into(), QueueBindOptions::default(), FieldTable::default()).await?;
@@ -182,8 +176,6 @@ impl StreamProducer {
         self.declare_queue(&queue_name).await?;
         self.bind_queue(&queue_name, &exchange_name, routing_key).await
     }
-
-    // Publish methods
 
     async fn publish_message<T>(&self, exchange: &str, routing_key: &str, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>
     where

@@ -41,7 +41,6 @@ use {
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
 
-/// Config
 #[derive(uniffi::Object)]
 struct Config {}
 #[uniffi::export]

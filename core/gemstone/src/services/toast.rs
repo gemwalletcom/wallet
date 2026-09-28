@@ -7,7 +7,6 @@ pub enum GemToastIcon {
     PriceAlert,
 }
 
-/// What a state change tells the user once it lands.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemToast {
     pub text: GemLocalizedText,

@@ -60,7 +60,6 @@ pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, 
     change_chart_data(chart.values.clone(), shows_value, period, portfolio_currency(portfolio_type, currency))
 }
 
-/// Every statistic finished as a row, so neither app formats a bare f64.
 pub fn statistic_rows(statistics: Vec<PortfolioStatistic>, currency: Currency) -> Vec<GemListRow> {
     statistics
         .into_iter()

@@ -46,7 +46,6 @@ pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
     BalanceCalculator::total_fiat_value(balances)
 }
 
-/// The wallet header, finished: the total as it is, and the change beside it when there is one.
 pub struct GemTotalHeader {
     pub total: GemFormattedNumber,
     pub pnl: Option<GemLocalizedText>,

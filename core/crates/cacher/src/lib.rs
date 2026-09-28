@@ -124,7 +124,6 @@ impl CacherClient {
         Ok(results.0)
     }
 
-    // CacheKey-aware methods
     pub async fn set_cached<T: serde::Serialize>(&self, key: CacheKey<'_>, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set_values_with_ttl(vec![(&key.key(), value)], key.ttl() as i64).await?;
         Ok(())

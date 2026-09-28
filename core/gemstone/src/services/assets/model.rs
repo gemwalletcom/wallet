@@ -739,7 +739,6 @@ pub enum GemValueHeaderSubtitleIcon {
     Chart,
 }
 
-/// A screen's value header: its icon, the value, the line under it and the header's buttons.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemValueHeader {
     pub icon: Option<GemValueHeaderIcon>,

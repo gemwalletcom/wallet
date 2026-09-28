@@ -1,5 +1,3 @@
-// lib.rs
-
 mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 

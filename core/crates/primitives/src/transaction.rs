@@ -431,7 +431,6 @@ mod tests {
 
     #[test]
     fn test_assets_addresses_transfer() {
-        // Without fee
         assert_eq!(Transaction::mock().assets_addresses().len(), 2);
 
         let transaction = Transaction {
@@ -442,7 +441,6 @@ mod tests {
         assert!(transaction.assets_addresses().iter().any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xfrom"));
         assert!(transaction.assets_addresses().iter().any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xto"));
 
-        // With fee
         assert_eq!(Transaction::mock().assets_addresses_with_fee().len(), 2);
         assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
         assert!(transaction.assets_addresses_with_fee().iter().any(|a| a.asset_id == Asset::mock_eth().id && a.address == "0xfrom"));
@@ -468,9 +466,7 @@ mod tests {
             ),
             ..Transaction::mock()
         };
-        // Without fee: 2 swap assets
         assert_eq!(transaction.assets_addresses().len(), 2);
-        // With fee: 2 swap assets + 1 fee
         assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
     }
 
