@@ -203,7 +203,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### iOS
 
-- **CLN417** **S** **Store foreign keys are declared through one helper.** Store records declare the `walletId` column with `.notNull().indexed().references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)` 11 times and the `assetId` reference 22 times; a `TableDefinition` helper per referenced table replaces the chain and the created schema stays identical.
 - **CLN418** **S** **Swift drops the last fetch and apply names.** Outside GRDB's `fetch(_ db:)`, functions such as `fetchQuotes`, `fetchExtended`, `fetchNativeAsset` and `applyAmount` take the action they perform, and so do test helpers.
 - **CLN419** **S** **Swift carries no comments.** 152 comments in 74 files, keeping license headers and tool directives.
 

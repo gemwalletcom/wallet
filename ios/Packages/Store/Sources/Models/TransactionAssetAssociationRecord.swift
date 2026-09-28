@@ -30,7 +30,7 @@ extension TransactionAssetAssociationRecord: CreateTable {
             $0.column(Columns.assetId.name, .text)
                 .notNull()
                 .indexed()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.uniqueKey([
                 Columns.transactionId.name,
                 Columns.assetId.name,

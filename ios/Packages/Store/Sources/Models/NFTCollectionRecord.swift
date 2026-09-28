@@ -43,7 +43,7 @@ extension NFTCollectionRecord: CreateTable {
             $0.column(Columns.chain.name, .text).notNull()
                 .notNull()
                 .indexed()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.contractAddress.name, .text).notNull()
             $0.column(Columns.status.name, .text)
                 .notNull()

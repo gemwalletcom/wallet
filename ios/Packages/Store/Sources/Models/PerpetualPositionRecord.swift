@@ -55,11 +55,11 @@ extension PerpetualPositionRecord: CreateTable {
         try db.create(table: databaseTableName) {
             $0.column(Columns.id.name, .text).notNull()
             $0.column(Columns.walletId.name, .text).notNull().indexed()
-                .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesWallet()
             $0.column(Columns.perpetualId.name, .text).notNull()
                 .references(PerpetualRecord.databaseTableName, onDelete: .cascade)
             $0.column(Columns.assetId.name, .jsonText).notNull()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.size.name, .double).notNull()
             $0.column(Columns.sizeValue.name, .double).notNull()
             $0.column(Columns.leverage.name, .integer).notNull()
