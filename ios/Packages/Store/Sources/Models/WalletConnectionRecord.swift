@@ -29,7 +29,6 @@ struct WalletConnectionRecord: Codable, FetchableRecord, PersistableRecord {
     var createdAt: Date
     var expireAt: Date
 
-    // metadata
     var appName: String
     var appDescription: String
     var appLink: String

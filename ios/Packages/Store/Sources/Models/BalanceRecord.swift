@@ -95,7 +95,6 @@ extension BalanceRecord: CreateTable {
                 .indexed()
                 .referencesWallet()
 
-            // balances
             $0.column(Columns.available.name, .text).defaults(to: "0")
             $0.column(Columns.availableAmount.name, .numeric).defaults(to: 0)
 

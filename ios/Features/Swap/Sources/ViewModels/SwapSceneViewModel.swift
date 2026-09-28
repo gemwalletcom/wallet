@@ -54,7 +54,6 @@ public final class SwapSceneViewModel {
         toAssetQuery.value
     }
 
-    // UI states
     var isPresentingPriceImpactConfirmation: String?
     var pairSelectorModel: SwapPairSelectorViewModel
 

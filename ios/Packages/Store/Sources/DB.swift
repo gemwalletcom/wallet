@@ -6,7 +6,6 @@ import os
 import Primitives
 
 public struct DB: Sendable {
-    private static let ignoreMethods = ["COMMIT TRANSACTION", "PRAGMA query_only", "BEGIN DEFERRED TRANSACTION"].asSet()
     public let dbQueue: DatabaseQueue
 
     public init(
@@ -53,21 +52,6 @@ public struct DB: Sendable {
         var config = GRDB.Configuration()
         #if DEBUG
             config.publicStatementArguments = true
-            config.prepareDatabase { db in
-                db.trace { // sql in
-                    switch $0 {
-                    case let .profile(statement, duration):
-                        break
-                    // debugLog("profile SQL> \(statement)")
-                    case let .statement(statement):
-                        let sql = statement.sql
-
-                        if ignoreMethods.filter({ sql.description.contains($0) }).isEmpty {
-                            // debugLog("SQL> \(sql)")
-                        }
-                    }
-                }
-            }
         #endif
         return config
     }()

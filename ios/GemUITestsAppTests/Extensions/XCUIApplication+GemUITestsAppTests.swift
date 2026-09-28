@@ -37,11 +37,8 @@ extension XCUIApplication {
             buttons["Wallet"].firstMatch.tap()
             tapWalletBar()
             while buttons["gearshape"].waitForExistence(timeout: 2) {
-                // WalletsScene
                 buttons["gearshape"].firstMatch.tap()
-                // WalletDetailScene
                 buttons["Delete"].firstMatch.tap()
-                // Delete confirmation alert
                 alerts.buttons["Delete"].tap()
             }
         }

@@ -19,8 +19,6 @@ struct WalletListItemView: View {
     let onDelete: (Wallet) -> Void
 
     var body: some View {
-        // https://www.jessesquires.com/blog/2023/07/18/navigation-link-accessory-view-swiftui
-        // Hack to hide chevron
         ZStack {
             NavigationCustomLink(
                 with: EmptyView(),

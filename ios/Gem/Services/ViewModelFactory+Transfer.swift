@@ -152,7 +152,7 @@ public extension ViewModelFactory {
     ) -> StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
-            chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
+            chain: StakeChain(rawValue: chain.rawValue)!,
             service: stakeService,
             onNavigate: onNavigate,
         )

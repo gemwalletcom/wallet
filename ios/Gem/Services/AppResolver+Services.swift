@@ -17,7 +17,6 @@ import WalletConnectorService
 
 extension AppResolver {
     struct Services {
-        // Environment-level services
         let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
         let devicePlatform: GemstoneDevicePlatform

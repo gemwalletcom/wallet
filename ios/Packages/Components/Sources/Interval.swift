@@ -6,13 +6,9 @@ public typealias Interval = TimeInterval
 
 public extension Interval {
     enum AnimationDuration {
-        /// 0.15s
         public static let fast: Interval = 0.15
-        /// 0.2s
         public static let normal: Interval = 0.2
-        /// 0.5s
         public static let slow: Interval = 0.5
-        /// 1.8s
         public static let verySlow: Interval = 1.8
     }
 }
