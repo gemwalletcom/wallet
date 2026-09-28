@@ -80,6 +80,7 @@ mod tests {
         assert!(chain_matches_query(Chain::Ethereum, " ETH "));
         assert!(chain_matches_query(Chain::Ethereum, "ethereum"));
         assert!(!chain_matches_query(Chain::Ethereum, "bitcoin"));
+        assert!(!chain_matches_query(Chain::Ethereum, "erc20"), "the token standard is not a chain name");
     }
 
     #[test]
@@ -93,5 +94,11 @@ mod tests {
         assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::Ethereum.network_id())), None);
         assert_eq!(mismatched_network_id(Chain::Ethereum, None), None);
         assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::SmartChain.network_id())), Some(Chain::SmartChain.network_id().to_string()));
+    }
+
+    #[test]
+    fn test_only_polkadot_needs_a_verification_address() {
+        assert!(super::node_verification_address(Chain::Polkadot).is_some_and(|address| !address.is_empty()));
+        assert_eq!(super::node_verification_address(Chain::Ethereum), None);
     }
 }

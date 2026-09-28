@@ -72,8 +72,8 @@ impl GemTransactionStateService {
     }
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
-        let pending = self.store.get_pending_transactions().await?;
-        let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet.id, pending.transaction));
+        let pending = self.store.get_pending_transactions(TransactionState::pending()).await?;
+        let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet_id, pending.transaction));
         futures::future::join_all(tracked).await;
         Ok(())
     }
@@ -88,7 +88,9 @@ impl GemTransactionStateService {
     pub fn stop_tracking(&self) {
         self.tracking.cancel();
     }
+}
 
+impl GemTransactionStateService {
     pub async fn add_notification_transaction(&self, wallet: Wallet, asset_id: AssetId, transaction: Transaction) -> Result<Option<Asset>, GemServiceError> {
         let Some(asset) = self.assets.open_wallet_asset(wallet.clone(), asset_id).await? else {
             return Ok(None);
@@ -99,12 +101,10 @@ impl GemTransactionStateService {
         }
         Ok(Some(asset))
     }
-}
 
-impl GemTransactionStateService {
     pub async fn clear_pending_transactions(&self) -> Result<(), GemServiceError> {
-        for pending in self.store.get_pending_transactions().await? {
-            self.store.delete_transaction(pending.wallet.id, pending.transaction.id).await?;
+        for pending in self.store.get_pending_transactions(TransactionState::pending()).await? {
+            self.store.delete_transaction(pending.wallet_id, pending.transaction.id).await?;
         }
         Ok(())
     }
@@ -118,7 +118,7 @@ impl GemTransactionStateService {
         if asset_ids.is_empty() {
             return Ok(());
         }
-        self.balance.set_assets_enabled(wallet_id, asset_ids, true).await
+        self.balance.enable_assets(wallet_id, asset_ids).await
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
@@ -181,7 +181,7 @@ async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId,
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+    let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(GemServiceError::core)?;
     if next_state == current_state && !fields.has_field_changes() {
         return Ok(Some(GemTransactionStateResult {
             transaction_id,
@@ -430,7 +430,7 @@ mod tests {
         nft.transaction_type = TransactionType::TransferNFT;
         assert!(rules::post_processing(&nft, TransactionState::Pending, TransactionState::Failed).unwrap().sync_nfts);
 
-        let mut earn = stake.clone();
+        let mut earn = stake;
         earn.transaction_type = TransactionType::EarnDeposit;
         let completed = rules::post_processing(&earn, TransactionState::Pending, TransactionState::Confirmed).unwrap();
         assert_eq!(completed.earn_asset_ids, vec![AssetId::from_chain(Chain::Ethereum)]);

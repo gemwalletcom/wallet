@@ -4,16 +4,12 @@ import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.BuildInfo
-import com.wallet.core.primitives.PlatformStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemAppUpdateServiceInterface
 
 class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInterface, private val buildInfo: BuildInfo) :
@@ -21,30 +17,18 @@ class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInte
     ObserveAppUpdateOffer,
     SkipAppUpdate {
 
-    private val offer = MutableStateFlow<AppUpdateOffer?>(null)
+    private val offer = MutableStateFlow<GemAppUpdateOffer?>(null)
 
-    override suspend fun syncAppUpdate(): AppUpdateOffer? = check().also { offer.value = it }
+    override suspend fun syncAppUpdate(): GemAppUpdateOffer? = check().also { offer.value = it }
 
-    override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
+    override fun observeAppUpdateOffer(): Flow<GemAppUpdateOffer?> = offer
 
-    override suspend fun skipAppUpdate(version: String) {
-        withContext(Dispatchers.IO) { appUpdateService.skip(version) }
-        offer.value = check()
+    override suspend fun skipAppUpdate(update: GemAppUpdateOffer) {
+        withContext(Dispatchers.IO) { appUpdateService.skip(update) }
+        offer.value = null
     }
 
-    private suspend fun check(): AppUpdateOffer? {
-        val release = withContext(Dispatchers.IO) {
-            runCatching { appUpdateService.check(buildInfo.platformStore.toGem(), buildInfo.versionName) }.getOrNull()
-        }?.toPrimitives() ?: return null
-        return AppUpdateOffer(
-            version = release.version,
-            isRequired = release.upgradeRequired,
-            channel = deliveryChannel(),
-        )
-    }
-
-    private fun deliveryChannel(): AppUpdateChannel = when (buildInfo.platformStore) {
-        PlatformStore.ApkUniversal -> AppUpdateChannel.InAppApk
-        else -> AppUpdateChannel.Store
+    private suspend fun check(): GemAppUpdateOffer? = withContext(Dispatchers.IO) {
+        runCatching { appUpdateService.check(buildInfo.platformStore.toGem(), buildInfo.versionName) }.getOrNull()
     }
 }

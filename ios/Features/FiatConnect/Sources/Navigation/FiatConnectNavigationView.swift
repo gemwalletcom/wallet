@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import Store
 import Style
@@ -22,7 +21,7 @@ public struct FiatConnectNavigationView: View {
         .bindQuery(model.priceUsdQuery)
         .navigationTitle(model.title)
         .toolbar {
-            if model.showFiatTypePicker {
+            if model.viewState.showsTypePicker {
                 FiatTypeToolbar(selectedType: $model.type)
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -38,7 +37,7 @@ public struct FiatConnectNavigationView: View {
             SelectableListNavigationStack(
                 model: model.fiatProviderViewModel,
                 onFinishSelection: model.onSelectQuotes,
-                listContent: { SimpleListItemView(model: $0) },
+                listContent: { ListItemView(model: $0.listItem) },
             )
         }
     }

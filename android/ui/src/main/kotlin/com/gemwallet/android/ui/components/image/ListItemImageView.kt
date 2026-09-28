@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
@@ -30,10 +29,10 @@ import com.gemwallet.android.ui.theme.space12
 fun ListItemImageView(image: ListItemImage, modifier: Modifier = Modifier, style: ListItemImageStyle = image.style, size: Dp = style.size) {
     when (image) {
         is ListItemImage.Asset -> AsyncImage(
-            model = image.assetId.iconModel(),
+            model = image.icon.iconModel(),
             modifier = modifier,
             size = size,
-            placeholderText = image.assetId.icon().placeholder,
+            placeholderText = image.icon.placeholder,
         )
 
         is ListItemImage.Url -> AsyncImage(model = image.url, modifier = modifier, size = size, placeholderText = image.placeholder)

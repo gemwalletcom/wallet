@@ -9,6 +9,7 @@
   <string name="common_copy">Kopírovat</string>
   <string name="common_share">Sdílet</string>
   <string name="common_continue">Pokračovat</string>
+  <string name="common_continue_anyway">Přesto pokračovat</string>
   <string name="common_sign_in_with">Přihlásit se pomocí %1$s</string>
   <string name="common_provider">Poskytovatel</string>
   <string name="common_loading">Načítání</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Popis</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Uložit</string>
   <string name="common_percentage">Procento</string>
   <string name="common_details">Podrobnosti</string>
   <string name="common_info">Informace</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Vypršení platnosti</string>
   <string name="common_suspicious_address">Podezřelá adresa</string>
+  <string name="common_suspicious_address_description">Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="common_refresh">Obnovit</string>
   <string name="common_grant_permission">Udělte povolení</string>
   <string name="common_required_field">Je vyžadováno %1$s</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Tato peněženka již byla importována.</string>
   <string name="wallets_title">Peněženky</string>
-  <string name="wallets_watch">Sledovat</string>
-  <string name="receive_title">Přijmout %1$s</string>
   <string name="receive_warning">Toto je vaše adresa – pouze pro odeslání %1$s na %2$s síť.</string>
   <string name="buy_title">Koupit %1$s</string>
   <string name="buy_providers_title">Poskytovatelé</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Autentizace</string>
   <string name="settings_notifications_title">Oznámení</string>
   <string name="settings_language">Jazyk</string>
-  <string name="settings_help_center">Centrum nápovědy</string>
   <string name="settings_support">Podpora</string>
   <string name="settings_price_alerts_title">Upozornění na cenu</string>
   <string name="settings_hide_balance">Skrýt zůstatek</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Nepodporované aktivum.</string>
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
   <string name="errors_connections_unsupported_chain">Zadaný řetězec není podporován.</string>
+  <string name="errors_authentication_unavailable">Ověřování není na tomto zařízení nastaveno. Zapněte biometrii nebo kód v nastavení zařízení.</string>
+  <string name="errors_authentication_locked_out">Příliš mnoho neúspěšných pokusů. Zkuste to prosím později.</string>
+  <string name="errors_authentication_failed">Ověření se nezdařilo. Zkuste to prosím znovu.</string>
+  <string name="errors_connections_expired">Platnost tohoto odkazu pro připojení vypršela. Získejte nový QR kód a zkuste to znovu.</string>
+  <string name="errors_connections_not_found">Toto připojení už neexistuje.</string>
+  <string name="errors_connections_relay_unavailable">Nepodařilo se spojit s WalletConnect. Zkontrolujte připojení k internetu a zkuste to znovu.</string>
   <string name="errors_swap_amount_too_small">Příliš malé množství</string>
   <string name="errors_scan_transaction_malicious_description">Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="errors_scan_transaction_memo_required">Cílová adresa peněženky %1$s vyžaduje cílovou značku / poznámku</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">Koupit %1$s</string>
   <string name="asset_get_asset">Získat %1$s</string>
   <string name="asset_add_to_wallet">Přidat do peněženky</string>
-  <string name="asset_hide_from_wallet">Skrýt z peněženky</string>
   <string name="asset_added_to_wallet">Přidáno do peněženky</string>
   <string name="asset_hidden_from_wallet">Skryto z peněženky</string>
   <string name="asset_resources">Zdroje</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Změna</string>
   <string name="date_today">Dnes</string>
   <string name="date_yesterday">Včera</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Spojení</string>
   <string name="wallet_connect_disconnect">Odpojit</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Rychle</string>
   <string name="fee_rates_normal">Normální</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Vlastní</string>
   <string name="banner_account_activation_title">Poplatek za aktivaci účtu</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Když cena klesne o</string>
   <string name="price_alerts_set_alert_set_target_price">Stanovte cílovou cenu</string>
   <string name="price_alerts_set_alert_current_price">Aktuální cena</string>
-  <string name="price_alerts_added_for">Nastavit cenové upozornění %1$s</string>
+  <string name="price_alerts_added_price_over">Upozornění přidáno pro cenu nad %1$s</string>
+  <string name="price_alerts_added_price_under">Upozornění přidáno pro cenu pod %1$s</string>
+  <string name="price_alerts_added_increases_by">Upozornění přidáno pro nárůst ceny o %1$s</string>
+  <string name="price_alerts_added_decreases_by">Upozornění přidáno pro pokles ceny o %1$s</string>
   <string name="price_alerts_state_empty_title">Vaše upozornění se zobrazí zde</string>
   <string name="price_alerts_state_empty_description">Povolte je přidáním mincí do sledování</string>
   <string name="price_alerts_auto_footer">Upozornění se spouštějí při významných cenových pohybech.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Nahlásit</string>
   <string name="permissions_access_denied">Přístup odepřen</string>
   <string name="permissions_image_photo_access_denied_description">Tato aplikace nemá oprávnění k přístupu do vaší knihovny fotografií. Povolte přístup v nastavení zařízení.</string>
-  <string name="markets_title">Trhy</string>
-  <string name="markets_state_empty_title">Zde se zobrazí vaše tržní data</string>
   <string name="markets_daily_volume">24hodinový objem</string>
   <string name="search_state_empty_description">Zkontrolujte pravopis nebo zkuste nové vyhledávání.</string>
   <string name="networks_state_empty_search_title">Nenalezeny žádné sítě</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Neomezené schvalování tokenů</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Bezpečnostní varování</string>
+  <string name="rootcheck_jailbreak_body">Vaše zařízení je zřejmě jailbreaknuté. To může ohrozit vaši peněženku a prostředky.</string>
   <string name="rootcheck_body">Zdá se, že vaše zařízení má přístup root, což může výrazně zvýšit bezpečnostní rizika. Používání této aplikace na zakořeněném zařízení může vystavit váš majetek neoprávněnému přístupu a potenciální ztrátě. Pro bezpečnost vašich finančních prostředků důrazně doporučujeme používat nerootované zařízení.</string>
   <string name="rootcheck_ignore">Ignorovat</string>
   <string name="rootcheck_exit">Výstup</string>

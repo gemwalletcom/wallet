@@ -5,8 +5,8 @@ use crate::{
     provider::generate_quote_id,
 };
 use async_trait::async_trait;
+use primitives::FiatWebhook;
 use std::error::Error;
-use streamer::FiatWebhook;
 
 use super::{
     client::MoonPayClient,

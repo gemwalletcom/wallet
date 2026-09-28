@@ -36,7 +36,9 @@ impl NameResolver for AptosProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let name = query.domain.strip_suffix(".apt").ok_or("invalid Aptos name")?;
+        let Some(name) = query.domain.strip_suffix(".apt") else {
+            return Ok(None);
+        };
         let (subdomain, domain) = name.rsplit_once('.').map_or((None, name), |(subdomain, domain)| (Some(subdomain), domain));
         let request = ViewRequest::new(format!("{ANS_ROUTER_ADDRESS}::router::get_target_addr"), vec![json!(domain), json!(MoveOption { vec: subdomain.into_iter().collect() })]);
         let response: Vec<MoveOption<String>> = self.client.view(request).await?;

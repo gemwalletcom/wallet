@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemPriceAlertViewState
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -10,24 +11,25 @@ import Style
 import SwiftUI
 
 struct SetPriceAlertScene: View {
-    @State private var model: SetPriceAlertViewModel
+    @State private var model: SetPriceAlertSceneViewModel
 
     @FocusState private var focusedField: Bool
 
-    init(model: SetPriceAlertViewModel) {
+    init(model: SetPriceAlertSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     var body: some View {
-        List {
+        let viewState = model.viewState
+        return List {
             Section {
                 VStack(spacing: .small) {
-                    Text(model.alertDirectionTitle)
+                    Text(model.directionTitle(viewState))
                         .textStyle(.subHeadline)
 
                     CurrencyInputView(
-                        text: $model.state.amount,
-                        config: model.currencyInputConfig(for: model.assetData),
+                        text: $model.amount,
+                        config: model.currencyInputConfig(viewState),
                     )
                     .focused($focusedField)
                 }
@@ -35,19 +37,18 @@ struct SetPriceAlertScene: View {
             .cleanListRow()
 
             Section {
-                ListAssetItemView(model: model.assetItemViewModel(for: model.assetData))
+                ListAssetItemView(row: model.assetRow)
             }
         }
         .bindQuery(model.assetQuery)
         .safeAreaView {
-            safeAreaContent
+            inputAccessoryView(viewState)
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 alertTypePickerView
             }
         }
-        .onChange(of: model.state.type, model.onChangeAlertType)
         .alertSheet($model.isPresentingAlertMessage)
         .onAppear {
             focusedField = true
@@ -59,7 +60,7 @@ struct SetPriceAlertScene: View {
 
 extension SetPriceAlertScene {
     var alertTypePickerView: some View {
-        Picker("", selection: $model.state.type) {
+        Picker("", selection: $model.type) {
             Text(Localized.Asset.price)
                 .tag(SetPriceAlertType.price)
             Text(Localized.Common.percentage)
@@ -69,31 +70,17 @@ extension SetPriceAlertScene {
         .fixedSize()
     }
 
-    var confirmButton: StateButton {
-        StateButton(
-            text: Localized.Transfer.confirm,
-            type: .primary(model.confirmButtonState),
-            action: confirm,
-        )
-    }
-
-    @ViewBuilder
-    var safeAreaContent: some View {
-        switch model.state.type {
-        case .price:
-            inputAccessoryView(model.priceSuggestions(for: model.assetData.price))
-        case .percentage:
-            inputAccessoryView(model.percentageSuggestions(for: model.assetData.price))
-        }
-    }
-
-    private func inputAccessoryView(_ suggestions: [some SuggestionViewable]) -> some View {
+    private func inputAccessoryView(_ viewState: GemPriceAlertViewState) -> some View {
         InputAccessoryView(
-            isEditing: focusedField && model.state.amount.isEmpty,
-            suggestions: suggestions,
+            isEditing: focusedField && model.amount.isEmpty,
+            suggestions: model.suggestions(viewState),
             onSelect: onSelectSuggestion,
             onDone: { focusedField = false },
-            button: confirmButton,
+            button: StateButton(
+                text: Localized.Transfer.confirm,
+                type: .primary(model.confirmButtonState(viewState)),
+                action: confirm,
+            ),
         )
     }
 }

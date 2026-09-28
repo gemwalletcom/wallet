@@ -112,3 +112,8 @@ jobs:
         run: |
           git --no-pager diff
           git diff --quiet --exit-code crates/storage/src/schema.rs
+
+      - name: Run database integration tests
+        run: just test-database
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost/postgres"

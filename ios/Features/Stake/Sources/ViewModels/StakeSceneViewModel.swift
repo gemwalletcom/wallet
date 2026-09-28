@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
-import struct Gemstone.GemAssetBalance
-import struct Gemstone.GemClaimRewards
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
-import enum Gemstone.GemStakeAction
-import struct Gemstone.GemStakeActionItem
+import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeDestination
+import struct Gemstone.GemStakeInput
 import enum Gemstone.GemStakeSection
 import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemStakeViewState
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
@@ -32,26 +31,16 @@ public final class StakeSceneViewModel {
     private var delegationsState: GemLoadState = .loading
     private let chain: StakeChain
 
-    private let formatter = ValueFormatter(style: .auto)
-
     public let wallet: Wallet
-    public let delegationsQuery: ObservableQuery<DelegationsRequest>
-    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
-    public let assetQuery: ObservableQuery<AssetRequest>
+    public let delegationsQuery: ObservableQuery<DelegationsQuery>
+    public let validatorsQuery: ObservableQuery<ValidatorsQuery>
+    public let assetQuery: ObservableQuery<AssetQuery>
 
-    public var delegations: [Delegation] {
-        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
-    }
-
-    public var validators: [DelegationValidator] {
-        selectable(validatorsQuery.value)
-    }
-
-    public var assetData: AssetData {
+    var assetData: AssetData {
         assetQuery.value
     }
 
-    public var isPresentingInfoSheet: InfoSheetType? = .none
+    public var isPresentingInfoSheet: GemInfoSheet? = .none
 
     public init(
         wallet: Wallet,
@@ -63,107 +52,44 @@ public final class StakeSceneViewModel {
         self.chain = chain
         self.service = service
         self.onNavigate = onNavigate
-        delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
-        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
-    }
-
-    public var stakeInfoUrl: URL {
-        AppUrl.docs(.staking(chain.rawValue))
+        delegationsQuery = ObservableQuery(DelegationsQuery(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain.chain, providerType: .stake), initialValue: [])
+        assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
     var title: String {
         Localized.Transfer.Stake.title
     }
 
-    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
+    var viewState: GemStakeViewState {
+        service.stakeViewState(
+            input: GemStakeInput(
+                walletType: wallet.type.toGem(),
+                assetData: assetData.toGem(),
+                currency: service.getCurrency(),
+                validators: validatorsQuery.value.map { $0.toGem() },
+                delegations: delegationsQuery.value.map { $0.toGem() },
+            ),
+        )
     }
 
-    var sections: [GemStakeSection] {
-        service.stakeSections(chain: chain.chain.rawValue, hasActions: actions.isNotEmpty, hasDelegations: delegations.isNotEmpty)
+    func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
+        !state.sections.contains(.delegations)
     }
 
-    var infoRows: [GemListRow] {
-        service.stakeInfoRows(asset: asset.toGem(), stakingApr: assetData.metadata.stakingApr)
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .stake, symbol: asset.symbol)
     }
 
-    var actions: [GemStakeActionItem] {
-        stakeActions
-    }
-
-    var sectionModels: [StakeSectionViewModel] {
-        sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
-    }
-
-    var showsDelegationsPlaceholder: Bool {
-        !sections.contains(.delegations)
-    }
-
-    var actionModels: [StakeActionViewModel] {
-        actions.map { item in
-            StakeActionViewModel(
-                id: String(describing: item.action),
-                model: actionListItem(item),
-                destination: item.destination,
-                infoAction: frozenBalanceInfoAction(for: item),
-                isEnabled: item.isEnabled,
-            )
-        }
-    }
-
-    var energyField: ListItemField {
-        ListItemField(title: Resource.energy.title, value: balanceModel.energyText)
-    }
-
-    var bandwidthField: ListItemField {
-        ListItemField(title: Resource.bandwidth.title, value: balanceModel.bandwidthText)
-    }
-
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: .stake(symbol: assetModel.symbol))
-    }
-
-    func route(delegation: DelegationViewModel) -> StakeRoute {
-        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
-            .route(delegation: delegation.delegation, validators: validators)
-    }
-
-    var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let currency = service.getCurrency().toPrimitives()
-        return delegationsState.stateViewType(delegations.map { delegation in
-            DelegationViewModel(
-                service: service,
-                delegation: delegation,
-                asset: asset,
-                currency: currency,
-            )
-        })
-    }
-
-    var claimRewardsRoute: StakeRoute {
-        switch claimRewards.destination {
-        case let .transfer(transfer): .transfer(.confirm(transfer))
-        case let .amount(delegations): route(amount: .stake(.rewards(delegations: delegations, validator: nil)))
-        }
+    func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
+        delegationsState.stateViewType(state.delegations)
     }
 
     func route(destination: GemStakeDestination) -> StakeRoute {
         switch destination {
         case let .amount(input): route(amount: .stake(input))
-        case .claimRewards: claimRewardsRoute
+        case let .confirm(transfer): .transfer(.confirm(transfer))
         }
-    }
-
-    func actionListItem(_ item: GemStakeActionItem) -> ListItemModel {
-        if let infoAction = frozenBalanceInfoAction(for: item) {
-            return ListItemModel(title: item.action.title, titleStyle: .bodySecondary, infoAction: infoAction)
-        }
-        return ListItemModel(title: item.action.title, subtitle: item.value?.text())
-    }
-
-    func frozenBalanceInfoAction(for item: GemStakeActionItem) -> InfoSheetAction? {
-        item.requiresFrozenBalance ? onStakeFrozenInfo : .none
     }
 }
 
@@ -172,53 +98,31 @@ public final class StakeSceneViewModel {
 extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
-        delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
+        delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
     }
 
     func onSelect(destination: GemStakeDestination) {
         onNavigate?(route(destination: destination))
     }
 
-    func onSelect(delegation: DelegationViewModel) {
-        onNavigate?(route(delegation: delegation))
+    func onSelect(delegation item: GemStakeDelegationItem) {
+        onNavigate?(item.destination.route(delegation: item.delegation.toPrimitives()))
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: assetModel.assetImage)
+        isPresentingInfoSheet = topic.infoSheet
     }
 
     func onStakeFrozenInfo() {
-        isPresentingInfoSheet = .stakeFrozenRequired
+        isPresentingInfoSheet = GemInfoTopic.stakeFrozenRequired.infoSheet
     }
 }
 
 // MARK: - Private
 
 extension StakeSceneViewModel {
-    var assetModel: AssetViewModel {
-        AssetViewModel(asset: asset)
-    }
-
     private var asset: Asset {
         chain.chain.asset
-    }
-
-    private var stakeActions: [GemStakeActionItem] {
-        service.stakeActions(
-            walletType: wallet.type.toGem(),
-            chain: chain.chain.rawValue,
-            validators: validators.map { $0.toGem() },
-            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
-            delegations: delegations.map { $0.toGem() },
-        )
-    }
-
-    private var claimRewards: GemClaimRewards {
-        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
-    }
-
-    private var balanceModel: BalanceViewModel {
-        BalanceViewModel(asset: asset, balance: assetData.balance, formatter: formatter)
     }
 
     private func route(amount: AmountType) -> StakeRoute {

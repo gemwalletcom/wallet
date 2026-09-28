@@ -21,7 +21,7 @@ public extension GemContactService {
 
 public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol, @unchecked Sendable {
     public var connectionSectionsValue: [GemConnectionSection] = []
-    public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)
+    public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: "WC", iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
     public var hasSessionsValue = false
     public var signatureResult: Result<String, Error> = .success("0x")
@@ -65,12 +65,8 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         )
     }
 
-    public func connectionRow(metadata _: Gemstone.ApplicationMetadata) -> GemConnectionRow {
-        connectionRowValue
-    }
-
-    public func connectionSections(connections _: [Gemstone.WalletConnection]) -> [GemConnectionSection] {
-        connectionSectionsValue
+    public func connectionsView(connections _: [Gemstone.WalletConnection]) -> GemConnectionsView {
+        GemConnectionsView(sections: connectionSectionsValue, docsUrl: "https://docs.gemwallet.com/guides/walletconnect/")
     }
 
     public func deleteSession(sessionId: String) async throws {
@@ -91,6 +87,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         GemSessionProposal(
             proposal: Gemstone.WalletConnectionSessionProposal(defaultWallet: Primitives.Wallet.mock().toGem(), wallets: [], metadata: metadata),
             verificationStatus: validation,
+            canChooseWallet: false,
         )
     }
 
@@ -119,7 +116,8 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         GemSessionApproval(chains: [], accounts: [], methods: [], events: [])
     }
 
-    public func shouldProcessMessage(messageId: String) -> Bool {
+    public func shouldProcessProposal(proposerPublicKey: String) -> Bool {
+        let messageId = "proposal-\(proposerPublicKey)"
         let seen = seenMessageIds.contains(messageId)
         seenMessageIds.append(messageId)
         return !seen
@@ -131,10 +129,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {
         updatedSessions.append(sessions)
-    }
-
-    public func userRejectedError() -> GemWalletConnectRpcError {
-        GemWalletConnectRpcError(code: 4001, message: "User rejected")
     }
 }
 
@@ -149,8 +143,15 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public private(set) var retriedMessageIds: [String] = []
     public private(set) var requestedImageUrls: [String] = []
     public private(set) var recoveredInterrupted = 0
+    public var pushState: GemPushState?
+    public private(set) var enableNotificationsCalls = 0
 
     public init() {}
+
+    public func enableNotifications() async -> GemPushState? {
+        enableNotificationsCalls += 1
+        return pushState
+    }
 
     public func imageFile(url: String) async throws -> String {
         requestedImageUrls.append(url)

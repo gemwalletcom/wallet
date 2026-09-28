@@ -5,15 +5,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemApplicationMetadataService
-import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSecurityServiceInterface
-import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
 
@@ -39,10 +36,6 @@ object RulesModule {
 
     @Provides
     @Singleton
-    fun provideGemSimulationFormatter(): GemSimulationFormatter = GemSimulationFormatter()
-
-    @Provides
-    @Singleton
     fun providePriceAlertFormatter(): PriceAlertFormatter = PriceAlertFormatter()
 
     @Provides
@@ -55,12 +48,4 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideSecurityServiceInterface(service: GemSecurityService): GemSecurityServiceInterface = service
-
-    @Provides
-    @Singleton
-    fun provideGemApplicationMetadataService(): GemApplicationMetadataService = GemApplicationMetadataService()
-
-    @Provides
-    @Singleton
-    fun provideApplicationMetadataServiceInterface(service: GemApplicationMetadataService): GemApplicationMetadataServiceInterface = service
 }

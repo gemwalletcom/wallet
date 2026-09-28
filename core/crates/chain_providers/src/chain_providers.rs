@@ -1,0 +1,137 @@
+use std::error::Error;
+
+use chain_traits::{ChainTraits, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use futures::{StreamExt, stream};
+use gem_tracing::warn_with_fields;
+use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualPosition, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
+use settings::Settings;
+
+use crate::ProviderFactory;
+
+pub struct ChainProviders {
+    providers: Vec<Box<dyn ChainTraits>>,
+}
+
+impl ChainProviders {
+    pub fn from_settings(settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: ProviderFactory::new_providers_with_user_agent(settings, user_agent),
+        }
+    }
+
+    pub fn for_chain(chain: Chain, settings: &Settings, user_agent: &str) -> Self {
+        Self {
+            providers: vec![ProviderFactory::new_from_settings_with_user_agent(chain, settings, user_agent)],
+        }
+    }
+
+    fn get_provider(&self, chain: Chain) -> Result<&dyn ChainTraits, Box<dyn Error + Send + Sync>> {
+        self.providers
+            .iter()
+            .find(|provider| provider.get_chain() == chain)
+            .map(AsRef::as_ref)
+            .ok_or_else(|| format!("Provider for chain {} not found", chain.as_ref()).into())
+    }
+
+    pub async fn get_token_data(&self, chain: Chain, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_token_data(token_id).await
+    }
+
+    pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<AssetBalance, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_balance_coin(address).await
+    }
+
+    pub async fn get_balance_assets(&self, chain: Chain, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_balance_assets(address).await
+    }
+
+    pub async fn get_balance_staking(&self, chain: Chain, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_balance_staking(address).await
+    }
+
+    pub async fn get_transactions_in_blocks(&self, chain: Chain, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transactions_in_blocks(blocks).await
+    }
+
+    pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        let limit = request.limit;
+        let transactions = match self.get_transactions_by_address_result(chain, request).await? {
+            TransactionsResult::Transactions(transactions) => transactions,
+            TransactionsResult::TransactionRequests(transaction_requests) => {
+                let provider = self.get_provider(chain)?;
+                stream::iter(transaction_requests.into_iter().take(limit))
+                    .map(|request| async move {
+                        match provider.get_transaction_by_hash(request.clone()).await {
+                            Ok(Some(transaction)) => Some(transaction),
+                            Ok(None) => {
+                                warn_with_fields!("transaction not found", chain = request.chain, hash = &request.hash);
+                                None
+                            }
+                            Err(error) => {
+                                warn_with_fields!("failed to fetch transaction", chain = request.chain, hash = &request.hash, error = &error);
+                                None
+                            }
+                        }
+                    })
+                    .buffer_unordered(5)
+                    .filter_map(|transaction| async move { transaction })
+                    .collect()
+                    .await
+            }
+        };
+        Ok(sort_transactions_by_date(transactions))
+    }
+
+    pub async fn get_transactions_by_address_result(&self, chain: Chain, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transactions_by_address(request).await
+    }
+
+    pub async fn get_validators(&self, chain: Chain) -> Result<Vec<StakeValidator>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_provider(chain)?.get_staking_validators(None).await?.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn get_staking_apy(&self, chain: Chain) -> Result<f64, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_provider(chain)?.get_staking_apy().await?.unwrap_or(0.0))
+    }
+
+    pub async fn get_latest_block(&self, chain: Chain) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_block_latest_number().await
+    }
+
+    pub async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(request.chain)?.get_transaction_by_hash(request).await
+    }
+
+    pub async fn get_transaction_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transaction_status(request).await
+    }
+
+    pub async fn get_transaction_fee_estimates(&self, chain: Chain) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transaction_fee_estimates().await
+    }
+
+    pub async fn get_block_transactions(&self, chain: Chain, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_transactions_by_block(block_number).await
+    }
+
+    pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_staking_delegations(address).await
+    }
+
+    pub async fn get_perpetual_positions_for_classification(&self, chain: Chain, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_positions_for_classification(address).await
+    }
+
+    pub async fn get_perpetual_referred_addresses(&self, chain: Chain) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_perpetual_referred_addresses().await
+    }
+
+    pub async fn get_address_status(&self, chain: Chain, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_address_status(address).await
+    }
+}
+
+fn sort_transactions_by_date(mut transactions: Vec<Transaction>) -> Vec<Transaction> {
+    transactions.sort_by_key(|b| std::cmp::Reverse(b.created_at));
+    transactions
+}

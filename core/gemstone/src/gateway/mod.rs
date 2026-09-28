@@ -22,7 +22,7 @@ use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
 use primitives::TransactionInputType;
-use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
+use primitives::perpetual::{PerpetualAccountPositions, PerpetualData};
 use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Latency, NodeStatus, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
@@ -39,7 +39,7 @@ impl std::fmt::Debug for GemGateway {
 }
 
 impl GemGateway {
-    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<PerpetualPositionsSummary, GatewayError> {
+    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<PerpetualAccountPositions, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
     }
 
@@ -72,7 +72,7 @@ impl GemGateway {
         F: FnOnce(Arc<dyn ChainTraits>) -> Fut,
         Fut: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
     {
-        let provider = self.chain_factory.create(chain).await?;
+        let provider = self.chain_factory.create(chain)?;
         call(provider).await.map_err(map_network_error)
     }
     pub fn get_earn_providers(&self, asset_id: AssetId) -> Vec<GemDelegationValidator> {
@@ -86,12 +86,12 @@ impl GemGateway {
 
 impl GemGateway {
     pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<NodeStatus, GatewayError> {
-        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
+        let provider = self.chain_factory.create_with_url(chain, url.to_string())?;
         provider.get_nodes_status().await.map_err(map_network_error)
     }
 
     pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeCheck, GatewayError> {
-        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
+        let provider = self.chain_factory.create_with_url(chain, url.to_string())?;
         let (chain_id, status) = futures::try_join!(provider.get_chain_id(), provider.get_nodes_status()).map_err(map_network_error)?;
         if let Some(network_id) = chain_rules::mismatched_network_id(chain, chain_id.as_deref()) {
             return Err(GatewayError::NetworkIdMismatch { chain: chain.to_string(), network_id });
@@ -163,7 +163,7 @@ impl GemGateway {
     }
     pub async fn get_fee_rates(&self, chain: Chain, input: TransactionInputType) -> Result<Vec<GemFeeRate>, GatewayError> {
         let fees = self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await?;
-        Ok(fees.into_iter().map(|f| f.into()).collect())
+        Ok(fees.into_iter().map(Into::into).collect())
     }
     pub async fn get_transaction_preload(&self, chain: Chain, input: GemTransactionPreloadInput) -> Result<GemTransactionLoadMetadata, GatewayError> {
         let preload_input: primitives::TransactionPreloadInput = input.into();
@@ -181,8 +181,8 @@ impl GemGateway {
     pub async fn get_token_data(&self, chain: Chain, token_id: String) -> Result<GemAsset, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_token_data(token_id).await }).await
     }
-    pub async fn get_is_token_address(&self, chain: Chain, token_id: String) -> Result<bool, GatewayError> {
-        Ok(self.chain_factory.create(chain).await?.get_is_token_address(&token_id))
+    pub fn get_is_token_address(&self, chain: Chain, token_id: String) -> Result<bool, GatewayError> {
+        Ok(self.chain_factory.create(chain)?.get_is_token_address(&token_id))
     }
 }
 

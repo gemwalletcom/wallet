@@ -46,8 +46,6 @@ public extension Spacing {
         public static let top: CGFloat = space16
         /// 8
         public static let bottom: CGFloat = space8
-        /// 72
-        public static let bannerHeight: CGFloat = 72
 
         public enum button {
             /// 340
@@ -70,8 +68,6 @@ public extension Sizing {
     }
 
     enum image {
-        /// 10
-        public static let tiny: CGFloat = 10
         /// 22
         public static let small: CGFloat = 22
         /// 34
@@ -91,11 +87,6 @@ public extension Sizing {
         public static let asset: CGFloat = 44
         /// 44
         public static let app: CGFloat = Self.asset
-
-        public enum overlayImage {
-            /// 16
-            public static let chain: CGFloat = 16
-        }
     }
 
     enum list {
@@ -114,13 +105,8 @@ public extension Sizing {
         }
 
         public enum assets {
-            public static let height: CGFloat = Sizing.image.asset
             /// 40
             public static let widget: CGFloat = 40
-        }
-
-        public enum transactions {
-            public static let height: CGFloat = Sizing.image.asset
         }
     }
 

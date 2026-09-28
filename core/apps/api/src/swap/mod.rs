@@ -1,16 +1,10 @@
-pub mod client;
-pub mod near_intents;
 pub mod okx;
-pub mod swaps_xyz;
 
-pub use client::SwapClient;
-pub use near_intents::NearIntentsProxyClient;
-pub use swaps_xyz::SwapsXyzProxyClient;
-
-use crate::responders::{ApiError, ApiResponse};
+use crate::responders::{ApiError, ApiResponse, JsonProxyResponse};
 use primitives::FiatAssets;
 use rocket::{State, get, post, serde::json::Json};
-use swapper::swaps_xyz::{ActionRequest, ActionResponse};
+use services::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
+use swapper::swaps_xyz::ActionRequest;
 
 #[get("/swap/assets")]
 pub async fn get_swap_assets(client: &State<SwapClient>) -> Result<ApiResponse<FiatAssets>, ApiError> {
@@ -18,12 +12,11 @@ pub async fn get_swap_assets(client: &State<SwapClient>) -> Result<ApiResponse<F
 }
 
 #[post("/swaps/near_intents/quote", data = "<body>")]
-pub async fn post_near_intents_quote(body: Json<serde_json::Value>, client: &State<NearIntentsProxyClient>) -> Result<Json<serde_json::Value>, ApiError> {
-    let response = client.quote(body.0).await?;
-    Ok(Json(response))
+pub async fn post_near_intents_quote(body: Json<serde_json::Value>, client: &State<NearIntentsProxyClient>) -> Result<JsonProxyResponse, ApiError> {
+    Ok(client.quote(body.0).await?.into())
 }
 
 #[post("/swaps/swaps_xyz/action", data = "<body>")]
-pub async fn post_swaps_xyz_action(body: Json<ActionRequest>, client: &State<SwapsXyzProxyClient>) -> Result<Json<ActionResponse>, ApiError> {
-    Ok(Json(client.action(&body).await?))
+pub async fn post_swaps_xyz_action(body: Json<ActionRequest>, client: &State<SwapsXyzProxyClient>) -> Result<JsonProxyResponse, ApiError> {
+    Ok(client.action(&body).await?.into())
 }

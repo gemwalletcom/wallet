@@ -4,12 +4,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemChainRow
+
+@Composable
+fun ChainItem(row: GemChainRow, modifier: Modifier = Modifier, listPosition: ListPosition, paddingHorizontal: Dp? = null, trailing: @Composable (() -> Unit)? = null, onClick: (() -> Unit)? = {}) {
+    ChainItem(
+        title = row.title,
+        modifier = modifier,
+        listPosition = listPosition,
+        icon = row.icon.iconModel(),
+        subtitle = row.standard?.string(LocalContext.current),
+        paddingHorizontal = paddingHorizontal,
+        trailing = trailing,
+        onClick = onClick,
+    )
+}
 
 @Composable
 fun ChainItem(title: String, modifier: Modifier = Modifier, listPosition: ListPosition, icon: Any? = null, subtitle: String? = null, paddingHorizontal: Dp? = null, trailing: @Composable (() -> Unit)? = null, onClick: (() -> Unit)? = {}) {

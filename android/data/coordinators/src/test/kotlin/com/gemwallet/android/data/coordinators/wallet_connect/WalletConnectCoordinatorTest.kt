@@ -12,6 +12,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.wallet.core.primitives.WalletConnection
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,7 +28,7 @@ import uniffi.gemstone.GemWalletConnectServiceInterface
 
 class WalletConnectCoordinatorTest {
 
-    private val wallet = mockWallet(id = "wallet-1")
+    private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val metadata = mockApplicationMetadata()
     private val settledSession = WalletConnectSession(
         topic = "topic-1",
@@ -81,5 +82,17 @@ class WalletConnectCoordinatorTest {
         assertEquals(1, stored.size)
         assertEquals(wallet.id, stored.single().wallet.id)
         assertEquals("topic-1", stored.single().session.sessionId)
+    }
+
+    @Test
+    fun `an extended or updated session and the connections screen re-sync through Core`() = runBlocking {
+        subject.pair("wc:uri")
+        clientEvents.subscriptionCount.first { it > 0 }
+
+        clientEvents.emit(WalletConnectEvent.SessionChanged("topic-1"))
+        coVerify(timeout = 2_000, exactly = 1) { walletConnectService.updateSessions(any()) }
+
+        subject.syncSessions()
+        coVerify(exactly = 2) { walletConnectService.updateSessions(any()) }
     }
 }

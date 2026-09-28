@@ -12,7 +12,7 @@ tokio = { workspace = true }
 coingecko = { path = "../coingecko" }
 coinmarketcap = { path = "../coinmarketcap" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
-gem_tracing = { path = "../tracing" }
+gem_tracing = { path = "../gem_tracing" }
 gem_ton = { path = "../gem_ton" }
 jupiter = { path = "../jupiter" }
 primitives = { path = "../primitives" }
@@ -21,9 +21,11 @@ serde_serializers = { path = "../serde_serializers" }
 [dev-dependencies]
 coingecko = { path = "../coingecko", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
 serde_json = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }
 
 [features]
 default = []
+testkit = []
 price_integration_tests = []

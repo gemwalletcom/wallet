@@ -7,7 +7,7 @@ use gem_client::Client;
 use primitives::{
     ChartPeriod, PerpetualPosition,
     chart::ChartCandleStick,
-    perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
+    perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
     portfolio::PerpetualPortfolio,
 };
 
@@ -99,9 +99,9 @@ impl<C: Client> HyperCoreClient<C> {
 
 #[async_trait]
 impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
-    async fn get_positions(&self, address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
+    async fn get_positions(&self, address: String) -> Result<PerpetualAccountPositions, Box<dyn Error + Sync + Send>> {
         let (mode, dex_entries) = futures::join!(self.get_user_abstraction(&address), self.get_active_dex_entries());
-        let mode = mode?;
+        let mode = PerpetualAccountMode::from(mode?);
         let summaries = try_join_all(dex_entries.into_iter().map(|(_, dex)| {
             let address = address.clone();
             async move { self.get_position_summary_for_dex(address, dex).await }
@@ -126,12 +126,15 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
             },
         );
 
-        let balance = match PerpetualAccountMode::from(mode) {
+        let balance = match mode {
             PerpetualAccountMode::Unified => map_perpetual_balance_from_spot(&self.get_spot_balances(&address).await?),
             PerpetualAccountMode::Standard => balance,
         };
 
-        Ok(PerpetualPositionsSummary { positions, balance })
+        Ok(PerpetualAccountPositions {
+            mode,
+            summary: PerpetualPositionsSummary { positions, balance },
+        })
     }
 
     async fn get_positions_for_classification(&self, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Sync + Send>> {
@@ -322,7 +325,7 @@ mod tests {
         let mut client = HyperCoreClient::new_with_preferences(client, preferences, secure_preferences);
         client.config.enabled_hip3_markets = vec!["dex1".to_string(), "dex2".to_string()];
 
-        let summary = client.get_positions("0x123".to_string()).await.unwrap();
+        let summary = client.get_positions("0x123".to_string()).await.unwrap().summary;
         let seen_requests = seen_requests.lock().unwrap().clone();
 
         let btc = summary.positions.iter().find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "BTC")).unwrap();
@@ -354,8 +357,10 @@ mod tests {
             ("spotClearinghouseState", include_bytes!("../../testdata/perpetual_balance_response_spot_clearinghouse_state.json").to_vec()),
         ]);
 
-        let summary = client.get_positions("0x123".to_string()).await.unwrap();
+        let account = client.get_positions("0x123".to_string()).await.unwrap();
+        let summary = account.summary;
 
+        assert_eq!(account.mode, PerpetualAccountMode::Unified);
         assert_eq!(summary.balance.available, 3.797316);
         assert_eq!(summary.balance.reserved, 4.331289 - 3.797316);
         assert_eq!(summary.positions.len(), 1);
@@ -424,7 +429,7 @@ mod tests {
         let secure_preferences = Arc::new(InMemoryPreferences::new());
         let client = HyperCoreClient::new_with_preferences(client, preferences, secure_preferences);
 
-        let summary = client.get_positions("0x123".to_string()).await.unwrap();
+        let summary = client.get_positions("0x123".to_string()).await.unwrap().summary;
         let seen_requests = seen_requests.lock().unwrap().clone();
 
         assert_eq!(summary.positions.len(), 1);
@@ -461,7 +466,7 @@ mod integration_tests {
     #[tokio::test]
     async fn test_hypercore_get_positions() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_hypercore_test_client();
-        let summary = client.get_positions(TEST_ADDRESS.to_string()).await?;
+        let summary = client.get_positions(TEST_ADDRESS.to_string()).await?.summary;
 
         println!("Positions count: {}", summary.positions.len());
         println!("Balance: available={}, reserved={}, withdrawable={}", summary.balance.available, summary.balance.reserved, summary.balance.withdrawable);

@@ -36,10 +36,6 @@ impl GemPortfolioService {
         Self { api, store, price, perpetual, preferences }
     }
 
-    pub fn currency(&self, portfolio_type: PortfolioType) -> Currency {
-        rules::portfolio_currency(portfolio_type, self.preferences.get_currency())
-    }
-
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         self.preferences.show_perpetuals(wallet_type, chains)
     }
@@ -52,7 +48,9 @@ impl GemPortfolioService {
             data: data.ok(),
         }
     }
+}
 
+impl GemPortfolioService {
     pub async fn portfolio_data(&self, wallet: Wallet, portfolio_type: PortfolioType, period: ChartPeriod) -> Result<PortfolioData, GemServiceError> {
         match portfolio_type {
             PortfolioType::Wallet => Ok(rules::wallet_portfolio_data(self.sync_wallet_values(wallet.id, period, self.preferences.get_currency()).await?)),
@@ -64,9 +62,7 @@ impl GemPortfolioService {
             }
         }
     }
-}
 
-impl GemPortfolioService {
     async fn sync_wallet_values(&self, wallet_id: WalletId, period: ChartPeriod, currency: Currency) -> Result<GemPortfolioValues, GemServiceError> {
         let portfolio = self.get_wallet_assets(wallet_id, period).await?;
         let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
@@ -80,7 +76,7 @@ impl GemPortfolioService {
     }
 
     async fn get_wallet_assets(&self, wallet_id: WalletId, period: ChartPeriod) -> Result<PortfolioAssets, GemServiceError> {
-        let assets = self.store.get_wallet_balances(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
+        let assets = self.store.get_portfolio_assets(wallet_id).await?.iter().map(rules::portfolio_asset).collect();
         Ok(self.get_assets(period, PortfolioAssetsRequest { assets }).await?)
     }
 }

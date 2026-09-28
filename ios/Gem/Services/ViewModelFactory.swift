@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAddressDetailsService
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemAppUpdateService
-import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemBannerService
 import class Gemstone.GemChainService
-import class Gemstone.GemConfirmService
+import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemContactEditorService
 import class Gemstone.GemContactService
 import class Gemstone.GemDeeplinkService
@@ -35,13 +35,11 @@ import class Gemstone.GemRewardsService
 import class Gemstone.GemSearchService
 import class Gemstone.GemServiceStatus
 import class Gemstone.GemSignMessageService
-import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemSupportServiceProtocol
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionsService
-import class Gemstone.GemTransactionStateService
 import class Gemstone.GemWalletConnectService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
@@ -54,14 +52,14 @@ import Store
 import SwiftUI
 
 public struct ViewModelFactory: Sendable {
+    let addressDetailsService: GemAddressDetailsService
     let apiClient: GemApiClient
-    let assetConfig: GemAssetConfigService
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService
     let bannerService: GemBannerService
     let balanceService: GemBalanceService
-    let confirmService: GemConfirmService
+    let confirmTransferService: GemConfirmTransferService
     let contactService: GemContactService
     let contactEditorService: GemContactEditorService
     let deeplinkService: GemDeeplinkService
@@ -80,11 +78,9 @@ public struct ViewModelFactory: Sendable {
     let priceService: GemPriceService
     let rewardsService: GemRewardsService
     let searchService: GemSearchService
-    let simulationFormatter: GemSimulationFormatter
     let stakeService: GemStakeService
     let streamSubscriptionService: GemStreamSubscriptionService
     let swapService: GemSwapService
-    let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
@@ -94,7 +90,6 @@ public struct ViewModelFactory: Sendable {
     let inAppNotificationService: GemNotificationService
 
     let biometryService: any BiometryAuthenticatable
-    let keystore: any Keystore
     let observablePreferences: ObservablePreferences
     let recentAssetsService: GemRecentActivityService
     let amountService: GemAmountService
@@ -114,6 +109,6 @@ public struct ViewModelFactory: Sendable {
     }
 
     func currentWallet(in wallets: [Wallet]) -> Wallet? {
-        walletSessionService.currentWalletId.flatMap { walletId in wallets.first { $0.id == walletId } }
+        (try? walletSessionService.getCurrentWalletId()).flatMap { walletId in wallets.first { $0.id == walletId } }
     }
 }

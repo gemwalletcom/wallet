@@ -54,7 +54,7 @@ impl ToSql<crate::schema::sql_types::ApiClientScope, Pg> for ApiClientScope {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::api_clients)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct ApiClientRow {
+pub(crate) struct ApiClientRow {
     pub id: i32,
     pub name: String,
     pub secret: String,

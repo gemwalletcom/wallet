@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
+use chain_providers::BroadcastProviders;
 use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::TransactionId;
 use serde_json::Value;
-use settings_chain::BroadcastProviders;
 
 use crate::config::WebhookConfig;
 use crate::proxy::proxy_request::ProxyRequest;

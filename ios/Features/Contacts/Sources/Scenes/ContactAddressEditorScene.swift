@@ -1,16 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
+import enum Gemstone.GemContactAddressField
 import Primitives
 import PrimitivesComponents
 import QRScanner
 import Style
 import SwiftUI
 
-public struct ContactAddressEditorScene: View {
+struct ContactAddressEditorScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactAddressEditorViewModel
+    @State private var model: ContactAddressEditorSceneViewModel
 
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -18,13 +20,13 @@ public struct ContactAddressEditorScene: View {
         case memo
     }
 
-    public init(model: ContactAddressEditorViewModel) {
+    init(model: ContactAddressEditorSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
         List {
-            ForEach(model.fieldList) { field in
+            ForEach(model.fields, id: \.self) { field in
                 section(for: field)
             }
         }
@@ -42,7 +44,7 @@ public struct ContactAddressEditorScene: View {
             focusedField = .address
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .address, action: onScan)
+            QRScannerNavigationStack(scanType: .address, action: onScan)
         }
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             NetworkSelectorScene(
@@ -57,7 +59,7 @@ public struct ContactAddressEditorScene: View {
 
 extension ContactAddressEditorScene {
     @ViewBuilder
-    private func section(for field: ContactAddressField) -> some View {
+    private func section(for field: GemContactAddressField) -> some View {
         switch field {
         case .network: chainSection
         case .address: addressSection
@@ -68,7 +70,7 @@ extension ContactAddressEditorScene {
     private var chainSection: some View {
         Section(model.networkTitle) {
             NavigationLink(value: Scenes.NetworksSelector()) {
-                ChainView(model: ChainViewModel(chain: model.chain))
+                ChainView(model: chainRow(chain: model.chain.rawValue))
             }
         }
     }

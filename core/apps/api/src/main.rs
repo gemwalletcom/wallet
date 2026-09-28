@@ -28,37 +28,18 @@ use std::{error::Error, str::FromStr, sync::Arc};
 use gem_tracing::info_with_fields;
 use strum::IntoEnumIterator;
 
-use ::defi::{DefiClient, DefiProviderClient, DefiProviderConfig};
-use ::fiat::FiatClient;
-use ::fiat::FiatProviderFactory;
-use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
-use api_connector::PusherClient;
-use assets::{AssetsClient, SearchClient};
-use cacher::{AccessTokenCacherClient, CacherClient};
-use config::ConfigClient;
-use config_keys::ConfigKey;
-use devices::DevicesClient;
-use devices::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient, WalletConfigurationClient, WalletsClient, scan_providers,
-};
-use gem_auth::AuthClient;
-use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
+use ::defi::{DefiProviderClient, DefiProviderConfig};
+use ::nft::{NFTProviderClient, NFTProviderConfig};
+use chain_providers::ProviderFactory;
 use model::APIService;
 use name_resolver::{NameClient, NameConfig, NameProviderFactory};
-use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::{FiatProviderName, PriceConfig};
 use rocket::{Build, Rocket, catchers, routes};
-use search_index::{SearchIndexClient, SearchIndexConfig};
+use services::Services;
 use settings::Settings;
-use settings_chain::{ChainProviders, ProviderFactory};
-use storage::Database;
-use streamer::{StreamProducer, StreamProducerConfig};
-use swap::SwapClient;
 use swapper::okx::{OkxClientConfig, OkxProviderProxy};
 use swapper::swapper::GemSwapper;
-use webhooks::WebhooksClient;
 
-use crate::support::{SupportApiClient, SupportImageUploadConfig};
+use crate::support::SupportImageUploadConfig;
 
 fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
     let rocket = rocket
@@ -112,6 +93,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 devices::get_device_transaction_by_id_v2,
                 devices::get_device_transactions_v2,
                 devices::get_device_address_names_v2,
+                devices::get_device_address_details_v2,
                 devices::get_device_nft_assets_v2,
                 devices::get_device_nft_asset_v2,
                 devices::refresh_device_nft_asset_v2,
@@ -189,86 +171,63 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
 }
 
 async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
-    let redis_url = settings.redis.url.as_str();
-    let postgres_url = settings.postgres.url.as_str();
     let settings_clone = settings.clone();
 
-    let database = Database::new(postgres_url, settings.postgres.pool)?;
-    let cacher_client = CacherClient::new(redis_url).await?;
-    let config_cacher = storage::ConfigCacher::new(database.clone());
-    let price_config = PriceConfig {
-        primary_price_max_age: config_cacher.get_duration(config_keys::ConfigKey::PricePrimaryMaxAge)?,
-    };
+    let services = Services::new(Arc::new(settings.clone()))?;
+    let cacher_client = services.cacher().await?;
 
-    let price_client = PriceClient::new(database.clone(), cacher_client.clone());
-    let charts_client = ChartClient::new(database.clone(), price_config);
-    let config_client = ConfigClient::new(database.clone());
-    let price_alert_client = PriceAlertClient::new(database.clone());
+    let price_client = services.prices(cacher_client.clone());
+    let charts_client = services.charts();
+    let config_client = services.app_config();
+    let price_alert_client = services.price_alerts();
     let name_config = NameConfig {
         max_name_length: settings_clone.name.max_name_length,
     };
     let name_client = NameClient::new(NameProviderFactory::new_providers(settings_clone.name.clone()), name_config);
 
     let user_agent = settings::service_user_agent("api", None);
-    let chain_client = chain::ChainClient::new(ChainProviders::from_settings(&settings, &user_agent));
-    let nodes_status_client = chain::node::NodesStatusClient::default();
-    let portfolio_client = PortfolioClient::new(database.clone(), price_config);
+    let chain_client = services.chain(&user_agent);
+    let nodes_status_client = services.nodes_status();
+    let portfolio_client = services.portfolio();
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
     let swapper = GemSwapper::new(native_provider.clone());
 
-    let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
-    let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
-    let pusher_client = PusherClient::new(settings.pusher.url.clone(), settings.pusher.ios.topic.clone());
-    let devices_client = DevicesClient::new(database.clone(), pusher_client.clone());
-    let transactions_client = TransactionsClient::new(database.clone());
-    let address_names_client = AddressNamesClient::new(database.clone());
-    let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
-    let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
+    let devices_client = services.devices();
+    let transactions_client = services.transactions();
+    let address_names_client = services.address_names();
+    let address_details_client = services.address_details(&user_agent);
+    let stream_producer = services.stream_producer("api", services::no_shutdown()).await?;
+    let wallets_client = services.wallets(stream_producer.clone());
 
-    let providers = scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?;
+    let providers = services.scan_providers(cacher_client.clone()).await?;
     let metrics = Arc::new(metrics::Metrics::new(&providers));
-    let scan_client = ScanClient::new(
-        database.clone(),
-        TransactionScanConfig {
-            providers,
-            required_successes: config_cacher.get_usize(ConfigKey::ScanRequiredSuccesses)?,
-        },
-        metrics.clone(),
-    );
-    let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
-    let assets_client = AssetsClient::new(database.clone(), price_config);
-    let search_index_config = SearchIndexConfig {
-        batch_size: config_cacher.get_usize(ConfigKey::SearchIndexBatchSize)?,
-    };
-    let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url, &settings_clone.meilisearch.key, search_index_config);
-    let search_client = SearchClient::new(&search_index_client, price_client.clone());
-    let swap_client = SwapClient::new(database.clone());
-    let fiat_providers = FiatProviderFactory::new_providers(settings_clone.clone(), Arc::new(AccessTokenCacherClient::new(cacher_client.clone(), FiatProviderName::Transak.id())));
-    let fiat_ip_check_client = FiatProviderFactory::new_ip_check_client(settings_clone.clone());
-    let fiat_client = FiatClient::new(database.clone(), cacher_client.clone(), fiat_providers, fiat_ip_check_client.clone(), stream_producer.clone());
-    let fiat_quotes_client = FiatQuotesClient::new(database.clone(), fiat_client);
+    let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone());
+    let wallet_configuration_client = services.wallet_configuration(cacher_client.clone(), &user_agent);
+    let assets_client = services.assets();
+    let search_client = services.search(price_client.clone()).await?;
+    let fee_estimates_client = services.fee_estimates(assets_client.clone(), price_client.clone(), cacher_client.clone(), &user_agent);
+    let swap_client = services.swap();
+    let fiat_client = services.fiat(stream_producer.clone()).await?;
     let nft_config = NFTProviderConfig::from_settings(&settings);
-    let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
+    let nft_client = services.nft();
     let nft_provider_client = NFTProviderClient::new(nft_config);
-    let defi_config = DefiProviderConfig::from_settings(&settings);
-    let defi_client = DefiClient::from_config(database.clone(), defi_config.clone());
-    let defi_provider_client = DefiProviderClient::new(defi_config);
-    let auth_client = AuthClient::new(cacher_client.clone());
-    let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
-    let webhooks_client = WebhooksClient::new(stream_producer.clone(), settings.support.webhook.key.secret.clone());
-    let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
-        Arc::new(AbuseIPDBClient::new(settings.security.abuseipdb.url.clone(), settings.security.abuseipdb.key.secret.clone())),
-        Arc::new(IpApiClient::new(settings.security.ipapi.url.clone(), settings.security.ipapi.key.secret.clone())),
-    ];
-    let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
-    let rewards_client = RewardsClient::new(database.clone(), cacher_client.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
-    let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
-    let notifications_client = NotificationsClient::new(database.clone());
-    let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget.ios.clone(), settings.support.widget.android.clone(), database.clone());
+    let defi_client = services.defi();
+    let defi_provider_client = DefiProviderClient::new(DefiProviderConfig::from_settings(&settings));
+    let auth_client = services.auth().await?;
+    let markets_client = services.markets(cacher_client.clone());
+    let webhooks_client = services.webhooks(stream_producer.clone());
+    let indexer_client = services.indexer(cacher_client.clone(), stream_producer.clone());
+    let access_client = services.access();
+    let ip_security_client = services.ip_security().await?;
+    let rewards_client = services.rewards(cacher_client.clone(), stream_producer.clone(), ip_security_client);
+    let redemption_client = services.rewards_redemption(stream_producer.clone());
+    let notifications_client = services.notifications();
+    let support_client = services.support_api();
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
-    let near_intents_client = swap::NearIntentsProxyClient::new(settings.swap.nearintents.url.clone(), cacher_client.clone());
-    let swaps_xyz_client = swap::SwapsXyzProxyClient::new(settings.swap.swapsxyz.url.clone(), cacher_client.clone());
+    let deposit_addresses = Arc::new(cacher_client);
+    let near_intents_client = services.near_intents(deposit_addresses.clone());
+    let swaps_xyz_client = services.swaps_xyz(deposit_addresses);
     let okx_provider = OkxProviderProxy::new(
         settings.swap.okx.url.clone(),
         OkxClientConfig {
@@ -287,8 +246,8 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let rocket = rocket::build()
         .manage(metrics)
         .manage(auth_config)
-        .manage(database)
-        .manage(fiat_quotes_client)
+        .manage(access_client)
+        .manage(fiat_client)
         .manage(price_client)
         .manage(charts_client)
         .manage(config_client)
@@ -298,6 +257,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(search_client)
         .manage(transactions_client)
         .manage(address_names_client)
+        .manage(address_details_client)
         .manage(wallet_configuration_client)
         .manage(scan_client)
         .manage(swap_client)
@@ -307,10 +267,12 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(defi_provider_client)
         .manage(price_alert_client)
         .manage(chain_client)
+        .manage(fee_estimates_client)
         .manage(nodes_status_client)
         .manage(swapper)
         .manage(markets_client)
         .manage(webhooks_client)
+        .manage(indexer_client)
         .manage(rewards_client)
         .manage(redemption_client)
         .manage(wallets_client)
@@ -321,23 +283,18 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(swaps_xyz_client)
         .manage(okx_provider)
         .manage(portfolio_client)
-        .manage(auth_client)
-        .manage(cacher_client)
-        .manage(stream_producer);
+        .manage(auth_client);
 
     Ok(mount_routes(rocket, settings.api.admin.enabled))
 }
 
 async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
-    let cacher_client = CacherClient::new(&settings.redis.url).await?;
-    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool)?;
-    let config_cacher = storage::ConfigCacher::new(database.clone());
-    let price_client = PriceClient::new(database.clone(), cacher_client.clone());
+    let services = Services::new(Arc::new(settings.clone()))?;
+    let cacher_client = services.cacher().await?;
+    let price_client = services.prices(cacher_client.clone());
     let stream_observer_config = websocket_stream::StreamObserverConfig {
         redis_url: settings.redis.url.clone(),
-        cacher_client,
-        retention: config_cacher.get_duration(config_keys::ConfigKey::DeviceStreamRetention)?,
-        history_limit: config_cacher.get_usize(config_keys::ConfigKey::DeviceStreamHistoryLimit)?,
+        device_stream: services.device_stream(cacher_client).await?,
     };
 
     let jwt_config = devices::auth_config::JwtConfig {
@@ -348,7 +305,7 @@ async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
 
     Ok(rocket::build()
         .manage(auth_config)
-        .manage(database)
+        .manage(services.devices())
         .manage(price_client)
         .manage(stream_observer_config)
         .mount("/v2/devices", routes![websocket_stream::ws_stream])

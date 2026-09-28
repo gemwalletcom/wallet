@@ -15,6 +15,7 @@ public actor WebSocketConnection: WebSocketConnectable {
     private var streamId: UUID?
     private var connectionId: UUID?
     private var reconnectAttempt: Int = 0
+    private var connectedAt: ContinuousClock.Instant?
     private var pendingMessages: [URLSessionWebSocketTask.Message] = []
 
     public init(configuration: WebSocketConfiguration) {
@@ -59,25 +60,13 @@ public actor WebSocketConnection: WebSocketConnectable {
         guard state == .connected, let task, let connectionId else { throw WebSocketError.notConnected }
         let start = DispatchTime.now().uptimeNanoseconds
         do {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
-                task.sendPing { error in
-                    if let error {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume()
-                    }
-                }
-            }
+            try await task.sendPing()
             guard self.connectionId == connectionId else { throw WebSocketError.notConnected }
             return Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
         } catch {
             onReceiveFailure(error, connectionId: connectionId)
             throw error
         }
-    }
-
-    public func send(_ data: Data) async throws {
-        try await send(message: .data(data))
     }
 
     public func send(_ text: String) async throws {
@@ -133,10 +122,10 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func startKeepalive() {
         cancelKeepalive()
-        let interval = configuration.reconnection.pingIntervalMilliseconds()
+        let interval = configuration.reconnection.pingInterval
         keepaliveTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(interval))
+                try? await Task.sleep(for: interval)
                 guard !Task.isCancelled else { return }
                 _ = try? await self?.ping()
             }
@@ -164,7 +153,8 @@ public actor WebSocketConnection: WebSocketConnectable {
             }
         }
 
-        resetReconnectionAttempt()
+        reconnectAttempt = 0
+        connectedAt = nil
         startConnection()
     }
 
@@ -203,11 +193,7 @@ public actor WebSocketConnection: WebSocketConnectable {
         )
 
         invalidateSession()
-        session = URLSession(
-            configuration: configuration.sessionConfiguration,
-            delegate: delegate,
-            delegateQueue: nil,
-        )
+        session = configuration.makeSession(configuration.sessionConfiguration, delegate)
 
         task = session?.webSocketTask(with: request)
         task?.resume()
@@ -219,7 +205,7 @@ public actor WebSocketConnection: WebSocketConnectable {
         guard self.connectionId == connectionId, state == .connecting else { return }
 
         state = .connected
-        resetReconnectionAttempt()
+        connectedAt = .now
         startKeepalive()
         continuation?.yield(.connected)
 
@@ -286,12 +272,14 @@ public actor WebSocketConnection: WebSocketConnectable {
         state = .reconnecting
         continuation?.yield(.disconnected(error))
 
-        let delay = configuration.reconnection.reconnectDelayMilliseconds(attempt: UInt32(clamping: reconnectAttempt))
-        reconnectAttempt += 1
+        let connectedFor = connectedAt.map { $0.duration(to: .now) } ?? .zero
+        connectedAt = nil
+        let reconnection = configuration.reconnection.reconnection(attempt: UInt32(clamping: reconnectAttempt), connectedFor: connectedFor)
+        reconnectAttempt = Int(reconnection.nextAttempt)
 
         reconnectTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: .milliseconds(delay))
+                try await Task.sleep(for: reconnection.delay)
             } catch {
                 return
             }
@@ -305,9 +293,5 @@ public actor WebSocketConnection: WebSocketConnectable {
 
         guard state == .reconnecting, task == nil else { return }
         startConnection()
-    }
-
-    private func resetReconnectionAttempt() {
-        reconnectAttempt = 0
     }
 }

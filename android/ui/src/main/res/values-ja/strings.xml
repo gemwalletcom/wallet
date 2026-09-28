@@ -9,6 +9,7 @@
   <string name="common_copy">コピー</string>
   <string name="common_share">共有</string>
   <string name="common_continue">続ける</string>
+  <string name="common_continue_anyway">このまま続ける</string>
   <string name="common_sign_in_with">%1$sでサインイン</string>
   <string name="common_provider">プロバイダー</string>
   <string name="common_loading">読み込み中</string>
@@ -47,7 +48,6 @@
   <string name="common_description">説明</string>
   <string name="common_emoji">絵文字</string>
   <string name="common_avatar">アバター</string>
-  <string name="common_save">保存</string>
   <string name="common_percentage">割合</string>
   <string name="common_details">詳細</string>
   <string name="common_info">情報</string>
@@ -57,6 +57,7 @@
   <string name="common_token">トークン</string>
   <string name="common_expiration">有効期限</string>
   <string name="common_suspicious_address">不審なアドレス</string>
+  <string name="common_suspicious_address_description">このアドレスは不審または悪意のある活動に関連しています。</string>
   <string name="common_refresh">更新</string>
   <string name="common_grant_permission">許可する</string>
   <string name="common_required_field">%1$sは必須です</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">ポートフォリオ</string>
   <string name="wallet_import_already_imported_message">このウォレットは既にインポート済みです。</string>
   <string name="wallets_title">ウォレット</string>
-  <string name="wallets_watch">閲覧専用</string>
-  <string name="receive_title">%1$sを受け取る</string>
   <string name="receive_warning">このアドレスには、%1$s のみを %2$s ネットワークで送金してください。</string>
   <string name="buy_title">%1$sを購入</string>
   <string name="buy_providers_title">プロバイダー</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">認証</string>
   <string name="settings_notifications_title">通知</string>
   <string name="settings_language">言語</string>
-  <string name="settings_help_center">ヘルプセンター</string>
   <string name="settings_support">サポート</string>
   <string name="settings_price_alerts_title">価格アラート</string>
   <string name="settings_hide_balance">残高を非表示</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">未対応のアセットです。</string>
   <string name="errors_connections_no_supported_wallets">サポートされているウォレットは利用できません。</string>
   <string name="errors_connections_unsupported_chain">選択されたチェーンはサポートされていません</string>
+  <string name="errors_authentication_unavailable">このデバイスでは認証が設定されていません。デバイスの設定で生体認証またはパスコードをオンにしてください。</string>
+  <string name="errors_authentication_locked_out">失敗した回数が多すぎます。しばらくしてからもう一度お試しください。</string>
+  <string name="errors_authentication_failed">認証に失敗しました。もう一度お試しください。</string>
+  <string name="errors_connections_expired">この接続リンクは有効期限が切れています。新しいQRコードを取得して、もう一度お試しください。</string>
+  <string name="errors_connections_not_found">この接続は存在しません。</string>
+  <string name="errors_connections_relay_unavailable">WalletConnectに接続できません。インターネット接続を確認して、もう一度お試しください。</string>
   <string name="errors_swap_amount_too_small">金額が小さすぎます</string>
   <string name="errors_scan_transaction_malicious_description">この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。</string>
   <string name="errors_scan_transaction_memo_required">%1$s の送信先アドレスには、宛先タグまたはメモが必要です</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">%1$sを購入</string>
   <string name="asset_get_asset">%1$sを入手</string>
   <string name="asset_add_to_wallet">ウォレットに追加</string>
-  <string name="asset_hide_from_wallet">ウォレットで非表示にする</string>
   <string name="asset_added_to_wallet">ウォレットに追加しました</string>
   <string name="asset_hidden_from_wallet">ウォレットから非表示にしました</string>
   <string name="asset_resources">リソース</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">変動</string>
   <string name="date_today">今日</string>
   <string name="date_yesterday">昨日</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">接続</string>
   <string name="wallet_connect_disconnect">切断</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">速い</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">サトシ/vB</string>
-  <string name="fee_rate_satB">%1$s サトシ/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">カスタム</string>
   <string name="banner_account_activation_title">アカウントの有効化手数料</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">価格の下落率</string>
   <string name="price_alerts_set_alert_set_target_price">目標価格の設定</string>
   <string name="price_alerts_set_alert_current_price">現在の価格</string>
-  <string name="price_alerts_added_for">価格アラートを設定しました：%1$s</string>
+  <string name="price_alerts_added_price_over">価格が%1$sを上回ったときのアラートを追加しました</string>
+  <string name="price_alerts_added_price_under">価格が%1$sを下回ったときのアラートを追加しました</string>
+  <string name="price_alerts_added_increases_by">価格が%1$s上昇したときのアラートを追加しました</string>
+  <string name="price_alerts_added_decreases_by">価格が%1$s下落したときのアラートを追加しました</string>
   <string name="price_alerts_state_empty_title">アラートはここに表示されます</string>
   <string name="price_alerts_state_empty_description">追跡するコインを追加して有効にしてください</string>
   <string name="price_alerts_auto_footer">大幅な価格変動が発生するとアラートが発動します。</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">通報</string>
   <string name="permissions_access_denied">アクセスが拒否されました</string>
   <string name="permissions_image_photo_access_denied_description">このアプリには写真ライブラリにアクセスする権限がありません。デバイスの設定でアクセスを有効にしてください。</string>
-  <string name="markets_title">マーケット</string>
-  <string name="markets_state_empty_title">マーケットデータがここに表示されます</string>
   <string name="markets_daily_volume">24時間取引量</string>
   <string name="search_state_empty_description">スペルを確認するか、新しい検索を試してください。</string>
   <string name="networks_state_empty_search_title">ネットワークが見つかりません</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">無制限のトークン承認</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">セキュリティ警告</string>
+  <string name="rootcheck_jailbreak_body">このデバイスは脱獄されているようです。ウォレットと資産が危険にさらされる可能性があります。</string>
   <string name="rootcheck_body">このデバイスは root 化されているようです。root 化されたデバイスではセキュリティリスクが大幅に高まり、資産への不正アクセスや損失につながる可能性があります。資金を守るため、root 化されていないデバイスの使用を強くお勧めします。</string>
   <string name="rootcheck_ignore">無視する</string>
   <string name="rootcheck_exit">終了</string>

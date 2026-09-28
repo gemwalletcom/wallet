@@ -30,8 +30,8 @@ Shared Rust library compiled to iOS Swift Package and Android AAR using UniFFI b
 
 Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **Bitcoin family** (`gem_bitcoin`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin
-- **EVM chains** (`gem_evm` family crate plus `gem_optimism`, `gem_bsc`, `gem_everstake`, `gem_monad`, `gem_tempo`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad, Tempo, and the other chains in `ChainConfig`; see [New Chain Checklist](new-chain-checklist.md) for the crate boundary
-- **EVM indexers** (`gem_alchemy`, `gem_ankr`, `gem_blockscout`): address history and token balance providers composed only by `settings_chain`
+- **EVM chains** (`gem_evm` family crate plus `gem_optimism`, `gem_bsc`, `everstake`, `gem_monad`, `gem_tempo`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad, Tempo, and the other chains in `ChainConfig`; see [New Chain Checklist](new-chain-checklist.md) for the crate boundary
+- **EVM indexers** (`alchemy`, `ankr`, `blockscout`): address history and token balance providers composed only by `chain_providers`
 - **Alternative L1s**: Solana (`gem_solana`), Sui (`gem_sui`), TON (`gem_ton`), Aptos (`gem_aptos`), NEAR (`gem_near`), Stellar (`gem_stellar`), Algorand (`gem_algorand`), Tron (`gem_tron`), XRP (`gem_xrp`), Cardano (`gem_cardano`), Polkadot (`gem_polkadot`)
 - **Cosmos ecosystem** (`gem_cosmos`): Cosmos Hub, Osmosis, Celestia, Injective, Sei, Noble
 
@@ -63,18 +63,18 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `cacher/`: Caching layer for improved performance
 
 ### Pricing & Market Data
-- `pricer/`: Asset pricing aggregation and management
-- `prices/`: Price provider implementations (CoinGecko, DefiLlama, Jupiter) behind one `PriceProvider` contract
+- `prices/`: Price provider implementations (CoinGecko, DefiLlama, Jupiter) behind one `PriceProvider` contract, and the price alert rules
 - `coingecko/`: CoinGecko API client
 
 ### NFT & Digital Assets
 - `nft/`: NFT models, provider factory, and provider clients (OpenSea, Magic Eden, Alchemy, TON)
 
 ### Integrations & Services
+- `services/`: Backend orchestration and the only crate that builds storage, cache, queue, push and search clients ([Architecture § Backend Layers](architecture.md#backend-layers))
 - `fiat/`: Fiat on-ramp/off-ramp providers (MoonPay, Transak, Mercuryo, Paybis, Flashnet)
 - `name_resolver/`: Blockchain naming service integrations (ENS, SNS, etc.)
-- `security_provider/`: Security and fraud detection provider integrations
-- `api_connector/`: Backend API connector utilities
+- `security/`: Security and fraud detection provider integrations
+- `pusher/`: Gorush push gateway client
 - `gem_hypercore/`: Perpetuals (perps) trading support via Hyperliquid integration
 
 ### Utilities & Support
@@ -84,9 +84,9 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `job_runner/`: Background job execution framework
 - `search_index/`: Search indexing and query capabilities
 - `streamer/`: Real-time data streaming utilities
-- `tracing/`: Logging and tracing infrastructure
+- `gem_tracing/`: Logging and tracing infrastructure
 - `settings/`: Configuration management
-- `settings_chain/`: Chain-specific configuration settings
+- `chain_providers/`: Builds each chain's provider and runs node checks
 
 ## Key Dependency Relationships
 
@@ -103,8 +103,9 @@ gem_* chain crates (gem_evm, gem_solana, ...)
   └── primitives/        ← shared models
 
 apps/ (api, daemon, dynode)
+  ├── services/    ← backend orchestration and infra construction
   ├── storage/     ← Diesel ORM + PostgreSQL
-  ├── pricer/      ← pricing aggregation
+  ├── prices/      ← price providers and alert rules
   ├── gem_client/  ← ReqwestClient for backend HTTP
   └── primitives/  ← shared models
 ```

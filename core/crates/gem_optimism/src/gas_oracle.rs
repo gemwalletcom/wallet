@@ -48,11 +48,11 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
     }
 }
 
-fn l1_fee_value(input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<BigInt, Box<dyn Error + Sync + Send>> {
+fn l1_fee_value(input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> BigInt {
     if spends_native_asset(&input.input_type) && input.is_max_value {
-        Ok(input.value_as_bigint() - gas_limit * input.gas_price.gas_price())
+        input.value_as_bigint() - gas_limit * input.gas_price.gas_price()
     } else {
-        Ok(params.value.clone())
+        params.value.clone()
     }
 }
 
@@ -66,7 +66,7 @@ fn spends_native_asset(input_type: &TransactionInputType) -> bool {
 }
 
 fn encode_transaction_for_l1_fee(input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
-    let value = l1_fee_value(input, params, gas_limit)?;
+    let value = l1_fee_value(input, params, gas_limit);
     let mut encoded = vec![EIP1559_TRANSACTION_TYPE];
     encoded.extend_from_slice(&input.metadata.get_chain_id_u64()?.to_be_bytes());
     encoded.extend_from_slice(&input.metadata.get_sequence()?.to_be_bytes());

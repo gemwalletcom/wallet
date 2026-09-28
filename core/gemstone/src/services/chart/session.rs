@@ -6,6 +6,7 @@ use super::rules;
 use crate::services::error::GemServiceError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemChartPhase {
     Loading,
     Data { data: GemChartData },
@@ -47,11 +48,12 @@ impl GemChartSession {
             return GemChartPhase::Loading;
         }
         match (&self.chart, &self.error) {
-            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.currency.clone()) {
+            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.period, self.currency.clone()) {
                 Some(data) => GemChartPhase::Data { data },
                 None => GemChartPhase::NoData,
             },
-            (None, Some(error)) => GemChartPhase::Failed { error: error.clone() },
+            (None, Some(GemServiceError::Offline)) => GemChartPhase::Failed { error: GemServiceError::Offline },
+            (None, Some(_)) => GemChartPhase::NoData,
             (None, None) => GemChartPhase::NoData,
         }
     }
@@ -64,6 +66,13 @@ impl GemChartSession {
             return self.clone();
         }
         Self::new(period, self.currency.clone())
+    }
+
+    pub fn on_currency(&self, currency: Currency) -> Self {
+        if currency == self.currency {
+            return self.clone();
+        }
+        Self::new(self.period, currency)
     }
 
     pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
@@ -142,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_a_failure_after_a_load_keeps_the_chart_and_a_first_failure_reports_it() {
-        let error = GemServiceError::Core { msg: "offline".to_string() };
+        let error = GemServiceError::Offline;
         let first = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(error.clone(), ChartPeriod::Day);
         let after_load = GemChartSession::new(ChartPeriod::Day, Currency::USD)
             .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day)
@@ -150,6 +159,15 @@ mod tests {
 
         assert!(matches!(first.view_state(None).phase, GemChartPhase::Failed { .. }));
         assert!(matches!(after_load.view_state(None).phase, GemChartPhase::Data { .. }));
+    }
+
+    #[test]
+    fn test_a_chart_the_server_cannot_answer_has_no_data_and_only_being_offline_is_an_error() {
+        let missing = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(GemServiceError::Api { msg: "Price not found".to_string() }, ChartPeriod::Day);
+        let offline = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(GemServiceError::Offline, ChartPeriod::Day);
+
+        assert_eq!(missing.view_state(None).phase, GemChartPhase::NoData, "server text never reaches the chart");
+        assert_eq!(offline.view_state(None).phase, GemChartPhase::Failed { error: GemServiceError::Offline });
     }
 
     #[test]
@@ -188,5 +206,22 @@ mod tests {
             "a chart for the period the user left behind never reaches the screen"
         );
         assert_eq!(selected_week.on_failed(error, ChartPeriod::Day).view_state(None).phase, GemChartPhase::Loading, "neither does its failure");
+    }
+
+    #[test]
+    fn test_a_currency_change_drops_the_loaded_chart_and_keeps_the_period() {
+        let loaded = GemChartSession::new(ChartPeriod::Week, Currency::USD).on_loaded(
+            GemChart {
+                values: Vec::new(),
+                base_value: 0.0,
+                current: None,
+            },
+            ChartPeriod::Week,
+        );
+
+        assert_eq!(loaded.on_currency(Currency::USD), loaded);
+        let switched = loaded.on_currency(Currency::EUR);
+        assert_eq!(switched, GemChartSession::new(ChartPeriod::Week, Currency::EUR));
+        assert!(switched.is_loading);
     }
 }

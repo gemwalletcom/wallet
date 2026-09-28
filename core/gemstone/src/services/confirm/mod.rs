@@ -1,12 +1,12 @@
 #![allow(clippy::result_large_err)]
 
 mod confirmation;
-mod error;
+pub(crate) mod error;
 pub(crate) mod header;
 mod model;
 pub(crate) mod rules;
 pub(crate) mod screen;
-mod signer;
+mod swap;
 #[cfg(test)]
 mod testkit;
 mod transfer;
@@ -17,20 +17,21 @@ use std::time::Duration;
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
 pub use model::*;
-pub use rules::acquire_asset_flow;
-pub use signer::GemTransactionSigner;
+pub use swap::ConfirmSwapQuote;
 pub use transfer::GemConfirmTransferService;
 
+use crate::GemstoneError;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemTransactionData, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionData, GemTransactionLoadInput};
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
 use crate::services::confirm::rules::ConfirmInput;
 use crate::services::price::GemPriceService;
+use crate::services::scan::rules as scan_rules;
 use crate::services::simulation::payload_rows;
 use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
@@ -38,6 +39,7 @@ use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
+use primitives::currency::Currency;
 use primitives::{Asset, AssetId, BlockExplorerLink, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
@@ -87,7 +89,7 @@ impl GemConfirmService {
         rules::build_metadata(asset_id, fee_asset_id, balances?, prices?)
     }
 
-    pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
+    pub async fn load(&self, wallet_id: &WalletId, input: &GemConfirmInput, options: &GemConfirmLoadOptions, currency: Currency) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let transfer = &input.transfer;
         let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
@@ -100,16 +102,15 @@ impl GemConfirmService {
             references: transfer.recipient.references.clone(),
         };
 
-        // A scanner outage fails open by design: the send continues without a verdict.
         let scan_future = async {
-            let payload = rules::scan_payload(preload_input.clone())?;
-            self.scanner.scan_transaction(payload).await.ok()
+            let payload = scan_rules::transaction_payload(preload_input.clone())?;
+            self.scanner.scan(payload).await
         };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
-            self.simulate(chain, &input),
+            self.simulate(chain, input),
         );
         let metadata = metadata.map_err(error::load_error)?;
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
@@ -143,19 +144,22 @@ impl GemConfirmService {
         };
 
         let mut fee = load.fee;
-        if let Some(fee_asset_id) = options.fee_asset_id.filter(|fee_asset_id| fee_asset_id.chain == chain) {
+        if let Some(fee_asset_id) = options.fee_asset_id.clone().filter(|fee_asset_id| fee_asset_id.chain == chain) {
             fee.fee_asset = fee_asset_id;
         }
 
-        Ok(GemConfirmData {
-            additional_fees: fee.options.items(),
-            input,
+        let fee_asset_id = fee.fee_asset.clone();
+        let (confirm_metadata, fee_asset) = futures::join!(self.input_metadata(wallet_id.clone(), &transfer.input_type, fee_asset_id.clone()), self.fee_asset(fee_asset_id));
+        let confirm_data = GemConfirmData {
+            input: input.clone(),
             fee,
             selected_priority: selected.priority,
+            fee_selection: options.fee_selection.applied(&selected),
             fee_rates,
             metadata: load.metadata,
             simulation,
-        })
+        };
+        Ok(confirm_data.fee_load(confirm_metadata?, fee_asset?, currency))
     }
 
     pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<GemConfirmSimulation, GemConfirmError> {
@@ -165,7 +169,7 @@ impl GemConfirmService {
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self.simulation_formatter.payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
         let header = match approval {
-            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue { asset: asset.clone(), value }),
+            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue::new(asset.clone(), value)),
             None => simulation.as_ref().and_then(|simulation| GemSimulationValue::from_simulation(simulation, &assets)),
         };
         let balance_changes = self
@@ -173,13 +177,11 @@ impl GemConfirmService {
             .balance_changes(simulation, assets.iter().map(|asset| asset.id.clone()).collect())
             .into_iter()
             .filter_map(|change| {
-                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
-                let sign = rules::balance_change_sign(&change.value);
-                Some(GemSimulationBalanceChange {
-                    asset,
-                    tone: rules::balance_change_tone(sign),
-                    sign,
-                    value: change.value,
+                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?;
+                Some(crate::models::list::GemListRow::AssetChange {
+                    name: asset.name.clone(),
+                    icon: crate::services::assets::icon::asset_icon(&asset.id),
+                    amount: rules::balance_change_amount(&change.value, asset),
                 })
             })
             .collect();
@@ -195,10 +197,10 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn sign(&self, input: &SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
+    fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
-        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
+        let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: GemSignerError::SigningError("no signed transactions".to_string()),
@@ -216,43 +218,29 @@ impl GemConfirmService {
         self.assets.ensure_simulation_assets(asset_ids).await
     }
 
-    pub async fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
+    pub async fn fee_assets(&self, wallet_id: WalletId, chain: Chain, currency: Currency) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         let fee_asset_ids = chain_fee_asset_ids(chain);
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
         let (assets, balances, prices) = futures::join!(self.assets.assets(fee_asset_ids.clone()), self.balance.balances(wallet_id, fee_asset_ids.clone()), self.price.prices(fee_asset_ids),);
-        Ok(rules::selectable_fee_assets(assets?, balances?, prices?))
+        Ok(rules::selectable_fee_assets(assets?, balances?, prices?, &currency))
     }
-    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
-        let confirm_data = self.load(input, options).await?;
-        let fee_asset_id = confirm_data.fee.fee_asset.clone();
-        let metadata = self.input_metadata(wallet_id.clone(), &confirm_data.input.transfer.input_type, fee_asset_id.clone()).await?;
-        let fee_asset = self
-            .assets
-            .assets(vec![fee_asset_id.clone()])
-            .await?
-            .into_iter()
-            .next()
-            .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
-        let amount = confirm_data.preload_amount(&metadata, &fee_asset)?;
-        Ok(GemConfirmFeeLoad {
-            fee_asset,
-            metadata,
-            preload: GemConfirmPreload { confirm_data, amount },
-        })
+
+    async fn fee_asset(&self, asset_id: AssetId) -> Result<Asset, GemConfirmError> {
+        self.assets.assets(vec![asset_id.clone()]).await?.into_iter().next().ok_or(GemConfirmError::BalanceMissing { asset_id })
     }
 }
 
 impl GemConfirmService {
-    async fn send(&self, input: SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
-        match self.broadcast(input.confirm.input.transfer.input_type.clone(), signed.clone()).await {
+    async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+        match self.broadcast(&input.confirm.input.transfer.input_type, &signed).await {
             Ok(hashes) => {
-                self.store_pending(&input, &hashes, &signed).await;
+                self.store_pending(input, &hashes, &signed).await;
                 Ok(hashes)
             }
             Err(GemConfirmError::Broadcast { hashes, msg }) => {
-                self.store_pending(&input, &hashes, &signed).await;
+                self.store_pending(input, &hashes, &signed).await;
                 Err(GemConfirmError::Broadcast { hashes, msg })
             }
             Err(error) => Err(error),
@@ -260,11 +248,14 @@ impl GemConfirmService {
     }
 
     async fn store_pending(&self, input: &SendInput, hashes: &[String], signed: &[GemSignedTransaction]) {
-        let stored = self.record(input, hashes, signed).await.unwrap_or_default();
+        let stored = match self.record(input, hashes, signed).await {
+            Ok(stored) => stored,
+            Err(_) => self.record(input, hashes, signed).await.unwrap_or_default(),
+        };
         self.transaction_status.track(input.wallet.id.clone(), stored);
     }
 
-    async fn broadcast(&self, input_type: TransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+    async fn broadcast(&self, input_type: &TransactionInputType, transactions: &[GemSignedTransaction]) -> Result<Vec<String>, GemConfirmError> {
         let chain = input_type.get_asset().id.chain;
         let options = input_type.broadcast_options();
         let delay = rules::broadcast_delay_milliseconds(chain);
@@ -323,17 +314,20 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
-        swap::SwapData,
+        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, TransactionType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID,
+        known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData,
     };
 
+    use num_bigint::BigInt;
+
     use super::testkit::ConfirmTestkit;
-    use super::{GemConfirmData, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoadOptions};
+    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendInput};
+    use crate::models::transaction::GemSignedTransaction;
     use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::testkit::TestAlienProvider;
 
-    fn load_with_scan(scan: &str) -> (Result<GemConfirmData, GemConfirmError>, Vec<String>) {
+    fn load_with_scan(scan: &str) -> (Result<GemConfirmFeeLoad, GemConfirmError>, Vec<String>) {
         block_on(async {
             let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::HyperCore, "0xsender")]);
             let provider = Arc::new(TestAlienProvider::with_json(200, scan));
@@ -350,14 +344,14 @@ mod tests {
                     swap_data: SwapData::mock(),
                 })
             };
-            let input = testkit.service.confirm_input(wallet, transfer).unwrap();
+            let input = testkit.service.confirm_input(wallet.clone(), transfer).unwrap();
             let options = GemConfirmLoadOptions {
                 fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
                 fee_asset_id: None,
                 asset_id: None,
             };
 
-            let result = testkit.confirm.load(input, options).await;
+            let result = testkit.confirm.load(&wallet.id, &input, &options, primitives::currency::Currency::USD).await;
             (result, provider.requested_paths())
         })
     }
@@ -383,6 +377,35 @@ mod tests {
             vec!["/v2/devices/scan/transaction", "https://gemnodes.com/hypercore/info"],
             "the transaction load runs once the scan clears, and only then"
         );
+    }
+
+    fn store_pending_with_failures(failures: usize) -> ConfirmTestkit {
+        block_on(async {
+            let mut input = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
+            input.value = BigInt::from(10);
+            let signed = vec![GemSignedTransaction::mock(TransactionType::Transfer)];
+            let testkit = ConfirmTestkit::new(input.wallet.clone(), input.wallet.clone());
+            *testkit.transaction_store.add_failures.lock().unwrap() = failures;
+
+            testkit.confirm.store_pending(&input, &["hash".to_string()], &signed).await;
+            testkit
+        })
+    }
+
+    #[test]
+    fn test_a_failed_pending_write_is_retried_once_and_tracked() {
+        let testkit = store_pending_with_failures(1);
+
+        assert_eq!(testkit.transaction_store.added.lock().unwrap().len(), 1);
+        assert_eq!(testkit.status.tracked.lock().unwrap().concat().len(), 1, "the row the retry stored is tracked");
+    }
+
+    #[test]
+    fn test_a_pending_write_that_fails_twice_is_left_to_the_activity_sync() {
+        let testkit = store_pending_with_failures(2);
+
+        assert!(testkit.transaction_store.added.lock().unwrap().is_empty());
+        assert!(testkit.status.tracked.lock().unwrap().concat().is_empty(), "nothing unstored is tracked");
     }
 
     #[test]

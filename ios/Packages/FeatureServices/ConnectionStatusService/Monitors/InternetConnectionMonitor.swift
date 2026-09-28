@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ConnectivityService
-import class Gemstone.GemConnectionService
+import GemstonePrimitives
 import Primitives
 
 public struct InternetConnectionMonitor: ConnectionComponentMonitoring {
     private let connectivity: ConnectivityService
 
-    public init(connectionService: GemConnectionService) {
-        connectivity = ConnectivityService(offlineDebounce: .milliseconds(connectionService.offlineDebounceMilliseconds()))
+    public init() {
+        connectivity = ConnectivityService(offlineDebounce: GemConstants.offlineDebounce)
     }
 
     public var component: ConnectionComponent { .internet }

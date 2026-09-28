@@ -40,7 +40,7 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
 
 #[cfg(test)]
 mod tests {
-    use bitcoin::consensus::encode::deserialize;
+    use bitcoin::{blockdata::transaction::Version, consensus::encode::deserialize};
     use primitives::{BitcoinChain, ChainSigner};
 
     use super::BitcoinChainSigner;
@@ -78,6 +78,15 @@ mod tests {
         assert_eq!(transaction.input.len(), 1);
         assert_eq!(transaction.output[0].value.to_sat(), 1_000_000);
         assert_eq!(script[signature_len], 0x01);
+    }
+
+    #[test]
+    fn test_sign_transfer_dash() {
+        let raw = sign_transfer(BitcoinChain::Dash);
+        let transaction: bitcoin::Transaction = deserialize(&hex::decode(raw).unwrap()).unwrap();
+
+        assert_eq!(transaction.version, Version::TWO);
+        assert!(transaction.input.iter().all(|input| input.sequence.0 == 0xffff_fffe));
     }
 
     #[test]

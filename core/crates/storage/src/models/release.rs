@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::releases)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct ReleaseRow {
+pub(crate) struct ReleaseRow {
     pub platform_store: PlatformStore,
     pub version: String,
     pub upgrade_required: bool,

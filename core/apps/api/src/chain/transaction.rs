@@ -4,10 +4,9 @@ use rocket::{State, get};
 use crate::api_clients::PermissionChainRead;
 use crate::params::ChainParam;
 use crate::responders::{ApiError, ApiResponse};
+use chain_providers::TransactionIdRequest;
 use primitives::{Transaction, TransactionStateRequest, TransactionUpdate};
-use settings_chain::TransactionIdRequest;
-
-use super::ChainClient;
+use services::chain::ChainClient;
 
 #[get("/chain/transactions/<chain>/<hash>?<block_number>")]
 pub async fn get_transaction(_permission: PermissionChainRead, chain: ChainParam, hash: &str, block_number: Option<u64>, client: &State<ChainClient>) -> Result<ApiResponse<Option<Transaction>>, ApiError> {

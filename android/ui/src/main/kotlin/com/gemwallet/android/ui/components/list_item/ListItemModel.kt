@@ -39,7 +39,8 @@ import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
-import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetIcon
+import uniffi.gemstone.GemAssetIconImage
 
 data class ListItemModel(
     val title: String,
@@ -104,7 +105,9 @@ enum class ListItemTagType {
 sealed interface ListItemImage {
     val style: ListItemImageStyle
 
-    data class Asset(val assetId: AssetId) : ListItemImage {
+    data class Asset(val icon: GemAssetIcon) : ListItemImage {
+        constructor(chain: String) : this(GemAssetIcon(image = GemAssetIconImage.Local(chain), badge = null, placeholder = null))
+
         override val style: ListItemImageStyle = ListItemImageStyle.Avatar
     }
 
@@ -175,6 +178,7 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = model.titleLineLimit ?: Int.MAX_VALUE,
                 titleBadge = model.titleTag?.let { { TitleTag(it, model.titleTagStyle, model.titleTagType) } },
+                info = model.info,
             )
         },
         subtitle = model.titleExtra?.let {

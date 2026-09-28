@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "gem_jsonrpc/client"]
-indexer = ["rpc", "dep:gem_alchemy", "dep:gem_ankr", "dep:gem_blockscout"]
+indexer = ["rpc", "dep:alchemy", "dep:ankr", "dep:blockscout"]
 reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
 signer = ["dep:alloy-consensus", "dep:signer"]
 chain_integration_tests = ["indexer", "reqwest", "primitives/testkit", "settings/testkit"]
@@ -16,9 +16,9 @@ testkit = ["gem_client?/testkit", "gem_jsonrpc/testkit"]
 primitives = { path = "../primitives" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
-gem_alchemy = { path = "../gem_alchemy", features = ["rpc"], optional = true }
-gem_ankr = { path = "../gem_ankr", optional = true }
-gem_blockscout = { path = "../gem_blockscout", optional = true }
+alchemy = { path = "../alchemy", features = ["rpc"], optional = true }
+ankr = { path = "../ankr", optional = true }
+blockscout = { path = "../blockscout", optional = true }
 gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer", optional = true }
@@ -45,8 +45,8 @@ chain_traits = { path = "../chain_traits", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
-gem_ankr = { path = "../gem_ankr", features = ["testkit"] }
-gem_blockscout = { path = "../gem_blockscout", features = ["testkit"] }
+ankr = { path = "../ankr", features = ["testkit"] }
+blockscout = { path = "../blockscout", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 num-bigint = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }

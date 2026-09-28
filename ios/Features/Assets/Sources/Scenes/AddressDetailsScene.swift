@@ -5,21 +5,23 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 
-public struct AddressDetailsScene: View {
+struct AddressDetailsScene: View {
     @State private var model: AddressDetailsSceneViewModel
 
-    public init(model: AddressDetailsSceneViewModel) {
+    init(model: AddressDetailsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
-        ListSectionView(provider: model) { row in
-            GemListRowView(row: row)
+    var body: some View {
+        ListSectionView(sections: model.sections) { row in
+            GemListRowView(row: row, onCopy: model.onCopy)
         }
         .listSectionSpacing(.compact)
         .contentMargins([.top], .small, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .bindQuery(model.addressNameQuery)
+        .copyToast($model.copyToast)
         .refreshable {
             await model.refresh()
         }

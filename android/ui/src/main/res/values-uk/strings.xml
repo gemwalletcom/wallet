@@ -9,6 +9,7 @@
   <string name="common_copy">Скопіювати</string>
   <string name="common_share">Поділитися</string>
   <string name="common_continue">Продовжити</string>
+  <string name="common_continue_anyway">Усе одно продовжити</string>
   <string name="common_sign_in_with">Увійти через %1$s</string>
   <string name="common_provider">Провайдер</string>
   <string name="common_loading">Завантаження</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Опис</string>
   <string name="common_emoji">Емодзі</string>
   <string name="common_avatar">Аватар</string>
-  <string name="common_save">Зберегти</string>
   <string name="common_percentage">Відсоток</string>
   <string name="common_details">Деталі</string>
   <string name="common_info">Інформація</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Токен</string>
   <string name="common_expiration">Термін дії</string>
   <string name="common_suspicious_address">Підозріла адреса</string>
+  <string name="common_suspicious_address_description">Ця адреса пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="common_refresh">Оновити</string>
   <string name="common_grant_permission">Надати дозвіл</string>
   <string name="common_required_field">%1$s є обов\'язковим</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Портфоліо</string>
   <string name="wallet_import_already_imported_message">Цей гаманець вже імпортовано.</string>
   <string name="wallets_title">Гаманці</string>
-  <string name="wallets_watch">Дивитися</string>
-  <string name="receive_title">Отримати %1$s</string>
   <string name="receive_warning">Це ваша адреса - надсилайте тільки %1$s в мережі %2$s.</string>
   <string name="buy_title">Купити %1$s</string>
   <string name="buy_providers_title">Провайдери</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Аутентифікація</string>
   <string name="settings_notifications_title">Сповіщення</string>
   <string name="settings_language">Мова</string>
-  <string name="settings_help_center">Довідковий центр</string>
   <string name="settings_support">Підтримка</string>
   <string name="settings_price_alerts_title">Оповіщення про ціни</string>
   <string name="settings_hide_balance">Приховати баланс</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Не підтримуваний актив.</string>
   <string name="errors_connections_no_supported_wallets">Немає підтримуваних гаманців.</string>
   <string name="errors_connections_unsupported_chain">Наданий ланцюжок не підтримується.</string>
+  <string name="errors_authentication_unavailable">На цьому пристрої не налаштовано автентифікацію. Увімкніть біометрію або код-пароль у налаштуваннях пристрою.</string>
+  <string name="errors_authentication_locked_out">Забагато невдалих спроб. Будь ласка, спробуйте пізніше.</string>
+  <string name="errors_authentication_failed">Не вдалося пройти автентифікацію. Будь ласка, спробуйте ще раз.</string>
+  <string name="errors_connections_expired">Термін дії цього посилання для підключення минув. Отримайте новий QR-код і спробуйте ще раз.</string>
+  <string name="errors_connections_not_found">Цього підключення більше не існує.</string>
+  <string name="errors_connections_relay_unavailable">Не вдається зв\'язатися з WalletConnect. Перевірте підключення до інтернету і спробуйте ще раз.</string>
   <string name="errors_swap_amount_too_small">Сума занадто мала</string>
   <string name="errors_scan_transaction_malicious_description">Цю транзакцію неможливо завершити — адреса гаманця призначення пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адреса гаманця призначення вимагає тегу / мемо призначення</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">Купити %1$s</string>
   <string name="asset_get_asset">Отримати %1$s</string>
   <string name="asset_add_to_wallet">Додати до гаманця</string>
-  <string name="asset_hide_from_wallet">Приховати від гаманця</string>
   <string name="asset_added_to_wallet">Додано до гаманця</string>
   <string name="asset_hidden_from_wallet">Приховано з гаманця</string>
   <string name="asset_resources">Ресурси</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Зміна</string>
   <string name="date_today">Сьогодні</string>
   <string name="date_yesterday">Вчора</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Підключення</string>
   <string name="wallet_connect_disconnect">Відключити</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Швидко</string>
   <string name="fee_rates_normal">Нормальний</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свій</string>
   <string name="banner_account_activation_title">Плата за активацію рахунку</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Коли ціна знизиться на</string>
   <string name="price_alerts_set_alert_set_target_price">Встановити цільову ціну</string>
   <string name="price_alerts_set_alert_current_price">Поточна ціна</string>
-  <string name="price_alerts_added_for">Встановити сповіщення про ціну %1$s</string>
+  <string name="price_alerts_added_price_over">Сповіщення додано: ціна вище %1$s</string>
+  <string name="price_alerts_added_price_under">Сповіщення додано: ціна нижче %1$s</string>
+  <string name="price_alerts_added_increases_by">Сповіщення додано: зростання ціни на %1$s</string>
+  <string name="price_alerts_added_decreases_by">Сповіщення додано: падіння ціни на %1$s</string>
   <string name="price_alerts_state_empty_title">Ваші сповіщення про ціни з\'являтимуться тут</string>
   <string name="price_alerts_state_empty_description">Увімкніть їх, додавши монети до відстеження</string>
   <string name="price_alerts_auto_footer">Сповіщення спрацьовують у разі значних змін цін.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Поскаржитися</string>
   <string name="permissions_access_denied">Доступ заборонено</string>
   <string name="permissions_image_photo_access_denied_description">Ця програма не має дозволу на доступ до вашої бібліотеки фотографій. Увімкніть доступ у налаштуваннях пристрою.</string>
-  <string name="markets_title">Ринки</string>
-  <string name="markets_state_empty_title">Дані вашого ринку з\'являться тут</string>
   <string name="markets_daily_volume">24-годинний обсяг</string>
   <string name="search_state_empty_description">Перевірте орфографію або спробуйте новий пошук.</string>
   <string name="networks_state_empty_search_title">Мереж не знайдено</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Необмежене схвалення токенів</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Попередження безпеки</string>
+  <string name="rootcheck_jailbreak_body">Схоже, на вашому пристрої виконано джейлбрейк. Це може поставити під загрозу гаманець і кошти.</string>
   <string name="rootcheck_body">Схоже, ваш пристрій має кореневий доступ, що може значно збільшити ризики для безпеки. Використання цієї програми на пристрої з root-доступом може наражати ваші активи на несанкціонований доступ і потенційну втрату. Для безпеки ваших коштів ми наполегливо рекомендуємо використовувати пристрій без рутованих прав.</string>
   <string name="rootcheck_ignore">Ігнорувати</string>
   <string name="rootcheck_exit">Вихід</string>

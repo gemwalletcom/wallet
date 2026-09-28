@@ -1,7 +1,7 @@
 use chain_primitives::format_token_id;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
-    Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, WalletType,
+    Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, RequestError, WalletType,
     asset_constants::WORLD_WETH_TOKEN_ID,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID},
 };
@@ -36,7 +36,7 @@ impl FiatProviderAsset {
     pub fn asset_id(&self) -> Option<AssetId> {
         match self.clone().chain {
             Some(chain) => match &self.token_id {
-                Some(token_id) => format_token_id(chain, token_id.to_string()).map(|formatted_token_id| AssetId::from(chain, Some(formatted_token_id))),
+                Some(token_id) => format_token_id(chain, token_id.clone()).map(|formatted_token_id| AssetId::from(chain, Some(formatted_token_id))),
                 None => Some(chain.as_asset_id()),
             },
             None => None,
@@ -69,6 +69,13 @@ impl FiatDeviceContext {
             ip_address,
         }
     }
+
+    pub fn validate_wallet(&self) -> Result<(), RequestError> {
+        match self.wallet_type {
+            WalletType::View => Err(RequestError::Forbidden),
+            WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => Ok(()),
+        }
+    }
 }
 
 // used to filter out fiat tokens that have specific token ids for native coins
@@ -96,4 +103,15 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
         return format_token_id(chain, token_id);
     }
     token_id
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_wallet() {
+        assert_eq!(FiatDeviceContext::mock_with_wallet_type(WalletType::View).validate_wallet(), Err(RequestError::Forbidden));
+        assert_eq!(FiatDeviceContext::mock().validate_wallet(), Ok(()));
+    }
 }

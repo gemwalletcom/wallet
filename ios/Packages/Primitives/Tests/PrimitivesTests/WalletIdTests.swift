@@ -12,13 +12,6 @@ struct WalletIdTests {
     }
 
     @Test
-    func walletTypeAndChain() {
-        #expect(WalletId.multicoin(address: "0x123").walletType == .multicoin)
-        #expect(WalletId.multicoin(address: "0x123").chain == nil)
-        #expect(WalletId.single(chain: .ethereum, address: "0x456").chain == .ethereum)
-    }
-
-    @Test
     func fromId() throws {
         #expect(try WalletId.from(id: "multicoin_0x123") == .multicoin(address: "0x123"))
         #expect(try WalletId.from(id: "single_ethereum_0x456") == .single(chain: .ethereum, address: "0x456"))
@@ -43,6 +36,7 @@ struct WalletIdTests {
         let walletId = WalletId.multicoin(address: "0xabc")
         let data = try JSONEncoder().encode(walletId)
         let decoded = try JSONDecoder().decode(WalletId.self, from: data)
+        #expect(String(data: data, encoding: .utf8) == "\"multicoin_0xabc\"")
         #expect(decoded == walletId)
     }
 

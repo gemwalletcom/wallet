@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use jsonwebtoken::errors::{Error, ErrorKind};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use primitives::DeviceToken;
 use serde::{Deserialize, Serialize};
 
 const MIN_SECRET_LENGTH: usize = 32;
@@ -20,7 +21,7 @@ fn get_secret(secret: &str) -> Result<&str, Error> {
     Ok(secret)
 }
 
-pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> Result<(String, u64), jsonwebtoken::errors::Error> {
+pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> Result<DeviceToken, Error> {
     let secret = get_secret(secret)?;
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
     let expires_at = now + expiry.as_secs();
@@ -30,10 +31,10 @@ pub fn create_device_token(device_id: &str, secret: &str, expiry: Duration) -> R
         iat: now,
     };
     let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_bytes()))?;
-    Ok((token, expires_at))
+    Ok(DeviceToken { token, expires_at })
 }
 
-pub fn verify_device_token(token: &str, secret: &str) -> Result<JwtClaims, jsonwebtoken::errors::Error> {
+pub fn verify_device_token(token: &str, secret: &str) -> Result<JwtClaims, Error> {
     let secret = get_secret(secret)?;
     let token_data = decode::<JwtClaims>(token, &DecodingKey::from_secret(secret.as_bytes()), &Validation::new(Algorithm::HS256))?;
     Ok(token_data.claims)
@@ -49,11 +50,11 @@ mod tests {
     #[test]
     fn test_create_and_verify() {
         let device_id = "abc123";
-        let (token, expires_at) = create_device_token(device_id, TEST_SECRET, HOUR).unwrap();
-        let claims = verify_device_token(&token, TEST_SECRET).unwrap();
+        let device_token = create_device_token(device_id, TEST_SECRET, HOUR).unwrap();
+        let claims = verify_device_token(&device_token.token, TEST_SECRET).unwrap();
 
         assert_eq!(claims.sub, device_id);
-        assert_eq!(claims.exp, expires_at);
+        assert_eq!(claims.exp, device_token.expires_at);
         assert_eq!(claims.exp - claims.iat, 3600);
     }
 
@@ -78,8 +79,8 @@ mod tests {
 
     #[test]
     fn test_wrong_secret() {
-        let (token, _) = create_device_token("device1", TEST_SECRET, HOUR).unwrap();
-        assert!(verify_device_token(&token, "wrong_secret_key_123456789012345").is_err());
+        let device_token = create_device_token("device1", TEST_SECRET, HOUR).unwrap();
+        assert!(verify_device_token(&device_token.token, "wrong_secret_key_123456789012345").is_err());
     }
 
     #[test]

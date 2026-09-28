@@ -22,6 +22,7 @@ pub struct TestAlienProvider {
     by_path: Vec<(String, Arc<AlienResponse>)>,
     by_request_type: Vec<(String, Arc<AlienResponse>)>,
     requested: Mutex<Vec<String>>,
+    requested_types: Mutex<Vec<String>>,
     error: Option<AlienError>,
 }
 
@@ -32,6 +33,7 @@ impl TestAlienProvider {
             by_path: Vec::new(),
             by_request_type: Vec::new(),
             requested: Mutex::new(Vec::new()),
+            requested_types: Mutex::new(Vec::new()),
             error: None,
         }
     }
@@ -68,6 +70,10 @@ impl TestAlienProvider {
     pub fn requested_paths(&self) -> Vec<String> {
         self.requested.lock().unwrap().clone()
     }
+
+    pub fn requested_types(&self) -> Vec<String> {
+        self.requested_types.lock().unwrap().clone()
+    }
 }
 
 #[async_trait]
@@ -80,6 +86,7 @@ impl AlienProvider for TestAlienProvider {
         }
         if !self.by_request_type.is_empty() {
             let body: Value = serde_json::from_slice(target.body.as_deref().unwrap()).unwrap();
+            self.requested_types.lock().unwrap().extend(body["type"].as_str().map(str::to_string));
             return Ok(self
                 .by_request_type
                 .iter()

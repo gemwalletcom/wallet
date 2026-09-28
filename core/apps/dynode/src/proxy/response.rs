@@ -39,11 +39,7 @@ impl ProxyResponse {
     }
 
     pub(crate) fn with_content_type(status: u16, body: Vec<u8>, content_type: &str) -> Self {
-        let content_type = if content_type == JSON_CONTENT_TYPE {
-            JSON_HEADER.clone()
-        } else {
-            HeaderValue::from_str(content_type).unwrap_or_else(|_| JSON_HEADER.clone())
-        };
+        let content_type = if content_type == JSON_CONTENT_TYPE { JSON_HEADER } else { HeaderValue::from_str(content_type).unwrap_or(JSON_HEADER) };
         Self::new(status, HeaderMap::from_iter([(CONTENT_TYPE, content_type)]), body)
     }
 

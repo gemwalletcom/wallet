@@ -1,0 +1,53 @@
+[package]
+name = "services"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+async-trait = { workspace = true }
+chrono = { workspace = true }
+cacher = { path = "../cacher" }
+chain_providers = { path = "../chain_providers" }
+chain_traits = { path = "../chain_traits" }
+coingecko = { path = "../coingecko" }
+config_keys = { path = "../config_keys" }
+defi = { path = "../defi" }
+fiat = { path = "../fiat" }
+futures = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client", "reqwest"] }
+gem_tracing = { path = "../gem_tracing" }
+hex = { workspace = true }
+hmac = { workspace = true }
+in_app_notifications = { path = "../in_app_notifications" }
+job_runner = { path = "../job_runner" }
+lists = { path = "../lists" }
+localizer = { path = "../localizer" }
+nft = { path = "../nft" }
+num-bigint = { workspace = true }
+number_formatter = { path = "../number_formatter" }
+prices = { path = "../prices" }
+primitives = { path = "../primitives" }
+push_notification = { path = "../push_notification" }
+reqwest = { workspace = true }
+pusher = { path = "../pusher" }
+rewards = { path = "../rewards" }
+search_index = { path = "../search_index" }
+security = { path = "../security" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+settings = { path = "../settings" }
+sha2 = { workspace = true }
+storage = { path = "../storage" }
+streamer = { path = "../streamer" }
+strum = { workspace = true }
+support = { path = "../support" }
+swapper = { path = "../swapper", features = ["reqwest_provider"] }
+tokio = { workspace = true, features = ["sync"] }
+uuid = { workspace = true }
+
+[dev-dependencies]
+storage = { path = "../storage", features = ["testkit"] }
+gem_solana = { path = "../gem_solana", features = ["rpc"] }
+primitives = { path = "../primitives", features = ["testkit"] }

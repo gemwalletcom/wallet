@@ -40,7 +40,7 @@ impl<C: Client> TronClient<C> {
 
     pub async fn get_transaction_receipt(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
         let response: serde_json::Value = self.client.get(TronTarget::GetTransactionInfoById { id }).await?;
-        if response.as_object().is_some_and(|object| object.is_empty()) {
+        if response.as_object().is_some_and(serde_json::Map::is_empty) {
             return Ok(None);
         }
         Ok(Some(serde_json::from_value(response)?))

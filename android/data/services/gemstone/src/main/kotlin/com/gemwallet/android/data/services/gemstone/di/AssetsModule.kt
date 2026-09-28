@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.PricesDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
@@ -38,13 +38,14 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemBalanceStore
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNavigationService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNftService
@@ -66,6 +67,7 @@ import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
@@ -107,7 +109,6 @@ object AssetsModule {
         notificationService: GemNotificationService,
         supportService: GemSupportService,
         subscriptions: GemStreamSubscriptionService,
-        preferences: GemPreferencesService,
         session: GemWalletSessionService,
         device: GemDeviceService,
     ): GemStreamService = GemStreamService(
@@ -121,7 +122,6 @@ object AssetsModule {
         notificationService,
         supportService,
         subscriptions,
-        preferences,
         session,
         device,
     )
@@ -153,11 +153,18 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideStreamObserverService(getSession: GetSession, streamService: GemStreamServiceInterface, connection: WebSocketConnectable, streamHealth: ConnectionComponentHealth): StreamObserverService = StreamObserverService(
+    fun provideStreamObserverService(
+        getSession: GetSession,
+        streamService: GemStreamServiceInterface,
+        connection: WebSocketConnectable,
+        streamHealth: ConnectionComponentHealth,
+        connectionService: GemConnectionServiceInterface,
+    ): StreamObserverService = StreamObserverService(
         getSession = getSession,
         service = streamService,
         connection = connection,
         health = streamHealth,
+        connectionService = connectionService,
     )
 
     @Provides
@@ -208,7 +215,7 @@ object AssetsModule {
         GemReceiveService(balanceService, assetsService, recentActivityService)
 
     @Provides
-    fun provideGemAddressDetailsService(gateway: GemGateway, explorerService: GemExplorerService, nameService: GemNameService): GemAddressDetailsServiceInterface = GemAddressDetailsService(gateway, explorerService, nameService)
+    fun provideGemAddressDetailsService(apiClient: GemDeviceApiClient, explorerService: GemExplorerService): GemAddressDetailsServiceInterface = GemAddressDetailsService(apiClient, explorerService)
 
     @Provides
     fun provideGemAddAssetService(assetsService: GemAssetsService, balanceService: GemBalanceService, explorerService: GemExplorerService): GemAddAssetServiceInterface = GemAddAssetService(assetsService, balanceService, explorerService)
@@ -219,7 +226,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemPriceService(priceStore: GemstonePriceStore): GemPriceService = GemPriceService(priceStore)
+    fun provideGemPriceService(priceStore: GemstonePriceStore, preferences: GemPreferencesService): GemPriceService = GemPriceService(priceStore, preferences)
 
     @Provides
     fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service
@@ -229,7 +236,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemNavigationService(assets: GemAssetsService, session: GemWalletSessionService): GemNavigationService = GemNavigationService(assets, session)
+    fun provideGemNavigationService(assets: GemAssetsService, session: GemWalletSessionService, transactionState: GemTransactionStateService): GemNavigationService = GemNavigationService(assets, session, transactionState)
 
     @Provides
     fun provideGemNavigationServiceInterface(service: GemNavigationService): GemNavigationServiceInterface = service

@@ -1,19 +1,8 @@
 import Foundation
 
-public extension Character {
-    static let space: Character = " "
-}
-
 public extension String {
     static let zero = "0"
     static let empty = ""
-
-    var remove0x: String {
-        if count >= 2, starts(with: "0x") {
-            return String(dropFirst(2))
-        }
-        return self
-    }
 
     var asURL: URL? {
         URL(string: self)
@@ -25,10 +14,6 @@ public extension String {
 
     var preventingHyphenation: String {
         map { String($0) }.joined(separator: "\u{200B}")
-    }
-
-    func index(from: Int) -> Index {
-        index(startIndex, offsetBy: from)
     }
 
     func trim() -> String {

@@ -1,6 +1,6 @@
 use crate::models::custom_types::GemBigInt;
 use crate::services::failures::StepFailure;
-use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, Wallet};
+use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, WalletId};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionStateUpdate {
@@ -36,7 +36,7 @@ pub struct GemTransactionStateResult {
     pub failures: Vec<GemPostProcessingFailure>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemPostProcessingStep {
     Balances,
     Stake,
@@ -52,7 +52,7 @@ pub struct GemPostProcessingFailure {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemPendingTransaction {
-    pub wallet: Wallet,
+    pub wallet_id: WalletId,
     pub transaction: Transaction,
 }
 

@@ -1,12 +1,15 @@
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import struct Gemstone.GemWalletImportScreen
-import struct Gemstone.GemWalletImportSession
 import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.phraseSuggestions
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -17,60 +20,58 @@ import SwiftUI
 @MainActor
 final class ImportWalletSceneViewModel {
     private let service: any GemWalletServiceProtocol
-    let preferences: ObservablePreferences
     let type: ImportWalletType
+    private let importScreen: GemWalletImportScreen
 
-    private(set) var session = GemWalletImportSession(kind: .phrase, text: "", cursor: nil, isImporting: false)
-    let nameRecordViewModel: NameRecordViewModel?
+    var input: String = "" {
+        didSet { refreshSuggestions() }
+    }
+
+    var inputCursor: Int? {
+        didSet { refreshSuggestions() }
+    }
+
+    var importType: GemWalletImportKind = .phrase {
+        didSet {
+            input = ""
+            inputCursor = nil
+            isImporting = false
+        }
+    }
+
+    private(set) var wordsSuggestion: [String] = []
+    private var isImporting = false
+    let nameRecordViewModel: NameRecordViewModel
 
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
-    var isPresentingExistingWalletName: String?
+    var isPresentingExistingWallet: GemInfoSheet?
 
     private let onComplete: VoidAction
 
     init(
         service: any GemWalletServiceProtocol,
-        preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: VoidAction,
     ) {
         self.service = service
-        self.preferences = preferences
         self.type = type
+        importScreen = service.importScreen(chain: type.chain?.toGem())
         self.onComplete = onComplete
-        nameRecordViewModel = switch type {
-        case .multicoin: nil
-        case .chain: NameRecordViewModel(nameService: nameService)
-        }
+        nameRecordViewModel = NameRecordViewModel(nameService: nameService)
     }
 
     var title: String {
         importScreen.title.text
     }
 
-    var input: String {
-        get { session.text }
-        set { session = session.onInputChanged(text: newValue, cursor: session.cursor) }
-    }
-
-    var inputCursor: Int? {
-        get { session.cursor.map { Int($0) } }
-        set { session = session.onInputChanged(text: session.text, cursor: newValue.map { UInt32($0) }) }
-    }
-
-    var importType: GemWalletImportKind {
-        get { session.kind }
-        set { session = session.onKindChanged(kind: newValue) }
-    }
-
-    var wordsSuggestion: [String] {
-        session.suggestions()
+    var showsPhraseSuggestions: Bool {
+        wordsSuggestion.isNotEmpty
     }
 
     var buttonState: ButtonState {
-        session.isImporting ? .loading(showProgress: true) : .normal
+        isImporting ? .loading(showProgress: true) : .normal
     }
 
     var pasteButtonTitle: String {
@@ -93,23 +94,12 @@ final class ImportWalletSceneViewModel {
         Localized.Errors.validation("")
     }
 
-    var chain: Chain? {
-        switch type {
-        case .multicoin: .none
-        case let .chain(chain): chain
-        }
-    }
-
     var showImportTypes: Bool {
         importScreen.showsKinds
     }
 
     var importTypes: [GemWalletImportKind] {
         importScreen.kinds
-    }
-
-    private var importScreen: GemWalletImportScreen {
-        service.importScreen(chain: chain?.toGem())
     }
 
     var footerText: String? {
@@ -123,26 +113,30 @@ final class ImportWalletSceneViewModel {
     var shouldProtectInput: Bool {
         importType.protectsInput()
     }
+
+    var showsNameRecord: Bool {
+        importType.resolvesNames()
+    }
 }
 
 // MARK: - Business Logic
 
 extension ImportWalletSceneViewModel {
     func onChangeInput(_: String, newValue: String) {
-        if importType.resolvesNames(), let chain {
-            nameRecordViewModel?.getNameRecord(name: newValue, chain: chain)
+        if showsNameRecord, let chain = type.chain {
+            nameRecordViewModel.getNameRecord(name: newValue, chain: chain)
         } else {
-            nameRecordViewModel?.reset()
+            nameRecordViewModel.reset()
         }
     }
 
     func onSelectActionButton() async {
-        session = session.onImporting(isImporting: true)
+        isImporting = true
 
         do {
             try await importWallet()
         } catch {
-            session = session.onImporting(isImporting: false)
+            isImporting = false
             isPresentingAlertMessage = AlertMessage(title: alertTitle, error: error)
         }
     }
@@ -152,11 +146,13 @@ extension ImportWalletSceneViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        session = session.onInputChanged(text: result, cursor: nil)
+        input = result
+        inputCursor = nil
     }
 
     func onSelectWord(_ word: String) {
-        session = session.onSuggestionSelected(word: word)
+        input = String(input.dropLast(lastWord.count)) + word + " "
+        inputCursor = input.utf16.count
     }
 
     func onPaste() {
@@ -164,10 +160,11 @@ extension ImportWalletSceneViewModel {
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             return
         }
-        session = session.onInputChanged(text: string.trim(), cursor: nil)
+        input = string.trim()
+        inputCursor = nil
 
         if shouldProtectInput {
-            CopyTypeViewModel.clearClipboard()
+            Clipboard.clear()
         }
     }
 
@@ -182,15 +179,33 @@ extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
         let result = try await service.importWallet(
             kind: importType,
-            chain: chain,
+            chain: type.chain,
             input: input,
-            nameRecord: nameRecordViewModel?.state.record(),
+            nameRecord: showsNameRecord ? nameRecordViewModel.state.record() : nil,
             source: .import,
         )
-        session = session.onImporting(isImporting: false)
+        isImporting = false
         switch result {
         case .new: onComplete?()
-        case let .existing(wallet): isPresentingExistingWalletName = wallet.name
+        case let .existing(wallet): isPresentingExistingWallet = GemInfoTopic.existingWalletImported(name: wallet.name).infoSheet
         }
+    }
+}
+
+extension ImportWalletSceneViewModel {
+    private var lastWord: String {
+        input.split(omittingEmptySubsequences: false, whereSeparator: \.isWhitespace).last.map(String.init) ?? ""
+    }
+
+    private var isTypingLastWord: Bool {
+        inputCursor.map { $0 >= input.utf16.count } ?? true
+    }
+
+    private func refreshSuggestions() {
+        guard importType.supportsPhraseSuggestions(), isTypingLastWord else {
+            wordsSuggestion = []
+            return
+        }
+        wordsSuggestion = phraseSuggestions(word: lastWord)
     }
 }

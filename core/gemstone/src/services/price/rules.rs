@@ -120,7 +120,7 @@ mod observable_tests {
     #[test]
     fn test_rate_or_base_only_defaults_usd() {
         let stored = FiatRate { symbol: Currency::EUR, rate: 0.9 };
-        assert_eq!(rate_or_base(Currency::EUR, Some(stored.clone())).map(|rate| rate.rate), Some(0.9));
+        assert_eq!(rate_or_base(Currency::EUR, Some(stored)).map(|rate| rate.rate), Some(0.9));
         assert_eq!(rate_or_base(Currency::USD, None).map(|rate| rate.rate), Some(1.0));
         assert!(rate_or_base(Currency::EUR, None).is_none());
     }
@@ -153,7 +153,7 @@ mod observable_tests {
         assert_eq!(changed.iter().map(|update| update.asset_id.clone()).collect::<Vec<_>>(), vec![bitcoin, ethereum]);
 
         let solana = AssetId::from_chain(primitives::Chain::Solana);
-        let changed = changed_prices(stored, vec![GemPriceUpdate::mock(solana.clone(), 10.0, 0.0)]);
+        let changed = changed_prices(stored, vec![GemPriceUpdate::mock(solana, 10.0, 0.0)]);
         assert_eq!(changed.len(), 1);
     }
 

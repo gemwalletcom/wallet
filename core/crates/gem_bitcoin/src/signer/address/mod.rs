@@ -1,5 +1,6 @@
 mod bitcoin;
 mod bitcoin_cash;
+mod dash;
 mod doge;
 mod litecoin;
 mod script;
@@ -8,6 +9,7 @@ mod zcash;
 use primitives::{BitcoinChain, SignerError};
 
 pub(crate) use crate::hash::public_key_hash;
+pub(crate) use dash::P2PKH_VERSIONS as DASH_P2PKH_PREFIX;
 pub(crate) use doge::P2PKH_VERSIONS as DOGE_P2PKH_PREFIX;
 pub(crate) use litecoin::HRP as LITECOIN_HRP;
 use script::AddressScript;
@@ -19,6 +21,7 @@ pub(crate) fn script_for_address(chain: BitcoinChain, address: &str) -> Result<A
         BitcoinChain::Bitcoin => bitcoin::script(address),
         BitcoinChain::Litecoin => litecoin::script(address),
         BitcoinChain::Doge => doge::script(address),
+        BitcoinChain::Dash => dash::script(address),
         BitcoinChain::BitcoinCash => bitcoin_cash::script(address),
         BitcoinChain::Zcash => zcash::script(address),
     }
@@ -177,6 +180,29 @@ mod tests {
         ];
         for case in &cases {
             case.assert(BitcoinChain::Doge);
+        }
+    }
+
+    #[test]
+    fn test_script_for_address_dash() {
+        let cases = [
+            AddressScriptCase {
+                address: "XfcbSaK1dtEe6GmNRE5pMS3WYpoJ2D1BDm",
+                locking_script: LockingScript::P2pkh,
+                unlocking_script: Some(UnlockingScript::P2pkh),
+                script_pubkey: "76a914360af3ba8bf00e6c4b5177f54b643a330ca3a5a688ac",
+                public_key_hash: Some("360af3ba8bf00e6c4b5177f54b643a330ca3a5a6"),
+            },
+            AddressScriptCase {
+                address: "7ZP95chHTmQwnjXmsVN8fSevZDq6ugQGA8",
+                locking_script: LockingScript::P2sh,
+                unlocking_script: None,
+                script_pubkey: "a9144c7fb1884393f7c00b6ca90f1ae6f55f4c03f5bb87",
+                public_key_hash: None,
+            },
+        ];
+        for case in &cases {
+            case.assert(BitcoinChain::Dash);
         }
     }
 

@@ -37,3 +37,27 @@ lower = "{} / 1000"
 type_name = "Date"
 lift = "Date(timeIntervalSince1970: TimeInterval({}))"
 lower = "Int64({}.timeIntervalSince1970)"
+
+[bindings.swift.custom_types.PerpetualId]
+type_name = "Primitives.PerpetualId"
+imports = ["Primitives"]
+lift = "Primitives.PerpetualId(core: {})"
+lower = "{}.identifier"
+
+[bindings.swift.custom_types.TransactionId]
+type_name = "Primitives.TransactionId"
+imports = ["Primitives"]
+lift = "Primitives.TransactionId(core: {})"
+lower = "{}.identifier"
+
+[bindings.swift.custom_types.WalletId]
+type_name = "Primitives.WalletId"
+imports = ["Primitives"]
+lift = "Primitives.WalletId(core: {})"
+lower = "{}.identifier"
+
+[bindings.swift.custom_types.AssetId]
+type_name = "Primitives.AssetId"
+imports = ["Primitives"]
+lift = "Primitives.AssetId(core: {})"
+lower = "{}.identifier"

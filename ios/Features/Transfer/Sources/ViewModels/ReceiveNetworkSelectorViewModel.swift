@@ -5,10 +5,10 @@ import Localization
 import Primitives
 
 struct ReceiveNetworkSelectorViewModel: SelectableListAdoptable, SelectableListNavigationAdoptable {
-    typealias Item = ReceiveNetworkItem
+    typealias Item = AssetId
 
-    let state: StateViewType<SelectableListType<ReceiveNetworkItem>>
-    var selectedItems: Set<ReceiveNetworkItem>
+    let state: StateViewType<SelectableListType<AssetId>>
+    var selectedItems: Set<AssetId>
     let selectionType: SelectionType
 
     var title: String {
@@ -16,13 +16,12 @@ struct ReceiveNetworkSelectorViewModel: SelectableListAdoptable, SelectableListN
     }
 
     init(assetIds: [AssetId]) {
-        let items = assetIds.map(ReceiveNetworkItem.init)
-        self.init(state: .data(.plain(items)))
+        self.init(state: .data(.plain(assetIds)))
     }
 
     init(
-        state: StateViewType<SelectableListType<ReceiveNetworkItem>>,
-        selectedItems: [ReceiveNetworkItem] = [],
+        state: StateViewType<SelectableListType<AssetId>>,
+        selectedItems: [AssetId] = [],
         selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state

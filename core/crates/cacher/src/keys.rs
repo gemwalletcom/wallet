@@ -1,8 +1,6 @@
 use config_keys::{RateLimitKey, RateLimitWindow};
+use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
-const SECONDS_PER_MINUTE: u64 = 60;
-const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;
-const SECONDS_PER_DAY: u64 = 24 * 60 * 60;
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
 pub enum CacheKey<'a> {
@@ -23,13 +21,12 @@ pub enum CacheKey<'a> {
     FetchAssets(&'a str),
     FetchNftAsset(&'a str),
     Price(&'a str),
-    PricerCoinInfo(&'a str),
     PriceMetadata(&'a str, u64),
     PriceMissingMapping(&'a str, &'a str, u64),
 
     // Fiat keys
     FiatRates,
-    FiatQuote(i32, i32, &'a str, &'a str),
+    FiatQuote(i32, i32, &'a str),
     FiatIpCheck(&'a str),
 
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
@@ -42,8 +39,6 @@ pub enum CacheKey<'a> {
 
     // Status keys
     JobStatus(&'a str),
-    ConsumerStatus(&'a str),
-    ParserStatus(&'a str),
 
     // Pricer keys
     Markets,
@@ -69,6 +64,9 @@ pub enum CacheKey<'a> {
     PendingTransactions(&'a str),
     TransactionFeeEstimates(&'a str),
     TransactionFeeEstimatesFresh(&'a str),
+
+    // Security scan keys (scan type, target, ttl)
+    ScanSafe(&'a str, &'a str, u64),
 }
 
 impl CacheKey<'_> {
@@ -85,18 +83,15 @@ impl CacheKey<'_> {
             Self::FetchAssets(asset_id) => format!("fetch:assets:{}", asset_id),
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
-            Self::PricerCoinInfo(coin_id) => format!("pricer:coin_info:{}", coin_id),
             Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
             Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
-            Self::FiatQuote(device_id, wallet_id, ip_address, quote_id) => format!("fiat:quote:{}:{}:{}:{}", device_id, wallet_id, ip_address, quote_id),
+            Self::FiatQuote(device_id, wallet_id, quote_id) => format!("fiat:quote:{}:{}:{}", device_id, wallet_id, quote_id),
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
-            Self::ConsumerStatus(name) => format!("consumers:status:{}", name),
-            Self::ParserStatus(chain) => format!("parser:status:{}", chain),
             Self::Markets => "markets:markets".to_string(),
             Self::ObservedAssets => "pricer:observed_assets".to_string(),
             Self::SwapDepositAddresses(provider) => format!("swap:deposit_addresses:{}", provider),
@@ -110,12 +105,13 @@ impl CacheKey<'_> {
             Self::PendingTransactions(chain) => format!("transactions:pending:{}", chain),
             Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:{}", chain),
             Self::TransactionFeeEstimatesFresh(chain) => format!("transactions:fee_estimates:fresh:{}", chain),
+            Self::ScanSafe(scan_type, target, _) => format!("scan:safe:{}:{}", scan_type, target),
         }
     }
 
     pub fn ttl(&self) -> u64 {
         match self {
-            Self::ReferralIpCheck(_) => 30 * SECONDS_PER_DAY,
+            Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
             Self::DeviceStreamEvents(_, ttl) => *ttl,
             Self::FetchCoinAddresses(_, _) => 7 * SECONDS_PER_DAY,
@@ -126,17 +122,14 @@ impl CacheKey<'_> {
             Self::FetchAssets(_) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
-            Self::PricerCoinInfo(_) => SECONDS_PER_DAY,
             Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
-            Self::FiatQuote(_, _, _, _) => 5 * SECONDS_PER_MINUTE,
+            Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
-            Self::ConsumerStatus(_) => 7 * SECONDS_PER_DAY,
-            Self::ParserStatus(_) => 7 * SECONDS_PER_DAY,
             Self::Markets => SECONDS_PER_DAY,
             Self::ObservedAssets => 2 * SECONDS_PER_MINUTE,
             Self::SwapDepositAddresses(_) => 7 * SECONDS_PER_DAY,
@@ -150,6 +143,7 @@ impl CacheKey<'_> {
             Self::PendingTransactions(_) => 30 * SECONDS_PER_DAY,
             Self::TransactionFeeEstimates(_) => 5 * SECONDS_PER_YEAR,
             Self::TransactionFeeEstimatesFresh(_) => SECONDS_PER_HOUR,
+            Self::ScanSafe(_, _, ttl) => *ttl,
         }
     }
 }
@@ -163,5 +157,25 @@ mod tests {
         let key = CacheKey::FetchTransaction("ethereum", "0x123");
         assert_eq!(key.key(), "fetch:transaction:ethereum:0x123");
         assert_eq!(key.ttl(), 30 * SECONDS_PER_DAY);
+    }
+
+    #[test]
+    fn test_scan_safe() {
+        let key = CacheKey::ScanSafe("website", "example.com", 3600);
+        assert_eq!(key.key(), "scan:safe:website:example.com");
+        assert_eq!(key.ttl(), 3600);
+    }
+
+    #[test]
+    fn test_fiat_quote() {
+        let key = CacheKey::FiatQuote(1, 2, "quote");
+        assert_eq!(key.key(), "fiat:quote:1:2:quote");
+        assert_eq!(key.ttl(), 15 * 60);
+    }
+
+    #[test]
+    fn test_ip_checks_last_one_day() {
+        assert_eq!(CacheKey::ReferralIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
+        assert_eq!(CacheKey::FiatIpCheck("1.1.1.1").ttl(), SECONDS_PER_DAY);
     }
 }

@@ -7,7 +7,7 @@ use crate::sql_types::PriceProviderRow;
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::prices_providers)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PriceProviderConfigRow {
+pub(crate) struct PriceProviderConfigRow {
     pub id: PriceProviderRow,
     pub enabled: bool,
     pub priority: i32,

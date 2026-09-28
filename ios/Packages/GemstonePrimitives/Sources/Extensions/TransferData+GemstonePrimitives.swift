@@ -14,16 +14,6 @@ public extension GemTransferData {
         asset.chain
     }
 
-    var invoice: PaymentInvoice? {
-        guard case let .payment(_, invoice, _) = inputType else { return nil }
-        return invoice
-    }
-
-    var applicationMetadata: Primitives.ApplicationMetadata? {
-        guard case let .generic(_, metadata, _) = inputType else { return nil }
-        return metadata.toPrimitives()
-    }
-
     var id: String {
         identifier()
     }

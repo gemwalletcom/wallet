@@ -2,27 +2,21 @@
 
 import Components
 import Foundation
-import GemstonePrimitives
+import enum Gemstone.GemChainsFilterSummary
 import Localization
+import Primitives
 import Style
 import SwiftUI
 
 public struct ChainsFilterTypeViewModel: FilterTypeRepresentable {
-    private let type: ChainsFilterType
+    private let summary: GemChainsFilterSummary
 
-    public init(type: ChainsFilterType) {
-        self.type = type
+    public init(summary: GemChainsFilterSummary) {
+        self.summary = summary
     }
 
     public var value: String {
-        switch type {
-        case .allChains:
-            Localized.Common.all
-        case let .chain(chain):
-            chain.networkName
-        case let .chains(selected):
-            "\(selected.count)"
-        }
+        summary.text
     }
 
     public var title: String {

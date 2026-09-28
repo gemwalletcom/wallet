@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 
-use gem_ankr::Client as AnkrClient;
+use ankr::Client as AnkrClient;
 use gem_client::Client as Transport;
 use num_bigint::BigUint;
 
@@ -26,7 +26,7 @@ impl<C: Transport + Clone> EVMIndexerClient for AnkrClient<C> {
 
 #[cfg(test)]
 mod tests {
-    use gem_ankr::testkit::{ACCOUNT_BALANCE, TOKEN_TRANSFERS, TRANSACTIONS};
+    use ankr::testkit::{ACCOUNT_BALANCE, TOKEN_TRANSFERS, TRANSACTIONS};
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use serde_json::{Value, from_str};
 

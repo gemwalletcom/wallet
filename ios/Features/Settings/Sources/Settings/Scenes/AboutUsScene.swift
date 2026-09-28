@@ -6,16 +6,17 @@ import Style
 import SwiftUI
 
 public struct AboutUsScene: View {
-    @State private var model: AboutUsViewModel
+    @State private var model: AboutUsSceneViewModel
 
-    public init(model: AboutUsViewModel) {
+    public init(model: AboutUsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
-            GemListRowView(row: row)
-                .contextMenu(model.contextMenuItems(for: row))
+        let viewState = model.viewState
+        return ListSectionView(sections: viewState.sections.listSections) { row in
+            GemListRowView(row: row.row)
+                .contextMenu(model.contextMenuItems(for: row.row, viewState: viewState))
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listStyle(.insetGrouped)

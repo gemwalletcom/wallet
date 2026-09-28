@@ -13,7 +13,7 @@ impl<'r> FromRequest<'r> for VersionParam {
 
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         match request.guard::<AuthenticatedDevice>().await {
-            Outcome::Success(auth) => match auth.device_row.version.parse::<Version>() {
+            Outcome::Success(auth) => match auth.record.device.version.parse::<Version>() {
                 Ok(version) => Outcome::Success(Self(version)),
                 Err(error) => Outcome::Error((Status::BadRequest, error.to_string())),
             },

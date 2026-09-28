@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
+use chain_providers::BroadcastProviders;
 use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
 use reqwest::Method;
 use reqwest::header::{HOST, HeaderMap, USER_AGENT};
 use rocket::http::Status;
-use settings_chain::BroadcastProviders;
 use url::Url;
 use uuid::Uuid;
 

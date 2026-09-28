@@ -87,7 +87,7 @@ public enum Scenes {
         }
     }
 
-    public struct WalletSelectImage: Hashable, Codable {
+    public struct WalletImage: Hashable, Codable {
         public let wallet: Wallet
 
         public init(wallet: Wallet) {
@@ -95,7 +95,7 @@ public enum Scenes {
         }
     }
 
-    public struct Price: Hashable, Codable {
+    public struct Chart: Hashable, Codable {
         public let asset: Primitives.Asset
 
         public init(asset: Primitives.Asset) {
@@ -167,7 +167,7 @@ public enum Scenes {
         }
     }
 
-    public struct Referral: Hashable, Codable {
+    public struct Rewards: Hashable, Codable {
         public let code: String?
 
         public init(code: String? = nil) {
@@ -188,20 +188,18 @@ public enum Scenes {
     }
 
     public struct Transaction: Hashable, Codable {
-        public let transaction: TransactionExtended
+        public let id: TransactionId
 
-        public init(transaction: TransactionExtended) {
-            self.transaction = transaction
+        public init(id: TransactionId) {
+            self.id = id
         }
     }
 
     public struct AssetPriceAlert: Hashable, Codable {
         public let asset: Primitives.Asset
-        public let price: Double?
 
-        public init(asset: Primitives.Asset, price: Double? = nil) {
+        public init(asset: Primitives.Asset) {
             self.asset = asset
-            self.price = price
         }
     }
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.screen
 
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -18,7 +19,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.theme.middlePadding
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -43,6 +48,33 @@ fun rememberSnackbarState(message: String?, @DrawableRes iconRes: Int, onShown: 
     }
     return snackbarHostState
 }
+
+@Composable
+fun rememberSnackbarState(message: RouteMessage?, onShown: () -> Unit): SnackbarHostState {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it, context)
+            onShown()
+        }
+    }
+    return snackbarHostState
+}
+
+suspend fun SnackbarHostState.showSnackbar(message: RouteMessage, context: Context): SnackbarResult = showSnackbar(message.text(context), message.iconRes)
+
+fun RouteMessage.text(context: Context): String = when (this) {
+    is RouteMessage.Toast -> text
+    is RouteMessage.Error -> error.text(context)
+}
+
+@get:DrawableRes
+private val RouteMessage.iconRes: Int
+    get() = when (this) {
+        is RouteMessage.Toast -> R.drawable.ic_notifications
+        is RouteMessage.Error -> R.drawable.ic_error
+    }
 
 @Composable
 fun SnackbarHost(hostState: SnackbarHostState) {

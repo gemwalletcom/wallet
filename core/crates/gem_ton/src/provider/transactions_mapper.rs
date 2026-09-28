@@ -6,6 +6,7 @@ use crate::models::{
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
 
@@ -67,13 +68,14 @@ struct TransferDetails {
     transaction_type: TransactionType,
     memo: Option<String>,
     metadata: Option<serde_json::Value>,
+    contract: Option<String>,
 }
 
 fn map_root_trace_transaction(trace: Trace) -> Option<Transaction> {
     let state = if trace.is_incomplete || trace.has_actions() { Some(trace.action_state()) } else { None };
     let root = trace.root_transaction()?;
 
-    let details = jetton_swap_details(&trace.actions)
+    let details = jetton_swap_details(&trace.actions, root)
         .or_else(|| nft_transfer_details(&trace.actions))
         .or_else(|| jetton_transfer_details(&trace.actions))
         .or_else(|| simple_transfer_details(root))?;
@@ -92,7 +94,7 @@ fn build_transaction(message: &TransactionMessage, state: Option<TransactionStat
         details.asset_id,
         details.from,
         details.to,
-        None,
+        details.contract,
         details.transaction_type,
         state,
         message.total_fees.clone(),
@@ -117,8 +119,9 @@ fn jetton_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         to: parse_address(&details.receiver)?,
         value: details.amount.clone(),
         transaction_type: TransactionType::Transfer,
-        memo: details.comment.filter(|comment| !comment.is_empty()),
+        memo: details.comment.non_empty(),
         metadata: None,
+        contract: None,
     })
 }
 
@@ -135,12 +138,13 @@ fn nft_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         to: details.new_owner.encode_non_bounceable(),
         value: BigUint::from(0u32),
         transaction_type: TransactionType::TransferNFT,
-        memo: details.comment.filter(|comment| !comment.is_empty()),
+        memo: details.comment.non_empty(),
         metadata: Some(metadata_value),
+        contract: None,
     })
 }
 
-fn jetton_swap_details(actions: &[TraceAction]) -> Option<TransferDetails> {
+fn jetton_swap_details(actions: &[TraceAction], root: &TransactionMessage) -> Option<TransferDetails> {
     let (sender, metadata) = jetton_swap_metadata(actions)?;
     let asset_id = metadata.from_asset.clone();
     let value = metadata.from_value.clone();
@@ -154,7 +158,15 @@ fn jetton_swap_details(actions: &[TraceAction]) -> Option<TransferDetails> {
         transaction_type: TransactionType::Swap,
         memo: None,
         metadata: Some(metadata_value),
+        contract: called_contract(root),
     })
+}
+
+fn called_contract(root: &TransactionMessage) -> Option<String> {
+    match root.out_msgs.as_slice() {
+        [message] => Address::try_parse_hex(message.destination.as_deref()?).map(|address| address.encode_bounceable()),
+        _ => None,
+    }
 }
 
 fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionSwapMetadata)> {
@@ -202,6 +214,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
             transaction_type: TransactionType::Transfer,
             memo: extract_memo(out_message),
             metadata: None,
+            contract: None,
         });
     }
 
@@ -218,6 +231,7 @@ fn simple_transfer_details(message: &TransactionMessage) -> Option<TransferDetai
             transaction_type: TransactionType::Transfer,
             memo: None,
             metadata: None,
+            contract: None,
         });
     }
 
@@ -279,6 +293,7 @@ mod tests {
         let dust = AssetId::from_token(Chain::Ton, "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE");
         assert_eq!(transaction.hash(), "ff12c5cab57bb02a23092d2ebb6b7319cd73f2cbc7329fff5cbc4810894159ef");
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.contract.as_deref(), Some("EQBYfhBjooQouK1CbAECLLYSLET-_yaFw7uXhDj6TZe-KRLU"));
         assert_eq!(transaction.state, TransactionState::Confirmed);
         assert_eq!(transaction.asset_id, dust);
         assert_eq!(transaction.value, BigUint::from(2263786603u64));
@@ -437,6 +452,7 @@ mod tests {
         assert_eq!(transactions.len(), 1);
         let transaction = &transactions[0];
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.contract.as_deref(), Some("EQCS4UEa5UaJLzOyyKieqQOQ2P9M-7kXpkO5HnP3Bv250cN3"));
         assert_eq!(transaction.state, TransactionState::Confirmed);
         assert_eq!(transaction.from, "UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV");
         assert_eq!(transaction.from, transaction.to);
@@ -459,6 +475,7 @@ mod tests {
         assert_eq!(transactions.len(), 1);
         let transaction = &transactions[0];
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.contract.as_deref(), Some("EQAuaQQMX8BER-YJpXJ2LWfF7GVVvtXLs4o0w9Y-wDJuAMzF"));
         assert_eq!(transaction.state, TransactionState::Confirmed);
         assert_eq!(transaction.from, "UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV");
         assert_eq!(transaction.from, transaction.to);
@@ -556,7 +573,7 @@ mod tests {
         assert_eq!(traces.traces.len(), 2);
 
         let transactions = map_trace_transactions(traces.traces);
-        let hashes = transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>();
+        let hashes = transactions.iter().map(Transaction::hash).collect::<Vec<_>>();
 
         assert_eq!(hashes, vec![SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH]);
         assert_eq!(transactions[0].state, TransactionState::Confirmed);

@@ -1,9 +1,10 @@
 use crate::model::WorkerService;
 use config_keys::{ConfigKey, ConfigParamKey};
+use primitives::OptionStringExt;
 use primitives::{Chain, FiatProviderName, FiatRateProvider, ListProviderName, PlatformStore, PriceProvider};
+use services::ConfigCacher;
 use std::error::Error;
 use std::time::Duration;
-use storage::ConfigCacher;
 use strum::AsRefStr;
 
 #[derive(Clone, Debug)]
@@ -12,11 +13,11 @@ enum JobInterval {
 }
 
 impl JobInterval {
-    fn resolve(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+    async fn resolve(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
         match self {
             JobInterval::Config(key) => {
                 let cfg = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
-                Ok(cfg.get_duration(key)?)
+                Ok(cfg.get_duration(key).await?)
             }
         }
     }
@@ -102,7 +103,7 @@ impl JobLabel for ListProviderName {
 }
 
 fn compose_job_name(base: &str, label: Option<&str>) -> String {
-    match label.map(str::trim).filter(|value| !value.is_empty()) {
+    match label.map(str::trim).non_empty() {
         Some(suffix) => format!("{base}.{suffix}"),
         None => base.to_string(),
     }
@@ -256,8 +257,8 @@ impl JobVariant {
         self
     }
 
-    pub fn with_param_duration(self, config: &ConfigCacher, key: &ConfigParamKey) -> Result<Self, storage::DatabaseError> {
-        Ok(self.every(config.get_param_duration(key)?))
+    pub async fn with_param_duration(self, config: &ConfigCacher, key: &ConfigParamKey) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        Ok(self.every(config.get_param_duration(key).await?))
     }
 
     pub fn name(&self) -> String {
@@ -268,8 +269,8 @@ impl JobVariant {
         self.job.worker()
     }
 
-    pub fn resolve_interval(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().resolve(config) }
+    pub async fn resolve_interval(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().resolve(config).await }
     }
 }
 

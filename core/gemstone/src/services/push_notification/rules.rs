@@ -42,7 +42,7 @@ mod tests {
     use push_notification::{PushNotification, PushNotificationReward};
 
     fn envelope(notification: &PushNotification) -> (String, Option<String>) {
-        (notification.notification_type.as_ref().to_string(), notification.data.as_ref().map(|data| data.to_string()))
+        (notification.notification_type.as_ref().to_string(), notification.data.as_ref().map(ToString::to_string))
     }
 
     fn parse(envelope: &PushNotification) -> Option<GemPushNotification> {
@@ -86,10 +86,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             notification(PushNotificationTypes::SwapAsset.as_ref(), Some(&swap_payload)),
-            Some(GemPushNotification::SwapAsset {
-                from_asset_id: bitcoin.clone(),
-                to_asset_id: solana.clone(),
-            })
+            Some(GemPushNotification::SwapAsset { from_asset_id: bitcoin, to_asset_id: solana })
         );
 
         let transaction = Transaction::mock();

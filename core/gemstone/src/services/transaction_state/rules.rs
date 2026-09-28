@@ -131,7 +131,7 @@ mod tests {
         let update = state_update(TransactionState::Confirmed, &[TransactionChange::Metadata(TransactionMetadata::Swap(swap))], &transaction).unwrap();
 
         let mut asset_ids = update.asset_ids.expect("the swap moved two assets");
-        asset_ids.sort_by_key(|asset_id| asset_id.to_string());
+        asset_ids.sort_by_key(ToString::to_string);
         assert_eq!(asset_ids, vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)]);
         assert_eq!(
             state_update(TransactionState::Confirmed, &[TransactionChange::BlockNumber("1".to_string())], &transaction).unwrap().asset_ids,

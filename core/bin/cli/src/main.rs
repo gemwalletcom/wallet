@@ -1,9 +1,9 @@
 mod commands;
 
+use chain_providers::ChainProviders;
 use clap::{Parser, Subcommand};
 use commands::{asset::AssetCommand, balance::BalanceCommand};
 use settings::Settings;
-use settings_chain::ChainProviders;
 use std::error::Error;
 
 #[derive(Parser)]

@@ -50,8 +50,8 @@ struct ImportWalletScene: View {
                         .focused($focusedField, equals: .input)
                         .padding(.top, .space12)
 
-                        if let nameRecordViewModel = model.nameRecordViewModel, model.importType == .address {
-                            NameRecordView(model: nameRecordViewModel)
+                        if model.showsNameRecord {
+                            NameRecordView(model: model.nameRecordViewModel)
                         }
                     }
 
@@ -94,7 +94,7 @@ struct ImportWalletScene: View {
         .listSectionSpacing(.compact)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .safeAreaView {
-            if model.importType.supportsPhraseSuggestions(), model.wordsSuggestion.isNotEmpty, focusedField == .input {
+            if model.showsPhraseSuggestions, focusedField == .input {
                 WordSuggestionView(
                     words: model.wordsSuggestion,
                     selectWord: model.onSelectWord,
@@ -108,21 +108,11 @@ struct ImportWalletScene: View {
         }
         .navigationBarTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
-        .sheet(isPresented: $model.isPresentingExistingWalletName.mappedToBool()) {
-            InfoSheetScene(
-                model: InfoSheetModel(
-                    title: model.isPresentingExistingWalletName ?? "",
-                    description: Localized.Wallet.Import.alreadyImportedMessage,
-                    image: .image(Images.Logo.logo),
-                    button: .action(
-                        title: Localized.Common.continue,
-                        action: model.onSelectExistingWalletContinue,
-                    ),
-                ),
-            )
+        .sheet(item: $model.isPresentingExistingWallet) {
+            InfoSheetScene(sheet: $0, onAction: { _ in model.onSelectExistingWalletContinue() })
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: scanType, action: model.onHandleScan)
+            QRScannerNavigationStack(scanType: scanType, action: model.onHandleScan)
         }
         .onChange(of: model.input, model.onChangeInput)
         .taskOnce {

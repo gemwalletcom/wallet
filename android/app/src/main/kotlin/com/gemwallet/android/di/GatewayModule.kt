@@ -7,7 +7,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesSt
 import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
-import com.gemwallet.android.domains.gemConfig
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.math.fromHex
 import dagger.Lazy
 import dagger.Module
@@ -41,6 +41,7 @@ import uniffi.gemstone.GemFiatStore
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNodeService
+import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPerpetualService
@@ -70,9 +71,9 @@ import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSessionService
-import uniffi.gemstone.serviceStatusTimeout
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlin.time.toJavaDuration
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 
@@ -141,7 +142,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemSupportService(apiClient: GemstoneDeviceApiClient, store: GemSupportStore, fileStore: GemFileStore, alienProvider: AlienProvider): GemSupportService = GemSupportService(apiClient, store, fileStore, alienProvider)
+    fun provideGemSupportService(apiClient: GemstoneDeviceApiClient, store: GemSupportStore, fileStore: GemFileStore, alienProvider: AlienProvider, notificationsService: GemNotificationsService): GemSupportService =
+        GemSupportService(apiClient, store, fileStore, alienProvider, notificationsService)
 
     @Provides
     @Singleton
@@ -186,7 +188,7 @@ object GatewayModule {
         GemstoneDeviceApiClient(
             NativeProvider(
                 httpClient = okHttpClient.newBuilder()
-                    .callTimeout(gemConfig.scanTimeout())
+                    .callTimeout(GemConstants.scanTimeout.toJavaDuration())
                     .build(),
             ),
             deviceKeyService,
@@ -201,7 +203,7 @@ object GatewayModule {
     @Singleton
     fun provideGemServiceStatus(okHttpClient: OkHttpClient, connection: WebSocketConnectable): GemServiceStatusInterface {
         val httpClient = okHttpClient.newBuilder()
-            .callTimeout(serviceStatusTimeout())
+            .callTimeout(GemConstants.serviceStatusTimeout.toJavaDuration())
             .build()
         return GemServiceStatus(NativeProvider(httpClient = httpClient), GemstoneStreamConnection(connection))
     }

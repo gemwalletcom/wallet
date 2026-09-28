@@ -130,7 +130,7 @@ mod tests {
         instructions::{
             program_ids::{system_program, token_program},
             system::{ADVANCE_NONCE_ACCOUNT_DISCRIMINANT, transfer},
-            token::transfer_checked,
+            token::transfer_checked_with_program_id,
         },
         testkit::{TEST_BLOCKHASH, mock_v0_transaction},
     };
@@ -168,7 +168,7 @@ mod tests {
         let amount = 1_000_000;
         let decimals = 6;
 
-        let token_transfer = transfer_checked(&source, &mint, &recipient, &owner, amount, decimals);
+        let token_transfer = transfer_checked_with_program_id(&source, &mint, &recipient, &owner, amount, decimals, &token_program());
         builder.add_instruction(token_transfer);
 
         let transaction = builder.build().unwrap();

@@ -99,7 +99,7 @@ mod tests {
         let expected_str = BigNumberFormatter::decimal_to_string(&expected, 6);
         assert_eq!(quote_str, expected_str);
 
-        let avg_total = quote_out.clone() / amount.clone() * amount;
+        let avg_total = quote_out / amount.clone() * amount;
         let avg_total_str = BigNumberFormatter::decimal_to_string(&avg_total, 6);
         assert_eq!(avg_total_str, expected_str);
         assert_eq!(min_price, BigDecimal::from_str("1.5").unwrap());

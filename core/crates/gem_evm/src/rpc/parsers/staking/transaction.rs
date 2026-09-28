@@ -19,7 +19,7 @@ pub fn make_staking_transaction(context: &ParseContext<'_>, to: &str, transactio
         context.metadata.receipt.get_state(),
         context.metadata.receipt.get_fee(),
         AssetId::from_chain(*context.metadata.chain),
-        value.clone(),
+        value,
         None,
         None,
         context.created_at,

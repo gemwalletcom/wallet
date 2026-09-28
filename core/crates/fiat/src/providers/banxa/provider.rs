@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate};
-use streamer::FiatWebhook;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook};
 
 use crate::{
     FiatProvider, FiatWebhookRequest,
@@ -78,7 +77,7 @@ impl FiatProvider for BanxaClient {
 #[cfg(test)]
 mod tests {
     use crate::{FiatProvider, FiatWebhookRequest, providers::banxa::client::BanxaClient};
-    use streamer::FiatWebhook;
+    use primitives::FiatWebhook;
 
     #[tokio::test]
     async fn test_process_webhook_accepts_signed_order() {

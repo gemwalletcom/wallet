@@ -14,9 +14,9 @@ public struct QRScannerScene: View {
 
     private let action: (String) -> Void
 
-    public init(resources: QRScanResources, scanType: QRScanType, action: @escaping (String) -> Void) {
+    public init(scanType: QRScanType, action: @escaping (String) -> Void) {
         self.action = action
-        _model = State(initialValue: QRScannerSceneViewModel(resources: resources, scanType: scanType))
+        _model = State(initialValue: QRScannerSceneViewModel(scanType: scanType))
     }
 
     public var body: some View {
@@ -51,7 +51,7 @@ public struct QRScannerScene: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                let imageName = model.resources.gallerySystemImage
+                let imageName = model.gallerySystemImage
                 photosPicker {
                     Image(systemName: imageName)
                         .bold()
@@ -76,7 +76,7 @@ public struct QRScannerScene: View {
                 .buttonStyle(.blue(paddingVertical: .zero))
         case .permissionsNotGranted:
             Button(action: onSelectOpenSettings) {
-                Self.actionLabel(model.resources.openSettings)
+                Self.actionLabel(model.openSettings)
             }
             .buttonStyle(.blue(paddingVertical: .zero))
             photoLibraryButton
@@ -85,7 +85,7 @@ public struct QRScannerScene: View {
     }
 
     private var photoLibraryButton: some View {
-        let text = model.resources.selectFromPhotos
+        let text = model.selectFromPhotos
         return photosPicker {
             Self.actionLabel(text)
         }

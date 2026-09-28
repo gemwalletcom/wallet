@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemDelegationAction
+import struct Gemstone.GemDelegationActionItem
 import GemstonePrimitivesTestKit
 import Localization
 import Primitives
@@ -10,6 +10,7 @@ import PrimitivesTestKit
 import StakeTestKit
 import Testing
 
+@MainActor
 struct DelegationSceneViewModelTests {
     @Test
     func claimingRewardsNavigatesToConfirm() {
@@ -20,7 +21,7 @@ struct DelegationSceneViewModelTests {
             onNavigate: { route = $0 },
         )
 
-        model.onClaimRewards()
+        model.details.claim.map(model.onClaimRewards)
 
         guard case .transfer(.confirm) = route else {
             Issue.record("expected a confirm route, got \(String(describing: route))")
@@ -33,8 +34,9 @@ struct DelegationSceneViewModelTests {
         var route: StakeRoute?
         let model = DelegationSceneViewModel.mock(rewards: 0, onNavigate: { route = $0 })
 
-        model.onClaimRewards()
+        model.details.claim.map(model.onClaimRewards)
 
+        #expect(model.details.claim == nil)
         #expect(route == nil, "there is nothing to claim, so there is no transfer to confirm")
     }
 
@@ -43,18 +45,18 @@ struct DelegationSceneViewModelTests {
         var route: StakeRoute?
         let model = DelegationSceneViewModel.mock(onNavigate: { route = $0 })
 
-        model.onSelectAction(.unstake)
+        model.onSelectAction(GemDelegationActionItem(action: .unstake, destination: .details))
 
         #expect(route == nil)
     }
 
     @Test
     func rewardsShownWhenCoreReportsThem() {
-        let claimable = DelegationSceneViewModel.mock(stakeService: GemStakeServiceMock(claimable: true))
-        let notClaimable = DelegationSceneViewModel.mock(stakeService: GemStakeServiceMock(claimable: false))
+        let claimable = DelegationSceneViewModel.mock(rewards: 500_000, stakeService: GemStakeServiceMock(claimable: true))
+        let notClaimable = DelegationSceneViewModel.mock(rewards: 500_000, stakeService: GemStakeServiceMock(claimable: false))
 
-        #expect(claimable.canClaimRewards == true)
-        #expect(notClaimable.canClaimRewards == false)
+        #expect(claimable.details.claim != nil)
+        #expect(notClaimable.details.claim == nil)
     }
 
     @Test
@@ -62,8 +64,19 @@ struct DelegationSceneViewModelTests {
         let shown = DelegationSceneViewModel.mock(rewards: 500_000)
         let hidden = DelegationSceneViewModel.mock(rewards: 0)
 
-        #expect(shown.rewardsItem?.title == Localized.Stake.rewards)
-        #expect(shown.rewardsItem?.subtitle == "0.5 ATOM")
-        #expect(hidden.rewardsItem == nil)
+        #expect(shown.rewardsItem(shown.details)?.title == Localized.Stake.rewards)
+        #expect(shown.rewardsItem(shown.details)?.subtitle == "0.5 ATOM")
+        #expect(hidden.rewardsItem(hidden.details) == nil)
+    }
+
+    @Test
+    func theValidatorRowOpensAddressDetailsOnItsChain() {
+        var selected: ChainAddress?
+        let model = DelegationSceneViewModel.mock(chain: .cosmos, onSelectAddress: { selected = $0 })
+
+        model.onSelectProvider?("cosmosvaloper1")
+
+        #expect(selected == ChainAddress(chain: .cosmos, address: "cosmosvaloper1"))
+        #expect(DelegationSceneViewModel.mock().onSelectProvider == nil)
     }
 }

@@ -5,7 +5,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::models::state::GemLoadState;
+use crate::models::state::GemRefreshResult;
 use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
@@ -33,24 +33,16 @@ impl GemNftService {
         Self { api, store, session }
     }
 
-    pub async fn refresh(&self, has_collections: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync().await.map(|_| ()), has_collections)
+    pub async fn refresh(&self, has_content: bool) -> GemRefreshResult {
+        GemRefreshResult::new(self.sync().await.map(|_| ()), has_content)
     }
 
     pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
         cached_or_loaded(self.store.as_ref(), asset_id.clone(), async move { Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?) }).await
     }
 
-    pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
-        rules::list_items(data, list)
-    }
-
     pub fn list_screen(&self, data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
-        rules::list_screen(&data, list)
-    }
-
-    pub fn unverified_row(&self, data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {
-        rules::unverified_row(data, list)
+        rules::list_screen(data, list)
     }
 }
 

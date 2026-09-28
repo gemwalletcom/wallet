@@ -1,64 +1,49 @@
-use std::error::Error;
+use tokio::task::spawn_blocking;
 
-mod config_cacher;
 pub mod database;
 pub mod error;
-pub mod models;
+pub(crate) mod models;
 pub mod repositories;
-pub mod schema;
-pub mod sql_types;
+pub(crate) mod schema;
+pub(crate) mod sql_types;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
-pub use config_cacher::ConfigCacher;
-
 diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::transactions_addresses::address, schema::transactions::chain,);
 
-pub use self::database::{
-    DatabaseClient,
-    assets::{AssetFilter, AssetUpdate},
-    charts::ChartFilter,
-    fiat::{FiatAssetFilter, FiatAssetUpdate, FiatProviderCountryFilter, FiatProviderCountryUpdate},
-    nft::{NftAssetFilter, NftCollectionFilter},
-    prices::{AssetsWithPricesFilter, PriceUpdate},
-    referrals::{AbusePatterns, ReferralUpdate},
-    rewards::{RewardsFilter, RewardsUpdate},
-    rewards_redemptions::RedemptionUpdate,
-    transactions::{TransactionFilter, TransactionUpdate},
-};
-pub use self::error::{DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
-pub use self::models::{ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope, AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow, RewardRedemptionOptionRow};
+pub use self::database::DatabaseClient;
+pub use self::error::{DatabaseError, DieselResultExt};
+pub use self::models::{ApiClientGrant, ApiClientResource, ApiClientScope};
 pub use self::repositories::{
     api_clients_repository::ApiClientsRepository,
     assets_addresses_repository::AssetsAddressesRepository,
     assets_links_repository::AssetsLinksRepository,
-    assets_repository::AssetsRepository,
+    assets_repository::{AssetFilter, AssetSupply, AssetUpdate, AssetsRepository},
     assets_usage_ranks_repository::AssetsUsageRanksRepository,
     chains_repository::ChainsRepository,
-    charts_repository::ChartsRepository,
+    charts_repository::{ChartFilter, ChartPoint, ChartsRepository},
     config_repository::ConfigRepository,
-    devices_repository::DevicesRepository,
-    fiat_repository::FiatRepository,
+    devices_repository::{DeviceFieldUpdate, DeviceRecord, DevicesRepository},
+    fiat_repository::{FiatAssetFilter, FiatRepository, FiatTransactionRecord},
     migrations_repository::MigrationsRepository,
-    nft_repository::NftRepository,
-    notifications_repository::NotificationsRepository,
-    parser_state_repository::ParserStateRepository,
+    nft_repository::{NftCollectionFilter, NftRepository},
+    notifications_repository::{NewNotification, NotificationsRepository},
+    parser_state_repository::{ParserState, ParserStateRepository},
     perpetuals_repository::PerpetualsRepository,
     price_alerts_repository::PriceAlertsRepository,
-    prices_providers_repository::PricesProvidersRepository,
-    prices_repository::PricesRepository,
+    prices_providers_repository::{PriceProviderConfig, PricesProvidersRepository},
+    prices_repository::{AssetWithMarket, AssetsWithPricesFilter, PriceAsset, PriceFilter, PriceUpdate, PricesRepository},
     releases_repository::ReleasesRepository,
-    rewards_redemptions_repository::RewardsRedemptionsRepository,
-    rewards_repository::{ReferrerInfo, RewardsEligibilityConfig, RewardsRepository},
-    risk_signals_repository::RiskSignalsRepository,
+    rewards_redemptions_repository::{RedemptionRecord, RedemptionUpdate, RewardsRedemptionsRepository},
+    rewards_repository::{ReferralRecord, ReferrerInfo, RewardIdentityRecord, RewardsEligibilityConfig, RewardsFilter, RewardsRecord, RewardsRepository, RewardsVerification},
+    risk_signals_repository::{AbusePatterns, RiskSignalsRepository},
     scan_addresses_repository::ScanAddressesRepository,
+    scan_detections_repository::ScanDetectionsRepository,
     support_sessions_repository::SupportSessionsRepository,
-    tag_repository::TagRepository,
-    transactions_repository::TransactionsRepository,
-    wallets_repository::WalletsRepository,
+    tag_repository::{AssetTagLink, PerpetualTagLink, Tag, TagRepository},
+    transactions_repository::{TransactionFilter, TransactionUpdate, TransactionsRepository},
+    wallets_repository::{NewWallet, WalletAddress, WalletRecord, WalletsRepository},
 };
-pub use self::sql_types::{NotificationType, TransactionState, TransactionType, WalletSource, WalletType};
-pub use diesel::OptionalExtension;
 
 #[derive(Clone)]
 pub struct Database(database::PgPool);
@@ -68,109 +53,59 @@ impl Database {
         Ok(Self(database::create_pool(database_url, pool_size)?))
     }
 
-    pub fn client(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        Ok(DatabaseClient::from_pool(&self.0)?)
+    pub async fn run<T, E, F>(&self, operation: F) -> Result<T, E>
+    where
+        T: Send + 'static,
+        E: From<DatabaseError> + Send + 'static,
+        F: FnOnce(&mut DatabaseClient) -> Result<T, E> + Send + 'static,
+    {
+        let pool = self.0.clone();
+        match spawn_blocking(move || operation(&mut DatabaseClient::from_pool(&pool)?)).await {
+            Ok(result) => result,
+            Err(error) => Err(DatabaseError::from(error).into()),
+        }
+    }
+
+    pub async fn transaction<T, E, F>(&self, operation: F) -> Result<T, E>
+    where
+        T: Send + 'static,
+        E: From<DatabaseError> + Send + 'static,
+        F: FnOnce(&mut DatabaseClient) -> Result<T, E> + Send + 'static,
+    {
+        self.run(move |client| client.transaction(operation)).await
     }
 }
 
-impl Database {
-    pub fn assets(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use primitives::Chain;
 
-    pub fn api_clients(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+    use crate::{ChainsRepository, Database, DatabaseError, ParserStateRepository};
 
-    pub fn assets_addresses(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+    #[tokio::test]
+    async fn test_transaction() {
+        let database = Database::mock();
+        database
+            .run(|client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.add_parser_state(Chain::Ethereum, 12_000)
+            })
+            .await
+            .unwrap();
+        let initial = database.run(|client| client.get_parser_state(Chain::Ethereum)).await.unwrap().current_block;
 
-    pub fn assets_links(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+        let rolled_back: Result<(), DatabaseError> = database
+            .transaction(move |client| {
+                client.set_parser_state_current_block(Chain::Ethereum, initial + 100)?;
+                Err(DatabaseError::Error("rollback".to_string()))
+            })
+            .await;
 
-    pub fn assets_usage_ranks(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+        assert!(rolled_back.is_err());
+        assert_eq!(database.run(|client| client.get_parser_state(Chain::Ethereum)).await.unwrap().current_block, initial);
 
-    pub fn chains(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
+        database.transaction(move |client| client.set_parser_state_current_block(Chain::Ethereum, initial + 100)).await.unwrap();
 
-    pub fn charts(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn devices(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn fiat(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn migrations(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn perpetuals(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn nft(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn notifications(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn parser_state(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn price_alerts(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn prices(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn prices_providers(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn rewards(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn rewards_redemptions(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn releases(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn scan_addresses(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn support_sessions(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn tag(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn transactions(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn wallets(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
+        assert_eq!(database.run(|client| client.get_parser_state(Chain::Ethereum)).await.unwrap().current_block, initial + 100);
     }
 }

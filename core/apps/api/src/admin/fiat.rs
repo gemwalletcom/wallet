@@ -1,7 +1,7 @@
 use rocket::{State, get};
+use services::fiat::FiatClient;
 
 use crate::api_clients::PermissionFiatQuotesRead;
-use crate::devices::FiatQuotesClient;
 use crate::params::{AssetIdParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam};
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{FiatQuoteRequest, FiatQuotes};
@@ -16,7 +16,7 @@ pub async fn get_fiat_quotes(
     provider_id: Option<FiatProviderIdParam>,
     ip_address: Option<&str>,
     ip: std::net::IpAddr,
-    client: &State<FiatQuotesClient>,
+    client: &State<FiatClient>,
 ) -> Result<ApiResponse<FiatQuotes>, ApiError> {
     let quote_request = FiatQuoteRequest {
         asset_id: asset_id.0,

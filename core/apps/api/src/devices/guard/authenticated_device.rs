@@ -1,14 +1,14 @@
 use rocket::Request;
 use rocket::outcome::Outcome::Success;
 use rocket::request::{FromRequest, Outcome};
-use storage::models::DeviceRow;
+use services::devices::DeviceRecord;
 
 use super::auth::{authenticate, lookup_device};
 
 // Verifies the device request signature, then checks that the device exists.
 #[derive(Clone)]
 pub struct AuthenticatedDevice {
-    pub device_row: DeviceRow,
+    pub record: DeviceRecord,
 }
 
 #[rocket::async_trait]
@@ -22,12 +22,12 @@ impl<'r> FromRequest<'r> for AuthenticatedDevice {
                 Err(error) => return error,
             };
 
-            let (device_row, _) = match lookup_device(req, &auth.device_id).await {
+            let record = match lookup_device(req, &auth.device_id).await {
                 Ok(result) => result,
                 Err(error) => return error,
             };
 
-            Success(AuthenticatedDevice { device_row })
+            Success(AuthenticatedDevice { record })
         })
         .await
         .clone()

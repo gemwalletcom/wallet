@@ -153,21 +153,17 @@ impl TransactionContext {
         let token_id = contract_value.contract_address.as_ref()?;
         let approval = trc20::decode_approval_hex(contract_value.data.as_deref()?)?;
 
-        Some(self.build_transaction(
-            AssetId::from_token(self.chain, token_id),
-            self.from.clone(),
-            approval.spender.encode(),
-            TransactionType::TokenApproval,
-            approval.value.clone(),
-            None,
-        ))
+        Some(self.build_transaction(AssetId::from_token(self.chain, token_id), self.from.clone(), approval.spender.encode(), TransactionType::TokenApproval, approval.value, None))
     }
 
     fn map_swap(&self, contract_value: &ContractParameterValue, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<Transaction> {
         let owner = TronAddress::from_hex_or_base58(&self.from)?;
         let swap = tron_swap_metadata(self.chain, &owner, contract_value.call_value, logs, internal_transactions)?;
 
-        Some(self.build_transaction(swap.from_asset.clone(), self.from.clone(), self.from.clone(), TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok()))
+        Some(Transaction {
+            contract: contract_value.contract_address.clone(),
+            ..self.build_transaction(swap.from_asset.clone(), self.from.clone(), self.from.clone(), TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok())
+        })
     }
 
     fn map_token_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
@@ -178,7 +174,7 @@ impl TransactionContext {
         let (_, from, to, value) = decode_token_transfer(logs.first()?)?;
         let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
 
-        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value.clone(), None))
+        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value, None))
     }
 
     fn map_gasfree_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
@@ -200,7 +196,7 @@ impl TransactionContext {
         Some(Transaction {
             fee,
             fee_asset_id: asset_id.clone(),
-            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value.clone(), None)
+            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value, None)
         })
     }
 
@@ -479,6 +475,7 @@ mod tests {
         assert!(result.is_some());
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.contract.as_deref(), Some("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"));
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.asset_id, Chain::Tron.as_asset_id());
         assert_eq!(transaction.value, BigUint::from(1000000u64));
@@ -514,6 +511,7 @@ mod tests {
 
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.contract.as_deref(), Some("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"));
 
         let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         let usdt = TronAddress::from_hex("41a614f803b6fd780986a42c78ec9c7f77e6ded13c").unwrap().encode();

@@ -11,8 +11,9 @@ final class WebSocket: NSObject, @unchecked Sendable {
     @Locked var onDisconnect: ((Error?) -> Void)?
     @Locked var onText: ((String) -> Void)?
 
-    @Locked private var task: URLSessionWebSocketTask?
+    @Locked private(set) var task: URLSessionWebSocketTask?
     @Locked private var session: URLSession?
+    @Locked private var isAttemptComplete = true
 
     private let delegateQueue: OperationQueue = {
         let queue = OperationQueue()
@@ -57,7 +58,8 @@ final class WebSocket: NSObject, @unchecked Sendable {
     }
 
     private func onDisconnect(error: Error?) {
-        guard isConnected else { return }
+        guard !isAttemptComplete else { return }
+        isAttemptComplete = true
         isConnected = false
         onDisconnect?(error)
     }
@@ -74,6 +76,7 @@ extension WebSocket: WebSocketConnecting {
         closeConnection(.goingAway)
         session = URLSession(configuration: .default, delegate: self, delegateQueue: delegateQueue)
         task = session?.webSocketTask(with: request)
+        isAttemptComplete = false
         task?.resume()
         receiveMessage()
     }

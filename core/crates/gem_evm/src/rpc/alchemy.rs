@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 
-use gem_alchemy::rpc::{Client as AlchemyClient, TransferDirection};
+use alchemy::rpc::{Client as AlchemyClient, TransferDirection};
 use gem_client::Client;
 use num_bigint::BigUint;
 

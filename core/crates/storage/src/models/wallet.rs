@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::wallets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct WalletRow {
+pub(crate) struct WalletRow {
     pub id: i32,
     #[diesel(column_name = identifier)]
     pub wallet_id: WalletIdRow,
@@ -15,7 +15,7 @@ pub struct WalletRow {
 
 #[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::wallets)]
-pub struct NewWalletRow {
+pub(crate) struct NewWalletRow {
     pub identifier: String,
     pub wallet_type: WalletType,
     pub source: WalletSource,
@@ -24,21 +24,21 @@ pub struct NewWalletRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::wallets_addresses)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct WalletAddressRow {
+pub(crate) struct WalletAddressRow {
     pub id: i32,
     pub address: String,
 }
 
 #[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::wallets_addresses)]
-pub struct NewWalletAddressRow {
+pub(crate) struct NewWalletAddressRow {
     pub address: String,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::wallets_subscriptions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct WalletSubscriptionRow {
+pub(crate) struct WalletSubscriptionRow {
     pub id: i32,
     pub wallet_id: i32,
     pub device_id: i32,
@@ -48,7 +48,7 @@ pub struct WalletSubscriptionRow {
 
 #[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::wallets_subscriptions)]
-pub struct NewWalletSubscriptionRow {
+pub(crate) struct NewWalletSubscriptionRow {
     pub wallet_id: i32,
     pub device_id: i32,
     pub chain: ChainRow,

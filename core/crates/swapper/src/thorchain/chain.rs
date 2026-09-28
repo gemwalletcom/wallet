@@ -110,6 +110,7 @@ const MAYACHAIN_NAMES: &[ChainName] = &[
     ChainName::new(Chain::Ethereum, "ETH", "e", ChainTokenAssets::MayachainEthereum),
     ChainName::new(Chain::Arbitrum, "ARB", "a", ChainTokenAssets::Arbitrum),
     ChainName::new(Chain::Zcash, "ZEC", "z", ChainTokenAssets::None),
+    ChainName::new(Chain::Dash, "DASH", "d", ChainTokenAssets::None),
     ChainName::new(Chain::Cardano, "ADA", "aa", ChainTokenAssets::None),
 ];
 
@@ -137,6 +138,7 @@ mod tests {
         assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "a").map(|name| name.chain()), Some(Chain::Arbitrum));
         assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "aa").map(|name| name.chain()), Some(Chain::Cardano));
         assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "r").map(|name| name.chain()), Some(Chain::Thorchain));
+        assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "d").map(|name| name.chain()), Some(Chain::Dash));
         assert_eq!(ChainName::from_chain(THORChainNetwork::Mayachain, Chain::Arbitrum).unwrap().long_name(), "ARB");
     }
 

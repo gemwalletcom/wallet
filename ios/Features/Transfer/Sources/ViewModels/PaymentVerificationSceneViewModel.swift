@@ -2,6 +2,9 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
+import func Gemstone.paymentVerificationOutcome
 import InfoSheet
 import Localization
 
@@ -10,17 +13,18 @@ import Localization
 public final class PaymentVerificationSceneViewModel {
     private static let messageHandlerName = "payDataCollectionComplete"
     private static let messageType = "type"
-    private static let completeType = "IC_COMPLETE"
 
-    var isPresentingInfoSheet: InfoSheetType?
+    var isPresentingInfoSheet: GemInfoSheet?
 
     let url: URL
 
     private let onComplete: () -> Void
+    private let onError: () -> Void
 
-    public init(url: URL, onComplete: @escaping () -> Void) {
+    public init(url: URL, onComplete: @escaping () -> Void, onError: @escaping () -> Void) {
         self.url = url
         self.onComplete = onComplete
+        self.onError = onError
     }
 
     var title: String {
@@ -36,11 +40,15 @@ public final class PaymentVerificationSceneViewModel {
 
 extension PaymentVerificationSceneViewModel {
     func onSelectInfo() {
-        isPresentingInfoSheet = .paymentVerification
+        isPresentingInfoSheet = GemInfoTopic.paymentVerification.infoSheet
     }
 
     func onMessage(_ payload: [String: Any]) {
-        guard payload[Self.messageType] as? String == Self.completeType else { return }
-        onComplete()
+        guard let type = payload[Self.messageType] as? String else { return }
+        switch paymentVerificationOutcome(messageType: type) {
+        case .complete: onComplete()
+        case .error: onError()
+        case .ignored: break
+        }
     }
 }

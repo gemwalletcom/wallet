@@ -4,12 +4,10 @@ import Components
 import Gemstone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import InfoSheet
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
-import StoreTestKit
 import Testing
 
 @MainActor
@@ -19,8 +17,8 @@ struct PerpetualSceneViewModelTests {
         let service = GemPerpetualDetailsServiceMock()
         service.detailsValue = .mock(
             title: "HYPE",
-            sections: [.info(buttons: [.long, .short], rows: [.loading])],
-            modifyButtons: [.increase, .reduce],
+            sections: [.info(buttons: [GemPerpetualButtonRow(button: .long, tone: .positive), GemPerpetualButtonRow(button: .short, tone: .negative)], rows: [.loading])],
+            modifyButtons: [GemPerpetualButtonRow(button: .increase, tone: .neutral), GemPerpetualButtonRow(button: .reduce, tone: .negative)],
         )
         let model = PerpetualSceneViewModel.mock(service: service)
 
@@ -120,26 +118,6 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func theInfoSheetsMatchTheRowThatOpenedThem() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onInfo(.fundingApr)
-        #expect(model.isPresentingInfoSheet == .fundingApr)
-
-        model.onInfo(.fundingPayments)
-        #expect(model.isPresentingInfoSheet == .fundingPayments)
-
-        model.onInfo(.liquidationPrice)
-        #expect(model.isPresentingInfoSheet == .liquidationPrice)
-
-        model.onInfo(.openInterest)
-        #expect(model.isPresentingInfoSheet == .openInterest)
-
-        model.onInfo(.autoClose)
-        #expect(model.isPresentingInfoSheet == .autoclose)
-    }
-
-    @Test
     func loadingSyncsPositionsAndTransactionsForTheAsset() async {
         let service = GemPerpetualDetailsServiceMock()
         let asset = Primitives.Asset.mock()
@@ -148,7 +126,7 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(service.syncPositionsCount == 1)
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test
@@ -163,7 +141,7 @@ struct PerpetualSceneViewModelTests {
         }
 
         #expect(service.syncPositionsCount == 1, "a position closed while the app was away shows on return")
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test
@@ -176,14 +154,5 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(model.isPresentingAlertMessage == nil)
-    }
-
-    @Test
-    func dismissingAutocloseClearsThePresentedPosition() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onAutocloseComplete()
-
-        #expect(model.isPresentingAutoclose == nil)
     }
 }

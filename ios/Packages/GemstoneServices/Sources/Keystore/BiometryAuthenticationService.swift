@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemLockPeriod
 import protocol Gemstone.GemSecurityServiceProtocol
 import LocalAuthentication
 import Primitives
@@ -19,7 +20,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
         securityService.shouldRelock(
             elapsedMilliseconds: elapsedMilliseconds,
-            lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
+            lockIntervalMinutes: lockPeriod.minutes(),
             authRequired: requiresAuthentication,
         )
     }
@@ -45,7 +46,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         try keystorePassword.setPrivacyLockStatus(status)
     }
 
-    public var lockPeriod: LockPeriod {
+    public var lockPeriod: GemLockPeriod {
         do {
             return try keystorePassword.getAuthenticationLockPeriod() ?? .default
         } catch {
@@ -53,7 +54,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         }
     }
 
-    public func update(period: LockPeriod) throws {
+    public func update(period: GemLockPeriod) throws {
         try keystorePassword.setAuthenticationLockPeriod(period: period)
     }
 

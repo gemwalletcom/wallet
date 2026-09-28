@@ -2,24 +2,31 @@
 
 public import struct Gemstone.AddressName
 public import typealias Gemstone.Chain
-public import typealias Gemstone.Currency
-public import enum Gemstone.GemAcquireAssetFlow
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemConfirmError
 public import struct Gemstone.GemConfirmErrorInfo
-public import enum Gemstone.GemConfirmHeader
+public import struct Gemstone.GemConfirmHeader
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
-public import struct Gemstone.GemConfirmMetadata
 public import enum Gemstone.GemConfirmRowContent
 public import struct Gemstone.GemConfirmScreen
+public import enum Gemstone.GemConfirmSection
+public import struct Gemstone.GemConfirmViewState
+public import struct Gemstone.GemFeeRateRows
 public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemListRow
+public import struct Gemstone.GemNetworkFeeScreen
+public import struct Gemstone.GemNumberFormat
 public import enum Gemstone.GemSubmitResult
-public import struct Gemstone.GemSwapPairSelection
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
+import typealias Gemstone.Currency
+import struct Gemstone.GemConfirmButton
+import enum Gemstone.GemConfirmDetails
+import struct Gemstone.GemConfirmFeeRow
+import func Gemstone.perpetualConfirmDetails
+import func Gemstone.swapQuoteDetails
 import GemstonePrimitivesTestKit
 import Primitives
 
@@ -29,39 +36,106 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let executeResult: Result<GemSubmitResult, any Error>
     private let authenticationValue: GemKeystoreAuthentication
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
-    private let acquireFlow: GemAcquireAssetFlow
     private let selection: GemTransferData?
+    private let feeRates: GemFeeRateRows?
+    private let warnings: [GemListRow]
     private var loaded: GemConfirmLoad?
     private var selected: GemTransferData?
-    public private(set) var loadOptions: [GemConfirmLoadOptions] = []
+    public private(set) var requestedOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
 
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], message: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
-        acquireFlow: GemAcquireAssetFlow = .fiat,
         selection: GemTransferData? = nil,
+        feeRates: GemFeeRateRows? = nil,
+        warnings: [GemListRow] = [],
     ) {
         initialState = state
         loadResult = load
         executeResult = execute
         authenticationValue = authentication
         self.rows = rows
-        self.acquireFlow = acquireFlow
         self.selection = selection
+        self.feeRates = feeRates
+        self.warnings = warnings
     }
 
-    public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem()))
+    var headerValue: GemConfirmHeader = .mock()
 
     public func screen() -> GemConfirmScreen {
         .mock()
     }
 
-    public func header(load _: GemConfirmLoad?) -> GemConfirmHeader {
+    public func loadOptions() -> GemConfirmLoadOptions {
+        GemConfirmLoadOptions(feeSelection: .priority(priority: .normal), feeAssetId: nil, assetId: nil)
+    }
+
+    public func header(screen _: GemConfirmScreen) -> GemConfirmHeader {
         headerValue
+    }
+
+    public func viewState(screen: GemConfirmScreen) -> GemConfirmViewState {
+        let simulation = loaded?.simulation.simulation
+        let warnings = loaded?.simulation.warnings ?? warnings
+        let sections: [GemConfirmSection?] = [
+            .header,
+            .details(rows: rowContents(addressName: loaded?.addressName)),
+            warnings.isEmpty ? nil : .warnings(rows: warnings),
+            simulation.flatMap { $0.primaryFields.isEmpty ? nil : .payload(primary: $0.primaryFields, secondary: $0.secondaryFields) },
+            simulation.flatMap { $0.balanceChanges.isEmpty ? nil : .balanceChanges(rows: $0.balanceChanges) },
+            transfer().verification() == nil ? .networkFee : .verification,
+            screen.failure.flatMap { $0.stage == .load ? .error(error: $0.error) : nil },
+        ]
+        return GemConfirmViewState(
+            button: button(screen: screen),
+            feeRow: feeRow(screen: screen),
+            details: details(),
+            title: transfer().title(),
+            verification: transfer().verification(),
+            sections: sections.compactMap(\.self),
+        )
+    }
+
+    private func button(screen: GemConfirmScreen) -> GemConfirmButton {
+        var button = screen.button()
+        if button.kind == .confirm, button.state == .enabled {
+            button.icon = authenticationValue
+        }
+        return button
+    }
+
+    private func details() -> GemConfirmDetails? {
+        switch transfer().inputType {
+        case let .swap(fromAsset, toAsset, swapData):
+            .swap(details: swapQuoteDetails(quote: swapData.quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: nil, toPrice: nil, currency: currency))
+        case let .perpetual(_, perpetualType):
+            perpetualConfirmDetails(perpetualType: perpetualType).map { .perpetual(details: $0) }
+        case .transfer, .deposit, .withdrawal, .stake, .tokenApprove, .generic, .payment, .transferNft, .account, .earn:
+            nil
+        }
+    }
+
+    private func feeRow(screen: GemConfirmScreen) -> GemConfirmFeeRow {
+        let value = screen.feeValue(load: loaded)
+        let isUnavailable = if case .unavailable = value {
+            true
+        } else {
+            false
+        }
+        return GemConfirmFeeRow(
+            title: .networkFee,
+            value: value,
+            info: .networkFee(asset: loaded?.feeAsset ?? transfer().feeAsset()),
+            opensDetails: feeRates != nil && !isUnavailable,
+        )
+    }
+
+    public func networkFeeScreen(format _: GemNumberFormat) -> GemNetworkFeeScreen? {
+        feeRates.map { GemNetworkFeeScreen.mock(fee: loaded?.fee?.formatted, additionalFees: loaded?.fee?.additionalFees ?? [], rates: $0) }
     }
 
     public func transfer() -> GemTransferData {
@@ -69,11 +143,13 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func state() async throws -> GemConfirmLoad {
-        loaded ?? initialState
+        let state = loaded ?? initialState
+        loaded = state
+        return state
     }
 
     public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
-        loadOptions.append(options)
+        requestedOptions.append(options)
         await onLoad?()
         if options.assetId != nil {
             selected = selection
@@ -86,37 +162,26 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         try executeResult.get()
     }
 
-    public func getCurrency() -> Currency {
+    private var currency: Currency {
         Primitives.Currency.usd.toGem()
-    }
-
-    public func authentication() -> GemKeystoreAuthentication {
-        authenticationValue
     }
 
     public func rowContents(addressName: Gemstone.AddressName?) -> [GemConfirmRowContent] {
         rows(addressName)
     }
 
-    public func acquireAssetFlow(chain _: Chain) -> GemAcquireAssetFlow {
-        acquireFlow
-    }
-
-    public func acquireSwapPair(feeAssetId: String?, assetId: String) -> GemSwapPairSelection {
-        GemSwapPairSelection(payAssetId: feeAssetId, receiveAssetId: assetId)
-    }
-
-    public func errorInfo(error: GemConfirmError, metadata: GemConfirmMetadata?) -> GemConfirmErrorInfo? {
-        confirmErrorInfo(error: error, prices: metadata?.prices ?? [], currency: getCurrency())
-    }
-
-    public func insufficientNetworkFeeBuyAmount() -> Int32 {
-        Self.networkFeeBuyAmount
+    public func errorInfo(error: GemConfirmError) -> GemConfirmErrorInfo? {
+        let state = loaded ?? initialState
+        return confirmErrorInfo(
+            error: error,
+            prices: state.metadata.prices,
+            currency: currency,
+            inputAssetId: transfer().inputAsset().id,
+            feeAssetId: state.feeAsset.id,
+        )
     }
 
     public func autocloseRow(data _: PerpetualModifyConfirmData) -> GemListRow? {
         nil
     }
-
-    public static let networkFeeBuyAmount: Int32 = 10
 }

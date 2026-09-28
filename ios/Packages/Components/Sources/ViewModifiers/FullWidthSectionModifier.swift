@@ -2,10 +2,10 @@
 
 import SwiftUI
 
-public struct FullWidthSectionModifier: ViewModifier {
-    public init() {}
+struct FullWidthSectionModifier: ViewModifier {
+    init() {}
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .cleanListRow()
             .removeListSectionMargins()

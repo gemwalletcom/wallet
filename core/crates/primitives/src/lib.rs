@@ -1,7 +1,5 @@
 // lib.rs
 
-pub type UInt64 = u64;
-
 mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
@@ -19,8 +17,6 @@ pub mod auth;
 pub use self::auth::{AuthMessage, AuthNonce, AuthPayload, AuthenticatedRequest};
 pub mod app_constants;
 pub use self::app_constants::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST, GEM_IOS_BUNDLE_ID, GEM_NODES_ASIA_HOST, GEM_NODES_EUROPE_HOST, GEM_NODES_HOST};
-pub mod auth_status;
-pub use self::auth_status::AuthStatus;
 pub mod chain;
 pub use self::chain::Chain;
 pub mod asset_metadata;
@@ -54,8 +50,6 @@ pub mod price;
 pub use self::price::Price;
 pub mod price_change;
 pub use self::price_change::PriceChangeCalculator;
-pub mod price_config;
-pub use self::price_config::PriceConfig;
 pub mod price_data;
 pub use self::price_data::PriceData;
 pub mod price_provider;
@@ -105,7 +99,7 @@ pub use self::fiat_quote::{FiatAssetSymbol, FiatQuote, FiatQuoteError, FiatQuote
 pub mod fiat_transaction;
 pub use self::fiat_assets::FiatAsset;
 pub use self::fiat_assets::FiatAssets;
-pub use self::fiat_transaction::{FiatQuoteType, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, FiatTransactionUpdate};
+pub use self::fiat_transaction::{FiatQuoteType, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook};
 pub mod fiat_provider;
 pub use self::fiat_provider::{FiatProvider, FiatProviderCountry, FiatProviderName};
 pub mod fiat_quote_request;
@@ -114,8 +108,6 @@ pub mod fiat_rate;
 pub use self::fiat_rate::FiatRate;
 pub mod fiat_rate_provider;
 pub use self::fiat_rate_provider::FiatRateProvider;
-pub mod fiat_provider_id;
-pub use self::fiat_provider_id::FiatProviderId;
 pub mod platform;
 pub use self::platform::Platform;
 pub mod platform_store;
@@ -125,7 +117,7 @@ pub use self::payment::{Payment, PaymentAmount, PaymentInvoice, PaymentLink, Pay
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
-pub use self::contact::{Contact, ContactAddress};
+pub use self::contact::{Contact, ContactAddress, ContactData};
 pub mod device;
 pub use self::device::Device;
 pub mod device_locale;
@@ -142,12 +134,16 @@ pub mod transaction_type;
 pub use self::transaction_type::TransactionType;
 pub mod transaction_extended;
 pub use self::transaction_extended::TransactionExtended;
+pub mod transaction_list_item;
+pub use self::transaction_list_item::TransactionListItem;
 pub mod tag_visibility;
 pub use self::tag_visibility::TagVisibility;
 pub mod time;
 pub use self::time::{unix_milliseconds, unix_seconds, unix_timestamp};
 pub mod transaction_state;
 pub use self::transaction_state::TransactionState;
+pub mod transactions_filter;
+pub use self::transactions_filter::TransactionsFilter;
 pub mod job_configuration;
 pub use self::job_configuration::JobConfiguration;
 pub mod username_status;
@@ -170,6 +166,8 @@ pub mod address_formatter;
 pub use self::address_formatter::{AddressFormatStyle, AddressFormatter};
 pub mod address_name;
 pub use self::address_name::AddressName;
+pub mod address_details;
+pub use self::address_details::{AddressDetails, AddressDetailsBalances};
 pub mod verification_status;
 pub use self::verification_status::VerificationStatus;
 pub mod address_status;
@@ -179,7 +177,7 @@ pub use self::wallet_configuration::{WalletConfiguration, WalletConfigurationRes
 pub mod utxo;
 pub use self::utxo::UTXO;
 pub mod scan;
-pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload};
+pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanOutcome, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, ScanType, ScanVerdict};
 pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
@@ -211,10 +209,12 @@ pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttribu
 pub mod price_alert;
 pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
 pub mod rewards;
+pub mod risk_signal;
 pub use self::rewards::{
-    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel, RewardRedemption, RewardRedemptionOption, RewardRedemptionType,
-    RewardStatus, Rewards,
+    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus,
+    Rewards,
 };
+pub use self::risk_signal::{NewRiskSignal, RiskSignal};
 pub mod tag;
 pub use self::tag::AssetTag;
 pub mod chain_cosmos;
@@ -262,6 +262,8 @@ pub mod support;
 pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
+pub mod asset_data;
+pub use self::asset_data::{AssetData, ChainAssetData, RecentAsset};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;
@@ -326,7 +328,7 @@ pub use self::transaction_input_type::{SignerInput, TransactionInputType, Transa
 pub mod transfer_amount;
 pub use self::transfer_amount::{TransferAmount, TransferAmountError, TransferAmountInput};
 pub mod transfer_data_extra;
-pub use self::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
+pub use self::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 pub use self::transfer_data_extra::TransferDataExtra;
 pub mod transaction_data_output;
 pub use self::transaction_data_output::{TransferDataOutputAction, TransferDataOutputType};
@@ -341,6 +343,8 @@ pub mod domain;
 
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
+pub mod option_ext;
+pub use self::option_ext::OptionStringExt;
 pub mod number_incrementer;
 pub use self::number_incrementer::NumberIncrementer;
 pub mod chain_signer;
@@ -371,8 +375,6 @@ pub mod connection_component;
 pub use self::connection_component::ConnectionComponent;
 pub mod connection_status;
 pub use self::connection_status::ConnectionStatus;
-pub mod metrics;
-pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
 pub mod version;
 pub use self::version::{Version, is_version_higher};
 pub mod value_access;

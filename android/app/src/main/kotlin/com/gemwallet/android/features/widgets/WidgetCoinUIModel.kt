@@ -7,7 +7,6 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.iconModel
@@ -27,7 +26,7 @@ suspend fun WidgetEntryPoint.mediumWidgetCoins(context: Context): List<WidgetCoi
     val currency = preferencesService().getCurrency().toPrimitives().string
     val coins = withContext(Dispatchers.IO) { widgetService().coins(GemWidgetSize.MEDIUM, currency) }
     return coroutineScope {
-        coins.map { coin -> async { coin.uiModel(loadIcon(context, coin.assetId.toAssetId()?.iconModel())) } }.awaitAll()
+        coins.map { coin -> async { coin.uiModel(loadIcon(context, coin.icon.iconModel())) } }.awaitAll()
     }
 }
 

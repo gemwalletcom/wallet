@@ -1,9 +1,9 @@
 use std::{str::FromStr, time::Instant};
 
+use chain_providers::{ProviderConfig, ProviderFactory};
 use chain_traits::node_check::NodeCheckRequest;
 use primitives::{Chain, NodeStatusState};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use settings_chain::{ProviderConfig, ProviderFactory};
 
 use super::observation::NodeStatusObservation;
 use super::switch_reason::NodeMonitorError;

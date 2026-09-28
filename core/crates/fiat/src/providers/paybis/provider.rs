@@ -11,8 +11,7 @@ use super::{
     client::PaybisClient,
     mapper::{map_assets, map_process_webhook, supported_payment_methods},
 };
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, PaymentType};
-use streamer::FiatWebhook;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
 #[async_trait]
 impl FiatProvider for PaybisClient {

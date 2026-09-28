@@ -9,6 +9,7 @@
   <string name="common_copy">Copier</string>
   <string name="common_share">Partager</string>
   <string name="common_continue">Continuer</string>
+  <string name="common_continue_anyway">Continuer quand même</string>
   <string name="common_sign_in_with">Se connecter avec %1$s</string>
   <string name="common_provider">Fournisseur</string>
   <string name="common_loading">Chargement</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Descriptif</string>
   <string name="common_emoji">Émoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Sauvegarder</string>
   <string name="common_percentage">Pourcentage</string>
   <string name="common_details">Détails</string>
   <string name="common_info">Informations</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Jeton</string>
   <string name="common_expiration">Expiration</string>
   <string name="common_suspicious_address">Adresse suspecte</string>
+  <string name="common_suspicious_address_description">Cette adresse est associée à une activité suspecte ou malveillante.</string>
   <string name="common_refresh">Rafraîchir</string>
   <string name="common_grant_permission">Donner la permission</string>
   <string name="common_required_field">%1$s est requis</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Portefeuille</string>
   <string name="wallet_import_already_imported_message">Ce portefeuille a déjà été importé.</string>
   <string name="wallets_title">Portefeuilles</string>
-  <string name="wallets_watch">Regarder</string>
-  <string name="receive_title">Recevez %1$s</string>
   <string name="receive_warning">Voici votre adresse — envoyez uniquement %1$s sur le réseau %2$s.</string>
   <string name="buy_title">Achetez %1$s</string>
   <string name="buy_providers_title">Fournisseurs</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Authentification</string>
   <string name="settings_notifications_title">Notifications</string>
   <string name="settings_language">Langue</string>
-  <string name="settings_help_center">Centre d\'aide</string>
   <string name="settings_support">Assistance</string>
   <string name="settings_price_alerts_title">Alertes de prix</string>
   <string name="settings_hide_balance">Masquer le solde</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Actif non pris en charge.</string>
   <string name="errors_connections_no_supported_wallets">Aucun portefeuille pris en charge n\'est disponible.</string>
   <string name="errors_connections_unsupported_chain">La chaîne fournie n\'est pas prise en charge.</string>
+  <string name="errors_authentication_unavailable">L\'authentification n\'est pas configurée sur cet appareil. Activez la biométrie ou un code dans les réglages de l\'appareil.</string>
+  <string name="errors_authentication_locked_out">Trop de tentatives échouées. Veuillez réessayer plus tard.</string>
+  <string name="errors_authentication_failed">L\'authentification a échoué. Veuillez réessayer.</string>
+  <string name="errors_connections_expired">Ce lien de connexion a expiré. Obtenez un nouveau code QR et réessayez.</string>
+  <string name="errors_connections_not_found">Cette connexion n\'existe plus.</string>
+  <string name="errors_connections_relay_unavailable">Impossible de joindre WalletConnect. Vérifiez votre connexion Internet et réessayez.</string>
   <string name="errors_swap_amount_too_small">Montant trop petit</string>
   <string name="errors_scan_transaction_malicious_description">Cette transaction ne peut être effectuée — l\'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.</string>
   <string name="errors_scan_transaction_memo_required">%1$s L\'adresse du portefeuille de destination nécessite une étiquette/un mémo de destination</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">Achetez %1$s</string>
   <string name="asset_get_asset">Obtenir %1$s</string>
   <string name="asset_add_to_wallet">Ajouter au portefeuille</string>
-  <string name="asset_hide_from_wallet">Masquer du portefeuille</string>
   <string name="asset_added_to_wallet">Ajouté au portefeuille</string>
   <string name="asset_hidden_from_wallet">Masqué du portefeuille</string>
   <string name="asset_resources">Ressources</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Changement</string>
   <string name="date_today">Aujourd\'hui</string>
   <string name="date_yesterday">Hier</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Connexion</string>
   <string name="wallet_connect_disconnect">Déconnecter</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Rapide</string>
   <string name="fee_rates_normal">Normale</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personnalisé</string>
   <string name="banner_account_activation_title">Frais d\'activation de compte</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Lorsque le prix diminue de</string>
   <string name="price_alerts_set_alert_set_target_price">Définir le prix cible</string>
   <string name="price_alerts_set_alert_current_price">Prix actuel</string>
-  <string name="price_alerts_added_for">Définir une alerte de prix %1$s</string>
+  <string name="price_alerts_added_price_over">Alerte ajoutée pour un prix supérieur à %1$s</string>
+  <string name="price_alerts_added_price_under">Alerte ajoutée pour un prix inférieur à %1$s</string>
+  <string name="price_alerts_added_increases_by">Alerte ajoutée pour une hausse de prix de %1$s</string>
+  <string name="price_alerts_added_decreases_by">Alerte ajoutée pour une baisse de prix de %1$s</string>
   <string name="price_alerts_state_empty_title">Vos alertes apparaîtront ici</string>
   <string name="price_alerts_state_empty_description">Activez-les en ajoutant des pièces à suivre</string>
   <string name="price_alerts_auto_footer">Les alertes se déclenchent en cas de mouvements de prix importants.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Signaler</string>
   <string name="permissions_access_denied">Accès refusé</string>
   <string name="permissions_image_photo_access_denied_description">Cette application n\'a pas l\'autorisation d\'accéder à votre photothèque. Veuillez autoriser l\'accès dans les paramètres de votre appareil.</string>
-  <string name="markets_title">Marchés</string>
-  <string name="markets_state_empty_title">Vos données de marché apparaîtront ici</string>
   <string name="markets_daily_volume">Volume 24h</string>
   <string name="search_state_empty_description">Vérifiez l\'orthographe ou essayez une nouvelle recherche.</string>
   <string name="networks_state_empty_search_title">Aucun réseau trouvé</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Approbation illimitée des jetons</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avertissement de sécurité</string>
+  <string name="rootcheck_jailbreak_body">Votre appareil semble jailbreaké. Cela peut mettre votre portefeuille et vos fonds en danger.</string>
   <string name="rootcheck_body">Votre appareil semble disposer d\'un accès root, ce qui peut augmenter considérablement les risques de sécurité. L\'utilisation de cette application sur un appareil rooté peut exposer vos actifs à un accès non autorisé et à une perte potentielle. Pour la sécurité de vos fonds, nous vous recommandons fortement d\'utiliser un appareil non rooté.</string>
   <string name="rootcheck_ignore">Ignorer</string>
   <string name="rootcheck_exit">Quitter</string>

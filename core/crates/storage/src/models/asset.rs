@@ -10,7 +10,7 @@ use crate::sql_types::{AssetId, AssetType, ChainRow, LinkType};
 #[derive(Debug, Queryable, Selectable, Identifiable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct AssetRow {
+pub(crate) struct AssetRow {
     pub id: String,
     pub chain: ChainRow,
     pub token_id: Option<String>,
@@ -40,7 +40,7 @@ pub struct AssetRow {
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewAssetRow {
+pub(crate) struct NewAssetRow {
     pub id: String,
     pub chain: ChainRow,
     pub token_id: Option<String>,
@@ -138,7 +138,7 @@ impl AssetRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::assets_links)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct AssetLinkRow {
+pub(crate) struct AssetLinkRow {
     pub asset_id: AssetId,
     pub link_type: LinkType,
     pub url: String,

@@ -64,8 +64,13 @@ fn extract_meta(transaction: &Transaction) -> Option<TransactionMeta> {
     Some(TransactionMeta { hash, sender, state, fee, created_at })
 }
 
+fn called_contract(transaction: &Transaction) -> Option<String> {
+    transaction.payload.as_ref()?.function.as_deref()?.split("::").next().filter(|address| !address.is_empty()).map(str::to_string)
+}
+
 fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Chain) -> Option<PrimitivesTransaction> {
     let meta = extract_meta(&transaction)?;
+    let contract = called_contract(&transaction);
 
     if let Some(summary) = events
         .iter()
@@ -92,7 +97,10 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
 
-        return Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata));
+        return Some(PrimitivesTransaction {
+            contract,
+            ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata)
+        });
     }
 
     let withdraw_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
@@ -133,7 +141,10 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     let metadata = serde_json::to_value(&swap).ok();
     let to = meta.sender.clone();
 
-    Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata))
+    Some(PrimitivesTransaction {
+        contract,
+        ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata)
+    })
 }
 
 fn build_transaction(meta: TransactionMeta, asset_id: AssetId, fee_asset_id: AssetId, to: String, value: BigUint, transaction_type: TransactionType, metadata: Option<serde_json::Value>) -> PrimitivesTransaction {
@@ -253,6 +264,7 @@ mod tests {
         assert_eq!(tx.to, "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef");
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::Swap);
+        assert_eq!(tx.contract.as_deref(), Some("0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c"));
         assert_eq!(tx.asset_id, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
         assert_eq!(tx.fee_asset_id, Chain::Aptos.as_asset_id());
         assert_eq!(tx.fee, BigUint::from(142_600u32));

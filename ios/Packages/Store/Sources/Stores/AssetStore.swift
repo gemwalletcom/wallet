@@ -11,18 +11,10 @@ public struct AssetStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func insert(assets: [AssetBasic]) throws {
-        try db.write { db in
-            for asset in assets {
-                try asset.record.insert(db, onConflict: .ignore)
-            }
-        }
-    }
-
     public func add(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
-                try asset.asset.record.insert(db, onConflict: .ignore)
+                try asset.record.insert(db, onConflict: .ignore)
                 try AssetRecord
                     .filter(AssetRecord.Columns.id == asset.asset.id.identifier)
                     .updateAll(
@@ -40,76 +32,79 @@ public struct AssetStore: Sendable {
                         AssetRecord.Columns.isEarnable.set(to: asset.properties.isEarnable),
                         AssetRecord.Columns.stakingApr.set(to: asset.properties.stakingApr),
                         AssetRecord.Columns.earnApr.set(to: asset.properties.earnApr),
+                        AssetRecord.Columns.hasImage.set(to: asset.properties.hasImage),
                     )
             }
         }
     }
 
-    public func getAssetsData(walletId: WalletId, filters: [AssetsRequestFilter], limit: Int? = AssetsRequest.defaultQueryLimit) throws -> [AssetData] {
+    public func getAssetsData(walletId: WalletId, filters: [AssetsQueryFilter], limit: Int? = nil) throws -> [AssetData] {
         try db.read { db in
-            try AssetsRequest(walletId: walletId, filters: filters, limit: limit).fetch(db)
+            try AssetsQuery(walletId: walletId, filters: filters, limit: limit).fetch(db)
         }
     }
 
-    public func getAssetData(walletId: WalletId, assetId: AssetId) throws -> AssetData {
-        try db.read { db in
-            try AssetRequest(walletId: walletId, assetId: assetId).fetch(db)
-        }
-    }
-
-    public func getAssets() throws -> [Asset] {
+    public func getAssetBasics(for assetIds: [AssetId]) throws -> [AssetBasic] {
         try db.read { db in
             try AssetRecord
-                .fetchAll(db)
-                .map { $0.mapToAsset() }
-        }
-    }
-
-    public func getAssetBasics(for assetIds: [String]) throws -> [AssetBasic] {
-        try db.read { db in
-            try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
                 .fetchAll(db)
                 .map { $0.mapToAssetBasic() }
         }
     }
 
-    public func getAssets(for assetIds: [String]) throws -> [Asset] {
+    public func getAssets(for assetIds: [AssetId]) throws -> [Asset] {
         try db.read { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
                 .fetchAll(db)
                 .map { $0.mapToAsset() }
         }
     }
 
+    public func getAssetIds(for assetIds: [AssetId]) throws -> [AssetId] {
+        try db.read { db in
+            try AssetRecord
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
+                .select(AssetRecord.Columns.id, as: String.self)
+                .fetchAll(db)
+                .map { try AssetId.from(id: $0) }
+        }
+    }
+
     @discardableResult
-    public func setAssetIsBuyable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsBuyable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isBuyable, value: value)
     }
 
     @discardableResult
-    public func setAssetIsSwappable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsSwappable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isSwappable, value: value)
     }
 
     @discardableResult
-    public func setAssetIsStakeable(for assetIds: [String], value: Bool) throws -> Int {
+    public func setAssetIsStakeable(for assetIds: [AssetId], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
     }
 
     @discardableResult
-    public func updateBuyableAssets(assetIds: [String]) throws -> Int {
+    public func updateBuyableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isBuyable, enabledAssetIds: assetIds)
     }
 
     @discardableResult
-    public func updateSellableAssets(assetIds: [String]) throws -> Int {
+    public func updateSellableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isSellable, enabledAssetIds: assetIds)
     }
 
-    private func updateColumn(column: Column, enabledAssetIds: [String]) throws -> Int {
-        try db.write { db in
+    @discardableResult
+    public func updateSwappableAssets(assetIds: [AssetId]) throws -> Int {
+        try updateColumn(column: AssetRecord.Columns.isSwappable, enabledAssetIds: assetIds)
+    }
+
+    private func updateColumn(column: Column, enabledAssetIds: [AssetId]) throws -> Int {
+        let enabledAssetIds = enabledAssetIds.map(\.identifier)
+        return try db.write { db in
             let enabled = try AssetRecord
                 .filter(enabledAssetIds.contains(AssetRecord.Columns.id) && column == false)
                 .updateAll(db, column.set(to: true))
@@ -120,10 +115,10 @@ public struct AssetStore: Sendable {
         }
     }
 
-    private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {
+    private func setColumn(for assetIds: [AssetId], column: Column, value: Bool) throws -> Int {
         try db.write { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id) && column != value)
+                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id) && column != value)
                 .updateAll(db, column.set(to: value))
         }
     }
@@ -140,7 +135,7 @@ public struct AssetStore: Sendable {
     public func updateLinks(assetId: AssetId, _ links: [AssetLink]) throws {
         try db.write { db in
             for link in links {
-                try link.record(assetId: assetId).upsert(db)
+                try link.toRecord(assetId: assetId).upsert(db)
             }
         }
     }

@@ -29,14 +29,6 @@ public struct StakeStore: Sendable {
         }
     }
 
-    public func updateDelegations(walletId: WalletId, delegations: [DelegationBase]) throws {
-        try db.write { db in
-            for delegation in delegations {
-                try delegation.record(walletId: walletId.id).upsert(db)
-            }
-        }
-    }
-
     public func updateAndDelete(walletId: WalletId, delegations: [DelegationBase], deleteIds: [String]) throws {
         try db.write { db in
             for delegation in delegations {
@@ -86,9 +78,15 @@ public struct StakeStore: Sendable {
         }
     }
 
-    public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
+    public func getDelegationIds(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [String] {
         try db.read { db in
-            try DelegationsRequest(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
+            try StakeDelegationRecord
+                .filter(StakeDelegationRecord.Columns.walletId == walletId.id)
+                .filter(StakeDelegationRecord.Columns.assetId == assetId.identifier)
+                .joining(required: StakeDelegationRecord.validator
+                    .filter(StakeValidatorRecord.Columns.providerType == providerType.rawValue))
+                .select(StakeDelegationRecord.Columns.id, as: String.self)
+                .fetchAll(db)
         }
     }
 
@@ -104,10 +102,5 @@ public struct StakeStore: Sendable {
         try db.write { db in
             try StakeValidatorRecord.deleteAll(db)
         }
-    }
-
-    public func clear() throws {
-        try clearDelegations()
-        try clearValidators()
     }
 }

@@ -15,7 +15,7 @@ public struct ConnectionStore: Sendable {
 
     public func addConnection(_ connection: WalletConnection) throws {
         try db.write { db in
-            try connection.record.upsert(db)
+            try connection.session.toRecord(walletId: connection.wallet.id.id).upsert(db)
         }
     }
 
@@ -37,7 +37,7 @@ public struct ConnectionStore: Sendable {
         try db.read { db in
             try WalletConnectionRecord
                 .fetchAll(db)
-                .map(\.session)
+                .map { $0.toWalletConnectionSession() }
         }
     }
 
@@ -58,12 +58,6 @@ public struct ConnectionStore: Sendable {
             try WalletConnectionRecord
                 .filter(ids.contains(WalletConnectionRecord.Columns.id) || ids.contains(WalletConnectionRecord.Columns.sessionId))
                 .deleteAll(db)
-        }
-    }
-
-    public func deleteAll() throws -> Int {
-        try db.write { db in
-            try WalletConnectionRecord.deleteAll(db)
         }
     }
 }

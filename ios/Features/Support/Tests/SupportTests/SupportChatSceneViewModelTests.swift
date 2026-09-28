@@ -1,18 +1,32 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemErrorText
+import struct Gemstone.GemPushState
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
-import StoreTestKit
 @testable import Support
 import SupportTestKit
 import Testing
 
 @MainActor
 struct SupportChatSceneViewModelTests {
+    @Test
+    func aFailedPushRegistrationShowsOnTheChat() async {
+        let service = GemSupportServiceMock()
+        service.pushState = GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline))
+        let model = SupportChatSceneViewModel.mock(service: service)
+
+        await model.enableNotificationsForSupport()
+
+        #expect(service.enableNotificationsCalls == 1)
+        #expect(model.isPresentingAlertMessage?.message == GemErrorText.networkOffline.text)
+    }
+
     @Test
     func anEmptyChatSaysSo() {
         let model = SupportChatSceneViewModel.mock()

@@ -9,6 +9,7 @@
   <string name="common_copy">কপি</string>
   <string name="common_share">শেয়ার করুন</string>
   <string name="common_continue">চালিয়ে যান</string>
+  <string name="common_continue_anyway">তারপরও চালিয়ে যান</string>
   <string name="common_sign_in_with">%1$s দিয়ে সাইন ইন করুন</string>
   <string name="common_provider">প্রদানকারী</string>
   <string name="common_loading">লোড হচ্ছে</string>
@@ -47,7 +48,6 @@
   <string name="common_description">বর্ণনা</string>
   <string name="common_emoji">ইমোজি</string>
   <string name="common_avatar">অবতার</string>
-  <string name="common_save">সংরক্ষণ করুন</string>
   <string name="common_percentage">শতাংশ</string>
   <string name="common_details">বিস্তারিত</string>
   <string name="common_info">তথ্য</string>
@@ -57,6 +57,7 @@
   <string name="common_token">টোকেন</string>
   <string name="common_expiration">মেয়াদ শেষ</string>
   <string name="common_suspicious_address">সন্দেহজনক ঠিকানা</string>
+  <string name="common_suspicious_address_description">এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।</string>
   <string name="common_refresh">রিফ্রেশ</string>
   <string name="common_grant_permission">অনুমতি দিন</string>
   <string name="common_required_field">%1$s প্রয়োজন</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">পোর্টফোলিও</string>
   <string name="wallet_import_already_imported_message">এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।</string>
   <string name="wallets_title">ওয়ালেট</string>
-  <string name="wallets_watch">পর্যবেক্ষণ</string>
-  <string name="receive_title">%1$s গ্রহণ করুন</string>
   <string name="receive_warning">এটি আপনার ঠিকানা — শুধুমাত্র পাঠান %1$s উপরে %2$s নেটওয়ার্ক।</string>
   <string name="buy_title">%1$s কিনুন</string>
   <string name="buy_providers_title">প্রদানকারী</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">প্রমাণীকরণ</string>
   <string name="settings_notifications_title">বিজ্ঞপ্তি</string>
   <string name="settings_language">ভাষা</string>
-  <string name="settings_help_center">সহায়তা কেন্দ্র</string>
   <string name="settings_support">সমর্থন</string>
   <string name="settings_price_alerts_title">মূল্য সতর্কতা</string>
   <string name="settings_hide_balance">ব্যালেন্স লুকান</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">সমর্থিত সম্পদ নয়।</string>
   <string name="errors_connections_no_supported_wallets">কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।</string>
   <string name="errors_connections_unsupported_chain">প্রদত্ত চেইনটি সমর্থিত নয়।</string>
+  <string name="errors_authentication_unavailable">এই ডিভাইসে প্রমাণীকরণ সেট আপ করা নেই। ডিভাইসের সেটিংসে বায়োমেট্রিক্স বা পাসকোড চালু করুন।</string>
+  <string name="errors_authentication_locked_out">অনেকবার ব্যর্থ চেষ্টা হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।</string>
+  <string name="errors_authentication_failed">প্রমাণীকরণ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+  <string name="errors_connections_expired">এই সংযোগ লিঙ্কের মেয়াদ শেষ হয়ে গেছে। একটি নতুন QR কোড নিয়ে আবার চেষ্টা করুন।</string>
+  <string name="errors_connections_not_found">এই সংযোগটি আর নেই।</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect-এ পৌঁছানো যায়নি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
   <string name="errors_swap_amount_too_small">পরিমাণ খুব কম</string>
   <string name="errors_scan_transaction_malicious_description">এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।</string>
   <string name="errors_scan_transaction_memo_required">%1$s গন্তব্য ওয়ালেট ঠিকানার জন্য একটি গন্তব্য ট্যাগ / মেমো প্রয়োজন।</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">%1$s কিনুন</string>
   <string name="asset_get_asset">%1$s পান</string>
   <string name="asset_add_to_wallet">ওয়ালেটে যোগ করুন</string>
-  <string name="asset_hide_from_wallet">মানিব্যাগ থেকে লুকান</string>
   <string name="asset_added_to_wallet">ওয়ালেটে যোগ করা হয়েছে</string>
   <string name="asset_hidden_from_wallet">ওয়ালেট থেকে লুকানো হয়েছে</string>
   <string name="asset_resources">রিসোর্স</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">পরিবর্তন</string>
   <string name="date_today">আজ</string>
   <string name="date_yesterday">গতকাল</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">সংযোগ</string>
   <string name="wallet_connect_disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">দ্রুত</string>
   <string name="fee_rates_normal">স্বাভাবিক</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">কাস্টম</string>
   <string name="banner_account_activation_title">অ্যাকাউন্ট অ্যাক্টিভেশন ফি</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">যখন দাম কমে যায়</string>
   <string name="price_alerts_set_alert_set_target_price">লক্ষ্য মূল্য নির্ধারণ করুন</string>
   <string name="price_alerts_set_alert_current_price">বর্তমান মূল্য</string>
-  <string name="price_alerts_added_for">মূল্য সতর্কতা সেট করুন %1$s</string>
+  <string name="price_alerts_added_price_over">দাম %1$s এর উপরে গেলে সতর্কতা যোগ করা হয়েছে</string>
+  <string name="price_alerts_added_price_under">দাম %1$s এর নিচে গেলে সতর্কতা যোগ করা হয়েছে</string>
+  <string name="price_alerts_added_increases_by">দাম %1$s বাড়লে সতর্কতা যোগ করা হয়েছে</string>
+  <string name="price_alerts_added_decreases_by">দাম %1$s কমলে সতর্কতা যোগ করা হয়েছে</string>
   <string name="price_alerts_state_empty_title">আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে</string>
   <string name="price_alerts_state_empty_description">ট্র্যাকে কয়েন যোগ করে এগুলি সক্ষম করুন</string>
   <string name="price_alerts_auto_footer">উল্লেখযোগ্য মূল্য পরিবর্তনের সময় সতর্কতাগুলি ট্রিগার করে।</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">রিপোর্ট করুন</string>
   <string name="permissions_access_denied">অ্যাক্সেস অস্বীকার করা হয়েছে৷</string>
   <string name="permissions_image_photo_access_denied_description">এই অ্যাপটির আপনার ফটো লাইব্রেরি অ্যাক্সেস করার অনুমতি নেই। অনুগ্রহ করে আপনার ডিভাইস সেটিংসে অ্যাক্সেস সক্ষম করুন৷</string>
-  <string name="markets_title">বাজার</string>
-  <string name="markets_state_empty_title">আপনার বাজারের তথ্য এখানে প্রদর্শিত হবে।</string>
   <string name="markets_daily_volume">২৪ ঘন্টা ভলিউম</string>
   <string name="search_state_empty_description">বানান পরীক্ষা করুন অথবা নতুন করে অনুসন্ধান করে দেখুন।</string>
   <string name="networks_state_empty_search_title">কোনও নেটওয়ার্ক পাওয়া যায়নি</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">সীমাহীন টোকেন অনুমোদন</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">নিরাপত্তা সতর্কতা</string>
+  <string name="rootcheck_jailbreak_body">আপনার ডিভাইস জেলব্রোক করা বলে মনে হচ্ছে। এতে আপনার ওয়ালেট ও তহবিল ঝুঁকিতে পড়তে পারে।</string>
   <string name="rootcheck_body">আপনার ডিভাইসে রুট অ্যাক্সেস আছে বলে মনে হচ্ছে, যা উল্লেখযোগ্যভাবে নিরাপত্তা ঝুঁকি বাড়াতে পারে। রুট করা ডিভাইসে এই অ্যাপটি ব্যবহার করলে আপনার সম্পদ অননুমোদিত অ্যাক্সেস এবং সম্ভাব্য ক্ষতির সম্মুখীন হতে পারে। আপনার তহবিলের নিরাপত্তার জন্য, আমরা দৃঢ়ভাবে একটি নন-রুটেড ডিভাইস ব্যবহার করার পরামর্শ দিই।</string>
   <string name="rootcheck_ignore">উপেক্ষা করুন</string>
   <string name="rootcheck_exit">প্রস্থান করুন</string>

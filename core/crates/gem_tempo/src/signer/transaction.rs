@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use alloy_primitives::{Address, B256, Bytes, U256, keccak256};
 use alloy_rlp::{BufMut, EMPTY_STRING_CODE, Encodable, Header};
 use primitives::SignerError;
@@ -11,8 +13,11 @@ pub(super) struct TransactionCall {
 }
 
 impl TransactionCall {
-    pub(super) fn new(to: Address, input: Bytes) -> Self {
-        Self { to, input }
+    pub(super) fn new(to: &str, input: Vec<u8>) -> Result<Self, SignerError> {
+        Ok(Self {
+            to: Address::from_str(to).map_err(SignerError::from_display)?,
+            input: Bytes::from(input),
+        })
     }
 
     fn header(&self) -> Header {
@@ -119,7 +124,7 @@ mod tests {
             gas_limit: 300_000,
             nonce: 0,
             fee_token: TEMPO_BRIDGED_USDC_TOKEN_ID.parse().unwrap(),
-            calls: vec![TransactionCall::new(crate::testkit::TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(), Bytes::from(vec![0xab, 0xcd]))],
+            calls: vec![TransactionCall::new(crate::testkit::TEMPO_TEST_ROUTER_ADDRESS, vec![0xab, 0xcd]).unwrap()],
         };
         let signed = transaction.sign(&TEST_PRIVATE_KEY).unwrap();
 

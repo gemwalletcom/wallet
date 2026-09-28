@@ -117,7 +117,7 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
     override fun approveSession(proposal: WalletConnectSessionProposal, namespaces: Map<String, WalletConnectSessionNamespace>, properties: Map<String, String>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val sessionProposal = proposal.pendingReownProposal()
         if (sessionProposal == null) {
-            onError("WalletConnect session proposal is no longer available")
+            onError("Session proposal expired")
             return
         }
         WalletKit.approveSession(
@@ -229,7 +229,9 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
         }
     }
 
-    override fun onSessionExtend(session: Wallet.Model.Session) = Unit
+    override fun onSessionExtend(session: Wallet.Model.Session) {
+        walletEvents.tryEmit(WalletConnectEvent.SessionChanged(session.topic))
+    }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext) {
         walletEvents.tryEmit(WalletConnectEvent.SessionProposal(sessionProposal.toWalletConnectSessionProposal(), verifyContext.toWalletConnectVerifyContext()))
@@ -245,7 +247,11 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
         }
     }
 
-    override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) = Unit
+    override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
+        if (sessionUpdateResponse is Wallet.Model.SessionUpdateResponse.Result) {
+            walletEvents.tryEmit(WalletConnectEvent.SessionChanged(sessionUpdateResponse.topic))
+        }
+    }
 
     private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession = WalletConnectSession(
         topic = topic,

@@ -8,7 +8,7 @@ use crate::sql_types::{AssetId, PerpetualIdRow, PerpetualProviderRow};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::perpetuals)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PerpetualRow {
+pub(crate) struct PerpetualRow {
     pub id: PerpetualIdRow,
     pub name: String,
     pub provider: PerpetualProviderRow,
@@ -27,7 +27,7 @@ pub struct PerpetualRow {
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::perpetuals)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewPerpetualRow {
+pub(crate) struct NewPerpetualRow {
     pub id: PerpetualIdRow,
     pub name: String,
     pub provider: PerpetualProviderRow,

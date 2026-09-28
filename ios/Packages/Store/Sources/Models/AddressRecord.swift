@@ -46,27 +46,6 @@ extension AddressRecord: CreateTable {
 }
 
 extension AddressRecord {
-    func mapToAddressName() -> AddressName {
-        AddressName(
-            chain: chain,
-            address: address,
-            name: name,
-            type: type,
-            status: status,
-            imageUrl: imageUrl,
-        )
-    }
-}
-
-extension AddressName {
-    var record: AddressRecord {
-        AddressRecord(
-            chain: chain,
-            address: address,
-            name: name,
-            type: type,
-            status: status,
-            imageUrl: imageUrl,
-        )
-    }
+    static let account = hasOne(AccountRecord.self, using: ForeignKey(["chain", "address"], to: ["chain", "address"]))
+    static let wallet = hasOne(WalletRecord.self, through: account, using: AccountRecord.wallet, key: "wallet")
 }

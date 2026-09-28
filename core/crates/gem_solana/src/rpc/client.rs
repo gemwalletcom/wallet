@@ -145,10 +145,7 @@ impl<C: Client + Clone> SolanaClient<C> {
     }
 
     pub async fn get_token_accounts(&self, address: &str, token_mints: &[String]) -> Result<Vec<ValueResult<Vec<TokenAccountInfo>>>, Box<dyn Error + Send + Sync>> {
-        let requests: Vec<SolanaRpc> = token_mints
-            .iter()
-            .map(|mint| SolanaRpc::GetTokenAccountsByOwner(address.to_string(), SolanaTokenAccountsFilter::Mint(mint.to_string())))
-            .collect();
+        let requests: Vec<SolanaRpc> = token_mints.iter().map(|mint| SolanaRpc::GetTokenAccountsByOwner(address.to_string(), SolanaTokenAccountsFilter::Mint(mint.clone()))).collect();
         Ok(self.client.batch_request(requests).await?.take_all()?)
     }
 }

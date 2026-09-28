@@ -78,6 +78,14 @@ pub mod sql_types {
     pub struct RewardStatus;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "scan_provider"))]
+    pub struct ScanProvider;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "scan_type"))]
+    pub struct ScanType;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "tag_visibility"))]
     pub struct TagVisibility;
 
@@ -851,6 +859,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::ScanType;
+    use super::sql_types::ScanProvider;
+
+    scan_detections (id) {
+        id -> Int4,
+        scan_type -> ScanType,
+        chain -> Nullable<Varchar>,
+        #[max_length = 256]
+        target -> Varchar,
+        provider -> ScanProvider,
+        reason -> Nullable<Varchar>,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     subscriptions_addresses_exclude (address) {
         #[max_length = 128]
         address -> Varchar,
@@ -1044,6 +1070,7 @@ diesel::joinable!(rewards_referrals -> rewards_risk_signals (risk_signal_id));
 diesel::joinable!(rewards_risk_signals -> devices (device_id));
 diesel::joinable!(rewards_risk_signals -> rewards (referrer_username));
 diesel::joinable!(scan_addresses -> chains (chain));
+diesel::joinable!(scan_detections -> chains (chain));
 diesel::joinable!(subscriptions_addresses_exclude -> chains (chain));
 diesel::joinable!(support_sessions -> devices (device_id));
 diesel::joinable!(transactions -> chains (chain));
@@ -1098,6 +1125,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     rewards_referrals,
     rewards_risk_signals,
     scan_addresses,
+    scan_detections,
     subscriptions_addresses_exclude,
     support_sessions,
     tags,

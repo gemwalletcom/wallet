@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use primitives::{GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, UrlAction};
 use url::Url;
 
@@ -73,7 +74,7 @@ impl SupportMessageLink {
     fn new(title: Option<&str>, url: &str) -> Option<Self> {
         let url = link_destination(url.trim());
         let parsed_url = Url::parse(url).ok()?;
-        let title = title.map(str::trim).filter(|title| !title.is_empty()).unwrap_or(url);
+        let title = title.map(str::trim).non_empty().unwrap_or(url);
 
         if title.is_empty() || url.chars().any(char::is_whitespace) {
             return None;
@@ -84,7 +85,7 @@ impl SupportMessageLink {
             GEM_URL_SCHEME if is_app_link => None,
             GEM_URL_SCHEME => Some(url.to_string()),
             HTTP_URL_SCHEME | HTTPS_URL_SCHEME => {
-                let host = parsed_url.host_str().filter(|host| !host.is_empty())?;
+                let host = parsed_url.host_str().non_empty()?;
                 if is_app_link { None } else { Some(host.strip_prefix("www.").unwrap_or(host).to_string()) }
             }
             _ => return None,

@@ -1,6 +1,7 @@
 use super::permit2_data::Permit2Data;
 use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
 use num_bigint::BigUint;
+pub use primitives::swap::Permit2ApprovalData;
 pub use primitives::swap::SwapResult;
 use primitives::{
     AssetId, Chain,
@@ -168,15 +169,6 @@ impl ApprovalType {
             _ => None,
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Permit2ApprovalData {
-    pub token: String,
-    pub spender: String,
-    pub value: BigUint,
-    pub permit2_contract: String,
-    pub permit2_nonce: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

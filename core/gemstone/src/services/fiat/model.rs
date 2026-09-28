@@ -1,5 +1,5 @@
 use super::rules;
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionAssetData};
 
@@ -9,6 +9,25 @@ pub enum GemFiatAmountCheck {
     AboveMaximum { maximum: GemFormattedNumber },
     InsufficientBalance { title: String },
     Valid,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemFiatAmountError {
+    InvalidAmount,
+    BelowMinimum { minimum: GemFormattedNumber },
+    AboveMaximum { maximum: GemFormattedNumber },
+    InsufficientBalance { title: String },
+}
+
+impl GemFiatAmountCheck {
+    pub fn error(&self) -> Option<GemFiatAmountError> {
+        match self {
+            Self::BelowMinimum { minimum } => Some(GemFiatAmountError::BelowMinimum { minimum: minimum.clone() }),
+            Self::AboveMaximum { maximum } => Some(GemFiatAmountError::AboveMaximum { maximum: maximum.clone() }),
+            Self::InsufficientBalance { title } => Some(GemFiatAmountError::InsufficientBalance { title: title.clone() }),
+            Self::Valid => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -40,41 +59,26 @@ pub enum GemFiatTransactionBadge {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemFiatTransactionStatus {
     pub badge: Option<GemFiatTransactionBadge>,
-    pub is_dimmed: bool,
+    pub tone: GemValueTone,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatTransactionRow {
+    pub id: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub quote_type: FiatQuoteType,
     pub provider: FiatProviderName,
     pub subtitle: String,
     pub value: GemFormattedNumber,
     pub fiat_value: GemFormattedNumber,
     pub badge: Option<GemFiatTransactionBadge>,
-    pub is_dimmed: bool,
     pub details_url: Option<String>,
 }
 
 #[uniffi::export]
-pub fn fiat_transaction_row(data: FiatTransactionAssetData) -> GemFiatTransactionRow {
-    rules::transaction_row(&data)
-}
-
-#[uniffi::export]
-pub fn fiat_provider_name(provider: FiatProviderName) -> String {
-    provider.name().to_string()
-}
-
-#[cfg(test)]
-mod provider_tests {
-    use super::*;
-
-    #[test]
-    fn test_a_provider_reads_by_its_brand_and_not_its_case_name() {
-        assert_eq!(fiat_provider_name(FiatProviderName::Flashnet), "Cash App");
-        assert_eq!(fiat_provider_name(FiatProviderName::MoonPay), "MoonPay");
-    }
+pub fn fiat_transaction_rows(data: Vec<FiatTransactionAssetData>) -> Vec<GemFiatTransactionRow> {
+    data.iter().map(rules::transaction_row).collect()
 }

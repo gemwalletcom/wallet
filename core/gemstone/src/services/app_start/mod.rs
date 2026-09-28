@@ -98,7 +98,7 @@ impl GemAppStartService {
         record(&mut failures, GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()).await;
         record(&mut failures, GemAppStartStep::SetupWalletBanners, self.banners.setup_wallet(wallet.clone())).await;
         record(&mut failures, GemAppStartStep::SetupWalletAssets, self.balance.setup_wallet(wallet.clone())).await;
-        record(&mut failures, GemAppStartStep::SyncWalletConfiguration, self.wallet_configuration.sync(wallet.id)).await;
+        record(&mut failures, GemAppStartStep::SyncWalletConfiguration, self.wallet_configuration.sync(&wallet)).await;
         failures
     }
 }
@@ -111,7 +111,6 @@ impl GemAppStartService {
     }
 
     async fn sync_assets(&self) -> Result<(), GemServiceError> {
-        self.assets.sync_swappable_chains().await?;
         let config = self.config.get_config().await?;
         self.assets.sync_availability(config.versions).await
     }

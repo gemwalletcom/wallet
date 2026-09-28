@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.AssetBalance
 import typealias Gemstone.AssetId
-import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetConfiguration
 import struct Gemstone.GemBalanceRecord
 import protocol Gemstone.GemBalanceStore
@@ -18,16 +18,19 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         self.store = store
     }
 
-    public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
-        try store.getBalances(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
-            .map { GemAssetBalance($0.balance, assetId: $0.assetId, isActive: $0.isActive) }
+    public func getAvailableBalances(walletId: WalletId, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetBalance] {
+        try store.getBalances(walletId: walletId, assetIds: assetIds)
+            .map { $0.toGem() }
     }
 
-    public func updateBalances(walletId: String, balances: [GemBalanceRecord]) async throws {
-        let walletId = try WalletId.from(id: walletId)
+    public func getBalanceAssetIds(walletId: WalletId, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetId] {
+        try store.getBalanceAssetIds(walletId: walletId, assetIds: assetIds)
+    }
+
+    public func updateBalances(walletId: WalletId, balances: [GemBalanceRecord]) async throws {
         let updates = try balances.map { balance in
             try UpdateBalance(
-                assetId: Primitives.AssetId(id: balance.assetId),
+                assetId: balance.assetId,
                 available: value(balance.available),
                 frozen: value(balance.frozen),
                 locked: value(balance.locked),
@@ -46,14 +49,14 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         try store.updateBalances(updates, for: walletId)
     }
 
-    public func getEnabledAssetIds(walletId: String) async throws -> [Gemstone.AssetId] {
-        try store.getEnabledAssetIds(walletId: WalletId.from(id: walletId)).map(\Primitives.AssetId.identifier)
+    public func getEnabledAssetIds(walletId: WalletId) async throws -> [Gemstone.AssetId] {
+        try store.getEnabledAssetIds(walletId: walletId)
     }
 
-    public func setAssetConfiguration(walletId: String, assetIds: [Gemstone.AssetId], configuration: GemAssetConfiguration) async throws {
+    public func setAssetConfiguration(walletId: WalletId, assetIds: [Gemstone.AssetId], configuration: GemAssetConfiguration) async throws {
         try store.setConfiguration(
-            walletId: WalletId.from(id: walletId),
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            walletId: walletId,
+            assetIds: assetIds,
             configuration: AssetConfiguration(isEnabled: configuration.isEnabled, isPinned: configuration.isPinned),
         )
     }

@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Contacts
 import GemstoneServices
 import InAppNotifications
-import MarketInsight
 import PriceAlerts
 import Primitives
 import PrimitivesComponents
+import Rewards
 import Settings
 import Store
 import Support
@@ -22,6 +23,7 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationPresenter) private var presenter
 
     @State private var currencyModel: CurrencySceneViewModel
+    @State private var isPresentingAddressDetails: ChainAddress?
 
     let walletId: WalletId
     @Binding var isPresentingSupport: Bool
@@ -61,12 +63,12 @@ struct SettingsNavigationView: View {
                 model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
-        .navigationDestination(for: Scenes.Price.self) { scene in
+        .navigationDestination(for: Scenes.Chart.self) { scene in
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,
-                    walletId: walletId,
                     onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
+                    onSelectAddress: { isPresentingAddressDetails = $0 },
                 ),
             )
         }
@@ -111,7 +113,7 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: viewModelFactory.appearanceScene())
         }
-        .navigationDestination(for: Scenes.Referral.self) { scene in
+        .navigationDestination(for: Scenes.Rewards.self) { scene in
             if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
                 RewardsScene(model: model)
             }
@@ -121,6 +123,15 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
             ContactsNavigationView(model: viewModelFactory.contactsScene())
+        }
+        .sheet(isPresented: Binding(get: { isPresentingAddressDetails != nil }, set: {
+            if !$0 {
+                isPresentingAddressDetails = nil
+            }
+        })) {
+            if let isPresentingAddressDetails {
+                AddressDetailsDestination(chainAddress: isPresentingAddressDetails)
+            }
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {

@@ -13,6 +13,6 @@ strum = { workspace = true }
 
 lapin = { version = "4.10.0" }
 
-gem_tracing = { path = "../tracing" }
+gem_tracing = { path = "../gem_tracing" }
 primitives = { path = "../primitives" }
 push_notification = { path = "../push_notification" }

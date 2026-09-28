@@ -54,10 +54,6 @@ impl<C: Client> ChainBalances for CosmosClient<C> {
 
         Ok(Some(balances_mapper::map_balance_staking(delegations, unbonding, rewards, chain, denom)))
     }
-
-    async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
-    }
 }
 
 #[cfg(test)]

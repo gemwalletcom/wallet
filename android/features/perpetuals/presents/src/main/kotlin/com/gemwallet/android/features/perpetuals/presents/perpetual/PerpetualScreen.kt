@@ -1,0 +1,87 @@
+package com.gemwallet.android.features.perpetuals.presents.perpetual
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseConfirmContent
+import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseNavGraph
+import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualViewModel
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.actions.FinishConfirmAction
+import com.wallet.core.primitives.TransactionId
+
+@Composable
+fun PerpetualScreen(
+    amountAction: AmountTransactionAction,
+    confirmAction: ConfirmTransactionAction,
+    onClose: () -> Unit,
+    onTransaction: (TransactionId) -> Unit,
+    confirmContent: AutocloseConfirmContent,
+    viewModel: PerpetualViewModel = hiltViewModel(),
+) {
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshPerpetual()
+        onPauseOrDispose { }
+    }
+
+    DisposableEffect(Unit) {
+        viewModel.onScreenEnter()
+        onDispose { viewModel.onScreenExit() }
+    }
+
+    val details by viewModel.details.collectAsStateWithLifecycle()
+    val transactions by viewModel.transactions.collectAsStateWithLifecycle()
+    val chart by viewModel.chart.collectAsStateWithLifecycle()
+    val period by viewModel.period.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    var showAutoclose by remember { mutableStateOf(false) }
+
+    PerpetualScene(
+        details = details,
+        transactions = transactions,
+        chart = chart,
+        period = period,
+        isRefreshing = isRefreshing,
+        snackbar = snackbar,
+        onAction = { action ->
+            when (action) {
+                PerpetualAction.Close -> onClose()
+                PerpetualAction.Refresh -> viewModel.refresh()
+                PerpetualAction.IncreasePosition -> viewModel.increasePosition(amountAction)
+                PerpetualAction.ReducePosition -> viewModel.reducePosition(amountAction)
+                PerpetualAction.ClosePosition -> viewModel.closePosition(confirmAction)
+                PerpetualAction.Autoclose -> showAutoclose = true
+                is PerpetualAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
+                is PerpetualAction.SelectChartPeriod -> viewModel.period(action.period)
+                is PerpetualAction.OpenTransaction -> onTransaction(action.transactionId)
+            }
+        },
+    )
+
+    ModalBottomSheet(
+        isVisible = showAutoclose,
+        onDismissRequest = { showAutoclose = false },
+        expansion = SheetExpansion.Full,
+        title = null,
+        dragHandle = null,
+    ) {
+        AutocloseNavGraph(
+            onDismiss = { showAutoclose = false },
+            finishAction = FinishConfirmAction { _, _ -> viewModel.refreshPerpetual() },
+            confirmContent = confirmContent,
+        )
+    }
+}

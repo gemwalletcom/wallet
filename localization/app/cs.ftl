@@ -9,6 +9,7 @@ common_secret_phrase = Tajná fráze
 common_copy = Kopírovat
 common_share = Sdílet
 common_continue = Pokračovat
+common_continue_anyway = Přesto pokračovat
 common_sign_in_with = Přihlásit se pomocí %@
 common_provider = Poskytovatel
 common_loading = Načítání
@@ -47,7 +48,6 @@ common_learn_more = Další informace
 common_description = Popis
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Uložit
 common_percentage = Procento
 common_details = Podrobnosti
 common_info = Informace
@@ -57,6 +57,7 @@ common_method = Metoda
 common_token = Token
 common_expiration = Vypršení platnosti
 common_suspicious_address = Podezřelá adresa
+common_suspicious_address_description = Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.
 common_refresh = Obnovit
 common_grant_permission = Udělte povolení
 common_required_field = Je vyžadováno %@
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Tato peněženka již byla importována
 # Wallets
 
 wallets_title = Peněženky
-wallets_watch = Sledovat
 
 # Receive
 
-receive_title = Přijmout %@
 receive_warning = Toto je vaše adresa – pouze pro odeslání %@ na %@ síť.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Povolit přístupový kód
 settings_security_authentication = Autentizace
 settings_notifications_title = Oznámení
 settings_language = Jazyk
-settings_help_center = Centrum nápovědy
 settings_support = Podpora
 settings_price_alerts_title = Upozornění na cenu
 settings_hide_balance = Skrýt zůstatek
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Není dostupná žádná nabídka.
 errors_swap_not_supported_asset = Nepodporované aktivum.
 errors_connections_no_supported_wallets = Nejsou k dispozici žádné podporované peněženky.
 errors_connections_unsupported_chain = Zadaný řetězec není podporován.
+errors_authentication_unavailable = Ověřování není na tomto zařízení nastaveno. Zapněte biometrii nebo kód v nastavení zařízení.
+errors_authentication_locked_out = Příliš mnoho neúspěšných pokusů. Zkuste to prosím později.
+errors_authentication_failed = Ověření se nezdařilo. Zkuste to prosím znovu.
+errors_connections_expired = Platnost tohoto odkazu pro připojení vypršela. Získejte nový QR kód a zkuste to znovu.
+errors_connections_not_found = Toto připojení už neexistuje.
+errors_connections_relay_unavailable = Nepodařilo se spojit s WalletConnect. Zkontrolujte připojení k internetu a zkuste to znovu.
 errors_swap_amount_too_small = Příliš malé množství
 errors_scan_transaction_malicious_description = Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.
 errors_scan_transaction_memo_required = Cílová adresa peněženky %@ vyžaduje cílovou značku / poznámku
@@ -321,7 +325,6 @@ asset_verification_warning_message = Každý si jej může vytvořit – včetn�
 asset_buy_asset = Koupit %@
 asset_get_asset = Získat %@
 asset_add_to_wallet = Přidat do peněženky
-asset_hide_from_wallet = Skrýt z peněženky
 asset_added_to_wallet = Přidáno do peněženky
 asset_hidden_from_wallet = Skryto z peněženky
 asset_resources = Zdroje
@@ -348,6 +351,7 @@ charts_price_change = Změna
 
 date_today = Dnes
 date_yesterday = Včera
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Normální
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Vlastní
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Když cena vzroste o
 price_alerts_set_alert_price_decreases_by = Když cena klesne o
 price_alerts_set_alert_set_target_price = Stanovte cílovou cenu
 price_alerts_set_alert_current_price = Aktuální cena
-price_alerts_added_for = Nastavit cenové upozornění %@
+price_alerts_added_price_over = Upozornění přidáno pro cenu nad %@
+price_alerts_added_price_under = Upozornění přidáno pro cenu pod %@
+price_alerts_added_increases_by = Upozornění přidáno pro nárůst ceny o %@
+price_alerts_added_decreases_by = Upozornění přidáno pro pokles ceny o %@
 price_alerts_state_empty_title = Vaše upozornění se zobrazí zde 
 price_alerts_state_empty_description = Povolte je přidáním mincí do sledování
 price_alerts_auto_footer = Upozornění se spouštějí při významných cenových pohybech.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Tato aplikace nemá oprávn�
 
 # Markets
 
-markets_title = Trhy
-markets_state_empty_title = Zde se zobrazí vaše tržní data
 markets_daily_volume = 24hodinový objem
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Bezpečnostní varování
+rootcheck_jailbreak_body = Vaše zařízení je zřejmě jailbreaknuté. To může ohrozit vaši peněženku a prostředky.
 rootcheck_body = Zdá se, že vaše zařízení má přístup root, což může výrazně zvýšit bezpečnostní rizika. Používání této aplikace na zakořeněném zařízení může vystavit váš majetek neoprávněnému přístupu a potenciální ztrátě. Pro bezpečnost vašich finančních prostředků důrazně doporučujeme používat nerootované zařízení.
 rootcheck_ignore = Ignorovat
 rootcheck_exit = Výstup

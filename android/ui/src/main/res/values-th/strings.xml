@@ -9,6 +9,7 @@
   <string name="common_copy">คัดลอก</string>
   <string name="common_share">แบ่งปัน</string>
   <string name="common_continue">ดำเนินการต่อ</string>
+  <string name="common_continue_anyway">ดำเนินการต่ออยู่ดี</string>
   <string name="common_sign_in_with">ลงชื่อเข้าใช้ด้วย %1$s</string>
   <string name="common_provider">ผู้ให้บริการ</string>
   <string name="common_loading">กำลังโหลด</string>
@@ -47,7 +48,6 @@
   <string name="common_description">คำอธิบาย</string>
   <string name="common_emoji">อิโมจิ</string>
   <string name="common_avatar">อวตาร</string>
-  <string name="common_save">บันทึก</string>
   <string name="common_percentage">เปอร์เซ็นต์</string>
   <string name="common_details">รายละเอียด</string>
   <string name="common_info">ข้อมูล</string>
@@ -57,6 +57,7 @@
   <string name="common_token">โทเค็น</string>
   <string name="common_expiration">วันหมดอายุ</string>
   <string name="common_suspicious_address">ที่อยู่น่าสงสัย</string>
+  <string name="common_suspicious_address_description">ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="common_refresh">รีเฟรช</string>
   <string name="common_grant_permission">ให้สิทธิ์</string>
   <string name="common_required_field">จำเป็นต้องระบุ %1$s</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">พอร์ตโฟลิโอ</string>
   <string name="wallet_import_already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
   <string name="wallets_title">กระเป๋าสตางค์</string>
-  <string name="wallets_watch">ติดตาม</string>
-  <string name="receive_title">รับ %1$s</string>
   <string name="receive_warning">นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %1$s บนเครือข่าย %2$s เท่านั้น</string>
   <string name="buy_title">ซื้อ %1$s</string>
   <string name="buy_providers_title">ผู้ให้บริการ</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">การรับรองความถูกต้อง</string>
   <string name="settings_notifications_title">การแจ้งเตือน</string>
   <string name="settings_language">ภาษา</string>
-  <string name="settings_help_center">ศูนย์ช่วยเหลือ</string>
   <string name="settings_support">สนับสนุน</string>
   <string name="settings_price_alerts_title">การแจ้งเตือนราคา</string>
   <string name="settings_hide_balance">ซ่อนยอดคงเหลือ</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">ไม่รองรับสินทรัพย์นี้</string>
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
   <string name="errors_connections_unsupported_chain">ไม่รองรับโซ่ที่ให้มา</string>
+  <string name="errors_authentication_unavailable">อุปกรณ์นี้ยังไม่ได้ตั้งค่าการยืนยันตัวตน เปิดไบโอเมตริกซ์หรือรหัสผ่านในการตั้งค่าอุปกรณ์</string>
+  <string name="errors_authentication_locked_out">ลองไม่สำเร็จหลายครั้งเกินไป โปรดลองใหม่ภายหลัง</string>
+  <string name="errors_authentication_failed">การยืนยันตัวตนล้มเหลว โปรดลองอีกครั้ง</string>
+  <string name="errors_connections_expired">ลิงก์เชื่อมต่อนี้หมดอายุแล้ว รับคิวอาร์โค้ดใหม่แล้วลองอีกครั้ง</string>
+  <string name="errors_connections_not_found">การเชื่อมต่อนี้ไม่มีอยู่แล้ว</string>
+  <string name="errors_connections_relay_unavailable">เชื่อมต่อ WalletConnect ไม่ได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง</string>
   <string name="errors_swap_amount_too_small">จำนวนเงินน้อยเกินไป</string>
   <string name="errors_scan_transaction_malicious_description">ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="errors_scan_transaction_memo_required">ที่อยู่กระเป๋าเงินปลายทาง %1$s ต้องมีแท็กปลายทาง / บันทึกช่วยจำ</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">ซื้อ %1$s</string>
   <string name="asset_get_asset">รับ %1$s</string>
   <string name="asset_add_to_wallet">เพิ่มลงในกระเป๋าสตางค์</string>
-  <string name="asset_hide_from_wallet">ซ่อนจากกระเป๋าสตางค์</string>
   <string name="asset_added_to_wallet">เพิ่มลงในกระเป๋าสตางค์แล้ว</string>
   <string name="asset_hidden_from_wallet">ซ่อนจากกระเป๋าสตางค์แล้ว</string>
   <string name="asset_resources">ทรัพยากร</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">เปลี่ยน</string>
   <string name="date_today">วันนี้</string>
   <string name="date_yesterday">เมื่อวาน</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">การเชื่อมต่อ</string>
   <string name="wallet_connect_disconnect">ตัดการเชื่อมต่อ</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">รวดเร็ว</string>
   <string name="fee_rates_normal">ปกติ</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">กำหนดเอง</string>
   <string name="banner_account_activation_title">ค่าธรรมเนียมการเปิดใช้งานบัญชี</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">เมื่อราคาลดลง</string>
   <string name="price_alerts_set_alert_set_target_price">ตั้งราคาเป้าหมาย</string>
   <string name="price_alerts_set_alert_current_price">ราคาปัจจุบัน</string>
-  <string name="price_alerts_added_for">ตั้งค่าการแจ้งเตือนราคา %1$s</string>
+  <string name="price_alerts_added_price_over">เพิ่มการแจ้งเตือนเมื่อราคาสูงกว่า %1$s แล้ว</string>
+  <string name="price_alerts_added_price_under">เพิ่มการแจ้งเตือนเมื่อราคาต่ำกว่า %1$s แล้ว</string>
+  <string name="price_alerts_added_increases_by">เพิ่มการแจ้งเตือนเมื่อราคาเพิ่มขึ้น %1$s แล้ว</string>
+  <string name="price_alerts_added_decreases_by">เพิ่มการแจ้งเตือนเมื่อราคาลดลง %1$s แล้ว</string>
   <string name="price_alerts_state_empty_title">การแจ้งเตือนของคุณจะปรากฏที่นี่</string>
   <string name="price_alerts_state_empty_description">เปิดใช้งานได้โดยการเพิ่มเหรียญเพื่อติดตาม</string>
   <string name="price_alerts_auto_footer">การแจ้งเตือนจะเกิดขึ้นเมื่อราคามีการเปลี่ยนแปลงอย่างมีนัยสำคัญ</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">รายงานปัญหา</string>
   <string name="permissions_access_denied">การเข้าถึงถูกปฏิเสธ</string>
   <string name="permissions_image_photo_access_denied_description">แอพนี้ไม่มีสิทธิ์ในการเข้าถึงคลังภาพของคุณ โปรดเปิดใช้งานสิทธิ์ในการตั้งค่าอุปกรณ์ของคุณ</string>
-  <string name="markets_title">ตลาด</string>
-  <string name="markets_state_empty_title">ข้อมูลตลาดของคุณจะปรากฏที่นี่</string>
   <string name="markets_daily_volume">ปริมาณ 24 ชั่วโมง</string>
   <string name="search_state_empty_description">ตรวจสอบการสะกดคำหรือลองค้นหาใหม่</string>
   <string name="networks_state_empty_search_title">ไม่พบเครือข่าย</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">อนุมัติโทเค็นได้ไม่จำกัดจำนวน</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">คำเตือนด้านความปลอดภัย</string>
+  <string name="rootcheck_jailbreak_body">อุปกรณ์ของคุณดูเหมือนจะถูกเจลเบรก ซึ่งอาจทำให้กระเป๋าเงินและเงินของคุณเสี่ยง</string>
   <string name="rootcheck_body">อุปกรณ์ของคุณดูเหมือนจะมีสิทธิ์เข้าถึงรูท ซึ่งอาจเพิ่มความเสี่ยงด้านความปลอดภัยได้อย่างมาก การใช้แอปนี้บนอุปกรณ์ที่รูทแล้วอาจทำให้ทรัพย์สินของคุณถูกเข้าถึงโดยไม่ได้รับอนุญาตและอาจสูญหายได้ เพื่อความปลอดภัยของเงินของคุณ เราขอแนะนำอย่างยิ่งให้ใช้อุปกรณ์ที่ไม่ได้รับการรูท</string>
   <string name="rootcheck_ignore">ไม่สนใจ</string>
   <string name="rootcheck_exit">ออก</string>

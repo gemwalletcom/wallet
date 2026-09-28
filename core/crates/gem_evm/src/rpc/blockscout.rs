@@ -2,7 +2,7 @@ use std::cmp::Reverse;
 use std::collections::BTreeSet;
 use std::error::Error;
 
-use gem_blockscout::Client as BlockscoutClient;
+use blockscout::Client as BlockscoutClient;
 use gem_client::Client as Transport;
 use num_bigint::BigUint;
 
@@ -35,7 +35,7 @@ impl<C: Transport> EVMIndexerClient for BlockscoutClient<C> {
 
 #[cfg(test)]
 mod tests {
-    use gem_blockscout::testkit::{TOKEN_BALANCES, TOKEN_TRANSFERS, TRANSACTIONS};
+    use blockscout::testkit::{TOKEN_BALANCES, TOKEN_TRANSFERS, TRANSACTIONS};
     use gem_client::testkit::MockClient;
 
     use super::*;

@@ -9,6 +9,7 @@ common_secret_phrase = Lihim na Parirala
 common_copy = Kopyahin
 common_share = Ibahagi
 common_continue = Magpatuloy
+common_continue_anyway = Magpatuloy pa rin
 common_sign_in_with = Mag-sign in gamit ang %@
 common_provider = Provider
 common_loading = Naglo-load
@@ -47,7 +48,6 @@ common_learn_more = Matuto pa
 common_description = Paglalarawan
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = I-save
 common_percentage = Porsiyento
 common_details = Mga Detalye
 common_info = Impormasyon
@@ -57,6 +57,7 @@ common_method = Paraan
 common_token = Token
 common_expiration = Pag-expire
 common_suspicious_address = Kahina-hinalang address
+common_suspicious_address_description = Ang address na ito ay nauugnay sa kahina-hinala o nakakapinsalang aktibidad.
 common_refresh = I-refresh
 common_grant_permission = Magbigay ng pahintulot
 common_required_field = Kinakailangan ang %@
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Na-import na ang wallet na ito.
 # Wallets
 
 wallets_title = Mga Wallet
-wallets_watch = Panoorin
 
 # Receive
 
-receive_title = Tumanggap ng %@
 receive_warning = Ito ang iyong address — ipadala lamang %@ sa %@ network.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Paganahin ang Passcode
 settings_security_authentication = Authentication
 settings_notifications_title = Mga abiso
 settings_language = Wika
-settings_help_center = Help Center
 settings_support = Suporta
 settings_price_alerts_title = Mga Alerto sa Presyo
 settings_hide_balance = Itago ang Balanse
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Walang available na quote.
 errors_swap_not_supported_asset = Hindi sinusuportahang asset.
 errors_connections_no_supported_wallets = Walang available na suportadong wallet.
 errors_connections_unsupported_chain = Ang ibinigay na chain ay hindi suportado.
+errors_authentication_unavailable = Hindi naka-set up ang authentication sa device na ito. I-on ang biometrics o passcode sa mga setting ng device.
+errors_authentication_locked_out = Masyadong maraming nabigong pagsubok. Pakisubukan muli mamaya.
+errors_authentication_failed = Nabigo ang authentication. Pakisubukan muli.
+errors_connections_expired = Nag-expire na ang link ng koneksyong ito. Kumuha ng bagong QR code at subukan muli.
+errors_connections_not_found = Wala na ang koneksyong ito.
+errors_connections_relay_unavailable = Hindi maabot ang WalletConnect. Suriin ang iyong koneksyon sa internet at subukan muli.
 errors_swap_amount_too_small = Masyadong maliit ang halaga
 errors_scan_transaction_malicious_description = Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.
 errors_scan_transaction_memo_required = Nangangailangan ang %@ destination wallet address ng destination tag / memo
@@ -321,7 +325,6 @@ asset_verification_warning_message = Kahit sino ay maaaring gumawa ng isa - kabi
 asset_buy_asset = Bumili ng %@
 asset_get_asset = Kumuha ng %@
 asset_add_to_wallet = Idagdag sa wallet
-asset_hide_from_wallet = Itago sa wallet
 asset_added_to_wallet = Naidagdag sa wallet
 asset_hidden_from_wallet = Naitago sa wallet
 asset_resources = Mga mapagkukunan
@@ -348,6 +351,7 @@ charts_price_change = Pagbabago
 
 date_today = Ngayong araw
 date_yesterday = Kahapon
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Pasadya
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Kapag tumaas ang presyo nang
 price_alerts_set_alert_price_decreases_by = Kapag bumaba ang presyo nang
 price_alerts_set_alert_set_target_price = Itakda ang target na presyo
 price_alerts_set_alert_current_price = Kasalukuyang presyo
-price_alerts_added_for = Itakda ang alerto sa presyo %@
+price_alerts_added_price_over = Naidagdag ang alerto para sa presyong higit sa %@
+price_alerts_added_price_under = Naidagdag ang alerto para sa presyong mas mababa sa %@
+price_alerts_added_increases_by = Naidagdag ang alerto para sa pagtaas ng presyo nang %@
+price_alerts_added_decreases_by = Naidagdag ang alerto para sa pagbaba ng presyo nang %@
 price_alerts_state_empty_title = Lalabas dito ang iyong mga alerto sa presyo
 price_alerts_state_empty_description = Paganahin ang mga ito sa pamamagitan ng pagdaragdag ng mga barya upang masubaybayan
 price_alerts_auto_footer = Nagti-trigger ang mga alerto sa mga makabuluhang galaw ng presyo.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Walang pahintulot ang app na
 
 # Markets
 
-markets_title = Mga Pamilihan
-markets_state_empty_title = Lalabas dito ang data ng iyong mga market
 markets_daily_volume = 24h Volume
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Babala sa Seguridad
+rootcheck_jailbreak_body = Mukhang naka-jailbreak ang iyong device. Maaari nitong ilagay sa panganib ang iyong wallet at mga pondo.
 rootcheck_body = Mukhang may root access ang iyong device, na maaaring makabuluhang magpapataas ng mga panganib sa seguridad. Ang paggamit ng app na ito sa isang naka-root na device ay maaaring maglantad sa iyong mga asset sa hindi awtorisadong pag-access at potensyal na pagkawala. Para sa kaligtasan ng iyong mga pondo, lubos naming inirerekomenda ang paggamit ng hindi naka-root na device.
 rootcheck_ignore = Huwag pansinin
 rootcheck_exit = Lumabas

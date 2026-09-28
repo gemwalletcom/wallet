@@ -7,8 +7,8 @@ public extension RecentActivityData {
     init(_ activity: GemRecentActivity) {
         self.init(
             type: activity.activityType.toPrimitives(),
-            assetId: Primitives.AssetId(core: activity.assetId),
-            toAssetId: activity.toAssetId.map { Primitives.AssetId(core: $0) },
+            assetId: activity.assetId,
+            toAssetId: activity.toAssetId,
         )
     }
 }

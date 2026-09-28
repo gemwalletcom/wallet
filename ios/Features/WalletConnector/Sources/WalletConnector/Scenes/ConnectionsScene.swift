@@ -11,14 +11,16 @@ import Style
 import SwiftUI
 
 public struct ConnectionsScene: View {
-    @State private var model: ConnectionsViewModel
+    @State private var model: ConnectionsSceneViewModel
 
-    public init(model: ConnectionsViewModel) {
+    public init(model: ConnectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        List {
+        let view = model.view
+        let sections = view.sections
+        return List {
             Section {
                 ButtonListItem(
                     title: model.pasteButtonTitle,
@@ -32,12 +34,12 @@ public struct ConnectionsScene: View {
                 )
             }
 
-            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+            ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
                 Section(section.title) {
                     ForEach(section.connections, id: \.connection.session.id) { item in
                         let connection = item.connection.toPrimitives()
                         NavigationLink(value: connection) {
-                            ConnectionView(model: ConnectionViewModel(connection: item))
+                            ConnectionView(connection: item)
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
@@ -54,21 +56,23 @@ public struct ConnectionsScene: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if model.sections.isEmpty {
+            if sections.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }
         }
         .navigationDestination(for: WalletConnection.self) { connection in
             ConnectionScene(
-                model: model.connectionSceneModel(connection: connection),
+                details: model.connectionDetails(connection: connection),
                 onDisconnect: { onSelectDisconnect(connection) },
             )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .walletConnect, action: onHandleScan)
+            QRScannerNavigationStack(scanType: .walletConnect, action: onHandleScan)
         }
-        .toolbarInfoButton(url: model.docsUrl)
+        .ifLet(view.docsUrl.asURL) { content, url in
+            content.toolbarInfoButton(url: url)
+        }
         .alertSheet($model.isPresentingAlertMessage)
         .toast(
             isPresenting: $model.isPresentingConnectorBar,

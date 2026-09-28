@@ -99,7 +99,7 @@ mod tests {
         let response: StellarTransactionStatus = serde_json::from_str(include_str!("../../testdata/transaction_status_success.json")).unwrap();
 
         let result = map_transaction_broadcast(&StellarTransactionBroadcast {
-            hash: Some(response.hash.clone()),
+            hash: Some(response.hash),
             error_message: None,
             tx_status: "PENDING".to_string(),
             error_result_xdr: None,

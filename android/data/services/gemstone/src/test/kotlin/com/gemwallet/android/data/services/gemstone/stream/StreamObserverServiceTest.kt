@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -21,13 +22,18 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemConnectionServiceInterface
+import uniffi.gemstone.GemReconnection
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStreamEvent
 import uniffi.gemstone.GemStreamServiceInterface
 import java.time.Duration
@@ -88,7 +94,7 @@ class StreamObserverServiceTest {
         observer().start()
         runCurrent()
 
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)
@@ -151,7 +157,7 @@ class StreamObserverServiceTest {
 
         subject.stop()
         runCurrent()
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)
@@ -305,11 +311,59 @@ class StreamObserverServiceTest {
         assertTrue(cancelled.isCompleted)
     }
 
+    private val connectionService = mockk<GemConnectionServiceInterface> {
+        every { reconnection(any(), any()) } returns GemReconnection(nextAttempt = 1u, delay = Duration.ofSeconds(1))
+    }
+
+    @Test
+    fun aFailedPreparationWaitsBeforeTryingAgain() = runTest {
+        coEvery { service.prepareConnection() } throws GemServiceException.Store("disk")
+        val subject = observer()
+        subject.start()
+        runCurrent()
+        coVerify(exactly = 1) { service.prepareConnection() }
+
+        advanceTimeBy(999)
+        runCurrent()
+        coVerify(exactly = 1) { service.prepareConnection() }
+
+        advanceTimeBy(1)
+        runCurrent()
+        coVerify(exactly = 2) { service.prepareConnection() }
+
+        subject.stop()
+        advanceTimeBy(60_000)
+        runCurrent()
+        coVerify(exactly = 2) { service.prepareConnection() }
+    }
+
+    @Test
+    fun aFailedFirstSubscriptionIsNotHealthyAndRecoversByReconnecting() = runTest {
+        var subscriptions = 0
+        coEvery { service.connected() } answers {
+            subscriptions++
+            if (subscriptions == 1) throw GemServiceException.Api("subscribe")
+        }
+        val reports = mutableListOf<Boolean>()
+        backgroundScope.launch { health.healthFlow().collect { reports.add(it) } }
+
+        observer().start()
+        runCurrent()
+        assertEquals(listOf(false), reports)
+        assertEquals(1, connection.connectCount)
+
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals(2, connection.connectCount)
+        assertEquals(listOf(false, true), reports)
+    }
+
     private fun TestScope.observer() = StreamObserverService(
         getSession = getSession,
         service = service,
         connection = connection,
         health = health,
+        connectionService = connectionService,
         scope = backgroundScope,
     )
 

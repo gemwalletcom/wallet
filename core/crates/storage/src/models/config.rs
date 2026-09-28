@@ -4,7 +4,7 @@ use diesel::prelude::*;
 #[derive(Debug, Clone, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::config)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct ConfigRow {
+pub(crate) struct ConfigRow {
     pub key: String,
     pub value: String,
     pub default_value: String,

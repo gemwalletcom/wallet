@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use chain_traits::ChainTraits;
+use everstake::EverstakeStakingClient;
 use gem_algorand::rpc::{AlgorandClient, AlgorandProvider};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
 use gem_bsc::BscStakingClient;
 use gem_cardano::rpc::client::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -47,11 +47,11 @@ impl ChainClientFactory {
         }
     }
 
-    pub async fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
-        self.create_with_url(chain, self.nodes.node_url(chain)).await
+    pub fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
+        self.create_with_url(chain, self.nodes.node_url(chain))
     }
 
-    pub async fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
+    pub fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
         let alien_client = new_alien_client(url.clone(), self.alien.clone());
         match chain.chain_type() {
             ChainType::HyperCore => {
@@ -66,7 +66,7 @@ impl ChainClientFactory {
                 url,
                 Arc::new(AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.alien.clone())))),
             )))),
-            ChainType::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client.clone())))),
+            ChainType::Xrp => Ok(Arc::new(XrpClient::new(JsonRpcClient::new(alien_client)))),
             ChainType::Algorand => Ok(Arc::new(AlgorandProvider::new_rpc_only(AlgorandClient::new(alien_client)))),
             ChainType::Near => Ok(Arc::new(NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(alien_client))))),
             ChainType::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
@@ -75,7 +75,7 @@ impl ChainClientFactory {
             ChainType::Tron => Ok(Arc::new(TronProvider::new_rpc_only(TronClient::new(alien_client)))),
             ChainType::Polkadot => Ok(Arc::new(PolkadotProvider::new_rpc_only(PolkadotClient::new(alien_client)))),
             ChainType::Solana => {
-                let client = JsonRpcClient::new(alien_client.clone());
+                let client = JsonRpcClient::new(alien_client);
                 Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
             }
             ChainType::Ethereum => {
@@ -114,7 +114,7 @@ mod tests {
             let alien = Arc::new(TestAlienProvider::with_status(404));
             let factory = ChainClientFactory::new(alien.clone(), nodes, Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
 
-            let _ = factory.create(Chain::Arc).await.unwrap().get_block_latest_number().await;
+            let _ = factory.create(Chain::Arc).unwrap().get_block_latest_number().await;
 
             assert_eq!(alien.requested_paths(), vec![selected_url.to_string()]);
         });
@@ -124,7 +124,7 @@ mod tests {
     fn test_get_is_token_address_matches_chain_config() {
         let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(GemNodeService::mock()), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
         for chain in Chain::all() {
-            let client = block_on(factory.create(chain)).unwrap();
+            let client = factory.create(chain).unwrap();
             let is_token_supported = chain.default_asset_type().is_some();
             match chain.chain_type().mock_token_id() {
                 Some(token_id) => assert_eq!(

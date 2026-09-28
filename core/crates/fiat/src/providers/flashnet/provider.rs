@@ -2,8 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use gem_client::ClientError;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, PaymentType};
-use streamer::FiatWebhook;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
 use crate::error::FiatQuoteError;
 use crate::model::{FiatMapping, FiatProviderAsset};

@@ -5,8 +5,7 @@ use std::collections::{BTreeMap, HashMap};
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{Asset, Chain, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
-use streamer::FiatWebhook;
+use primitives::{Asset, Chain, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook, PaymentType};
 
 use crate::model::{FiatProviderAsset, filter_token_id};
 

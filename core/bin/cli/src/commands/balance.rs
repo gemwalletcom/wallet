@@ -1,6 +1,6 @@
+use chain_providers::ChainProviders;
 use clap::Args;
 use primitives::Chain;
-use settings_chain::ChainProviders;
 use std::error::Error;
 
 #[derive(Args)]
@@ -14,12 +14,12 @@ impl BalanceCommand {
         let chain = self.chain;
         let address = &self.address;
 
-        match providers.get_balance_coin(chain, address.to_string()).await {
+        match providers.get_balance_coin(chain, address.clone()).await {
             Ok(balance) => println!("{}: {}", balance.asset_id, balance.balance.available),
             Err(e) => eprintln!("Coin balance error: {}", e),
         }
 
-        match providers.get_balance_assets(chain, address.to_string()).await {
+        match providers.get_balance_assets(chain, address.clone()).await {
             Ok(balances) => {
                 for balance in balances {
                     println!("{}: {}", balance.asset_id, balance.balance.available);
@@ -28,7 +28,7 @@ impl BalanceCommand {
             Err(e) => eprintln!("Assets balance error: {}", e),
         }
 
-        match providers.get_balance_staking(chain, address.to_string()).await {
+        match providers.get_balance_staking(chain, address.clone()).await {
             Ok(Some(balance)) => println!("{} (staked): {}", balance.asset_id, balance.balance.staked),
             Ok(None) => {}
             Err(e) => eprintln!("Staking balance error: {}", e),

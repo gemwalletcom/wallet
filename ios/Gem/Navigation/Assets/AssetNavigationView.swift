@@ -4,8 +4,6 @@ import Assets
 import Components
 import Foundation
 import InfoSheet
-import Localization
-import PriceAlerts
 import Primitives
 import PrimitivesComponents
 import Store
@@ -39,7 +37,7 @@ struct AssetNavigationView: View {
             .sheet(item: $model.isPresentingAssetSheet) {
                 switch $0 {
                 case let .info(type):
-                    InfoSheetScene(type: type)
+                    InfoSheetScene(sheet: type)
                 case let .transfer(data):
                     ConfirmTransferNavigationStack(
                         wallet: model.wallet,

@@ -8,10 +8,10 @@ import Testing
 struct AssetStoreTests {
     @Test
     func availabilityUpdatesOnlyChangedRows() throws {
-        let db = DB.mockWithChains([.ethereum, .bitcoin, .solana])
+        let db = DB.mock(chains: [.ethereum, .bitcoin, .solana])
         let store = AssetStore(db: db)
-        let ethereum = Chain.ethereum.assetId.identifier
-        let bitcoin = Chain.bitcoin.assetId.identifier
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
 
         _ = try store.updateBuyableAssets(assetIds: [])
 
@@ -21,15 +21,40 @@ struct AssetStoreTests {
     }
 
     @Test
-    func swappableFlagIsSetOnlyWhereMissing() throws {
-        let db = DB.mockWithChains([.ethereum, .bitcoin])
+    func addKeepsTheBackendPropertiesOnInsertAndOnUpdate() throws {
+        let db = DB.mock()
         let store = AssetStore(db: db)
-        let assetIds = [Chain.ethereum.assetId.identifier, Chain.bitcoin.assetId.identifier]
+        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: true))
 
-        let first = try store.setAssetIsSwappable(for: assetIds, value: true)
-        let second = try store.setAssetIsSwappable(for: assetIds, value: true)
+        try store.add(assets: [asset])
+        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == true)
 
-        #expect(first + second == first)
-        #expect(second == 0)
+        try store.add(assets: [AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: false))])
+        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == false)
+    }
+
+    @Test
+    func swappableFlagIsSetOnlyWhereMissing() throws {
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
+        let store = AssetStore(db: db)
+        let assetIds = [Chain.ethereum.assetId, Chain.bitcoin.assetId]
+
+        _ = try store.setAssetIsSwappable(for: assetIds, value: false)
+
+        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 2)
+        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 0)
+    }
+
+    @Test
+    func anAssetDroppedFromTheSwapListStopsBeingSwappable() throws {
+        let db = DB.mock(chains: [.ethereum, .bitcoin])
+        let store = AssetStore(db: db)
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
+        _ = try store.updateSwappableAssets(assetIds: [])
+
+        #expect(try store.updateSwappableAssets(assetIds: [ethereum, bitcoin]) == 2)
+        #expect(try store.updateSwappableAssets(assetIds: [ethereum]) == 1)
+        #expect(try store.getAssetBasics(for: [bitcoin]).first?.properties.isSwapable == false)
     }
 }

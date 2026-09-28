@@ -4,42 +4,11 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [features]
-default = ["backend"]
-backend = [
-    "dep:cacher",
-    "dep:chrono",
-    "dep:gem_client",
-    "dep:hex",
-    "dep:hmac",
-    "dep:localizer",
-    "dep:serde",
-    "dep:serde_json",
-    "dep:push_notification",
-    "dep:storage",
-    "dep:streamer",
-    "dep:sha2",
-]
 testkit = []
 
 [dependencies]
-chrono = { workspace = true, optional = true }
-hex = { workspace = true, optional = true }
-hmac = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true }
 url = { workspace = true }
-cacher = { path = "../cacher", optional = true }
-gem_client = { path = "../gem_client", features = ["reqwest"], optional = true }
-localizer = { path = "../localizer", optional = true }
 primitives = { path = "../primitives" }
-push_notification = { path = "../push_notification", optional = true }
-storage = { path = "../storage", optional = true }
-streamer = { path = "../streamer", optional = true }
-sha2 = { workspace = true, optional = true }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }
-
-[[test]]
-name = "model_tests"
-required-features = ["backend"]

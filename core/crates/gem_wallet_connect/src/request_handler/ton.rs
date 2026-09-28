@@ -86,7 +86,12 @@ mod tests {
             panic!("Expected SendTransaction action")
         };
         assert_eq!(chain, Chain::Ton);
-        assert_eq!(transaction_type.get_output_type().unwrap(), TransferDataOutputType::EncodedTransaction);
+        assert_eq!(
+            transaction_type,
+            WalletConnectTransactionType::Ton {
+                output_type: TransferDataOutputType::EncodedTransaction
+            }
+        );
     }
 
     #[test]

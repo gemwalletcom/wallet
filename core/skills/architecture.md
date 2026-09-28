@@ -24,11 +24,23 @@ Do not substitute network-wide data for provider-specific policy. A public chain
 
 Reference: `crates/gem_hypercore/src/provider/balances.rs` and `balances_mapper.rs`.
 
+## Backend Layers
+
+`api` and `daemon` are transport, `services` orchestrates, domain crates decide, infra crates reach our own systems.
+
+- `api` routes and `daemon` consumers, workers and parser decode input, call a service, and map the result. They hold no queries or business rules.
+- `services` owns every backend use case: load from storage or cache, call domain crates, save, publish. `Services::new(settings)` builds the backend graph for both apps. Each table has one writing module; other modules call it.
+- Domain crates (`fiat`, `nft`, `prices`, `swapper`, chain crates, …) hold pure rules and stateless third-party provider clients. They take and return `primitives` types and receive config values as parameters.
+- Infra crates (`storage`, `cacher`, `streamer`, `search_index`, `pusher`) reach Postgres, Redis, RabbitMQ, Meilisearch and Gorush with `primitives` in and out and no business rules. Only `services` depends on them; `just check-boundaries` enforces it.
+- Consuming is transport and stays in the apps: RabbitMQ queues in daemon consumers (`streamer` readers and `run_consumer`, the one infra dependency the daemon keeps) and the api websocket's Redis pub/sub subscription. The consumer passed to `run_consumer` and all publishing come from `services`.
+- A database transaction closure is sync: fetch from providers first, then open the transaction.
+- Traits define provider families (`FiatProvider`, `ListProvider`, chain providers), even while a family has one implementation; no ports around the database or our other infra.
+
 ## Repository Pattern
 
-Backend services reach the database through `DatabaseClient` accessors, one per domain (`assets()`, `devices()`, `subscriptions()`, `prices()`, `transactions()`, and so on), each implementing that domain's repository trait. Repositories return primitives, not database models; business logic stays in the service that composes several accessors.
+Backend code reaches Postgres through `Database::run(|client| …)`, or `Database::transaction(|client| …)` when several writes must commit together. The closure runs on a blocking thread with one pooled connection, so async workers never block on diesel. Put the queries of one unit of work in one closure and keep network calls outside it. Repository traits are implemented on `DatabaseClient` and take and return `primitives` types; row models, `sql_types` wrappers and `schema` stay `pub(crate)` to `storage`. When no primitive fits (surrogate ids, partial projections), return a small plain struct from the repository module (`DeviceRecord`, `PriceAsset`). Resolve surrogate keys inside storage; business logic stays in the service that composes the repositories.
 
-Reference: `crates/storage/src/database/mod.rs`.
+Reference: `crates/storage/src/lib.rs` (`Database`).
 
 ## RPC Clients
 
@@ -40,6 +52,8 @@ Reference: `crates/storage/src/database/mod.rs`.
 ## UniFFI
 
 Wrap external models with `#[uniffi::remote(Record)]` on a type alias instead of a duplicate struct plus `From` impls. Reference: `gemstone/src/transfer_amount.rs`.
+
+An exported object that keeps state behind a `Mutex` reads it once per call into a local and derives the whole answer from that snapshot. A guard created inside a larger expression, such as one field of a struct literal, lives until the expression ends, so a later field that locks the same mutex again blocks the calling app thread forever.
 
 ## Shared Utilities
 

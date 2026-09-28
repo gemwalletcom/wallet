@@ -52,6 +52,10 @@ where
     }
 }
 
+pub mod string {
+    pub use super::{deserialize_biguint_from_str as deserialize, serialize_biguint as serialize};
+}
+
 pub fn deserialize_biguint_from_hex_str<'de, D>(deserializer: D) -> Result<BigUint, D::Error>
 where
     D: de::Deserializer<'de>,
@@ -72,7 +76,7 @@ where
 }
 
 pub fn biguint_from_hex_str(hex_value: &str) -> Result<BigUint, Box<dyn std::error::Error + Send + Sync>> {
-    parse_biguint_hex(hex_value).map_err(|err| err.into())
+    parse_biguint_hex(hex_value).map_err(Into::into)
 }
 
 #[cfg(test)]

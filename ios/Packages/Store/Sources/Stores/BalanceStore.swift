@@ -76,13 +76,13 @@ public struct BalanceStore: Sendable {
     }
 
     @discardableResult
-    public func getBalances(walletId: WalletId, assetIds: [AssetId]) throws -> [StoredBalance] {
+    public func getBalances(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetBalance] {
         try db.read { db in
             try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
                 .fetchAll(db)
-                .map { StoredBalance(assetId: $0.assetId, balance: $0.mapToBalance(), isActive: $0.isActive) }
+                .map { AssetBalance(assetId: $0.assetId, balance: $0.mapToBalance(), isActive: $0.isActive) }
         }
     }
 
@@ -131,18 +131,20 @@ public struct BalanceStore: Sendable {
         }
     }
 
-    private func getMissingAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetId] {
+    public func getBalanceAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetId] {
         try db.read { db in
-            let existingAssetIds = try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
-                .select(BalanceRecord.Columns.assetId)
+                .select(BalanceRecord.Columns.assetId, as: String.self)
                 .fetchAll(db)
-                .map { $0[BalanceRecord.Columns.assetId] as String }
-                .asSet()
-
-            return assetIds.filter { !existingAssetIds.contains($0.identifier) }
+                .map { try AssetId.from(id: $0) }
         }
+    }
+
+    private func getMissingAssetIds(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetId] {
+        let existingAssetIds = try getBalanceAssetIds(walletId: walletId, assetIds: assetIds).asSet()
+        return assetIds.filter { !existingAssetIds.contains($0) }
     }
 
     @discardableResult

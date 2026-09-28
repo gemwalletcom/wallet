@@ -12,9 +12,9 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.navigationPresenter) private var presenter
 
     @State private var navigationPath = NavigationPath()
+    @State private var isPresentingAddressDetails: ChainAddress?
 
     private let input: SelectedAssetInput
     private let wallet: Wallet
@@ -37,7 +37,6 @@ struct SelectedAssetNavigationStack: View {
                 case let .send(type):
                     RecipientNavigationView(
                         model: viewModelFactory.recipientScene(
-                            wallet: wallet,
                             asset: input.asset,
                             type: type,
                             recipient: input.recipient,
@@ -64,14 +63,14 @@ struct SelectedAssetNavigationStack: View {
                             amount: amount,
                         ),
                     )
-                case let .swap(fromAsset, toAsset):
+                case let .swap(fromAssetId, toAssetId):
                     SwapNavigationView(
                         model: viewModelFactory.swapScene(
                             input: SwapInput(
                                 wallet: wallet,
                                 pairSelector: SwapPairSelectorViewModel(
-                                    fromAssetId: fromAsset.id,
-                                    toAssetId: toAsset?.id,
+                                    fromAssetId: fromAssetId,
+                                    toAssetId: toAssetId,
                                 ),
                             ),
                             onSwap: { navigate(to: .confirm($0)) },
@@ -115,16 +114,25 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: DelegationInput.self) { input in
+            .navigationDestination(for: Delegation.self) { delegation in
                 DelegationScene(
                     model: viewModelFactory.delegationScene(
                         wallet: wallet,
-                        delegation: input.delegation,
-                        asset: input.delegation.base.assetId.chain.asset,
-                        validators: input.validators,
+                        delegation: delegation,
+                        asset: delegation.base.assetId.chain.asset,
                         onNavigate: navigate,
+                        onSelectAddress: { isPresentingAddressDetails = $0 },
                     ),
                 )
+            }
+        }
+        .sheet(isPresented: Binding(get: { isPresentingAddressDetails != nil }, set: {
+            if !$0 {
+                isPresentingAddressDetails = nil
+            }
+        })) {
+            if let isPresentingAddressDetails {
+                AddressDetailsDestination(chainAddress: isPresentingAddressDetails)
             }
         }
     }
@@ -134,10 +142,7 @@ struct SelectedAssetNavigationStack: View {
 
 extension SelectedAssetNavigationStack {
     private func navigate(to route: TransferRoute) {
-        switch route {
-        case let .amount(input): navigationPath.append(input)
-        case let .confirm(data): navigationPath.append(ConfirmTransferInput(data: data))
-        }
+        navigationPath.append(transfer: route)
     }
 
     private func navigate(to route: StakeRoute) {

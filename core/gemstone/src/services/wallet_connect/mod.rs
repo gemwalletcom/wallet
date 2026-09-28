@@ -12,21 +12,26 @@ use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use gem_wallet_connect::{WalletConnectVerifier, validate_sign_message_account};
-use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
+use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
 
-use crate::application::GemApplicationMetadataService;
+use crate::application;
+use crate::config::docs::DocsUrl;
 use crate::message::sign_type::SignMessage;
+use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
+use crate::services::scan::rules::{self as scan_rules, SignMessageVerdict};
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
+use crate::wallet_connect::WalletConnect;
+use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemConnection, GemConnectionDetails, GemConnectionSection, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,
-    GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
+    GemConnection, GemConnectionDetails, GemConnectionSection, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,
+    GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction,
+    GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -36,16 +41,22 @@ pub use store::GemConnectionStore;
 pub struct GemWalletConnectService {
     wallet_connect: WalletConnect,
     sign_message: Arc<GemSignMessageService>,
-    metadata: GemApplicationMetadataService,
     simulation: Arc<GemSimulationService>,
+    scanner: Arc<GemScanService>,
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
     session: Arc<GemWalletSessionService>,
     assets: Arc<GemAssetsService>,
     seen_messages: Mutex<Vec<String>>,
+    platform: Platform,
 }
 
 const SEEN_MESSAGES_LIMIT: usize = 512;
+
+enum RequestResult {
+    Response(GemWalletConnectResponse),
+    Rejected(GemWalletConnectFailure),
+}
 
 #[uniffi::export]
 pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
@@ -57,22 +68,25 @@ impl GemWalletConnectService {
     #[uniffi::constructor]
     pub fn new(
         simulation: Arc<GemSimulationService>,
+        scanner: Arc<GemScanService>,
         store: Arc<dyn GemConnectionStore>,
         signer: Arc<dyn GemWalletConnectSigner>,
         session: Arc<GemWalletSessionService>,
         assets: Arc<GemAssetsService>,
         sign_message: Arc<GemSignMessageService>,
+        platform: Platform,
     ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
             sign_message,
-            metadata: GemApplicationMetadataService::new(),
             simulation,
+            scanner,
             store,
             signer,
             session,
             assets,
             seen_messages: Mutex::new(Vec::new()),
+            platform,
         }
     }
 
@@ -80,9 +94,8 @@ impl GemWalletConnectService {
         self.sign_message.sign(wallet_id, message).await
     }
 
-    pub fn should_process_message(&self, message_id: String) -> bool {
-        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
+    pub fn should_process_proposal(&self, proposer_public_key: String) -> bool {
+        self.should_process_message(rules::proposal_message_id(&proposer_public_key))
     }
 
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
@@ -144,19 +157,23 @@ impl GemWalletConnectService {
         let wallets = rules::session_wallets(wallets, &required, &optional);
         let default_wallet = rules::default_wallet(&wallets, current_wallet_id).ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
+            can_choose_wallet: crate::services::wallet_session::rules::can_choose_wallet(&wallets),
             proposal: WalletConnectionSessionProposal { default_wallet, wallets, metadata },
             verification_status,
         })
     }
 
-    pub fn connection_sections(&self, connections: Vec<WalletConnection>) -> Vec<GemConnectionSection> {
-        rules::connection_groups(connections)
-            .into_iter()
-            .map(|(wallet, connections)| GemConnectionSection {
-                title: wallet.name,
-                connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
-            })
-            .collect()
+    pub fn connections_view(&self, connections: Vec<WalletConnection>) -> GemConnectionsView {
+        GemConnectionsView {
+            sections: rules::connection_groups(connections)
+                .into_iter()
+                .map(|(wallet, connections)| GemConnectionSection {
+                    title: wallet.name,
+                    connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
+                })
+                .collect(),
+            docs_url: DocsUrl::WalletConnect.url_for(self.platform),
+        }
     }
 
     pub fn connection_details(&self, connection: WalletConnection) -> GemConnectionDetails {
@@ -193,10 +210,6 @@ impl GemWalletConnectService {
         rules::session_rejection(reason)
     }
 
-    pub fn user_rejected_error(&self) -> GemWalletConnectRpcError {
-        rules::user_rejected_error()
-    }
-
     pub async fn request_outcome(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::ignored();
@@ -216,28 +229,41 @@ impl GemWalletConnectService {
             return GemWalletConnectOutcome::rejected(None);
         };
         match self.request_response(request.topic, request.method, request.params, chain_id, domain, expiry).await {
-            Ok(response) => GemWalletConnectOutcome { response: Some(response), failure: None },
+            Ok(RequestResult::Response(response)) => GemWalletConnectOutcome { response: Some(response), failure: None },
+            Ok(RequestResult::Rejected(failure)) => GemWalletConnectOutcome::rejected(Some(failure)),
             Err(_) if rules::is_expired(expiry, Utc::now()) => GemWalletConnectOutcome::expired(),
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
-            Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
+            Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { error: error.text() })),
         }
     }
 }
 
 impl GemWalletConnectService {
+    pub fn should_process_message(&self, message_id: String) -> bool {
+        let mut seen = self.seen_messages.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
+    }
+
     fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
         rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
     }
 
-    async fn request_response(&self, topic: String, method: String, params: String, chain_id: String, domain: String, expiry: Option<u64>) -> Result<GemWalletConnectResponse, GemServiceError> {
+    async fn request_response(&self, topic: String, method: String, params: String, chain_id: String, domain: String, expiry: Option<u64>) -> Result<RequestResult, GemServiceError> {
         let action = self.wallet_connect.parse_request(topic.clone(), method, params, chain_id, domain.clone())?;
         let session_id = topic;
         let response = match action {
             WalletConnectAction::SignMessage { chain, sign_type, data } => {
                 let (connection, account) = self.connection_account(&session_id, chain).await?;
-                validate_sign_message_account(&sign_type.clone().into(), &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
-                let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain).await?;
-                let assets = self.assets.ensure_simulation_assets(simulation.asset_ids()).await?;
+                validate_sign_message_account(&sign_type, &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
+                let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
+                let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
+                let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
+                let assets = assets?;
+                let simulation = match scan_rules::sign_message_verdict(scan.as_ref(), &payload) {
+                    SignMessageVerdict::MaliciousWebsite => return Ok(RequestResult::Rejected(GemWalletConnectFailure::MaliciousOrigin)),
+                    SignMessageVerdict::SuspiciousSpender => scan_rules::with_suspicious_spender(simulation),
+                    SignMessageVerdict::Allowed => simulation,
+                };
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
                 self.ensure_live(expiry)?;
                 let signature = self
@@ -277,16 +303,16 @@ impl GemWalletConnectService {
                 self.wallet_connect.encode_get_accounts(chain, accounts)
             }
             WalletConnectAction::ChainOperation { operation } => {
-                return Ok(match operation {
+                return Ok(RequestResult::Response(match operation {
                     WalletConnectChainOperation::AddChain | WalletConnectChainOperation::SwitchChain { .. } => GemWalletConnectResponse::Null,
                     WalletConnectChainOperation::GetChainId => GemWalletConnectResponse::Error { error: rules::method_not_found_error() },
-                });
+                }));
             }
             WalletConnectAction::Unsupported { .. } => {
-                return Ok(GemWalletConnectResponse::Error { error: rules::method_not_found_error() });
+                return Ok(RequestResult::Response(GemWalletConnectResponse::Error { error: rules::method_not_found_error() }));
             }
         };
-        Ok(GemWalletConnectResponse::Response { value: response })
+        Ok(RequestResult::Response(GemWalletConnectResponse::Response { value: response }))
     }
 
     async fn sign_transaction(&self, session_id: String, chain: Chain, transaction_type: WalletConnectTransactionType, data: String, action: GemWalletConnectTransactionAction, expiry: Option<u64>) -> Result<String, GemServiceError> {
@@ -337,7 +363,7 @@ impl GemWalletConnectService {
 
     fn gem_connection(&self, connection: WalletConnection) -> GemConnection {
         GemConnection {
-            row: self.metadata.connection_row(connection.session.metadata.clone()),
+            row: application::connection_row(&connection.session.metadata),
             connection,
         }
     }
@@ -347,11 +373,23 @@ impl GemWalletConnectService {
 mod tests {
     use super::testkit::TestWalletConnectSigner;
     use super::*;
-    use crate::wallet_connect::WalletConnectResponseType;
     use futures::executor::block_on;
+    use gem_wallet_connect::WalletConnectResponseType;
     use num_bigint::BigUint;
     use primitives::ApprovalData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
+
+    #[test]
+    fn test_the_connections_view_links_the_walletconnect_guide() {
+        block_on(async {
+            let service = GemWalletConnectService::mock(Ok(String::new()), Wallet::mock()).await;
+
+            let view = service.connections_view(vec![]);
+
+            assert!(view.sections.is_empty());
+            assert_eq!(view.docs_url, DocsUrl::WalletConnect.url_for(Platform::IOS));
+        });
+    }
 
     #[test]
     fn test_process_tron_approval_request() {
@@ -437,7 +475,7 @@ mod tests {
         assert_eq!(
             block_on(service.request_outcome(GemWalletConnectSessionRequest::mock_siws())),
             GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed {
-                message: "SIWS address does not match signing account".to_string()
+                error: GemErrorText::message("SIWS address does not match signing account".to_string())
             }))
         );
     }
@@ -531,7 +569,81 @@ mod tests {
                 .await
                 .request_outcome(GemWalletConnectSessionRequest::mock("8"))
                 .await;
-            assert_eq!(failed, GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: "keystore".to_string() })));
+            assert_eq!(
+                failed,
+                GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed {
+                    error: GemErrorText::message("keystore".to_string())
+                }))
+            );
         });
+    }
+
+    fn permit2_request() -> GemWalletConnectSessionRequest {
+        let typed_data = include_str!("../../../../crates/gem_evm/testdata/uniswap_permit2.json");
+        GemWalletConnectSessionRequest {
+            method: "eth_signTypedData_v4".to_string(),
+            params: serde_json::to_string(&serde_json::json!(["address", typed_data])).unwrap(),
+            ..GemWalletConnectSessionRequest::mock("permit2")
+        }
+    }
+
+    async fn scanned_service(scan: Option<&str>) -> (GemWalletConnectService, Arc<testkit::TestWalletConnectSigner>, Arc<crate::testkit::TestAlienProvider>) {
+        let signer = Arc::new(testkit::TestWalletConnectSigner::new(Ok("0xsignature".to_string())));
+        let node = r#"{"jsonrpc":"2.0","id":1,"result":"0x6080"}"#;
+        let provider = Arc::new(crate::testkit::TestAlienProvider::with_json_by_path(200, &[("scan/transaction", scan.unwrap_or("not json")), ("gemnodes.com", node)]));
+        let service = GemWalletConnectService::mock_with_signer(signer.clone(), Wallet::mock(), provider.clone()).await;
+        (service, signer, provider)
+    }
+
+    #[test]
+    fn test_a_malicious_website_rejects_the_signature_before_the_signer() {
+        block_on(async {
+            let (service, signer, _) = scanned_service(Some(r#"{"isScanComplete":true,"maliciousWebsite":"https://example.com"}"#)).await;
+
+            let outcome = service.request_outcome(GemWalletConnectSessionRequest::mock("phishing")).await;
+
+            assert_eq!(outcome, GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::MaliciousOrigin)));
+            assert!(signer.messages.lock().unwrap().is_empty());
+        })
+    }
+
+    #[test]
+    fn test_a_flagged_permit_spender_reaches_the_signer_with_a_critical_warning() {
+        block_on(async {
+            let spender = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD";
+            let body = format!(r#"{{"isScanComplete":true,"maliciousAddresses":[{{"chain":"ethereum","address":"{spender}"}}]}}"#);
+            let (service, signer, provider) = scanned_service(Some(&body)).await;
+
+            service.request_outcome(permit2_request()).await;
+
+            let messages = signer.messages.lock().unwrap();
+            let warning = &messages[0].simulation.warnings[0];
+            assert_eq!(warning.warning, primitives::SimulationWarningType::SuspiciousSpender);
+            assert!(messages[0].simulation.has_critical_warning());
+            assert_eq!(provider.requested_paths().iter().filter(|path| path.contains("scan/transaction")).count(), 1);
+        })
+    }
+
+    #[test]
+    fn test_a_failing_scan_signs_with_the_simulation_unchanged() {
+        block_on(async {
+            let (service, signer, _) = scanned_service(None).await;
+
+            service.request_outcome(permit2_request()).await;
+
+            let messages = signer.messages.lock().unwrap();
+            assert!(!messages[0].simulation.warnings.iter().any(|warning| warning.warning == primitives::SimulationWarningType::SuspiciousSpender));
+        })
+    }
+
+    #[test]
+    fn test_a_redelivered_proposal_is_processed_once() {
+        block_on(async {
+            let service = GemWalletConnectService::mock(Ok("0xsignature".to_string()), Wallet::mock()).await;
+
+            assert!(service.should_process_proposal("proposer".to_string()));
+            assert!(!service.should_process_proposal("proposer".to_string()));
+            assert!(service.should_process_proposal("another".to_string()));
+        })
     }
 }

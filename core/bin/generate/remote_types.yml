@@ -2,6 +2,7 @@ remote:
   - Currency
   - TransactionUtxoInput
   - TransactionExtended
+  - TransactionListItem
   - TransactionDirection
   - Transaction
   - PriceProvider
@@ -19,9 +20,11 @@ remote:
   - BannerEvent
   - Banner
   - BalanceMetadata
+  - Balance
+  - AssetBalance
+  - AssetData
   - BannerState
   - ChainAddress
-  - ChainType
   - ChartCandleStick
   - ChartCandleUpdate
   - ChartDateValue
@@ -32,6 +35,7 @@ remote:
   - ConnectionStatus
   - Contact
   - ContactAddress
+  - ContactData
   - DelegationValidator
   - DeviceLocale
   - Asset
@@ -41,6 +45,7 @@ remote:
   - AssetProperties
   - AssetBasic
   - AssetList
+  - RecentAsset
   - ChainAsset
   - AssetAssociationType
   - AssetAssociation
@@ -72,13 +77,6 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
-  - PerpetualAccountSummary
-  - PerpetualPortfolioTimeframeData
-  - UTXO
-  - MarketsAssets
-  - MarketDominance
-  - Markets
-  - PortfolioAsset
   - Perpetual
   - PerpetualBalance
   - PerpetualData
@@ -86,6 +84,7 @@ remote:
   - PerpetualMetadata
   - PerpetualOrderType
   - PerpetualPosition
+  - PerpetualPositionData
   - PerpetualProvider
   - PerpetualTriggerOrder
   - PerpetualConfirmData
@@ -127,8 +126,6 @@ remote:
   - SimulationBalanceChange
   - SimulationHeader
   - SimulationResult
-  - SolanaNftStandard
-  - SolanaTokenProgramId
   - StakeProviderType
   - YieldProvider
   - SwapPriceImpact
@@ -164,10 +161,10 @@ remote:
   - PriceAlertDirection
   - PriceAlertNotificationType
   - ReportReason
-  - ReportNft
   - TotalFiatValue
   - TransactionState
   - TransactionType
+  - TransactionsFilter
   - TransferDataOutputAction
   - TransferDataOutputType
   - TransferDataExtra
@@ -179,14 +176,12 @@ remote:
   - EarnType
   - SwapQuoteDataType
   - ApprovalData
+  - Permit2ApprovalData
   - SwapProviderData
   - SwapQuoteData
   - SwapQuote
   - SwapData
   - ContractCallData
-  - TronVote
-  - TronUnfreeze
-  - TronStakeData
   - PerpetualSearchData
   - FiatTransactionStatus
   - CoreEmoji
@@ -214,6 +209,197 @@ identifiers:
   - TransactionId
   - WalletId
 
+# Identifiers a language's bindings already type through `core/gemstone/uniffi.toml` custom types:
+# mappers pass them through and core mocks build the app type.
+typed_identifiers:
+  swift:
+    - AssetId
+    - PerpetualId
+    - TransactionId
+    - WalletId
+
+# The types `just generate-models` writes a test mock for, one per type on both apps, with the
+# defaults the generator's rules give each field. An entry that maps a type to fields overrides
+# those fields where the rule would build an invalid value.
+mocks:
+  - Account
+  - AddressName
+  - ApplicationMetadata
+  - ApprovalData
+  - Asset
+  - AssetBasic
+  - AssetData
+  - AssetLink
+  - AssetMarket
+  - AssetMetaData
+  - AssetProperties
+  - AssetScore
+  - Balance
+  - BlockExplorerLink
+  - ChainAssetData
+  - ChartDateValue
+  - ChartValuePercentage
+  - Contact
+  - ContactAddress
+  - ContactData
+  - CoreListItem
+  - Delegation
+  - DelegationBase
+  - DelegationValidator
+  - FiatProvider
+  - FiatQuote
+  - FiatRate
+  - FiatTransaction
+  - FiatTransactionAssetData
+  - FiatTransactionData
+  - GemAddressRow
+  - GemAppUpdateOffer
+  - GemAssetBalance
+  - GemAssetDetails
+  - GemAssetDetailsState
+  - GemAssetIcon
+  - GemAssetIconImage
+  - GemAssetItemRow
+  - GemAssetItemTrailing
+  - GemAssetRowStyle
+  - GemChainRow
+  - GemChart
+  - GemChartBounds
+  - GemChartData
+  - GemConfirmFee
+  - GemConfirmFeeRow
+  - GemConfirmFeeSelection
+  - GemConfirmHeader
+  - GemConfirmLoad
+  - GemConfirmLoadOptions
+  - GemConfirmMetadata
+  - GemConfirmScreen
+  - GemConfirmSimulation
+  - GemConfirmSimulationState
+  - GemConnectionRow
+  - GemEmptyState
+  - GemFeeAmount
+  - GemFeeAsset
+  - GemFeeText
+  - GemFeeRateKind
+  - GemFeeRateRow
+  - GemFeeRateRows
+  - GemFiatOperation
+  - GemFiatQuoteRequest
+  - GemFiatQuotesResult
+  - GemFiatSession
+  - GemFormattedNumber
+  - GemHeaderButton
+  - GemHeaderButtonAction
+  - GemInfoTopic
+  - GemLocalizedText
+  - GemNetworkFeeScreen
+  - GemNftEntry
+  - GemNftItem
+  - GemNftRow
+  - GemNodeCheck
+  - GemNodeSelection
+  - GemNumberDisplay
+  - GemNumberFormat
+  - GemNumberUnit:
+      code: USD
+  - GemPaymentRecipient
+  - GemPerpetualDetails
+  - GemPerpetualTransferData
+  - GemPrecision
+  - GemRecipient
+  - GemRewardsResult
+  - GemRowText
+  - GemSignMessagePreview
+  - GemSocialLink
+  - GemStakeValidatorOptions
+  - GemSwapPairSuggestion
+  - GemSwapQuoteInput
+  - GemSwapQuotesResult
+  - GemSwapRequest
+  - GemSwapSession
+  - GemSwapTransfer
+  - GemTransactionAmount
+  - GemTransactionDetailRows
+  - GemTransactionFeeRow
+  - GemTransactionHeader
+  - GemTransactionStatus
+  - GemTransferAmount
+  - GemTransferAmountResult
+  - GemTransferData
+  - GemValidatorRow
+  - GemValidatorSection
+  - GemValueHeader
+  - GemWalletConnectAuthAccount
+  - GemWalletConnectMessageRequest
+  - GemWalletConnectTransactionRequest
+  - GemWalletRow
+  - Latency
+  - NameRecord
+  - NFTAsset
+  - NFTAssetData
+  - NFTCollection
+  - NFTData
+  - NFTImages
+  - NFTResource
+  - PaymentInvoice
+  - PaymentLink
+  - PaymentMerchant
+  - PaymentPrice
+  - PaymentQuote
+  - Perpetual
+  - PerpetualConfirmData
+  - PerpetualData
+  - PerpetualMetadata
+  - PerpetualPosition
+  - PerpetualPositionData
+  - PerpetualReduceData
+  - PortfolioChartData
+  - PortfolioData
+  - PortfolioMarginUsage
+  - Price
+  - PriceAlert
+  - PriceAlertData
+  - RedemptionResult
+  - ReferralAllowance
+  - ReferralQuota
+  - RewardRedemption
+  - RewardRedemptionOption
+  - Rewards
+  - SignMessage
+  - SimulationPayloadField
+  - SimulationResult
+  - SimulationWarning
+  - SimulationWarningApproval
+  - SimulationWarningType
+  - SupportAgent
+  - SupportMessage
+  - SupportMessageImage
+  - SwapData
+  - SwapperOptions
+  - SwapperProviderData
+  - SwapperProviderType
+  - SwapperQuote
+  - SwapperQuoteAsset
+  - SwapperQuoteRequest
+  - SwapperSlippage
+  - Permit2ApprovalData
+  - SwapProviderData
+  - SwapQuote
+  - SwapQuoteData
+  - Transaction
+  - TransactionExtended
+  - TransactionInputType
+  - TransactionListItem
+  - TransactionsFilter
+  - TransactionSwapMetadata
+  - TransferDataExtra
+  - Wallet
+  - WalletConnection
+  - WalletConnectionSession
+  - WalletConnectionSessionProposal
+  - WCPairingProposal
+
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone
 # custom type, and the declarations import it).
@@ -235,7 +421,7 @@ defaults:
   AssetRank: Unknown
 
 conversions:
-  UInt64:
+  u64:
     kotlin:
       - "{}.toLong()"
       - "{}.toULong()"
@@ -253,15 +439,161 @@ conversions:
     swift:
       - "{}.description"
       - "BigUInt(stringLiteral: {})"
+  BigIntValue:
+    swift:
+      - "BigInt({})"
+      - "{}.magnitude"
   serde_json::Value:
     swift:
       - "AnyCodableValue(core: {})"
       - "{}.json()"
 
+# Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
+aliases:
+  SwapperProvider: SwapProvider
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
-  UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue
   BigUint: GemBigUint
+  BigIntValue: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>
+
+type_mappings:
+  swift:
+    BigInt: String
+    BigIntValue: BigIntValue
+    BigUint: String
+    DateTime: Date
+    Value: AnyCodableValue
+    u64: UInt64
+  kotlin:
+    BigInt: String
+    BigIntValue: SerializedBigInteger
+    BigUint: String
+    DateTime: SerializedDate
+    Value: JsonValue
+    u64: Long
+
+# The model each store record holds, for the record ↔ model mappers `just generate-models` writes
+# into both stores. A record field copies the model field of its name; `keys` are the record
+# fields the caller passes, `fields` binds a renamed or flattened record field to a model path,
+# `flatten` stores a nested model's fields under a name prefix, and `defaults` gives a model path
+# the record stores optional or not at all. A record field outside these needs a default in its
+# declaration. `write_only` skips the reader for a record the app reads back through a join.
+record_aliases:
+  kotlin:
+    SerializedDate: Long
+
+records:
+  Account:
+    keys: [walletId]
+    ios: AccountRecord
+    android: DbAccount
+  AddressName:
+    ios: AddressRecord
+    android: DbAddress
+  AssetLink:
+    keys: [assetId]
+    ios: AssetLinkRecord
+    android: DbAssetLink
+  Contact:
+    ios: ContactRecord
+    android: DbContact
+  ContactAddress:
+    ios: ContactAddressRecord
+    android: DbContactAddress
+  FiatRate:
+    ios: FiatRateRecord
+    android:
+      record: DbFiatRate
+      fields:
+        currency: symbol
+  FiatTransactionData:
+    keys: [walletId]
+    write_only: true
+    ios:
+      record: FiatTransactionRecord
+      fields:
+        providerId: transaction.provider
+      flatten:
+        transaction: ""
+    android:
+      record: DbFiatTransaction
+      flatten:
+        transaction: ""
+  InAppNotification:
+    ios:
+      record: NotificationRecord
+      fields:
+        id: item.id
+    android:
+      record: DbInAppNotification
+      fields:
+        id: item.id
+  NFTAsset:
+    ios:
+      record: NFTAssetRecord
+      flatten:
+        resource: resource
+        images.preview: previewImage
+    android:
+      record: DbNFTAsset
+      fields:
+        imageUrl: images.preview.url
+      flatten:
+        resource: resource
+      defaults:
+        images.preview.mimeType: '""'
+  NFTCollection:
+    ios:
+      record: NFTCollectionRecord
+      flatten:
+        images.preview: previewImage
+    android:
+      record: DbNFTCollection
+      fields:
+        imageUrl: images.preview.url
+      defaults:
+        images.preview.mimeType: '""'
+        status: com.wallet.core.primitives.VerificationStatus.Unverified
+  Perpetual:
+    ios: PerpetualRecord
+    android: DbPerpetual
+  PerpetualPosition:
+    keys: [walletId]
+    ios: PerpetualPositionRecord
+    android:
+      record: DbPerpetualPosition
+      fields:
+        takeProfitPrice: takeProfit.price
+        takeProfitType: takeProfit.order_type
+        takeProfitOrderId: takeProfit.order_id
+        stopLossPrice: stopLoss.price
+        stopLossType: stopLoss.order_type
+        stopLossOrderId: stopLoss.order_id
+      defaults:
+        entryPrice: "0.0"
+  PriceAlert:
+    keys: [id]
+    ios: PriceAlertRecord
+    android: DbPriceAlert
+  SupportMessage:
+    ios: SupportMessageRecord
+    android: DbSupportMessage
+  WalletConnectionSession:
+    keys: [walletId]
+    ios:
+      record: WalletConnectionRecord
+      fields:
+        appLink: metadata.url
+      flatten:
+        metadata: app
+      defaults:
+        metadata.source: .walletConnect
+    android:
+      record: DbConnection
+      flatten:
+        metadata: app
+      defaults:
+        metadata.source: com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect

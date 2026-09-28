@@ -29,27 +29,51 @@ use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::providers::{banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use cacher::{AccessTokenCacherClient, CacherClient};
-#[cfg(all(test, feature = "fiat_integration_tests"))]
 use gem_client::ReqwestClient;
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+use primitives::{AccessTokenCacher, AccessTokenFuture};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use settings::testkit::get_test_settings;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use std::sync::Arc;
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+use std::sync::Mutex;
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+use std::time::Duration;
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-pub async fn create_transak_test_client() -> Result<TransakClient, Box<dyn std::error::Error + Send + Sync>> {
+pub fn create_transak_test_client() -> TransakClient {
     let settings = get_test_settings();
     let client = crate::request_client(settings.fiat.timeout);
-    let cacher = CacherClient::new(&settings.redis.url).await?;
-    Ok(TransakClient::new(
+    TransakClient::new(
         ReqwestClient::new(settings.fiat.transak.url, client.clone()),
         ReqwestClient::new(settings.fiat.transak.gateway.url, client),
         settings.fiat.transak.key.public,
         settings.fiat.transak.key.secret,
         settings.fiat.transak.referrer.domain,
-        Arc::new(AccessTokenCacherClient::new(cacher, TransakClient::NAME.id())),
-    ))
+        Arc::new(MemoryAccessTokenCacher::default()),
+    )
+}
+
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+#[derive(Default)]
+pub struct MemoryAccessTokenCacher {
+    access_token: Mutex<Option<String>>,
+}
+
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+impl AccessTokenCacher for MemoryAccessTokenCacher {
+    fn get_or_refresh<'a>(&'a self, refresh: AccessTokenFuture<'a, (String, Duration)>) -> AccessTokenFuture<'a, String> {
+        Box::pin(async move {
+            let cached = self.access_token.lock().unwrap().clone();
+            if let Some(access_token) = cached {
+                return Ok(access_token);
+            }
+            let (access_token, _) = refresh.await?;
+            *self.access_token.lock().unwrap() = Some(access_token.clone());
+            Ok(access_token)
+        })
+    }
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

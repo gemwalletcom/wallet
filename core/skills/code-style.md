@@ -9,7 +9,8 @@ Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rust
 
 ## Naming
 
-- Files and modules `snake_case`; crates prefixed (`gem_*` for blockchains, `security_*` for security); functions and variables `snake_case`; types `PascalCase`; constants `SCREAMING_SNAKE_CASE`.
+- Files and modules `snake_case`; functions and variables `snake_case`; types `PascalCase`; constants `SCREAMING_SNAKE_CASE`.
+- Crate names: `gem_<chain>` for chain crates; `gem_<name>` for core libraries whose bare name is generic or collides with a crates.io crate (`gem_client`, `gem_hash`, `gem_tracing`); the vendor name for third-party API clients (`coingecko`, `alchemy`); the plain domain name for domain crates (`fiat`, `rewards`, `security`), matching its `services` module. The directory name equals the package name.
 - Rely on scope instead of repeating the module or crate prefix inside it: `is_spot_swap` inside `gem_hypercore::core_signer`, not `is_hypercore_spot_swap`.
 - Name functions after the domain action and result they own: `parse_destination_tag`, `build_transfer_message`, `sign_trust_set`, `map_balance_assets`. Avoid `util`, `utils`, `normalize`, `resolve`, `process`, `handle`, `manage`, `perform`, `execute` unless a framework or protocol owns the signature.
 - No type suffixes (`_str`, `_int`, `_vec`); the type system already says it.

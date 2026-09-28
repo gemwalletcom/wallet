@@ -9,30 +9,31 @@ import Style
 import SwiftUI
 
 public struct FiatTransactionsScene: View {
-    @State private var model: FiatTransactionsViewModel
+    @State private var model: FiatTransactionsSceneViewModel
 
-    public init(model: FiatTransactionsViewModel) {
+    init(model: FiatTransactionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        List {
-            if let error = model.loadError {
+        let sections = model.sections
+        let loadError = model.loadError
+        return List {
+            if let error = loadError {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
             }
-            ForEach(model.sections) { section in
+            ForEach(sections) { section in
                 Section {
-                    ForEach(section.values) {
-                        let viewModel = FiatTransactionViewModel(info: $0)
-                        if let url = viewModel.detailsUrl {
+                    ForEach(section.values) { row in
+                        if let url = row.detailsURL {
                             SafariNavigationLink(url: url) {
-                                ListItemView(model: viewModel.listItemModel)
+                                ListItemView(model: row.listItemModel)
                             }
                         } else {
                             NavigationCustomLink(
-                                with: ListItemView(model: viewModel.listItemModel),
+                                with: ListItemView(model: row.listItemModel),
                                 action: {},
                             )
                         }
@@ -44,7 +45,7 @@ public struct FiatTransactionsScene: View {
             .listRowInsets(.assetListRowInsets)
         }
         .overlay {
-            if model.transactions.isEmpty, model.loadError == nil {
+            if sections.isEmpty, loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

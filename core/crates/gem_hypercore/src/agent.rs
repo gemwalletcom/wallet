@@ -28,7 +28,7 @@ impl Agent {
         let address_key = self.address_key(sender_address);
         let private_key_key = self.private_key_key(sender_address);
 
-        if let (Some(address), Some(private_key)) = (self.preferences.get(address_key.clone())?, self.preferences.get(private_key_key.clone())?) {
+        if let (Some(address), Some(private_key)) = (self.preferences.get(address_key)?, self.preferences.get(private_key_key)?) {
             return Ok((address, private_key));
         }
 

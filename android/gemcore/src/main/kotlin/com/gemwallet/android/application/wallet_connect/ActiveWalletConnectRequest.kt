@@ -76,5 +76,6 @@ private fun WalletConnectEvent.toUserRequest(): WalletConnectUserRequest? = when
     is WalletConnectEvent.RequestExpired,
     is WalletConnectEvent.SessionDeleted,
     is WalletConnectEvent.SessionSettled,
+    is WalletConnectEvent.SessionChanged,
     -> null
 }

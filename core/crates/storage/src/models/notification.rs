@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::notifications)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NotificationRow {
+pub(crate) struct NotificationRow {
     pub id: i32,
     pub wallet_id: i32,
     pub asset_id: Option<AssetId>,
@@ -35,7 +35,7 @@ impl NotificationRow {
 
 #[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::notifications)]
-pub struct NewNotificationRow {
+pub(crate) struct NewNotificationRow {
     pub wallet_id: i32,
     pub asset_id: Option<AssetId>,
     pub notification_type: NotificationType,

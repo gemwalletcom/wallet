@@ -12,6 +12,10 @@ pub enum ConfigKey {
     ReferralVerificationDelay,
     ReferralEligibility,
 
+    // Username
+    UsernameMinLength,
+    UsernameMaxLength,
+
     // Redemption
     RedemptionMinAccountAge,
     RedemptionCooldownAfterReferral,
@@ -158,9 +162,8 @@ pub enum ConfigKey {
     // Scan
     ScanTimerUpdateValidators,
     ScanTimerUpdateValidatorsStatic,
-    ScanEnable,
-    ScanDryRun,
     ScanTimeout,
+    ScanDetectionMaxAge,
     ScanRequiredSuccesses,
 
     // Rewards
@@ -237,6 +240,8 @@ impl ConfigKey {
             Self::ReferralIneligibleCountries => "[]",
             Self::ReferralVerificationDelay => "24h",
             Self::ReferralEligibility => "7d",
+            Self::UsernameMinLength => "4",
+            Self::UsernameMaxLength => "16",
             Self::RedemptionMinAccountAge => "1h",
             Self::RedemptionCooldownAfterReferral => "1m",
             Self::RedemptionRetryMaxRetries => "1",
@@ -356,9 +361,8 @@ impl ConfigKey {
             Self::FiatTimerUpdateTrending => "1h",
             Self::ScanTimerUpdateValidators => "1d",
             Self::ScanTimerUpdateValidatorsStatic => "1h",
-            Self::ScanEnable => "true",
-            Self::ScanDryRun => "false",
             Self::ScanTimeout => "1200ms",
+            Self::ScanDetectionMaxAge => "30d",
             Self::ScanRequiredSuccesses => "1",
             Self::RewardsTimerAbuseChecker => "60s",
             Self::RewardsTimerEligibilityChecker => "60s",

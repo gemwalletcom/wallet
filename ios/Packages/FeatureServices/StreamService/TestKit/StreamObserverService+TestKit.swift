@@ -13,11 +13,13 @@ public extension StreamObserverService {
         service: any GemStreamServiceProtocol = GemStreamServiceMock(),
         webSocket: any WebSocketConnectable = WebSocketConnectionMock(),
         health: ConnectionComponentHealth = ConnectionComponentHealth(component: .stream),
+        reconnection: any Reconnectable = ReconnectableMock(),
     ) -> StreamObserverService {
         StreamObserverService(
             service: service,
             webSocket: webSocket,
             health: health,
+            reconnection: reconnection,
         )
     }
 }

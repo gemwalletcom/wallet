@@ -1,4 +1,5 @@
 use primitives::ApplicationMetadata;
+use primitives::OptionStringExt;
 use url::{Host, Url, form_urlencoded};
 
 use crate::config::public::ASSETS_URL;
@@ -6,41 +7,35 @@ use crate::config::public::ASSETS_URL;
 const APPLICATION_ICON_SIZE: &str = "256";
 const ICON_URL_MAX_LENGTH: usize = 4096;
 
-#[derive(Default, uniffi::Object)]
-pub struct GemApplicationMetadataService {}
-
 #[uniffi::export]
-impl GemApplicationMetadataService {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
+pub fn application_connection_row(metadata: ApplicationMetadata) -> GemConnectionRow {
+    connection_row(&metadata)
+}
 
-    pub fn short_name(&self, metadata: ApplicationMetadata) -> String {
-        metadata.short_name()
-    }
+const CONNECTION_INITIAL: &str = "WC";
 
-    pub fn connection_row(&self, metadata: ApplicationMetadata) -> GemConnectionRow {
-        let name = metadata.short_name();
-        GemConnectionRow {
-            initial: name.chars().next().map(|first| first.to_uppercase().to_string()),
-            title: name,
-            host: Some(url_host(&metadata.url)).filter(|host| !host.is_empty()),
-            icon_url: self.icon_url(metadata),
-        }
+pub fn connection_row(metadata: &ApplicationMetadata) -> GemConnectionRow {
+    let name = metadata.short_name();
+    let host = Some(url_host(&metadata.url)).non_empty();
+    GemConnectionRow {
+        initial: name
+            .chars()
+            .chain(host.iter().flat_map(|host| host.chars()))
+            .next()
+            .map(|first| first.to_uppercase().to_string())
+            .unwrap_or_else(|| CONNECTION_INITIAL.to_string()),
+        title: name,
+        host,
+        icon_url: icon_url(metadata),
     }
+}
 
-    pub fn host(&self, metadata: ApplicationMetadata) -> String {
-        url_host(&metadata.url)
-    }
-
-    pub fn icon_url(&self, metadata: ApplicationMetadata) -> Option<String> {
-        let website = public_url(&metadata.url)?;
-        let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
-        let source = icon.map_or_else(|| website.origin().ascii_serialization(), |icon| icon.to_string());
-        let query = form_urlencoded::Serializer::new(String::new()).append_pair("url", &source).append_pair("size", APPLICATION_ICON_SIZE).finish();
-        Some(format!("{ASSETS_URL}/proxy/icon?{query}"))
-    }
+pub fn icon_url(metadata: &ApplicationMetadata) -> Option<String> {
+    let website = public_url(&metadata.url)?;
+    let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
+    let source = icon.map_or_else(|| website.origin().ascii_serialization(), |icon| icon.to_string());
+    let query = form_urlencoded::Serializer::new(String::new()).append_pair("url", &source).append_pair("size", APPLICATION_ICON_SIZE).finish();
+    Some(format!("{ASSETS_URL}/proxy/icon?{query}"))
 }
 
 pub fn url_host(url: &str) -> String {
@@ -68,16 +63,14 @@ mod tests {
 
     #[test]
     fn test_a_connection_without_a_host_has_no_subtitle_and_takes_its_initial_from_the_name() {
-        let service = GemApplicationMetadataService::new();
-
-        let hosted = service.connection_row(ApplicationMetadata {
+        let hosted = application_connection_row(ApplicationMetadata {
             name: "Uniswap".to_string(),
             url: "https://app.uniswap.org".to_string(),
             icon: String::new(),
             ..ApplicationMetadata::mock()
         });
         assert_eq!(hosted.host.as_deref(), Some("app.uniswap.org"));
-        assert_eq!(hosted.initial.as_deref(), Some("U"));
+        assert_eq!(hosted.initial, "U");
 
         assert_eq!(hosted.icon_url.as_deref(), Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fapp.uniswap.org&size=256"));
 
@@ -86,48 +79,70 @@ mod tests {
             url: String::new(),
             ..ApplicationMetadata::mock()
         };
-        assert_eq!(service.connection_row(unhosted.clone()).host, None);
-        assert_eq!(service.connection_row(ApplicationMetadata { name: String::new(), ..unhosted.clone() }).initial, None);
-        assert_eq!(service.connection_row(unhosted).icon_url, None);
+        assert_eq!(application_connection_row(unhosted.clone()).host, None);
+        assert_eq!(application_connection_row(ApplicationMetadata { name: String::new(), ..unhosted.clone() }).initial, "WC");
+        assert_eq!(
+            application_connection_row(ApplicationMetadata {
+                name: String::new(),
+                url: "https://app.uniswap.org".to_string(),
+                ..unhosted.clone()
+            })
+            .initial,
+            "A"
+        );
+        assert_eq!(application_connection_row(unhosted).icon_url, None);
     }
 
     #[test]
     fn test_host_drops_the_scheme_path_and_www_prefix() {
-        let service = GemApplicationMetadataService::new();
-
         assert_eq!(
-            service.host(ApplicationMetadata {
-                url: "https://www.venice.ai/path?query=1#fragment".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "https://www.venice.ai/path?query=1#fragment".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            service.host(ApplicationMetadata {
-                url: "http://www.venice.ai".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "http://www.venice.ai".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            service.host(ApplicationMetadata {
-                url: "www.venice.ai/path".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "www.venice.ai/path".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "venice.ai"
         );
         assert_eq!(
-            service.host(ApplicationMetadata {
-                url: "app.uniswap.org".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: "app.uniswap.org".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             "app.uniswap.org"
         );
         assert_eq!(
-            service.host(ApplicationMetadata {
-                url: " ".into(),
-                ..ApplicationMetadata::mock()
-            }),
+            url_host(
+                &ApplicationMetadata {
+                    url: " ".into(),
+                    ..ApplicationMetadata::mock()
+                }
+                .url
+            ),
             ""
         );
     }
@@ -135,7 +150,7 @@ mod tests {
     #[test]
     fn test_icon_url_requests_the_application_icon() {
         assert_eq!(
-            GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+            icon_url(&ApplicationMetadata {
                 url: "https://login.xyz/some/page?query=value#section".into(),
                 icon: "https://login.xyz/favicon.png".into(),
                 ..ApplicationMetadata::mock()
@@ -143,7 +158,7 @@ mod tests {
             Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz%2Ffavicon.png&size=256".into())
         );
         assert_eq!(
-            GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+            icon_url(&ApplicationMetadata {
                 url: "https://tronscan.org".into(),
                 icon: "https://cdn.example.com/logo.svg?v=2".into(),
                 ..ApplicationMetadata::mock()
@@ -168,7 +183,7 @@ mod tests {
             "https://assets.gemwallet.com/logo.png",
         ] {
             assert_eq!(
-                GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                icon_url(&ApplicationMetadata {
                     url: "https://tronscan.org/some/page?query=value#section".into(),
                     icon: icon.into(),
                     ..ApplicationMetadata::mock()
@@ -183,7 +198,7 @@ mod tests {
     fn test_icon_url_omits_missing_or_unsafe_websites() {
         for url in ["", " ", "http://app.example.com", "data:text/html,hello", "https://user:password@app.example.com", "https://app.example.com:8443", "https://["] {
             assert_eq!(
-                GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                icon_url(&ApplicationMetadata {
                     url: url.into(),
                     icon: "https://cdn.example.com/icon.png".into(),
                     ..ApplicationMetadata::mock()
@@ -199,6 +214,6 @@ mod tests {
 pub struct GemConnectionRow {
     pub title: String,
     pub host: Option<String>,
-    pub initial: Option<String>,
+    pub initial: String,
     pub icon_url: Option<String>,
 }

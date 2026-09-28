@@ -12,27 +12,33 @@ import SwiftUI
 
 public extension ViewModelFactory {
     @MainActor
-    func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
-        CollectionsViewModel(service: nftService, wallet: wallet)
+    func collectionsScene(wallet: Wallet) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .collections)
     }
 
     @MainActor
-    func collectionScene(wallet: Wallet, collectionId: String) -> CollectionViewModel {
-        CollectionViewModel(service: nftService, wallet: wallet, collectionId: collectionId)
+    func collectionScene(wallet: Wallet, collectionId: String) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .collection, collectionId: collectionId)
     }
 
     @MainActor
-    func unverifiedCollectionsScene(wallet: Wallet) -> UnverifiedCollectionsViewModel {
-        UnverifiedCollectionsViewModel(service: nftService, wallet: wallet)
+    func unverifiedCollectionsScene(wallet: Wallet) -> CollectionsSceneViewModel {
+        CollectionsSceneViewModel(service: nftService, wallet: wallet, list: .unverified)
     }
 
     @MainActor
-    func collectibleScene(wallet: Wallet, assetData: NFTAssetData, isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>) -> CollectibleViewModel {
-        CollectibleViewModel(
+    func collectibleScene(
+        wallet: Wallet,
+        assetData: NFTAssetData,
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
+        onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
+    ) -> CollectibleSceneViewModel {
+        CollectibleSceneViewModel(
             wallet: wallet,
             assetData: assetData,
             service: GemCollectibleService(nfts: nftService, avatars: avatarService, explorer: explorerService),
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
+            onSelectAddress: onSelectAddress,
         )
     }
 }

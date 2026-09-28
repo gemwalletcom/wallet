@@ -70,7 +70,7 @@ pub fn validate_send_transaction(transaction_type: &WalletConnectTransactionType
 
     let json: serde_json::Value = serde_json::from_str(data).map_err(|_| "Invalid JSON".to_string())?;
 
-    if let Some(valid_until) = json.get("valid_until").and_then(|v| v.as_i64())
+    if let Some(valid_until) = json.get("valid_until").and_then(serde_json::Value::as_i64)
         && current_timestamp() >= valid_until
     {
         return Err("Transaction expired".to_string());
@@ -96,11 +96,6 @@ mod tests {
         let result = validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, &mock_eip712_json(137), ""));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
-    }
-
-    #[test]
-    fn test_validate_eip712_polygon() {
-        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Polygon, &SignDigestType::Eip712, &mock_eip712_json(137), "")).is_ok());
     }
 
     #[test]

@@ -15,6 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "Primitives", path: "../Primitives"),
     ],
     targets: [
         .target(
@@ -22,6 +23,7 @@ let package = Package(
             dependencies: [
                 "GemstoneFFI",
                 .product(name: "BigInt", package: "BigInt"),
+                .product(name: "Primitives", package: "Primitives"),
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v5)

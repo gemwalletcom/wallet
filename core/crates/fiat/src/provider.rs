@@ -3,8 +3,7 @@ use std::sync::Arc;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::webhook::FiatWebhookRequest;
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, PaymentType};
-use streamer::FiatWebhook;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook, PaymentType};
 
 pub(crate) fn generate_quote_id() -> String {
     uuid::Uuid::new_v4().to_string()

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{PriceId, PriceProvider};
+use crate::{Price, PriceId, PriceProvider};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PriceData {
@@ -17,4 +17,10 @@ pub struct PriceData {
     pub market_cap_rank: Option<i32>,
     pub total_volume: Option<f64>,
     pub last_updated_at: DateTime<Utc>,
+}
+
+impl PriceData {
+    pub fn as_price(&self) -> Price {
+        Price::new(self.price, self.price_change_percentage_24h, self.last_updated_at, self.provider)
+    }
 }

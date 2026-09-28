@@ -4,7 +4,7 @@ import Components
 import Style
 import SwiftUI
 
-public struct NetworkFeeCustomScene: View {
+struct NetworkFeeCustomScene: View {
     private enum Field: Hashable {
         case input
     }
@@ -13,12 +13,12 @@ public struct NetworkFeeCustomScene: View {
     private let onConfirm: () -> Void
     @FocusState private var focusedField: Field?
 
-    public init(model: NetworkFeeCustomViewModel, onConfirm: @escaping () -> Void) {
+    init(model: NetworkFeeCustomViewModel, onConfirm: @escaping () -> Void) {
         _model = State(initialValue: model)
         self.onConfirm = onConfirm
     }
 
-    public var body: some View {
+    var body: some View {
         List {
             Section {
                 HStack(spacing: .small) {

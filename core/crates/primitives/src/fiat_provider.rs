@@ -1,7 +1,7 @@
 use crate::{PaymentType, PrioritizedProvider};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,8 +46,8 @@ impl PrioritizedProvider for FiatProvider {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum FiatProviderName {
@@ -98,4 +98,15 @@ pub struct FiatProviderCountry {
     pub provider: FiatProviderName,
     pub alpha2: String,
     pub is_allowed: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_a_provider_reads_by_its_brand_and_not_its_case_name() {
+        assert_eq!(FiatProviderName::Flashnet.name(), "Cash App");
+        assert_eq!(FiatProviderName::MoonPay.name(), "MoonPay");
+    }
 }

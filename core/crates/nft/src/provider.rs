@@ -8,7 +8,7 @@ use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollec
 #[async_trait]
 pub trait NFTProvider: Send + Sync {
     fn name(&self) -> &'static str;
-    fn chains(&self) -> &'static [NFTChain];
+    fn chains(&self) -> &[NFTChain];
     async fn get_assets(&self, chain: Chain, address: String) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>>;
     async fn get_collection(&self, collection: NFTCollectionId) -> Result<NFTCollection, Box<dyn Error + Send + Sync>>;
     async fn get_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>>;
@@ -62,12 +62,53 @@ impl NFTProviders {
     }
 
     pub async fn get_asset_ids(&self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
-        let provider = self.providers_for_chain(chain).next().ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
-        provider.get_assets(chain, address.to_string()).await
+        let operations = self.providers_for_chain(chain).map(|provider| provider.get_assets(chain, address.to_string())).collect::<Vec<_>>();
+        try_in_order(operations).await?.ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()).into())
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let provider = self.providers_for_chain(chain).next().ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
-        provider.get_nft_data(chain, address.to_string()).await
+        let operations = self.providers_for_chain(chain).map(|provider| provider.get_nft_data(chain, address.to_string())).collect::<Vec<_>>();
+        try_in_order(operations).await?.ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()).into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct StubProvider {
+        assets: Option<Vec<NFTAssetId>>,
+    }
+
+    #[async_trait]
+    impl NFTProvider for StubProvider {
+        fn name(&self) -> &'static str {
+            "Stub"
+        }
+
+        fn chains(&self) -> &[NFTChain] {
+            &[NFTChain::Arc]
+        }
+
+        async fn get_assets(&self, _chain: Chain, _address: String) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
+            self.assets.clone().ok_or_else(|| "unavailable".into())
+        }
+
+        async fn get_collection(&self, _collection: NFTCollectionId) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
+            Err("unavailable".into())
+        }
+
+        async fn get_asset(&self, _asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
+            Err("unavailable".into())
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_asset_ids_falls_back_to_the_next_provider() {
+        let asset_id = NFTAssetId::new(Chain::Arc, "0x1", "1");
+        let providers = NFTProviders::new(vec![Arc::new(StubProvider { assets: None }), Arc::new(StubProvider { assets: Some(vec![asset_id.clone()]) })]);
+
+        assert_eq!(providers.get_asset_ids(Chain::Arc, "0x2").await.unwrap(), vec![asset_id]);
+        assert!(providers.get_asset_ids(Chain::Ethereum, "0x2").await.is_err());
     }
 }

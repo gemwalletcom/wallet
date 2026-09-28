@@ -4,10 +4,11 @@ import Components
 import Foundation
 import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
+import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemAutocloseConfirmPolicy
-import class Gemstone.GemAutocloseEstimator
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
+import func Gemstone.perpetualOpenRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -18,46 +19,15 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AutocloseSceneViewModel {
-    private let currencyFormatter: CurrencyFormatter
-    private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
-    private let estimator: GemAutocloseEstimator
 
-    var input: AutocloseInput
+    var focusField: AutocloseScene.Field?
+    var isPresentingAlertMessage: AlertMessage?
     private var session: GemAutocloseSession
 
-    private static func estimator(for type: AutocloseType) -> GemAutocloseEstimator {
-        switch type {
-        case let .modify(position, _):
-            GemAutocloseEstimator(
-                entryPrice: position.position.entryPrice,
-                positionSize: position.position.size,
-                direction: position.position.direction.toGem(),
-                leverage: position.position.leverage,
-            )
-        case let .open(data, _):
-            GemAutocloseEstimator.forOpen(
-                marketPrice: data.marketPrice,
-                size: data.size,
-                leverage: data.leverage,
-                direction: data.direction.toGem(),
-            )
-        }
-    }
-
-    public init(type: AutocloseType, currencyFormatter: CurrencyFormatter = .usd) {
-        let session = Self.session(for: type)
-        let separator = NumberInput.format(.current).decimalSeparator
-
+    public init(type: AutocloseType) {
         self.type = type
-        self.currencyFormatter = currencyFormatter
-        self.session = session
-        estimator = Self.estimator(for: type)
-        input = AutocloseInput(
-            type: type,
-            takeProfitText: session.initialText(tpslType: .takeProfit, decimalSeparator: separator),
-            stopLossText: session.initialText(tpslType: .stopLoss, decimalSeparator: separator),
-        )
+        session = Self.session(for: type)
     }
 
     private static func session(for type: AutocloseType) -> GemAutocloseSession {
@@ -67,14 +37,20 @@ public final class AutocloseSceneViewModel {
                 perpetual: position.perpetual.toGem(),
                 asset: position.asset.toGem(),
                 position: position.position.toGem(),
+                format: NumberInput.format(),
             )
         case let .open(data, _):
             autocloseOpenSession(
                 direction: data.direction.toGem(),
                 marketPrice: data.marketPrice,
+                size: data.size,
+                leverage: data.leverage,
                 decimals: data.assetDecimals,
                 provider: .hypercore,
+                format: NumberInput.format(),
             )
+            .onInput(tpslType: .takeProfit, text: data.takeProfit ?? .empty)
+            .onInput(tpslType: .stopLoss, text: data.stopLoss ?? .empty)
         }
     }
 
@@ -82,34 +58,32 @@ public final class AutocloseSceneViewModel {
         Localized.Perpetual.autoClose
     }
 
-    public var marketPriceField: ListItemField {
-        ListItemField(title: Localized.Perpetual.marketPrice, value: viewState.marketPrice.text())
-    }
-
-    public var takeProfitModel: AutocloseViewModel {
-        autocloseModel(type: .takeProfit, price: takeProfitPrice)
-    }
-
-    public var stopLossModel: AutocloseViewModel {
-        autocloseModel(type: .stopLoss, price: stopLossPrice)
-    }
-
-    public var positionItemViewModel: any ListAssetItemViewable {
-        switch type {
-        case let .modify(position, _): PerpetualPositionItemViewModel(data: position)
-        case let .open(data, _): OpenPositionItemViewModel(data: data)
-        }
-    }
-
-    public var entryPriceField: ListItemField? {
-        viewState.entryPrice.map { ListItemField(title: Localized.Perpetual.entryPrice, value: $0.text()) }
-    }
-
-    private var viewState: GemAutocloseViewState {
+    var viewState: GemAutocloseViewState {
         session.viewState()
     }
 
-    public var confirmButtonType: ButtonType {
+    var takeProfitText: String {
+        get { viewState.takeProfit.text }
+        set { session = session.onInput(tpslType: .takeProfit, text: newValue) }
+    }
+
+    var stopLossText: String {
+        get { viewState.stopLoss.text }
+        set { session = session.onInput(tpslType: .stopLoss, text: newValue) }
+    }
+
+    func percentSuggestions(_ viewState: GemAutocloseViewState) -> [PercentageSuggestion] {
+        viewState.takeProfit.suggestions.map { PercentageSuggestion(number: $0) }
+    }
+
+    func positionRow(_ viewState: GemAutocloseViewState) -> GemAssetItemRow? {
+        switch type {
+        case .modify: viewState.positionRow?.row
+        case let .open(data, _): perpetualOpenRow(assetId: data.assetId, title: data.symbol, direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
+        }
+    }
+
+    func confirmButtonType(_ viewState: GemAutocloseViewState) -> ButtonType {
         .primary(viewState.confirmEnabled ? .normal : .disabled)
     }
 }
@@ -118,85 +92,43 @@ public final class AutocloseSceneViewModel {
 
 public extension AutocloseSceneViewModel {
     func isEditing(field: AutocloseScene.Field?) -> Bool {
-        guard let field else { return false }
-        return input.text(for: field).isEmpty
+        switch field {
+        case .takeProfit: takeProfitText.isEmpty
+        case .stopLoss: stopLossText.isEmpty
+        case nil: false
+        }
     }
 
     func onChangeFocusField(_ _: AutocloseScene.Field?, _ newField: AutocloseScene.Field?) {
-        input.focusField = newField
-    }
-
-    func onChangePrice() {
-        session = session
-            .onPrice(tpslType: .takeProfit, price: takeProfitPrice)
-            .onPrice(tpslType: .stopLoss, price: stopLossPrice)
+        focusField = newField
     }
 
     func onSelectConfirm() {
-        input.update()
-        onChangePrice()
-
         let attempted = session.onSubmitAttempt()
         session = attempted
-        guard attempted.viewState().confirmEnabled else { return }
+        let state = attempted.viewState()
+        guard state.confirmEnabled else { return }
 
         switch type {
         case let .modify(position, onTransferAction):
-            guard let transfer = try? attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()) else { return }
-            onTransferAction?(transfer)
+            do {
+                try onTransferAction?(attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()))
+            } catch {
+                isPresentingAlertMessage = AlertMessage(error: error)
+            }
 
         case let .open(_, onComplete):
-            onComplete(input.selection)
+            onComplete(state.takeProfit.text, state.stopLoss.text)
         }
     }
 
     func onSelectPercent(_ percent: Int) {
-        guard let type = input.focusedType, let focused = input.focused else { return }
-        focused.text = perpetualFormatter.formatInputPrice(
-            estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.toGem()),
-            decimals: assetDecimals,
-        )
-    }
-}
-
-// MARK: - Private
-
-extension AutocloseSceneViewModel {
-    private var takeProfitPrice: Double? {
-        NumberInput.double(input.takeProfit.text)
-    }
-
-    private var stopLossPrice: Double? {
-        NumberInput.double(input.stopLoss.text)
-    }
-
-    private var position: PerpetualPositionData? {
-        guard case let .modify(position, _) = type else { return nil }
-        return position
-    }
-
-    private var marketPrice: Double {
-        switch type {
-        case let .modify(position, _): position.perpetual.price
-        case let .open(data, _): data.marketPrice
+        let type: TpslType
+        switch focusField {
+        case .takeProfit: type = .takeProfit
+        case .stopLoss: type = .stopLoss
+        case nil: return
         }
-    }
-
-    private var entryPrice: Double? {
-        switch type {
-        case let .modify(position, _): position.position.entryPrice
-        case .open: nil
-        }
-    }
-
-    private var assetDecimals: Int32 {
-        switch type {
-        case let .modify(position, _): position.asset.decimals
-        case let .open(data, _): data.assetDecimals
-        }
-    }
-
-    private func autocloseModel(type: TpslType, price: Double?) -> AutocloseViewModel {
-        AutocloseViewModel(type: type, price: price, estimator: estimator)
+        session = session.onPercentSelected(tpslType: type.toGem(), percent: Int32(percent))
     }
 }

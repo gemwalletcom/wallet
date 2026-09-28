@@ -4,13 +4,14 @@ import Components
 import Foundation
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct AcceptTermsScene: View {
-    @State private var model: AcceptTermsViewModel
+    @State private var model: AcceptTermsSceneViewModel
 
-    init(model: AcceptTermsViewModel) {
+    init(model: AcceptTermsSceneViewModel) {
         self.model = model
     }
 
@@ -19,13 +20,13 @@ struct AcceptTermsScene: View {
             CalloutView(style: .header(title: model.message))
                 .cleanListRow()
 
-            ForEach($model.items) { $item in
+            ForEach(model.viewState.rows, id: \.item) { row in
                 Section {
-                    Toggle(isOn: $item.isConfirmed) {
-                        Text(item.message)
-                            .textStyle(item.style)
+                    Toggle(isOn: Binding(get: { row.isAccepted }, set: { _ in model.onToggle(row.item) })) {
+                        Text(row.item.message)
+                            .textStyle(row.isAccepted ? .body : TextStyle(font: .body, color: Colors.black.opacity(.strong)))
                     }
-                    .accessibilityIdentifier(item.id)
+                    .accessibilityIdentifier(row.item.message)
                     .toggleStyle(CheckboxStyle(position: .left))
                 }
             }

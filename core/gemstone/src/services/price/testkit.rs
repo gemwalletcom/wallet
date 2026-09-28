@@ -4,8 +4,11 @@ use chrono::Utc;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
-use super::{GemPriceStore, GemPriceUpdate};
+use super::{GemPriceService, GemPriceStore, GemPriceUpdate};
 use crate::services::error::GemServiceError;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::preferences::testkit::MemoryPreferencesStore;
+use std::sync::Arc;
 
 impl GemPriceUpdate {
     pub fn mock(asset_id: AssetId, price: f64, price_change_percentage_24h: f64) -> Self {
@@ -31,6 +34,12 @@ pub struct MemoryPriceStore {
     pub markets: Mutex<Vec<(AssetId, AssetMarket)>>,
 }
 
+impl GemPriceService {
+    pub fn mock(store: Arc<MemoryPriceStore>) -> Self {
+        Self::new(store, Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))))
+    }
+}
+
 impl MemoryPriceStore {
     pub fn with_rate(symbol: Currency, rate: f64) -> Self {
         Self {
@@ -53,18 +62,20 @@ impl GemPriceStore for MemoryPriceStore {
         *self.rate_reads.lock().unwrap() += 1;
         Ok(self.rates.lock().unwrap().clone())
     }
-    async fn save_rates(&self, rates: Vec<FiatRate>, conversion: Option<FiatRate>) -> Result<(), GemServiceError> {
+    async fn save_rates_and_prices(&self, currency: Currency, rates: Vec<FiatRate>, conversion: Option<FiatRate>, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
         if let Some(error) = self.rate_error.lock().unwrap().clone() {
             return Err(error);
         }
-        let mut stored = self.rates.lock().unwrap();
-        stored.retain(|stored| rates.iter().all(|rate| rate.symbol != stored.symbol));
-        stored.extend(rates.clone());
+        let upserted_rates: Vec<FiatRate> = self.rates.lock().unwrap().iter().filter(|stored| rates.iter().all(|rate| rate.symbol != stored.symbol)).cloned().chain(rates.clone()).collect();
+        *self.rates.lock().unwrap() = upserted_rates;
         self.rate_writes.lock().unwrap().push(rates);
         if let Some(rate) = conversion {
             self.converted.lock().unwrap().push((rate.symbol, rate.rate));
         }
-        Ok(())
+        if prices.is_empty() {
+            return Ok(());
+        }
+        self.save_prices(currency, prices).await
     }
     async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
         self.prices

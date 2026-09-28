@@ -1,11 +1,11 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetProperties, AssetRank, AssetScore, Wallet, WalletId};
 
 use super::details::GemAssetDetailsService;
 use super::icon::GemAssetIconImage;
-use super::{GemAssetStore, GemAssetsService};
+use super::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::alien::AlienProvider;
 use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::config::image::GemImage;
@@ -32,9 +32,23 @@ use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
+fn as_stored(basic: AssetBasic) -> AssetBasic {
+    AssetBasic::new(
+        basic.asset,
+        AssetProperties { has_price: false, ..basic.properties },
+        AssetScore {
+            rank: basic.score.rank,
+            rank_type: AssetRank::Unknown,
+        },
+    )
+}
+
 #[derive(Default)]
 pub struct MemoryAssetStore {
     pub assets: Mutex<Vec<AssetBasic>>,
+    pub id_reads: Mutex<usize>,
+    pub filtered_asset_ids: Mutex<Vec<AssetId>>,
+    pub wallet_asset_filters: Mutex<Vec<Vec<GemAssetFilter>>>,
     pub asset_writes: Mutex<Vec<Vec<AssetBasic>>>,
     pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
     pub buyable_writes: Mutex<Vec<Vec<AssetId>>>,
@@ -46,6 +60,7 @@ pub struct MemoryAssetStore {
 #[async_trait]
 impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_ids(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+        *self.id_reads.lock().unwrap() += 1;
         Ok(self.get_assets(asset_ids).await?.into_iter().map(|asset| asset.id).collect())
     }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
@@ -54,13 +69,23 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_basics(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
         Ok(self.assets.lock().unwrap().iter().filter(|basic| asset_ids.contains(&basic.asset.id)).cloned().collect())
     }
-    async fn get_wallet_assets(&self, _wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError> {
-        Ok(self.assets.lock().unwrap().iter().map(|basic| basic.asset.clone()).collect())
+    async fn get_wallet_assets(&self, _wallet_id: WalletId, filters: Vec<GemAssetFilter>) -> Result<Vec<Asset>, GemServiceError> {
+        let filtered = self.filtered_asset_ids.lock().unwrap().clone();
+        let assets = self
+            .assets
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|basic| filters.is_empty() || filtered.contains(&basic.asset.id))
+            .map(|basic| basic.asset.clone())
+            .collect();
+        self.wallet_asset_filters.lock().unwrap().push(filters);
+        Ok(assets)
     }
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         self.asset_writes.lock().unwrap().push(assets.clone());
         let mut stored = self.assets.lock().unwrap();
-        for basic in assets {
+        for basic in assets.into_iter().map(as_stored) {
             match stored.iter_mut().find(|current| current.asset.id == basic.asset.id) {
                 Some(current) => *current = basic,
                 None => stored.push(basic),
@@ -69,7 +94,7 @@ impl GemAssetStore for MemoryAssetStore {
         Ok(())
     }
     async fn save_asset(&self, asset: AssetFull) -> Result<(), GemServiceError> {
-        self.assets.lock().unwrap().push(AssetBasic::new(asset.asset, asset.properties, asset.score));
+        self.assets.lock().unwrap().push(as_stored(AssetBasic::new(asset.asset, asset.properties, asset.score)));
         Ok(())
     }
     async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
@@ -100,12 +125,16 @@ impl GemAssetStore for MemoryAssetStore {
 
 impl GemAssetsService {
     pub fn mock(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemAssetStore>) -> Self {
+        Self::mock_with_price_store(provider, store, Arc::new(MemoryPriceStore::default()))
+    }
+
+    pub fn mock_with_price_store(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemAssetStore>, price_store: Arc<MemoryPriceStore>) -> Self {
         let preferences = Arc::new(MemoryPreferencesStore::default());
         Self::new(
             Arc::new(GemApiClient::new(provider.clone())),
             Arc::new(GemGateway::new(provider, Arc::new(GemNodeService::mock()), preferences.clone(), Arc::new(EmptyPreferences))),
             store,
-            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPriceService::mock(price_store)),
             Arc::new(GemPreferencesService::new(preferences)),
             Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default()))),
         )
@@ -141,7 +170,7 @@ impl AssetDetailsTestkit {
             discovery.assets.clone(),
             discovery.balance.clone(),
             discovery.transactions.clone(),
-            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()))),
+            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
             swap,
             Arc::new(GemExplorerService::new(preferences.clone())),
             Arc::new(GemPriceAlertService::new(device_api, preferences, Arc::new(MemoryPriceAlertStore::default()), Arc::new(DeniedNotificationPermissions))),

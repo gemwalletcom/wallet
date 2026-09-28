@@ -9,6 +9,7 @@
   <string name="common_copy">Kopyala</string>
   <string name="common_share">Paylaş</string>
   <string name="common_continue">Devam et</string>
+  <string name="common_continue_anyway">Yine de devam et</string>
   <string name="common_sign_in_with">%1$s ile giriş yap</string>
   <string name="common_provider">Sağlayıcı</string>
   <string name="common_loading">Yükleniyor</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Tanım</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Kaydet</string>
   <string name="common_percentage">Yüzde</string>
   <string name="common_details">Detaylar</string>
   <string name="common_info">Bilgi</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Jeton</string>
   <string name="common_expiration">Son kullanma</string>
   <string name="common_suspicious_address">Şüpheli adres</string>
+  <string name="common_suspicious_address_description">Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.</string>
   <string name="common_refresh">Yenile</string>
   <string name="common_grant_permission">İzin ver</string>
   <string name="common_required_field">%1$s gerekli</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Portföy</string>
   <string name="wallet_import_already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
   <string name="wallets_title">Cüzdanlar</string>
-  <string name="wallets_watch">İzle</string>
-  <string name="receive_title">%1$s alın</string>
   <string name="receive_warning">Bu sizin adresiniz — yalnızca %1$s varlığını %2$s ağında gönderin.</string>
   <string name="buy_title">%1$s satın al</string>
   <string name="buy_providers_title">Sağlayıcılar</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Kimlik doğrulama</string>
   <string name="settings_notifications_title">Bildirimler</string>
   <string name="settings_language">Dil</string>
-  <string name="settings_help_center">Yardım Merkezi</string>
   <string name="settings_support">Destek</string>
   <string name="settings_price_alerts_title">Fiyat Uyarıları</string>
   <string name="settings_hide_balance">Bakiyeyi Gizle</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Desteklenmeyen varlık.</string>
   <string name="errors_connections_no_supported_wallets">Desteklenen cüzdan yok.</string>
   <string name="errors_connections_unsupported_chain">Sağlanan zincir desteklenmiyor.</string>
+  <string name="errors_authentication_unavailable">Bu cihazda kimlik doğrulama ayarlanmamış. Cihaz ayarlarından biyometriyi veya bir parolayı açın.</string>
+  <string name="errors_authentication_locked_out">Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin.</string>
+  <string name="errors_authentication_failed">Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.</string>
+  <string name="errors_connections_expired">Bu bağlantı linkinin süresi doldu. Yeni bir QR kodu alıp tekrar deneyin.</string>
+  <string name="errors_connections_not_found">Bu bağlantı artık mevcut değil.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect\'e ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.</string>
   <string name="errors_swap_amount_too_small">Miktar çok küçük</string>
   <string name="errors_scan_transaction_malicious_description">Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.</string>
   <string name="errors_scan_transaction_memo_required">%1$s hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">%1$s satın al</string>
   <string name="asset_get_asset">%1$s al</string>
   <string name="asset_add_to_wallet">Cüzdana ekle</string>
-  <string name="asset_hide_from_wallet">Cüzdandan gizle</string>
   <string name="asset_added_to_wallet">Cüzdana eklendi</string>
   <string name="asset_hidden_from_wallet">Cüzdandan gizlendi</string>
   <string name="asset_resources">Kaynaklar</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Değişim</string>
   <string name="date_today">Bugün</string>
   <string name="date_yesterday">Dün</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Bağlantı</string>
   <string name="wallet_connect_disconnect">Bağlantıyı kes</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Hızlı</string>
   <string name="fee_rates_normal">Normal</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Özel</string>
   <string name="banner_account_activation_title">Hesap Aktivasyon Ücreti</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Fiyat düştüğünde</string>
   <string name="price_alerts_set_alert_set_target_price">Hedef fiyatı belirle</string>
   <string name="price_alerts_set_alert_current_price">Güncel fiyat</string>
-  <string name="price_alerts_added_for">Fiyat uyarısı ayarla %1$s</string>
+  <string name="price_alerts_added_price_over">Fiyat %1$s üzerine çıktığında uyarı eklendi</string>
+  <string name="price_alerts_added_price_under">Fiyat %1$s altına düştüğünde uyarı eklendi</string>
+  <string name="price_alerts_added_increases_by">Fiyat %1$s arttığında uyarı eklendi</string>
+  <string name="price_alerts_added_decreases_by">Fiyat %1$s düştüğünde uyarı eklendi</string>
   <string name="price_alerts_state_empty_title">Uyarılarınız burada görünecek</string>
   <string name="price_alerts_state_empty_description">Paraları takip sistemine ekleyerek onları etkinleştirin</string>
   <string name="price_alerts_auto_footer">Önemli fiyat hareketlerinde uyarılar tetiklenir.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Bildir</string>
   <string name="permissions_access_denied">Erişim engellendi</string>
   <string name="permissions_image_photo_access_denied_description">Bu uygulama fotoğraf kütüphanenize erişim iznine sahip değil. Lütfen cihaz ayarlarınızda erişimi etkinleştirin.</string>
-  <string name="markets_title">Piyasalar</string>
-  <string name="markets_state_empty_title">Piyasa verileriniz burada görünecek</string>
   <string name="markets_daily_volume">24 saatlik Hacim</string>
   <string name="search_state_empty_description">Yazımını kontrol edin veya yeni bir arama deneyin.</string>
   <string name="networks_state_empty_search_title">Hiçbir ağ bulunamadı</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Sınırsız token onayı</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Güvenlik Uyarısı</string>
+  <string name="rootcheck_jailbreak_body">Cihazınız jailbreak yapılmış görünüyor. Bu, cüzdanınızı ve bakiyenizi riske atabilir.</string>
   <string name="rootcheck_body">Cihazınızın kök erişimi var gibi görünüyor, bu da güvenlik risklerini önemli ölçüde artırabilir. Bu uygulamayı köklü bir cihazda kullanmak varlıklarınızı yetkisiz erişime ve olası kayba maruz bırakabilir. Fonlarınızın güvenliği için köklü olmayan bir cihaz kullanmanızı şiddetle öneririz.</string>
   <string name="rootcheck_ignore">Yoksay</string>
   <string name="rootcheck_exit">Çıkış</string>

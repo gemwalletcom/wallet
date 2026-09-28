@@ -7,7 +7,7 @@ use std::thread;
 use crate::{Keystore, KeystoreError, KeystoreId};
 
 use super::super::{
-    constants::{AES_GCM_TAG_LEN, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM, MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM},
+    constants::{MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM, MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM},
     format::{FileV4, parse_v4},
     types::{FileKeystore, KdfParams, SecretKind},
 };
@@ -27,6 +27,38 @@ fn test_v4_secret_file_is_owner_read_write_only() {
 
     assert_eq!(mode & 0o777, 0o600, "secret file must not be readable or writable by group/others");
     assert_eq!(fs::read_dir(&dir).unwrap().count(), 1, "no temp file may survive a write");
+}
+
+#[test]
+fn test_v4_import_reports_whether_it_wrote_the_file() {
+    let (_dir, keystore) = FileKeystore::mock();
+    let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+    assert!(meta.created);
+
+    let reused = keystore.import_mnemonic(PHRASE, b"password", Some(meta.keystore_id.clone())).unwrap();
+    assert!(!reused.created);
+    assert_eq!(reused.keystore_id, meta.keystore_id);
+}
+
+#[cfg(unix)]
+#[test]
+fn test_v4_lookup_failure_is_an_error_not_absence() {
+    let (dir, keystore) = FileKeystore::mock();
+    let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+    let permissions = fs::metadata(&dir).unwrap().permissions();
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o000)).unwrap();
+    let lookup_denied = fs::metadata(dir.as_ref().join("probe")).err().map(|error| error.kind()) == Some(std::io::ErrorKind::PermissionDenied);
+
+    let lookup = keystore.get_meta(&meta.keystore_id);
+    let import = keystore.import_mnemonic(PHRASE, b"password", Some(meta.keystore_id.clone()));
+    fs::set_permissions(&dir, permissions).unwrap();
+
+    if !lookup_denied {
+        return;
+    }
+    assert!(lookup.is_err(), "{lookup:?}");
+    assert!(import.is_err(), "{import:?}");
+    assert_eq!(keystore.decrypt_mnemonic(&meta.keystore_id, b"password").unwrap().as_str(), PHRASE);
 }
 
 #[test]
@@ -80,7 +112,7 @@ fn test_v4_header_filename_mismatch_fails_after_authentication() {
 }
 
 #[test]
-fn test_v4_change_password_and_list_inspect() {
+fn test_v4_change_password_and_list() {
     let (dir, keystore) = FileKeystore::mock();
     let old_password = b"old-password";
     let new_password = b"new-password";
@@ -93,11 +125,6 @@ fn test_v4_change_password_and_list_inspect() {
     let listed = keystore.list().unwrap();
     assert_eq!(listed.len(), 1);
     assert_eq!(listed[0].as_ref().unwrap().keystore_id, meta.keystore_id);
-
-    let inspected = FileKeystore::inspect_path(&v4_path(&dir, &meta.keystore_id)).unwrap();
-    assert_eq!(inspected.meta.unwrap().keystore_id, meta.keystore_id);
-    assert!(!inspected.authenticated);
-    assert!(inspected.ciphertext_len >= u64::from(AES_GCM_TAG_LEN));
 
     let path = v4_path(&dir, &meta.keystore_id);
     assert_eq!(FileKeystore::verify_path(&path, new_password).unwrap().keystore_id, meta.keystore_id);
@@ -272,7 +299,7 @@ fn test_v4_concurrent_import_same_wallet_is_idempotent() {
         .collect::<Vec<_>>();
 
     let results = handles.into_iter().map(|handle| handle.join().unwrap()).collect::<Vec<_>>();
-    assert!(results.iter().all(|result| result.is_ok()));
+    assert!(results.iter().all(Result::is_ok));
     assert_eq!(keystore.decrypt_mnemonic(&id, &password).unwrap().as_str(), PHRASE);
 
     // Re-importing under the same id with a different password must not clobber the existing keystore.

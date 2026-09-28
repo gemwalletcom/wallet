@@ -5,6 +5,7 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
 import typealias Gemstone.AssetFull
 import typealias Gemstone.AssetId
+import enum Gemstone.GemAssetFilter
 import protocol Gemstone.GemAssetStore
 import GemstonePrimitives
 import Primitives
@@ -20,7 +21,7 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
     }
 
     public func getAssetIds(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
-        try assetStore.getAssets(for: assetIds).map(\.id.identifier)
+        try assetStore.getAssetIds(for: assetIds)
     }
 
     public func getAssetBasics(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetBasic] {
@@ -31,8 +32,8 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.getAssets(for: assetIds).map { $0.toGem() }
     }
 
-    public func getWalletAssets(walletId: String) async throws -> [Gemstone.Asset] {
-        try assetStore.getAssetsData(walletId: WalletId.from(id: walletId), filters: [], limit: nil).map { $0.asset.toGem() }
+    public func getWalletAssets(walletId: WalletId, filters: [GemAssetFilter]) async throws -> [Gemstone.Asset] {
+        try assetStore.getAssetsData(walletId: walletId, filters: filters.map { $0.map() }, limit: nil).map { $0.asset.toGem() }
     }
 
     public func saveAssets(assets: [Gemstone.AssetBasic]) async throws {
@@ -59,22 +60,22 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
     }
 
     public func setSwappableAssets(assetIds: [Gemstone.AssetId]) async throws {
-        try assetStore.setAssetIsSwappable(for: assetIds, value: true)
+        try assetStore.updateSwappableAssets(assetIds: assetIds)
     }
 
-    public func addBalances(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+    public func addBalances(walletId: WalletId, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
         try balanceStore.addBalance(
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            assetIds: assetIds,
             isEnabled: enabled,
-            for: WalletId.from(id: walletId),
+            for: walletId,
         )
     }
 
-    public func addMissingBalances(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
+    public func addMissingBalances(walletId: WalletId, assetIds: [Gemstone.AssetId]) async throws {
         try balanceStore.addBalance(
-            assetIds: assetIds.map { try Primitives.AssetId(id: $0) },
+            assetIds: assetIds,
             isEnabled: false,
-            for: WalletId.from(id: walletId),
+            for: walletId,
         )
     }
 }

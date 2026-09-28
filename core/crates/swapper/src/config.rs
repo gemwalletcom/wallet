@@ -31,6 +31,15 @@ pub struct Config {
     pub amount_percent_presets: Vec<u32>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum QuotePreference {
+    DustFreeMaxAmount { tolerance_bps: u32 },
+}
+
+pub fn quote_preferences() -> Vec<QuotePreference> {
+    vec![QuotePreference::DustFreeMaxAmount { tolerance_bps: 25 }]
+}
+
 pub fn get_swap_config() -> Config {
     Config {
         default_slippage: SwapperSlippage {

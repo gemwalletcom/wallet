@@ -150,7 +150,7 @@ impl RetryConfig {
         Self {
             errors: ErrorMatcherConfig {
                 status_codes,
-                error_messages: error_messages.into_iter().map(|value| value.to_string()).collect(),
+                error_messages: error_messages.into_iter().map(ToString::to_string).collect(),
             },
             ..Self::mock()
         }

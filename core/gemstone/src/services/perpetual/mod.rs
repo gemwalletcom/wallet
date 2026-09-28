@@ -16,20 +16,20 @@ use std::sync::Arc;
 use chrono::Utc;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
-use primitives::perpetual::{PerpetualBalance, PerpetualData};
+use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, Wallet, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, RecentActivityType, Wallet, WalletId};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
-pub use autoclose::{GemAutocloseField, GemAutocloseModify};
+pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
-    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection, GemPerpetualSocketUpdate,
-    GemPerpetualTransferData,
+    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection,
+    GemPerpetualSocketUpdate, GemPerpetualTransferData,
 };
 pub use store::GemPerpetualStore;
 
@@ -39,7 +39,7 @@ use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
 use crate::services::stream::rules::hyperliquid_account;
-use crate::services::transfer::GemRecentActivityService;
+use crate::services::transfer::{GemRecentActivityScope, GemRecentActivityService};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -95,21 +95,15 @@ impl GemPerpetualService {
         failures
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemPerpetualEnablementTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
-        self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
+        if trigger != GemPerpetualEnablementTrigger::Foreground {
+            self.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::Scheduled).await?;
+        }
         Ok(self.should_connect_perpetuals(wallet))
-    }
-
-    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
-        self.preferences.show_perpetuals(wallet_type, chains)
-    }
-
-    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| self.show_perpetuals(wallet.wallet_type, wallet.chains()))
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -131,6 +125,10 @@ impl GemPerpetualService {
 }
 
 impl GemPerpetualService {
+    fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| self.preferences.show_perpetuals(wallet.wallet_type, wallet.chains()))
+    }
+
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
@@ -148,18 +146,22 @@ impl GemPerpetualService {
     }
 
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
         self.save_markets(data).await?;
         if let Some(price) = rules::collateral_price(chain) {
-            self.price.update_prices(vec![price], currency).await?;
+            self.price.update_prices(vec![price]).await?;
         }
         self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
     }
 
     pub async fn save_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
         self.assets.save_assets(rules::perpetual_asset_basics(&data)).await?;
-        self.store.save_perpetuals(data).await
+        let stored = self.store.get_perpetuals(data.iter().map(|data| data.perpetual.name.clone()).collect()).await?;
+        let changed = rules::changed_perpetuals(data, &stored);
+        if changed.is_empty() {
+            return Ok(());
+        }
+        self.store.save_perpetuals(changed).await
     }
 
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
@@ -167,7 +169,7 @@ impl GemPerpetualService {
     }
 
     pub async fn on_socket_message(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<GemPerpetualSocketUpdate, GemServiceError> {
-        let message = parse_websocket_data(&data, mode).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let message = parse_websocket_data(&data, mode).map_err(GemServiceError::core)?;
         match message {
             HyperliquidSocketMessage::AccountState { balance, positions } => {
                 let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
@@ -190,7 +192,10 @@ impl GemPerpetualService {
             }
             HyperliquidSocketMessage::Candle { candle } => Ok(GemPerpetualSocketUpdate::Candle { candle }),
             HyperliquidSocketMessage::MarketData { market } => {
-                self.store.update_market(market).await?;
+                let stored = self.store.get_perpetuals(vec![market.coin.clone()]).await?;
+                if rules::market_changed(&market, &stored) {
+                    self.store.update_market(market).await?;
+                }
                 Ok(GemPerpetualSocketUpdate::Applied)
             }
             HyperliquidSocketMessage::MarketPrices { prices } => {
@@ -206,8 +211,8 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        let (mode, summary) = futures::join!(self.account_mode(wallet_id.clone(), chain, address.clone()), self.gateway.get_positions(chain, address));
-        let (mode, summary) = (mode?, summary?);
+        let PerpetualAccountPositions { mode, summary } = self.gateway.get_positions(chain, address).await?;
+        self.wallet_preferences.set_perpetual_account_mode(wallet_id.clone(), mode)?;
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
         self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
@@ -237,6 +242,7 @@ impl GemPerpetualService {
 
     pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
         self.store.clear_perpetuals(rules::collateral_asset_ids()).await?;
+        self.recent_activity.clear_in(GemRecentActivityScope::AllWallets, vec![RecentActivityType::Perpetual]).await?;
         self.preferences.set_perpetual_markets_updated_at(None)
     }
 
@@ -247,7 +253,7 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn update_balance(&self, wallet_id: WalletId, balance: PerpetualBalance) -> Result<(), GemServiceError> {
-        let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let update = rules::balance_update(&balance).map_err(GemServiceError::core)?;
         self.balance.update_balances(wallet_id, vec![update]).await
     }
 
@@ -256,7 +262,11 @@ impl GemPerpetualService {
         if !rules::prices_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
-        self.store.update_prices(prices).await?;
+        let stored = self.store.get_perpetuals(prices.keys().cloned().collect()).await?;
+        let changed = rules::changed_perpetual_prices(prices, &stored);
+        if !changed.is_empty() {
+            self.store.update_prices(changed).await?;
+        }
         self.preferences.set_perpetual_prices_updated_at(Some(now))
     }
 }
@@ -274,6 +284,8 @@ mod tests {
 
     use super::testkit::PerpetualTestkit;
     use super::*;
+    use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
+    use primitives::AssetType;
 
     const ALL_MIDS: &str = r#"{"channel":"allMids","data":{"mids":{"BTC":"104633.0","ETH":"3321.1"}}}"#;
     const OPEN_ORDERS: &str = r#"{"channel":"openOrders","data":{"user":"0xc64c","orders":[{"coin":"BTC","oid":1,"triggerPx":"110000.0","limitPx":"110000.0","isPositionTpsl":true,"orderType":"Take Profit Market"}]}}"#;
@@ -295,6 +307,57 @@ mod tests {
         assert_eq!(writes.len(), 1, "a second message inside the interval is dropped, not written again");
         assert_eq!(writes[0].get("BTC"), Some(&104_633.0));
         assert!(testkit.preferences.get_perpetual_prices_updated_at().unwrap().is_some());
+    }
+
+    #[test]
+    fn test_an_unchanged_market_tick_writes_nothing() {
+        let testkit = PerpetualTestkit::new();
+        let tick = include_str!("../../../../crates/gem_hypercore/testdata/ws_active_asset_ctx.json");
+
+        message(&testkit, tick);
+        let written = testkit.store.markets.lock().unwrap()[0].clone();
+        *testkit.store.stored.lock().unwrap() = vec![primitives::perpetual::Perpetual {
+            name: written.coin.clone(),
+            price: written.price,
+            price_percent_change_24h: written.price_percent_change_24h,
+            open_interest: written.open_interest,
+            volume_24h: written.volume_24h,
+            funding: written.funding,
+            ..primitives::perpetual::Perpetual::mock()
+        }];
+        message(&testkit, tick);
+
+        assert_eq!(testkit.store.markets.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_a_price_tick_writes_only_the_prices_that_moved() {
+        let testkit = PerpetualTestkit::new();
+        *testkit.store.stored.lock().unwrap() = vec![primitives::perpetual::Perpetual {
+            name: "BTC".to_string(),
+            price: 104_633.0,
+            ..primitives::perpetual::Perpetual::mock()
+        }];
+
+        message(&testkit, ALL_MIDS);
+
+        let writes = testkit.store.price_writes.lock().unwrap();
+        assert_eq!(writes[0].keys().collect::<Vec<_>>(), vec!["ETH"]);
+    }
+
+    #[test]
+    fn test_an_unchanged_market_list_writes_no_perpetuals() {
+        let testkit = PerpetualTestkit::new();
+        let data = primitives::perpetual::PerpetualData {
+            perpetual: primitives::perpetual::Perpetual::mock(),
+            asset: primitives::Asset::from_chain(Chain::HyperCore),
+            metadata: primitives::perpetual::PerpetualMetadata { is_pinned: false },
+        };
+        *testkit.store.stored.lock().unwrap() = vec![data.perpetual.clone()];
+
+        block_on(testkit.service.save_markets(vec![data])).unwrap();
+
+        assert!(testkit.store.perpetual_writes.lock().unwrap().is_empty());
     }
 
     #[test]
@@ -359,7 +422,7 @@ mod tests {
             let testkit = PerpetualTestkit::new();
             testkit.preferences.set_perpetual_enabled(false).unwrap();
 
-            assert!(!testkit.service.sync_enablement(None, GemMarketsRefreshTrigger::UserRequested).await.unwrap());
+            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::PreferenceChanged).await.unwrap());
 
             assert_eq!(*testkit.store.deleted.lock().unwrap(), 1);
             assert_eq!(
@@ -368,6 +431,42 @@ mod tests {
                 "the store is told which collateral the clear takes with the markets"
             );
             assert!(testkit.provider.requested_paths().is_empty());
+        })
+    }
+
+    #[test]
+    fn test_switching_perpetuals_off_forgets_perpetual_recents_in_every_wallet() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new();
+            let perpetual = Asset {
+                asset_type: AssetType::PERPETUAL,
+                ..Asset::from_chain(Chain::HyperCore)
+            };
+            let another_wallets_recent = GemRecentActivity {
+                activity_type: RecentActivityType::Perpetual,
+                asset_id: perpetual.id.clone(),
+                to_asset_id: None,
+            };
+            testkit.service.add_recent(GemAssetAction::Open, perpetual).await.unwrap();
+            testkit.service.add_recent(GemAssetAction::Open, Asset::from_chain(Chain::Ethereum)).await.unwrap();
+            testkit.recents.add(another_wallets_recent, WalletId::Multicoin("other".to_string())).await.unwrap();
+            testkit.preferences.set_perpetual_enabled(false).unwrap();
+
+            testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::PreferenceChanged).await.unwrap();
+
+            let kept: Vec<RecentActivityType> = testkit.recents.added.lock().unwrap().iter().map(|(activity, _)| activity.activity_type.clone()).collect();
+            assert_eq!(kept, vec![RecentActivityType::Search]);
+        })
+    }
+
+    #[test]
+    fn test_returning_to_the_foreground_decides_the_connection_without_refreshing_markets() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new();
+            testkit.preferences.set_perpetual_enabled(true).unwrap();
+
+            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::Foreground).await.unwrap(), "no wallet, nothing to connect");
+            assert!(testkit.provider.requested_paths().is_empty(), "the foreground leaves the markets to the other triggers");
         })
     }
 
@@ -464,6 +563,22 @@ mod tests {
                 assert_eq!(testkit.wallet_preferences.get_perpetual_account_mode(wallet.id).unwrap(), PerpetualAccountMode::Unified);
             }
         });
+    }
+
+    #[test]
+    fn test_connection_and_refresh_each_ask_for_the_account_mode_once() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_unified_balance().await;
+            let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
+            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+
+            testkit.service.connection(wallet).await.unwrap();
+            testkit.service.sync_current_positions().await.unwrap();
+
+            let mode_requests = testkit.provider.requested_types().iter().filter(|kind| *kind == "userAbstraction").count();
+            assert_eq!(mode_requests, 2);
+        })
     }
 
     #[test]

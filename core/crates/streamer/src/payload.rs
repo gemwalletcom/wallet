@@ -1,4 +1,4 @@
-use primitives::{AssetAddress, AssetId, Chain, ChainAddress, FiatProviderName, FiatTransactionUpdate, ListId, NFTAssetId, NotificationType, PriceData, PriceId, Transaction, TransactionId};
+use primitives::{AssetId, Chain, ChainAddress, FiatProviderName, FiatWebhook, ListId, NFTAssetId, NotificationType, PriceData, PriceId, Transaction, TransactionId};
 use push_notification::{FailedNotification, GorushNotification};
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -173,18 +173,6 @@ impl FetchBlocksPayload {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FetchNFTCollectionPayload {
-    pub chain: Chain,
-    pub collection_id: String,
-}
-
-impl fmt::Display for FetchNFTCollectionPayload {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "chain={}, collection_id={}", self.chain.as_ref(), self.collection_id)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchNFTAssetPayload {
     pub asset_id: NFTAssetId,
 }
@@ -198,20 +186,6 @@ impl FetchNFTAssetPayload {
 impl fmt::Display for FetchNFTAssetPayload {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "asset_id={}", self.asset_id)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetsAddressPayload {
-    pub values: Vec<AssetAddress>,
-}
-
-impl fmt::Display for AssetsAddressPayload {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for value in self.values.iter() {
-            write!(f, "address: {}, asset_id: {}", value.address, value.asset_id)?;
-        }
-        Ok(())
     }
 }
 
@@ -236,14 +210,6 @@ impl From<ChainAddress> for ChainAddressPayload {
     fn from(chain_address: ChainAddress) -> Self {
         Self::new(chain_address)
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::large_enum_variant)]
-pub enum FiatWebhook {
-    OrderId(String),
-    Transaction(FiatTransactionUpdate),
-    None,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

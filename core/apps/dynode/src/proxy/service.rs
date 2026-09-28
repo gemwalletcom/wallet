@@ -3,13 +3,13 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Instant;
 
+use chain_providers::BroadcastProviders;
 use gem_tracing::{DurationMs, info_with_fields};
 use primitives::{Chain, ValueAccess};
 use reqwest::Client;
 use reqwest::StatusCode;
 use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
 use serde_json::Value;
-use settings_chain::BroadcastProviders;
 
 use crate::BoxError;
 use crate::cache::RequestCache;

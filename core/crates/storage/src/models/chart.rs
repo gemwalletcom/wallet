@@ -7,7 +7,7 @@ use crate::models::PriceRow;
 #[derive(Debug, Clone, Queryable, Selectable, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::charts)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct ChartRow {
+pub(crate) struct ChartRow {
     pub coin_id: String,
     pub price: f64,
     pub created_at: NaiveDateTime,
@@ -30,7 +30,7 @@ impl ChartRow {
 #[derive(Debug, Clone, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::charts_hourly)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct HourlyChartRow {
+pub(crate) struct HourlyChartRow {
     pub coin_id: String,
     pub price: f64,
     pub created_at: NaiveDateTime,
@@ -39,7 +39,7 @@ pub struct HourlyChartRow {
 #[derive(Debug, Clone, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::charts_daily)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct DailyChartRow {
+pub(crate) struct DailyChartRow {
     pub coin_id: String,
     pub price: f64,
     pub created_at: NaiveDateTime,

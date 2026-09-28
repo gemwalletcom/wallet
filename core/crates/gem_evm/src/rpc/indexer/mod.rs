@@ -1,10 +1,10 @@
 use std::{error::Error, fmt, sync::Arc};
 
+use alchemy::rpc::Client as AlchemyClient;
+use ankr::Client as AnkrClient;
 use async_trait::async_trait;
+use blockscout::Client as BlockscoutClient;
 use chain_traits::{ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
-use gem_alchemy::rpc::Client as AlchemyClient;
-use gem_ankr::Client as AnkrClient;
-use gem_blockscout::Client as BlockscoutClient;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
@@ -184,7 +184,7 @@ impl<C: Client + Clone> AssetBalanceProvider for EVMAssetBalanceProvider<C> {
 
 #[cfg(test)]
 mod tests {
-    use gem_ankr::testkit::{TOKEN_TRANSFERS, TRANSACTIONS};
+    use ankr::testkit::{TOKEN_TRANSFERS, TRANSACTIONS};
     use gem_client::{ClientError, testkit::MockClient};
     use primitives::Chain;
     use serde_json::{Value, from_slice, from_str, json, to_vec};

@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.chainRow
 import enum Gemstone.GemAddNodeError
 import enum Gemstone.GemAddNodePhase
 import struct Gemstone.GemAddNodeSession
+import struct Gemstone.GemChainRow
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import enum Gemstone.GemServiceError
 import Localization
@@ -19,15 +21,12 @@ final class AddNodeSceneViewModel {
 
     let chain: Chain
 
-    var urlInputModel = InputValidationViewModel(mode: .onDemand)
+    var urlInputModel = InputValidationViewModel()
     private var session: GemAddNodeSession
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
-
-    var nodeCheckDebounce: Duration {
-        .milliseconds(service.nodeCheckDebounceMilliseconds())
-    }
+    private var loadAttempt = 0
 
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
@@ -39,9 +38,13 @@ final class AddNodeSceneViewModel {
         switch session.viewState().phase {
         case .idle: .noData
         case .checking: .loading
-        case let .ready(check): .data(check.rows().map { ListItemField(title: $0.title, value: $0.text) })
+        case let .ready(rows): .data(rows.map { ListItemField(title: $0.title, value: $0.text) })
         case let .failed(error): .error(AnyError(error.text))
         }
+    }
+
+    var showsWarning: Bool {
+        session.viewState().showsWarning
     }
 
     var title: String {
@@ -60,8 +63,8 @@ final class AddNodeSceneViewModel {
         Localized.Errors.errorOccurred
     }
 
-    var chainModel: ChainViewModel {
-        ChainViewModel(chain: chain)
+    var chainModel: GemChainRow {
+        chainRow(chain: chain.rawValue)
     }
 
     var warningModel: ListItemModel {
@@ -69,12 +72,7 @@ final class AddNodeSceneViewModel {
             title: Localized.Asset.Verification.warningTitle,
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
-            imageStyle: ListItemImageStyle(
-                assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
-                imageSize: .image.semiMedium,
-                alignment: .top,
-                cornerRadiusType: .none,
-            ),
+            imageStyle: .emoji(Emoji.WalletAvatar.warning.rawValue),
         )
     }
 }
@@ -92,13 +90,20 @@ extension AddNodeSceneViewModel {
         setLoadTrigger(isImmediate: true)
     }
 
+    func onSubmitInput() {
+        setLoadTrigger(isImmediate: true)
+    }
+
     private func setLoadTrigger(isImmediate: Bool) {
         session = session.onInput(url: urlInputModel.text)
         guard session.checksUrl() else {
             loadTrigger = nil
             return
         }
-        loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate)
+        if isImmediate {
+            loadAttempt += 1
+        }
+        loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate, attempt: loadAttempt)
     }
 
     func importFoundNode() async -> Bool {

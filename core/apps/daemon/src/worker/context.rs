@@ -2,29 +2,23 @@ use crate::model::WorkerService;
 use crate::shutdown::ShutdownReceiver;
 use crate::worker::plan::JobPlanBuilder;
 use crate::worker::runtime::WorkerRuntime;
-use settings::Settings;
-use std::sync::Arc;
-use storage::{ConfigCacher, Database};
+use services::ConfigCacher;
+use services::Services;
 
 #[derive(Clone)]
 pub struct WorkerContext {
-    settings: Arc<Settings>,
-    database: Database,
+    services: Services,
     runtime: WorkerRuntime,
     job_filter: Option<String>,
 }
 
 impl WorkerContext {
-    pub fn new(settings: Arc<Settings>, database: Database, runtime: WorkerRuntime, job_filter: Option<String>) -> Self {
-        Self { settings, database, runtime, job_filter }
+    pub fn new(services: Services, runtime: WorkerRuntime, job_filter: Option<String>) -> Self {
+        Self { services, runtime, job_filter }
     }
 
-    pub fn settings(&self) -> Arc<Settings> {
-        self.settings.clone()
-    }
-
-    pub fn database(&self) -> Database {
-        self.database.clone()
+    pub fn services(&self) -> Services {
+        self.services.clone()
     }
 
     pub fn plan_builder<'a>(&self, worker: WorkerService, config: &'a ConfigCacher, shutdown_rx: ShutdownReceiver) -> JobPlanBuilder<'a> {

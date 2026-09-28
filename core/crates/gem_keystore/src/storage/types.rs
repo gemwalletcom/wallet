@@ -19,16 +19,7 @@ pub struct StoredSecretMeta {
     pub keystore_id: String,
     pub kind: SecretKind,
     pub version: u8,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct KeystoreInspection {
-    pub meta: Option<StoredSecretMeta>,
-    pub authenticated: bool,
-    pub file_len: u64,
-    pub ciphertext_len: u64,
-    pub tag_len: u8,
-    pub warnings: Vec<String>,
+    pub created: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

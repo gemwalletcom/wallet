@@ -51,7 +51,7 @@ fn catalog_entries(localizations: &BTreeMap<String, Vec<(String, String)>>, excl
 fn ios_key(key: &str, key_map: &BTreeMap<String, String>) -> String {
     let mapped_key = key_map.get(key);
     if mapped_key.is_some_and(|key| key.contains('.')) {
-        return mapped_key.expect("mapped key was checked").to_string();
+        return mapped_key.expect("mapped key was checked").clone();
     }
     let Some(prefix) = key_map
         .values()
@@ -59,9 +59,19 @@ fn ios_key(key: &str, key_map: &BTreeMap<String, String>) -> String {
         .filter(|prefix| key.starts_with(&format!("{}_", prefix.replace('.', "_"))))
         .max_by_key(|prefix| prefix.len())
     else {
-        return mapped_key.cloned().unwrap_or_else(|| key.to_string());
+        return mapped_key.cloned().unwrap_or_else(|| grouped_key(key));
     };
     format!("{prefix}.{}", &key[prefix.len() + 1..])
+}
+
+fn grouped_key(key: &str) -> String {
+    let Some((group, rest)) = key.split_once('_') else {
+        return key.to_string();
+    };
+    if group.is_empty() || rest.is_empty() {
+        return key.to_string();
+    }
+    format!("{group}.{rest}")
 }
 
 fn group_prefixes(key: &str) -> Vec<&str> {
@@ -110,8 +120,10 @@ mod tests {
         assert_eq!(ios_key("errors_import_invalid_private_key", &key_map), "errors.import.invalid_private_key");
         assert_eq!(ios_key("errors_important_note", &key_map), "errors.important_note");
         assert_eq!(ios_key("errors_new_key", &key_map), "errors.new_key");
-        assert_eq!(ios_key("unknown_key", &key_map), "unknown_key");
-        assert_eq!(ios_key("unknown_key", &BTreeMap::new()), "unknown_key");
+        assert_eq!(ios_key("unknown_key", &key_map), "unknown.key");
+        assert_eq!(ios_key("unknown_key", &BTreeMap::new()), "unknown.key");
+        assert_eq!(ios_key("rootcheck_security_alert", &BTreeMap::new()), "rootcheck.security_alert");
+        assert_eq!(ios_key("legacy_key", &BTreeMap::from([("legacy_key".to_string(), "legacy_key".to_string())])), "legacy_key");
     }
 
     #[test]

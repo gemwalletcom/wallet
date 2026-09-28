@@ -9,6 +9,7 @@
   <string name="common_copy">복사</string>
   <string name="common_share">공유</string>
   <string name="common_continue">계속</string>
+  <string name="common_continue_anyway">그래도 계속</string>
   <string name="common_sign_in_with">%1$s 계정으로 로그인</string>
   <string name="common_provider">공급자</string>
   <string name="common_loading">로딩 중</string>
@@ -47,7 +48,6 @@
   <string name="common_description">설명</string>
   <string name="common_emoji">이모티콘</string>
   <string name="common_avatar">아바타</string>
-  <string name="common_save">저장</string>
   <string name="common_percentage">백분율</string>
   <string name="common_details">세부</string>
   <string name="common_info">정보</string>
@@ -57,6 +57,7 @@
   <string name="common_token">토큰</string>
   <string name="common_expiration">만료</string>
   <string name="common_suspicious_address">의심스러운 주소</string>
+  <string name="common_suspicious_address_description">이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.</string>
   <string name="common_refresh">새로고침</string>
   <string name="common_grant_permission">권한 부여</string>
   <string name="common_required_field">%1$s 이(가) 필요합니다</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">포트폴리오</string>
   <string name="wallet_import_already_imported_message">이 지갑은 이미 가져왔습니다.</string>
   <string name="wallets_title">지갑</string>
-  <string name="wallets_watch">시계</string>
-  <string name="receive_title">%1$s 받습니다.</string>
   <string name="receive_warning">이 주소는 귀하의 주소입니다. %1$s만 %2$s 네트워크에서 보내세요.</string>
   <string name="buy_title">%1$s 구매</string>
   <string name="buy_providers_title">공급자</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">인증</string>
   <string name="settings_notifications_title">알림</string>
   <string name="settings_language">언어</string>
-  <string name="settings_help_center">도움말 센터</string>
   <string name="settings_support">지원하다</string>
   <string name="settings_price_alerts_title">가격 알림</string>
   <string name="settings_hide_balance">잔액 숨기기</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">지원되지 않는 자산입니다.</string>
   <string name="errors_connections_no_supported_wallets">지원되는 지갑이 없습니다.</string>
   <string name="errors_connections_unsupported_chain">제공된 체인은 지원되지 않습니다.</string>
+  <string name="errors_authentication_unavailable">이 기기에 인증이 설정되어 있지 않습니다. 기기 설정에서 생체 인식 또는 암호를 켜세요.</string>
+  <string name="errors_authentication_locked_out">실패한 시도가 너무 많습니다. 나중에 다시 시도해 주세요.</string>
+  <string name="errors_authentication_failed">인증에 실패했습니다. 다시 시도해 주세요.</string>
+  <string name="errors_connections_expired">이 연결 링크가 만료되었습니다. 새 QR 코드를 받아 다시 시도해 주세요.</string>
+  <string name="errors_connections_not_found">이 연결은 더 이상 존재하지 않습니다.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.</string>
   <string name="errors_swap_amount_too_small">금액이 너무 적습니다</string>
   <string name="errors_scan_transaction_malicious_description">이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.</string>
   <string name="errors_scan_transaction_memo_required">%1$s 대상 지갑 주소에는 대상 태그/메모가 필요합니다.</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">%1$s 구매</string>
   <string name="asset_get_asset">%1$s 받기</string>
   <string name="asset_add_to_wallet">지갑에 추가</string>
-  <string name="asset_hide_from_wallet">지갑에서 숨기기</string>
   <string name="asset_added_to_wallet">지갑에 추가됨</string>
   <string name="asset_hidden_from_wallet">지갑에서 숨김</string>
   <string name="asset_resources">자원</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">변화</string>
   <string name="date_today">오늘</string>
   <string name="date_yesterday">어제</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">연결</string>
   <string name="wallet_connect_disconnect">연결 끊기</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">빠르게</string>
   <string name="fee_rates_normal">보통</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">사용자 지정</string>
   <string name="banner_account_activation_title">계정 활성화 수수료</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">가격이 하락하면</string>
   <string name="price_alerts_set_alert_set_target_price">목표 가격 설정</string>
   <string name="price_alerts_set_alert_current_price">현재 가격</string>
-  <string name="price_alerts_added_for">가격 알림 설정 %1$s</string>
+  <string name="price_alerts_added_price_over">가격이 %1$s 이상일 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_price_under">가격이 %1$s 이하일 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_increases_by">가격이 %1$s 상승할 때 알림이 추가되었습니다</string>
+  <string name="price_alerts_added_decreases_by">가격이 %1$s 하락할 때 알림이 추가되었습니다</string>
   <string name="price_alerts_state_empty_title">알림이 여기에 표시됩니다.</string>
   <string name="price_alerts_state_empty_description">추적에 동전을 추가하여 활성화하세요</string>
   <string name="price_alerts_auto_footer">가격이 크게 변동하면 알림이 울립니다.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">신고</string>
   <string name="permissions_access_denied">접근 불가</string>
   <string name="permissions_image_photo_access_denied_description">이 앱은 사진 라이브러리에 액세스할 권한이 없습니다. 기기 설정에서 액세스를 활성화하세요.</string>
-  <string name="markets_title">시장</string>
-  <string name="markets_state_empty_title">귀하의 시장 데이터가 여기에 표시됩니다.</string>
   <string name="markets_daily_volume">24시간 볼륨</string>
   <string name="search_state_empty_description">철자를 확인하거나 새로 검색해 보세요.</string>
   <string name="networks_state_empty_search_title">네트워크를 찾을 수 없습니다</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">무제한 토큰 승인</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">보안 경고</string>
+  <string name="rootcheck_jailbreak_body">기기가 탈옥된 것으로 보입니다. 지갑과 자산이 위험해질 수 있습니다.</string>
   <string name="rootcheck_body">귀하의 기기는 루트 액세스 권한이 있는 것으로 보이며, 이는 보안 위험을 상당히 증가시킬 수 있습니다. 루팅된 기기에서 이 앱을 사용하면 자산이 무단 액세스 및 잠재적 손실에 노출될 수 있습니다. 자금의 안전을 위해 루팅되지 않은 기기를 사용하는 것이 좋습니다.</string>
   <string name="rootcheck_ignore">무시</string>
   <string name="rootcheck_exit">종료</string>

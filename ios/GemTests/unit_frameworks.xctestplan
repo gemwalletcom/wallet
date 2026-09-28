@@ -16,13 +16,6 @@
   "testTargets": [
     {
       "target": {
-        "containerPath": "container:Gem.xcodeproj",
-        "identifier": "C30952C0299C39D80004C0F9",
-        "name": "GemTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features/NFT",
         "identifier": "NFTTests",
         "name": "NFTTests"
@@ -58,20 +51,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/AppLock",
-        "identifier": "AppLockTests",
-        "name": "AppLockTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages/Validators",
-        "identifier": "ValidatorsTests",
-        "name": "ValidatorsTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Features/Perpetuals",
         "identifier": "PerpetualsTests",
         "name": "PerpetualsTests"
@@ -100,6 +79,13 @@
     },
     {
       "target": {
+        "containerPath": "container:Packages/SwiftHTTPClient",
+        "identifier": "WebSocketClientTests",
+        "name": "WebSocketClientTests"
+      }
+    },
+    {
+      "target": {
         "containerPath": "container:Features/PriceAlerts",
         "identifier": "PriceAlertsTests",
         "name": "PriceAlertsTests"
@@ -117,13 +103,6 @@
         "containerPath": "container:Packages/Formatters",
         "identifier": "FormattersTests",
         "name": "FormattersTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages/Formatters",
-        "identifier": "GemstoneFormattersTests",
-        "name": "GemstoneFormattersTests"
       }
     },
     {
@@ -170,9 +149,9 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/WalletTab",
-        "identifier": "WalletTabTests",
-        "name": "WalletTabTests"
+        "containerPath": "container:Features/Wallet",
+        "identifier": "WalletTests",
+        "name": "WalletTests"
       }
     },
     {
@@ -191,7 +170,7 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/Settings",
+        "containerPath": "container:Features/Rewards",
         "identifier": "RewardsTests",
         "name": "RewardsTests"
       }
@@ -229,13 +208,6 @@
         "containerPath": "container:Packages/PrimitivesComponents",
         "identifier": "PrimitivesComponentsTests",
         "name": "PrimitivesComponentsTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/ManageWallets",
-        "identifier": "ManageWalletsTests",
-        "name": "ManageWalletsTests"
       }
     },
     {

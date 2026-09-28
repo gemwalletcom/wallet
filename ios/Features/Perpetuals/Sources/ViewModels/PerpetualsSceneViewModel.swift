@@ -1,22 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import Foundation
-import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemMarketsRefreshTrigger
-import struct Gemstone.GemPerpetualBalanceHeader
 import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
+import struct Gemstone.GemPerpetualMarketSections
 import struct Gemstone.GemPerpetualMarketSession
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import struct Gemstone.GemValueHeader
 import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Recents
 import Store
 import Style
 import SwiftUI
@@ -29,20 +30,20 @@ public final class PerpetualsSceneViewModel {
 
     let wallet: Wallet
 
-    let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    let perpetualsQuery: ObservableQuery<PerpetualsRequest>
-    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
-    let recentModel: RecentAssetsModel
+    let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    let perpetualsQuery: ObservableQuery<MappedQuery<PerpetualsQuery, GemPerpetualMarketSections>>
+    let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>
+    let recentModel: RecentAssetsViewModel
 
     var positions: [PerpetualPositionData] {
         positionsQuery.value
     }
 
-    var perpetuals: [PerpetualData] {
+    var sections: GemPerpetualMarketSections {
         perpetualsQuery.value
     }
 
-    var balanceHeader: GemPerpetualBalanceHeader {
+    var balanceHeader: GemValueHeader {
         perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
@@ -78,21 +79,21 @@ public final class PerpetualsSceneViewModel {
         self.onSelectAmount = onSelectAmount
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
-        perpetualsQuery = ObservableQuery(.market(search: .empty), initialValue: [])
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, searchQuery: ""), initialValue: [])
+        perpetualsQuery = ObservableQuery(.marketSections(search: .empty), initialValue: GemPerpetualMarketSections(pinned: [], markets: []))
         walletBalanceQuery = ObservableQuery(
-            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            PerpetualWalletBalanceQuery(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
+        recentModel = RecentAssetsViewModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }
 
     var navigationTitle: String {
         Localized.Perpetuals.title
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: .search(type: .perpetuals))
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .searchPerpetuals)
     }
 
     var pinImage: Image {
@@ -112,20 +113,8 @@ public final class PerpetualsSceneViewModel {
         ))
     }
 
-    var marketSectionModels: [PerpetualMarketSectionViewModel] {
-        marketSectionList.map { PerpetualMarketSectionViewModel(section: $0) }
-    }
-
-    var showSearchEmptyState: Bool {
-        marketSectionList.contains(.empty)
-    }
-
-    var sections: PerpetualsSections {
-        .from(perpetuals)
-    }
-
-    var headerViewModel: PerpetualsHeaderViewModel {
-        PerpetualsHeaderViewModel(header: balanceHeader)
+    var header: ValueHeader {
+        balanceHeader.valueHeader
     }
 }
 
@@ -154,13 +143,13 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSelectHeaderAction(type: GemHeaderButtonKind) {
-        switch type {
-        case .deposit:
-            onSelectAmount?(AmountInput(type: .deposit, asset: balanceHeader.depositAsset.toPrimitives()))
-        case .withdraw:
-            onSelectAmount?(AmountInput(type: .withdraw, asset: balanceHeader.withdrawAsset.toPrimitives()))
-        default:
+    func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
+        switch action {
+        case let .deposit(asset):
+            onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+        case let .withdraw(asset):
+            onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
+        case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
         }
     }
@@ -168,7 +157,7 @@ extension PerpetualsSceneViewModel {
     func onPinPerpetual(_ perpetualData: PerpetualData) {
         Task {
             do {
-                try await service.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
+                try await service.setPinned(perpetualId: perpetualData.perpetual.id.identifier, pinned: !perpetualData.metadata.isPinned)
             } catch {
                 debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
             }
@@ -177,8 +166,8 @@ extension PerpetualsSceneViewModel {
 
     func onSearchQueryChange(_ _: String, _: String) {
         let query = session.searchQuery()
-        perpetualsQuery.request = .market(search: query)
-        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: query)
+        perpetualsQuery.request = .marketSections(search: query)
+        positionsQuery.request = PerpetualPositionsQuery(walletId: wallet.id, searchQuery: query)
     }
 
     func onSearchPresentedChange(_ _: Bool, _ isPresented: Bool) {

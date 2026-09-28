@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemErrorText
 import enum Gemstone.GemServiceError
+
+extension GemErrorText: @retroactive Error {}
 
 public extension Error {
     var isCancelled: Bool {

@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::fmt;
 
+use tokio::task::JoinError;
+
 #[derive(Debug, Clone)]
 pub enum DatabaseError {
     NotFound { resource: &'static str, lookup: NotFoundLookup },
@@ -209,77 +211,15 @@ impl From<serde_json::Error> for DatabaseError {
     }
 }
 
+impl From<JoinError> for DatabaseError {
+    fn from(error: JoinError) -> Self {
+        DatabaseError::Error(error.to_string())
+    }
+}
+
 impl From<r2d2::Error> for DatabaseError {
     fn from(_: r2d2::Error) -> Self {
         DatabaseError::ConnectionPool
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum ReferralValidationError {
-    CodeDoesNotExist,
-    DeviceAlreadyUsed,
-    CannotReferSelf,
-    EligibilityExpired(i64),
-    RewardsNotEnabled(String),
-    Database(DatabaseError),
-}
-
-impl fmt::Display for ReferralValidationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ReferralValidationError::CodeDoesNotExist => write!(f, "Referral code does not exist"),
-            ReferralValidationError::DeviceAlreadyUsed => write!(f, "This device has already been used to apply a referral code"),
-            ReferralValidationError::CannotReferSelf => write!(f, "Cannot use your own referral code"),
-            ReferralValidationError::EligibilityExpired(days) => write!(f, "eligibility_expired: {} days", days),
-            ReferralValidationError::RewardsNotEnabled(user) => write!(f, "Rewards are not enabled for {}", user),
-            ReferralValidationError::Database(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl Error for ReferralValidationError {}
-
-impl From<DatabaseError> for ReferralValidationError {
-    fn from(error: DatabaseError) -> Self {
-        ReferralValidationError::Database(error)
-    }
-}
-
-impl From<diesel::result::Error> for ReferralValidationError {
-    fn from(error: diesel::result::Error) -> Self {
-        ReferralValidationError::Database(error.into())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum UsernameValidationError {
-    Invalid(String),
-    AlreadyTaken,
-    Database(DatabaseError),
-}
-
-impl fmt::Display for UsernameValidationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            UsernameValidationError::Invalid(msg) => write!(f, "{}", msg),
-            UsernameValidationError::AlreadyTaken => write!(f, "Username already taken"),
-            UsernameValidationError::Database(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl Error for UsernameValidationError {}
-
-impl From<DatabaseError> for UsernameValidationError {
-    fn from(error: DatabaseError) -> Self {
-        UsernameValidationError::Database(error)
-    }
-}
-
-impl From<diesel::result::Error> for UsernameValidationError {
-    fn from(error: diesel::result::Error) -> Self {
-        UsernameValidationError::Database(error.into())
     }
 }
 
@@ -290,11 +230,6 @@ mod tests {
     #[test]
     fn test_database_error_display_not_found() {
         assert_eq!(DatabaseError::not_found("Asset", "0x1233").to_string(), "Asset 0x1233 not found");
-    }
-
-    #[test]
-    fn test_database_error_display_wallet_address_not_found() {
-        assert_eq!(DatabaseError::not_found("WalletAddress", "solana").to_string(), "WalletAddress solana not found");
     }
 
     #[test]

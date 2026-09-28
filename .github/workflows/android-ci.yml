@@ -62,3 +62,31 @@ jobs:
 
       - name: Run unit tests
         run: just test
+
+  integration_tests:
+    runs-on: ubuntu-latest
+    env:
+      UNIT_TESTS: "true"
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+
+      - name: Setup Android CI
+        uses: ./.github/actions/setup-android-ci
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Install Android toolchains
+        run: |
+          just install-toolchains
+          just install-ndk
+
+      - name: Run integration tests
+        run: just test-integration

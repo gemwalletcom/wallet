@@ -38,11 +38,7 @@ pub struct PaymentTransaction {
 
 impl Transaction {
     pub fn get_memo(&self) -> Option<String> {
-        self.note
-            .clone()
-            .and_then(|note| decode_base64(&note).ok())
-            .and_then(|decoded| str::from_utf8(&decoded).ok().map(|s| s.to_string()))
-            .map(|s| s.to_string())
+        self.note.clone().and_then(|note| decode_base64(&note).ok()).and_then(|decoded| str::from_utf8(&decoded).ok().map(ToString::to_string))
     }
 }
 

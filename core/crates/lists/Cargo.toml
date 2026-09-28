@@ -7,4 +7,3 @@ version = { workspace = true }
 async-trait = { workspace = true }
 coingecko = { path = "../coingecko" }
 primitives = { path = "../primitives" }
-storage = { path = "../storage" }

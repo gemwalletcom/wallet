@@ -49,6 +49,7 @@ impl From<GemApiError> for GemServiceError {
     fn from(error: GemApiError) -> Self {
         match error {
             GemApiError::Network { msg } if msg.contains(&AlienError::Offline.to_string()) => Self::Offline,
+            GemApiError::Http { status, .. } | GemApiError::Response { status, .. } if status >= 500 => Self::Api { msg: String::new() },
             error => Self::Api { msg: error.to_string() },
         }
     }
@@ -63,8 +64,14 @@ impl From<GatewayError> for GemServiceError {
     }
 }
 
+impl GemServiceError {
+    pub(crate) fn core(error: impl std::fmt::Display) -> Self {
+        Self::Core { msg: error.to_string() }
+    }
+}
+
 impl From<GemstoneError> for GemServiceError {
     fn from(error: GemstoneError) -> Self {
-        Self::Core { msg: error.to_string() }
+        Self::core(error)
     }
 }

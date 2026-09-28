@@ -39,7 +39,7 @@ impl RelayChainInfo {
     pub fn mock(id: u64, depository: Option<&str>, solver_addresses: &[&str]) -> Self {
         Self {
             id,
-            solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
+            solver_addresses: solver_addresses.iter().map(ToString::to_string).collect(),
             protocol: Some(RelayProtocol {
                 v2: Some(RelayProtocolV2 { depository: depository.map(str::to_string) }),
             }),

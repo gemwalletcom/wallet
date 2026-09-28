@@ -1,33 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct NotificationsScene: View {
-    @State private var model: NotificationsViewModel
+    @State private var model: NotificationsSceneViewModel
 
-    public init(model: NotificationsViewModel) {
+    public init(model: NotificationsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        List {
-            Section {
-                Toggle(
-                    model.title,
-                    isOn: $model.isEnabled,
-                )
-                .toggleStyle(AppToggleStyle())
-            }
-
-            Section {
-                NavigationLink(value: Scenes.PriceAlerts()) {
-                    ListItemView(model: model.priceAlertsListItem)
-                }
-            }
+        ListSectionView(sections: model.sections) { row in
+            content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -36,5 +25,20 @@ public struct NotificationsScene: View {
         }
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
+    }
+}
+
+// MARK: - UI Components
+
+extension NotificationsScene {
+    @ViewBuilder
+    private func content(for row: GemListRow) -> some View {
+        if row.action() == .priceAlerts {
+            NavigationLink(value: Scenes.PriceAlerts()) {
+                GemListRowView(row: row)
+            }
+        } else {
+            GemListRowView(row: row, onToggle: model.onToggle)
+        }
     }
 }

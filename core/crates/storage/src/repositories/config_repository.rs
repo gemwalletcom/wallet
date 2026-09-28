@@ -1,62 +1,70 @@
-use std::time::Duration;
-
 use config_keys::{ConfigKey, ConfigParamKey};
+use diesel::prelude::*;
 
-use crate::database::config::ConfigStore;
 use crate::models::ConfigRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 pub trait ConfigRepository {
     fn get_config(&mut self, key: ConfigKey) -> Result<String, DatabaseError>;
-    fn get_config_i64(&mut self, key: ConfigKey) -> Result<i64, DatabaseError>;
-    fn get_config_bool(&mut self, key: ConfigKey) -> Result<bool, DatabaseError>;
-    fn get_config_param_bool(&mut self, key: ConfigParamKey) -> Result<bool, DatabaseError>;
-    fn get_config_duration(&mut self, key: ConfigKey) -> Result<Duration, DatabaseError>;
+    fn get_config_param(&mut self, key: ConfigParamKey) -> Result<String, DatabaseError>;
     fn get_config_keys(&mut self) -> Result<Vec<String>, DatabaseError>;
-    fn add_config(&mut self, configs: Vec<ConfigRow>) -> Result<usize, DatabaseError>;
+    fn add_config_keys(&mut self, keys: Vec<ConfigKey>) -> Result<usize, DatabaseError>;
+    fn add_config_params(&mut self, keys: Vec<ConfigParamKey>) -> Result<usize, DatabaseError>;
     fn set_config(&mut self, key: ConfigKey, value: &str) -> Result<usize, DatabaseError>;
     fn delete_keys(&mut self, keys: Vec<String>) -> Result<usize, DatabaseError>;
+}
+
+fn add_config_rows(client: &mut DatabaseClient, configs: Vec<ConfigRow>) -> Result<usize, diesel::result::Error> {
+    use crate::schema::config::dsl::*;
+    diesel::insert_into(config)
+        .values(&configs)
+        .on_conflict(key)
+        .do_update()
+        .set((
+            value.eq(diesel::dsl::case_when(value.eq(default_value), diesel::upsert::excluded(value)).otherwise(value)),
+            default_value.eq(diesel::upsert::excluded(default_value)),
+        ))
+        .execute(&mut client.connection)
+}
+
+fn config_row(client: &mut DatabaseClient, config_key: &str) -> Result<ConfigRow, diesel::result::Error> {
+    use crate::schema::config::dsl::*;
+    config.filter(key.eq(config_key)).select(ConfigRow::as_select()).first(&mut client.connection)
 }
 
 impl ConfigRepository for DatabaseClient {
     fn get_config(&mut self, key: ConfigKey) -> Result<String, DatabaseError> {
         let key = key.as_ref().to_string();
-        let result = ConfigStore::get_config_key(self, &key).or_not_found(key)?;
+        let result = config_row(self, &key).or_not_found(key)?;
         Ok(result.value)
     }
 
-    fn get_config_i64(&mut self, key: ConfigKey) -> Result<i64, DatabaseError> {
-        Ok(self.get_config(key)?.parse()?)
-    }
-
-    fn get_config_bool(&mut self, key: ConfigKey) -> Result<bool, DatabaseError> {
-        Ok(self.get_config(key)?.parse()?)
-    }
-
-    fn get_config_param_bool(&mut self, key: ConfigParamKey) -> Result<bool, DatabaseError> {
+    fn get_config_param(&mut self, key: ConfigParamKey) -> Result<String, DatabaseError> {
         let key = key.key();
-        let result = ConfigStore::get_config_key(self, &key).or_not_found(key)?;
-        Ok(result.value.parse()?)
+        let result = config_row(self, &key).or_not_found(key)?;
+        Ok(result.value)
     }
 
-    fn get_config_duration(&mut self, key: ConfigKey) -> Result<Duration, DatabaseError> {
-        let value = self.get_config(key)?;
-        primitives::parse_duration(&value).ok_or_else(|| DatabaseError::Error(format!("Failed to parse duration: {}", value)))
+    fn add_config_keys(&mut self, keys: Vec<ConfigKey>) -> Result<usize, DatabaseError> {
+        Ok(add_config_rows(self, keys.into_iter().map(ConfigRow::from_primitive).collect())?)
     }
 
-    fn add_config(&mut self, configs: Vec<ConfigRow>) -> Result<usize, DatabaseError> {
-        Ok(ConfigStore::add_config(self, configs)?)
+    fn add_config_params(&mut self, keys: Vec<ConfigParamKey>) -> Result<usize, DatabaseError> {
+        Ok(add_config_rows(self, keys.into_iter().map(ConfigRow::from_param).collect())?)
     }
 
-    fn set_config(&mut self, key: ConfigKey, value: &str) -> Result<usize, DatabaseError> {
-        Ok(ConfigStore::set_config(self, key.as_ref(), value)?)
+    fn set_config(&mut self, config_key: ConfigKey, config_value: &str) -> Result<usize, DatabaseError> {
+        use crate::schema::config::dsl::*;
+        Ok(diesel::update(config.filter(key.eq(config_key.as_ref()))).set(value.eq(config_value)).execute(&mut self.connection)?)
     }
 
     fn get_config_keys(&mut self) -> Result<Vec<String>, DatabaseError> {
-        Ok(ConfigStore::get_config_keys(self)?)
+        use crate::schema::config::dsl::*;
+        Ok(config.select(key).load(&mut self.connection)?)
     }
 
     fn delete_keys(&mut self, keys: Vec<String>) -> Result<usize, DatabaseError> {
-        Ok(ConfigStore::delete_keys(self, keys)?)
+        use crate::schema::config::dsl::*;
+        Ok(diesel::delete(config.filter(key.eq_any(keys))).execute(&mut self.connection)?)
     }
 }

@@ -13,7 +13,6 @@ import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import NativeProviderService
 import Primitives
 import PrimitivesComponents
@@ -53,7 +52,7 @@ struct ServicesFactory {
         let connectionStatusObserver = ConnectionStatusObserver(
             connectionService: connectionService,
             monitors: [
-                InternetConnectionMonitor(connectionService: connectionService),
+                InternetConnectionMonitor(),
                 streamHealth,
             ],
         )
@@ -61,6 +60,7 @@ struct ServicesFactory {
         let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
             store: GemstonePriceStore(priceStore: stores.priceStore),
+            preferences: preferencesService,
         )
         let gemstoneAssetStore = GemstoneAssetStore(assetStore: stores.assetStore, balanceStore: stores.balanceStore)
         let gemstoneFileStore = GemstoneFileStore()
@@ -76,7 +76,7 @@ struct ServicesFactory {
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
         let scanConfiguration = URLSessionConfiguration.default
-        scanConfiguration.timeoutIntervalForRequest = Config().scanTimeout()
+        scanConfiguration.timeoutIntervalForRequest = GemConstants.scanTimeout.timeInterval
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
                 provider: NativeProvider(session: URLSession(configuration: scanConfiguration)),
@@ -87,7 +87,7 @@ struct ServicesFactory {
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
-        serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
+        serviceStatusConfiguration.timeoutIntervalForRequest = GemConstants.serviceStatusTimeout.timeInterval
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
             stream: GemstoneStreamConnection(webSocket: webSocket),
@@ -134,8 +134,7 @@ struct ServicesFactory {
             session: walletSessionService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: stores.nftStore), session: walletSessionService)
-        let transactionStateStore = GemstoneTransactionStateStore(store: stores.transactionStore, walletStore: stores.walletStore)
-        let gemstoneTransactionStore = GemstoneTransactionStore(store: stores.transactionStore)
+        let transactionStateStore = GemstoneTransactionStateStore(store: stores.transactionStore)
         let transactionStateService = gatewayService.transactionStateService(
             store: transactionStateStore,
             assets: assetsService,
@@ -148,15 +147,16 @@ struct ServicesFactory {
         let transactionsService = Gemstone.GemTransactionsService(
             api: deviceApiClient,
             assets: assetsService,
-            store: gemstoneTransactionStore,
+            store: transactionStateStore,
             names: nameService,
             walletPreferences: walletPreferencesService,
             session: walletSessionService,
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
 
-        let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore)
-        let navigationPresenter = NavigationPresenter(assetsService: assetsService, nftService: nftService)
+        let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
+        let navigationService = Gemstone.GemNavigationService(assets: assetsService, session: walletSessionService, transactionState: transactionStateService)
+        let navigationPresenter = NavigationPresenter(assetsService: assetsService, navigationService: navigationService, nftService: nftService)
         let gemstonePerpetualStore = GemstonePerpetualStore(store: stores.perpetualStore)
         let perpetualService = gatewayService.perpetualService(
             price: priceService,
@@ -181,7 +181,14 @@ struct ServicesFactory {
             store: GemstoneFiatStore(store: stores.fiatTransactionStore),
         )
         let gemstoneSupportStore = GemstoneSupportStore(store: stores.supportChatStore)
-        let supportService = Gemstone.GemSupportService(api: deviceApiClient, store: gemstoneSupportStore, files: gemstoneFileStore, provider: nativeProvider)
+        let notificationsService = Gemstone.GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions)
+        let supportService = Gemstone.GemSupportService(
+            api: deviceApiClient,
+            store: gemstoneSupportStore,
+            files: gemstoneFileStore,
+            provider: nativeProvider,
+            notifications: notificationsService,
+        )
         let inAppNotificationService = Gemstone.GemNotificationService(
             api: deviceApiClient,
             store: gemstoneNotificationStore,
@@ -199,7 +206,6 @@ struct ServicesFactory {
             notifications: inAppNotificationService,
             support: supportService,
             subscriptions: streamSubscriptionService,
-            preferences: preferencesService,
             session: walletSessionService,
             device: deviceService,
         )
@@ -207,9 +213,10 @@ struct ServicesFactory {
             service: streamService,
             webSocket: webSocket,
             health: streamHealth,
+            reconnection: connectionService,
         )
         let swapper = GemSwapper(rpcProvider: NativeProvider(), nodes: nodeService)
-        let swapService = storages.keystore.swapService(
+        let swapService = GemSwapService(
             swapper: swapper,
             store: GemstoneSwapStore(
                 assetStore: stores.assetStore,
@@ -219,7 +226,6 @@ struct ServicesFactory {
         )
 
         let chainService = Gemstone.GemChainService()
-        let addressService = Gemstone.GemAddressService()
         let signMessageService = storages.keystore.signMessageService(
             names: nameService,
             explorer: explorerService,
@@ -228,11 +234,13 @@ struct ServicesFactory {
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
         let walletConnectService = Gemstone.GemWalletConnectService(
             simulation: transactionSimulationService,
+            scanner: scanService,
             store: GemstoneConnectionStore(store: stores.connectionsStore),
             signer: walletConnectorInteractor,
             session: walletSessionService,
             assets: assetsService,
             signMessage: signMessageService,
+            platform: .ios,
         )
         let walletConnector = WalletConnectorService(
             walletSessionService: walletSessionService,
@@ -302,16 +310,12 @@ struct ServicesFactory {
         let navigationRouter = NavigationRouter(
             navigationState: navigation,
             presenter: navigationPresenter,
-            assetsService: assetsService,
-            assetStore: stores.assetStore,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
             pushNotificationService: pushNotificationService,
-            transactionStore: stores.transactionStore,
             deeplinkService: Gemstone.GemDeeplinkService(),
-            navigationService: Gemstone.GemNavigationService(assets: assetsService, session: walletSessionService),
+            navigationService: navigationService,
             paymentService: paymentService,
-            transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,
         )
@@ -340,28 +344,35 @@ struct ServicesFactory {
             transactionStateService: transactionStateService,
         )
 
-        let confirmService = gatewayService.confirmService(
-            simulation: transactionSimulationService,
-            scanner: scanService,
-            transactionState: transactionStateService,
-            balance: balanceService,
-            price: priceService,
-            assets: assetsService,
-            transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+        let confirmTransferService = storages.keystore.confirmTransferService(
+            confirm: gatewayService.confirmService(
+                simulation: transactionSimulationService,
+                scanner: scanService,
+                transactionState: transactionStateService,
+                balance: balanceService,
+                price: priceService,
+                assets: assetsService,
+                transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+            ),
+            explorer: explorerService,
+            names: nameService,
+            recentActivity: recentAssetsService,
+            preferences: preferencesService,
+            payment: paymentService,
+            swap: swapService,
         )
         let viewModelFactory = ViewModelFactory(
+            addressDetailsService: Gemstone.GemAddressDetailsService(api: deviceApiClient, explorer: explorerService),
             apiClient: apiClient,
-            assetConfig: Gemstone.GemAssetConfigService(),
             assetDiscoveryService: assetDiscoveryService,
             assetsService: assetsService,
             avatarService: avatarService,
             bannerService: bannerService,
             balanceService: balanceService,
-            confirmService: confirmService,
+            confirmTransferService: confirmTransferService,
             contactService: contactService,
             contactEditorService: Gemstone.GemContactEditorService(
                 contacts: contactService,
-                addresses: addressService,
                 payments: paymentService,
             ),
             deeplinkService: Gemstone.GemDeeplinkService(),
@@ -380,11 +391,9 @@ struct ServicesFactory {
             priceService: priceService,
             rewardsService: rewardsService,
             searchService: searchService,
-            simulationFormatter: Gemstone.GemSimulationFormatter(),
             stakeService: stakeService,
             streamSubscriptionService: streamSubscriptionService,
             swapService: swapService,
-            transactionStateService: transactionStateService,
             transactionsService: transactionsService,
             walletService: walletService,
             walletSessionService: walletSessionService,
@@ -396,7 +405,6 @@ struct ServicesFactory {
                 keystorePassword: LocalKeystorePassword(),
                 securityService: Gemstone.GemSecurityService(),
             ),
-            keystore: storages.keystore,
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService, session: walletSessionService),
@@ -441,7 +449,7 @@ struct ServicesFactory {
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
-            pushNotificationEnablerService: pushNotificationEnablerService,
+            notificationsService: notificationsService,
             walletConnectorPresenter: walletConnectorPresenter,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,

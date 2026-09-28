@@ -1,3 +1,4 @@
+use crate::constants::{WALLET_CONNECT_USER_REJECTED_ERROR_CODE, WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE};
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -15,13 +16,13 @@ use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
-use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
+use crate::wallet_connect::{WalletConnect, wallet_connect_chain, wallet_connect_namespace};
+use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
-pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
 const UNSUPPORTED_CHAINS_ERROR_CODE: i32 = 5100;
 const UNSUPPORTED_METHODS_ERROR_CODE: i32 = 5101;
 const UNSUPPORTED_ACCOUNTS_ERROR_CODE: i32 = 5103;
@@ -171,7 +172,7 @@ pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, meta
 
 pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
     let (code, message) = match reason {
-        GemWalletConnectRejectionReason::UserRejected => (USER_REJECTED_ERROR_CODE, "User rejected the session"),
+        GemWalletConnectRejectionReason::UserRejected => (WALLET_CONNECT_USER_REJECTED_ERROR_CODE, "User rejected the session"),
         GemWalletConnectRejectionReason::UnsupportedChains => (UNSUPPORTED_CHAINS_ERROR_CODE, "Unsupported chains"),
         GemWalletConnectRejectionReason::UnsupportedMethods => (UNSUPPORTED_METHODS_ERROR_CODE, "Unsupported methods"),
         GemWalletConnectRejectionReason::UnsupportedAccounts => (UNSUPPORTED_ACCOUNTS_ERROR_CODE, "Unsupported accounts"),
@@ -185,17 +186,17 @@ pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletCo
     }
 }
 
+pub fn user_rejected_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: WALLET_CONNECT_USER_REJECTED_ERROR_CODE,
+        message: WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE.to_string(),
+    }
+}
+
 pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
     match error {
         GemErrorText::Cancelled => GemSignerFailure::Reject,
         error => GemSignerFailure::Retry { error },
-    }
-}
-
-pub fn user_rejected_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: USER_REJECTED_ERROR_CODE,
-        message: "User rejected the request".to_string(),
     }
 }
 
@@ -215,6 +216,10 @@ pub fn method_not_found_error() -> GemWalletConnectRpcError {
         code: METHOD_NOT_FOUND_ERROR_CODE,
         message: "Method not found".to_string(),
     }
+}
+
+pub fn proposal_message_id(proposer_public_key: &str) -> String {
+    format!("proposal-{proposer_public_key}")
 }
 
 pub fn request_message_id(topic: &str, request_id: &str) -> String {
@@ -280,7 +285,7 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
             let (transaction_type, approval) = match kind {
                 EvmTransactionKind::Transfer => (TransactionType::Transfer, None),
                 EvmTransactionKind::ContractCall => (TransactionType::SmartContractCall, None),
-                EvmTransactionKind::TokenApproval { approval } => (TransactionType::TokenApproval, Some(approval)),
+                EvmTransactionKind::TokenApproval(approval) => (TransactionType::TokenApproval, Some(approval)),
             };
             let extra = TransferDataExtra {
                 to: data.to,
@@ -363,14 +368,14 @@ mod tests {
         assert_eq!(rejection.message, "Unsupported chains");
         assert!(rejection.deletes_session);
 
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, USER_REJECTED_ERROR_CODE);
+        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, WALLET_CONNECT_USER_REJECTED_ERROR_CODE);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedMethods).code, 5101);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedEvents).code, 5102);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedAccounts).code, 5103);
     }
 
     use super::*;
-    use gem_wallet_connect::WCEthereumTransactionData as WcEthereumTransactionData;
+    use gem_wallet_connect::WCEthereumTransactionData;
     use primitives::Account;
 
     use crate::testkit::mock_wc_ethereum_transaction_data;
@@ -480,7 +485,7 @@ mod tests {
         };
         let view = Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]);
         let bitcoin_only = Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin]);
-        let wallets = vec![single.clone(), view, bitcoin_only, multicoin.clone()];
+        let wallets = vec![single, view, bitcoin_only, multicoin];
 
         let required = session_wallets(wallets.clone(), &[Chain::Ethereum, Chain::Solana], &[]);
         assert_eq!(required.iter().map(|wallet| wallet.name.as_str()).collect::<Vec<_>>(), vec!["multi"]);
@@ -502,8 +507,8 @@ mod tests {
             name: "second".to_string(),
             ..Wallet::mock_with_id(WalletId::Multicoin("second".to_string()), &[Chain::Ethereum])
         };
-        let wallets = vec![first.clone(), second.clone()];
-        assert_eq!(default_wallet(&wallets, Some(second.id.clone())).map(|wallet| wallet.name), Some("second".to_string()));
+        let wallets = vec![first, second.clone()];
+        assert_eq!(default_wallet(&wallets, Some(second.id)).map(|wallet| wallet.name), Some("second".to_string()));
         assert_eq!(default_wallet(&wallets, Some(WalletId::Multicoin("other".to_string()))).map(|wallet| wallet.name), Some("first".to_string()));
         assert!(default_wallet(&[], None).is_none());
     }
@@ -558,19 +563,17 @@ mod tests {
     fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
         let account = Account::mock(Chain::Ethereum, "0xAbC");
         let matching = WalletConnectTransaction::Ethereum {
-            data: WcEthereumTransactionData {
+            data: WCEthereumTransactionData {
                 from: "0xabc".to_string(),
                 ..mock_wc_ethereum_transaction_data()
-            }
-            .into(),
+            },
             kind: EvmTransactionKind::Transfer,
         };
         let other = WalletConnectTransaction::Ethereum {
-            data: WcEthereumTransactionData {
+            data: WCEthereumTransactionData {
                 from: "0xother".to_string(),
                 ..mock_wc_ethereum_transaction_data()
-            }
-            .into(),
+            },
             kind: EvmTransactionKind::Transfer,
         };
 
@@ -613,7 +616,7 @@ mod tests {
     fn test_transfer_data_maps_evm_and_encoded_transactions() {
         let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
         let evm = WalletConnectTransaction::Ethereum {
-            data: crate::wallet_connect::WCEthereumTransactionData {
+            data: gem_wallet_connect::WCEthereumTransactionData {
                 chain_id: Some(1),
                 from: "0xfrom".to_string(),
                 to: "0xto".to_string(),
@@ -626,9 +629,7 @@ mod tests {
                 nonce: None,
                 data: Some("0xdeadbeef".to_string()),
             },
-            kind: EvmTransactionKind::TokenApproval {
-                approval: primitives::swap::ApprovalData::mock(),
-            },
+            kind: EvmTransactionKind::TokenApproval(primitives::swap::ApprovalData::mock()),
         };
 
         let transfer = transfer_data(Chain::Ethereum, metadata.clone(), evm, GemWalletConnectTransactionAction::Send).unwrap();
@@ -647,7 +648,7 @@ mod tests {
         assert_eq!(extra.output_action, TransferDataOutputAction::Send);
 
         let solana = WalletConnectTransaction::Solana {
-            data: crate::wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
+            data: gem_wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
             output_type: TransferDataOutputType::Signature,
             transaction_type: TransactionType::Swap,
         };
@@ -722,5 +723,15 @@ mod message_tests {
         assert!(is_origin_rejected(&WalletConnectionVerificationStatus::Malicious));
         assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Verified));
         assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Unknown));
+    }
+
+    #[test]
+    fn test_supported_chains_are_the_configured_chains_that_parse() {
+        let configured = crate::config::wallet_connect::get_wallet_connect_config().chains;
+        let chains = super::supported_chains();
+
+        assert!(!chains.is_empty());
+        assert!(chains.len() <= configured.len());
+        assert!(chains.iter().all(|chain| configured.contains(&chain.to_string())));
     }
 }

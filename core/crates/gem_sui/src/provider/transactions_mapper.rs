@@ -30,8 +30,12 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
     let owner = effects.gas_object.owner.get_address_owner();
 
     let (asset_id, from, to, transaction_type, value, metadata) = map_transaction_type(&transaction.events, &transaction.move_call_packages, &balance_changes, &owner, &fee)?;
+    let contract = match transaction_type {
+        TransactionType::Swap => called_contract(&transaction.events, &transaction.move_call_packages),
+        _ => None,
+    };
 
-    Some(Transaction::new(hash, asset_id, from, to, None, transaction_type, state, fee.clone(), chain.as_asset_id(), value, None, metadata, created_at))
+    Some(Transaction::new(hash, asset_id, from, to, contract, transaction_type, state, fee, chain.as_asset_id(), value, None, metadata, created_at))
 }
 
 fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance_changes: &[BalanceChange], owner: &Option<String>, fee: &BigUint) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {
@@ -91,7 +95,7 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
         let method_name = events.first()?.event_type.rsplit("::").nth(1)?.to_string();
         let metadata = TransactionSmartContractMetadata { method_name };
         let owner = owner.clone()?;
-        let contract = primary_contract(move_call_packages.iter().map(String::as_str)).or_else(|| primary_contract(events.iter().map(|event| event.package_id.as_str())));
+        let contract = called_contract(events, move_call_packages);
         return Some((
             chain.as_asset_id(),
             owner.clone(),
@@ -103,6 +107,10 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
     }
 
     None
+}
+
+fn called_contract(events: &[Event], move_call_packages: &[String]) -> Option<String> {
+    primary_contract(move_call_packages.iter().map(String::as_str)).or_else(|| primary_contract(events.iter().map(|event| event.package_id.as_str())))
 }
 
 fn primary_contract<'a>(contracts: impl IntoIterator<Item = &'a str>) -> Option<String> {
@@ -292,17 +300,21 @@ mod tests {
         assert_eq!(token_transfer.asset_id, AssetId::from_token(Chain::Sui, TOKEN_A));
         assert_eq!(token_transfer.value, BigUint::from(100u64));
 
-        let swap = map_transaction(Digest::mock(
-            vec![Event::mock("0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent", json!({}))],
-            vec![
-                BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
-                BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_A, -200),
-                BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_B, 150),
-            ],
-        ))
+        let swap = map_transaction(Digest {
+            move_call_packages: vec!["0x00000000000000000000000000000000000000000000000000000000000000cc".to_string()],
+            ..Digest::mock(
+                vec![Event::mock("0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent", json!({}))],
+                vec![
+                    BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
+                    BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_A, -200),
+                    BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_B, 150),
+                ],
+            )
+        })
         .unwrap();
 
         assert_eq!(swap.transaction_type, TransactionType::Swap);
+        assert_eq!(swap.contract.as_deref(), Some("0x00000000000000000000000000000000000000000000000000000000000000cc"));
         assert_eq!(swap.asset_id, AssetId::from_token(Chain::Sui, TOKEN_A));
         assert_eq!(swap.value, BigUint::from(200u64));
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap.metadata.unwrap()).unwrap();

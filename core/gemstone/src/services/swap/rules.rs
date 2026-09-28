@@ -3,7 +3,7 @@ use num_bigint::BigInt;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
-use primitives::{Asset, AssetId, Chain, Wallet};
+use primitives::{Asset, AssetId, Chain, TransactionInputType, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
@@ -13,9 +13,11 @@ use crate::models::swap::GemSlippageCheck;
 use crate::percentage::GemPercentageStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::value_from_input;
+use crate::services::assets::{GemAssetAction, GemAssetFilter};
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSelection, GemSwapPairSuggestion, GemSwapPriceImpactRow, GemSwapRate, GemSwapSide, GemSwapTransfer};
 use crate::services::swap::session::{GemSwapQuoteInput, GemSwapRequest};
+use crate::services::transfer::GemTransferData;
 use std::collections::HashMap;
 
 pub fn price_impact_row(impact: SwapPriceImpact, pay_symbol: String) -> GemSwapPriceImpactRow {
@@ -57,14 +59,17 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
     })
 }
 
+pub fn pay_value(pay_asset: &Asset, value: &str, format: &GemNumberFormat) -> Option<BigUint> {
+    value_from_input(&format.decimal_separator, value, pay_asset.decimals as u32).ok()?.to_biguint().filter(|value| *value > BigUint::ZERO)
+}
+
 pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, available_value: &BigInt, slippage_bps: Option<u32>, format: &GemNumberFormat) -> Option<GemSwapQuoteInput> {
     if pay_asset.id == receive_asset.id {
         return None;
     }
-    let value = value_from_input(&format.decimal_separator, value, pay_asset.decimals as u32).ok()?;
-    let atomic = value.to_biguint().filter(|value| *value > BigUint::ZERO)?;
+    let atomic = pay_value(pay_asset, value, format)?;
     Some(GemSwapQuoteInput {
-        use_max_amount: value == *available_value,
+        use_max_amount: BigInt::from(atomic.clone()) == *available_value,
         request: GemSwapRequest {
             pay_asset_id: pay_asset.id.clone(),
             receive_asset_id: receive_asset.id.clone(),
@@ -133,15 +138,20 @@ pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Res
     })
 }
 
-const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 30_000;
-const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
-
-pub fn quote_refresh_interval_milliseconds() -> u64 {
-    QUOTE_REFRESH_INTERVAL_MILLISECONDS
+pub fn swap_assets(transfer: &GemTransferData) -> Result<(Asset, Asset), SwapperError> {
+    match &transfer.input_type {
+        TransactionInputType::Swap { from_asset, to_asset, .. } => Ok((from_asset.clone(), to_asset.clone())),
+        _ => Err(SwapperError::NotSupportedAsset),
+    }
 }
 
-pub fn quote_debounce_milliseconds() -> u64 {
-    QUOTE_DEBOUNCE_MILLISECONDS
+pub fn requote_request(wallet: &Wallet, transfer: &GemTransferData, value: &BigInt) -> Result<(SwapperProvider, QuoteRequest), SwapperError> {
+    let TransactionInputType::Swap { from_asset, to_asset, swap_data } = &transfer.input_type else {
+        return Err(SwapperError::NotSupportedAsset);
+    };
+    let value = value.to_biguint().filter(|value| *value > BigUint::ZERO).ok_or(SwapperError::InputAmountError { min_amount: None })?;
+    let request = quote_request(wallet, from_asset, to_asset, value, transfer.use_max_amount, Some(swap_data.quote.slippage_bps))?;
+    Ok((swap_data.quote.provider_data.provider, request))
 }
 
 pub fn swap_rate(from_asset: &Asset, from_value: &BigUint, to_asset: &Asset, to_value: &BigUint) -> Option<GemSwapRate> {
@@ -245,6 +255,14 @@ pub const CANDIDATES_LIMIT: u32 = 50;
 /// The swap history a default pair is chosen from.
 pub const RECENTS_LIMIT: u32 = 20;
 
+pub fn pay_candidate_filters() -> Vec<GemAssetFilter> {
+    vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]
+}
+
+pub fn receive_candidate_filters(supported: AssetList) -> Vec<GemAssetFilter> {
+    [GemAssetAction::SwapReceive.filters(), vec![GemAssetFilter::from(supported)]].concat()
+}
+
 pub fn assets_in_wallet(supported: AssetList, wallet: &Wallet) -> AssetList {
     let has_account = |chain: &Chain| wallet.accounts.iter().any(|account| &account.chain == chain);
     AssetList {
@@ -274,7 +292,7 @@ impl GemSwapButtonInput {
     }
 }
 
-pub fn is_retryable(error: Option<&SwapperError>) -> bool {
+fn is_retryable(error: Option<&SwapperError>) -> bool {
     match error {
         Some(SwapperError::NoQuoteAvailable | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_) | SwapperError::Offline) => true,
         Some(SwapperError::NotSupportedChain | SwapperError::NotSupportedAsset | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::InputAmountError { .. }) | None => false,
@@ -477,7 +495,7 @@ mod tests {
         );
 
         let swapped_back = select_pair_asset(pair.clone(), GemSwapSide::Receive, eth.clone());
-        assert_eq!((swapped_back.pay_asset_id, swapped_back.receive_asset_id), (Some(btc.clone()), Some(eth.clone())));
+        assert_eq!((swapped_back.pay_asset_id, swapped_back.receive_asset_id), (Some(btc.clone()), Some(eth)));
 
         let replaced = select_pair_asset(pair, GemSwapSide::Pay, sol.clone());
         assert_eq!((replaced.pay_asset_id, replaced.receive_asset_id), (Some(sol.clone()), Some(btc)), "any other asset only replaces the side it was chosen for");
@@ -510,6 +528,7 @@ mod tests {
 
     use super::*;
     use crate::models::custom_types::GemBigInt;
+    use primitives::swap::SwapData;
     use primitives::{Account, AssetId, Chain};
 
     #[test]
@@ -571,6 +590,45 @@ mod tests {
 
         let ethereum_only = Wallet::mock_with_chains(&[Chain::Ethereum]);
         assert!(matches!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain)));
+    }
+
+    #[test]
+    fn test_requote_request_asks_the_chosen_provider_for_the_original_request() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "ethereum-address"), Account::mock(Chain::Solana, "solana-address")]);
+        let swap_data = SwapData {
+            quote: SwapQuote {
+                from_value: BigUint::from(90u64),
+                slippage_bps: 75,
+                ..SwapQuote::mock_with_provider(SwapperProvider::Jupiter)
+            },
+            ..SwapData::mock()
+        };
+        let transfer = GemTransferData {
+            value: num_bigint::BigInt::from(100u64),
+            use_max_amount: true,
+            ..GemTransferData::mock(TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Solana),
+                swap_data,
+            })
+        };
+
+        let (provider, request) = requote_request(&wallet, &transfer, &transfer.value).unwrap();
+
+        assert_eq!(provider, SwapperProvider::Jupiter);
+        assert_eq!(request.value, BigUint::from(100u64), "the amount the user typed is asked again, not the amount a provider trimmed");
+        assert_eq!(request.options.slippage, SwapperSlippage { bps: 75, mode: SwapperSlippageMode::Exact }, "the slippage the quote was accepted with is kept");
+        assert!(request.options.use_max_amount);
+        assert_eq!(request.wallet_address, "ethereum-address");
+        assert_eq!(request.destination_address, "solana-address");
+        assert!(matches!(
+            requote_request(&wallet, &GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }), &transfer.value),
+            Err(SwapperError::NotSupportedAsset)
+        ));
+        assert!(
+            matches!(requote_request(&wallet, &transfer, &BigInt::ZERO), Err(SwapperError::InputAmountError { .. })),
+            "nothing is asked for an amount the fee has eaten"
+        );
     }
 
     #[test]
@@ -763,5 +821,28 @@ mod tests {
 
         assert_eq!(assets.chains, supported.chains);
         assert_eq!(assets.asset_ids, supported.asset_ids);
+    }
+
+    #[test]
+    fn test_a_default_pay_asset_is_any_enabled_swappable_asset_even_without_an_available_balance() {
+        assert_eq!(pay_candidate_filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]);
+        assert!(GemAssetAction::SwapPay.filters().contains(&GemAssetFilter::HasAvailableBalance), "the pay picker is stricter than the default");
+    }
+
+    #[test]
+    fn test_receive_candidates_are_the_swap_receive_assets_scoped_to_what_the_pay_asset_reaches() {
+        let supported = AssetList::mock();
+
+        assert_eq!(
+            receive_candidate_filters(supported.clone()),
+            vec![
+                GemAssetFilter::Enabled,
+                GemAssetFilter::Swappable,
+                GemAssetFilter::ChainsOrAssetIds {
+                    chains: supported.chains,
+                    asset_ids: supported.asset_ids,
+                },
+            ]
+        );
     }
 }

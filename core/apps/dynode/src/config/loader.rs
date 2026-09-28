@@ -205,7 +205,7 @@ mod tests {
         };
         let mut chains = HashMap::from([(Chain::Ethereum, chain)]);
         let values = HashMap::from([("KEY", "test-key"), ("HOST", "example.invalid")]);
-        prepare(&mut config, &mut chains, |name| values.get(name).map(|value| value.to_string())).unwrap();
+        prepare(&mut config, &mut chains, |name| values.get(name).map(ToString::to_string)).unwrap();
 
         let endpoint = &config.routes.as_ref().unwrap().routes["fastnear_tx"].endpoints[0];
         assert_eq!(endpoint.url, "https://example.invalid/provider");

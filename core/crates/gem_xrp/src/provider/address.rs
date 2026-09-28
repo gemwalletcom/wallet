@@ -11,7 +11,7 @@ use crate::rpc::XrpClient;
 #[async_trait]
 impl<C: Client + Clone> ChainAddressStatus for XrpClient<C> {
     async fn get_address_status(&self, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Sync + Send>> {
-        let account = self.get_account_info(&address).await?;
+        let account = self.get_validated_account_info(&address).await?;
         Ok(address_mapper::map_address_status(account.as_ref()))
     }
 }

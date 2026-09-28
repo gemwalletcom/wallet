@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.ApplicationMetadata
 import class Gemstone.GemChainService
 import enum Gemstone.GemWalletConnectError
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletConnectRejectionReason
-import enum Gemstone.GemWalletConnectResponse
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import struct Gemstone.WalletConnection
+import struct Gemstone.WalletConnectionSession
 import GemstonePrimitives
 import Primitives
 @preconcurrency import ReownWalletKit
@@ -191,7 +193,11 @@ extension WalletConnectorService {
 
     private func rejectRequest(_ request: Request, error: Error) async {
         do {
-            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: GemWalletConnectResponse.error(error: service.userRejectedError()).map())
+            try await WalletKit.instance.respond(
+                topic: request.topic,
+                requestId: request.id,
+                response: .error(JSONRPCError(code: Int(GemConstants.walletConnectUserRejectedErrorCode), message: GemConstants.walletConnectUserRejectedErrorMessage)),
+            )
         } catch {
             debugLog("Error rejecting request: \(error)")
         }
@@ -207,7 +213,7 @@ extension WalletConnectorService {
     private func updateSessions(_ sessions: [Session]) async {
         debugLog("Received sessions: \(sessions)")
         do {
-            try await service.updateSessions(sessions.map { try connectionSession($0) })
+            try await service.updateSessions(sessions: sessions.map { try connectionSession($0) })
         } catch {
             debugLog("Error updating sessions: \(error)")
         }
@@ -217,41 +223,39 @@ extension WalletConnectorService {
         try service.session(
             topic: session.topic,
             accounts: session.namespaces.values.flatMap(\.accounts).map(\.absoluteString),
-            expireAt: session.expiryDate,
+            expireAt: Int64(session.expiryDate.timeIntervalSince1970),
             metadata: metadata(session.peer),
         )
     }
 
-    private func metadata(_ metadata: AppMetadata) throws -> ApplicationMetadata {
-        service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
+    private func metadata(_ metadata: AppMetadata) -> ApplicationMetadata {
+        service.applicationMetadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
     private func approveSession(proposal: Session.Proposal, verifyContext: VerifyContext?) async throws {
-        let messageId = proposal.messageId
-
-        guard service.shouldProcessMessage(messageId: messageId) else {
-            debugLog("Ignoring duplicate proposal with ID: \(messageId)")
+        guard service.shouldProcessProposal(proposerPublicKey: proposal.id) else {
+            debugLog("Ignoring duplicate proposal with ID: \(proposal.id)")
             return
         }
 
-        let (payload, status) = try await service.prepareSessionProposal(
+        let prepared = try await service.prepareSessionProposal(
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),
             origin: verifyContext?.origin,
             validation: verifyContext?.validation.map() ?? .unknown,
         )
-        debugLog("Verification status: \(status)")
+        debugLog("Verification status: \(prepared.verificationStatus)")
         let payloadTopic = WCPairingProposal(
             pairingId: proposal.pairingTopic,
-            proposal: payload,
-            verificationStatus: status.toPrimitives(),
+            proposal: prepared.proposal.toPrimitives(),
+            verificationStatus: prepared.verificationStatus.toPrimitives(),
         )
         let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
-        let selectedWallet = try await walletSessionService.requireWallet(walletId: approvedWalletId)
+        let selectedWallet = try await walletSessionService.requireWallet(walletId: approvedWalletId).toPrimitives()
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
-        try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))
+        try await service.addConnection(connection: WalletConnection(session: connectionSession(session), wallet: selectedWallet.toGem()))
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {

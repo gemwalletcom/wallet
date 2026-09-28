@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
+import func Gemstone.chainRow
 import Primitives
 import PrimitivesComponents
 import QRScanner
@@ -53,7 +53,7 @@ public struct AddAssetScene: View {
                 )
             }
             .sheet(isPresented: $model.isPresentingScanner) {
-                ScanQRCodeNavigationStack(scanType: .tokenContract, action: onHandleScan(_:))
+                QRScannerNavigationStack(scanType: .tokenContract, action: onHandleScan(_:))
             }
             .safariSheet(url: $isPresentingUrl)
     }
@@ -66,12 +66,12 @@ extension AddAssetScene {
         List {
             if let chain = model.input.chain {
                 Section(model.networkTitle) {
-                    if model.input.hasManyChains {
+                    if model.input.showsChainPicker {
                         NavigationLink(value: Scenes.NetworksSelector()) {
-                            ChainView(model: ChainViewModel(chain: chain))
+                            ChainView(model: chainRow(chain: chain.rawValue))
                         }
                     } else {
-                        ChainView(model: ChainViewModel(chain: chain))
+                        ChainView(model: chainRow(chain: chain.rawValue))
                     }
                 }
             }

@@ -54,7 +54,7 @@ pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<C
             StakeType::Stake(validator) => {
                 let stake_input = StakeInput {
                     sender: input.sender_address,
-                    validator: validator.id.clone(),
+                    validator: validator.id,
                     stake_amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     gas: Gas { budget: gas_budget, price: gas_price },
                     coins: sui_coins,

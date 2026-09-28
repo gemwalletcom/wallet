@@ -14,13 +14,16 @@ import Transactions
 public extension ViewModelFactory {
     @MainActor
     func transactionScene(
-        transaction: TransactionExtended,
+        transactionId: TransactionId,
         wallet: Wallet,
         onHeaderAction: @escaping (GemTransactionHeaderAction) -> Void,
         onAddContact: @escaping (AddContactType) -> Void,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
-    ) -> TransactionSceneViewModel {
-        TransactionSceneViewModel(
+    ) -> TransactionSceneViewModel? {
+        guard let transaction = try? stores.transactionStore.getTransaction(walletId: wallet.id, transactionId: transactionId) else {
+            return nil
+        }
+        return TransactionSceneViewModel(
             transaction: transaction,
             wallet: wallet,
             service: Gemstone.GemTransactionDetailsService(explorer: explorerService, preferences: preferencesService),
@@ -31,7 +34,7 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func transactionsScene(wallet: Wallet, type: TransactionsRequestType) -> TransactionsViewModel {
-        TransactionsViewModel(service: transactionsService, wallet: wallet, type: type)
+    func transactionsScene(wallet: Wallet, type: TransactionsQueryType) -> TransactionsSceneViewModel {
+        TransactionsSceneViewModel(service: transactionsService, wallet: wallet, type: type)
     }
 }

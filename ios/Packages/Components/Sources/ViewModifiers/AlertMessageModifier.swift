@@ -2,10 +2,10 @@
 
 import SwiftUI
 
-public struct AlertMessageModifier: ViewModifier {
+struct AlertMessageModifier: ViewModifier {
     @Binding var alertMessage: AlertMessage?
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .alert(
                 alertMessage?.title ?? "",

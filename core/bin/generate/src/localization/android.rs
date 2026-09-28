@@ -32,6 +32,7 @@ fn language_qualifier(language: &str) -> Option<&str> {
     match language {
         DEFAULT_LANGUAGE => None,
         "he" => Some("iw"),
+        "id" => Some("in"),
         "pt-BR" => Some("pt-rBR"),
         "zh-Hans" => Some("zh-rCN"),
         "zh-Hant" => Some("zh-rTW"),
@@ -91,5 +92,14 @@ mod tests {
         assert_eq!(android_value("%2$@ %@ %1$d %d"), "%2$s %1$s %1$d %2$d");
         assert_eq!(android_value("%% %@"), "%% %1$s");
         assert_eq!(android_value("Wallet's 100%"), "Wallet\\'s 100%");
+    }
+
+    #[test]
+    fn test_values_directory() {
+        assert_eq!(values_directory(DEFAULT_LANGUAGE), "values");
+        assert_eq!(values_directory("he"), "values-iw");
+        assert_eq!(values_directory("id"), "values-in");
+        assert_eq!(values_directory("pt-BR"), "values-pt-rBR");
+        assert_eq!(values_directory("fil"), "values-fil");
     }
 }

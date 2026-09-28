@@ -1,28 +1,24 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::ARBITRUM_USDC;
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
-use crate::config::perpetual_config::{LEVERAGE_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
-use crate::services::settings::rules::{GemPickerOption, leverage_option};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
 const HYPERLIQUID_NAME: &str = "Hyperliquid";
 
-#[derive(Debug, uniffi::Object)]
+#[derive(Debug)]
 pub struct GemPerpetual {
     provider: PerpetualProvider,
 }
 
-#[uniffi::export]
 impl GemPerpetual {
-    #[uniffi::constructor]
     pub fn new(provider: PerpetualProvider) -> Self {
         Self { provider }
     }
@@ -45,18 +41,6 @@ impl GemPerpetual {
         }
     }
 
-    pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<GemPickerOption> {
-        match max_leverage {
-            Some(max_leverage) => leverage_options(max_leverage),
-            None => LEVERAGE_OPTIONS.to_vec(),
-        }
-        .into_iter()
-        .map(leverage_option)
-        .collect()
-    }
-}
-
-impl GemPerpetual {
     pub fn recipient(&self) -> GemRecipient {
         GemRecipient {
             address: String::new(),
@@ -72,9 +56,7 @@ impl GemPerpetual {
         };
         GemRecipient { address, ..self.recipient() }
     }
-}
 
-impl GemPerpetual {
     pub fn format_size(&self, size: f64, decimals: i32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
@@ -95,9 +77,7 @@ impl GemPerpetual {
             use_max_amount,
         }
     }
-}
 
-impl GemPerpetual {
     fn name(&self) -> &'static str {
         match self.provider {
             PerpetualProvider::Hypercore => HYPERLIQUID_NAME,
@@ -113,48 +93,22 @@ pub enum AutocloseValidation {
     TriggerMustBeLower,
 }
 
-#[derive(Debug, uniffi::Object)]
-pub struct AutocloseValidator {
-    inner: Validator,
-}
-
-#[uniffi::export]
-impl AutocloseValidator {
-    #[uniffi::constructor]
-    pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
-        Self {
-            inner: Validator::new(trigger_type, direction, market_price),
-        }
-    }
-
-    pub fn validate(&self, price: Option<f64>) -> AutocloseValidation {
-        price.map_or(AutocloseValidation::Valid, |price| self.inner.validate(price))
-    }
-}
-
-#[derive(Debug, uniffi::Object)]
+#[derive(Debug)]
 pub struct GemAutocloseEstimator {
     inner: Estimator,
 }
 
-#[uniffi::export]
 impl GemAutocloseEstimator {
-    #[uniffi::constructor]
     pub fn new(entry_price: f64, position_size: f64, direction: PerpetualDirection, leverage: u8) -> Self {
         Self {
             inner: Estimator::new(entry_price, position_size, direction, leverage),
         }
     }
 
-    #[uniffi::constructor]
     pub fn for_open(market_price: f64, size: f64, leverage: u8, direction: PerpetualDirection) -> Self {
         Self {
             inner: Estimator::for_open(market_price, size, leverage, direction),
         }
-    }
-
-    pub fn has_size(&self) -> bool {
-        self.inner.has_size()
     }
 
     pub fn percent_suggestions(&self) -> Vec<u8> {
@@ -163,10 +117,6 @@ impl GemAutocloseEstimator {
 
     pub fn pnl(&self, price: f64) -> f64 {
         self.inner.pnl(price)
-    }
-
-    pub fn roe(&self, price: f64) -> f64 {
-        self.inner.roe(price)
     }
 
     pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
@@ -178,6 +128,14 @@ impl GemAutocloseEstimator {
 
     pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
         self.inner.target_price_from_roe(roe_percent, trigger_type)
+    }
+
+    pub fn roe(&self, price: f64) -> f64 {
+        self.inner.roe(price)
+    }
+
+    pub fn has_size(&self) -> bool {
+        self.inner.has_size()
     }
 }
 
@@ -206,34 +164,5 @@ mod tests {
         assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
         assert!(estimator.is_profit(None, TpslType::TakeProfit));
         assert!(!estimator.is_profit(None, TpslType::StopLoss));
-    }
-
-    #[test]
-    fn test_autoclose_validator_treats_an_unset_price_as_valid() {
-        let validator = AutocloseValidator::new(TpslType::TakeProfit, PerpetualDirection::Long, 100.0);
-
-        assert_eq!(validator.validate(None), AutocloseValidation::Valid);
-        assert_eq!(validator.validate(Some(90.0)), AutocloseValidation::TriggerMustBeHigher);
-    }
-}
-
-#[cfg(test)]
-mod option_tests {
-    use super::*;
-    use crate::formatted_number::GemNumberUnit;
-    use crate::services::localization::GemLocalizedText;
-
-    #[test]
-    fn test_every_leverage_option_carries_the_number_the_picker_shows() {
-        let options = GemPerpetual::new(PerpetualProvider::Hypercore).leverage_options(Some(40));
-
-        assert_eq!(options.first().map(|option| option.value), Some(1));
-        assert_eq!(options.last().map(|option| option.value), Some(40));
-        assert!(
-            options
-                .iter()
-                .all(|option| matches!(&option.label, GemLocalizedText::Number { number } if number.value == option.value as f64 && number.unit == GemNumberUnit::Multiplier)),
-            "the picker reads the option's own number, it does not build the text again"
-        );
     }
 }

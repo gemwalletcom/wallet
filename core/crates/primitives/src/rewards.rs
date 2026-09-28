@@ -5,17 +5,6 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
 use crate::Asset;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, AsRefStr, PartialEq)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum RewardLevel {}
-
-impl RewardLevel {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-}
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
@@ -119,6 +108,8 @@ pub struct Rewards {
     pub disable_reason: Option<String>,
     #[serde(default)]
     pub referral_allowance: ReferralAllowance,
+    #[serde(default)]
+    pub use_referral_code_until: Option<DateTime<Utc>>,
 }
 
 fn invite_reward_points() -> i32 {
@@ -139,6 +130,7 @@ impl Default for Rewards {
             redemption_options: vec![],
             disable_reason: None,
             referral_allowance: ReferralAllowance::default(),
+            use_referral_code_until: None,
         }
     }
 }

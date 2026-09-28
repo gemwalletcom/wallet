@@ -21,6 +21,7 @@ use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
+use primitives::OptionStringExt;
 use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
@@ -29,12 +30,13 @@ const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
 // Supported-chain subset of https://docs.near-intents.org/security-compliance/treasury-addresses
-const TREASURY_ADDRESSES: [&str; 16] = [
+const TREASURY_ADDRESSES: [&str; 17] = [
     "0x2CfF890f0378a11913B6129B2E97417a2c302680",                         // EVM chains
     "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",                         // Monad, XLayer
     "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",                                 // Bitcoin
     "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",                                 // Bitcoin Cash
     "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",                                 // Dogecoin
+    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",                                 // Dash
     "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",                                 // Litecoin
     "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",                                // Zcash
     "intents.near",                                                       // NEAR
@@ -334,7 +336,7 @@ where
         let from_asset = &quote.request.from_asset;
 
         let memo_required = deposit_memo_chains().contains(&from_asset.asset_id().chain);
-        let deposit_memo = near_quote.deposit_memo.filter(|memo| !memo.is_empty());
+        let deposit_memo = near_quote.deposit_memo.non_empty();
 
         if memo_required && deposit_mode != DepositMode::Memo {
             return Err(SwapperError::ComputeQuoteError("Near Intents Stellar deposits require a memo".into()));
@@ -367,7 +369,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
-            send: TREASURY_ADDRESSES.iter().map(|s| s.to_string()).collect(),
+            send: TREASURY_ADDRESSES.iter().map(ToString::to_string).collect(),
         })
     }
 }

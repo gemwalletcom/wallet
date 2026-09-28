@@ -1,8 +1,8 @@
+use chain_providers::BroadcastProviders;
 use gem_tracing::info_with_fields;
 use primitives::{Chain, ValueAccess};
 use prometheus_client::encoding::EncodeLabelSet;
 use serde_json::{Error as JsonError, Value};
-use settings_chain::BroadcastProviders;
 
 use super::Metrics;
 use super::traffic::{TrafficLabels, chain_group};

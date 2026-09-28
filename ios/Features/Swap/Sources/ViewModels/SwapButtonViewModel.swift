@@ -4,8 +4,8 @@ import Components
 import Foundation
 import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapViewState
-import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -38,15 +38,11 @@ struct SwapButtonViewModel: StateButtonViewable {
     }
 
     var type: ButtonType {
-        switch state.buttonState {
-        case .disabled: .primary(.disabled)
-        case .loading: .primary(.loading(showProgress: true))
-        case .enabled: .primary(.normal)
-        }
+        .primary(state.buttonState.state)
     }
 
     var isVisible: Bool {
-        !state.isInputEmpty
+        state.showsButton
     }
 
     func action() {

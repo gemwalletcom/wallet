@@ -1,5 +1,5 @@
 use primitives::duration::{DAY, HOUR, MINUTE, WEEK};
-use primitives::{Chain, ListProviderName, PriceProvider, ScanProvider, SwapProvider};
+use primitives::{Chain, ListProviderName, PriceProvider, ScanProvider, ScanType, SwapProvider};
 use std::time::Duration;
 use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 
@@ -117,7 +117,7 @@ impl RateLimit {
     }
 }
 
-#[derive(Debug, AsRefStr)]
+#[derive(Debug, Clone, Copy, AsRefStr)]
 #[strum(serialize_all = "camelCase")]
 pub enum ConfigParamKey {
     TransactionsRequestLimit(Chain),
@@ -133,6 +133,8 @@ pub enum ConfigParamKey {
     PriceProviderCleanOutdatedDuration(PriceProvider),
     ListProviderUpdateDuration(ListProviderName),
     ScanProviderEnable(ScanProvider),
+    ScanTypeEnable(ScanType),
+    ScanSafeCacheDuration(ScanType),
     RateLimit(RateLimitKey, RateLimitWindow),
 }
 
@@ -150,6 +152,8 @@ impl ConfigParamKey {
         let metrics = PriceProvider::all().into_iter().map(Self::PriceProviderMetricsDuration);
         let clean_outdated = PriceProvider::all().into_iter().map(Self::PriceProviderCleanOutdatedDuration);
         let scan_providers = ScanProvider::all().into_iter().map(Self::ScanProviderEnable);
+        let scan_types = ScanType::all().into_iter().map(Self::ScanTypeEnable);
+        let scan_safe_cache = ScanType::all().into_iter().filter(ScanType::is_safe_cacheable).map(Self::ScanSafeCacheDuration);
         let lists = ListProviderName::all().into_iter().map(Self::ListProviderUpdateDuration);
         let rate_limits = RateLimitKey::iter().flat_map(|key| RateLimitWindow::ALL.into_iter().map(move |window| Self::RateLimit(key, window)));
         transactions
@@ -165,6 +169,8 @@ impl ConfigParamKey {
             .chain(clean_outdated)
             .chain(lists)
             .chain(scan_providers)
+            .chain(scan_types)
+            .chain(scan_safe_cache)
             .chain(rate_limits)
             .collect()
     }
@@ -184,6 +190,8 @@ impl ConfigParamKey {
             Self::PriceProviderCleanOutdatedDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::ListProviderUpdateDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::ScanProviderEnable(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
+            Self::ScanTypeEnable(scan_type) => format!("{}.{}", self.as_ref(), scan_type.as_ref()),
+            Self::ScanSafeCacheDuration(scan_type) => format!("{}.{}", self.as_ref(), scan_type.as_ref()),
             Self::RateLimit(key, window) => format!("{}.{}", key.as_ref(), window.as_ref()),
         }
     }
@@ -204,6 +212,9 @@ impl ConfigParamKey {
             Self::PriceProviderCleanOutdatedDuration(_) => "1d".to_string(),
             Self::ListProviderUpdateDuration(_) => "1d".to_string(),
             Self::ScanProviderEnable(_) => "true".to_string(),
+            Self::ScanTypeEnable(_) => "true".to_string(),
+            Self::ScanSafeCacheDuration(ScanType::Website) => "6h".to_string(),
+            Self::ScanSafeCacheDuration(_) => "1d".to_string(),
             Self::RateLimit(key, window) => key.default_limit().get(*window).to_string(),
         }
     }
@@ -229,6 +240,24 @@ mod tests {
 
         assert_eq!(bitcoin.key(), "transactionsPendingErrorMaxAge.bitcoin");
         assert_eq!(bitcoin.default_value(), "3d");
+    }
+
+    #[test]
+    fn test_scan_type_enable() {
+        let key = ConfigParamKey::ScanTypeEnable(ScanType::AddressPoisoning);
+
+        assert_eq!(key.key(), "scanTypeEnable.address_poisoning");
+        assert_eq!(key.default_value(), "true");
+    }
+
+    #[test]
+    fn test_scan_safe_cache_duration() {
+        let website = ConfigParamKey::ScanSafeCacheDuration(ScanType::Website);
+
+        assert_eq!(website.key(), "scanSafeCacheDuration.website");
+        assert_eq!(website.default_value(), "6h");
+        assert_eq!(ConfigParamKey::ScanSafeCacheDuration(ScanType::Address).default_value(), "1d");
+        assert!(!ConfigParamKey::all().iter().any(|key| key.key() == "scanSafeCacheDuration.address_poisoning"));
     }
 
     #[test]

@@ -1,124 +1,100 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.data.services.store.queries.TransactionsQuery
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.text
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionExtended
-import com.wallet.core.primitives.TransactionId
-import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransactionListItem
+import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import uniffi.gemstone.GemTransactionRow
-import uniffi.gemstone.GemTransactionRowSubtitle
-import uniffi.gemstone.GemTransactionRowValue
-import uniffi.gemstone.GemTransactionStatus
-import uniffi.gemstone.GemTransactionTitle
-import uniffi.gemstone.GemTransactionsServiceInterface
-import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.transactionRow
+import uniffi.gemstone.activityFilters
 import uniffi.gemstone.transactionRows
-import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetTransactionsImpl(
-    private val getSession: GetSession,
-    private val getCurrentWalletId: GetCurrentWalletId,
-    private val transactionStore: GemstoneTransactionStore,
-    private val service: GemTransactionsServiceInterface,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetTransactions {
+class GetTransactionsImpl(private val getSession: GetSession, private val getCurrentWalletId: GetCurrentWalletId, private val transactionsQuery: TransactionsQuery, private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) :
+    GetTransactions {
 
-    private val rows = TransactionRows()
-    private val stored = ConcurrentHashMap<List<TransactionsRequestFilter>, WalletTransactionRows>()
+    private val rowCache = TransactionRows()
+    private val observations = RecentRequests<Flow<List<GemTransactionRow>>>()
 
     init {
-        getTransactions(TransactionsRequestFilter.activityDefaults()).launchIn(scope)
+        getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).launchIn(scope)
     }
 
-    override fun getTransactions(filters: List<TransactionsRequestFilter>): Flow<List<TransactionDataAggregate>> = getCurrentWalletId()
-        .flatMapLatest { walletId ->
-            transactionStore.observeTransactions(walletId, filters)
-                .map { WalletTransactionRows(walletId, rows.aggregates(filters, it)) }
+    override fun getTransactions(filter: TransactionsFilter?, limit: Int): Flow<List<GemTransactionRow>> = TransactionsRequest(filter, limit).let { request ->
+        observations.getOrPut(request) {
+            getCurrentWalletId()
+                .flatMapLatest { walletId ->
+                    transactionsQuery(walletId, filter, limit).map { rowCache.rows(walletId, request, it) }
+                }
+                .flowOn(Dispatchers.IO)
+                .shareIn(scope, SharingStarted.WhileSubscribed(replayExpirationMillis = 0), replay = 1)
         }
-        .onEach { stored[filters] = it }
-        .map { it.rows }
-        .flowOn(Dispatchers.IO)
+    }
 
-    override fun stored(filters: List<TransactionsRequestFilter>): List<TransactionDataAggregate> = stored[filters]?.takeIf { it.walletId == getSession().value?.wallet?.id }?.rows.orEmpty()
+    override fun stored(filter: TransactionsFilter?, limit: Int): List<GemTransactionRow> = getSession().value?.wallet?.id?.let { rowCache.stored(it, TransactionsRequest(filter, limit)) }.orEmpty()
 }
 
-private class WalletTransactionRows(val walletId: WalletId, val rows: List<TransactionDataAggregate>)
+internal data class TransactionsRequest(val filter: TransactionsFilter?, val limit: Int)
 
 internal class TransactionRows {
 
-    private val current = HashMap<List<TransactionsRequestFilter>, Map<TransactionExtended, TransactionDataAggregate>>()
+    private class FilterRows(val walletId: WalletId, val items: Map<TransactionListItem, GemTransactionRow>, val rows: List<GemTransactionRow>)
 
-    @Synchronized
-    fun aggregates(filters: List<TransactionsRequestFilter>, items: List<TransactionExtended>): List<TransactionDataAggregate> {
-        val reused = HashMap<TransactionExtended, TransactionDataAggregate>()
-        current.values.forEach(reused::putAll)
+    private val current = RecentRequests<FilterRows>()
+
+    fun rows(walletId: WalletId, request: TransactionsRequest, items: List<TransactionListItem>): List<GemTransactionRow> = synchronized(this) {
+        val reused = HashMap<TransactionListItem, GemTransactionRow>()
+        current.values().forEach { reused.putAll(it.items) }
         val missing = items.filterNot(reused::containsKey).distinct()
-        val built = missing.zip(transactionRows(missing.map { it.toGem() })) { data, row ->
-            data to TransactionDataAggregateImpl(row)
-        }.toMap()
-        val aggregates = items.mapNotNull { reused[it] ?: built[it] }
-        current[filters] = items.zip(aggregates).toMap()
-        return aggregates
+        val built = missing.zip(transactionRows(missing.map { it.toGem() })).toMap()
+        val rows = items.mapNotNull { reused[it] ?: built[it] }
+        current.put(request, FilterRows(walletId, items.zip(rows).toMap(), rows))
+        rows
+    }
+
+    fun stored(walletId: WalletId, request: TransactionsRequest): List<GemTransactionRow> = synchronized(this) {
+        current.get(request)?.takeIf { it.walletId == walletId }?.rows.orEmpty()
     }
 }
 
-@Stable
-class TransactionDataAggregateImpl(private val row: GemTransactionRow) : TransactionDataAggregate {
+internal class RecentRequests<T>(private val limit: Int = LIMIT) {
 
-    override val id: TransactionId = TransactionId(row.id)
+    private val entries = LinkedHashMap<TransactionsRequest, T>(limit, 0.75f, true)
+    private val pinned = TransactionsRequest(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit)
 
-    override val asset: Asset = row.asset.toPrimitives()
+    @Synchronized
+    fun get(request: TransactionsRequest): T? = entries[request]
 
-    override val status: GemTransactionStatus = row.status
+    @Synchronized
+    fun getOrPut(request: TransactionsRequest, create: () -> T): T = entries[request] ?: create().also { put(request, it) }
 
-    override val title: GemTransactionTitle = row.title
+    @Synchronized
+    fun put(request: TransactionsRequest, value: T) {
+        entries[request] = value
+        while (entries.size > limit) {
+            entries.keys.firstOrNull { it != pinned }?.let(entries::remove) ?: break
+        }
+    }
 
-    override val subtitle: GemTransactionRowSubtitle = row.subtitle
+    @Synchronized
+    fun values(): List<T> = entries.values.toList()
 
-    private val coreValue: GemTransactionRowValue = row.value
-
-    override val valueTone: GemValueTone = row.valueTone
-
-    override val value: String = coreValue.format().orEmpty()
-
-    override val equivalentValue: String? = row.equivalentValue.format()
-
-    override val nftImageUrl: String? = row.nftImageUrl
-
-    override val type: TransactionType = row.transactionType.toPrimitives()
-
-    override val direction: TransactionDirection = row.direction.toPrimitives()
-
-    override val state: TransactionState = row.state.toPrimitives()
-
-    override val createdAt: Long = row.createdAt
-}
-
-private fun GemTransactionRowValue.format(): String? = when (this) {
-    GemTransactionRowValue.None -> null
-    is GemTransactionRowValue.AssetSymbol -> asset.symbol
-    is GemTransactionRowValue.Number -> number.text()
+    companion object {
+        const val LIMIT = 8
+    }
 }

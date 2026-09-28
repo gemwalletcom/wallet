@@ -9,6 +9,7 @@ common_secret_phrase = Hemmelig sætning
 common_copy = Kopiér
 common_share = Del
 common_continue = Fortsæt
+common_continue_anyway = Fortsæt alligevel
 common_sign_in_with = Log ind med %@
 common_provider = Udbyder
 common_loading = Indlæser
@@ -47,7 +48,6 @@ common_learn_more = Lær mere
 common_description = Beskrivelse
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Gem
 common_percentage = Procent
 common_details = Detaljer
 common_info = Info
@@ -57,6 +57,7 @@ common_method = Metode
 common_token = Token
 common_expiration = Udløb
 common_suspicious_address = Mistænkelig adresse
+common_suspicious_address_description = Denne adresse er forbundet med mistænkelig eller skadelig aktivitet.
 common_refresh = Opdater
 common_grant_permission = Giv tilladelse
 common_required_field = %@ er påkrævet
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Denne tegnebog er allerede blevet impor
 # Wallets
 
 wallets_title = Tegnebøger
-wallets_watch = Se
 
 # Receive
 
-receive_title = Modtag %@
 receive_warning = Dette er din adresse — kun forsendelse %@ på %@ netværk.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Aktiver adgangskode
 settings_security_authentication = Autentificering
 settings_notifications_title = Meddelelser
 settings_language = Sprog
-settings_help_center = Hjælpecenter
 settings_support = Støtte
 settings_price_alerts_title = Prisadvarsler
 settings_hide_balance = Skjul saldo
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Ingen pris er tilgængelig.
 errors_swap_not_supported_asset = Ikke understøttet aktiv.
 errors_connections_no_supported_wallets = Ingen understøttede tegnebøger er tilgængelige.
 errors_connections_unsupported_chain = Den angivne kæde understøttes ikke.
+errors_authentication_unavailable = Godkendelse er ikke konfigureret på denne enhed. Slå biometri eller en adgangskode til i enhedens indstillinger.
+errors_authentication_locked_out = For mange mislykkede forsøg. Prøv igen senere.
+errors_authentication_failed = Godkendelsen mislykkedes. Prøv igen.
+errors_connections_expired = Dette forbindelseslink er udløbet. Hent en ny QR-kode, og prøv igen.
+errors_connections_not_found = Denne forbindelse findes ikke længere.
+errors_connections_relay_unavailable = Kunne ikke få forbindelse til WalletConnect. Tjek din internetforbindelse, og prøv igen.
 errors_swap_amount_too_small = Beløbet er for lille
 errors_scan_transaction_malicious_description = Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.
 errors_scan_transaction_memo_required = %@ destinations-wallet-adresse kræver et destinationstag / en destinations-memo
@@ -321,7 +325,6 @@ asset_verification_warning_message = Alle kan oprette en - inklusive falske elle
 asset_buy_asset = Køb %@
 asset_get_asset = Få %@
 asset_add_to_wallet = Tilføj til tegnebog
-asset_hide_from_wallet = Skjul fra tegnebogen
 asset_added_to_wallet = Tilføjet til tegnebogen
 asset_hidden_from_wallet = Skjult fra tegnebogen
 asset_resources = Ressourcer
@@ -348,6 +351,7 @@ charts_price_change = Forandring
 
 date_today = I dag
 date_yesterday = I går
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Tilpasset
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Når prisen stiger med
 price_alerts_set_alert_price_decreases_by = Når prisen falder med
 price_alerts_set_alert_set_target_price = Sæt målpris
 price_alerts_set_alert_current_price = Nuværende pris
-price_alerts_added_for = Indstil prisalarm %@
+price_alerts_added_price_over = Alarm tilføjet for pris over %@
+price_alerts_added_price_under = Alarm tilføjet for pris under %@
+price_alerts_added_increases_by = Alarm tilføjet for prisstigning på %@
+price_alerts_added_decreases_by = Alarm tilføjet for prisfald på %@
 price_alerts_state_empty_title = Dine alarmer vises her
 price_alerts_state_empty_description = Aktivér dem ved at tilføje mønter til sporet
 price_alerts_auto_footer = Advarsler udløses ved betydelige prisbevægelser.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Denne app har ikke tilladels
 
 # Markets
 
-markets_title = Markeder
-markets_state_empty_title = Dine markedsdata vil blive vist her
 markets_daily_volume = 24-timers volumen
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Sikkerhedsadvarsel
+rootcheck_jailbreak_body = Din enhed ser ud til at være jailbroken. Det kan bringe din tegnebog og dine midler i fare.
 rootcheck_body = Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed uden rod.
 rootcheck_ignore = Ignorer
 rootcheck_exit = Afslut

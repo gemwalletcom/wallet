@@ -2,38 +2,46 @@
 
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
+import enum Gemstone.GemErrorText
+import protocol Gemstone.GemNavigationServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
 import GemstoneServices
-import NFT
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import Transactions
 import Transfer
 
 @Observable
 final class NavigationPresenter: Sendable {
+    @MainActor private var _isPresentingAddressDetails: ChainAddress?
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
     @MainActor private var _isPresentingPayment: PaymentDestination?
     @MainActor private var _isPresentingPriceAlert: Asset?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
     private let assetsService: any GemAssetsServiceProtocol
+    private let navigationService: any GemNavigationServiceProtocol
     private let nftService: any GemNftServiceProtocol
 
     init(
         assetsService: any GemAssetsServiceProtocol,
+        navigationService: any GemNavigationServiceProtocol,
         nftService: any GemNftServiceProtocol,
     ) {
         self.assetsService = assetsService
+        self.navigationService = navigationService
         self.nftService = nftService
     }
 }
 
 @MainActor
 extension NavigationPresenter {
+    var isPresentingAddressDetails: Binding<ChainAddress?> {
+        Binding(get: { self._isPresentingAddressDetails }, set: { self._isPresentingAddressDetails = $0 })
+    }
+
     var isPresentingAssetInput: Binding<SelectedAssetInput?> {
         Binding(get: { self._isPresentingAssetInput }, set: { self._isPresentingAssetInput = $0 })
     }
@@ -55,7 +63,9 @@ extension NavigationPresenter {
     }
 
     func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {
-        let account = try wallet.account(for: asset.chain)
+        guard let account = try? wallet.account(for: asset.chain) else {
+            throw GemErrorText.noAccountForChain
+        }
         isPresentingAssetInput.wrappedValue = SelectedAssetInput(
             type: type,
             assetData: .with(asset: asset, account: account),
@@ -67,13 +77,11 @@ extension NavigationPresenter {
         to toAssetId: AssetId?,
         wallet: Wallet,
     ) async throws {
-        let fromAsset = try await assetsService.ensureAsset(for: fromAssetId)
-        let toAsset: Asset? = if let toAssetId {
-            try await assetsService.ensureAsset(for: toAssetId)
-        } else {
-            nil
+        let fromAsset = try await assetsService.ensureAsset(assetId: fromAssetId).toPrimitives()
+        if let toAssetId {
+            _ = try await assetsService.ensureAsset(assetId: toAssetId)
         }
-        try presentAssetInput(type: .swap(fromAsset, toAsset), for: fromAsset, wallet: wallet)
+        try presentAssetInput(type: .swap(fromAssetId, toAssetId), for: fromAsset, wallet: wallet)
     }
 
     func openTransactionHeaderAction(
@@ -84,14 +92,11 @@ extension NavigationPresenter {
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
-            guard let asset = try await assetsService.openAsset(assetId: assetId)?.toPrimitives() else {
-                return
-            }
-            navigationState.openAsset(asset)
+            try await navigationState.openAsset(target: navigationService.openAsset(assetId: assetId))
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(
-                from: AssetId(core: fromAssetId),
-                to: AssetId(core: toAssetId),
+                from: fromAssetId,
+                to: toAssetId,
                 wallet: wallet,
             )
         case let .nft(assetId):
@@ -100,8 +105,8 @@ extension NavigationPresenter {
         }
     }
 
-    func completeSwap(fromAsset: Asset, navigationState: NavigationStateManager) async throws {
-        let asset = try await assetsService.ensureAsset(for: fromAsset.id)
+    func completeSwap(fromAssetId: AssetId, navigationState: NavigationStateManager) async throws {
+        let asset = try await assetsService.ensureAsset(assetId: fromAssetId).toPrimitives()
         switch navigationState.selectedTab {
         case .wallet:
             navigationState.wallet.setPath([Scenes.Asset(asset: asset)])

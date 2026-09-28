@@ -1,6 +1,4 @@
-use gem_alchemy::{AlchemyApi, alchemy_url};
 use gem_client::RemoteProviderConfig;
-use primitives::Chain;
 use settings::Settings;
 
 #[derive(Debug, Clone)]
@@ -13,6 +11,7 @@ pub(crate) struct OffchainClientConfig {
 #[derive(Clone)]
 pub struct NFTProviderConfig {
     pub(crate) alchemy: RemoteProviderConfig,
+    pub(crate) blockscout: RemoteProviderConfig,
     pub(crate) opensea: RemoteProviderConfig,
     pub(crate) magiceden: RemoteProviderConfig,
     pub(crate) ton: RemoteProviderConfig,
@@ -21,11 +20,9 @@ pub struct NFTProviderConfig {
 
 impl NFTProviderConfig {
     pub fn from_settings(settings: &Settings) -> Self {
-        let alchemy = settings.nft.alchemy.remote_provider_config();
-        let url = alchemy_url(Chain::SmartChain, &alchemy.url, AlchemyApi::Nft, &alchemy.key);
-
         Self {
-            alchemy: RemoteProviderConfig { url, ..alchemy },
+            alchemy: settings.nft.alchemy.remote_provider_config(),
+            blockscout: settings.nft.blockscout.remote_provider_config(),
             opensea: settings.nft.opensea.remote_provider_config(),
             magiceden: settings.nft.magiceden.remote_provider_config(),
             ton: settings.nft.ton.remote_provider_config(),

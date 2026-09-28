@@ -130,14 +130,14 @@ fn map_token_id(asset: &Asset, chain: Option<Chain>) -> Option<String> {
     Some(contract)
 }
 
-fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: Vec<FiatAssetLimits>) -> Option<FiatProviderAsset> {
+pub fn map_asset_with_limits(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: Vec<FiatAssetLimits>) -> FiatProviderAsset {
     let chain = map_asset_chain(asset.network.clone());
     let token_id = map_token_id(&asset, chain);
     let buy_limits = if asset.widget_onramp_enabled { buy_limits } else { vec![] };
     let sell_limits = if asset.widget_offramp_enabled { sell_limits } else { vec![] };
     let is_buy_enabled = !buy_limits.is_empty();
     let is_sell_enabled = !sell_limits.is_empty();
-    Some(FiatProviderAsset {
+    FiatProviderAsset {
         id: asset.clone().currency + "_" + asset.network.as_str(),
         provider: FiatProviderName::Mercuryo,
         chain,
@@ -150,15 +150,7 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
         unsupported_countries: None,
         buy_limits,
         sell_limits,
-    })
-}
-
-pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
-    map_asset_base(asset, vec![], vec![])
-}
-
-pub fn map_asset_with_limits(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: Vec<FiatAssetLimits>) -> Option<FiatProviderAsset> {
-    map_asset_base(asset, buy_limits, sell_limits)
+    }
 }
 
 pub fn map_asset_limits(currency_limits: Option<&CurrencyLimits>, currency: Currency, fiat_payment_methods: &HashMap<String, FiatPaymentMethod>) -> Vec<FiatAssetLimits> {
@@ -190,7 +182,7 @@ mod tests {
         assert!(!limits.is_empty());
 
         for (asset, (symbol, asset_id)) in assets.into_iter().zip(expected) {
-            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone()).unwrap();
+            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone());
 
             assert_eq!(mapped.asset_id(), Some(asset_id));
             assert_eq!(mapped.id, format!("{symbol}_ROBINHOOD"));
@@ -274,7 +266,7 @@ mod tests {
 
         let trump_asset = currencies.config.crypto_currencies.iter().find(|asset| asset.currency == "TRUMP" && asset.network == "SOLANA").unwrap();
 
-        let result = map_asset_with_limits(trump_asset.clone(), vec![], vec![]).unwrap();
+        let result = map_asset_with_limits(trump_asset.clone(), vec![], vec![]);
 
         assert_eq!(result.symbol, "TRUMP");
         assert_eq!(result.chain, Some(Chain::Solana));
@@ -295,7 +287,7 @@ mod tests {
             let mut asset = currencies.config.crypto_currencies[0].clone();
             asset.widget_onramp_enabled = buy;
             asset.widget_offramp_enabled = sell;
-            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone()).unwrap();
+            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone());
             assert_eq!((mapped.enabled, mapped.is_buy_enabled, mapped.is_sell_enabled), (buy || sell, buy, sell));
             assert_eq!(mapped.buy_limits.len(), if buy { limits.len() } else { 0 });
             assert_eq!(mapped.sell_limits.len(), if sell { limits.len() } else { 0 });
@@ -304,14 +296,17 @@ mod tests {
 
     #[test]
     fn test_map_stellar_asset_id() {
-        let result = map_asset(Asset {
-            currency: "USDC".to_string(),
-            widget_onramp_enabled: true,
-            widget_offramp_enabled: true,
-            network: "STELLAR".to_string(),
-            contract: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string(),
-        })
-        .unwrap();
+        let result = map_asset_with_limits(
+            Asset {
+                currency: "USDC".to_string(),
+                widget_onramp_enabled: true,
+                widget_offramp_enabled: true,
+                network: "STELLAR".to_string(),
+                contract: "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string(),
+            },
+            vec![],
+            vec![],
+        );
 
         assert_eq!(result.chain, Some(Chain::Stellar));
         assert_eq!(result.token_id, Some("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC".to_string()));
@@ -322,7 +317,7 @@ mod tests {
     fn test_contract_assets_mapping() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))?.data;
 
-        let all_assets: Vec<_> = currencies.config.crypto_currencies.into_iter().flat_map(|asset| map_asset_with_limits(asset, vec![], vec![])).collect();
+        let all_assets: Vec<_> = currencies.config.crypto_currencies.into_iter().map(|asset| map_asset_with_limits(asset, vec![], vec![])).collect();
 
         let contract_assets: Vec<_> = all_assets.iter().filter(|asset| asset.token_id.is_some()).collect();
 

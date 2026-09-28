@@ -6,18 +6,17 @@ use std::sync::Arc;
 
 use chrono::Utc;
 
-use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::localization::GemLocalizedText;
-use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
+use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::{GemAssetRowStyle, GemHeaderActions};
-use crate::services::assets::rules as asset_rules;
+use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderSubtitleIcon};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::toast::GemToast;
 use crate::services::wallet::rules as wallet_rules;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -25,15 +24,10 @@ pub use rules::GemPerpetualCollateral;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
-    pub total_value: TotalFiatValue,
-    pub total: GemFormattedNumber,
-    pub pnl: Option<GemLocalizedText>,
-    pub pnl_tone: GemValueTone,
-    pub shows_pnl: bool,
-    pub header_actions: GemHeaderActions,
+    pub header: GemValueHeader,
     pub show_collections: bool,
     pub shows_perpetuals: bool,
-    pub visible_banners: Vec<GemBannerRow>,
+    pub banner: Option<GemBannerRow>,
 }
 
 #[derive(uniffi::Object)]
@@ -71,28 +65,25 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn asset_row_style(&self) -> GemAssetRowStyle {
-        asset_rules::wallet_asset_row_style()
-    }
-
     pub fn view_state(&self, wallet: Wallet, balances: Vec<AssetFiatValue>, perpetual: Option<GemPerpetualCollateral>, banners: Vec<Banner>) -> GemWalletHomeViewState {
         let chains = wallet.chains();
         let wallet_type = wallet.wallet_type;
         let is_wallet_empty = balances.iter().all(|balance| balance.amount == 0.0);
         let total_value = self.total_fiat_value(wallet.id.clone(), balances, perpetual);
-        let visible_banners = GemBannerContext::wallet(wallet, is_wallet_empty).visible_banners(banners);
+        let visible_banners = self.banners.visible_banners(&GemBannerContext::wallet(wallet, is_wallet_empty), banners);
         let currency = self.preferences.get_currency();
         let header = balance_rules::total_header(&total_value, currency);
         GemWalletHomeViewState {
-            total: header.total,
-            pnl: header.pnl,
-            pnl_tone: header.pnl_tone,
-            shows_pnl: balance_rules::shows_pnl(&total_value),
-            header_actions: rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners)),
+            header: GemValueHeader {
+                icon: None,
+                title: GemLocalizedText::Number { number: header.total },
+                subtitle_icon: header.pnl.is_some().then_some(GemValueHeaderSubtitleIcon::Chart),
+                subtitle: header.pnl.map(|text| GemRowText { text, tone: header.pnl_tone }),
+                actions: Some(rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners))),
+            },
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
-            visible_banners,
-            total_value,
+            banner: visible_banners.into_iter().next(),
         }
     }
 
@@ -121,8 +112,9 @@ impl GemWalletHomeService {
         discovery
     }
 
-    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset.id, pinned).await?;
+        Ok(GemToast::pinned(asset.name, pinned))
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
@@ -168,9 +160,9 @@ mod tests {
     fn test_the_header_buttons_follow_the_banners_the_screen_shows() {
         let testkit = WalletHomeTestkit::with_status(200);
         let warning = |state| Banner::mock(BannerEvent::AccountBlockedMultiSignature, state);
-        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners).header_actions {
-            GemHeaderActions::Buttons { buttons } => buttons.iter().all(|button| button.is_enabled),
-            GemHeaderActions::WatchOnly => true,
+        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners).header.actions {
+            Some(GemHeaderActions::Buttons { buttons }) => buttons.iter().all(|button| button.is_enabled),
+            Some(GemHeaderActions::WatchOnly) | None => true,
         };
 
         assert!(!buttons_enabled(vec![warning(BannerState::AlwaysActive)]));
@@ -189,10 +181,10 @@ mod tests {
             price: 1.0,
             price_change_percentage_24h: 0.0,
         };
-        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()]).visible_banners.len();
+        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()]).banner.is_some();
 
-        assert_eq!(shown(vec![value(0.0)]), 1);
-        assert_eq!(shown(vec![value(0.0), value(2.0)]), 0);
+        assert!(shown(vec![value(0.0)]));
+        assert!(!shown(vec![value(0.0), value(2.0)]));
     }
 
     #[test]

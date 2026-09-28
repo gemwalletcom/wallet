@@ -1,6 +1,6 @@
-use primitives::{Currency, PriceAlert, PriceAlertData, PriceAlertNotificationType};
+use primitives::{Asset, Currency, Price, PriceAlert, PriceAlertData};
 
-use crate::services::price_alert::rules::{self, GemPriceAlertKind, GemPriceAlertRow, GemPriceAlertSection};
+use crate::services::price_alert::rules::{self, GemAssetPriceAlerts, GemPriceAlertListSection};
 
 #[derive(Default, uniffi::Object)]
 pub struct PriceAlertFormatter {}
@@ -16,23 +16,11 @@ impl PriceAlertFormatter {
         alert.id()
     }
 
-    pub fn notification_type(&self, alert: PriceAlert) -> PriceAlertNotificationType {
-        alert.notification_type()
+    pub fn sections(&self, alerts: Vec<PriceAlertData>, price_currency: Currency) -> Vec<GemPriceAlertListSection> {
+        rules::price_alert_list_sections(alerts, price_currency)
     }
 
-    pub fn alert_kind(&self, alert: PriceAlert) -> GemPriceAlertKind {
-        rules::alert_kind(&alert)
-    }
-
-    pub fn row(&self, data: PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {
-        rules::price_alert_row(&data, price_currency)
-    }
-
-    pub fn displayed_alert_ids(&self, alerts: Vec<PriceAlert>) -> Vec<String> {
-        rules::displayed_price_alert_ids(alerts)
-    }
-
-    pub fn sections(&self, alerts: Vec<PriceAlertData>) -> Vec<GemPriceAlertSection> {
-        rules::price_alert_sections(alerts)
+    pub fn asset_alerts(&self, asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency) -> GemAssetPriceAlerts {
+        rules::asset_price_alerts(asset, price, alerts, price_currency)
     }
 }

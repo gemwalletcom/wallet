@@ -27,7 +27,6 @@ pub const ANDROID_ONLY_KEYS: &[&str] = &[
     "rootcheck_body",
     "rootcheck_exit",
     "rootcheck_ignore",
-    "rootcheck_security_alert",
     "transfer_amount",
     "transfer_amount_title",
     "update_app_downloading",

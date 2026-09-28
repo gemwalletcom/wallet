@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemStakeActionItem
+import enum Gemstone.GemStakeSection
+import struct Gemstone.GemStakeViewState
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -15,17 +18,18 @@ public struct StakeScene: View {
     }
 
     public var body: some View {
+        let state = model.viewState
         List {
-            headerSection
-            stakeInfoSection
-            ForEach(model.sectionModels) { section in
+            ListAssetHeaderView(model: state.asset)
+            stakeInfoSection(state)
+            ForEach(state.sections) { section in
                 Section(section.title) {
-                    content(for: section)
+                    content(for: section, state: state)
                 }
             }
-            if model.showsDelegationsPlaceholder {
+            if model.showsDelegationsPlaceholder(state) {
                 Section {
-                    delegationsPlaceholder
+                    delegationsPlaceholder(state)
                 }
             }
         }
@@ -34,6 +38,9 @@ public struct StakeScene: View {
             await model.load()
         }
         .navigationTitle(model.title)
+        .ifLet(state.docsUrl?.asURL) { view, url in
+            view.toolbarInfoButton(url: url)
+        }
         .taskOnce {
             Task {
                 await model.load()
@@ -45,50 +52,50 @@ public struct StakeScene: View {
 // MARK: - UI Components
 
 extension StakeScene {
-    private var headerSection: some View {
-        ListAssetHeaderView(model: model.assetModel)
-    }
-
     @ViewBuilder
-    private func content(for section: StakeSectionViewModel) -> some View {
-        switch section.section {
+    private func content(for section: GemStakeSection, state: GemStakeViewState) -> some View {
+        switch section {
         case .manage:
-            ForEach(model.actionModels) { item in
+            ForEach(state.actions, id: \.action) { item in
                 actionLink(item)
             }
         case .resources:
-            ListItemView(field: model.energyField)
-            ListItemView(field: model.bandwidthField)
-        case .delegations:
-            delegationsPlaceholder
-        }
-    }
-
-    @ViewBuilder
-    private func actionLink(_ item: StakeActionViewModel) -> some View {
-        if let infoAction = item.infoAction {
-            NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
-        } else {
-            NavigationCustomLink(with: ListItemView(model: item.model)) {
-                model.onSelect(destination: item.destination)
+            ForEach(state.resourceRows, id: \.self) { row in
+                GemListRowView(row: row)
             }
-            .enabled(item.isEnabled)
+        case .delegations:
+            delegationsPlaceholder(state)
         }
     }
 
     @ViewBuilder
-    private var delegationsPlaceholder: some View {
-        switch model.delegationsViewState {
+    private func actionLink(_ item: GemStakeActionItem) -> some View {
+        switch item.action {
+        case .frozenBalanceInfo:
+            NavigationCustomLink(with: GemListRowView(row: item.row, onInfo: { _ in model.onStakeFrozenInfo() }), action: model.onStakeFrozenInfo)
+        case .disabled:
+            NavigationCustomLink(with: GemListRowView(row: item.row)) {}
+                .enabled(false)
+        case let .open(destination):
+            NavigationCustomLink(with: GemListRowView(row: item.row)) {
+                model.onSelect(destination: destination)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func delegationsPlaceholder(_ state: GemStakeViewState) -> some View {
+        switch model.delegationsViewState(state) {
         case .noData:
             EmptyContentView(model: model.emptyContentModel)
                 .cleanListRow()
         case .loading:
             ListItemLoadingView()
                 .id(UUID())
-        case let .data(delegations):
-            ForEach(delegations) { delegation in
-                NavigationCustomLink(with: DelegationView(delegation: delegation)) {
-                    model.onSelect(delegation: delegation)
+        case let .data(items):
+            ForEach(items, id: \.id) { item in
+                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
+                    model.onSelect(delegation: item)
                 }
             }
             .listRowInsets(.assetListRowInsets)
@@ -97,9 +104,9 @@ extension StakeScene {
         }
     }
 
-    private var stakeInfoSection: some View {
+    private func stakeInfoSection(_ state: GemStakeViewState) -> some View {
         Section {
-            ForEach(model.infoRows, id: \.self) { row in
+            ForEach(state.infoRows, id: \.self) { row in
                 GemListRowView(row: row, onInfo: model.onInfo)
             }
         }

@@ -11,18 +11,22 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetId
 import uniffi.gemstone.GemPaymentRecipient
 
+fun SavedStateHandle.requireString(argument: RouteArgument): String = requireValue(argument).also { value ->
+    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
+}
+
 fun SavedStateHandle.requireAssetId(argument: RouteArgument = RouteArgument.AssetId): AssetId {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    val value = requireValue(argument)
     return checkNotNull(value.toAssetId()) { "Invalid route argument ${argument.key}: $value" }
 }
 
 fun SavedStateHandle.requireChain(argument: RouteArgument = RouteArgument.Chain): Chain {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    val value = requireValue(argument)
     return value.requireChain()
 }
 
 fun SavedStateHandle.requireNftAssetId(argument: RouteArgument = RouteArgument.NftAssetId): NFTAssetId {
-    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    val value = requireValue(argument)
     return checkNotNull(value.toNftAssetId()) { "Invalid route argument ${argument.key}: $value" }
 }
 
@@ -31,7 +35,15 @@ fun SavedStateHandle.optionalNft(argument: RouteArgument = RouteArgument.Nft): N
     return checkNotNull(unpackRoutePayload<NFTAsset>(value)) { "Invalid route argument ${argument.key}: $value" }
 }
 
+fun SavedStateHandle.optionalContactAddressDraft(): ContactAddressDraft? {
+    val chain = get<String>(RouteArgument.Chain.key)?.requireChain() ?: return null
+    val address = get<String>(RouteArgument.Address.key) ?: return null
+    return ContactAddressDraft(chain = chain, address = address, memo = get<String>(RouteArgument.Memo.key))
+}
+
 fun SavedStateHandle.optionalPaymentRecipient(argument: RouteArgument = RouteArgument.Payment): GemPaymentRecipient? {
     val value = get<String>(argument.key) ?: return null
     return checkNotNull(unpackRoutePayload<GemPaymentRecipient>(value)) { "Invalid route argument ${argument.key}: $value" }
 }
+
+private fun SavedStateHandle.requireValue(argument: RouteArgument): String = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }

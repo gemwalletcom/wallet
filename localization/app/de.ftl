@@ -9,6 +9,7 @@ common_secret_phrase = Geheime Phrase
 common_copy = Kopieren
 common_share = Teilen
 common_continue = Weiter
+common_continue_anyway = Trotzdem fortfahren
 common_sign_in_with = Mit %@ anmelden
 common_provider = Anbieter
 common_loading = Wird geladen
@@ -47,7 +48,6 @@ common_learn_more = Mehr erfahren
 common_description = Beschreibung
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Speichern
 common_percentage = Prozentsatz
 common_details = Einzelheiten
 common_info = Infos
@@ -57,6 +57,7 @@ common_method = Methode
 common_token = Token
 common_expiration = Ablauf
 common_suspicious_address = Verdächtige Adresse
+common_suspicious_address_description = Diese Adresse steht im Zusammenhang mit verdächtigen oder schädlichen Aktivitäten.
 common_refresh = Aktualisieren
 common_grant_permission = Erlaubnis erteilen
 common_required_field = %@ ist erforderlich
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Diese Wallet wurde bereits importiert.
 # Wallets
 
 wallets_title = Wallets
-wallets_watch = Beobachten
 
 # Receive
 
-receive_title = Empfangen %@
 receive_warning = Dies ist Ihre Adresse – bitte senden Sie nur %@ auf %@ Netzwerk.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Passcode aktivieren
 settings_security_authentication = Authentifizierung
 settings_notifications_title = Benachrichtigungen
 settings_language = Sprache
-settings_help_center = Hilfezentrum
 settings_support = Support
 settings_price_alerts_title = Preisalarme
 settings_hide_balance = Guthaben ausblenden
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Kein Angebot verfügbar.
 errors_swap_not_supported_asset = Nicht unterstütztes Asset.
 errors_connections_no_supported_wallets = Es sind keine unterstützten Wallets verfügbar.
 errors_connections_unsupported_chain = Die bereitgestellte Kette wird nicht unterstützt.
+errors_authentication_unavailable = Auf diesem Gerät ist keine Authentifizierung eingerichtet. Aktivieren Sie Biometrie oder einen Code in den Geräteeinstellungen.
+errors_authentication_locked_out = Zu viele fehlgeschlagene Versuche. Bitte versuchen Sie es später erneut.
+errors_authentication_failed = Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.
+errors_connections_expired = Dieser Verbindungslink ist abgelaufen. Holen Sie sich einen neuen QR-Code und versuchen Sie es erneut.
+errors_connections_not_found = Diese Verbindung besteht nicht mehr.
+errors_connections_relay_unavailable = WalletConnect ist nicht erreichbar. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.
 errors_swap_amount_too_small = Menge zu gering
 errors_scan_transaction_malicious_description = Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.
 errors_scan_transaction_memo_required = %@ Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.
@@ -321,7 +325,6 @@ asset_verification_warning_message = Jeder kann einen erstellen – auch gefäls
 asset_buy_asset = Kaufen %@
 asset_get_asset = %@ erhalten
 asset_add_to_wallet = Zum Wallet hinzufügen
-asset_hide_from_wallet = Vor der Wallet verstecken
 asset_added_to_wallet = Zum Wallet hinzugefügt
 asset_hidden_from_wallet = Aus dem Wallet ausgeblendet
 asset_resources = Ressourcen
@@ -348,6 +351,7 @@ charts_price_change = Veränderung
 
 date_today = Heute
 date_yesterday = Gestern
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Normal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Benutzerdefiniert
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Wenn der Preis um
 price_alerts_set_alert_price_decreases_by = Wenn der Preis sinkt um
 price_alerts_set_alert_set_target_price = Zielpreis festlegen
 price_alerts_set_alert_current_price = Aktueller Preis
-price_alerts_added_for = Preisalarm einstellen %@
+price_alerts_added_price_over = Alarm hinzugefügt für Preis über %@
+price_alerts_added_price_under = Alarm hinzugefügt für Preis unter %@
+price_alerts_added_increases_by = Alarm hinzugefügt für Preisanstieg um %@
+price_alerts_added_decreases_by = Alarm hinzugefügt für Preisrückgang um %@
 price_alerts_state_empty_title = Ihre Benachrichtigungen werden hier angezeigt
 price_alerts_state_empty_description = Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen
 price_alerts_auto_footer = Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Diese App hat keine Berechti
 
 # Markets
 
-markets_title = Märkte
-markets_state_empty_title = Ihre Marktdaten werden hier angezeigt
 markets_daily_volume = 24-Stunden-Volumen
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Sicherheitswarnung
+rootcheck_jailbreak_body = Ihr Gerät scheint einen Jailbreak zu haben. Das kann Ihre Wallet und Ihr Guthaben gefährden.
 rootcheck_body = Ihr Gerät scheint Root-Zugriff zu haben, was die Sicherheitsrisiken erheblich erhöhen kann. Die Verwendung dieser App auf einem gerooteten Gerät kann Ihre Vermögenswerte einem unbefugten Zugriff und einem möglichen Verlust aussetzen. Zur Sicherheit Ihrer Gelder empfehlen wir dringend die Verwendung eines nicht gerooteten Geräts.
 rootcheck_ignore = Ignorieren
 rootcheck_exit = Ausstieg

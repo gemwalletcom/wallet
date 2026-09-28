@@ -1,5 +1,6 @@
 #![cfg(feature = "rpc")]
 
+use primitives::OptionStringExt;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -16,7 +17,7 @@ use crate::rpc::EthereumProvider;
 impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let transaction: TransactionObject = serde_json::from_str(&input.encoded_transaction)?;
-        let signer = transaction.from.as_deref().filter(|from| !from.is_empty()).ok_or("missing sender address")?;
+        let signer = transaction.from.as_deref().non_empty().ok_or("missing sender address")?;
 
         let trace = self.trace_call(&transaction).await?;
         let SimulationResult { warnings, balance_changes, payload, header } = map_simulation_result(self.get_chain(), signer, &trace);

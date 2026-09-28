@@ -9,6 +9,7 @@ common_secret_phrase = Geheime zin
 common_copy = Kopieer
 common_share = Deel
 common_continue = Ga door
+common_continue_anyway = Toch doorgaan
 common_sign_in_with = Inloggen met %@
 common_provider = Aanbieder
 common_loading = Laden
@@ -47,7 +48,6 @@ common_learn_more = Meer informatie
 common_description = Beschrijving
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Opslaan
 common_percentage = Percentage
 common_details = Details
 common_info = Informatie
@@ -57,6 +57,7 @@ common_method = Methode
 common_token = Token
 common_expiration = Vervaldatum
 common_suspicious_address = Verdacht adres
+common_suspicious_address_description = Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.
 common_refresh = Vernieuwen
 common_grant_permission = Geef toestemming
 common_required_field = %@ is vereist
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Deze portemonnee is al geïmporteerd.
 # Wallets
 
 wallets_title = Portemonnees
-wallets_watch = Volgen
 
 # Receive
 
-receive_title = Ontvang %@
 receive_warning = Dit is uw adres — alleen verzenden %@ op de %@ netwerk.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Schakel toegangscode in
 settings_security_authentication = Authenticatie
 settings_notifications_title = Meldingen
 settings_language = Taal
-settings_help_center = Helpcentrum
 settings_support = Ondersteuning
 settings_price_alerts_title = Prijswaarschuwingen
 settings_hide_balance = Saldo verbergen
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Geen offerte beschikbaar.
 errors_swap_not_supported_asset = Niet-ondersteunde asset.
 errors_connections_no_supported_wallets = Er zijn geen ondersteunde wallets beschikbaar.
 errors_connections_unsupported_chain = De meegeleverde keten wordt niet ondersteund.
+errors_authentication_unavailable = Verificatie is niet ingesteld op dit apparaat. Zet biometrie of een toegangscode aan in de apparaatinstellingen.
+errors_authentication_locked_out = Te veel mislukte pogingen. Probeer het later opnieuw.
+errors_authentication_failed = Verificatie mislukt. Probeer het opnieuw.
+errors_connections_expired = Deze verbindingslink is verlopen. Haal een nieuwe QR-code op en probeer het opnieuw.
+errors_connections_not_found = Deze verbinding bestaat niet meer.
+errors_connections_relay_unavailable = WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.
 errors_swap_amount_too_small = Bedrag te klein
 errors_scan_transaction_malicious_description = Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.
 errors_scan_transaction_memo_required = %@ bestemmingswalletadres vereist een bestemmingstag / memo
@@ -321,7 +325,6 @@ asset_verification_warning_message = Iedereen kan er een maken, inclusief valse 
 asset_buy_asset = Koop %@
 asset_get_asset = %@ krijgen
 asset_add_to_wallet = Toevoegen aan portemonnee
-asset_hide_from_wallet = Verbergen voor portemonnee
 asset_added_to_wallet = Toegevoegd aan portemonnee
 asset_hidden_from_wallet = Verborgen voor portemonnee
 asset_resources = Bronnen
@@ -348,6 +351,7 @@ charts_price_change = Wijziging
 
 date_today = Vandaag
 date_yesterday = Gisteren
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Normaal
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Aangepast
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Als de prijs stijgt met
 price_alerts_set_alert_price_decreases_by = Als de prijs daalt met
 price_alerts_set_alert_set_target_price = Stel een doelprijs in
 price_alerts_set_alert_current_price = Huidige prijs
-price_alerts_added_for = Prijswaarschuwing instellen %@
+price_alerts_added_price_over = Melding toegevoegd voor prijs boven %@
+price_alerts_added_price_under = Melding toegevoegd voor prijs onder %@
+price_alerts_added_increases_by = Melding toegevoegd voor prijsstijging van %@
+price_alerts_added_decreases_by = Melding toegevoegd voor prijsdaling van %@
 price_alerts_state_empty_title = Uw meldingen verschijnen hier
 price_alerts_state_empty_description = Schakel ze in door munten toe te voegen aan de track
 price_alerts_auto_footer = Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Deze app heeft geen toestemm
 
 # Markets
 
-markets_title = Markten
-markets_state_empty_title = Uw marktgegevens verschijnen hier
 markets_daily_volume = 24-uurs volume
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Beveiligingswaarschuwing
+rootcheck_jailbreak_body = Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw wallet en tegoeden in gevaar brengen.
 rootcheck_body = Het lijkt erop dat uw apparaat root-toegang heeft, wat de beveiligingsrisico's aanzienlijk kan vergroten. Als u deze app op een geroot apparaat gebruikt, kunnen uw bezittingen worden blootgesteld aan ongeoorloofde toegang en mogelijk verlies. Voor de veiligheid van uw geld raden wij u ten zeerste aan een niet-geroot apparaat te gebruiken.
 rootcheck_ignore = Negeer
 rootcheck_exit = Afsluiten

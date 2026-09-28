@@ -1,13 +1,14 @@
 use crate::devices::body::read_verified_body;
 use crate::devices::signature::verify_request_auth;
 use crate::responders::cache_error;
-use gem_auth::{AuthClient, verify_auth_signature};
+use gem_auth::verify_auth_signature;
 use primitives::{AuthMessage, AuthenticatedRequest};
 use rocket::data::{FromData, Outcome, ToByteUnit};
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};
 use rocket::{Data, Request, State};
 use serde::de::DeserializeOwned;
+use services::auth::AuthClient;
 
 fn error_outcome<'r, T>(req: &'r Request<'_>, status: Status, message: &str) -> Outcome<'r, T, String> {
     cache_error(req, message);

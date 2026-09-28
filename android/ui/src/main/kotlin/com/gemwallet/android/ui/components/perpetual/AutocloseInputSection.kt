@@ -16,6 +16,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
@@ -26,27 +27,26 @@ import com.gemwallet.android.ui.localization.autocloseRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.space4
-import com.wallet.core.primitives.TpslType
+import uniffi.gemstone.GemAutocloseFieldState
 
 @Composable
-fun AutocloseInputSection(field: AutocloseUIModel.Field, text: String, onTextChanged: (String) -> Unit, onFocusChanged: (Boolean) -> Unit) {
+fun AutocloseInputSection(field: GemAutocloseFieldState, onTextChanged: (String) -> Unit, onFocusChanged: (Boolean) -> Unit) {
     SubheaderItem(
-        title = stringResource(field.type.autocloseRes()),
+        title = stringResource(field.tpslType.toPrimitives().autocloseRes()),
     )
     GemTextField(
         modifier = Modifier.onFocusChanged { onFocusChanged(it.isFocused) },
-        value = text,
+        value = field.text,
         onValueChange = onTextChanged,
         label = stringResource(R.string.asset_price),
         error = field.validation.stringRes()?.let { stringResource(it) }.orEmpty(),
         keyboardOptions = decimalKeyboardOptions(),
         listPosition = ListPosition.Single,
         errorDivider = true,
-        trailing = if (text.isNotEmpty()) {
+        trailing = if (field.text.isNotEmpty()) {
             {
                 Icon(
                     modifier = Modifier
@@ -72,22 +72,16 @@ fun AutocloseInputSection(field: AutocloseUIModel.Field, text: String, onTextCha
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
-            text = stringResource(
-                if (field.isProfit) {
-                    R.string.perpetual_auto_close_expected_profit
-                } else {
-                    R.string.perpetual_auto_close_expected_loss
-                },
-            ),
+            text = field.estimateTitle.string(LocalContext.current),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.secondary,
         )
         Text(
-            text = field.pnl?.string(LocalContext.current) ?: "-",
+            text = field.estimate?.string(LocalContext.current) ?: "-",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
-            color = field.pnlDirection.color(),
+            color = field.tone.color(),
         )
     }
 }

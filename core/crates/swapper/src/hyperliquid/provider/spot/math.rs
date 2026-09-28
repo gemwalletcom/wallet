@@ -62,11 +62,6 @@ pub fn scale_units(value: BigUint, from_decimals: u32, to_decimals: u32) -> Resu
     }
 }
 
-pub fn scale_quote_value(value: &str, from_decimals: u32, to_decimals: u32) -> Result<String, SwapperError> {
-    let amount = BigUint::from_str(value)?;
-    scale_units(amount, from_decimals, to_decimals).map(|v| v.to_string())
-}
-
 pub(super) fn apply_slippage(limit_price: &BigDecimal, side: SpotSide, slippage_bps: u32, price_decimals: u32) -> Result<BigDecimal, SwapperError> {
     if limit_price <= &BigDecimal::zero() {
         return Err(SwapperError::ComputeQuoteError("invalid limit price".into()));
@@ -197,11 +192,5 @@ mod tests {
     #[test]
     fn test_scale_units_precision_loss_rejected() {
         assert!(scale_units(BigUint::from(5u32), 3, 1).is_err());
-    }
-
-    #[test]
-    fn test_scale_quote_value() {
-        assert_eq!(scale_quote_value("123000000", 6, 8).unwrap(), "12300000000");
-        assert_eq!(scale_quote_value("12300000000", 8, 6).unwrap(), "123000000");
     }
 }

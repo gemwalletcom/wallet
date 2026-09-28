@@ -15,4 +15,3 @@ primitives = { path = "../primitives" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 settings = { path = "../settings" }
-storage = { path = "../storage" }

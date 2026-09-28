@@ -8,7 +8,7 @@ use crate::sql_types::{Currency, DeviceLocale, Platform, PlatformStore};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::devices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct DeviceRow {
+pub(crate) struct DeviceRow {
     pub id: i32,
     pub device_id: String,
     pub platform: Platform,
@@ -29,7 +29,7 @@ pub struct DeviceRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::devices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct UpdateDeviceRow {
+pub(crate) struct UpdateDeviceRow {
     pub device_id: String,
     pub platform: Platform,
     pub platform_store: PlatformStore,

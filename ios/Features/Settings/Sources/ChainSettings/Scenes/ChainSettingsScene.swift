@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemChainSettingsSection
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -15,7 +16,7 @@ public struct ChainSettingsScene: View {
 
     public var body: some View {
         List {
-            ForEach(model.sections) { section in
+            ForEach(model.sections, id: \.title) { section in
                 Section(section.title) {
                     content(for: section)
                 }
@@ -25,7 +26,7 @@ public struct ChainSettingsScene: View {
             await model.load()
         }
         .alert(
-            model.deleteConfirmationTitle(for: model.nodeDelete?.host ?? ""),
+            model.nodeDelete?.deletePrompt.text ?? "",
             presenting: $model.nodeDelete,
             sensoryFeedback: .warning,
             actions: { _ in
@@ -58,27 +59,27 @@ public struct ChainSettingsScene: View {
     }
 
     @ViewBuilder
-    private func content(for section: ChainSettingsSectionViewModel) -> some View {
-        switch section.kind {
-        case .nodes:
-            ForEach(model.nodesModels) { nodeModel in
-                SelectionView(value: nodeModel.url, selection: nodeModel.selection, action: model.onSelectNode) {
-                    ListItemView(model: nodeModel.listItem)
+    private func content(for section: GemChainSettingsSection) -> some View {
+        switch section {
+        case let .nodes(rows):
+            ForEach(rows, id: \.node.url) { row in
+                SelectionView(value: row.node.url, selection: row.node.isSelected ? row.node.url : nil, action: model.onSelectNode) {
+                    ListItemView(model: row.listItem)
                 }
                 .contextMenu(
-                    .copy(value: nodeModel.url),
+                    .copy(value: row.node.url),
                 )
-                .if(nodeModel.canDelete) {
+                .if(row.canDelete) {
                     $0.swipeActions(edge: .trailing) {
                         Button(model.deleteButtonTitle, role: .destructive) {
-                            model.onSelectNodeForDeletion(nodeModel.node)
+                            model.onSelectNodeForDeletion(row)
                         }
                         .tint(Colors.red)
                     }
                 }
             }
-        case .explorer:
-            ForEach(model.explorers, id: \.name) { explorer in
+        case let .explorers(rows):
+            ForEach(rows, id: \.name) { explorer in
                 ListItemSelectionView(
                     title: explorer.name,
                     titleExtra: .none,

@@ -1,6 +1,7 @@
 import Components
-import Formatters
+import struct Gemstone.GemPerpetualButtonRow
 import struct Gemstone.GemPerpetualPositionDetail
+import struct Gemstone.GemPerpetualPositionRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -22,24 +23,17 @@ public struct PerpetualScene: View {
     public var body: some View {
         @Bindable var chart = model.chart
         let details = model.details
-        let position = model.positionData(details)
 
         return List {
             Section {} header: {
                 VStack {
                     VStack {
-                        switch chart.state {
+                        switch chart.state(position: details.position) {
                         case .noData:
                             StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
                         case .loading: LoadingView()
                         case let .data(data):
-                            CandlestickChartView(
-                                model: CandlestickChartViewModel(
-                                    candles: data.candles,
-                                    period: data.period,
-                                    position: position?.position,
-                                ),
-                            )
+                            CandlestickChartView(chart: data)
                         case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,
@@ -58,15 +52,15 @@ public struct PerpetualScene: View {
             ForEach(details.sections, id: \.self) { section in
                 switch section {
                 case let .position(rows):
-                    if let position {
+                    if let positionRow = details.positionRow {
                         Section {
-                            positionContent(position, rows: rows)
+                            positionContent(positionRow, rows: rows)
                         } header: {
                             Text(section.title)
                         }
                     }
                 case let .info(buttons, rows):
-                    buttonsSection(model.buttonModels(buttons))
+                    buttonsSection(buttons)
                     Section(header: Text(section.title)) {
                         ForEach(rows, id: \.self) { row in
                             GemListRowView(row: row, onInfo: model.onInfo)
@@ -84,16 +78,16 @@ public struct PerpetualScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
         .alert(
             model.modifyTitle,
             presenting: $model.isPresentingModifyAlert,
             sensoryFeedback: .warning,
             actions: { _ in
-                ForEach(model.buttonModels(details.modifyButtons)) { button in
-                    Button(button.title, role: button.isDestructive ? .destructive : nil) {
-                        model.onSelect(button)
+                ForEach(details.modifyButtons, id: \.button) { row in
+                    Button(row.button.title, role: row.tone == .negative ? .destructive : nil) {
+                        model.onSelectButton(row.button)
                     }
                 }
                 Button(Localized.Common.cancel, role: .cancel) {}
@@ -112,29 +106,21 @@ public struct PerpetualScene: View {
         .onChange(of: chart.currentPeriod, model.onPeriodChange)
     }
 
-    private func buttonsSection(_ buttons: [PerpetualButtonViewModel]) -> some View {
+    private func buttonsSection(_ buttons: [GemPerpetualButtonRow]) -> some View {
         Section {
             HStack(spacing: Spacing.medium) {
-                ForEach(buttons) { button in
-                    Button(button.title) { model.onSelect(button) }
+                ForEach(buttons, id: \.button) { row in
+                    Button(row.button.title) { model.onSelectButton(row.button) }
                         .frame(maxWidth: .infinity)
-                        .buttonStyle(style(for: button))
+                        .buttonStyle(row.tone.buttonStyle)
                 }
             }
         }
     }
 
-    private func style(for button: PerpetualButtonViewModel) -> ColorButtonStyle {
-        switch button.style {
-        case .green: .green()
-        case .red: .red()
-        case .blue: .blue()
-        }
-    }
-
     @ViewBuilder
-    private func positionContent(_ position: PerpetualPositionData, rows: [GemPerpetualPositionDetail]) -> some View {
-        ListAssetItemView(model: PerpetualPositionItemViewModel(data: position))
+    private func positionContent(_ row: GemPerpetualPositionRow, rows: [GemPerpetualPositionDetail]) -> some View {
+        ListAssetItemView(row: row.row)
 
         ForEach(rows, id: \.kind) { detail in
             switch detail.kind {

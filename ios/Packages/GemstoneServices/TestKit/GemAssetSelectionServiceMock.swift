@@ -9,13 +9,18 @@ import typealias Gemstone.Chain
 import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import enum Gemstone.GemNftItem
+import struct Gemstone.GemNftEntry
 import enum Gemstone.GemSearchScope
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
+import struct Gemstone.GemSelectAssetWalletFlow
+import struct Gemstone.GemToast
+import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchLimits
+import struct Gemstone.GemWalletSearchView
 import typealias Gemstone.NftData
 import struct Gemstone.Wallet
+import func Gemstone.walletSearchState
 import enum Gemstone.WalletType
 import Primitives
 
@@ -38,7 +43,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public var tokensSupported = true
-    public var nftSearchItems: [GemNftItem] = []
+    public var nftSearchItems: [GemNftEntry] = []
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
 
@@ -46,12 +51,29 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         selectType.flow()
     }
 
-    public func searchDebounceMilliseconds() -> UInt64 {
-        250
-    }
-
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
+    }
+
+    public func walletSearchView(input: GemWalletSearchInput) -> GemWalletSearchView {
+        let limits = walletSearchLimits(query: input.query)
+        let showsRecents = flow(selectType: .walletSearch).showsRecents(isSearching: input.query.isNotEmpty, hasRecents: input.counts.recents > 0)
+        var counts = input.counts
+        if !showsRecents {
+            counts.recents = 0
+        }
+        if !perpetualsShown {
+            counts.perpetuals = 0
+            counts.pinnedPerpetuals = 0
+        }
+        return GemWalletSearchView(
+            state: walletSearchState(counts: counts, isLoading: input.isLoading),
+            limits: limits,
+            hasMoreAssets: counts.assets > limits.assets,
+            hasMorePerpetuals: counts.perpetuals > limits.perpetuals,
+            hasMoreNfts: counts.nfts > limits.nfts,
+            emptyState: walletFlow(selectType: .walletSearch, wallet: input.wallet).emptyState,
+        )
     }
 
     public var perpetualsShown = true
@@ -64,16 +86,21 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         perpetualsShown
     }
 
-    public func searchCollections(data _: [NftData], query _: String) -> [GemNftItem] {
+    public func searchCollections(data _: [NftData], query _: String) -> [GemNftEntry] {
         nftSearchItems
     }
 
-    public func supportsTokens(wallet _: Gemstone.Wallet?) -> Bool {
-        tokensSupported
-    }
-
-    public func filterChains(wallet _: Gemstone.Wallet) -> [Gemstone.Chain] {
-        filterChainsResult
+    public func walletFlow(selectType: GemSelectAssetType, wallet: Gemstone.Wallet) -> GemSelectAssetWalletFlow {
+        let flow = selectType.flow()
+        let hasChains = filterChainsResult.isNotEmpty
+        let showsAddToken = flow.addCustomToken && tokensSupported && hasChains
+        return GemSelectAssetWalletFlow(
+            flow: flow,
+            chains: filterChainsResult,
+            showsAddToken: showsAddToken,
+            showsChainFilter: flow.chainFilter && wallet.walletType == .multicoin && hasChains,
+            emptyState: .mock(actions: showsAddToken ? [.addCustomToken] : []),
+        )
     }
 
     public func search(query _: String, scope _: GemSearchScope) async throws -> Bool {
@@ -91,12 +118,14 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         }
     }
 
-    public func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {
-        onSetAssetPinned?(assetId, pinned)
+    public func setAssetPinned(asset: Asset, pinned: Bool) async throws -> GemToast {
+        onSetAssetPinned?(asset.id, pinned)
+        return GemToast(text: .pinned(name: asset.name, pinned: pinned), icon: pinned ? .pin : .unpin)
     }
 
-    public func setPerpetualPinned(perpetualId: String, pinned: Bool) async throws {
+    public func setPerpetualPinned(perpetualId: String, name: String, pinned: Bool) async throws -> GemToast {
         pinnedPerpetuals.append((perpetualId, pinned))
+        return GemToast(text: .pinned(name: name, pinned: pinned), icon: pinned ? .pin : .unpin)
     }
 
     public func searchAssets(query _: String) async throws -> [AssetBasic] {
@@ -108,9 +137,10 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {
         onSetAssetsEnabled?(assetIds, enabled)
+        if let error {
+            throw error
+        }
     }
 
     public func addRecent(action _: GemAssetAction, asset _: Asset) async throws {}
-
-    public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
 }

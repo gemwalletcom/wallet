@@ -1,29 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemNotificationRow
 import Localization
 import PrimitivesComponents
 import Store
 import SwiftUI
 
 public struct InAppNotificationsScene: View {
-    @State private var model: InAppNotificationsViewModel
+    @State private var model: InAppNotificationsSceneViewModel
 
-    public init(model: InAppNotificationsViewModel) {
+    public init(model: InAppNotificationsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        List {
+        let sections = model.sections
+        return List {
             if let error = model.loadError {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
             }
-            ForEach(model.sections) { section in
+            ForEach(sections) { section in
                 Section(header: section.title.map { Text($0) }) {
-                    ForEach(section.values) { itemModel in
-                        notificationRow(itemModel)
+                    ForEach(section.values) { row in
+                        notificationRow(row)
                     }
                 }
             }
@@ -31,7 +33,7 @@ public struct InAppNotificationsScene: View {
         }
         .listSectionSpacing(.compact)
         .overlay {
-            if model.sections.isEmpty, model.loadError == nil {
+            if sections.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
@@ -41,9 +43,9 @@ public struct InAppNotificationsScene: View {
     }
 
     @ViewBuilder
-    private func notificationRow(_ itemModel: InAppNotificationListItemViewModel) -> some View {
-        let view = ListItemView(model: itemModel.listItemModel)
-        if let destination = itemModel.destination {
+    private func notificationRow(_ row: GemNotificationRow) -> some View {
+        let view = ListItemView(model: row.listItem)
+        if let destination = row.destination {
             NavigationCustomLink(with: view) {
                 model.open(destination: destination)
             }

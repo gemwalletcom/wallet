@@ -1,64 +1,32 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.gemwallet.android.service.store"
-    compileSdk = 37
+    namespace = "com.gemwallet.android.data.services.store"
 
     defaultConfig {
-        minSdk = 28
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
-    }
     testFixtures {
         enable = true
     }
 
-    sourceSets {
-        getByName("androidTest") {
-            assets {
-                directories.add("$projectDir/schemas")
-            }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
         }
     }
 
-    packaging {
-        resources {
-            excludes += "META-INF/*"
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "/META-INF/LICENSE-notice.md"
-            excludes += "/META-INF/LICENSE.md"
-            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+    sourceSets {
+        getByName("test") {
+            assets {
+                directories.add("$projectDir/schemas")
+            }
         }
     }
 }
@@ -77,8 +45,5 @@ dependencies {
     implementation(libs.ktx.core)
     testImplementation(libs.junit)
     testImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit.runner)
-    androidTestImplementation(libs.room.testing)
-    androidTestImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.room.testing)
 }

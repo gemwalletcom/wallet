@@ -7,7 +7,7 @@ use crate::sql_types::{ChainRow, NftAssetIdRow, NftCollectionIdRow, NftType};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::nft_assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NftAssetRow {
+pub(crate) struct NftAssetRow {
     pub id: i32,
     pub identifier: NftAssetIdRow,
     pub collection_id: i32,
@@ -27,7 +27,7 @@ pub struct NftAssetRow {
 #[derive(Debug, Insertable, AsChangeset, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::nft_assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewNftAssetRow {
+pub(crate) struct NewNftAssetRow {
     pub identifier: NftAssetIdRow,
     pub collection_id: i32,
     pub chain: ChainRow,

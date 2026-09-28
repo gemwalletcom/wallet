@@ -21,10 +21,6 @@ impl<C: Client> ChainBalances for AlgorandProvider<C> {
         Ok(map_balance_tokens(&account, token_ids, self.get_chain()))
     }
 
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         let account = self.get_account(&address).await?;
         let asset_balances: Vec<AssetBalance> = account

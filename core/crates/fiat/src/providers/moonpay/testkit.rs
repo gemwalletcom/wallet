@@ -30,7 +30,7 @@ impl Asset {
         Self {
             code: code.to_string(),
             metadata: Some(CurrencyMetadata {
-                contract_address: contract_address.map(|s| s.to_string()),
+                contract_address: contract_address.map(ToString::to_string),
                 network_code: network_code.to_string(),
             }),
             is_suspended: Some(false),

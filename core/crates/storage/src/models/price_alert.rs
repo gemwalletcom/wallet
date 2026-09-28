@@ -8,7 +8,7 @@ use crate::sql_types::{AssetId, Currency, PriceAlertDirectionRow};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::price_alerts)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PriceAlertRow {
+pub(crate) struct PriceAlertRow {
     pub identifier: String,
     pub device_id: i32,
     pub asset_id: AssetId,
@@ -22,7 +22,7 @@ pub struct PriceAlertRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::price_alerts)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewPriceAlertRow {
+pub(crate) struct NewPriceAlertRow {
     pub identifier: String,
     pub device_id: i32,
     pub asset_id: AssetId,

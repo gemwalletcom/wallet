@@ -4,8 +4,8 @@ use primitives::{AssetId as PrimitiveAssetId, AssetMarket, AssetPriceInfo, Chart
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-use crate::database::prices::PriceUpdate;
 use crate::models::min_max::MinMax;
+use crate::repositories::prices_repository::PriceUpdate;
 
 use crate::sql_types::{AssetId, PriceId, PriceProviderRow};
 
@@ -14,7 +14,7 @@ use super::AssetRow;
 #[derive(Debug, Queryable, Selectable, Identifiable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::prices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PriceRow {
+pub(crate) struct PriceRow {
     pub id: PriceId,
     pub provider: PriceProviderRow,
     pub price: f64,
@@ -31,7 +31,7 @@ pub struct PriceRow {
 #[derive(Debug, Selectable, Identifiable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::prices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewPriceRow {
+pub(crate) struct NewPriceRow {
     pub id: PriceId,
     pub provider: PriceProviderRow,
     pub price: f64,
@@ -76,18 +76,17 @@ impl PricesChangeset {
 }
 
 impl NewPriceRow {
-    pub fn with_market_data(provider: PriceProvider, provider_price_id: String, market: Option<&AssetMarket>, price: Option<f64>, price_change_percentage_24h: Option<f64>) -> Self {
-        let id = PrimitivePriceId::new(provider, provider_price_id);
+    pub fn from_price_data(data: PriceData) -> Self {
         Self {
-            id: id.into(),
-            provider: provider.into(),
-            price: price.unwrap_or(0.0),
-            price_change_percentage_24h: price_change_percentage_24h.filter(|_| provider.supports_price_change_24h()),
-            all_time_high: market.and_then(|m| m.all_time_high).unwrap_or(0.0),
-            all_time_high_date: market.and_then(|m| m.all_time_high_date).map(|d| d.naive_utc()),
-            all_time_low: market.and_then(|m| m.all_time_low).unwrap_or(0.0),
-            all_time_low_date: market.and_then(|m| m.all_time_low_date).map(|d| d.naive_utc()),
-            total_volume: market.and_then(|m| m.total_volume),
+            id: data.id.into(),
+            provider: data.provider.into(),
+            price: data.price,
+            price_change_percentage_24h: data.provider.supports_price_change_24h().then_some(data.price_change_percentage_24h),
+            all_time_high: data.all_time_high,
+            all_time_high_date: data.all_time_high_date.map(|date| date.naive_utc()),
+            all_time_low: data.all_time_low,
+            all_time_low_date: data.all_time_low_date.map(|date| date.naive_utc()),
+            total_volume: data.total_volume,
         }
     }
 }
@@ -95,26 +94,20 @@ impl NewPriceRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::prices_assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PriceAssetRow {
+pub(crate) struct PriceAssetRow {
     pub asset_id: AssetId,
     pub price_id: PriceId,
     pub provider: PriceProviderRow,
 }
 
 impl PriceAssetRow {
-    pub fn new(asset_id: PrimitiveAssetId, provider: PriceProvider, provider_price_id: &str) -> Self {
+    pub fn new(asset_id: PrimitiveAssetId, price_id: PrimitivePriceId) -> Self {
         PriceAssetRow {
             asset_id: asset_id.into(),
-            price_id: PrimitivePriceId::new(provider, provider_price_id.to_string()).into(),
-            provider: provider.into(),
+            provider: price_id.provider.into(),
+            price_id: price_id.into(),
         }
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Queryable)]
-pub struct PriceAssetDataRow {
-    pub asset: AssetRow,
-    pub price: Option<PriceRow>,
 }
 
 impl PartialEq for PriceAssetRow {
@@ -137,36 +130,6 @@ impl Hash for PriceRow {
 }
 
 impl PriceRow {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        provider: PriceProvider,
-        provider_price_id: String,
-        price: f64,
-        price_change_percentage_24h: Option<f64>,
-        all_time_high: f64,
-        all_time_high_date: Option<NaiveDateTime>,
-        all_time_low: f64,
-        all_time_low_date: Option<NaiveDateTime>,
-        market_cap_rank: Option<i32>,
-        total_volume: Option<f64>,
-        last_updated_at: NaiveDateTime,
-    ) -> Self {
-        let id = PrimitivePriceId::new(provider, provider_price_id);
-        PriceRow {
-            id: id.into(),
-            provider: provider.into(),
-            price,
-            price_change_percentage_24h,
-            last_updated_at,
-            all_time_high,
-            all_time_high_date,
-            all_time_low,
-            all_time_low_date,
-            market_cap_rank,
-            total_volume,
-        }
-    }
-
     pub(crate) fn merge_extremes_from_charts(&self, extremes: MinMax<f64>) -> Vec<PriceUpdate> {
         let mut updates = Vec::new();
         if let Some(point) = extremes.max

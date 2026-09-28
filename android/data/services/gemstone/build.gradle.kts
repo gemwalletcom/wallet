@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.devtools.ksp")
@@ -8,50 +5,14 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.data.services.gemstone"
-    compileSdk = 37
 
-    defaultConfig {
-        minSdk = 28
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
     testOptions {
         unitTests {
             isReturnDefaultValues = true
         }
     }
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
-    }
     buildFeatures {
         buildConfig = true
-    }
-    packaging {
-        resources {
-            excludes += "META-INF/*"
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "/META-INF/LICENSE-notice.md"
-            excludes += "/META-INF/LICENSE.md"
-            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
-        }
     }
 }
 
@@ -65,15 +26,12 @@ dependencies {
 
     implementation(libs.datastore)
 
+    implementation(libs.androidx.biometric)
     implementation(libs.ktx.core)
     testImplementation(testFixtures(project(":data:services:store")))
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
-    androidTestImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit.runner)
-    androidTestImplementation(libs.room.runtime)
-    androidTestImplementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.room.runtime)
 }

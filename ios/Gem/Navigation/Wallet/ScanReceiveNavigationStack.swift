@@ -4,7 +4,6 @@ import Assets
 import Primitives
 import PrimitivesComponents
 import QRScanner
-import Recents
 import Style
 import SwiftUI
 
@@ -20,7 +19,7 @@ struct ScanReceiveNavigationStack: View {
             Group {
                 switch model.mode {
                 case .scan:
-                    QRScannerScene(resources: QRScanResources(), scanType: .universal, action: { model.onScan?($0) })
+                    QRScannerScene(scanType: .universal, action: { model.onScan?($0) })
                 case .receive:
                     SelectAssetScene(model: model.selectAssetModel)
                 }
@@ -33,16 +32,16 @@ struct ScanReceiveNavigationStack: View {
                 )
                 ToolbarItem(placement: .principal) {
                     Picker("", selection: $model.mode) {
-                        ForEach(model.modeModels) { modeModel in
-                            Text(modeModel.title)
-                                .tag(modeModel.mode)
+                        ForEach(ScanReceiveMode.allCases, id: \.self) { mode in
+                            Text(mode.title)
+                                .tag(mode)
                         }
                     }
                     .pickerStyle(.segmented)
                     .frame(width: Sizing.picker.segmentedWidth)
                 }
             }
-            .onChange(of: model.selectAssetModel.assetSelection, model.onChangeAssetSelection)
+            .onChange(of: model.selectAssetModel.route, model.onChangeRoute)
         }
         .id(model.mode)
         .sheet(item: $model.isPresentingReceive) { input in

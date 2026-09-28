@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemLockPeriod
 import Foundation
 import Keychain
 import LocalAuthentication
@@ -28,11 +29,11 @@ public final class LocalKeystorePassword: KeystorePassword {
         return KeystoreAuthentication(rawValue: value) ?? .none
     }
 
-    public func getAuthenticationLockPeriod() throws -> LockPeriod? {
+    public func getAuthenticationLockPeriod() throws -> GemLockPeriod? {
         guard let option = try keychain.get(Keys.passwordAuthenticationPeriod) else {
             return .none
         }
-        return LockPeriod(rawValue: option)
+        return GemLockPeriod(keychainValue: option)
     }
 
     public func getPrivacyLockStatus() throws -> PrivacyLockStatus? {
@@ -46,8 +47,8 @@ public final class LocalKeystorePassword: KeystorePassword {
         try keychain.set(status.rawValue, key: Keys.passwordAuthenticationPrivacyLock)
     }
 
-    public func setAuthenticationLockPeriod(period: LockPeriod) throws {
-        try keychain.set(period.rawValue, key: Keys.passwordAuthenticationPeriod)
+    public func setAuthenticationLockPeriod(period: GemLockPeriod) throws {
+        try keychain.set(period.keychainValue, key: Keys.passwordAuthenticationPeriod)
     }
 
     public func enableAuthentication(_ enable: Bool, context: LAContext) throws {
@@ -120,6 +121,31 @@ extension LAContext {
         canEvaluatePolicy(policy, error: &error)
         if let error {
             throw error
+        }
+    }
+}
+
+private extension GemLockPeriod {
+    init?(keychainValue: String) {
+        switch keychainValue {
+        case "immediate": self = .immediate
+        case "oneMinute": self = .oneMinute
+        case "fiveMinutes": self = .fiveMinutes
+        case "fifteenMinutes": self = .fifteenMinutes
+        case "oneHour": self = .oneHour
+        case "sixHours": self = .sixHours
+        default: return nil
+        }
+    }
+
+    var keychainValue: String {
+        switch self {
+        case .immediate: "immediate"
+        case .oneMinute: "oneMinute"
+        case .fiveMinutes: "fiveMinutes"
+        case .fifteenMinutes: "fifteenMinutes"
+        case .oneHour: "oneHour"
+        case .sixHours: "sixHours"
         }
     }
 }

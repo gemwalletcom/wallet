@@ -1,7 +1,7 @@
 use crate::{
     FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
-    approval::{check_approval_erc20_with_client, check_approval_permit2_with_client, get_swap_gas_limit_with_approval},
+    approval::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     eth_address,
     fees::{apply_slippage_in_bp, default_referral_fees},
     models::*,
@@ -22,9 +22,9 @@ use gem_evm::{
     jsonrpc::EthereumRpc,
     uniswap::command::{Permit2Permit, encode_commands},
 };
-use gem_jsonrpc::client::JsonRpcClient;
+use gem_jsonrpc::{alien::create_client, client::JsonRpcClient};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
+use primitives::{AssetId, Chain, EVMChain};
 use std::{fmt, str::FromStr, sync::Arc};
 
 use super::{UniversalRouterProvider, commands::build_commands, path::build_paths_with_routes};
@@ -50,12 +50,6 @@ impl UniswapV3 {
         self.provider.get_deployment_by_chain(chain).is_some()
     }
 
-    fn client_for(&self, chain: Chain) -> Result<JsonRpcClient<RpcClient>, SwapperError> {
-        let endpoint = self.rpc_provider.get_endpoint(chain).map_err(SwapperError::from)?;
-        let client = RpcClient::new(endpoint, self.rpc_provider.clone());
-        Ok(JsonRpcClient::new(client))
-    }
-
     fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, U256), SwapperError> {
         let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), PROTOCOL)?;
         let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
@@ -66,7 +60,7 @@ impl UniswapV3 {
         let deployment = self.provider.get_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
-        let client = self.client_for(chain)?;
+        let client = create_client(self.rpc_provider.clone(), chain)?;
         let fee_tiers = self.provider.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, crate::uniswap::swap_route::get_intermediaries(&token_in, &token_out, &base_pair));
         let pools = self.pool_discovery.missing_pools(chain, &pairs, &fee_tiers);
@@ -129,7 +123,7 @@ impl Swapper for UniswapV3 {
         let (evm_chain, input, output, from_value) = Self::routed_request(request)?;
         let (token_in, token_out) = (input.address, output.address);
 
-        let client = self.client_for(from_chain)?;
+        let client = create_client(self.rpc_provider.clone(), from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
@@ -203,24 +197,13 @@ impl Swapper for UniswapV3 {
         })
     }
 
-    async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
-        let from_asset = quote.request.from_asset.asset_id();
-        let (_, input, _, amount_in) = Self::routed_request(&quote.request)?;
-        if input.funding != Funding::Permit2 {
-            return Ok(None);
-        }
-        let client = self.client_for(from_asset.chain)?;
-        let wallet_address = eth_address::parse_str(&quote.request.wallet_address)?;
-        self.check_permit2_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_asset.chain).await
-    }
-
     async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_chain = request.from_asset.chain();
         let (evm_chain, input, output, amount_in) = Self::routed_request(request)?;
         let deployment = self.provider.get_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
 
-        let client = self.client_for(from_chain)?;
+        let client = create_client(self.rpc_provider.clone(), from_chain)?;
 
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
@@ -229,12 +212,17 @@ impl Swapper for UniswapV3 {
         let wallet_address = eth_address::parse_str(&request.wallet_address)?;
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
-        let approval: Option<ApprovalData> = if input.funding == Funding::Permit2 {
-            self.check_erc20_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_chain).await?.approval_data()
+        let (approval, permit2) = if input.funding == Funding::Permit2 {
+            let approval = self.check_erc20_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_chain).await?.approval_data();
+            let permit2 = match permit {
+                Some(_) => None,
+                None => self.check_permit2_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_chain).await?,
+            };
+            (approval, permit2)
         } else {
-            None
+            (None, None)
         };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_SWAP_GAS_LIMIT);
+        let gas_limit = (approval.is_some() || permit2.is_some()).then(|| DEFAULT_SWAP_GAS_LIMIT.to_string());
 
         let sig_deadline = get_sig_deadline();
 
@@ -250,7 +238,10 @@ impl Swapper for UniswapV3 {
             Funding::Permit2 => BigUint::ZERO,
         };
 
-        Ok(SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit))
+        Ok(SwapperQuoteData {
+            permit2,
+            ..SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit)
+        })
     }
 }
 

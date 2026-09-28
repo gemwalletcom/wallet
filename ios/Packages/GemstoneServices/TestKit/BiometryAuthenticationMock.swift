@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemLockPeriod
 import class Gemstone.GemSecurityService
 import GemstoneServices
 import LocalAuthentication
@@ -9,7 +10,7 @@ import Primitives
 public final class BiometryAuthenticationMock: BiometryAuthenticatable, @unchecked Sendable {
     public var requiresAuthentication: Bool
     public var availableAuthentication: KeystoreAuthentication
-    public var lockPeriod: LockPeriod
+    public var lockPeriod: GemLockPeriod
     public var isPrivacyLockEnabled: Bool
 
     public var authenticateError: (any Error)?
@@ -21,14 +22,14 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public private(set) var authenticateCallsCount = 0
     public private(set) var enableCalls: [Bool] = []
     public private(set) var privacyLockCalls: [Bool] = []
-    public private(set) var lockPeriodCalls: [LockPeriod] = []
+    public private(set) var lockPeriodCalls: [GemLockPeriod] = []
 
     private var holdContinuations: [CheckedContinuation<Void, Never>] = []
 
     public init(
         requiresAuthentication: Bool = true,
         availableAuthentication: KeystoreAuthentication = .biometrics,
-        lockPeriod: LockPeriod = .default,
+        lockPeriod: GemLockPeriod = .default,
         isPrivacyLockEnabled: Bool = false,
     ) {
         self.requiresAuthentication = requiresAuthentication
@@ -40,7 +41,7 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
         GemSecurityService().shouldRelock(
             elapsedMilliseconds: elapsedMilliseconds,
-            lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
+            lockIntervalMinutes: lockPeriod.minutes(),
             authRequired: requiresAuthentication,
         )
     }
@@ -69,7 +70,7 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
         }
     }
 
-    public func update(period: LockPeriod) throws {
+    public func update(period: GemLockPeriod) throws {
         lockPeriodCalls.append(period)
         if let lockPeriodError {
             throw lockPeriodError

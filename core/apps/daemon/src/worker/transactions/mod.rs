@@ -1,82 +1,42 @@
-mod in_transit_updater;
-mod pending_transactions_updater;
-mod vault_addresses_updater;
-
-use cacher::CacherClient;
-use config_keys::{ConfigKey, ConfigParamKey};
-use in_transit_updater::{InTransitConfig, InTransitUpdater};
-use job_runner::{JobHandle, ShutdownReceiver};
-use pending_transactions_updater::{PendingTransactionsUpdater, PendingTransactionsUpdaterConfig};
-use primitives::{JobConfiguration, SwapProvider};
-use settings::service_user_agent;
-use settings_chain::{ChainProviders, ProviderFactory};
 use std::error::Error;
 use std::sync::Arc;
-use storage::ConfigCacher;
-use streamer::{StreamProducer, StreamProducerConfig};
-use swapper::NativeProvider;
-use swapper::swapper::GemSwapper;
-use vault_addresses_updater::VaultAddressesUpdater;
 
-use crate::client::SwapVaultAddressClient;
+use config_keys::ConfigParamKey;
+use job_runner::{JobHandle, ShutdownReceiver};
+use primitives::SwapProvider;
+
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
 
 pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let database = ctx.database();
-    let settings = ctx.settings();
-    let config = ConfigCacher::new(database.clone());
-
-    let in_transit_config = InTransitConfig {
-        timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout)?,
-        query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit)?,
-        check_interval: JobConfiguration {
-            initial_interval_ms: config.get_duration(ConfigKey::TransactionTimerInTransitUpdate)?.as_millis() as u32,
-            max_interval_ms: config.get_duration(ConfigKey::TransactionInTransitMaxCheckInterval)?.as_millis() as u32,
-            step_factor: config.get_f64(ConfigKey::TransactionInTransitCheckIntervalFactor)? as f32,
-        },
-    };
-    let pending_config = PendingTransactionsUpdaterConfig::from_config(&config)?;
-
-    let endpoints = ProviderFactory::get_chain_endpoints(&settings);
-    let providers = Arc::new(ChainProviders::from_settings(&settings, &service_user_agent("daemon", Some("transactions"))));
-    let swapper = Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(endpoints))));
-
-    let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
-    let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
-    let stream_producer = StreamProducer::new(&rabbitmq_config, "transactions_worker", shutdown_rx.clone()).await?;
-    let cacher = CacherClient::new(&settings.redis.url).await?;
-    let in_transit_updater = Arc::new(InTransitUpdater::new(
-        database.clone(),
-        in_transit_config,
-        swapper.clone(),
-        stream_producer.clone(),
-        SwapVaultAddressClient::new(cacher.clone()),
-    ));
-    let pending_updater = Arc::new(PendingTransactionsUpdater::new(providers.clone(), cacher.clone(), stream_producer.clone(), database.clone(), pending_config));
+    let services = ctx.services();
+    let config = services.config();
+    let stream_producer = services.stream_producer("transactions_worker", shutdown_rx.clone()).await?;
+    let transactions = services.transaction_jobs(stream_producer).await?;
 
     ctx.plan_builder(WorkerService::Transactions, &config, shutdown_rx)
         .job(WorkerJob::UpdateInTransitTransactions, {
-            let updater = in_transit_updater.clone();
+            let updater = transactions.in_transit_updater();
             move |_| {
                 let updater = updater.clone();
                 async move { updater.update().await }
             }
         })
         .job(WorkerJob::UpdatePendingTransactions, {
-            let updater = pending_updater.clone();
+            let updater = transactions.pending_updater();
             move |_| {
                 let updater = updater.clone();
                 async move { updater.update().await }
             }
         })
         .jobs_with_config(WorkerJob::UpdateSwapVaultAddresses, SwapProvider::cross_chain_providers(), ConfigParamKey::SwapperVaultAddresses, |provider, _| {
-            let updater = Arc::new(VaultAddressesUpdater::new(swapper.clone(), cacher.clone()));
+            let updater = Arc::new(transactions.vault_addresses_updater());
             move |ctx| {
                 let updater = updater.clone();
                 async move { updater.update(provider, ctx.last_success_at).await }
             }
         })
         .finish()
+        .await
 }

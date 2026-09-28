@@ -1,0 +1,22 @@
+{
+  "result": {
+    "account": "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW",
+    "account_objects": [
+      {
+        "Balance": { "currency": "524C555344000000000000000000000000000000", "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji", "value": "0" },
+        "Flags": 65536,
+        "HighLimit": { "currency": "524C555344000000000000000000000000000000", "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De", "value": "0" },
+        "LedgerEntryType": "RippleState",
+        "LowLimit": { "currency": "524C555344000000000000000000000000000000", "issuer": "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW", "value": "6900000000000000e-4" }
+      },
+      {
+        "Balance": { "currency": "5553444300000000000000000000000000000000", "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji", "value": "-5" },
+        "Flags": 131072,
+        "HighLimit": { "currency": "5553444300000000000000000000000000000000", "issuer": "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW", "value": "1000000" },
+        "LedgerEntryType": "RippleState",
+        "LowLimit": { "currency": "5553444300000000000000000000000000000000", "issuer": "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE", "value": "0" }
+      }
+    ],
+    "status": "success"
+  }
+}

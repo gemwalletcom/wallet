@@ -9,6 +9,7 @@
   <string name="common_copy">Nakili</string>
   <string name="common_share">Shiriki</string>
   <string name="common_continue">Endelea</string>
+  <string name="common_continue_anyway">Endelea hata hivyo</string>
   <string name="common_sign_in_with">Ingia kwa %1$s</string>
   <string name="common_provider">Mtoa huduma</string>
   <string name="common_loading">Inapakia</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Maelezo</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Hifadhi</string>
   <string name="common_percentage">Asilimia</string>
   <string name="common_details">Maelezo</string>
   <string name="common_info">Habari</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Tokeni</string>
   <string name="common_expiration">Muda wa kuisha</string>
   <string name="common_suspicious_address">Anwani ya kutiliwa shaka</string>
+  <string name="common_suspicious_address_description">Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="common_refresh">Onyesha upya</string>
   <string name="common_grant_permission">Toa ruhusa</string>
   <string name="common_required_field">%1$s inahitajika</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Kwingineko</string>
   <string name="wallet_import_already_imported_message">Pochi hii tayari imeingizwa.</string>
   <string name="wallets_title">Pochi</string>
-  <string name="wallets_watch">Tazama</string>
-  <string name="receive_title">Pokea %1$s</string>
   <string name="receive_warning">Hii ni anwani yako — tuma pekee %1$s kwenye %2$s mtandao.</string>
   <string name="buy_title">Nunua %1$s</string>
   <string name="buy_providers_title">Watoa huduma</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Uthibitishaji</string>
   <string name="settings_notifications_title">Arifa</string>
   <string name="settings_language">Lugha</string>
-  <string name="settings_help_center">Kituo cha Usaidizi</string>
   <string name="settings_support">Msaada</string>
   <string name="settings_price_alerts_title">Tahadhari za Bei</string>
   <string name="settings_hide_balance">Ficha Salio</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Kipengee hakitumiki.</string>
   <string name="errors_connections_no_supported_wallets">Hakuna pochi zinazotumika zinazopatikana.</string>
   <string name="errors_connections_unsupported_chain">Msururu uliotolewa hautumiki.</string>
+  <string name="errors_authentication_unavailable">Uthibitishaji haujawekwa kwenye kifaa hiki. Washa bayometriki au nambari ya siri kwenye mipangilio ya kifaa.</string>
+  <string name="errors_authentication_locked_out">Majaribio mengi mno yameshindwa. Tafadhali jaribu tena baadaye.</string>
+  <string name="errors_authentication_failed">Uthibitishaji umeshindwa. Tafadhali jaribu tena.</string>
+  <string name="errors_connections_expired">Kiungo hiki cha muunganisho kimeisha muda. Pata msimbo mpya wa QR na ujaribu tena.</string>
+  <string name="errors_connections_not_found">Muunganisho huu haupo tena.</string>
+  <string name="errors_connections_relay_unavailable">Imeshindwa kufikia WalletConnect. Angalia muunganisho wako wa intaneti na ujaribu tena.</string>
   <string name="errors_swap_amount_too_small">Kiasi kidogo sana</string>
   <string name="errors_scan_transaction_malicious_description">Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="errors_scan_transaction_memo_required">%1$s anwani ya mkoba lengwa inahitaji lebo/memo lengwa</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">Nunua %1$s</string>
   <string name="asset_get_asset">Pata %1$s</string>
   <string name="asset_add_to_wallet">Ongeza kwenye mkoba</string>
-  <string name="asset_hide_from_wallet">Ficha kutoka kwa mkoba</string>
   <string name="asset_added_to_wallet">Imeongezwa kwenye mkoba</string>
   <string name="asset_hidden_from_wallet">Imefichwa kutoka kwa mkoba</string>
   <string name="asset_resources">Rasilimali</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Mabadiliko</string>
   <string name="date_today">Leo</string>
   <string name="date_yesterday">Jana</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Muunganisho</string>
   <string name="wallet_connect_disconnect">Tenganisha</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Haraka</string>
   <string name="fee_rates_normal">Kawaida</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Maalum</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Wakati bei inapungua kwa</string>
   <string name="price_alerts_set_alert_set_target_price">Weka bei inayolengwa</string>
   <string name="price_alerts_set_alert_current_price">Bei ya sasa</string>
-  <string name="price_alerts_added_for">Weka arifa ya bei %1$s</string>
+  <string name="price_alerts_added_price_over">Arifa imeongezwa kwa bei iliyo juu ya %1$s</string>
+  <string name="price_alerts_added_price_under">Arifa imeongezwa kwa bei iliyo chini ya %1$s</string>
+  <string name="price_alerts_added_increases_by">Arifa imeongezwa kwa ongezeko la bei la %1$s</string>
+  <string name="price_alerts_added_decreases_by">Arifa imeongezwa kwa kushuka kwa bei kwa %1$s</string>
   <string name="price_alerts_state_empty_title">Arifa zako zitaonekana hapa</string>
   <string name="price_alerts_state_empty_description">Wawezeshe kwa kuongeza sarafu ili kufuatilia</string>
   <string name="price_alerts_auto_footer">Arifa hutumwa kunapokuwa na mabadiliko makubwa ya bei.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Ripoti</string>
   <string name="permissions_access_denied">Ufikiaji Umekataliwa</string>
   <string name="permissions_image_photo_access_denied_description">Programu hii haina ruhusa ya kufikia maktaba yako ya picha. Tafadhali wezesha ufikiaji katika mipangilio ya kifaa chako.</string>
-  <string name="markets_title">Masoko</string>
-  <string name="markets_state_empty_title">Data yako ya masoko itaonekana hapa</string>
   <string name="markets_daily_volume">Kiasi cha 24h</string>
   <string name="search_state_empty_description">Angalia tahajia au jaribu utafutaji mpya.</string>
   <string name="networks_state_empty_search_title">Hakuna mitandao iliyopatikana</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Idhini ya tokeni isiyo na kikomo</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Onyo la Usalama</string>
+  <string name="rootcheck_jailbreak_body">Kifaa chako kinaonekana kimefanyiwa jailbreak. Hii inaweza kuweka mkoba na fedha zako hatarini.</string>
   <string name="rootcheck_body">Kifaa chako kinaonekana kuwa na ufikiaji wa mizizi, ambayo inaweza kuongeza hatari za usalama kwa kiasi kikubwa. Kutumia programu hii kwenye kifaa kilichozinduliwa kunaweza kufichua mali yako kwa ufikiaji usioidhinishwa na uwezekano wa hasara. Kwa usalama wa pesa zako, tunapendekeza sana kutumia kifaa kisicho na mizizi.</string>
   <string name="rootcheck_ignore">Puuza</string>
   <string name="rootcheck_exit">Toka</string>

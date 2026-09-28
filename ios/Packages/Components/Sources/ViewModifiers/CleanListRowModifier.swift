@@ -4,11 +4,11 @@ import Foundation
 import Style
 import SwiftUI
 
-public struct CleanListRowModifier: ViewModifier {
+struct CleanListRowModifier: ViewModifier {
     private let listRowBackground: Color
     private let listRowInsets: EdgeInsets
 
-    public init(
+    init(
         listRowBackground: Color,
         listRowInsets: EdgeInsets,
     ) {
@@ -16,7 +16,7 @@ public struct CleanListRowModifier: ViewModifier {
         self.listRowInsets = listRowInsets
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity)
             .textCase(nil)

@@ -115,7 +115,6 @@ impl TronAccount {
             balance: None,
             address: Some(address.to_string()),
             owner_permission: Some(TronAccountOwnerPermission {
-                permission_name: "owner".to_string(),
                 threshold: Some(1),
                 keys: Some(vec![TronAccountPermissionKey { address: address.to_string(), weight: 1 }]),
             }),
@@ -187,7 +186,7 @@ impl InternalTransaction {
             transfer_to_address: TronAddress::from_hex_or_base58(transfer_to),
             call_value_info: vec![InternalTransactionCallValue {
                 call_value,
-                token_id: token_id.map(|token_id| token_id.to_string()),
+                token_id: token_id.map(ToString::to_string),
             }],
             rejected,
         }

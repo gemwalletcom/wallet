@@ -6,7 +6,6 @@ import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
 import Primitives
-import Style
 import SwiftUI
 
 public struct NetworkSelectorViewModel: SelectableSheetViewable {
@@ -30,12 +29,12 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         self.selectedItems = Set(selectedItems)
         self.title = title
         search = ListSearch(
-            filter: filter(chain:query:),
-            emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
+            filter: filter(chains:query:),
+            emptyContent: EmptyStateViewModel(kind: .searchNetworks),
         )
     }
 
-    private func filter(chain: Chain, query: String) -> Bool {
-        !GemChainService.shared.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
+    private func filter(chains: [Chain], query: String) -> [Chain] {
+        GemChainService.shared.chainRows(chains: chains.map(\.rawValue), query: query).map { Chain(core: $0.chain) }
     }
 }

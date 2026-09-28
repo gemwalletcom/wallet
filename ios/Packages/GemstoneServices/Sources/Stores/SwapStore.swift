@@ -2,9 +2,10 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import typealias Gemstone.Chain
+import enum Gemstone.GemAssetFilter
 import struct Gemstone.GemSwapPair
 import protocol Gemstone.GemSwapStore
+import enum Gemstone.RecentActivityType
 import GemstonePrimitives
 import Primitives
 import Store
@@ -24,33 +25,25 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
         self.recentActivityStore = recentActivityStore
     }
 
-    public func getSwapPairs(walletId: String) async throws -> [Gemstone.GemSwapPair] {
-        try transactionStore.getSwapHistory(walletId: WalletId.from(id: walletId))
-            .map { GemSwapPair(fromAssetId: $0.fromAsset.identifier, toAssetId: $0.toAsset.identifier) }
+    public func getSwapPairs(walletId: WalletId) async throws -> [Gemstone.GemSwapPair] {
+        try transactionStore.getSwapHistory(walletId: walletId)
+            .map { GemSwapPair(fromAssetId: $0.fromAsset, toAssetId: $0.toAsset) }
     }
 
-    public func getRecentAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+    public func getRecentAssetIds(walletId: WalletId, types: [Gemstone.RecentActivityType], filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
         try recentActivityStore.getRecent(
-            walletId: WalletId.from(id: walletId),
-            types: [.swapSelect, .swap],
+            walletId: walletId,
+            types: types.map { $0.toPrimitives() },
             limit: Int(limit),
-            filters: [.enabled, .swappable],
-        ).map(\.asset.id.identifier)
+            filters: filters.map { $0.map() },
+        ).map(\.asset.id)
     }
 
-    public func getPayAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+    public func getAssetIds(walletId: WalletId, filters: [GemAssetFilter], limit: UInt32) async throws -> [Gemstone.AssetId] {
         try assetStore.getAssetsData(
-            walletId: WalletId.from(id: walletId),
-            filters: [.enabled, .swappable],
+            walletId: walletId,
+            filters: filters.map { $0.map() },
             limit: Int(limit),
-        ).map(\.asset.id.identifier)
-    }
-
-    public func getReceiveAssetIds(walletId: String, chains: [Gemstone.Chain], assetIds: [Gemstone.AssetId], limit: UInt32) async throws -> [Gemstone.AssetId] {
-        try assetStore.getAssetsData(
-            walletId: WalletId.from(id: walletId),
-            filters: [.enabled, .swappable, .chainsOrAssets(chains, assetIds)],
-            limit: Int(limit),
-        ).map(\.asset.id.identifier)
+        ).map(\.asset.id)
     }
 }

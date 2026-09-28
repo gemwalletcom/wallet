@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNftEntry
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -9,30 +10,31 @@ import Store
 import Style
 import SwiftUI
 
-public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
-    @State private var model: ViewModel
+public struct CollectionsScene: View {
+    @State private var model: CollectionsSceneViewModel
 
-    public init(model: ViewModel) {
+    public init(model: CollectionsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        GeometryReader { geometry in
+        let screen = model.screen
+        return GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: .zero) {
-                    if model.content.items.isNotEmpty {
+                    if screen.items.isNotEmpty {
                         LazyVGrid(columns: model.columns) {
-                            collectionsView
+                            collectionsView(screen.items)
                         }
                         .padding(.horizontal, Spacing.medium + Spacing.tiny)
 
                         Spacer(minLength: .medium)
                     }
 
-                    if let unverifiedItem = model.content.unverifiedListItem {
+                    if let unverifiedRow = screen.unverifiedRow {
                         List {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
-                                ListItemView(model: unverifiedItem)
+                                ListItemView(model: unverifiedRow.listItem)
                             }
                         }
                         .contentMargins(.top, .zero, for: .scrollContent)
@@ -47,25 +49,26 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                 )
             }
             .scrollIndicators(
-                model.content.isEmpty ? .hidden : .automatic,
+                screen.hasContent ? .automatic : .hidden,
             )
         }
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if let error = model.loadError {
+            if let error = model.loadError(screen) {
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     .padding(.horizontal, .medium)
-            } else if model.content.isEmpty {
+            } else if !screen.hasContent {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(model.title)
+        .navigationTitle(screen.title.text)
         .refreshable { await model.load() }
+        .toast(message: $model.isPresentingToastMessage)
         .task {
-            guard model.syncsOnAppear else { return }
+            guard screen.syncsOnAppear else { return }
             await model.load()
         }
     }
@@ -74,10 +77,10 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
 // MARK: - UI
 
 extension CollectionsScene {
-    private var collectionsView: some View {
-        ForEach(model.content.items) { item in
-            NavigationLink(value: item.destination) {
-                GridPosterView(model: item.model)
+    private func collectionsView(_ entries: [GemNftEntry]) -> some View {
+        ForEach(entries, id: \.row.id) { entry in
+            NavigationLink(value: entry.destination) {
+                GridPosterView(model: entry.posterModel)
             }
         }
     }

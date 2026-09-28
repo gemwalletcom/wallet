@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import Primitives
 import Testing
 
 struct PercentFormatterTests {

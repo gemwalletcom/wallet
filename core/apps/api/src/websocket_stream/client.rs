@@ -1,9 +1,7 @@
 use std::error::Error;
-use std::time::Duration;
 
-use cacher::CacherClient;
 use gem_tracing::info_with_fields;
-use pricer::PriceClient;
+use primitives::response::ErrorDetail;
 use primitives::{AssetPrice, StreamEvent, StreamMessage, Version, device_stream_channel};
 use redis::PushInfo;
 use redis::aio::MultiplexedConnection;
@@ -11,15 +9,15 @@ use rocket::futures::SinkExt;
 use rocket::serde::json::serde_json;
 use rocket_ws::Message;
 use rocket_ws::stream::DuplexStream;
+use services::devices::DeviceStreamClient;
+use services::prices::PriceClient;
 
 use super::price_handler::PriceHandler;
 use crate::websocket::decode_push_message;
 
 pub struct StreamObserverConfig {
     pub redis_url: String,
-    pub cacher_client: CacherClient,
-    pub retention: Duration,
-    pub history_limit: usize,
+    pub device_stream: DeviceStreamClient,
 }
 
 pub struct StreamObserverClient {
@@ -69,7 +67,14 @@ impl StreamObserverClient {
     }
 
     async fn handle_message_payload(&mut self, data: Vec<u8>, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let message = serde_json::from_slice::<StreamMessage>(&data)?;
+        let message = match serde_json::from_slice::<StreamMessage>(&data) {
+            Ok(message) => message,
+            Err(error) => {
+                info_with_fields!("websocket rejected unreadable message", device_id = self.device_id.as_str(), error = error.to_string());
+                let detail = ErrorDetail { message: error.to_string(), data: None };
+                return self.send_event(stream, StreamEvent::Error(detail)).await;
+            }
+        };
         if let Some(event) = self.price_handler.handle_stream_message(&message, redis_connection).await? {
             self.send_event(stream, event).await?;
         }

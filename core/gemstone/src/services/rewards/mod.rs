@@ -16,7 +16,7 @@ pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-pub use model::{GemIncomingCode, GemRewardsResult, GemRewardsState, GemRewardsViewState};
+pub use model::{GemIncomingCode, GemRewardsResult, GemRewardsState, GemRewardsViewState, GemRewardsWallets};
 pub use session::GemRewardsSession;
 
 #[uniffi::export]
@@ -38,12 +38,16 @@ impl GemRewardsService {
         Self { api, auth, balance }
     }
 
-    pub fn wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
-        session_rules::rewards_wallets(wallets)
+    pub fn wallets(&self, wallets: Vec<Wallet>) -> GemRewardsWallets {
+        let wallets = session_rules::rewards_wallets(wallets);
+        GemRewardsWallets {
+            can_choose: session_rules::can_choose_wallet(&wallets),
+            wallets,
+        }
     }
 
     pub fn selected_wallet(&self, current: Option<Wallet>, wallets: Vec<Wallet>) -> Option<Wallet> {
-        session_rules::rewards_wallet(current, &self.wallets(wallets))
+        session_rules::rewards_wallet(current, &session_rules::rewards_wallets(wallets))
     }
 
     pub async fn refresh(&self, wallet_id: WalletId) -> GemRewardsResult {
@@ -59,7 +63,7 @@ impl GemRewardsService {
         let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
-            data: ReferralCode { code },
+            data: ReferralCode { code: code.trim().to_string() },
         };
         Ok(self.api.client.create_referral(wallet_id, request).await.map_err(GemApiError::from)?)
     }
@@ -68,7 +72,7 @@ impl GemRewardsService {
         let wallet_id = wallet.id.clone();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
-            data: ReferralCode { code },
+            data: ReferralCode { code: code.trim().to_string() },
         };
         self.api.client.use_referral_code(wallet_id.id(), request).await.map_err(GemApiError::from)?;
         self.get_rewards(wallet_id).await
@@ -82,7 +86,7 @@ impl GemRewardsService {
         };
         let result = self.api.client.redeem_rewards(wallet_id.id(), request).await.map_err(GemApiError::from)?;
         if let Some(asset) = &result.redemption.option.asset {
-            self.balance.set_assets_enabled(wallet_id, vec![asset.id.clone()], true).await?;
+            self.balance.enable_assets(wallet_id, vec![asset.id.clone()]).await?;
         }
         Ok(result)
     }
@@ -174,7 +178,7 @@ mod tests {
             );
             assert_eq!(incoming_referral_code(Some("  ".to_string()), vec![testkit.wallet.clone()]), None);
             assert_eq!(incoming_referral_code(Some("friend".to_string()), vec![]), None, "no wallet decides nothing yet");
-            assert_eq!(incoming_referral_code(None, vec![testkit.wallet.clone()]), None);
+            assert_eq!(incoming_referral_code(None, vec![testkit.wallet]), None);
         })
     }
 

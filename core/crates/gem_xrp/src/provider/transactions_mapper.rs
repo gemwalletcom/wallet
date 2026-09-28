@@ -55,7 +55,7 @@ fn map_transaction_common(
     timestamp: i64,
 ) -> Option<Transaction> {
     if transaction_type == TRANSACTION_TYPE_PAYMENT {
-        let memo = memos.as_ref().and_then(|m| m.first()).and_then(|m| m.decoded_data()).or_else(|| destination_tag.map(|x| x.to_string()));
+        let memo = memos.as_ref().and_then(|m| m.first()).and_then(TransactionMemo::decoded_data).or_else(|| destination_tag.map(|x| x.to_string()));
         let (state, amount) = if meta_result == RESULT_SUCCESS {
             (TransactionState::Confirmed, delivered_amount?)
         } else {
@@ -68,7 +68,7 @@ fn map_transaction_common(
 
         return Some(Transaction::new(
             hash,
-            asset_id.clone(),
+            asset_id,
             account.unwrap_or_default(),
             destination.unwrap_or_default(),
             None,

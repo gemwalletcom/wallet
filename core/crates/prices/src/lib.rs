@@ -1,6 +1,9 @@
+mod alerts;
 mod config;
 pub mod model;
 pub mod providers;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 
 use std::error::Error;
 use std::time::Duration;
@@ -8,6 +11,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use primitives::{AssetId, ChartValue, FiatRate, FiatRateProvider};
 
+pub use alerts::{PriceAlertNotification, PriceAlertRules, PriceAlertTrigger};
 pub use config::{FiatRatesProviderConfig, PriceProviderConfig, PriceProviders, build_fiat_rates_providers, build_price_providers};
 pub use model::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 pub use primitives::PriceProvider;

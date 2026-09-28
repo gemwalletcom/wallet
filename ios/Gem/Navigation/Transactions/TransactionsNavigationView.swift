@@ -15,9 +15,9 @@ struct TransactionsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
 
-    @State private var model: TransactionsViewModel
+    @State private var model: TransactionsSceneViewModel
 
-    init(model: TransactionsViewModel) {
+    init(model: TransactionsSceneViewModel) {
         _model = State(wrappedValue: model)
     }
 
@@ -35,31 +35,38 @@ struct TransactionsNavigationView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.Transaction.self) {
-                TransactionNavigationView(
-                    model: viewModelFactory.transactionScene(
-                        transaction: $0.transaction,
-                        wallet: model.wallet,
-                        onHeaderAction: { action in
-                            Task {
-                                do {
-                                    try await presenter.openTransactionHeaderAction(
-                                        action,
-                                        wallet: model.wallet,
-                                        navigationState: navigationState,
-                                        nftDestination: navigationState.activity,
-                                    )
-                                } catch {
-                                    model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-                                }
+                if let sceneModel = viewModelFactory.transactionScene(
+                    transactionId: $0.id,
+                    wallet: model.wallet,
+                    onHeaderAction: { action in
+                        Task {
+                            do {
+                                try await presenter.openTransactionHeaderAction(
+                                    action,
+                                    wallet: model.wallet,
+                                    navigationState: navigationState,
+                                    nftDestination: navigationState.activity,
+                                )
+                            } catch {
+                                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                             }
-                        },
-                        onAddContact: { model.isPresentingSheet = .addContact($0) },
+                        }
+                    },
+                    onAddContact: { model.isPresentingSheet = .addContact($0) },
+                    onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
+                ) {
+                    TransactionNavigationView(model: sceneModel)
+                }
+            }
+            .navigationDestination(for: Scenes.Collectible.self) {
+                CollectibleScene(
+                    model: viewModelFactory.collectibleScene(
+                        wallet: model.wallet,
+                        assetData: $0.assetData,
+                        isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
                         onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                     ),
                 )
-            }
-            .navigationDestination(for: Scenes.Collectible.self) {
-                CollectibleScene(model: viewModelFactory.collectibleScene(wallet: model.wallet, assetData: $0.assetData, isPresentingSelectedAssetInput: presenter.isPresentingAssetInput))
             }
             .toast(message: $model.isPresentingToastMessage)
             .sheet(item: $model.isPresentingSheet) { type in
@@ -70,14 +77,14 @@ struct TransactionsNavigationView: View {
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
                 case let .selectAsset(selectType):
-                    SelectAssetSceneNavigationStack(
+                    SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
                             wallet: model.wallet,
                             selectType: selectType,
                         ),
                     )
                 case let .addContact(action):
-                    AddContactNavigationView(action: action)
+                    AddContactNavigationStack(action: action)
                 case let .addressDetails(chainAddress):
                     AddressDetailsDestination(chainAddress: chainAddress)
                 }

@@ -1,6 +1,7 @@
-use crate::DatabaseClient;
-use crate::DatabaseError;
-use crate::database::migrations::MigrationsStore;
+use diesel_migrations::MigrationHarness;
+
+use crate::database::MIGRATIONS;
+use crate::{DatabaseClient, DatabaseError};
 
 pub trait MigrationsRepository {
     fn run_migrations(&mut self) -> Result<(), DatabaseError>;
@@ -8,7 +9,7 @@ pub trait MigrationsRepository {
 
 impl MigrationsRepository for DatabaseClient {
     fn run_migrations(&mut self) -> Result<(), DatabaseError> {
-        MigrationsStore::run_migrations(self);
+        self.connection.run_pending_migrations(MIGRATIONS).unwrap();
         Ok(())
     }
 }

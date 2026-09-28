@@ -1,0 +1,77 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import func Gemstone.assetText
+import enum Gemstone.GemAssetAction
+import struct Gemstone.GemAssetText
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
+import Primitives
+import PrimitivesComponents
+import Store
+
+@Observable
+@MainActor
+public final class RecentAssetsViewModel {
+    private let walletId: WalletId
+    private let service: any GemRecentActivityServiceProtocol
+
+    public let query: ObservableQuery<RecentActivityQuery>
+    public var isPresenting: Bool = false
+
+    public init(
+        walletId: WalletId,
+        types: [RecentActivityType],
+        filters: [AssetsQueryFilter] = [],
+        service: any GemRecentActivityServiceProtocol,
+    ) {
+        self.walletId = walletId
+        self.service = service
+        query = ObservableQuery(
+            RecentActivityQuery(
+                walletId: walletId,
+                limit: GemConstants.recentAssetsLimit,
+                types: types,
+                filters: filters,
+            ),
+            initialValue: [],
+        )
+    }
+
+    public var assets: [RecentAsset] { query.value }
+    public var assetTexts: [GemAssetText] { assets.map { assetText(asset: $0.asset.toGem()) } }
+    public var hasAssets: Bool { assets.isNotEmpty }
+
+    public func recentModel(onSelect: @escaping (Asset) -> Void) -> RecentsSceneViewModel {
+        RecentsSceneViewModel(
+            walletId: walletId,
+            types: query.request.types,
+            filters: query.request.filters,
+            service: service,
+            onSelect: onSelect,
+        )
+    }
+}
+
+// MARK: - Actions
+
+public extension RecentAssetsViewModel {
+    func present() {
+        isPresenting = true
+    }
+
+    func dismiss() {
+        isPresenting = false
+    }
+
+    func add(action: GemAssetAction, asset: Asset) {
+        Task { [service] in
+            do {
+                try await service.addRecent(action: action, asset: asset.toGem())
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
+        }
+    }
+}

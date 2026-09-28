@@ -26,7 +26,7 @@ public struct SelectFilterView: View {
 
 #Preview {
     SelectFilterView(
-        typeModel: ChainsFilterTypeViewModel(type: .allChains),
+        typeModel: ChainsFilterTypeViewModel(summary: .all),
         action: {},
     )
 }

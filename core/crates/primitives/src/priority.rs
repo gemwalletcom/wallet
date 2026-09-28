@@ -14,8 +14,8 @@ where
 {
     let a_provider = providers.iter().find(|p| p.provider_id() == a_id);
     let b_provider = providers.iter().find(|p| p.provider_id() == b_id);
-    let a_pri = a_provider.map(|p| p.priority()).filter(|&p| p > 0);
-    let b_pri = b_provider.map(|p| p.priority()).filter(|&p| p > 0);
+    let a_pri = a_provider.map(PrioritizedProvider::priority).filter(|&p| p > 0);
+    let b_pri = b_provider.map(PrioritizedProvider::priority).filter(|&p| p > 0);
 
     let cmp_amount = |x: &A, y: &A| x.partial_cmp(y).unwrap_or(Ordering::Equal);
 

@@ -53,6 +53,7 @@ pub struct GemPortfolioResult {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemPortfolioPhase {
     Loading,
     Data { chart: GemChartData },
@@ -208,11 +209,12 @@ impl GemPortfolioSession {
     fn phase(&self, load: &GemPortfolioLoad, currency: Currency) -> GemPortfolioPhase {
         match (&load.state, &load.data) {
             (GemLoadState::Loading, _) => GemPortfolioPhase::Loading,
-            (_, Some(data)) => match rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, currency) {
+            (_, Some(data)) => match rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, self.period, currency) {
                 Some(chart) => GemPortfolioPhase::Data { chart },
                 None => GemPortfolioPhase::NoData,
             },
-            (GemLoadState::Error { error }, None) => GemPortfolioPhase::Failed { error: error.clone() },
+            (GemLoadState::Error { error: GemServiceError::Offline }, None) => GemPortfolioPhase::Failed { error: GemServiceError::Offline },
+            (GemLoadState::Error { .. }, None) => GemPortfolioPhase::NoData,
             (GemLoadState::NoData | GemLoadState::Data, None) => GemPortfolioPhase::NoData,
         }
     }
@@ -270,7 +272,7 @@ mod tests {
             currency: Currency::USD,
         };
 
-        assert_eq!(selected.on_result(loaded(stale.clone(), data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
+        assert_eq!(selected.on_result(loaded(stale, data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
         assert_eq!(
             selected.on_result(failed(
                 GemPortfolioRequest {
@@ -321,11 +323,16 @@ mod tests {
     #[test]
     fn test_a_failure_after_a_load_keeps_the_portfolio_on_screen() {
         let session = session();
-        let error = GemServiceError::Core { msg: "offline".to_string() };
+        let error = GemServiceError::Offline;
         let shown = session.on_result(loaded(session.request(), data(vec![ChartPeriod::All])));
 
         assert!(matches!(session.on_result(failed(session.request(), error.clone())).view_state().phase, GemPortfolioPhase::Failed { .. }));
         assert!(!matches!(shown.on_result(failed(shown.request(), error)).view_state().phase, GemPortfolioPhase::Failed { .. }));
+        assert_eq!(
+            session.on_result(failed(session.request(), GemServiceError::Api { msg: "Not found".to_string() })).view_state().phase,
+            GemPortfolioPhase::NoData,
+            "server text never reaches the chart; only being offline is an error"
+        );
     }
 
     #[test]

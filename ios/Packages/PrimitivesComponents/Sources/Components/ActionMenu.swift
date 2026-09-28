@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import SwiftUI
 
 @resultBuilder
@@ -12,7 +11,7 @@ enum ActionMenuBuilder {
     }
 }
 
-public struct ActionMenu<Label: View>: View {
+struct ActionMenu<Label: View>: View {
     private let items: [ActionMenuItemType]
     private let label: Label
 

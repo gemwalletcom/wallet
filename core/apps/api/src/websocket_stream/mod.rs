@@ -1,6 +1,6 @@
-use pricer::PriceClient;
 use rocket::State;
 use rocket_ws::{Channel, WebSocket};
+use services::prices::PriceClient;
 
 use crate::devices::auth_config::AuthConfig;
 use crate::devices::guard::{AuthenticatedDevice, VersionParam};
@@ -20,15 +20,13 @@ pub use client::StreamObserverConfig;
 pub async fn ws_stream(ws: WebSocket, auth: AuthenticatedDevice, version: VersionParam, price_client: &State<PriceClient>, config: &State<StreamObserverConfig>) -> Channel<'static> {
     let price_client = price_client.inner().clone();
     let redis_url = config.redis_url.clone();
-    let cacher_client = config.cacher_client.clone();
-    let retention = config.retention;
-    let history_limit = config.history_limit;
-    let device_id = auth.device_row.device_id.clone();
+    let device_stream = config.device_stream.clone();
+    let device_id = auth.record.device.id;
 
     ws.channel(move |ws_stream| {
         Box::pin(async move {
             let mut observer = client::StreamObserverClient::new(device_id, version.0, price_client);
-            stream::new_stream(&redis_url, &cacher_client, retention, history_limit, &mut observer, ws_stream).await;
+            stream::new_stream(&redis_url, &device_stream, &mut observer, ws_stream).await;
             Ok::<(), rocket_ws::result::Error>(())
         })
     })

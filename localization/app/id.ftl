@@ -9,6 +9,7 @@ common_secret_phrase = Frasa Rahasia
 common_copy = Salin
 common_share = Bagikan
 common_continue = Lanjutkan
+common_continue_anyway = Tetap lanjutkan
 common_sign_in_with = Masuk dengan %@
 common_provider = Penyedia
 common_loading = Memuat
@@ -47,7 +48,6 @@ common_learn_more = Pelajari lebih lanjut
 common_description = Keterangan
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Simpan
 common_percentage = Persentase
 common_details = Rincian
 common_info = Informasi
@@ -57,6 +57,7 @@ common_method = Metode
 common_token = Token
 common_expiration = Kedaluwarsa
 common_suspicious_address = Alamat mencurigakan
+common_suspicious_address_description = Alamat ini dikaitkan dengan aktivitas yang mencurigakan atau berbahaya.
 common_refresh = Menyegarkan
 common_grant_permission = Berikan izin
 common_required_field = %@ dibutuhkan
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = Dompet ini sudah diimpor.
 # Wallets
 
 wallets_title = Dompet
-wallets_watch = Pantau
 
 # Receive
 
-receive_title = Terima %@
 receive_warning = Ini alamat Anda — kirim saja %@ pada %@ jaringan.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Aktifkan Kode Sandi
 settings_security_authentication = Otentikasi
 settings_notifications_title = Notifikasi
 settings_language = Bahasa
-settings_help_center = Pusat Bantuan
 settings_support = Dukungan
 settings_price_alerts_title = Peringatan Harga
 settings_hide_balance = Sembunyikan Saldo
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Tidak ada kuotasi yang tersedia.
 errors_swap_not_supported_asset = Aset yang tidak didukung.
 errors_connections_no_supported_wallets = Tidak ada dompet yang didukung tersedia.
 errors_connections_unsupported_chain = Rantai yang disediakan tidak didukung.
+errors_authentication_unavailable = Otentikasi belum diatur di perangkat ini. Aktifkan biometrik atau kode sandi di pengaturan perangkat.
+errors_authentication_locked_out = Terlalu banyak percobaan gagal. Silakan coba lagi nanti.
+errors_authentication_failed = Otentikasi gagal. Silakan coba lagi.
+errors_connections_expired = Tautan koneksi ini sudah kedaluwarsa. Dapatkan kode QR baru dan coba lagi.
+errors_connections_not_found = Koneksi ini sudah tidak ada.
+errors_connections_relay_unavailable = Tidak dapat menjangkau WalletConnect. Periksa koneksi internet Anda dan coba lagi.
 errors_swap_amount_too_small = Jumlahnya terlalu kecil
 errors_scan_transaction_malicious_description = Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.
 errors_scan_transaction_memo_required = %@ alamat dompet tujuan memerlukan tag / memo tujuan
@@ -321,7 +325,6 @@ asset_verification_warning_message = Siapa pun dapat membuatnya - termasuk token
 asset_buy_asset = Beli %@
 asset_get_asset = Dapatkan %@
 asset_add_to_wallet = Tambahkan ke dompet
-asset_hide_from_wallet = Sembunyikan dari dompet
 asset_added_to_wallet = Ditambahkan ke dompet
 asset_hidden_from_wallet = Disembunyikan dari dompet
 asset_resources = Sumber daya
@@ -348,6 +351,7 @@ charts_price_change = Perubahan
 
 date_today = Hari Ini
 date_yesterday = Kemarin
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Biasa
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Kustom
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Ketika harga meningkat sebesar
 price_alerts_set_alert_price_decreases_by = Ketika harga turun sebesar
 price_alerts_set_alert_set_target_price = Tetapkan target harga
 price_alerts_set_alert_current_price = Harga saat ini
-price_alerts_added_for = Tetapkan peringatan harga %@
+price_alerts_added_price_over = Peringatan ditambahkan untuk harga di atas %@
+price_alerts_added_price_under = Peringatan ditambahkan untuk harga di bawah %@
+price_alerts_added_increases_by = Peringatan ditambahkan untuk kenaikan harga sebesar %@
+price_alerts_added_decreases_by = Peringatan ditambahkan untuk penurunan harga sebesar %@
 price_alerts_state_empty_title = Peringatan Anda akan muncul di sini
 price_alerts_state_empty_description = Aktifkan mereka dengan menambahkan koin untuk dilacak
 price_alerts_auto_footer = Peringatan dipicu pada pergerakan harga yang signifikan.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Aplikasi ini tidak memiliki 
 
 # Markets
 
-markets_title = Pasar
-markets_state_empty_title = Data pasar Anda akan muncul di sini
 markets_daily_volume = Volume 24 jam
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Peringatan Keamanan
+rootcheck_jailbreak_body = Perangkat Anda tampaknya di-jailbreak. Ini dapat membahayakan dompet dan dana Anda.
 rootcheck_body = Perangkat Anda tampaknya memiliki akses root, yang dapat meningkatkan risiko keamanan secara signifikan. Penggunaan aplikasi ini pada perangkat yang di-root dapat menyebabkan aset Anda rentan terhadap akses tidak sah dan potensi kerugian. Demi keamanan dana Anda, kami sangat menyarankan untuk menggunakan perangkat yang tidak di-root.
 rootcheck_ignore = Abaikan
 rootcheck_exit = Keluar

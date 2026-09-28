@@ -17,24 +17,6 @@ pub struct ExplorerInput {
     pub memo: Option<String>,
 }
 
-impl ExplorerInput {
-    pub fn new_recipient(recipient: impl Into<String>) -> Self {
-        Self {
-            hash: String::new(),
-            recipient: Some(recipient.into()),
-            memo: None,
-        }
-    }
-
-    pub fn new_memo(recipient: impl Into<String>, memo: impl Into<String>) -> Self {
-        Self {
-            hash: String::new(),
-            recipient: Some(recipient.into()),
-            memo: Some(memo.into()),
-        }
-    }
-}
-
 impl<T: Into<String>> From<T> for ExplorerInput {
     fn from(hash: T) -> Self {
         Self {
@@ -90,6 +72,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::BitcoinCash => vec![blockchair::new_bitcoin_cash(), threexpl::new_bitcoin_cash()],
         Chain::Litecoin => vec![blockchair::new_litecoin(), threexpl::new_litecoin()],
         Chain::Doge => vec![blockchair::new_doge(), threexpl::new_doge()],
+        Chain::Dash => vec![blockchair::new_dash(), Explorer::boxed(Metadata::new("Dash Explorer", "https://explorer.dash.org/insight"))],
         Chain::Zcash => vec![blockchair::new_zcash(), threexpl::new_zcash()],
 
         Chain::Ethereum => vec![EtherScan::boxed(EVMChain::Ethereum), blockchair::new_ethereum(), Blocksec::new_ethereum()],

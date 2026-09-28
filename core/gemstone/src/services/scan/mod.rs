@@ -1,8 +1,10 @@
+pub mod rules;
+
 use std::sync::Arc;
 
 use primitives::{ScanTransaction, ScanTransactionPayload};
 
-use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::api::GemDeviceApiClient;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemScanService {
@@ -18,7 +20,7 @@ impl GemScanService {
 }
 
 impl GemScanService {
-    pub async fn scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, GemApiError> {
-        Ok(self.api.client.scan_transaction(payload).await?)
+    pub async fn scan(&self, payload: ScanTransactionPayload) -> Option<ScanTransaction> {
+        self.api.client.scan_transaction(payload).await.ok()
     }
 }

@@ -43,14 +43,14 @@ impl AppStartTestkit {
         let device_key = Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), device_key));
         let banner_store = Arc::new(MemoryBannerStore::default());
-        let banners = Arc::new(GemBannerService::new(banner_store.clone()));
+        let banners = Arc::new(GemBannerService::new(banner_store.clone(), primitives::Platform::IOS));
         let support_store = Arc::new(MemorySupportStore::default());
         let service = GemAppStartService::new(
             Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
             banners.clone(),
             discovery.assets.clone(),
             discovery.balance.clone(),
-            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners.clone(), discovery.wallet_preferences.clone())),
+            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners, discovery.wallet_preferences.clone())),
             wallets.service.clone(),
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
@@ -59,14 +59,23 @@ impl AppStartTestkit {
                 Arc::new(MemoryDevicePlatform),
                 preferences,
             )),
-            Arc::new(GemSupportService::new(device_api, support_store.clone(), Arc::new(NoopFileStore), provider.clone())),
+            Arc::new(GemSupportService::new(
+                device_api,
+                support_store.clone(),
+                Arc::new(NoopFileStore),
+                provider.clone(),
+                Arc::new(crate::services::notifications::GemNotificationsService::mock(
+                    provider.clone(),
+                    Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+                )),
+            )),
         );
         Self {
             service,
             support: support_store,
             wallets,
             banners: banner_store,
-            assets: discovery.asset_store.clone(),
+            assets: discovery.asset_store,
             first,
             second,
         }

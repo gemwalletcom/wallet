@@ -1,7 +1,7 @@
-use crate::{Delegation, DelegationValidator, UInt64};
+use crate::{Delegation, DelegationValidator};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RedelegateData {
@@ -10,8 +10,8 @@ pub struct RedelegateData {
     pub to_validator: DelegationValidator,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumString, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase", ascii_case_insensitive)]
 pub enum Resource {
@@ -19,7 +19,8 @@ pub enum Resource {
     Energy,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "type", content = "content")]
 pub enum StakeType {
     Stake(DelegationValidator),
     Unstake(Delegation),
@@ -31,16 +32,15 @@ pub enum StakeType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct TronVote {
     pub validator: String,
-    pub count: UInt64,
+    pub count: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TronUnfreeze {
     pub resource: Resource,
-    pub amount: UInt64,
+    pub amount: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "name": "HANDLER_ERROR",
+    "cause": {
+      "info": {
+        "block_hash": "CniL1tTg26JzwxxnRKuRg2EcmDhSPYiCzYb6fs9ZUsyH",
+        "block_height": 217535837,
+        "requested_account_id": "8280a8985c16c60ba4f1b264f22ebc2432263df63250808ce57229479b6de717"
+      },
+      "name": "UNKNOWN_ACCOUNT"
+    },
+    "code": -32000,
+    "message": "Server error",
+    "data": "account 8280a8985c16c60ba4f1b264f22ebc2432263df63250808ce57229479b6de717 does not exist while viewing"
+  },
+  "id": 1
+}

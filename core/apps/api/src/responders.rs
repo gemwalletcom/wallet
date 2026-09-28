@@ -1,19 +1,37 @@
-use cacher::CacheError;
+use std::io::Cursor;
+
 use fiat::error::FiatQuoteError;
+use gem_auth::JwtError;
 use gem_client::ClientError;
-use gem_rewards::{RewardsError, RewardsRedemptionError, UsernameError};
+use gem_tracing::error_fields;
+use localizer::LanguageLocalizer;
 use primitives::{RequestError, ResponseResult};
+use rewards::{RewardsError, RewardsRedemptionError, UsernameError};
 use rocket::response::{Responder, Response};
 use rocket::serde::json::Json;
 use rocket::{Request, http::Status};
 use serde::Serialize;
-use storage::DatabaseError;
+use services::{CacheError, DatabaseError};
 use strum::ParseError;
 
 pub struct ErrorContext(pub String);
 
 pub fn cache_error(req: &Request<'_>, message: &str) {
     req.local_cache(|| ErrorContext(message.to_string()));
+}
+
+pub fn localized_fiat_error(error: Box<dyn std::error::Error + Send + Sync>, locale: &str) -> ApiError {
+    let localizer = LanguageLocalizer::new_with_language(locale);
+    if let Some(error) = error.downcast_ref::<RequestError>() {
+        return match error {
+            RequestError::LimitReached => ApiError::OkError(localizer.fiat_error_limit_reached()),
+            RequestError::Forbidden => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
+        };
+    }
+    if error.downcast_ref::<FiatQuoteError>().is_some() {
+        return ApiError::BadRequest(localizer.errors_generic());
+    }
+    ApiError::from(error)
 }
 
 fn ok_error_message(error: &(dyn std::error::Error + 'static)) -> Option<String> {
@@ -35,18 +53,50 @@ pub enum ApiError {
     BadRequest(String),
     Forbidden,
     NotFound(String),
-    InternalServerError(String),
+    Internal(String),
+}
+
+pub const INTERNAL_ERROR_MESSAGE: &str = "Internal server error";
+
+pub struct JsonProxyResponse(gem_client::Response);
+
+impl From<gem_client::Response> for JsonProxyResponse {
+    fn from(response: gem_client::Response) -> Self {
+        Self(response)
+    }
+}
+
+impl<'r> Responder<'r, 'static> for JsonProxyResponse {
+    fn respond_to(self, _request: &'r Request<'_>) -> rocket::response::Result<'static> {
+        let gem_client::Response { status, data } = self.0;
+        let Some(status) = status else {
+            return Err(Status::InternalServerError);
+        };
+        let status = Status::new(status);
+        Response::build().status(status).header(rocket::http::ContentType::JSON).sized_body(data.len(), Cursor::new(data)).ok()
+    }
+}
+
+impl ApiError {
+    fn public(self) -> (Status, String, Option<String>) {
+        match self {
+            ApiError::OkError(msg) => (Status::Ok, msg, None),
+            ApiError::BadRequest(msg) => (Status::BadRequest, msg, None),
+            ApiError::Forbidden => (Status::Forbidden, "Forbidden".to_string(), None),
+            ApiError::NotFound(msg) => (Status::NotFound, msg, None),
+            ApiError::Internal(detail) => (Status::InternalServerError, INTERNAL_ERROR_MESSAGE.to_string(), Some(detail)),
+        }
+    }
 }
 
 impl<'r> Responder<'r, 'static> for ApiError {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'static> {
-        let (status, message) = match self {
-            ApiError::OkError(msg) => (Status::Ok, msg),
-            ApiError::BadRequest(msg) => (Status::BadRequest, msg),
-            ApiError::Forbidden => (Status::Forbidden, "Forbidden".to_string()),
-            ApiError::NotFound(msg) => (Status::NotFound, msg),
-            ApiError::InternalServerError(msg) => (Status::InternalServerError, msg),
-        };
+        let (status, message, detail) = self.public();
+        if let Some(detail) = detail {
+            let uri = request.uri().to_string();
+            let user_agent = request.headers().get_one("User-Agent").unwrap_or("unknown");
+            error_fields!("Request failed", uri = uri, status = status.code, error = detail, user_agent = user_agent);
+        }
 
         let error_response = ResponseResult::<()>::error(message);
         let json_response = Json(error_response);
@@ -59,8 +109,14 @@ impl From<CacheError> for ApiError {
     fn from(error: CacheError) -> Self {
         match error {
             CacheError::NotFound { .. } | CacheError::ResourceNotFound(_) => ApiError::NotFound(error.to_string()),
-            CacheError::KeyNotFound(_) => ApiError::InternalServerError("Unexpected cache miss".to_string()),
+            CacheError::KeyNotFound(_) => ApiError::Internal("Unexpected cache miss".to_string()),
         }
+    }
+}
+
+impl From<JwtError> for ApiError {
+    fn from(error: JwtError) -> Self {
+        ApiError::Internal(error.to_string())
     }
 }
 
@@ -74,21 +130,21 @@ impl From<DatabaseError> for ApiError {
     fn from(error: DatabaseError) -> Self {
         match error {
             DatabaseError::NotFound { .. } => ApiError::NotFound(error.to_string()),
-            DatabaseError::ConnectionPool => ApiError::InternalServerError(error.to_string()),
-            DatabaseError::Error(msg) => ApiError::InternalServerError(msg),
+            DatabaseError::ConnectionPool => ApiError::Internal(error.to_string()),
+            DatabaseError::Error(msg) => ApiError::Internal(msg),
         }
     }
 }
 
 impl From<serde_json::Error> for ApiError {
     fn from(error: serde_json::Error) -> Self {
-        ApiError::InternalServerError(error.to_string())
+        ApiError::Internal(error.to_string())
     }
 }
 
 impl From<swapper::SwapperError> for ApiError {
     fn from(error: swapper::SwapperError) -> Self {
-        ApiError::InternalServerError(error.to_string())
+        ApiError::Internal(error.to_string())
     }
 }
 
@@ -142,7 +198,7 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
                 return fiat_error.clone().into();
             }
             if let Some(ClientError::Http { status, body }) = current_error.downcast_ref::<ClientError>() {
-                return ApiError::InternalServerError(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
+                return ApiError::Internal(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
             }
             if let Some(message) = ok_error_message(current_error) {
                 return ApiError::OkError(message);
@@ -153,7 +209,7 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             }
         }
 
-        ApiError::InternalServerError(format!("{}", error))
+        ApiError::Internal(error.to_string())
     }
 }
 
@@ -173,12 +229,28 @@ impl<'r, T: Serialize> Responder<'r, 'static> for ApiResponse<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::ApiError;
-    use cacher::CacheError;
+    use super::{ApiError, INTERNAL_ERROR_MESSAGE};
     use gem_client::ClientError;
-    use gem_rewards::{RewardsError, RewardsRedemptionError};
     use primitives::RequestError;
-    use storage::DatabaseError;
+    use rewards::{RewardsError, RewardsRedemptionError};
+    use rocket::http::Status;
+    use services::{CacheError, DatabaseError};
+
+    #[test]
+    fn test_a_fiat_error_reads_in_the_device_language() {
+        let limited = super::localized_fiat_error(Box::new(RequestError::LimitReached), "de");
+        assert_eq!(limited, ApiError::OkError("Zu viele Angebotsanfragen. Bitte versuchen Sie es in ein paar Minuten erneut.".to_string()));
+        assert_eq!(
+            super::localized_fiat_error(Box::new(RequestError::Forbidden), "en"),
+            ApiError::BadRequest("This quote is no longer available. Please try again.".to_string()),
+            "a quote that expired says so instead of a bare Forbidden"
+        );
+        assert_eq!(
+            super::localized_fiat_error(Box::new(fiat::error::FiatQuoteError::InvalidRequest("Missing network".to_string())), "en"),
+            ApiError::BadRequest("An unexpected error occurred. Please try again later.".to_string())
+        );
+        assert_eq!(super::localized_fiat_error("connection refused".into(), "en"), ApiError::Internal("connection refused".to_string()));
+    }
 
     #[test]
     fn test_cache_not_found_maps_to_public_not_found() {
@@ -189,7 +261,7 @@ mod tests {
     #[test]
     fn test_cache_key_not_found_maps_to_internal_server_error() {
         let error = ApiError::from(CacheError::KeyNotFound("fiat:quote:abc".to_string()));
-        assert_eq!(error, ApiError::InternalServerError("Unexpected cache miss".to_string()));
+        assert_eq!(error, ApiError::Internal("Unexpected cache miss".to_string()));
     }
 
     #[test]
@@ -211,13 +283,51 @@ mod tests {
     }
 
     #[test]
-    fn test_boxed_upstream_failure_keeps_the_response_that_named_the_cause() {
+    fn test_boxed_upstream_failure_is_logged_not_returned() {
         let error: Box<dyn std::error::Error + Send + Sync> = Box::new(ClientError::Http {
             status: 500,
             body: b"NoMethodError (undefined method '[]' for nil)".to_vec(),
         });
 
-        assert_eq!(ApiError::from(error), ApiError::InternalServerError("upstream status 500: NoMethodError (undefined method '[]' for nil)".to_string()));
+        let (status, message, detail) = ApiError::from(error).public();
+
+        assert_eq!(status, Status::InternalServerError);
+        assert_eq!(message, INTERNAL_ERROR_MESSAGE);
+        assert_eq!(detail.as_deref(), Some("upstream status 500: NoMethodError (undefined method '[]' for nil)"));
+    }
+
+    #[test]
+    fn test_database_error_is_logged_not_returned() {
+        let raw = "duplicate key value violates unique constraint \"devices_device_id_key\"";
+        let (status, message, detail) = ApiError::from(DatabaseError::Error(raw.to_string())).public();
+
+        assert_eq!(status, Status::InternalServerError);
+        assert_eq!(message, INTERNAL_ERROR_MESSAGE);
+        assert_eq!(detail.as_deref(), Some(raw));
+    }
+
+    #[test]
+    fn test_unknown_boxed_error_is_logged_not_returned() {
+        let error: Box<dyn std::error::Error + Send + Sync> = "connection refused".into();
+        let (status, message, detail) = ApiError::from(error).public();
+
+        assert_eq!(status, Status::InternalServerError);
+        assert_eq!(message, INTERNAL_ERROR_MESSAGE);
+        assert_eq!(detail.as_deref(), Some("connection refused"));
+    }
+
+    #[test]
+    fn test_boxed_database_error_is_logged_not_returned() {
+        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(DatabaseError::Error("relation \"devices\" does not exist".to_string()));
+        let (_, message, _) = ApiError::from(error).public();
+
+        assert_eq!(message, INTERNAL_ERROR_MESSAGE);
+    }
+
+    #[test]
+    fn test_user_facing_errors_keep_their_message() {
+        assert_eq!(ApiError::OkError("Rate limit reached".to_string()).public(), (Status::Ok, "Rate limit reached".to_string(), None));
+        assert_eq!(ApiError::NotFound("Device not found".to_string()).public(), (Status::NotFound, "Device not found".to_string(), None));
     }
 
     #[test]

@@ -7,8 +7,7 @@ use primitives::asset_constants::{
 };
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{AssetId, Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
-use streamer::FiatWebhook;
+use primitives::{AssetId, Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook, PaymentType};
 
 use super::models::{Currency as PaybisCurrency, PaybisAmount, PaybisWebhook, PaybisWebhookData};
 

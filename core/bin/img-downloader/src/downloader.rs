@@ -8,7 +8,7 @@ use std::{
 };
 
 use chain_primitives::format_token_id;
-use coingecko::CoinGeckoClient;
+use coingecko::{CoinGeckoClient, client::USER_AGENT_VALUE};
 use coinmarketcap::CoinMarketCapClient;
 use dexscreener::DexScreenerClient;
 use gem_client::RemoteProviderConfig;
@@ -38,8 +38,6 @@ pub struct Downloader {
     image_request_retries: usize,
     delay: Duration,
 }
-
-const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
 pub struct DownloaderConfig {
     pub args: Args,

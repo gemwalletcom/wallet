@@ -4,18 +4,16 @@ use std::error::Error;
 use async_trait::async_trait;
 use coingecko::{CoinGeckoClient, MAX_MARKETS_PER_PAGE, get_asset_ids_for_coin};
 use primitives::{AssetId, ListProviderName};
-use storage::{AssetsRepository, Database};
 
 use crate::provider::{ListProvider, ListProviderData};
 
 pub struct CoinGeckoListProvider {
     client: CoinGeckoClient,
-    database: Database,
 }
 
 impl CoinGeckoListProvider {
-    pub fn new(database: Database, client: CoinGeckoClient) -> Self {
-        Self { client, database }
+    pub fn new(client: CoinGeckoClient) -> Self {
+        Self { client }
     }
 
     async fn get_asset_ids_for_coin_ids(&self, coin_ids: &[String]) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
@@ -36,10 +34,7 @@ impl CoinGeckoListProvider {
             })
             .collect::<HashMap<_, _>>();
 
-        let asset_ids = coin_ids.iter().filter_map(|coin_id| asset_ids_by_coin_id.get(coin_id)).flatten().cloned().collect::<Vec<_>>();
-        let existing_asset_ids = self.database.assets()?.get_assets_rows(asset_ids.clone())?.into_iter().map(|asset| asset.as_asset_id()).collect::<HashSet<_>>();
-        let mut seen = HashSet::new();
-        Ok(asset_ids.into_iter().filter(|asset_id| existing_asset_ids.contains(asset_id) && seen.insert(asset_id.clone())).collect())
+        Ok(coin_ids.iter().filter_map(|coin_id| asset_ids_by_coin_id.get(coin_id)).flatten().cloned().collect())
     }
 }
 

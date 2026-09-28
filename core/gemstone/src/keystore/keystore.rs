@@ -38,24 +38,24 @@ impl GemKeystore {
                 let imported = import_account_from_private_key(&value, chain)?;
                 let wallet_id = derive_wallet_id_from_account(&imported.account, WalletType::PrivateKey)?;
                 let meta = self.inner.import_private_key(&imported.private_key, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::PrivateKey, meta.keystore_id, vec![imported.account]))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::PrivateKey, meta.keystore_id, vec![imported.account], meta.created))
             }
             GemImportType::MulticoinPhrase { words, chains } => {
                 let (wallet_id, accounts, phrase) = derive_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
                 let meta = self.inner.import_mnemonic(&phrase, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::Multicoin, meta.keystore_id, accounts))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::Multicoin, meta.keystore_id, accounts, meta.created))
             }
             GemImportType::SinglePhrase { words, chain } => {
                 let (wallet_id, accounts, phrase) = derive_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
                 let meta = self.inner.import_mnemonic(&phrase, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
-                Ok(GemStoredWallet::new(wallet_id, WalletType::Single, meta.keystore_id, accounts))
+                Ok(GemStoredWallet::new(wallet_id, WalletType::Single, meta.keystore_id, accounts, meta.created))
             }
         }
     }
 
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
         let password = Zeroizing::new(password);
-        Ok(self.inner.decrypt_mnemonic(&keystore_id, &password)?.split_whitespace().map(|word| word.to_string()).collect())
+        Ok(self.inner.decrypt_mnemonic(&keystore_id, &password)?.split_whitespace().map(ToString::to_string).collect())
     }
 
     pub fn export_private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<String, GemstoneError> {
@@ -90,20 +90,16 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
-    pub fn exists(&self, keystore_id: String) -> bool {
-        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
-    }
-
     pub fn decode_password(&self, password: String) -> Vec<u8> {
         decode_password(&password)
-    }
-
-    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
-        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
 }
 
 impl GemKeystore {
+    pub fn exists(&self, keystore_id: String) -> Result<bool, GemstoneError> {
+        Ok(self.inner.get_meta(&keystore_id)?.is_some())
+    }
+
     pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
         match import {
             GemImportType::PrivateKey { value, chain } => {
@@ -147,6 +143,9 @@ impl GemKeystore {
     pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
         let password = Zeroizing::new(password);
         self.inner.verify(&keystore_id, &password).is_ok()
+    }
+    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
+        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
     pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
         crate::auth::sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, password)?)
@@ -315,7 +314,7 @@ mod migration_tests {
         let wallet_id = MNEMONIC_WALLET_ID.to_string();
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
-        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone()).unwrap();
+        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id).unwrap();
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
         assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);

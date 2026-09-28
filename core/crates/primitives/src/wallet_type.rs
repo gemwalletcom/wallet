@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, EnumString, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, EnumString, AsRefStr, PartialEq, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum WalletType {
@@ -20,6 +20,13 @@ impl WalletType {
             WalletType::Single => 1,
             WalletType::PrivateKey => 2,
             WalletType::View => 3,
+        }
+    }
+
+    pub fn can_sign(&self) -> bool {
+        match self {
+            WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => true,
+            WalletType::View => false,
         }
     }
 }

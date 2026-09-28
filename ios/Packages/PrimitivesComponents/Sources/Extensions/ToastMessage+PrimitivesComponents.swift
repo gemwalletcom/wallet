@@ -1,41 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemServiceError
+import enum Gemstone.GemSubmitMessage
 import enum Gemstone.GemSubmitResult
-import enum Gemstone.TransactionInputType
+import struct Gemstone.GemToast
 import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 
 public extension ToastMessage {
-    static func transfer(_ result: GemSubmitResult, for type: TransactionInputType) -> ToastMessage? {
-        switch result {
-        case let .sent(_, warning?), let .signed(_, warning?): .error(warning.text)
-        case .sent, .signed: transfer(for: type)
-        }
+    init(toast: GemToast) {
+        self.init(title: toast.text.text, image: toast.icon.systemImage)
     }
 
-    static func transfer(for type: TransactionInputType) -> ToastMessage? {
-        guard case let .perpetual(_, perpetualType) = type else {
-            return nil
+    static func transfer(_ result: GemSubmitResult) -> ToastMessage? {
+        let message: GemSubmitMessage? = switch result {
+        case let .sent(_, message), let .signed(_, message): message
         }
-        return .success(perpetualType.confirmedTitle)
-    }
-
-    static func copied(_ value: String) -> ToastMessage {
-        ToastMessage(title: Localized.Common.copied(value), image: SystemImage.copy)
+        return switch message {
+        case let .warning(text): .error(text.text)
+        case let .confirmed(text): .success(text.text)
+        case nil: nil
+        }
     }
 
     static func copy(_ message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.copy)
-    }
-
-    static func pin(_ name: String, pinned: Bool) -> ToastMessage {
-        ToastMessage(
-            title: pinned ? Localized.Common.pinnedAsset(name) : Localized.Common.unpinnedAsset(name),
-            image: pinned ? SystemImage.pin : SystemImage.unpin,
-        )
     }
 
     static func addedToWallet() -> ToastMessage {
@@ -49,13 +41,6 @@ public extension ToastMessage {
         )
     }
 
-    static func priceAlert(for assetName: String, enabled: Bool) -> ToastMessage {
-        ToastMessage(
-            title: enabled ? Localized.PriceAlerts.enabledFor(assetName) : Localized.PriceAlerts.disabledFor(assetName),
-            image: SystemImage.bellFill,
-        )
-    }
-
     static func priceAlert(message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.bellFill)
     }
@@ -66,5 +51,9 @@ public extension ToastMessage {
 
     static func error(_ message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.xmarkCircle)
+    }
+
+    static func error(_ error: any Error) -> ToastMessage {
+        .error((error as? GemServiceError)?.localizedDescription ?? Localized.Errors.errorOccurred)
     }
 }

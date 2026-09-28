@@ -18,7 +18,6 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getApr(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> Double? {
-        let assetId = try Primitives.AssetId(id: assetId)
         switch providerType.toPrimitives() {
         case .stake: return try store.getStakeApr(assetId: assetId)
         case .earn: return try store.getEarnApr(assetId: assetId)
@@ -26,7 +25,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
-        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives()).map { $0.toGem() }
+        try store.getValidators(assetId: assetId, providerType: providerType.toPrimitives()).map { $0.toGem() }
     }
 
     public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {
@@ -34,17 +33,17 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func deactivateValidators(assetId: Gemstone.AssetId, validatorIds: [String]) async throws {
-        try store.deactivateValidators(assetId: Primitives.AssetId(id: assetId), validatorIds: validatorIds)
+        try store.deactivateValidators(assetId: assetId, validatorIds: validatorIds)
     }
 
-    public func getDelegationIds(walletId: String, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
-        try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives()).map(\.id)
+    public func getDelegationIds(walletId: WalletId, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
+        try store.getDelegationIds(walletId: walletId, assetId: assetId, providerType: providerType.toPrimitives())
     }
 
-    public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
+    public func updateDelegations(walletId: WalletId, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
-            walletId: WalletId.from(id: walletId),
-            delegations: delegations.map { Primitives.DelegationBase(core: $0) },
+            walletId: walletId,
+            delegations: delegations.map { $0.toPrimitives() },
             deleteIds: deleteIds,
         )
     }

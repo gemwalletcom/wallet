@@ -169,8 +169,4 @@ public struct ListItemModel {
 
 // MARK: - Factory Methods
 
-public extension ListItemModel {
-    static func text(title: String, subtitle: String? = nil) -> ListItemModel {
-        ListItemModel(title: title, subtitle: subtitle)
-    }
-}
+public extension ListItemModel {}

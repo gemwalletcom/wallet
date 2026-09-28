@@ -52,6 +52,7 @@ pub(super) fn derivation_scheme(chain: Chain) -> Result<DerivationScheme, Accoun
         | Chain::Osmosis
         | Chain::Tron
         | Chain::Doge
+        | Chain::Dash
         | Chain::Zcash
         | Chain::Xrp
         | Chain::Celestia

@@ -2,10 +2,11 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemChainSettingsSection
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import struct Gemstone.GemExplorerRow
 import struct Gemstone.GemNodeListSession
-import struct Gemstone.GemNodeSelection
+import struct Gemstone.GemNodeRow
 import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
 import Localization
@@ -17,7 +18,7 @@ public final class ChainSettingsSceneViewModel {
     private let service: any GemChainSettingsServiceProtocol
     let chain: Chain
 
-    var nodeDelete: GemNodeSelection?
+    var nodeDelete: GemNodeRow?
     var explorers: [GemExplorerRow]
     var isPresentingImportNode: Bool = false
     var isPresentingAlertMessage: AlertMessage?
@@ -35,20 +36,12 @@ public final class ChainSettingsSceneViewModel {
         chain.networkName
     }
 
-    var sections: [ChainSettingsSectionViewModel] {
-        ChainSettingsSectionViewModel.Kind.allCases.map(ChainSettingsSectionViewModel.init)
-    }
-
-    var nodesModels: [ChainNodeViewModel] {
-        session.rows().map { ChainNodeViewModel(row: $0) }
+    var sections: [GemChainSettingsSection] {
+        session.sections(explorers: explorers)
     }
 
     var deleteButtonTitle: String {
         Localized.Common.delete
-    }
-
-    func deleteConfirmationTitle(for nodeName: String) -> String {
-        Localized.Common.deleteConfirmation(nodeName)
     }
 
     func addNodeModel() -> AddNodeSceneViewModel {
@@ -88,8 +81,8 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    func onSelectNodeForDeletion(_ node: GemNodeSelection) {
-        nodeDelete = node
+    func onSelectNodeForDeletion(_ row: GemNodeRow) {
+        nodeDelete = row
     }
 
     func onPresentImportNode() {
@@ -136,7 +129,7 @@ extension ChainSettingsSceneViewModel {
 
     private func delete() async throws {
         guard let nodeDelete else { return }
-        try await service.deleteNode(chain: chain.rawValue, url: nodeDelete.url)
+        try await service.deleteNode(chain: chain.rawValue, url: nodeDelete.node.url)
         try await loadNodes()
     }
 }

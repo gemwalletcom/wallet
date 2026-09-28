@@ -11,10 +11,19 @@ public struct PerpetualStore: Sendable {
         self.db = db.dbQueue
     }
 
+    public func getPerpetuals(names: [String]) throws -> [Perpetual] {
+        try db.read { db in
+            try PerpetualRecord
+                .filter(names.contains(PerpetualRecord.Columns.name))
+                .fetchAll(db)
+                .map { $0.toPerpetual() }
+        }
+    }
+
     public func upsertPerpetuals(_ perpetuals: [Perpetual]) throws {
         try db.write { db in
             for perpetual in perpetuals {
-                try perpetual.record.insert(db, onConflict: .ignore)
+                try perpetual.toRecord().insert(db, onConflict: .ignore)
                 try PerpetualRecord
                     .filter(PerpetualRecord.Columns.id == perpetual.id.identifier)
                     .updateAll(
@@ -35,16 +44,6 @@ public struct PerpetualStore: Sendable {
         }
     }
 
-    public func getPositions(walletId: WalletId) throws -> [PerpetualPosition] {
-        try db.read { db in
-            try PerpetualPositionRecord
-                .filter(PerpetualPositionRecord.Columns.walletId == walletId.id)
-                .order(PerpetualPositionRecord.Columns.updatedAt.desc)
-                .fetchAll(db)
-                .map { $0.mapToPerpetualPosition() }
-        }
-    }
-
     public func getPositions(walletId: WalletId, provider: PerpetualProvider) throws -> [PerpetualPosition] {
         try db.read { db in
             try PerpetualPositionRecord
@@ -53,7 +52,7 @@ public struct PerpetualStore: Sendable {
                 .filter(PerpetualPositionRecord.Columns.walletId == walletId.id)
                 .order(PerpetualPositionRecord.Columns.updatedAt.desc)
                 .fetchAll(db)
-                .map { $0.mapToPerpetualPosition() }
+                .map { $0.toPerpetualPosition() }
         }
     }
 
@@ -68,7 +67,7 @@ public struct PerpetualStore: Sendable {
                 .deleteAll(db)
 
             for position in positions {
-                try position.record(walletId: walletId.id).upsert(db)
+                try position.toRecord(walletId: walletId.id).upsert(db)
             }
         }
     }

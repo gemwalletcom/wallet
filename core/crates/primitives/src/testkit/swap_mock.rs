@@ -2,7 +2,7 @@ use super::signer_mock::TEST_EVM_RECIPIENT;
 use crate::{
     SwapProvider,
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
-    swap::{ApprovalData, Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
+    swap::{ApprovalData, Permit2ApprovalData, Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
 };
 use num_bigint::BigUint;
 
@@ -136,6 +136,18 @@ impl SwapQuote {
     }
 }
 
+impl Permit2ApprovalData {
+    pub fn mock() -> Self {
+        Permit2ApprovalData {
+            token: ETHEREUM_USDT_TOKEN_ID.to_string(),
+            spender: TEST_EVM_RECIPIENT.to_string(),
+            value: BigUint::from(1u64),
+            permit2_contract: "0x000000000022D473030F116dDEE9F6B43aC78BA3".to_string(),
+            permit2_nonce: 7,
+        }
+    }
+}
+
 impl SwapQuoteData {
     pub fn mock() -> Self {
         SwapQuoteData {
@@ -146,6 +158,7 @@ impl SwapQuoteData {
             memo: None,
             approval: None,
             gas_limit: Some("21000".to_string()),
+            permit2: None,
         }
     }
 
@@ -158,6 +171,7 @@ impl SwapQuoteData {
             memo: memo.map(String::from),
             approval: None,
             gas_limit: None,
+            permit2: None,
         }
     }
 }
@@ -177,41 +191,5 @@ impl SwapProviderData {
             name: provider.name().to_string(),
             protocol_name: provider.protocol_name().to_string(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_swap_data_mock() {
-        let swap_data = SwapData::mock();
-        assert_eq!(swap_data.quote.from_value, BigUint::from(1000000000u64));
-        assert_eq!(swap_data.quote.to_value, BigUint::from(1000000u64));
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::UniswapV3);
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_provider() {
-        let swap_data = SwapData::mock_with_provider(SwapProvider::Jupiter);
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::Jupiter);
-        assert_eq!(swap_data.quote.provider_data.name, "Jupiter");
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_provider_data() {
-        let swap_data = SwapData::mock_with_provider_data(SwapProvider::Jupiter, "tx-data", Some("420000"));
-        assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::Jupiter);
-        assert_eq!(swap_data.data.data, "tx-data");
-        assert_eq!(swap_data.data.gas_limit, Some("420000".to_string()));
-    }
-
-    #[test]
-    fn test_swap_data_mock_with_data_and_approval() {
-        let swap_data = SwapData::mock_with_data_and_approval("tx-data", Some("420000"));
-        assert_eq!(swap_data.data.data, "tx-data");
-        assert_eq!(swap_data.data.approval, Some(ApprovalData::mock()));
-        assert_eq!(swap_data.data.gas_limit, Some("420000".to_string()));
     }
 }

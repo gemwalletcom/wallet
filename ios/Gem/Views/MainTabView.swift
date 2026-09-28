@@ -12,7 +12,7 @@ import Style
 import SwiftUI
 import Transactions
 import Transfer
-import WalletTab
+import Wallet
 
 struct MainTabView: View {
     @Environment(\.navigationState) private var navigationState
@@ -84,6 +84,7 @@ struct MainTabView: View {
             )
         }
         .sheet(item: presenter.isPresentingPayment) { PaymentNavigationStack(type: $0, wallet: wallet) }
+        .sheet(item: presenter.isPresentingAddressDetails) { AddressDetailsDestination(chainAddress: $0) }
         .sheet(item: presenter.isPresentingPriceAlert) { asset in
             SetPriceAlertNavigationStack(
                 model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: asset, onComplete: onSetPriceAlertComplete),
@@ -132,10 +133,10 @@ extension MainTabView {
                 break
             }
             presenter.isPresentingAssetInput.wrappedValue = nil
-        case let .swap(fromAsset, _):
+        case let .swap(fromAssetId, _):
             Task {
                 do {
-                    try await presenter.completeSwap(fromAsset: fromAsset, navigationState: navigationState)
+                    try await presenter.completeSwap(fromAssetId: fromAssetId, navigationState: navigationState)
                 } catch {
                     model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                 }

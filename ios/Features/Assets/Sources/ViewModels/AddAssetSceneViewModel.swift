@@ -5,6 +5,7 @@ import Foundation
 import enum Gemstone.GemAddAssetPhase
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
+import struct Gemstone.GemAddAssetViewState
 import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization
@@ -19,24 +20,36 @@ public final class AddAssetSceneViewModel {
     private let service: any GemAddAssetServiceProtocol
     private let wallet: Wallet
 
-    private var session: GemAddAssetSession
+    private var session: GemAddAssetSession {
+        didSet {
+            viewState = session.viewState()
+            sections = service.sections(session: session)
+        }
+    }
+
+    private var viewState: GemAddAssetViewState
+    private(set) var sections: [GemListSection]
     var input: AddAssetInput
 
     var isPresentingScanner = false
     var loadTrigger: AddAssetLoadTrigger?
+    private var loadAttempt = 0
     var isPresentingAlertMessage: AlertMessage?
 
     public init(wallet: Wallet, service: any GemAddAssetServiceProtocol) {
         self.service = service
         self.wallet = wallet
-        let chains = service.chains(wallet: wallet)
-        let input = AddAssetInput(chains: chains, chain: service.defaultChain(chains: chains))
-        session = service.newSession(chain: input.chain?.rawValue)
+        let picker = service.chainPicker(wallet: wallet.toGem())
+        let input = AddAssetInput(
+            chains: picker.chains.map { Chain(core: $0) },
+            chain: picker.defaultChain.map { Chain(core: $0) },
+            showsChainPicker: picker.showsPicker,
+        )
+        let session = service.newSession(chain: input.chain?.rawValue)
+        self.session = session
+        viewState = session.viewState()
+        sections = service.sections(session: session)
         self.input = input
-    }
-
-    var sections: [GemListSection] {
-        service.sections(session: session)
     }
 
     var isLoading: Bool {
@@ -44,15 +57,11 @@ public final class AddAssetSceneViewModel {
     }
 
     var showsVerificationWarning: Bool {
-        session.viewState().canAdd
+        viewState.canAdd
     }
 
     var buttonState: ButtonState {
-        switch session.viewState().phase {
-        case .loading: .loading()
-        case .found: .normal
-        case .idle, .failed: .disabled
-        }
+        viewState.button.state
     }
 
     var title: String {
@@ -99,17 +108,8 @@ public final class AddAssetSceneViewModel {
             title: Localized.Asset.Verification.warningTitle,
             titleExtra: Localized.Asset.Verification.warningMessage,
             titleStyleExtra: .bodySecondary,
-            imageStyle: warningImageStyle,
+            imageStyle: .emoji(Emoji.WalletAvatar.warning.rawValue),
             infoAction: infoAction,
-        )
-    }
-
-    var warningImageStyle: ListItemImageStyle? {
-        ListItemImageStyle(
-            assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
-            imageSize: .image.semiMedium,
-            alignment: .top,
-            cornerRadiusType: .none,
         )
     }
 
@@ -152,11 +152,13 @@ extension AddAssetSceneViewModel {
 
     func onSelectImportToken(onComplete: VoidAction) {
         guard let asset = session.asset?.toPrimitives() else { return }
+        session = session.onAdding(isAdding: true)
         Task {
             do {
-                try await service.add(wallet: wallet.toGem(), assetId: asset.id.identifier)
+                try await service.add(wallet: wallet.toGem(), assetId: asset.id)
                 onComplete?()
             } catch {
+                session = session.onAdding(isAdding: false)
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
@@ -168,6 +170,9 @@ extension AddAssetSceneViewModel {
             loadTrigger = nil
             return
         }
-        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate)
+        if isImmediate {
+            loadAttempt += 1
+        }
+        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate, attempt: loadAttempt)
     }
 }

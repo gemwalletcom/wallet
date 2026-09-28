@@ -22,11 +22,13 @@ import coil3.request.ImageRequest
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import coil3.transform.Transformation
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.assetText
 
 private val DefaultCircleCropTransformation = CircleCropTransformation()
 
@@ -44,7 +46,7 @@ fun AsyncImage(
         return
     }
     val requestData = when (model) {
-        is Asset -> model.iconModel()
+        is Asset -> assetText(model.toGem()).icon.iconModel()
         is Chain -> model.iconModel()
         is SwapProvider -> model.iconModel()
         else -> model

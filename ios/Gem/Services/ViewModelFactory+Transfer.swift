@@ -8,8 +8,10 @@ import struct Gemstone.GemPaymentRecipient
 import class Gemstone.GemReceiveService
 import class Gemstone.GemRecipientService
 import enum Gemstone.GemRecipientType
+import enum Gemstone.GemStakeAmountInput
 import class Gemstone.GemSwapQuoteService
 import struct Gemstone.GemTransferData
+import struct Gemstone.GemValidatorRow
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.SimulationResult
 import GemstonePrimitives
@@ -27,16 +29,16 @@ import WalletConnectorService
 public extension ViewModelFactory {
     @MainActor
     func validatorSelectScene(
-        currentValidator: DelegationValidator?,
-        recommended: [DelegationValidator],
-        validators: [DelegationValidator],
-        selectValidator: @escaping (DelegationValidator) -> Void,
+        chain: Chain,
+        input: GemStakeAmountInput,
+        currentValidatorId: String,
+        selectValidator: @escaping (GemValidatorRow) -> Void,
     ) -> ValidatorSelectSceneViewModel {
         ValidatorSelectSceneViewModel(
             service: stakeService,
-            currentValidator: currentValidator,
-            recommended: recommended,
-            validators: validators,
+            chain: chain,
+            input: input,
+            currentValidatorId: currentValidatorId,
             selectValidator: selectValidator,
         )
     }
@@ -52,40 +54,25 @@ public extension ViewModelFactory {
         ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
                 data: data,
-                simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
             wallet: wallet,
-            confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
+            confirmation: confirmTransferService.confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] result in
-                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
+                Task { toastPresenter.present(.transfer(result)) }
                 onComplete?()
             },
         )
     }
 
-    private func confirmTransferService() -> GemConfirmTransferService {
-        GemConfirmTransferService(
-            confirm: confirmService,
-            explorer: explorerService,
-            names: nameService,
-            assetConfig: assetConfig,
-            signer: KeystoreTransactionSigner(keystore: keystore),
-            password: GemstoneKeystorePassword(keystore: keystore),
-            recentActivity: recentAssetsService,
-            preferences: preferencesService,
-            payment: paymentService,
-        )
+    @MainActor
+    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetData: assetData, wallet: wallet, service: receiveService())
     }
 
     @MainActor
-    func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetData: assetData, wallet: wallet, service: receiveService())
-    }
-
-    @MainActor
-    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveViewModel {
-        ReceiveViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
+    func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveSceneViewModel {
+        ReceiveSceneViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
     }
 
     private func receiveService() -> GemReceiveService {
@@ -94,14 +81,12 @@ public extension ViewModelFactory {
 
     @MainActor
     func recipientScene(
-        wallet: Wallet,
         asset: Asset,
         type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
         onNavigate: TransferRouteAction,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
-            wallet: wallet,
             asset: asset,
             service: GemRecipientService(payments: paymentService, session: walletSessionService),
             nameService: nameService,
@@ -121,7 +106,6 @@ public extension ViewModelFactory {
             input: input,
             wallet: wallet,
             service: amountService,
-            stakeService: stakeService,
             onTransferAction: onTransferAction,
         )
     }
@@ -193,16 +177,16 @@ public extension ViewModelFactory {
         wallet: Wallet,
         delegation: Delegation,
         asset: Asset,
-        validators: [DelegationValidator],
         onNavigate: StakeRouteAction,
+        onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(service: stakeService, delegation: delegation, asset: asset, formatter: .auto, currency: stakeService.getCurrency().toPrimitives()),
+            delegation: delegation,
             asset: asset,
             service: stakeService,
-            validators: validators,
             onNavigate: onNavigate,
+            onSelectAddress: onSelectAddress,
         )
     }
 

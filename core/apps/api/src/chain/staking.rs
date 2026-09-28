@@ -4,8 +4,7 @@ use crate::api_clients::PermissionChainRead;
 use crate::params::ChainParam;
 use crate::responders::{ApiError, ApiResponse};
 use primitives::StakeValidator;
-
-use super::ChainClient;
+use services::chain::ChainClient;
 
 #[get("/chain/staking/<chain>/validators")]
 pub async fn get_validators(_permission: PermissionChainRead, chain: ChainParam, client: &State<ChainClient>) -> Result<ApiResponse<Vec<StakeValidator>>, ApiError> {

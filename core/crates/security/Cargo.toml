@@ -1,0 +1,26 @@
+[package]
+name = "security"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true }
+primitives = { path = "../primitives" }
+serde_json = { workspace = true }
+hex = { workspace = true }
+sha1 = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+jupiter = { path = "../jupiter" }
+gem_tracing = { path = "../gem_tracing" }
+chain_primitives = { path = "../chain_primitives" }
+settings = { path = "../settings" }
+url = { workspace = true }
+
+[features]
+security_integration_tests = []
+
+[dev-dependencies]
+gem_client = { path = "../gem_client", features = ["testkit"] }
+tokio = { workspace = true }
+primitives = { path = "../primitives", features = ["testkit"] }

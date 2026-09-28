@@ -1,7 +1,6 @@
-use cacher::CacheKey;
-use pricer::PriceClient;
 use primitives::{AssetId, AssetPrice, AssetPriceInfo, StreamEvent, StreamMessage, StreamMessagePrices, Version, WebSocketPricePayload};
 use redis::aio::MultiplexedConnection;
+use services::prices::{PriceClient, price_channel};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
@@ -35,7 +34,7 @@ impl PriceHandler {
     }
 
     fn get_channel_ids(&self) -> Vec<String> {
-        self.assets.iter().map(|id| CacheKey::Price(&id.to_string()).key()).collect()
+        self.assets.iter().map(price_channel).collect()
     }
 
     pub fn handle_price_message(&mut self, value: &[u8]) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -77,7 +76,7 @@ impl PriceHandler {
 
     async fn add_prices(&mut self, message: &StreamMessagePrices, redis_connection: &mut MultiplexedConnection) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
         let new_assets: Vec<AssetId> = message.assets.iter().filter(|asset| !self.assets.contains(*asset)).cloned().collect();
-        let new_channels: Vec<String> = new_assets.iter().map(|id| CacheKey::Price(&id.to_string()).key()).collect();
+        let new_channels: Vec<String> = new_assets.iter().map(price_channel).collect();
         self.assets.extend(new_assets);
         self.observe_assets().await;
         let event = self.price_event(self.assets.iter().cloned().collect(), false).await?;
@@ -89,7 +88,7 @@ impl PriceHandler {
 
     async fn unsubscribe_prices(&mut self, message: &StreamMessagePrices, redis_connection: &mut MultiplexedConnection) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
         let removed_assets: Vec<AssetId> = message.assets.iter().filter(|asset| self.assets.contains(*asset)).cloned().collect();
-        let removed_channels: Vec<String> = removed_assets.iter().map(|id| CacheKey::Price(&id.to_string()).key()).collect();
+        let removed_channels: Vec<String> = removed_assets.iter().map(price_channel).collect();
         for asset in &removed_assets {
             self.assets.remove(asset);
             self.prices_to_publish.remove(&asset.to_string());

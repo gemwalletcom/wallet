@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.PriceAlertsDao
+import com.gemwallet.android.data.services.store.database.PriceAlertsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
 import dagger.Module
 import dagger.Provides

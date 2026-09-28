@@ -2,13 +2,14 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
-import func Gemstone.transactionsListLimit
+import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -26,27 +27,27 @@ public final class PerpetualSceneViewModel {
     private let onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?
 
     public let wallet: Wallet
-    public let asset: Asset
+    let asset: Asset
 
-    public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
+    public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
+    public let perpetualQuery: ObservableQuery<PerpetualQuery>
+    public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
     }
 
-    public var perpetualData: PerpetualData {
+    var perpetualData: PerpetualData {
         perpetualQuery.value
     }
 
-    public var transactionSections: [ListSection<TransactionViewModel>] {
+    var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
 
-    public let chart: PerpetualChartModel
+    let chart: PerpetualChartViewModel
 
-    public var isPresentingInfoSheet: InfoSheetType?
+    public var isPresentingInfoSheet: GemInfoSheet?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
     public var isPresentingAlertMessage: AlertMessage?
@@ -63,35 +64,27 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.service = service
         self.observerService = observerService
-        chart = PerpetualChartModel(service: service, observerService: observerService)
+        chart = PerpetualChartViewModel(service: service, observerService: observerService)
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
-        perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
+        positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
+        perpetualQuery = ObservableQuery(PerpetualQuery(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
-            MappedRequest(
-                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, types: service.activityTypes().map { $0.toPrimitives() }, limit: Int(transactionsListLimit())),
-                transform: TransactionViewModel.sections,
+            MappedQuery(
+                TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
+                transform: transactionListSections,
             ),
             initialValue: [],
         )
     }
 
-    public var details: GemPerpetualDetails {
+    var details: GemPerpetualDetails {
         service.details(perpetual: perpetual.toGem(), asset: asset.toGem(), positions: positions.map { $0.position.toGem() })
     }
 
-    public var modifyTitle: String {
+    var modifyTitle: String {
         GemPerpetualButton.modify.title
-    }
-
-    public func buttonModels(_ buttons: [GemPerpetualButton]) -> [PerpetualButtonViewModel] {
-        buttons.map { PerpetualButtonViewModel(button: $0) }
-    }
-
-    public func onSelect(_ button: PerpetualButtonViewModel) {
-        onSelectButton(button.button)
     }
 
     public func onSelectButton(_ button: GemPerpetualButton) {
@@ -147,7 +140,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: nil)
+        isPresentingInfoSheet = topic.infoSheet
     }
 
     func onSelectAutoclose() {
@@ -222,7 +215,7 @@ private extension PerpetualSceneViewModel {
     }
 
     func refreshStored() async {
-        for failure in await service.refresh(assetId: asset.id.identifier) {
+        for failure in await service.refresh(assetId: asset.id) {
             debugLog("perpetual scene refresh error: \(failure.step) \(failure.message)")
         }
     }

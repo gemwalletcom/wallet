@@ -42,7 +42,7 @@ pub struct TrackedTransactions<'a> {
 
 impl Tracking {
     fn state(&self) -> MutexGuard<'_, TrackingState> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
     pub fn start(&self, wallet_id: &WalletId, transaction_id: &TransactionId) -> Option<TrackedTransactions<'_>> {
@@ -153,7 +153,7 @@ mod tests {
         };
         let store = MemoryTransactionStateStore {
             pending: Mutex::new(vec![GemPendingTransaction {
-                wallet: Wallet::mock(),
+                wallet_id: Wallet::mock().id,
                 transaction: replaced.clone(),
             }]),
             ..Default::default()

@@ -8,22 +8,23 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{Asset, BannerEvent, BannerState, Wallet};
+use primitives::{Asset, Banner, BannerEvent, BannerState, Platform, Wallet};
 
-pub use model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerRow, GemBannerStyle, GemBannerTitle};
+pub use model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerRow, GemBannerStyle, GemBannerTitle};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
 #[derive(uniffi::Object)]
 pub struct GemBannerService {
     store: Arc<dyn GemBannerStore>,
+    platform: Platform,
 }
 
 #[uniffi::export]
 impl GemBannerService {
     #[uniffi::constructor]
-    pub fn new(store: Arc<dyn GemBannerStore>) -> Self {
-        Self { store }
+    pub fn new(store: Arc<dyn GemBannerStore>, platform: Platform) -> Self {
+        Self { store, platform }
     }
 }
 
@@ -37,11 +38,18 @@ impl GemBannerService {
     }
 
     pub async fn set_banner_state(&self, key: GemBannerKey, state: BannerState) -> Result<(), GemServiceError> {
+        if self.store.get_state(key.clone()).await? == Some(state) {
+            return Ok(());
+        }
         self.store.set_state(key, state).await
     }
 
     pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>, state: BannerState) -> GemBannerContent {
-        rules::banner_content(event, asset.as_ref(), state)
+        rules::banner_content(event, asset.as_ref(), state, self.platform)
+    }
+
+    pub fn visible_banners(&self, context: &GemBannerContext, stored: Vec<Banner>) -> Vec<GemBannerRow> {
+        context.visible_banners(stored, self.platform)
     }
 
     pub async fn setup(&self) -> Result<(), GemServiceError> {
@@ -73,7 +81,7 @@ mod tests {
     fn test_wallet_setup_writes_its_banners_once() {
         block_on(async {
             let store = Arc::new(MemoryBannerStore::default());
-            let service = GemBannerService::new(store.clone());
+            let service = GemBannerService::new(store.clone(), Platform::IOS);
             let wallet = Wallet {
                 source: WalletSource::Create,
                 ..Wallet::mock_with_chains(&[Chain::Xrp, Chain::Ethereum])
@@ -93,7 +101,7 @@ mod tests {
     fn test_a_dismissed_banner_is_not_recreated_by_setup() {
         block_on(async {
             let store = Arc::new(MemoryBannerStore::default());
-            let service = GemBannerService::new(store.clone());
+            let service = GemBannerService::new(store.clone(), Platform::IOS);
             let wallet = Wallet {
                 source: WalletSource::Import,
                 ..Wallet::mock_with_chains(&[Chain::Xrp, Chain::Ethereum])
@@ -106,6 +114,24 @@ mod tests {
 
             assert_eq!(store.get_state(key).await.unwrap(), Some(BannerState::Cancelled));
             assert_eq!(store.writes.lock().unwrap().len(), 1);
+        });
+    }
+
+    #[test]
+    fn test_setting_the_stored_state_again_writes_nothing() {
+        block_on(async {
+            let store = Arc::new(MemoryBannerStore::default());
+            let service = GemBannerService::new(store.clone(), Platform::IOS);
+            let key = rules::wallet_setup_keys(&Wallet {
+                source: WalletSource::Import,
+                ..Wallet::mock_with_chains(&[Chain::Xrp])
+            })
+            .remove(0);
+
+            service.set_banner_state(key.clone(), BannerState::Cancelled).await.unwrap();
+            service.set_banner_state(key, BannerState::Cancelled).await.unwrap();
+
+            assert_eq!(*store.state_writes.lock().unwrap(), 1);
         });
     }
 }

@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
@@ -5,11 +6,11 @@ pub mod store;
 pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Appearance, Chain, ConfigResponse, Device, WalletType};
+use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -31,6 +32,7 @@ const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
 const SELL_ASSETS_VERSION: &str = "sell_assets_version";
 const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
+const ASSET_UPDATED_AT: &str = "asset_updated_at";
 const EXPLORER_NAME: &str = "explorer_name";
 const PERPETUAL_MARKETS_UPDATED_AT: &str = "perpetual_markets_updated_at";
 const PERPETUAL_PRICES_UPDATED_AT: &str = "perpetual_prices_updated_at";
@@ -48,9 +50,15 @@ const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
 const PUSHED_DEVICE: &str = "pushed_device";
 const PUSHED_SUBSCRIPTIONS: &str = "pushed_subscriptions";
 
+#[uniffi::export(rust, foreign)]
+pub trait GemPreferencesObserver: Send + Sync {
+    fn on_preferences_changed(&self);
+}
+
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
     store: Arc<dyn GemPreferencesStore>,
+    observer: Mutex<Option<Arc<dyn GemPreferencesObserver>>>,
 }
 
 #[uniffi::export]
@@ -60,7 +68,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
-        self.store.set(CURRENCY.to_string(), currency.as_ref().to_string())
+        self.set_observed(CURRENCY, currency.as_ref().to_string())
     }
 
     pub fn setup_currency(&self, locale_currency: Option<String>) -> Result<Currency, GemServiceError> {
@@ -85,7 +93,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_PERPETUAL_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_PERPETUAL_ENABLED, enabled.to_string())
     }
 
     pub fn is_hide_balance_enabled(&self) -> bool {
@@ -93,7 +101,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_hide_balance_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_HIDE_BALANCE_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_HIDE_BALANCE_ENABLED, enabled.to_string())
     }
 
     pub fn is_developer_enabled(&self) -> bool {
@@ -101,7 +109,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_developer_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_DEVELOPER_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_DEVELOPER_ENABLED, enabled.to_string())
     }
 
     pub fn is_accept_terms_completed(&self) -> bool {
@@ -109,7 +117,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_accept_terms_completed(&self) -> Result<(), GemServiceError> {
-        self.store.set(IS_ACCEPT_TERMS_COMPLETED.to_string(), true.to_string())
+        self.set_observed(IS_ACCEPT_TERMS_COMPLETED, true.to_string())
     }
 
     pub fn get_appearance(&self) -> Appearance {
@@ -117,7 +125,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_appearance(&self, appearance: Appearance) -> Result<(), GemServiceError> {
-        self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
+        self.set_observed(APPEARANCE, rules::appearance_value(appearance).to_string())
     }
 
     pub fn increment_launches_count(&self) -> Result<u32, GemServiceError> {
@@ -135,23 +143,17 @@ impl GemPreferencesService {
         self.store.set(RATE_APPLICATION_SHOWN.to_string(), "true".to_string())
     }
 
-    pub fn should_ask_notifications(&self) -> bool {
-        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
-        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
-    }
-
     pub fn notification_prompt(&self, is_granted: bool) -> rules::GemNotificationPrompt {
         rules::notification_prompt(is_granted, !self.should_ask_notifications())
     }
 
-    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
-        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
-        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
-    }
-
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemPreferencesStore>) -> Self {
-        Self { store }
+        Self { store, observer: Mutex::new(None) }
+    }
+
+    pub fn set_observer(&self, observer: Arc<dyn GemPreferencesObserver>) {
+        *self.observer.lock().unwrap() = Some(observer);
     }
 
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
@@ -160,6 +162,16 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn should_ask_notifications(&self) -> bool {
+        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
+        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
+    }
+
+    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
+        let now = unix_seconds().map_err(GemServiceError::core)?;
+        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
+    }
+
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
     }
@@ -173,7 +185,9 @@ impl GemPreferencesService {
     }
 
     pub fn clear(&self) -> Result<(), GemServiceError> {
-        self.store.clear()
+        self.store.clear()?;
+        self.notify();
+        Ok(())
     }
 
     pub fn show_collections(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
@@ -185,7 +199,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
+        self.set_observed(PERPETUAL_LEVERAGE, leverage.to_string())
     }
 
     pub fn get_perpetual_take_profit_percent(&self) -> u8 {
@@ -193,7 +207,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_TAKE_PROFIT, percent.to_string())
     }
 
     pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
@@ -201,7 +215,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_STOP_LOSS, percent.to_string())
     }
 
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {
@@ -286,6 +300,14 @@ impl GemPreferencesService {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
 
+    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Result<Option<i64>, GemServiceError> {
+        self.get_timestamp(&asset_updated_at_key(asset_id))
+    }
+
+    pub fn set_asset_updated_at(&self, asset_id: &AssetId, timestamp: i64) -> Result<(), GemServiceError> {
+        self.set_timestamp(&asset_updated_at_key(asset_id), Some(timestamp))
+    }
+
     pub fn get_explorer_name(&self, chain: Chain) -> Option<String> {
         self.store.get(explorer_name_key(chain))
     }
@@ -304,6 +326,10 @@ fn explorer_name_key(chain: Chain) -> String {
     format!("{EXPLORER_NAME}_{}", chain.as_ref())
 }
 
+fn asset_updated_at_key(asset_id: &AssetId) -> String {
+    format!("{ASSET_UPDATED_AT}_{asset_id}")
+}
+
 fn assets_version_key(list: AssetList) -> &'static str {
     match list {
         AssetList::Buy => BUY_ASSETS_VERSION,
@@ -315,6 +341,19 @@ fn assets_version_key(list: AssetList) -> &'static str {
 impl GemPreferencesService {
     fn stored_currency(&self) -> Option<Currency> {
         self.store.get(CURRENCY.to_string()).and_then(|code| Currency::from_str(&code).ok())
+    }
+
+    fn set_observed(&self, key: &str, value: String) -> Result<(), GemServiceError> {
+        self.store.set(key.to_string(), value)?;
+        self.notify();
+        Ok(())
+    }
+
+    fn notify(&self) {
+        let observer = self.observer.lock().unwrap().clone();
+        if let Some(observer) = observer {
+            observer.on_preferences_changed();
+        }
     }
 }
 
@@ -340,12 +379,12 @@ impl GemPreferencesService {
     }
 
     pub fn set_pushed_device(&self, device: &Device) -> Result<(), GemServiceError> {
-        let json = serde_json::to_string(device).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let json = serde_json::to_string(device).map_err(GemServiceError::core)?;
         self.store.set(PUSHED_DEVICE.to_string(), json)
     }
 
     pub fn get_pushed_subscriptions(&self) -> Option<String> {
-        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).filter(|signature| !signature.is_empty())
+        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).non_empty()
     }
 
     pub fn set_pushed_subscriptions(&self, signature: String) -> Result<(), GemServiceError> {
@@ -357,6 +396,35 @@ impl GemPreferencesService {
 mod tests {
     use super::testkit::MemoryPreferencesStore;
     use super::*;
+
+    #[derive(Default)]
+    struct CountingObserver(std::sync::atomic::AtomicUsize);
+
+    impl GemPreferencesObserver for CountingObserver {
+        fn on_preferences_changed(&self) {
+            self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    #[test]
+    fn test_the_observer_hears_the_preferences_screens_show_and_not_bookkeeping() {
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
+        let observer = Arc::new(CountingObserver::default());
+        service.set_observer(observer.clone());
+        let count = || observer.0.load(std::sync::atomic::Ordering::SeqCst);
+
+        service.set_currency(Currency::EUR).unwrap();
+        service.set_developer_enabled(true).unwrap();
+        service.set_perpetual_enabled(true).unwrap();
+        assert_eq!(count(), 3);
+
+        service.set_price_alerts_enabled(true).unwrap();
+        service.set_device_registered(true).unwrap();
+        assert_eq!(count(), 3, "internal bookkeeping does not redraw the apps");
+
+        service.clear().unwrap();
+        assert_eq!(count(), 4);
+    }
 
     #[test]
     fn test_price_alerts_enabled_defaults_to_false_and_round_trips() {

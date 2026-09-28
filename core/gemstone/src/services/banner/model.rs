@@ -1,11 +1,10 @@
-use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Platform, Wallet, WalletId};
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemBannerContext {
     pub wallet: Option<Wallet>,
     pub asset: Option<Asset>,
@@ -19,34 +18,26 @@ pub struct GemBannerContext {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerRow {
+    pub key: GemBannerKey,
     pub banner: Banner,
     pub content: GemBannerContent,
 }
 
-#[uniffi::export]
-impl GemBannerContext {
-    pub fn visible_banners(&self, stored: Vec<Banner>) -> Vec<GemBannerRow> {
-        super::rules::visible_banners(stored, self)
-            .into_iter()
-            .map(|banner| GemBannerRow {
-                content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state),
-                banner,
-            })
-            .collect()
+impl GemBannerRow {
+    pub fn new(banner: Banner, platform: Platform) -> Self {
+        Self {
+            key: GemBannerKey::from(&banner),
+            content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state, platform),
+            banner,
+        }
     }
 }
 
-#[uniffi::export]
-pub fn wallet_banner_events() -> Vec<BannerEvent> {
-    super::rules::wallet_banner_events()
-}
-
-#[uniffi::export]
-pub fn asset_banner_context(wallet: Option<Wallet>, asset: Asset, metadata: AssetMetaData, balance: GemAssetBalance) -> GemBannerContext {
-    GemBannerContext::asset(wallet, asset, &metadata, &balance)
-}
-
 impl GemBannerContext {
+    pub fn visible_banners(&self, stored: Vec<Banner>, platform: Platform) -> Vec<GemBannerRow> {
+        super::rules::visible_banners(stored, self).into_iter().map(|banner| GemBannerRow::new(banner, platform)).collect()
+    }
+
     pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
         Self {
             wallet,
@@ -130,6 +121,16 @@ pub struct GemBannerKey {
     pub event: BannerEvent,
 }
 
+impl From<&Banner> for GemBannerKey {
+    fn from(banner: &Banner) -> Self {
+        Self {
+            wallet_id: banner.wallet_id.clone(),
+            asset_id: banner.asset.as_ref().map(|asset| asset.id.clone()),
+            event: banner.event,
+        }
+    }
+}
+
 #[uniffi::export]
 impl GemBannerKey {
     pub fn identifier(&self) -> String {
@@ -173,19 +174,13 @@ pub enum GemBannerDescription {
     TradePerpetuals,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemBannerLink {
-    Docs { item: DocsUrl },
-    External { url: String },
-}
-
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemBannerDestination {
     Stake,
     ActivateAsset { transfer: GemTransferData },
     Perpetuals,
-    Url { link: GemBannerLink },
+    Url { url: String },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -243,6 +238,28 @@ mod tests {
         assert!(context.has_stake_balance);
         assert!(context.has_available_balance);
         assert!(context.is_asset_activated);
+    }
+
+    #[test]
+    fn test_a_banner_row_carries_the_key_that_closes_it() {
+        let wallet_id = WalletId::Multicoin("wallet-1".to_string());
+        let banner = Banner {
+            wallet_id: Some(wallet_id.clone()),
+            asset: Some(Asset::from_chain(Chain::Bitcoin)),
+            event: BannerEvent::Stake,
+            state: BannerState::Active,
+        };
+
+        let row = GemBannerRow::new(banner, Platform::IOS);
+
+        assert_eq!(
+            row.key,
+            GemBannerKey {
+                wallet_id: Some(wallet_id),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                event: BannerEvent::Stake,
+            }
+        );
     }
 
     #[test]

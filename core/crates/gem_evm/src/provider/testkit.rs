@@ -7,7 +7,7 @@ use crate::{
     rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider},
 };
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_alchemy::{AlchemyApi, alchemy_url};
+use alchemy::{AlchemyApi, alchemy_url};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]

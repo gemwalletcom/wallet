@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition, TransactionType};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition};
 
 use super::candles::{GemCandleRequest, GemCandleResult};
 use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
@@ -11,7 +11,7 @@ use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transactions::{GemTransactionFilter, GemTransactionsService, rules as transaction_rules};
+use crate::services::transactions::GemTransactionsService;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -33,10 +33,6 @@ impl GemPerpetualDetailsService {
             preferences,
             session,
         }
-    }
-
-    pub fn activity_types(&self) -> Vec<TransactionType> {
-        transaction_rules::filter_transaction_types(GemTransactionFilter::Perpetuals)
     }
 
     pub fn details(&self, perpetual: Perpetual, asset: Asset, positions: Vec<PerpetualPosition>) -> GemPerpetualDetails {
@@ -77,10 +73,6 @@ impl GemPerpetualDetailsService {
             state: GemLoadState::of(&candles),
             candles: candles.unwrap_or_default(),
         }
-    }
-
-    pub async fn candlesticks(&self, perpetual: Perpetual, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
-        self.perpetuals.get_candlesticks(Chain::HyperCore, rules::symbol(&perpetual), period).await
     }
 
     pub fn merged_candles(&self, candles: Vec<GemChartCandleStick>, update: ChartCandleUpdate, perpetual: Perpetual, period: ChartPeriod) -> Option<Vec<GemChartCandleStick>> {

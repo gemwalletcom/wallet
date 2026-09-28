@@ -9,6 +9,7 @@
   <string name="common_copy">Salin</string>
   <string name="common_share">Kongsi</string>
   <string name="common_continue">Teruskan</string>
+  <string name="common_continue_anyway">Teruskan juga</string>
   <string name="common_sign_in_with">Log masuk dengan %1$s</string>
   <string name="common_provider">Pembekal</string>
   <string name="common_loading">Memuatkan</string>
@@ -47,7 +48,6 @@
   <string name="common_description">Penerangan</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Simpan</string>
   <string name="common_percentage">Peratusan</string>
   <string name="common_details">Butiran</string>
   <string name="common_info">Info</string>
@@ -57,6 +57,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Tamat tempoh</string>
   <string name="common_suspicious_address">Alamat yang mencurigakan</string>
+  <string name="common_suspicious_address_description">Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="common_refresh">Segarkan semula</string>
   <string name="common_grant_permission">Berikan kebenaran</string>
   <string name="common_required_field">%1$s diperlukan</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">Portfolio</string>
   <string name="wallet_import_already_imported_message">Dompet ini telah pun diimport.</string>
   <string name="wallets_title">Dompet</string>
-  <string name="wallets_watch">Tonton</string>
-  <string name="receive_title">Terima %1$s</string>
   <string name="receive_warning">Ini alamat anda — hantar sahaja %1$s pada %2$s rangkaian.</string>
   <string name="buy_title">Beli %1$s</string>
   <string name="buy_providers_title">Pembekal</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">Pengesahan</string>
   <string name="settings_notifications_title">Pemberitahuan</string>
   <string name="settings_language">Bahasa</string>
-  <string name="settings_help_center">Pusat Bantuan</string>
   <string name="settings_support">Sokongan</string>
   <string name="settings_price_alerts_title">Makluman Harga</string>
   <string name="settings_hide_balance">Sembunyikan Baki</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Aset tidak disokong.</string>
   <string name="errors_connections_no_supported_wallets">Tiada dompet yang disokong tersedia.</string>
   <string name="errors_connections_unsupported_chain">Rantaian yang disediakan tidak disokong.</string>
+  <string name="errors_authentication_unavailable">Pengesahan belum disediakan pada peranti ini. Hidupkan biometrik atau kod laluan dalam tetapan peranti.</string>
+  <string name="errors_authentication_locked_out">Terlalu banyak percubaan gagal. Sila cuba lagi kemudian.</string>
+  <string name="errors_authentication_failed">Pengesahan gagal. Sila cuba lagi.</string>
+  <string name="errors_connections_expired">Pautan sambungan ini telah tamat tempoh. Dapatkan kod QR baharu dan cuba lagi.</string>
+  <string name="errors_connections_not_found">Sambungan ini tidak lagi wujud.</string>
+  <string name="errors_connections_relay_unavailable">Tidak dapat mencapai WalletConnect. Semak sambungan internet anda dan cuba lagi.</string>
   <string name="errors_swap_amount_too_small">Jumlah terlalu kecil</string>
   <string name="errors_scan_transaction_malicious_description">Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="errors_scan_transaction_memo_required">%1$s alamat dompet destinasi memerlukan teg / memo destinasi</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">Beli %1$s</string>
   <string name="asset_get_asset">Dapatkan %1$s</string>
   <string name="asset_add_to_wallet">Tambah pada dompet</string>
-  <string name="asset_hide_from_wallet">Sembunyi dari dompet</string>
   <string name="asset_added_to_wallet">Ditambah ke dompet</string>
   <string name="asset_hidden_from_wallet">Disembunyikan dari dompet</string>
   <string name="asset_resources">Sumber</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">Perubahan</string>
   <string name="date_today">Hari ini</string>
   <string name="date_yesterday">Semalam</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Sambungan</string>
   <string name="wallet_connect_disconnect">Putuskan sambungan</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">Cepat</string>
   <string name="fee_rates_normal">Biasa</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tersuai</string>
   <string name="banner_account_activation_title">Yuran Pengaktifan Akaun</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Apabila harga menurun sebanyak</string>
   <string name="price_alerts_set_alert_set_target_price">Tetapkan harga sasaran</string>
   <string name="price_alerts_set_alert_current_price">Harga semasa</string>
-  <string name="price_alerts_added_for">Tetapkan makluman harga %1$s</string>
+  <string name="price_alerts_added_price_over">Makluman ditambah untuk harga melebihi %1$s</string>
+  <string name="price_alerts_added_price_under">Makluman ditambah untuk harga di bawah %1$s</string>
+  <string name="price_alerts_added_increases_by">Makluman ditambah untuk kenaikan harga sebanyak %1$s</string>
+  <string name="price_alerts_added_decreases_by">Makluman ditambah untuk penurunan harga sebanyak %1$s</string>
   <string name="price_alerts_state_empty_title">Makluman anda akan dipaparkan di sini</string>
   <string name="price_alerts_state_empty_description">Dayakan mereka dengan menambahkan syiling untuk dijejaki</string>
   <string name="price_alerts_auto_footer">Makluman mencetuskan pergerakan harga yang ketara.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">Laporan</string>
   <string name="permissions_access_denied">Akses Ditolak</string>
   <string name="permissions_image_photo_access_denied_description">Apl ini tidak mempunyai kebenaran untuk mengakses pustaka foto anda. Sila dayakan akses dalam tetapan peranti anda.</string>
-  <string name="markets_title">Pasaran</string>
-  <string name="markets_state_empty_title">Data pasaran anda akan dipaparkan di sini</string>
   <string name="markets_daily_volume">Volum 24j</string>
   <string name="search_state_empty_description">Semak ejaan atau cuba carian baharu.</string>
   <string name="networks_state_empty_search_title">Tiada rangkaian ditemui</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Kelulusan token tanpa had</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Amaran Keselamatan</string>
+  <string name="rootcheck_jailbreak_body">Peranti anda nampaknya telah di-jailbreak. Ini boleh mendedahkan dompet dan dana anda kepada risiko.</string>
   <string name="rootcheck_body">Peranti anda nampaknya mempunyai akses root, yang boleh meningkatkan risiko keselamatan dengan ketara. Menggunakan apl ini pada peranti berakar boleh mendedahkan aset anda kepada akses tanpa kebenaran dan potensi kerugian. Untuk keselamatan dana anda, kami amat mengesyorkan anda menggunakan peranti yang tidak berakar.</string>
   <string name="rootcheck_ignore">Abaikan</string>
   <string name="rootcheck_exit">Keluar</string>

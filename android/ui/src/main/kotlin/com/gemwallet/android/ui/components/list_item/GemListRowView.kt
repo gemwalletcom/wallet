@@ -21,8 +21,10 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
+import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -34,23 +36,16 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemRowAction
 
-private fun GemListRow.actionTitle(): GemListRowTitle? = when (this) {
-    is GemListRow.Quote -> title
-    is GemListRow.Amount -> title
-    is GemListRow.Text -> title
-    is GemListRow.Link -> title
-    is GemListRow.Network -> title
-    else -> null
-}
-
-fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelect: ((GemListRowTitle) -> Unit)? = null) {
+fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
     sections.forEachIndexed { index, section ->
         val title = section.title.titleRes()
         if (title != null) {
@@ -58,7 +53,7 @@ fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelect: ((Ge
         } else if (index > 0) {
             item(key = "section:$index") { Spacer16() }
         }
-        itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect) }
+        itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress) }
     }
 }
 
@@ -67,18 +62,17 @@ fun GemListRowView(
     row: GemListRow,
     listPosition: ListPosition,
     modifier: Modifier = Modifier,
-    onToggle: ((GemListRowTitle, Boolean) -> Unit)? = null,
-    onSelect: ((GemListRowTitle) -> Unit)? = null,
+    onToggle: ((GemRowAction, Boolean) -> Unit)? = null,
+    onSelect: ((GemRowAction) -> Unit)? = null,
     onSelectAddress: ((String) -> Unit)? = null,
-    infoIcon: Any? = null,
+    action: GemRowAction? = row.action(),
     accessory: (@Composable () -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
 
-    val actionTitle = row.actionTitle()
-    when (val row = row.uiModel(context, infoIcon)) {
+    when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
             title = row.title,
             message = row.message,
@@ -99,14 +93,16 @@ fun GemListRowView(
         }
 
         is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
-            val selects = onSelect != null && actionTitle != null && row.url == null
+            val selects = onSelect != null && action != null && row.url == null
+            val openAddress = row.address?.let { address -> onSelectAddress?.let { select -> { select(address) } } }
             ListItem(
                 model = row.model,
                 listPosition = listPosition,
                 modifier = modifier.then(menuModifier).then(
                     when {
+                        openAddress != null -> Modifier.clickable(onClick = openAddress)
                         row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
-                        selects -> Modifier.clickable { onSelect(actionTitle) }
+                        selects -> Modifier.clickable { action?.let(onSelect) }
                         else -> Modifier
                     },
                 ),
@@ -116,7 +112,7 @@ fun GemListRowView(
                         { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
                     }
 
-                    row.url != null || row.opensAnotherScreen || selects -> {
+                    openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
                         {
                             DataBadgeChevron()
                             if (accessory != null) accessory()
@@ -128,36 +124,49 @@ fun GemListRowView(
             )
         }
 
+        is GemListRowUIModel.Rate -> AssetRatePropertyItem(title = row.title, rate = row.rate, listPosition = listPosition)
+
         is GemListRowUIModel.Icon -> Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = paddingDefault, bottom = paddingSmall),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            HeaderIcon(row.asset)
+            row.imageUrl?.let { url -> IconWithBadge(icon = url, placeholder = row.icon.placeholder, size = headerIconSize) } ?: HeaderIcon(row.icon)
+        }
+
+        is GemListRowUIModel.Avatar -> Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = paddingDefault, bottom = paddingSmall),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ListItemImageView(image = row.image, size = headerIconSize)
+        }
+
+        is GemListRowUIModel.Address -> GemListRowMenu(items = row.menu, onClick = { clipboardManager.setCopy(context, row.copy) }) { menuModifier ->
+            AddressRow(address = row.address, listPosition = listPosition, modifier = menuModifier)
         }
 
         is GemListRowUIModel.Network -> PropertyNetworkItem(
             chain = row.chain,
             value = row.name,
             listPosition = listPosition,
-            onOpenNetwork = onSelect?.let { select -> { select(GemListRowTitle.NETWORK) } },
+            onOpenNetwork = onSelect?.let { select -> { select(GemRowAction.Network) } },
         )
-
-        is GemListRowUIModel.Address -> AddressCard(row = row) { clipboardManager.setCopy(context, row.copy) }
 
         is GemListRowUIModel.Toggle -> ListItem(
             model = row.model,
             listPosition = listPosition,
             modifier = modifier,
             minHeight = ListItemDefaults.plainMinHeight,
-            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.title, it) }) },
+            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.action, it) }) },
         )
 
         is GemListRowUIModel.Picker -> ListItem(
             model = row.model,
             listPosition = listPosition,
-            modifier = modifier.clickable { onSelect?.invoke(row.title) },
+            modifier = modifier.clickable { onSelect?.invoke(row.action) },
             minHeight = ListItemDefaults.plainMinHeight,
             accessory = {
                 DataBadgeChevron()
@@ -189,7 +198,7 @@ fun GemListRowView(
 }
 
 @Composable
-private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable (Modifier) -> Unit) {
+private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit = {}, content: @Composable (Modifier) -> Unit) {
     if (items.isEmpty()) {
         content(Modifier)
         return
@@ -203,7 +212,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = {},
+        onClick = onClick,
         content = content,
         menuItems = {
             items.forEach { item ->

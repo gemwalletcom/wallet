@@ -20,15 +20,11 @@ struct WidgetContentView: View {
             switch viewModel.widgetFamily {
             case .systemSmall:
                 if let bitcoin = viewModel.prices.first {
-                    SmallCoinView(
-                        model: CoinPriceRowViewModel(coin: bitcoin),
-                    )
+                    SmallCoinView(coin: bitcoin)
                 }
             default:
                 ForEach(viewModel.prices) { coin in
-                    CoinPriceRow(
-                        model: CoinPriceRowViewModel(coin: coin),
-                    )
+                    CoinPriceRow(coin: coin)
                 }
             }
         } else {

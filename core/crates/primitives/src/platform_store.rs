@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum PlatformStore {

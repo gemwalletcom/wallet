@@ -7,13 +7,3 @@ extension TransactionState: Identifiable {
         rawValue
     }
 }
-
-public extension TransactionState {
-    init(id: String) throws {
-        if let state = TransactionState(rawValue: id) {
-            self = state
-        } else {
-            throw AnyError("invalid state: \(id)")
-        }
-    }
-}

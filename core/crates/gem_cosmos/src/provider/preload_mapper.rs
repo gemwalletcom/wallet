@@ -141,7 +141,7 @@ mod tests {
             transaction_fee(
                 CosmosChain::Cosmos,
                 TransactionInputType::Stake {
-                    asset: atom.clone(),
+                    asset: atom,
                     stake_type: StakeType::Rewards(vec![DelegationValidator::mock_osmosis("cosmosvaloper1"); 7]),
                 },
                 1_000,

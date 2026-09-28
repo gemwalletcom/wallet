@@ -1,16 +1,10 @@
-mod asset_spam;
-mod client;
 mod consumers;
 mod health;
 mod metrics;
 mod model;
 mod parser;
-mod pusher;
 mod reporters;
-mod setup;
 mod shutdown;
-#[cfg(test)]
-mod testkit;
 mod worker;
 
 use std::str::FromStr;
@@ -21,18 +15,17 @@ use crate::reporters::consumer::ConsumerReporter;
 use crate::reporters::job::JobReporter;
 use crate::shutdown::ShutdownReceiver;
 use crate::worker::context::WorkerContext;
-use crate::worker::job_schedule::CacherJobTracker;
 use crate::worker::runtime::WorkerRuntime;
-use cacher::CacherClient;
 use gem_tracing::{error_with_fields, info_with_fields};
-use job_runner::{JobHandle, JobSchedule};
+use job_runner::JobHandle;
+use services::Services;
 use std::sync::atomic::{AtomicBool, Ordering};
 use streamer::ConsumerStatusReporter;
 
 #[tokio::main]
 pub async fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let service_arg = args.iter().skip(1).map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
+    let service_arg = args.iter().skip(1).map(String::as_str).collect::<Vec<_>>().join(" ");
 
     let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
         panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
@@ -44,10 +37,10 @@ pub async fn main() {
 
     match service {
         DaemonService::Setup => {
-            setup::run_setup(settings).await.expect("Setup failed");
+            services::setup::run_setup(settings).await.expect("Setup failed");
         }
         DaemonService::SetupDev => {
-            setup::run_setup_dev(settings).await.expect("Setup dev failed");
+            services::setup::run_setup_dev(settings).await.expect("Setup dev failed");
         }
         DaemonService::Worker(opts) => {
             let services = match opts.service {
@@ -71,8 +64,8 @@ pub async fn main() {
     }
 }
 
-async fn run_worker_services(settings: settings::Settings, services: &[WorkerService], options: WorkerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if services.is_empty() {
+async fn run_worker_services(settings: settings::Settings, workers: &[WorkerService], options: WorkerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    if workers.is_empty() {
         info_with_fields!("no worker services requested", status = "ok");
         return Ok(());
     }
@@ -81,23 +74,23 @@ async fn run_worker_services(settings: settings::Settings, services: &[WorkerSer
     let (shutdown_tx, shutdown_rx) = shutdown::channel();
     let shutdown_timeout = settings.daemon.shutdown.timeout;
 
-    let scheduler_cacher = CacherClient::new(&settings.redis.url).await?;
-    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool)?;
+    let services = Services::new(settings.clone())?;
+    let mut schedules = Vec::new();
+    for worker in workers {
+        schedules.push((*worker, services.job_schedule(worker.as_ref()).await?));
+    }
 
-    let service_name = services.first().map(|s| s.as_ref()).unwrap_or("worker");
+    let service_name = workers.first().map(AsRef::as_ref).unwrap_or("worker");
     let job_metrics = Arc::new(metrics::job::JobMetrics::new(service_name));
     let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone()]));
     let health_state = health::spawn_server(composite);
 
     let signal_handle = shutdown::spawn_signal_handler(shutdown_tx);
 
-    let worker_jobs: Vec<_> = futures::future::join_all(services.iter().map(|service| {
-        let svc = *service;
-        let tracker = Arc::new(CacherJobTracker::new(scheduler_cacher.clone(), service.as_ref()));
+    let worker_jobs: Vec<_> = futures::future::join_all(schedules.into_iter().map(|(svc, schedule)| {
         let reporter = Arc::new(JobReporter::new(job_metrics.clone()));
-        let schedule: Arc<dyn JobSchedule> = tracker;
         let runtime = WorkerRuntime::new(reporter, schedule);
-        let context = WorkerContext::new(settings.clone(), database.clone(), runtime, options.job.clone());
+        let context = WorkerContext::new(services.clone(), runtime, options.job.clone());
         let shutdown_rx = shutdown_rx.clone();
         async move {
             match svc.run_jobs(context, shutdown_rx).await {

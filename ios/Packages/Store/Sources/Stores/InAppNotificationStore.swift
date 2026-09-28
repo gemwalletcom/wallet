@@ -14,8 +14,18 @@ public struct InAppNotificationStore: Sendable {
     public func addNotifications(_ notifications: [Primitives.InAppNotification]) throws {
         try db.write { db in
             for notification in notifications {
-                try notification.record().upsert(db)
+                try notification.toRecord().upsert(db)
             }
+        }
+    }
+
+    public func markNotificationsRead(walletId: WalletId, createdBefore: Date) throws {
+        try db.write { db in
+            _ = try NotificationRecord
+                .filter(NotificationRecord.Columns.walletId == walletId.id)
+                .filter(NotificationRecord.Columns.readAt == nil)
+                .filter(NotificationRecord.Columns.createdAt < createdBefore)
+                .updateAll(db, NotificationRecord.Columns.readAt.set(to: Date()))
         }
     }
 

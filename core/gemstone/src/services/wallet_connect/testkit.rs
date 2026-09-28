@@ -8,6 +8,7 @@ use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnect
 use crate::alien::AlienProvider;
 use crate::api::GemDeviceApiClient;
 use crate::keystore::GemKeystore;
+use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::device::GemDeviceKeyService;
@@ -55,6 +56,7 @@ impl GemConnectionStore for MemoryConnectionStore {
 pub struct TestWalletConnectSigner {
     pub result: Result<String, GemServiceError>,
     pub transactions: Mutex<Vec<GemWalletConnectTransactionRequest>>,
+    pub messages: Mutex<Vec<GemWalletConnectMessageRequest>>,
 }
 
 impl TestWalletConnectSigner {
@@ -62,13 +64,15 @@ impl TestWalletConnectSigner {
         Self {
             result,
             transactions: Mutex::new(Vec::new()),
+            messages: Mutex::new(Vec::new()),
         }
     }
 }
 
 #[async_trait]
 impl GemWalletConnectSigner for TestWalletConnectSigner {
-    async fn sign_message(&self, _request: GemWalletConnectMessageRequest) -> Result<String, GemServiceError> {
+    async fn sign_message(&self, request: GemWalletConnectMessageRequest) -> Result<String, GemServiceError> {
+        self.messages.lock().unwrap().push(request);
         self.result.clone()
     }
     async fn sign_transaction(&self, request: GemWalletConnectTransactionRequest) -> Result<String, GemServiceError> {
@@ -105,6 +109,10 @@ impl GemWalletConnectSessionRequest {
 
 impl GemWalletConnectService {
     pub async fn mock(signer: Result<String, GemServiceError>, wallet: Wallet) -> Self {
+        Self::mock_with_signer(Arc::new(TestWalletConnectSigner::new(signer)), wallet, Arc::new(TestAlienProvider::with_status(200))).await
+    }
+
+    pub async fn mock_with_signer(signer: Arc<TestWalletConnectSigner>, wallet: Wallet, provider: Arc<TestAlienProvider>) -> Self {
         let store = Arc::new(MemoryConnectionStore::default());
         let chains: Vec<_> = wallet.accounts.iter().map(|account| account.chain).collect();
         store
@@ -114,7 +122,7 @@ impl GemWalletConnectService {
             })
             .await
             .unwrap();
-        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
+        let provider: Arc<dyn AlienProvider> = provider;
         let wallet_session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
         let sign_message = Arc::new(GemSignMessageService::new(
             Arc::new(GemNameService::new(
@@ -127,11 +135,13 @@ impl GemWalletConnectService {
         ));
         Self::new(
             Arc::new(GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()))),
+            Arc::new(GemScanService::new(Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))))),
             store,
-            Arc::new(TestWalletConnectSigner::new(signer)),
+            signer,
             wallet_session,
             Arc::new(GemAssetsService::mock(provider, Arc::new(MemoryAssetStore::default()))),
             sign_message,
+            primitives::Platform::IOS,
         )
     }
 }

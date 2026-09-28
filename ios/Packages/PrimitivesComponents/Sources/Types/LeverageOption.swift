@@ -5,10 +5,6 @@ import Foundation
 import struct Gemstone.GemPickerOption
 
 public struct LeverageOption: WheelPickerDisplayable, Sendable {
-    public static func selected(_ value: UInt8, in options: [LeverageOption]) -> LeverageOption? {
-        options.first { $0.value == value }
-    }
-
     private let option: GemPickerOption
 
     public init(option: GemPickerOption) {

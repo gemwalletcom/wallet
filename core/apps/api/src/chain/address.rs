@@ -4,8 +4,7 @@ use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, ChainParam, QueryLimitParam};
 use crate::responders::{ApiError, ApiResponse};
 use primitives::{AddressBalances, AssetBalance, ChainAddress, Transaction};
-
-use super::ChainClient;
+use services::chain::ChainClient;
 
 #[get("/chain/address/<chain>/<address>/balances")]
 pub async fn get_balances(_permission: PermissionChainRead, chain: ChainParam, address: AddressParam, client: &State<ChainClient>) -> Result<ApiResponse<AddressBalances>, ApiError> {

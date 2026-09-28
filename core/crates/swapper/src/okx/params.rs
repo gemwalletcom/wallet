@@ -1,5 +1,5 @@
 use super::{
-    constants::{EVM_NATIVE_TOKEN_ADDRESS, chain_index, dex_ids},
+    constants::{chain_index, dex_ids},
     model::{QuoteData, QuoteParams, SwapParams},
     referral::referrer_wallet_addresses,
 };
@@ -9,7 +9,7 @@ use crate::{
 };
 use primitives::{
     Chain, ChainType,
-    contract_constants::{SOLANA_SYSTEM_PROGRAM_ID, TRON_BLACK_HOLE_ADDRESS},
+    contract_constants::{EVM_NATIVE_TOKEN_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID, TRON_BLACK_HOLE_ADDRESS},
     swap::{HUNDRED_PERCENT_IN_BPS, QuoteAsset, SlippageMode},
 };
 

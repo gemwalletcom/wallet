@@ -1,7 +1,7 @@
 use crate::DatabaseError;
 use diesel::prelude::*;
 use num_bigint::BigUint;
-use primitives::{AssetAddress, AssetId as PrimitiveAssetId, Chain};
+use primitives::{AssetAddress, AssetId as PrimitiveAssetId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -11,7 +11,7 @@ use crate::sql_types::{AssetId, ChainRow};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::assets_addresses)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct AssetAddressRow {
+pub(crate) struct AssetAddressRow {
     pub chain: ChainRow,
     pub asset_id: AssetId,
     pub address: String,
@@ -19,15 +19,6 @@ pub struct AssetAddressRow {
 }
 
 impl AssetAddressRow {
-    pub fn new(chain: Chain, asset_id: PrimitiveAssetId, address: String, value: Option<String>) -> Self {
-        Self {
-            chain: ChainRow::from(chain),
-            asset_id: asset_id.into(),
-            address,
-            value,
-        }
-    }
-
     pub fn from_primitive(asset_address: AssetAddress) -> Self {
         Self {
             chain: ChainRow::from(asset_address.asset_id.chain),
@@ -66,17 +57,19 @@ impl AssetAddressRowsExt for Vec<AssetAddressRow> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Asset, asset_constants::ETHEREUM_USDC_ASSET_ID};
+    use primitives::{Asset, Chain, asset_constants::ETHEREUM_USDC_ASSET_ID};
 
     #[test]
     fn test_asset_ids() {
         let eth = Asset::from_chain(Chain::Ethereum).id;
         let usdc = ETHEREUM_USDC_ASSET_ID.clone();
-        let rows = vec![
-            AssetAddressRow::new(Chain::Ethereum, eth.clone(), "0xwallet".to_string(), Some("100".to_string())),
-            AssetAddressRow::new(Chain::Ethereum, usdc.clone(), "0xwallet".to_string(), Some("1".to_string())),
-            AssetAddressRow::new(Chain::Ethereum, usdc.clone(), "0xother".to_string(), Some("2".to_string())),
-        ];
+        let row = |asset_id: &PrimitiveAssetId, address: &str| AssetAddressRow {
+            chain: ChainRow::from(Chain::Ethereum),
+            asset_id: asset_id.clone().into(),
+            address: address.to_string(),
+            value: None,
+        };
+        let rows = vec![row(&eth, "0xwallet"), row(&usdc, "0xwallet"), row(&usdc, "0xother")];
 
         assert_eq!(rows.asset_ids(), vec![eth, usdc]);
     }

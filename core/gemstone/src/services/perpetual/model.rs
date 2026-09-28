@@ -2,12 +2,14 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
-use crate::services::assets::model::{GemHeaderActions, GemPriceRow};
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
+use crate::services::chart::candlestick_header;
+use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
-use primitives::perpetual::PerpetualBalance;
-use primitives::{Asset, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
+use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -85,8 +87,17 @@ pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPer
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualPositionRow {
+    pub id: String,
+    pub asset_id: AssetId,
+    pub row: GemAssetItemRow,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualPositionLine {
+    pub id: String,
+    pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
-    pub direction: PerpetualDirection,
     pub position: GemLocalizedText,
     pub direction_tone: GemValueTone,
     pub margin: GemFormattedNumber,
@@ -94,25 +105,66 @@ pub struct GemPerpetualPositionRow {
     pub pnl_tone: GemValueTone,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualOpenRow {
+impl From<PerpetualPositionLine> for GemPerpetualPositionRow {
+    fn from(line: PerpetualPositionLine) -> Self {
+        Self {
+            id: line.id,
+            asset_id: line.asset_id,
+            row: GemAssetItemRow {
+                icon: line.icon,
+                title: line.title,
+                title_extra: None,
+                subtitle: Some(GemRowText {
+                    text: line.position,
+                    tone: line.direction_tone,
+                }),
+                subtitle_extra: None,
+                trailing: GemAssetItemTrailing::Value {
+                    value: GemRowText::number(line.margin),
+                    extra: Some(GemRowText { text: line.pnl, tone: line.pnl_tone }),
+                },
+                masks_balance: true,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualOpenLine {
     pub position: GemLocalizedText,
     pub direction_tone: GemValueTone,
     pub size: Option<GemFormattedNumber>,
 }
 
 #[uniffi::export]
-pub fn perpetual_open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
-    rules::open_row(direction, leverage, size)
+pub fn perpetual_open_row(asset_id: AssetId, title: String, direction: PerpetualDirection, leverage: u8, size: f64) -> GemAssetItemRow {
+    let line = rules::open_row(direction, leverage, size);
+    GemAssetItemRow {
+        icon: crate::services::assets::icon::asset_icon(&asset_id),
+        title,
+        title_extra: None,
+        subtitle: Some(GemRowText {
+            text: line.position,
+            tone: line.direction_tone,
+        }),
+        subtitle_extra: None,
+        trailing: line.size.map_or(GemAssetItemTrailing::None, |size| GemAssetItemTrailing::Value {
+            value: GemRowText::number(size),
+            extra: None,
+        }),
+        masks_balance: false,
+    }
 }
 
 #[uniffi::export]
-pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: PerpetualPosition) -> GemPerpetualPositionRow {
-    rules::position_row(&perpetual, &asset, &position)
+pub fn perpetual_position_rows(positions: Vec<PerpetualPositionData>) -> Vec<GemPerpetualPositionRow> {
+    positions.iter().map(|data| rules::position_row(&data.perpetual, &data.asset, &data.position)).collect()
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualMarketRow {
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualMarketLine {
+    pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
     pub price: GemPriceRow,
     pub volume_24h: GemFormattedNumber,
@@ -120,9 +172,51 @@ pub struct GemPerpetualMarketRow {
     pub funding_apr: GemFormattedNumber,
 }
 
+impl PerpetualMarketLine {
+    pub fn item_row(self) -> GemAssetItemRow {
+        let price = self.price.price;
+        GemAssetItemRow {
+            icon: self.icon,
+            title: self.title,
+            title_extra: None,
+            subtitle_extra: self.price.change.filter(|_| price.is_some()).map(GemRowText::number),
+            subtitle: price.map(GemRowText::neutral_number),
+            trailing: GemAssetItemTrailing::Value {
+                value: GemRowText::number(self.volume_24h),
+                extra: None,
+            },
+            masks_balance: false,
+        }
+    }
+}
+
 #[uniffi::export]
-pub fn perpetual_market_row(perpetual: Perpetual, asset: Asset) -> GemPerpetualMarketRow {
-    rules::market_row(&perpetual, &asset)
+pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemAssetItemRow> {
+    markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset).item_row()).collect()
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualMarketItem {
+    pub data: PerpetualData,
+    pub row: GemAssetItemRow,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualMarketSections {
+    pub pinned: Vec<GemPerpetualMarketItem>,
+    pub markets: Vec<GemPerpetualMarketItem>,
+}
+
+#[uniffi::export]
+pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMarketSections {
+    let (pinned, markets): (Vec<_>, Vec<_>) = markets
+        .into_iter()
+        .map(|data| GemPerpetualMarketItem {
+            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
+            data,
+        })
+        .partition(|item| item.data.metadata.is_pinned);
+    GemPerpetualMarketSections { pinned, markets }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -137,6 +231,7 @@ pub enum GemPerpetualChartLineKind {
 pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
     pub price: GemFormattedNumber,
+    pub label: GemLocalizedText,
     pub overlap_level: u32,
 }
 
@@ -148,6 +243,31 @@ pub struct GemPerpetualChartLayout {
     pub x_tick_count: u32,
     pub lines: Vec<GemPerpetualChartLine>,
     pub current_price: Option<GemFormattedNumber>,
+    pub tones: Vec<GemValueTone>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleChart {
+    pub candles: Vec<ChartCandleStick>,
+    pub layout: GemPerpetualChartLayout,
+    pub header: GemChartHeader,
+    pub date_style: GemChartDateStyle,
+}
+
+#[uniffi::export]
+impl GemCandleChart {
+    pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
+        let base = self.candles.first()?.close;
+        let candle = self.candles.get(index as usize)?;
+        Some(GemChartSelection {
+            header: candlestick_header(base, candle.close),
+            date: candle.date,
+        })
+    }
+
+    pub fn tooltip(&self, index: u32) -> Option<GemCandleTooltip> {
+        self.candles.get(index as usize).map(rules::candle_tooltip)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -172,20 +292,17 @@ pub struct GemCandleTooltip {
     pub summary: Vec<GemCandleTooltipCell>,
 }
 
-#[uniffi::export]
-pub fn candle_tooltip(candle: ChartCandleStick) -> GemCandleTooltip {
-    rules::candle_tooltip(&candle)
-}
-
-#[uniffi::export]
-pub fn perpetual_chart_layout(candles: Vec<ChartCandleStick>, position: Option<PerpetualPosition>) -> GemPerpetualChartLayout {
-    rules::chart_layout(&candles, position.as_ref())
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemMarketsRefreshTrigger {
     Scheduled,
     UserRequested,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualEnablementTrigger {
+    Foreground,
+    WalletChanged,
+    PreferenceChanged,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -212,15 +329,22 @@ impl StepFailure for GemPerpetualRefreshFailure {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSection {
     Position { rows: Vec<GemPerpetualPositionDetail> },
-    Info { buttons: Vec<GemPerpetualButton>, rows: Vec<GemListRow> },
+    Info { buttons: Vec<GemPerpetualButtonRow>, rows: Vec<GemListRow> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualButtonRow {
+    pub button: GemPerpetualButton,
+    pub tone: GemValueTone,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualDetails {
     pub title: String,
     pub sections: Vec<GemPerpetualSection>,
-    pub modify_buttons: Vec<GemPerpetualButton>,
+    pub modify_buttons: Vec<GemPerpetualButtonRow>,
     pub position: Option<PerpetualPosition>,
+    pub position_row: Option<GemPerpetualPositionRow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -298,6 +422,7 @@ impl GemPerpetualPositionAction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualMarketSection {
+    Header,
     Positions,
     Recents,
     Pinned,
@@ -355,6 +480,23 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_market_sections_split_pinned_markets_and_keep_their_order() {
+        let market = |name: &str, is_pinned: bool| PerpetualData {
+            perpetual: primitives::Perpetual {
+                name: name.to_string(),
+                ..primitives::Perpetual::mock()
+            },
+            asset: primitives::Asset::mock(),
+            metadata: primitives::PerpetualMetadata { is_pinned },
+        };
+
+        let sections = perpetual_market_sections(vec![market("A", false), market("B", true), market("C", false)]);
+
+        assert_eq!(sections.pinned.iter().map(|item| item.data.perpetual.name.as_str()).collect::<Vec<_>>(), vec!["B"]);
+        assert_eq!(sections.markets.iter().map(|item| item.data.perpetual.name.as_str()).collect::<Vec<_>>(), vec!["A", "C"]);
+    }
+
+    #[test]
     fn test_browsing_lists_traded_markets_and_a_search_reaches_every_one() {
         let browsing = perpetual_market_query(String::new());
         assert!(browsing.requires_volume, "the market list is what is being traded");
@@ -375,21 +517,12 @@ mod tests {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualBalanceHeader {
-    pub total: GemFormattedNumber,
-    pub available: GemFormattedNumber,
-    pub actions: GemHeaderActions,
-    pub deposit_asset: Asset,
-    pub withdraw_asset: Asset,
-}
-
 #[uniffi::export]
 pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
     rules::balance_total(balance.as_ref())
 }
 
 #[uniffi::export]
-pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
+pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
     rules::balance_header(balance, wallet_type)
 }

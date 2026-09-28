@@ -9,7 +9,7 @@ use crate::sql_types::LinkType;
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::nft_collections_links)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NftLinkRow {
+pub(crate) struct NftLinkRow {
     pub collection_id: i32,
     pub link_type: LinkType,
     pub url: String,

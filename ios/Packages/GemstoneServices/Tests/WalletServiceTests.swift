@@ -30,13 +30,13 @@ struct WalletServiceTests {
     @Test
     func deleteLastWalletNotifiesObservers() async throws {
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore.mock(db: db)
         let session = GemWalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let wallet = try await service.importWallet(request: importRequest()).wallet().toPrimitives()
-        try await session.setCurrent(wallet: wallet)
+        try session.setCurrentWalletId(walletId: wallet.id)
 
         try await confirmation { confirm in
             withObservationTracking {
@@ -44,14 +44,14 @@ struct WalletServiceTests {
             } onChange: {
                 confirm()
             }
-            _ = try await service.delete(wallet)
+            _ = try await service.deleteWallet(walletId: wallet.id)
         }
     }
 
     @Test
     func passwordCreatedOnFirstImport() async throws {
         let mockPassword = MockKeystorePassword()
-        let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
+        let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mock(chains: [.ethereum]))
 
         #expect(try mockPassword.getPassword().isEmpty)
 
@@ -62,7 +62,7 @@ struct WalletServiceTests {
 
     @Test
     func concurrentImportAndDelete() async throws {
-        let db = DB.mockWithChains([.ethereum])
+        let db = DB.mock(chains: [.ethereum])
         let walletStore = WalletStore.mock(db: db)
         let service = GemWalletService.mock(
             keystore: LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password)),
@@ -86,7 +86,7 @@ struct WalletServiceTests {
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             for wallet in wallets {
-                group.addTask { _ = try await service.delete(wallet) }
+                group.addTask { _ = try await service.deleteWallet(walletId: wallet.id) }
             }
             try await group.waitForAll()
         }

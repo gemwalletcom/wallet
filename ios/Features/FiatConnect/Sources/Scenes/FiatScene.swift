@@ -1,11 +1,13 @@
 import Components
+import struct Gemstone.GemFiatViewState
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
 
-public struct FiatScene: View {
+struct FiatScene: View {
     @State private var model: FiatSceneViewModel
 
     public init(model: FiatSceneViewModel) {
@@ -17,28 +19,28 @@ public struct FiatScene: View {
         return List {
             CurrencyInputValidationView(
                 text: $model.amount,
-                error: model.amountError,
-                config: model.currencyInputConfig,
+                error: model.amountError(viewState),
+                config: model.currencyInputConfig(viewState),
             )
             .padding(.top, .medium)
             .listGroupRowStyle()
             amountSelectorSection
-            providerSection(model.providerModel(viewState))
+            providerSection(viewState)
         }
         .safeAreaButton {
             StateButton(
-                text: model.actionButtonTitle(viewState),
-                type: .primary(model.actionButtonState(viewState)),
+                text: viewState.buttonAction.title,
+                type: .primary(viewState.buttonState.state),
                 action: model.onSelectContinue,
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
-        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
+        .debouncedTask(id: model.loadTrigger, interval: GemConstants.fiatQuoteDebounce) {
             await model.load()
         }
-        .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
+        .onTimer(every: GemConstants.fiatQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.refreshQuotes()
         }
         .alertSheet($model.isPresentingAlertMessage)
@@ -79,22 +81,22 @@ extension FiatScene {
         }
     }
 
-    private func providerSection(_ provider: FiatProviderViewModel) -> some View {
+    private func providerSection(_ viewState: GemFiatViewState) -> some View {
         Section {
-            switch provider.quotesState {
+            switch model.quotesState(viewState) {
             case .noData:
-                StateEmptyView(title: provider.emptyTitle)
+                StateEmptyView(title: model.emptyTitle(viewState))
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
-                if let quote = provider.selectedQuote {
+                if let quote = viewState.selectedQuoteRow {
                     let view = ListItemImageView(
                         title: model.providerTitle,
                         subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
-                    if provider.allowSelectProvider {
+                    if viewState.canSelectProvider {
                         NavigationCustomLink(
                             with: view,
                             action: model.onSelectFiatProviders,
@@ -102,7 +104,9 @@ extension FiatScene {
                     } else {
                         view
                     }
-                    ListItemView(model: model.rateListItem)
+                    if let rateRow = viewState.rateRow {
+                        GemListRowView(row: rateRow)
+                    }
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: model.errorTitle, error: error)

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 import Testing
 @testable import WalletConnectorService
 @testable import WalletConnectorServiceTestKit
@@ -25,6 +26,30 @@ struct WebSocketTests {
                 confirm()
             }
         }
+    }
+
+    @Test
+    func aFailedHandshakeReportsOneDisconnectAndTheNextAttemptCanReportAgain() throws {
+        let socket = try WebSocket(request: URLRequest(url: #require(URL(string: "wss://127.0.0.1:9"))))
+        let disconnects = Locked(wrappedValue: 0)
+        socket.onDisconnect = { _ in disconnects.withLock { $0 += 1 } }
+
+        socket.connect()
+        let first = try #require(socket.task)
+        socket.urlSession(URLSession.shared, task: first, didCompleteWithError: URLError(.cannotConnectToHost))
+        socket.urlSession(URLSession.shared, webSocketTask: first, didCloseWith: .abnormalClosure, reason: nil)
+        socket.urlSession(URLSession.shared, task: first, didCompleteWithError: URLError(.cannotConnectToHost))
+        #expect(disconnects.wrappedValue == 1)
+        #expect(socket.isConnected == false)
+
+        socket.connect()
+        let retry = try #require(socket.task)
+        socket.urlSession(URLSession.shared, task: first, didCompleteWithError: URLError(.cannotConnectToHost))
+        #expect(disconnects.wrappedValue == 1, "a late callback from the replaced attempt is ignored")
+
+        socket.urlSession(URLSession.shared, task: retry, didCompleteWithError: URLError(.cannotConnectToHost))
+        #expect(disconnects.wrappedValue == 2)
+        socket.disconnect()
     }
 
     // MARK: - Stress Tests

@@ -2,7 +2,6 @@
 
 @testable import Assets
 import AssetsTestKit
-import GemstonePrimitivesTestKit
 import Primitives
 import Testing
 
@@ -14,17 +13,20 @@ struct AddAssetSceneViewModelTests {
 
         model.input.address = "0x1"
         model.onChangeAddress()
-        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: false))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: false, attempt: 0))
 
         model.onSubmitAddress()
-        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x1", isImmediate: true, attempt: 1))
 
         model.setInput("0x2")
         #expect(model.input.address == "0x2")
-        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true, attempt: 2))
 
         model.onChangeAddress()
-        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true))
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true, attempt: 2))
+
+        model.setInput("0x2")
+        #expect(model.loadTrigger == AddAssetLoadTrigger(chain: .ethereum, address: "0x2", isImmediate: true, attempt: 3), "pasting the same address again looks it up again")
 
         model.input.address = nil
         model.onChangeAddress()

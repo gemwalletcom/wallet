@@ -31,8 +31,8 @@ impl ChainTransactionSigner {
     pub fn new(chain: Chain) -> Self {
         let signer: Box<dyn ChainSigner> = match chain.chain_type() {
             ChainType::Ethereum => match chain {
-                Chain::Tempo => Box::new(EvmChainSigner::new(TempoSigner)),
-                _ => Box::new(EvmChainSigner::default()),
+                Chain::Tempo => Box::new(TempoSigner),
+                _ => Box::new(EvmChainSigner),
             },
             ChainType::Aptos => Box::new(AptosChainSigner),
             ChainType::HyperCore => Box::new(HyperCoreSigner),

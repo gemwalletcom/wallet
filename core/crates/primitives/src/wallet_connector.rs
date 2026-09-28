@@ -1,16 +1,16 @@
 use crate::{ApplicationMetadata, Chain, ChainType, Wallet};
 use chrono::{DateTime, Utc};
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 pub struct WalletConnection {
     pub session: WalletConnectionSession,
     pub wallet: Wallet,
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Model)]
+#[model(swift = "Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum WalletConnectionState {
     Started,
@@ -122,8 +122,8 @@ impl WalletConnectionEvents {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WalletConnectionSession {
     pub id: String,
@@ -135,8 +135,8 @@ pub struct WalletConnectionSession {
     pub metadata: ApplicationMetadata,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WalletConnectionSessionProposal {
     pub default_wallet: Wallet,
@@ -144,8 +144,8 @@ pub struct WalletConnectionSessionProposal {
     pub metadata: ApplicationMetadata,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Hashable, Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum WalletConnectionVerificationStatus {
     Verified,
@@ -154,8 +154,8 @@ pub enum WalletConnectionVerificationStatus {
     Malicious,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
+#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[model(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WCPairingProposal {
     pub pairing_id: String,

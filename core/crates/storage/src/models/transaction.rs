@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use primitives::{Chain, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
 use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use crate::sql_types::{AssetId, ChainRow, TransactionState, TransactionType};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::transactions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct TransactionRow {
+pub(crate) struct TransactionRow {
     pub id: i64,
     pub chain: ChainRow,
     pub hash: String,
@@ -33,7 +34,7 @@ pub struct TransactionRow {
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::transactions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewTransactionRow {
+pub(crate) struct NewTransactionRow {
     pub chain: ChainRow,
     pub hash: String,
     pub from_address: Option<String>,
@@ -75,10 +76,10 @@ impl TransactionRow {
         let value = BigUint::from_str(self.value.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
 
         Ok(Transaction {
-            id: transaction_id.clone(),
+            id: transaction_id,
             asset_id,
-            from: from.clone(),
-            to: to_address.clone(),
+            from,
+            to: to_address,
             contract: None,
             transaction_type,
             state: self.state.0,
@@ -114,7 +115,7 @@ impl NewTransactionRow {
         let hash = transaction.hash().to_string();
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
-        let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
+        let memo = transaction.memo.map(|memo| memo.replace('\0', "")).non_empty();
         let value = if transaction.value == BigUint::ZERO { None } else { Some(transaction.value.to_string()) };
 
         Self {

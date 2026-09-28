@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import AppService
 import Components
 import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
+import struct Gemstone.GemAppUpdateOffer
 import protocol Gemstone.GemAppUpdateServiceProtocol
-import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Onboarding
 import Primitives
 import PrimitivesComponents
+import Settings
 import SwiftUI
 import WalletConnector
 
@@ -23,13 +23,12 @@ import WalletConnector
 final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let appStartService: any GemAppStartServiceProtocol
-    private let pushNotificationEnablerService: PushNotificationEnablerService
+    private let notificationsService: any GemNotificationsServiceProtocol
     private let appLifecycleService: AppLifecycleService
     private let navigationRouter: NavigationRouter
     private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
     private let toastPresenter: ToastPresenter
-    private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
     private let viewModelFactory: ViewModelFactory
@@ -38,10 +37,10 @@ final class RootSceneViewModel {
     let lockWindow: LockWindow
 
     var currentWallet: Wallet? {
-        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
+        currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
 
-    var currentWalletId: WalletId? { walletSessionService.currentWalletId }
+    var currentWalletId: WalletId? { try? walletSessionService.getCurrentWalletId() }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
     var isPresentingRootWarning = false
@@ -78,7 +77,7 @@ final class RootSceneViewModel {
         walletConnectorPresenter: WalletConnectorPresenter,
         onstartService: OnstartService,
         appStartService: any GemAppStartServiceProtocol,
-        pushNotificationEnablerService: PushNotificationEnablerService,
+        notificationsService: any GemNotificationsServiceProtocol,
         appLifecycleService: AppLifecycleService,
         navigationRouter: NavigationRouter,
         lockWindow: LockWindow,
@@ -87,13 +86,12 @@ final class RootSceneViewModel {
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
-        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.onstartService = onstartService
         self.appStartService = appStartService
-        self.pushNotificationEnablerService = pushNotificationEnablerService
+        self.notificationsService = notificationsService
         self.appLifecycleService = appLifecycleService
         self.navigationRouter = navigationRouter
         self.lockWindow = lockWindow
@@ -102,7 +100,6 @@ final class RootSceneViewModel {
         self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter
-        self.deviceService = deviceService
     }
 }
 
@@ -111,6 +108,7 @@ final class RootSceneViewModel {
 extension RootSceneViewModel {
     func setup() {
         rateService.requestReviewIfDue()
+        Task { await ensureCurrentWallet() }
         Task { await checkForUpdate() }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
@@ -148,7 +146,7 @@ extension RootSceneViewModel {
         await navigationRouter.open(url: url)
     }
 
-    func createWalletModel() -> CreateWalletModel {
+    func createWalletModel() -> CreateWalletViewModel {
         viewModelFactory.createWalletScene(onComplete: { [weak self] in self?.dismissCreateWallet() })
     }
 
@@ -179,6 +177,14 @@ extension RootSceneViewModel {
         }
     }
 
+    private func ensureCurrentWallet() async {
+        do {
+            _ = try await walletSessionService.ensureCurrentWallet()
+        } catch {
+            debugLog("current wallet recovery failed: \(error)")
+        }
+    }
+
     private func setupWallets() async {
         await lockWindow.lockModel.waitUntilUnlocked()
         await onstartService.setupWallets()
@@ -186,56 +192,49 @@ extension RootSceneViewModel {
 
     private func checkForUpdate() async {
         do {
-            guard let release = try await appUpdateService.checkForUpdate() else { return }
-            updateVersionAlertMessage = makeUpdateAlert(for: release)
+            guard let offer = try await appUpdateService.check(store: PlatformStore.current.toGem(), currentVersion: Bundle.main.releaseVersionNumber) else { return }
+            updateVersionAlertMessage = makeUpdateAlert(for: offer)
         } catch {
             debugLog("checkForUpdate error: \(error)")
         }
     }
 
-    private func makeUpdateAlert(for release: Release) -> AlertMessage {
-        let skipAction = AlertAction(
-            title: Localized.Common.skip,
-            role: .cancel,
-            action: { [appUpdateService] in
-                do {
-                    try appUpdateService.skip(version: release.version)
-                } catch {
-                    debugLog("skipRelease error: \(error)")
+    private func makeUpdateAlert(for offer: GemAppUpdateOffer) -> AlertMessage {
+        AlertMessage(
+            title: offer.title.text,
+            message: offer.description.text,
+            actions: offer.actions.map { action in
+                switch action {
+                case .skip:
+                    AlertAction(
+                        title: action.title,
+                        role: .cancel,
+                        action: { [appUpdateService] in
+                            do {
+                                try appUpdateService.skip(offer: offer)
+                            } catch {
+                                debugLog("skipRelease error: \(error)")
+                            }
+                        },
+                    )
+                case .update:
+                    AlertAction(
+                        title: action.title,
+                        isDefaultAction: true,
+                        action: {
+                            Task { @MainActor in
+                                UIApplication.shared.open(AppUrl.page(.appStore))
+                            }
+                        },
+                    )
                 }
             },
         )
-        let updateAction = AlertAction(
-            title: Localized.UpdateApp.action,
-            isDefaultAction: true,
-            action: {
-                Task { @MainActor in
-                    UIApplication.shared.open(AppUrl.page(.appStore))
-                }
-            },
-        )
-        let actions = Self.updateAlertActions(for: release, skip: skipAction, update: updateAction)
-
-        return AlertMessage(
-            title: Localized.UpdateApp.title,
-            message: Localized.UpdateApp.description(release.version),
-            actions: actions,
-        )
-    }
-
-    static func updateAlertActions(for release: Release, skip: AlertAction, update: AlertAction) -> [AlertAction] {
-        release.upgradeRequired ? [update] : [skip, update]
     }
 
     private func requestPushPermissions() {
-        Task {
-            do {
-                if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
-                    try await deviceService.synchronizeIfNeeded()
-                }
-            } catch {
-                debugLog("requestPushPermissions error: \(error)")
-            }
+        Task { [notificationsService] in
+            _ = await notificationsService.askToEnable()
         }
     }
 }

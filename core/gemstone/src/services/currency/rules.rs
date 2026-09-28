@@ -8,9 +8,10 @@ use crate::services::collections::unique;
 
 const DEFAULT_CURRENCIES: [Currency; 7] = [Currency::USD, Currency::EUR, Currency::GBP, Currency::CNY, Currency::JPY, Currency::INR, Currency::RUB];
 
-pub fn sections(current: Currency, locale: Option<Currency>, query: &str, localized_names: &HashMap<String, String>) -> Vec<GemCurrencySection> {
-    let recommended = recommended_currencies(current.clone(), locale);
-    let other = other_currencies(&recommended);
+pub fn sections(current: Currency, locale: Option<Currency>, query: &str, localized_names: &HashMap<String, String>, rated: &[Currency]) -> Vec<GemCurrencySection> {
+    let offered = |currency: &Currency| rated.is_empty() || *currency == current || *currency == Currency::USD || rated.contains(currency);
+    let recommended: Vec<Currency> = recommended_currencies(current.clone(), locale).into_iter().filter(offered).collect();
+    let other: Vec<Currency> = other_currencies(&recommended).into_iter().filter(offered).collect();
     let query = query.trim().to_lowercase();
     [(GemCurrencySectionKind::Recommended, recommended), (GemCurrencySectionKind::All, other)]
         .into_iter()
@@ -53,7 +54,7 @@ mod tests {
     #[test]
     fn test_search_preserves_sections_and_marks_selection() {
         let names = HashMap::from([("USD".into(), "dólar estadounidense".into()), ("AUD".into(), "dólar australiano".into())]);
-        let state = sections(Currency::USD, None, " DÓLAR ", &names);
+        let state = sections(Currency::USD, None, " DÓLAR ", &names, &[]);
         assert_eq!(
             state,
             vec![
@@ -75,20 +76,20 @@ mod tests {
                 },
             ]
         );
-        assert_eq!(sections(Currency::USD, None, " aUd ", &names), vec![state[1].clone()]);
+        assert_eq!(sections(Currency::USD, None, " aUd ", &names, &[]), vec![state[1].clone()]);
     }
 
     #[test]
     fn test_empty_search_restores_all_currencies_and_no_match_has_no_sections() {
         let names = HashMap::new();
-        let state = sections(Currency::GBP, Some(Currency::EUR), "", &names);
+        let state = sections(Currency::GBP, Some(Currency::EUR), "", &names, &[]);
         assert_eq!(state.iter().map(|section| section.rows.len()).sum::<usize>(), Currency::iter().count());
         assert_eq!(
             state.iter().flat_map(|section| &section.rows).filter(|row| row.is_selected).map(|row| row.currency.clone()).collect::<Vec<_>>(),
             vec![Currency::GBP]
         );
-        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), " \n ", &names), state);
-        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), "not a currency", &names), vec![]);
+        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), " \n ", &names, &[]), state);
+        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), "not a currency", &names, &[]), vec![]);
     }
 
     #[test]

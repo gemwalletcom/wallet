@@ -22,16 +22,11 @@ uuid = { workspace = true }
 tokio = { workspace = true }
 
 settings = { path = "../settings" }
-storage = { path = "../storage" }
-config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 serde_serializers = { path = "../serde_serializers" }
 number_formatter = { path = "../number_formatter" }
-cacher = { path = "../cacher" }
-streamer = { path = "../streamer" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
-gem_tracing = { path = "../tracing" }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }

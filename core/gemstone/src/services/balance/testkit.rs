@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, WalletId};
+use primitives::{AssetBalance, AssetId, Balance, Chain, WalletId};
 
 use super::model::{GemAssetConfiguration, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
 use super::store::GemBalanceStore;
@@ -91,15 +91,45 @@ impl MemoryBalanceStore {
     }
 }
 
+fn stored_balance(balance: GemAssetBalance) -> AssetBalance {
+    let stored = Balance {
+        available: balance.available,
+        frozen: balance.frozen,
+        locked: balance.locked,
+        staked: balance.staked,
+        pending: balance.pending,
+        pending_unconfirmed: balance.pending_unconfirmed,
+        rewards: balance.rewards,
+        reserved: balance.reserved,
+        earn: balance.earn,
+        withdrawable: balance.withdrawable,
+        metadata: balance.metadata,
+    };
+    AssetBalance::new_with_active(balance.asset_id, stored, balance.is_active)
+}
+
 #[async_trait::async_trait]
 impl GemBalanceStore for MemoryBalanceStore {
-    async fn get_available_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+    async fn get_available_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBalance>, GemServiceError> {
         self.requests.lock().unwrap().push(wallet_id.clone());
-        let stored = self.balances.lock().unwrap().get(&wallet_id).into_iter().flatten().filter(|balance| asset_ids.contains(&balance.asset_id)).cloned().collect();
+        let stored = self
+            .balances
+            .lock()
+            .unwrap()
+            .get(&wallet_id)
+            .into_iter()
+            .flatten()
+            .filter(|balance| asset_ids.contains(&balance.asset_id))
+            .cloned()
+            .map(stored_balance)
+            .collect();
         if self.yields_between_read_and_write {
             YieldOnce::default().await;
         }
         Ok(stored)
+    }
+    async fn get_balance_asset_ids(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+        Ok(self.get_available_balances(wallet_id, asset_ids).await?.into_iter().map(|balance| balance.asset_id).collect())
     }
     async fn update_balances(&self, wallet_id: WalletId, balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
         let mut stored = self.balances.lock().unwrap();
@@ -148,13 +178,13 @@ impl BalanceTestkit {
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let wallets = Arc::new(MemoryWalletStore::default());
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
         let assets = Arc::new(MemoryAssetStore::default());
         let assets_service = Arc::new(GemAssetsService::new(
             Arc::new(GemApiClient::new(provider)),
             gateway.clone(),
             assets.clone(),
-            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default()))),
             preferences,
             session.clone(),
         ));

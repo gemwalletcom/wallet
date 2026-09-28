@@ -136,25 +136,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_sign_typed_data_chain_id_mismatch_ethereum_on_polygon() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, serde_json::json!(["0x123", mock_eip712_json(1)]));
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Chain ID mismatch"));
-    }
-
-    #[test]
     fn test_parse_sign_typed_data_polygon_matching() {
         assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, serde_json::json!(["0x123", mock_eip712_json(137)])).is_ok());
-    }
-
-    #[test]
-    fn test_parse_sign_typed_data_bsc_matching() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::SmartChain, serde_json::json!(["0x123", mock_eip712_json(56)])).is_ok());
-    }
-
-    #[test]
-    fn test_parse_sign_typed_data_arbitrum_matching() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Arbitrum, serde_json::json!(["0x123", mock_eip712_json(42161)])).is_ok());
     }
 
     #[test]

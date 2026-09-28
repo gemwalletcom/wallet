@@ -4,8 +4,9 @@ use crate::services::collections::{missing, unique};
 
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
-use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
+use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
 use crate::precision::GemValueStyle;
@@ -18,7 +19,6 @@ pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
     balance_amount_styled(value, asset, GemValueStyle::Auto)
 }
 
-#[uniffi::export]
 pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
     GemLocalizedText::Balance {
         amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals.unsigned_abs()), None, GemValueStyle::Auto),
@@ -30,16 +30,15 @@ pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyl
     GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }
 
-#[uniffi::export]
-pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemBalanceResourceRow> {
+pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemListRow> {
     let Some(metadata) = metadata else { return Vec::new() };
-    let row = |resource, available: u32, total: u32| GemBalanceResourceRow {
-        resource,
-        text: format!("{available} / {total}"),
+    let row = |title, available: u32, total: u32| GemListRow::Text {
+        title,
+        value: format!("{available} / {total}"),
     };
     vec![
-        row(GemBalanceResource::Energy, metadata.energy_available, metadata.energy_total),
-        row(GemBalanceResource::Bandwidth, metadata.bandwidth_available, metadata.bandwidth_total),
+        row(GemListRowTitle::Energy, metadata.energy_available, metadata.energy_total),
+        row(GemListRowTitle::Bandwidth, metadata.bandwidth_available, metadata.bandwidth_total),
     ]
 }
 
@@ -66,7 +65,7 @@ pub fn total_header(total: &TotalFiatValue, currency: Currency) -> GemTotalHeade
     }
 }
 
-pub fn shows_pnl(total: &TotalFiatValue) -> bool {
+fn shows_pnl(total: &TotalFiatValue) -> bool {
     total.value > 0.0 && total.pnl_amount != 0.0
 }
 
@@ -90,11 +89,8 @@ pub fn request_token_ids(token_ids: &[AssetId]) -> Vec<String> {
     token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect()
 }
 
-pub fn chain_balances(coin: Vec<AssetBalance>, stake: Vec<AssetBalance>, tokens: Vec<AssetBalance>, earn: Vec<AssetBalance>) -> Vec<(BalanceKind, AssetBalance)> {
-    [(BalanceKind::Coin, coin), (BalanceKind::Stake, stake), (BalanceKind::Token, tokens), (BalanceKind::Earn, earn)]
-        .into_iter()
-        .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
-        .collect()
+pub fn kind_balances<E>(kind: BalanceKind, balances: Result<Vec<AssetBalance>, E>) -> Result<Vec<(BalanceKind, AssetBalance)>, E> {
+    balances.map(|balances| balances.into_iter().map(|balance| (kind, balance)).collect())
 }
 
 pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<BalanceRequest> {
@@ -209,7 +205,7 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let balance = GemAssetBalance::mock_with_available(2_000_000_000_000_000_000);
 
-        let GemLocalizedText::Balance { amount } = available_balance_text(asset.clone(), balance) else {
+        let GemLocalizedText::Balance { amount } = available_balance_text(asset, balance) else {
             panic!("a balance sentence carries an amount");
         };
 
@@ -265,13 +261,13 @@ mod tests {
         assert_eq!(
             rows,
             vec![
-                GemBalanceResourceRow {
-                    resource: GemBalanceResource::Energy,
-                    text: "100 / 250".to_string()
+                GemListRow::Text {
+                    title: GemListRowTitle::Energy,
+                    value: "100 / 250".to_string()
                 },
-                GemBalanceResourceRow {
-                    resource: GemBalanceResource::Bandwidth,
-                    text: "5 / 600".to_string()
+                GemListRow::Text {
+                    title: GemListRowTitle::Bandwidth,
+                    value: "5 / 600".to_string()
                 },
             ]
         );
@@ -355,7 +351,7 @@ mod tests {
         let sei_evm_token = AssetId::from_token(Chain::SeiEvm, "0xtoken");
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
-        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei.clone(), sei_evm_token, ethereum_token.clone()]);
+        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei, sei_evm_token, ethereum_token.clone()]);
 
         assert_eq!(
             requests,
@@ -419,23 +415,22 @@ mod tests {
     }
 
     #[test]
-    fn test_a_chain_that_fails_never_holds_back_the_chains_that_answered() {
+    fn test_a_component_that_fails_never_holds_back_the_components_that_answered() {
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        let token = AssetId::from_token(Chain::Ethereum, "0x1234");
         let (balances, failure) = published_balances(vec![
-            Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)))]),
-            Err("ethereum is offline"),
-            Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Solana), BigUint::from(1u32)))]),
-            Err("cosmos is offline"),
+            kind_balances(BalanceKind::Coin, Ok(vec![AssetBalance::new(ethereum.clone(), BigUint::from(1u32))])),
+            kind_balances(BalanceKind::Stake, Err("staking is offline")),
+            kind_balances(BalanceKind::Token, Ok(vec![AssetBalance::new(token.clone(), BigUint::from(1u32))])),
+            kind_balances(BalanceKind::Earn, Err("earn is offline")),
         ]);
 
         assert_eq!(
             balances,
-            vec![
-                (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32))),
-                (BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Solana), BigUint::from(1u32)))
-            ],
-            "every chain that answered is published in one batch"
+            vec![(BalanceKind::Coin, AssetBalance::new(ethereum, BigUint::from(1u32))), (BalanceKind::Token, AssetBalance::new(token, BigUint::from(1u32)))],
+            "the coin and token balances of a network are published when its staking request fails"
         );
-        assert_eq!(failure, Some("ethereum is offline"), "the caller hears about the first failure in request order");
+        assert_eq!(failure, Some("staking is offline"), "the caller hears about the first failure in request order");
 
         let (balances, failure) = published_balances::<&str>(vec![Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)))])]);
         assert_eq!(balances.len(), 1);
@@ -443,12 +438,10 @@ mod tests {
     }
 
     #[test]
-    fn test_chain_balances_tags_every_balance_with_its_kind() {
-        let coin = AssetBalance::new(AssetId::from_chain(Chain::Ethereum), BigUint::from(1u32));
+    fn test_kind_balances_tags_every_balance_with_its_kind() {
         let token = AssetBalance::new(AssetId::from_token(Chain::Ethereum, "0x1234"), BigUint::from(1u32));
 
-        let balances = chain_balances(vec![coin.clone()], Vec::new(), vec![token.clone()], Vec::new());
-
-        assert_eq!(balances, vec![(BalanceKind::Coin, coin), (BalanceKind::Token, token)]);
+        assert_eq!(kind_balances::<&str>(BalanceKind::Token, Ok(vec![token.clone()])), Ok(vec![(BalanceKind::Token, token)]));
+        assert_eq!(kind_balances::<&str>(BalanceKind::Stake, Err("offline")), Err("offline"));
     }
 }

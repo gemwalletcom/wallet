@@ -11,11 +11,11 @@ public struct SignMessagePayloadDetails: View {
     }
 
     public var body: some View {
-        if model.payloadModel.hasFields {
+        if model.hasPayloadFields {
             NavigationStack {
                 SimulationPayloadDetailsScene(
-                    primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
-                    secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
+                    primaryModels: model.fieldModels(for: model.primaryPayloadFields),
+                    secondaryModels: model.fieldModels(for: model.secondaryPayloadFields),
                     actionListItem: model.viewFullMessageListItem,
                     actionDestination: AnyView(TextMessageScene(text: model.messageText)),
                 )

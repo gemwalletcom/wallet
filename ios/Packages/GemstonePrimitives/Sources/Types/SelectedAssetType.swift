@@ -11,7 +11,7 @@ public enum SelectedAssetType: Sendable, Hashable, Identifiable {
     case earn(Asset)
     case buy(Asset, amount: Int?)
     case sell(Asset, amount: Int?)
-    case swap(Asset, Asset?)
+    case swap(AssetId, AssetId?)
 
     public var id: String {
         switch self {
@@ -21,7 +21,7 @@ public enum SelectedAssetType: Sendable, Hashable, Identifiable {
         case let .earn(asset): "earn_\(asset.id)"
         case let .buy(asset, _): "buy_\(asset.id)"
         case let .sell(asset, _): "sell_\(asset.id)"
-        case let .swap(fromAsset, toAsset): "swap_\(fromAsset.id)_\(toAsset?.id.identifier ?? "")"
+        case let .swap(fromAssetId, toAssetId): "swap_\(fromAssetId)_\(toAssetId?.identifier ?? "")"
         }
     }
 }

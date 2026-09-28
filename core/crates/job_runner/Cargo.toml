@@ -7,4 +7,4 @@ edition = { workspace = true }
 tokio = { workspace = true, features = ["sync", "time"] }
 async-trait = { workspace = true }
 
-gem_tracing = { path = "../tracing" }
+gem_tracing = { path = "../gem_tracing" }

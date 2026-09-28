@@ -24,10 +24,7 @@ Read this file first, then load the relevant skills for your current task. `proj
 Subsystem references live in [docs/](../docs). Read the relevant one before changing that area:
 
 - [Gem Keystore v4](../docs/KEYSTORE_V4.md) — keystore file format, v3 migration, account public keys, and the keystore-internal signing / device-auth contract (key never crosses the FFI boundary)
-- [Device Authentication](../docs/DEVICE_AUTHENTICATION.md) — Ed25519 request signing and the `Gem` Authorization header
-- [Wallet Authentication](../docs/WALLET_AUTHENTICATION.md)
-- [Device WebSockets](../docs/DEVICE_WEBSOCKETS.md)
-- [Rewards and Referrals](../docs/REWARDS_AND_REFERRALS.md)
+- [Device](../docs/DEVICE.md) — Ed25519 request signing, device registration and subscriptions, the WebSocket stream, and wallet authentication
 - [Core Features and Providers](../docs/FEATURES.md) — chain capabilities and indexing, WalletConnect, swap, fiat, and NFT provider coverage
 
 ## Before Coding
@@ -51,6 +48,6 @@ Before finishing a task:
 4. **Run clippy**: `cargo clippy -p <crate> --all-features -- -D warnings` (most crates gate modules behind features; without them clippy compiles nothing from those modules, see `skills/development-commands.md`)
 5. **Format**: `just format`
 
-Regenerate bindings and build iOS or Android only when the change affects UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
+Regenerate bindings and build iOS or Android only when the change affects UniFFI interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
 
 Test rules and testkit conventions live in [Tests](skills/tests.md); read it before writing or changing any test.

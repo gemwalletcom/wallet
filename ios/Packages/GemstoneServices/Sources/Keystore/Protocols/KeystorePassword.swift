@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemLockPeriod
 import Foundation
 import LocalAuthentication
 import Primitives
@@ -15,6 +16,6 @@ public protocol KeystorePassword: Sendable {
     func getPrivacyLockStatus() throws -> PrivacyLockStatus?
     func setPrivacyLockStatus(_ status: PrivacyLockStatus) throws
 
-    func getAuthenticationLockPeriod() throws -> LockPeriod?
-    func setAuthenticationLockPeriod(period: LockPeriod) throws
+    func getAuthenticationLockPeriod() throws -> GemLockPeriod?
+    func setAuthenticationLockPeriod(period: GemLockPeriod) throws
 }

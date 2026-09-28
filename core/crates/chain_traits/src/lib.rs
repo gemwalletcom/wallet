@@ -8,7 +8,7 @@ use crate::node_check::{NodeCheckReport, NodeCheckRequest};
 use async_trait::async_trait;
 pub use primitives::TransactionIdRequest;
 use primitives::chart::ChartCandleStick;
-use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositionsSummary};
+use primitives::perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate, NodeStatus, NodeSyncStatus, PerpetualPosition, SimulationInput,
@@ -115,13 +115,13 @@ pub trait ChainBalances: Send + Sync {
         Err("Chain does not support balance operations".into())
     }
     async fn get_balance_tokens(&self, _address: String, _token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Err("Chain does not support balance operations".into())
+        Ok(vec![])
     }
     async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Err("Chain does not support balance operations".into())
+        Ok(None)
     }
     async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Err("Chain does not support balance operations".into())
+        Ok(vec![])
     }
 }
 
@@ -220,12 +220,12 @@ pub trait ChainAccount: Send + Sync {}
 
 #[async_trait]
 pub trait ChainPerpetual: Send + Sync {
-    async fn get_positions(&self, _address: String) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
+    async fn get_positions(&self, _address: String) -> Result<PerpetualAccountPositions, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support perpetual trading".into())
     }
 
     async fn get_positions_for_classification(&self, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_positions(address).await?.positions)
+        Ok(self.get_positions(address).await?.summary.positions)
     }
 
     async fn get_perpetual_account_mode(&self, _address: String) -> Result<PerpetualAccountMode, Box<dyn Error + Sync + Send>> {

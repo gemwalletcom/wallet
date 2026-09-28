@@ -2,15 +2,14 @@
 
 import Components
 import Foundation
-import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
 public struct DeveloperScene: View {
-    @State private var model: DeveloperViewModel
+    @State private var model: DeveloperSceneViewModel
 
-    public init(model: DeveloperViewModel) {
+    public init(model: DeveloperSceneViewModel) {
         _model = State(initialValue: model)
     }
 
@@ -97,7 +96,7 @@ public struct DeveloperScene: View {
                 NavigationCustomLink(
                     with: ListItemView(title: "Open Asset (Bitcoin)"),
                     action: {
-                        model.deeplink(deeplink: .asset(assetId: AssetId(chain: .bitcoin, tokenId: .none).identifier))
+                        model.deeplink(deeplink: .asset(assetId: AssetId(chain: .bitcoin, tokenId: .none)))
                     },
                 )
                 NavigationCustomLink(

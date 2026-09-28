@@ -2,7 +2,7 @@ use primitives::{WalletId, WalletType};
 use rocket::Request;
 use rocket::outcome::Outcome::Success;
 use rocket::request::{FromRequest, Outcome};
-use storage::models::DeviceRow;
+use services::devices::DeviceRecord;
 
 use super::auth::{auth_error_outcome, authenticate, lookup_device_wallet};
 use crate::devices::error::DeviceError;
@@ -10,7 +10,7 @@ use crate::devices::error::DeviceError;
 // Verifies control of the device key, then resolves a wallet attached to that device.
 // This proves device-wallet scope, not wallet-owner intent; routes that need owner approval must also use WalletSigned<T>.
 pub struct AuthenticatedDeviceWallet {
-    pub device_row: DeviceRow,
+    pub record: DeviceRecord,
     pub wallet_id: i32,
     pub wallet_identifier: WalletId,
     pub wallet_type: WalletType,
@@ -30,16 +30,16 @@ impl<'r> FromRequest<'r> for AuthenticatedDeviceWallet {
             return auth_error_outcome(req, DeviceError::MissingWalletId, Some(&auth.device_id), None);
         };
 
-        let (device_row, wallet_row) = match lookup_device_wallet(req, &auth.device_id, &wallet_id_str).await {
+        let (record, wallet) = match lookup_device_wallet(req, &auth.device_id, &wallet_id_str).await {
             Ok(result) => result,
             Err(error) => return error,
         };
 
         Success(AuthenticatedDeviceWallet {
-            device_row,
-            wallet_id: wallet_row.id,
-            wallet_identifier: wallet_row.wallet_id.0,
-            wallet_type: wallet_row.wallet_type.0,
+            record,
+            wallet_id: wallet.id,
+            wallet_identifier: wallet.wallet_id,
+            wallet_type: wallet.wallet_type,
         })
     }
 }

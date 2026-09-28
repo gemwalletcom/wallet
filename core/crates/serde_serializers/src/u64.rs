@@ -36,7 +36,7 @@ impl StringOrNumberFromValue for u64 {
 }
 
 pub fn u64_from_str(value: &str) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-    parse_u64_string(value).map_err(|error| error.into())
+    parse_u64_string(value).map_err(Into::into)
 }
 
 pub fn deserialize_u64_from_str<'de, D>(deserializer: D) -> Result<u64, D::Error>

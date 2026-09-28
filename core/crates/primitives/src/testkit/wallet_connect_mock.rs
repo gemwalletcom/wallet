@@ -8,7 +8,7 @@ impl WalletConnectRequest {
             topic: "test-topic".to_string(),
             method: method.to_string(),
             params: params.to_string(),
-            chain_id: chain_id.map(|v| v.to_string()),
+            chain_id: chain_id.map(ToString::to_string),
             domain: "example.com".to_string(),
         }
     }

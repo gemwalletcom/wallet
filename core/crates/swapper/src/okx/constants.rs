@@ -3,7 +3,6 @@ use primitives::Chain;
 pub(super) const PROXY_QUOTE_PATH: &str = "/v6/quote";
 pub(super) const PROXY_SWAP_PATH: &str = "/v6/swap";
 
-pub(super) const EVM_NATIVE_TOKEN_ADDRESS: &str = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 pub(super) const TRON_DEX_TOKEN_APPROVE_ADDRESS: &str = "THRAE2VhGNAcvPKtT96AqyXtSQwhiU1XL8";
 
 const DEFAULT_EVM_GAS_LIMIT: u64 = 920_000;

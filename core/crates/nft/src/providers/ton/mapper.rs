@@ -1,5 +1,6 @@
 use gem_ton::address::Address;
 use gem_ton::models::{NftCollectionsResponse, NftItem, NftItemsResponse, NftOffchainMetadata, TokenInfo, TokenMetadata};
+use primitives::OptionStringExt;
 use primitives::{Address as _, Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, VerificationStatus};
 
 use super::verified::is_verified;
@@ -83,7 +84,7 @@ fn valid_named_token_info(metadata: Option<&TokenMetadata>) -> Option<&TokenInfo
 }
 
 fn token_info_name(info: &TokenInfo) -> Option<&str> {
-    info.name.as_deref().or_else(|| info.extra.as_ref().and_then(|e| e.domain.as_deref())).filter(|s| !s.is_empty())
+    info.name.as_deref().or_else(|| info.extra.as_ref().and_then(|e| e.domain.as_deref())).non_empty()
 }
 
 #[cfg(test)]

@@ -3,35 +3,26 @@ use primitives::hex;
 
 type GemEIP712MessageDomain = EIP712Domain;
 
-#[uniffi::remote(Record)]
-pub struct GemEIP712MessageDomain {
-    pub name: Option<String>,
-    pub version: Option<String>,
-    pub chain_id: Option<u64>,
-    pub verifying_contract: Option<String>,
-    pub salts: Option<Vec<u8>>,
-}
-
-#[derive(Debug, PartialEq, uniffi::Record)]
+#[derive(Debug, PartialEq)]
 pub struct GemEIP712Message {
     pub domain: GemEIP712MessageDomain,
     pub message: Vec<GemEIP712Section>,
 }
 
-#[derive(Debug, PartialEq, uniffi::Record)]
+#[derive(Debug, PartialEq)]
 pub struct GemEIP712Section {
     pub name: String,
     pub values: Vec<GemEIP712Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemEIP712ValueType {
     Text,
     Address,
     Timestamp,
 }
 
-#[derive(Debug, PartialEq, uniffi::Record)]
+#[derive(Debug, PartialEq)]
 pub struct GemEIP712Value {
     pub name: String,
     pub value: String,

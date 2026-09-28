@@ -10,13 +10,11 @@ public enum Colors {
     public static let red = Color.dynamicColor("#F84E4E")
     public static let redLight = Color.dynamicColor("#FFF1F1", dark: "#462D30")
     public static let green = Color.dynamicColor("#1B9A6C")
-    public static let greenLight = Color.dynamicColor("EAFAF5", dark: "27423C")
     public static let orange = Color.dynamicColor("#FF9314")
     public static let gray = Color.dynamicColor("#818181")
     public static let grayLight = Color.dynamicColor("#969996")
     public static let grayVeryLight = Color.dynamicColor("#F4F4F4", dark: "#333333")
     public static let grayBackground = Color.dynamicColor("#F2F2F7", dark: "#1C1C1E")
-    public static let grayDarkBackground = Color.dynamicColor("#E6E6F0", dark: "#1C1C1E")
     public static let secondaryText = Color.dynamicColor("#818181")
     public static let listStyleColor = UIColor.dynamicColor(UIColor.systemBackground.color, dark: UIColor.secondarySystemBackground.color)
     public static let insetGroupedListStyle = UIColor.dynamicColor(UIColor.systemGroupedBackground.color, dark: UIColor.black.color)
@@ -39,7 +37,6 @@ public extension Colors {
 public extension Colors {
     static let blueFaded = Color.dynamicColor("#6BA3F1", dark: "#5A96ED")
     static let blueDarkFaded = Color.dynamicColor("#6085E9", dark: "#5A7CE6")
-    static let whiteFaded = Color.dynamicColor("#F0F0F0", dark: "#444444")
     static let grayFaded = Color.dynamicColor("#C0C0C0", dark: "#606060")
     static let grayLightFaded = Color.dynamicColor("#CACBCA", dark: "#4D524D")
     static let grayVeryLightFaded = Color.dynamicColor("#F9F9F9", dark: "#666666")
@@ -60,13 +57,11 @@ public extension Colors {
         ("Red", Colors.red),
         ("Red Light", Colors.redLight),
         ("Green", Colors.green),
-        ("Green Light", Colors.greenLight),
         ("Orange", Colors.orange),
         ("Gray", Colors.gray),
         ("Gray Light", Colors.grayLight),
         ("Gray Very Light", Colors.grayVeryLight),
         ("Gray Background", Colors.grayBackground),
-        ("Gray Dark Background", Colors.grayDarkBackground),
         ("Secondary Text", Colors.secondaryText),
         ("List style color", Colors.listStyleColor),
         ("Inset Grouped List style color", Colors.insetGroupedListStyle),

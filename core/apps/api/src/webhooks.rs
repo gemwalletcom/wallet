@@ -1,51 +1,20 @@
 use fiat::FiatWebhookRequest;
 use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
-use gem_tracing::info_with_fields;
+use primitives::OptionStringExt;
 use primitives::{TransactionId, WebhookKind};
 use rocket::data::{Data, ToByteUnit};
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};
 use rocket::request::{FromParam, FromRequest, Outcome};
 use rocket::{Request, State, post};
+use services::access::AccessClient;
+use services::fiat::FiatClient;
+use services::webhooks::{SupportWebhookError, WebhooksClient};
 use std::{collections::HashMap, str::FromStr};
-use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database};
-use streamer::{QueueName, StreamProducer, SupportWebhookPayload};
-use support::ChatwootWebhookVerifier;
 
-use crate::devices::FiatQuotesClient;
 use crate::responders::{ApiError, ApiResponse};
 
 const MAX_WEBHOOK_BODY_BYTES: u64 = 1024 * 1024;
-
-pub struct WebhooksClient {
-    stream_producer: StreamProducer,
-    chatwoot_webhook_verifier: ChatwootWebhookVerifier,
-}
-
-impl WebhooksClient {
-    pub fn new(stream_producer: StreamProducer, support_webhook_secret: String) -> Self {
-        Self {
-            stream_producer,
-            chatwoot_webhook_verifier: ChatwootWebhookVerifier::new(support_webhook_secret),
-        }
-    }
-
-    pub async fn process_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), ApiError> {
-        self.chatwoot_webhook_verifier.verify(headers, raw_body).map_err(|error| ApiError::BadRequest(error.to_string()))?;
-        let webhook_data = serde_json::from_str(raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
-        let payload = SupportWebhookPayload::new(webhook_data);
-        self.stream_producer.publish(QueueName::SupportWebhooks, &payload).await?;
-        Ok(())
-    }
-
-    pub async fn process_broadcast_webhook(&self, payload: TransactionId) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let transaction_id = payload.to_string();
-        info_with_fields!("received broadcast webhook", transaction_id = transaction_id.as_str());
-        self.stream_producer.publish(QueueName::StorePendingTransactions, &payload).await?;
-        info_with_fields!("published broadcast webhook", transaction_id = transaction_id.as_str());
-        Ok(())
-    }
-}
 
 pub struct WebhookKindParam(WebhookKind);
 
@@ -72,7 +41,7 @@ impl<'r> FromRequest<'r> for WebhookSecret {
             return Error((Status::Unauthorized, "Missing Authorization header".to_string()));
         };
 
-        match auth_value.strip_prefix(BEARER_PREFIX).filter(|secret| !secret.is_empty()) {
+        match auth_value.strip_prefix(BEARER_PREFIX).non_empty() {
             Some(secret) => Success(Self(secret.to_string())),
             None => Error((Status::Unauthorized, "Invalid authorization format".to_string())),
         }
@@ -92,13 +61,14 @@ impl<'r> FromRequest<'r> for WebhookRequest {
     }
 }
 
-fn authorize_webhook(database: &State<Database>, kind: WebhookKind, sender: &str, secret: &str) -> Result<(), ApiError> {
-    database
-        .api_clients()
-        .and_then(|mut client| Ok(client.get_enabled_api_client(secret, ApiClientScope::webhook(kind), ApiClientResource::WebhookSender(sender.to_string()))?))
-        .map_err(|_| ApiError::InternalServerError("Failed to load webhook endpoint".to_string()))?
-        .ok_or_else(|| ApiError::NotFound("Webhook endpoint not found".to_string()))?;
-
+async fn authorize_webhook(access: &AccessClient, kind: WebhookKind, sender: &str, secret: &str) -> Result<(), ApiError> {
+    let exists = access
+        .is_webhook_sender_allowed(secret, kind, sender)
+        .await
+        .map_err(|error| ApiError::Internal(format!("Failed to load webhook endpoint: {error}")))?;
+    if !exists {
+        return Err(ApiError::NotFound("Webhook endpoint not found".to_string()));
+    }
     Ok(())
 }
 
@@ -120,13 +90,13 @@ async fn process_webhook(
     kind: WebhookKindParam,
     sender: &str,
     secret: &str,
-    database: &State<Database>,
+    access: &State<AccessClient>,
     webhook_data: Data<'_>,
     webhook_request: WebhookRequest,
-    fiat_quotes_client: &State<FiatQuotesClient>,
+    fiat_client: &State<FiatClient>,
     webhooks_client: &State<WebhooksClient>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    authorize_webhook(database, kind.0, sender, secret)?;
+    authorize_webhook(access, kind.0, sender, secret).await?;
 
     let raw_body = read_webhook_body(webhook_data).await?;
     match kind.0 {
@@ -135,11 +105,14 @@ async fn process_webhook(
             webhooks_client.process_broadcast_webhook(payload).await?;
         }
         WebhookKind::Support => {
-            webhooks_client.process_support_webhook(&raw_body, &webhook_request.headers).await?;
+            webhooks_client.process_support_webhook(&raw_body, &webhook_request.headers).await.map_err(|error| match error {
+                SupportWebhookError::Rejected(message) => ApiError::BadRequest(message),
+                SupportWebhookError::Publish(error) => ApiError::from(error),
+            })?;
         }
         WebhookKind::Fiat => {
             let request = FiatWebhookRequest::new(raw_body, webhook_request.headers, webhook_request.path).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
-            fiat_quotes_client.process_and_publish_webhook(request, sender).await?;
+            fiat_client.process_and_publish_webhook(request, sender).await?;
         }
     }
     Ok(true.into())
@@ -150,13 +123,13 @@ pub async fn create_webhook(
     kind: WebhookKindParam,
     sender: &str,
     secret: &str,
-    database: &State<Database>,
+    access: &State<AccessClient>,
     webhook_data: Data<'_>,
     webhook_request: WebhookRequest,
-    fiat_quotes_client: &State<FiatQuotesClient>,
+    fiat_client: &State<FiatClient>,
     webhooks_client: &State<WebhooksClient>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    process_webhook(kind, sender, secret, database, webhook_data, webhook_request, fiat_quotes_client, webhooks_client).await
+    process_webhook(kind, sender, secret, access, webhook_data, webhook_request, fiat_client, webhooks_client).await
 }
 
 #[post("/webhooks/<kind>/<sender>", data = "<webhook_data>")]
@@ -164,11 +137,11 @@ pub async fn create_webhook_with_header(
     kind: WebhookKindParam,
     sender: &str,
     secret: WebhookSecret,
-    database: &State<Database>,
+    access: &State<AccessClient>,
     webhook_data: Data<'_>,
     webhook_request: WebhookRequest,
-    fiat_quotes_client: &State<FiatQuotesClient>,
+    fiat_client: &State<FiatClient>,
     webhooks_client: &State<WebhooksClient>,
 ) -> Result<ApiResponse<bool>, ApiError> {
-    process_webhook(kind, sender, &secret.0, database, webhook_data, webhook_request, fiat_quotes_client, webhooks_client).await
+    process_webhook(kind, sender, &secret.0, access, webhook_data, webhook_request, fiat_client, webhooks_client).await
 }

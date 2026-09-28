@@ -4,12 +4,12 @@ import Localization
 import Primitives
 import SwiftUI
 
-public struct ExplorerContextModifier: ViewModifier {
+struct ExplorerContextModifier: ViewModifier {
     @State private var isPresentingUrl: URL?
 
     let context: ExplorerContextData
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         let copyValue = context.copyValue
         let explorerLink = context.explorerLink
         content

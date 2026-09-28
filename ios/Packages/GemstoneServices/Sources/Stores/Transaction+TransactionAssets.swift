@@ -11,7 +11,7 @@ extension Gemstone.Transaction {
     var transactionAssets: TransactionAssets {
         TransactionAssets(
             transaction: toPrimitives(),
-            assetIds: transactionAssetIds(transaction: self).map { Primitives.AssetId(core: $0) },
+            assetIds: transactionAssetIds(transaction: self),
         )
     }
 }

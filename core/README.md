@@ -39,7 +39,7 @@ See the [Core features and providers comparison](../docs/FEATURES.md).
 
 ### Install dependencies
 
-Run `just install` to install rust, typeshare
+Run `just install` to install rust
 
 ### Setup DB
 

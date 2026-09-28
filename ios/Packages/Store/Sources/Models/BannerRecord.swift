@@ -50,18 +50,6 @@ extension BannerRecord: CreateTable {
     }
 }
 
-extension Banner {
-    var record: BannerRecord {
-        BannerRecord(
-            id: id,
-            walletId: walletId?.id,
-            assetId: asset?.id,
-            event: event,
-            state: state,
-        )
-    }
-}
-
 extension NewBanner {
     var record: BannerRecord {
         BannerRecord(

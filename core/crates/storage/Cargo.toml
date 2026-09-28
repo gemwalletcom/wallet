@@ -10,6 +10,7 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 r2d2 = { workspace = true }
 strum = { workspace = true }
+tokio = { workspace = true }
 
 diesel = { version = "2.3.10", features = ["postgres", "chrono", "serde_json", "r2d2"] }
 diesel_migrations = { version = "2.3.2" }
@@ -19,6 +20,8 @@ primitives = { path = "../primitives" }
 
 [features]
 testkit = ["primitives/testkit"]
+database_integration_tests = ["testkit"]
 
 [dev-dependencies]
+tokio = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }

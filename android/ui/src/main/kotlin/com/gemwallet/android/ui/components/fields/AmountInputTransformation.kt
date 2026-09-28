@@ -3,12 +3,9 @@ package com.gemwallet.android.ui.components.fields
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.ui.text.TextRange
-import uniffi.gemstone.GemNumberFormat
-import java.text.DecimalFormatSymbols
+import com.gemwallet.android.math.numberFormat
 
-private val numberFormat = GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
-
-fun sanitizeAmount(text: String, maximumFractionDigits: UInt?): String = numberFormat.sanitize(text, maximumFractionDigits, null)
+fun sanitizeAmount(text: String, maximumFractionDigits: UInt?): String = numberFormat().sanitize(text, maximumFractionDigits, null)
 
 fun amountCursor(cursor: Int, text: String, sanitized: String): Int = (cursor - (text.length - sanitized.length)).coerceIn(0, sanitized.length)
 

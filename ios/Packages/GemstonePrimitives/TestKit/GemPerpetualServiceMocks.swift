@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import Gemstone
 import enum Gemstone.GemNameInputStep
+import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
@@ -19,7 +20,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         self.setEnabledError = setEnabledError
     }
 
-    public func newAlertSession(assetId: Gemstone.AssetId) -> GemPriceAlertSession {
+    public func newAlertSession(assetId: Gemstone.AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
         GemPriceAlertSession(
             assetId: assetId,
             currency: getCurrency(),
@@ -27,7 +28,9 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
             selectedDirection: .up,
             input: nil,
             currentPrice: nil,
+            priceChange: nil,
             isSaving: false,
+            format: format,
         )
     }
 
@@ -56,8 +59,9 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func setAutoAlert(assetId _: Gemstone.AssetId, enabled isEnabled: Bool) async throws {
+    public func setAutoAlert(asset: Gemstone.Asset, enabled isEnabled: Bool) async throws -> GemToast {
         lock.withLock { enabled = isEnabled }
+        return GemToast(text: .priceAlertsToggled(name: asset.name, enabled: isEnabled), icon: .priceAlert)
     }
 
     public func priceAlertId(alert: Gemstone.PriceAlert) -> String {
@@ -72,6 +76,8 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public private(set) var syncPositionsCount = 0
     public private(set) var clearMarketsCount = 0
     public var connectionFailures = 0
+    public var connectionGate: (@Sendable (Gemstone.Wallet) async -> Void)?
+    public private(set) var connectionCount = 0
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -82,21 +88,15 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
-        if isPerpetualEnabled {
-            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
-        } else {
+    public func syncEnablement(wallet _: Gemstone.Wallet?, trigger: Gemstone.GemPerpetualEnablementTrigger) async throws -> Bool {
+        guard isPerpetualEnabled else {
             try await clearMarkets()
+            return false
         }
-        return shouldConnectPerpetuals(wallet: wallet)
-    }
-
-    public func shouldConnectPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
-        isPerpetualEnabled && connects
-    }
-
-    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
-        isPerpetualEnabled && connects
+        if trigger != .foreground {
+            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: .scheduled)
+        }
+        return connects
     }
 
     private func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
@@ -128,6 +128,8 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        connectionCount += 1
+        await connectionGate?(wallet)
         if connectionFailures > 0 {
             connectionFailures -= 1
             throw AnyError("connection unavailable")
@@ -145,14 +147,13 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
-    public var activityTypesValue: [Gemstone.TransactionType] = [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]
     public var detailsValue: GemPerpetualDetails = .mock()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
     public var candlesticksError: GemServiceError?
     public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
-    public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock()))
+    public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock(direction: .long, price: 100, leverage: 3)))
     public var syncPositionsError: Error?
     public var syncTransactionsError: Error?
 
@@ -163,10 +164,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
 
     public init() {}
 
-    public func activityTypes() -> [Gemstone.TransactionType] {
-        activityTypesValue
-    }
-
     public func candleSubscription(perpetual: Gemstone.Perpetual, period: Gemstone.ChartPeriod) -> GemPerpetualSubscription {
         .candle(symbol: perpetual.name, interval: period.toPrimitives().rawValue)
     }
@@ -176,13 +173,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
             return GemCandleResult(request: request, state: .error(error: candlesticksError), candles: [])
         }
         return GemCandleResult(request: request, state: .data, candles: candlesticksValue)
-    }
-
-    public func candlesticks(perpetual _: Gemstone.Perpetual, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] {
-        if let candlesticksError {
-            throw candlesticksError
-        }
-        return candlesticksValue
     }
 
     public func chartPeriod() -> Gemstone.ChartPeriod {

@@ -4,7 +4,7 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-gem_tracing = { path = "../tracing" }
+gem_tracing = { path = "../gem_tracing" }
 config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 redis = { workspace = true }

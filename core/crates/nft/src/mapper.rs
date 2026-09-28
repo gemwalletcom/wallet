@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use primitives::{NFTAsset, NFTCollection, NFTCollectionId, NFTData};
 
-pub(crate) fn map_nft_data(assets: Vec<NFTAsset>, collections: Vec<NFTCollection>) -> Vec<NFTData> {
+pub fn map_nft_data(assets: Vec<NFTAsset>, collections: Vec<NFTCollection>) -> Vec<NFTData> {
     let mut by_collection: HashMap<NFTCollectionId, Vec<NFTAsset>> = HashMap::new();
     for asset in assets {
         by_collection.entry(asset.collection_id.clone()).or_default().push(asset);

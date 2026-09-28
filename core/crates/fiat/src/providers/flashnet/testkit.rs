@@ -48,7 +48,7 @@ impl FlashnetRoute {
             destination: FlashnetRouteAsset {
                 chain: chain.to_string(),
                 asset: asset.to_string(),
-                contract_address: contract_address.map(|address| address.to_string()),
+                contract_address: contract_address.map(ToString::to_string),
             },
         }
     }

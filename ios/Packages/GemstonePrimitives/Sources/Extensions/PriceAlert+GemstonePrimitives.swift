@@ -15,25 +15,3 @@ extension PriceAlertData: @retroactive Identifiable {
         asset.id.identifier + priceAlert.id
     }
 }
-
-public extension PriceAlert {
-    var type: PriceAlertNotificationType {
-        PriceAlertFormatter.shared.notificationType(alert: toGem()).toPrimitives()
-    }
-}
-
-public extension [PriceAlert] {
-    var displayedAlerts: [PriceAlert] {
-        PriceAlertFormatter.shared
-            .displayedAlertIds(alerts: map { $0.toGem() })
-            .compactMap { id in first { $0.id == id } }
-    }
-}
-
-public extension [PriceAlertData] {
-    var displayedAlerts: [PriceAlertData] {
-        PriceAlertFormatter.shared
-            .displayedAlertIds(alerts: map { $0.priceAlert.toGem() })
-            .compactMap { id in first { $0.priceAlert.id == id } }
-    }
-}

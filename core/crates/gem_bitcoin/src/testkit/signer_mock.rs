@@ -50,7 +50,7 @@ pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
     let mut input = mock_transfer_input(chain);
     match chain {
         BitcoinChain::Doge => input.input.value = BigUint::from(1_000_000u64),
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Zcash => {}
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Dash | BitcoinChain::Zcash => {}
     }
     match &mut input.input.metadata {
         TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } => {

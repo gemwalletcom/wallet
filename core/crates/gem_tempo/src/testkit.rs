@@ -13,7 +13,7 @@ use primitives::EVMChain;
 use primitives::{ApplicationMetadata, TransactionInputType, TransferDataExtra, known_assets::TEMPO_PATHUSD};
 #[cfg(any(feature = "rpc", feature = "signer"))]
 use primitives::{
-    Asset, AssetId, Chain, SignerInput, TransactionLoadMetadata,
+    Asset, AssetId, Chain, SignerInput, TransactionFee, TransactionLoadMetadata,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
 #[cfg(feature = "rpc")]
@@ -36,11 +36,20 @@ pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionIn
 }
 
 #[cfg(any(feature = "rpc", feature = "signer"))]
+pub(crate) fn mock_tempo_signer_input(input_type: TransactionInputType, value: &str, gas_limit: u64, fee_asset: AssetId) -> SignerInput {
+    let input = SignerInput::mock_evm_with_metadata(input_type, value, gas_limit, TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap()));
+    SignerInput {
+        fee: TransactionFee { fee_asset, ..input.fee },
+        ..input
+    }
+}
+
+#[cfg(any(feature = "rpc", feature = "signer"))]
 pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, approval: Option<ApprovalData>) -> SignerInput {
     let has_approval = approval.is_some();
     let gas_limit = if has_approval { TOKEN_TRANSFER_GAS_LIMIT } else { DEFAULT_SWAP_GAS_LIMIT };
     let swap_data = SwapData::mock();
-    let mut input = SignerInput::mock_evm_with_metadata(
+    mock_tempo_signer_input(
         TransactionInputType::Swap {
             from_asset,
             to_asset: TEMPO_PATHUSD.clone(),
@@ -57,10 +66,8 @@ pub(crate) fn mock_tempo_swap_input(from_asset: Asset, fee_asset: AssetId, appro
         },
         "0",
         gas_limit,
-        TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap()),
-    );
-    input.fee.fee_asset = fee_asset;
-    input
+        fee_asset,
+    )
 }
 
 #[cfg(feature = "rpc")]

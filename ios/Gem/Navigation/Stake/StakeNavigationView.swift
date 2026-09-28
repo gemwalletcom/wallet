@@ -1,12 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
 import InfoSheet
-import Primitives
 import Stake
 import SwiftUI
-import Transfer
 
 struct StakeNavigationView: View {
     @State private var model: StakeSceneViewModel
@@ -20,11 +17,8 @@ struct StakeNavigationView: View {
             model: model,
         )
         .bindQuery(model.delegationsQuery, model.assetQuery, model.validatorsQuery)
-        .ifLet(model.stakeInfoUrl, content: { view, url in
-            view.toolbarInfoButton(url: url)
-        })
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
     }
 }

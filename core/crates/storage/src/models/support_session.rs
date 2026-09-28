@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::support_sessions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct SupportSessionRow {
+pub(crate) struct SupportSessionRow {
     pub device_id: i32,
     pub auth_token: String,
     pub updated_at: NaiveDateTime,
@@ -15,7 +15,7 @@ pub struct SupportSessionRow {
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::support_sessions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewSupportSessionRow {
+pub(crate) struct NewSupportSessionRow {
     pub device_id: i32,
     pub auth_token: String,
 }

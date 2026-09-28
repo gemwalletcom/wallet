@@ -7,7 +7,7 @@ use crate::sql_types::{AssetId, ListIdRow, PerpetualIdRow, TagVisibility};
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::tags)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct TagRow {
+pub(crate) struct TagRow {
     pub id: String,
     pub name: String,
     pub visibility: TagVisibility,
@@ -17,7 +17,7 @@ pub struct TagRow {
 #[derive(Debug, Insertable)]
 #[diesel(table_name = crate::schema::tags)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewListTagRow {
+pub(crate) struct NewListTagRow {
     pub id: String,
     pub name: String,
     pub list_id: ListIdRow,
@@ -26,7 +26,7 @@ pub struct NewListTagRow {
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::assets_tags)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct AssetTagRow {
+pub(crate) struct AssetTagRow {
     pub asset_id: AssetId,
     pub tag_id: String,
     pub order: Option<i32>,
@@ -35,10 +35,9 @@ pub struct AssetTagRow {
 #[derive(Debug, Queryable, Selectable, Clone)]
 #[diesel(table_name = crate::schema::perpetuals_tags)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct PerpetualTagRow {
+pub(crate) struct PerpetualTagRow {
     pub perpetual_id: PerpetualIdRow,
     pub tag_id: String,
-    pub order: Option<i32>,
 }
 
 impl TagRow {

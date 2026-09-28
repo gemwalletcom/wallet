@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-type UInt64 = u64;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TronBlock {
     #[serde(rename = "block_header")]
@@ -15,12 +13,12 @@ pub struct TronHeaderRawData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TronHeader {
-    pub number: UInt64,
-    pub version: UInt64,
+    pub number: u64,
+    pub version: u64,
     #[serde(rename = "txTrieRoot")]
     pub tx_trie_root: String,
     pub witness_address: String,
     #[serde(rename = "parentHash")]
     pub parent_hash: String,
-    pub timestamp: UInt64,
+    pub timestamp: u64,
 }

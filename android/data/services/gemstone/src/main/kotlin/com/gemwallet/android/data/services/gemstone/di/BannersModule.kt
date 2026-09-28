@@ -2,7 +2,7 @@ package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
 import com.gemwallet.android.application.notifications.NotificationPermissionRequests
-import com.gemwallet.android.data.service.store.database.BannersDao
+import com.gemwallet.android.data.services.store.database.BannersDao
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.notifications.GemstoneNotificationPermissions
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
@@ -16,6 +16,7 @@ import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemBannerStore
 import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.Platform
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -40,5 +41,5 @@ object BannersModule {
 
     @Provides
     @Singleton
-    fun provideGemBannerService(store: GemBannerStore): GemBannerService = GemBannerService(store)
+    fun provideGemBannerService(store: GemBannerStore): GemBannerService = GemBannerService(store, Platform.ANDROID)
 }

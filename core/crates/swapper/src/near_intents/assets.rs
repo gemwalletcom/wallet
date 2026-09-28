@@ -61,6 +61,7 @@ pub const NEAR_INTENTS_TON_USDT: &str = "nep245:v2_1.omni.hot.tg:1117_3tsdfyziyc
 pub const NEAR_INTENTS_TRON_NATIVE: &str = "nep141:tron.omft.near";
 pub const NEAR_INTENTS_TRON_USDT: &str = "nep141:tron-d28a265909efecdcee7c5028585214ea0b96f015.omft.near";
 pub const NEAR_INTENTS_DOGE_NATIVE: &str = "nep141:doge.omft.near";
+pub const NEAR_INTENTS_DASH_NATIVE: &str = "nep141:dash.omft.near";
 pub const NEAR_INTENTS_XRP_NATIVE: &str = "nep141:xrp.omft.near";
 pub const NEAR_INTENTS_CARDANO_NATIVE: &str = "nep141:cardano.omft.near";
 pub const NEAR_INTENTS_BERA_NATIVE: &str = "nep141:bera.omft.near";
@@ -200,6 +201,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
     map.insert(Chain::Tron, HashMap::from([(Chain::Tron.as_asset_id(), NEAR_INTENTS_TRON_NATIVE), (TRON_USDT_ASSET_ID.clone(), NEAR_INTENTS_TRON_USDT)]));
 
     map.insert(Chain::Doge, HashMap::from([(Chain::Doge.as_asset_id(), NEAR_INTENTS_DOGE_NATIVE)]));
+    map.insert(Chain::Dash, HashMap::from([(Chain::Dash.as_asset_id(), NEAR_INTENTS_DASH_NATIVE)]));
     map.insert(Chain::Xrp, HashMap::from([(Chain::Xrp.as_asset_id(), NEAR_INTENTS_XRP_NATIVE)]));
     map.insert(Chain::Cardano, HashMap::from([(Chain::Cardano.as_asset_id(), NEAR_INTENTS_CARDANO_NATIVE)]));
     map.insert(
@@ -319,6 +321,7 @@ mod tests {
             (STELLAR_USDC_ASSET_ID.clone(), NEAR_INTENTS_STELLAR_USDC),
             (NEAR_USDT_ASSET_ID.clone(), NEAR_INTENTS_NEAR_USDT),
             (Chain::Robinhood.as_asset_id(), NEAR_INTENTS_HOOD_NATIVE),
+            (Chain::Dash.as_asset_id(), NEAR_INTENTS_DASH_NATIVE),
             (ROBINHOOD_USDG_ASSET_ID.clone(), NEAR_INTENTS_HOOD_USDG),
             (ROBINHOOD_WETH_ASSET_ID.clone(), NEAR_INTENTS_HOOD_WETH),
         ];

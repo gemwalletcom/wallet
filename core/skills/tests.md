@@ -42,6 +42,7 @@ Build mocked `eth_call` return data with the generated contract bindings (`<Cont
 
 - Add integration tests for RPC functionality to verify real network compatibility
 - Gate live chain RPC tests behind `chain_integration_tests` and live swap provider tests behind `swap_integration_tests`; keep ordinary unit tests deterministic
+- Gate Postgres-backed tests behind `database_integration_tests`. `Database::mock()` (storage testkit) connects to `DATABASE_URL` through one connection held in a test transaction, so every write rolls back when the pool drops; migrate first (`just migrate`), then run `just test-database`
 - Prefer recent blocks for batch operations (more reliable than historical blocks)
 - Verify both successful calls and proper error propagation
 - Use realistic contract addresses (e.g., USDC) for `eth_call` testing

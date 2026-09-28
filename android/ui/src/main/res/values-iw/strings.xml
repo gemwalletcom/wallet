@@ -9,6 +9,7 @@
   <string name="common_copy">העתק</string>
   <string name="common_share">שתף</string>
   <string name="common_continue">המשך</string>
+  <string name="common_continue_anyway">המשך בכל זאת</string>
   <string name="common_sign_in_with">כניסה באמצעות %1$s</string>
   <string name="common_provider">ספק</string>
   <string name="common_loading">טוען</string>
@@ -47,7 +48,6 @@
   <string name="common_description">תֵאוּר</string>
   <string name="common_emoji">אימוג\'י</string>
   <string name="common_avatar">גִלגוּל</string>
-  <string name="common_save">שמור</string>
   <string name="common_percentage">אֲחוּזִים</string>
   <string name="common_details">פרטים</string>
   <string name="common_info">מידע</string>
@@ -57,6 +57,7 @@
   <string name="common_token">אֲסִימוֹן</string>
   <string name="common_expiration">תפוגה</string>
   <string name="common_suspicious_address">כתובת חשודה</string>
+  <string name="common_suspicious_address_description">כתובת זו קשורה לפעילות חשודה או מזיקה.</string>
   <string name="common_refresh">לְרַעֲנֵן</string>
   <string name="common_grant_permission">תן רשות</string>
   <string name="common_required_field">%1$s נדרש</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">תִיק</string>
   <string name="wallet_import_already_imported_message">ארנק זה כבר יובא.</string>
   <string name="wallets_title">ארנקים</string>
-  <string name="wallets_watch">מעקב</string>
-  <string name="receive_title">קבל %1$s</string>
   <string name="receive_warning">זוהי הכתובת שלך - שליחה בלבד %1$s על ה- %2$s רֶשֶׁת.</string>
   <string name="buy_title">קנה %1$s</string>
   <string name="buy_providers_title">ספקים</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">אימות</string>
   <string name="settings_notifications_title">התראות</string>
   <string name="settings_language">שפה</string>
-  <string name="settings_help_center">מרכז העזרה</string>
   <string name="settings_support">תְמִיכָה</string>
   <string name="settings_price_alerts_title">התראות על מחירים</string>
   <string name="settings_hide_balance">הסתר יתרה</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">נכס לא נתמך.</string>
   <string name="errors_connections_no_supported_wallets">אין ארנקים נתמכים זמינים.</string>
   <string name="errors_connections_unsupported_chain">השרשרת שסופקה אינה נתמכת.</string>
+  <string name="errors_authentication_unavailable">אימות לא מוגדר במכשיר הזה. הפעל זיהוי ביומטרי או קוד גישה בהגדרות המכשיר.</string>
+  <string name="errors_authentication_locked_out">יותר מדי ניסיונות כושלים. אנא נסה שוב מאוחר יותר.</string>
+  <string name="errors_authentication_failed">האימות נכשל. אנא נסה שוב.</string>
+  <string name="errors_connections_expired">תוקף קישור החיבור הזה פג. קבל קוד QR חדש ונסה שוב.</string>
+  <string name="errors_connections_not_found">החיבור הזה כבר לא קיים.</string>
+  <string name="errors_connections_relay_unavailable">לא ניתן להגיע ל-WalletConnect. בדוק את החיבור לאינטרנט ונסה שוב.</string>
   <string name="errors_swap_amount_too_small">סכום קטן מדי</string>
   <string name="errors_scan_transaction_malicious_description">לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.</string>
   <string name="errors_scan_transaction_memo_required">כתובת ארנק היעד %1$s דורשת תגית יעד / תזכיר</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">קנה %1$s</string>
   <string name="asset_get_asset">קבל %1$s</string>
   <string name="asset_add_to_wallet">הוסף לארנק</string>
-  <string name="asset_hide_from_wallet">הסתר מהארנק</string>
   <string name="asset_added_to_wallet">נוסף לארנק</string>
   <string name="asset_hidden_from_wallet">הוסתר מהארנק</string>
   <string name="asset_resources">משאבים</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">לְשַׁנוֹת</string>
   <string name="date_today">היום</string>
   <string name="date_yesterday">אתמול</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">חיבור</string>
   <string name="wallet_connect_disconnect">התנתק</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">מהר</string>
   <string name="fee_rates_normal">רגיל</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">מותאם אישית</string>
   <string name="banner_account_activation_title">עמלת הפעלת חשבון</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">כאשר המחיר יורד ב-</string>
   <string name="price_alerts_set_alert_set_target_price">קביעת מחיר יעד</string>
   <string name="price_alerts_set_alert_current_price">מחיר נוכחי</string>
-  <string name="price_alerts_added_for">הגדר התראת מחיר %1$s</string>
+  <string name="price_alerts_added_price_over">נוספה התראה למחיר מעל %1$s</string>
+  <string name="price_alerts_added_price_under">נוספה התראה למחיר מתחת ל-%1$s</string>
+  <string name="price_alerts_added_increases_by">נוספה התראה לעליית מחיר של %1$s</string>
+  <string name="price_alerts_added_decreases_by">נוספה התראה לירידת מחיר של %1$s</string>
   <string name="price_alerts_state_empty_title">ההתראות שלך יופיעו כאן</string>
   <string name="price_alerts_state_empty_description">אפשרו להם על ידי הוספת מטבעות למעקב</string>
   <string name="price_alerts_auto_footer">התראות מופעלות על תנודות משמעותיות במחיר.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">דווח</string>
   <string name="permissions_access_denied">הגִישָׁה נִדחֲתָה</string>
   <string name="permissions_image_photo_access_denied_description">לאפליקציה הזו אין הרשאה לגשת לספריית התמונות שלך. אפשר גישה בהגדרות המכשיר שלך.</string>
-  <string name="markets_title">שווקים</string>
-  <string name="markets_state_empty_title">נתוני השווקים שלך יופיעו כאן</string>
   <string name="markets_daily_volume">נפח של 24 שעות</string>
   <string name="search_state_empty_description">בדוק את האיות או נסה חיפוש חדש.</string>
   <string name="networks_state_empty_search_title">לא נמצאו רשתות</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">אישור אסימונים ללא הגבלה</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">אזהרת אבטחה</string>
+  <string name="rootcheck_jailbreak_body">נראה שהמכשיר שלך עבר ג\'יילברייק. הדבר עלול לסכן את הארנק והכספים שלך.</string>
   <string name="rootcheck_body">נראה שלמכשיר שלך יש גישת שורש, מה שיכול להגביר משמעותית את סיכוני האבטחה. שימוש באפליקציה זו במכשיר שורשי עלול לחשוף את הנכסים שלך לגישה לא מורשית ואובדן פוטנציאלי. למען בטיחות הכספים שלך, אנו ממליצים בחום להשתמש במכשיר ללא שורש.</string>
   <string name="rootcheck_ignore">התעלם</string>
   <string name="rootcheck_exit">יציאה</string>

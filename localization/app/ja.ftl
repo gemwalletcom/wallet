@@ -9,6 +9,7 @@ common_secret_phrase = リカバリーフレーズ
 common_copy = コピー
 common_share = 共有
 common_continue = 続ける
+common_continue_anyway = このまま続ける
 common_sign_in_with = %@でサインイン
 common_provider = プロバイダー
 common_loading = 読み込み中
@@ -47,7 +48,6 @@ common_learn_more = もっと詳しく知る
 common_description = 説明
 common_emoji = 絵文字
 common_avatar = アバター
-common_save = 保存
 common_percentage = 割合
 common_details = 詳細
 common_info = 情報
@@ -57,6 +57,7 @@ common_method = 方法
 common_token = トークン
 common_expiration = 有効期限
 common_suspicious_address = 不審なアドレス
+common_suspicious_address_description = このアドレスは不審または悪意のある活動に関連しています。
 common_refresh = 更新
 common_grant_permission = 許可する
 common_required_field = %@は必須です
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = このウォレットは既にインポ
 # Wallets
 
 wallets_title = ウォレット
-wallets_watch = 閲覧専用
 
 # Receive
 
-receive_title = %@を受け取る
 receive_warning = このアドレスには、%@ のみを %@ ネットワークで送金してください。
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = パスコードを有効にする
 settings_security_authentication = 認証
 settings_notifications_title = 通知
 settings_language = 言語
-settings_help_center = ヘルプセンター
 settings_support = サポート
 settings_price_alerts_title = 価格アラート
 settings_hide_balance = 残高を非表示
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = 見積もりを取得できません
 errors_swap_not_supported_asset = 未対応のアセットです。
 errors_connections_no_supported_wallets = サポートされているウォレットは利用できません。
 errors_connections_unsupported_chain = 選択されたチェーンはサポートされていません
+errors_authentication_unavailable = このデバイスでは認証が設定されていません。デバイスの設定で生体認証またはパスコードをオンにしてください。
+errors_authentication_locked_out = 失敗した回数が多すぎます。しばらくしてからもう一度お試しください。
+errors_authentication_failed = 認証に失敗しました。もう一度お試しください。
+errors_connections_expired = この接続リンクは有効期限が切れています。新しいQRコードを取得して、もう一度お試しください。
+errors_connections_not_found = この接続は存在しません。
+errors_connections_relay_unavailable = WalletConnectに接続できません。インターネット接続を確認して、もう一度お試しください。
 errors_swap_amount_too_small = 金額が小さすぎます
 errors_scan_transaction_malicious_description = この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。
 errors_scan_transaction_memo_required = %@ の送信先アドレスには、宛先タグまたはメモが必要です
@@ -321,7 +325,6 @@ asset_verification_warning_message = トークンは誰でも作成でき、偽�
 asset_buy_asset = %@を購入
 asset_get_asset = %@を入手
 asset_add_to_wallet = ウォレットに追加
-asset_hide_from_wallet = ウォレットで非表示にする
 asset_added_to_wallet = ウォレットに追加しました
 asset_hidden_from_wallet = ウォレットから非表示にしました
 asset_resources = リソース
@@ -348,6 +351,7 @@ charts_price_change = 変動
 
 date_today = 今日
 date_yesterday = 昨日
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = サトシ/vB
-fee_rate_satB = %@ サトシ/B
 fee_rate_gwei = gwei
 fee_rate_custom = カスタム
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = 価格の上昇率
 price_alerts_set_alert_price_decreases_by = 価格の下落率
 price_alerts_set_alert_set_target_price = 目標価格の設定
 price_alerts_set_alert_current_price = 現在の価格
-price_alerts_added_for = 価格アラートを設定しました：%@
+price_alerts_added_price_over = 価格が%@を上回ったときのアラートを追加しました
+price_alerts_added_price_under = 価格が%@を下回ったときのアラートを追加しました
+price_alerts_added_increases_by = 価格が%@上昇したときのアラートを追加しました
+price_alerts_added_decreases_by = 価格が%@下落したときのアラートを追加しました
 price_alerts_state_empty_title = アラートはここに表示されます
 price_alerts_state_empty_description = 追跡するコインを追加して有効にしてください
 price_alerts_auto_footer = 大幅な価格変動が発生するとアラートが発動します。
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = このアプリには写真�
 
 # Markets
 
-markets_title = マーケット
-markets_state_empty_title = マーケットデータがここに表示されます
 markets_daily_volume = 24時間取引量
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = セキュリティ警告
+rootcheck_jailbreak_body = このデバイスは脱獄されているようです。ウォレットと資産が危険にさらされる可能性があります。
 rootcheck_body = このデバイスは root 化されているようです。root 化されたデバイスではセキュリティリスクが大幅に高まり、資産への不正アクセスや損失につながる可能性があります。資金を守るため、root 化されていないデバイスの使用を強くお勧めします。
 rootcheck_ignore = 無視する
 rootcheck_exit = 終了

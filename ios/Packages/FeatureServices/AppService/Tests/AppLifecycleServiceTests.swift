@@ -17,8 +17,8 @@ struct AppLifecycleServiceTests {
     private let wallet = Wallet.mock(accounts: [.mock(chain: .hyperliquid)])
 
     @Test(.timeLimit(.minutes(1)))
-    func aFailedDeviceSyncDoesNotEndTheAccountObservation() async throws {
-        let db = try DB.mockWithWallets([.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
+    func aFailedDeviceSyncDoesNotEndTheAccountObservation() async {
+        let db = DB.mock(wallets: [.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
         let synchronized = AsyncStream<Void>.makeStream()
         let device = GemDeviceServiceMock(syncError: AnyError("offline"), onSynchronize: { synchronized.continuation.yield(()) })
         let service = AppLifecycleService.mock(deviceService: device, subscriptionsObserver: SubscriptionsObserver(dbQueue: db.dbQueue))
@@ -93,7 +93,7 @@ struct AppLifecycleServiceTests {
         let service = AppLifecycleService.mock(hyperliquidObserverService: observer, walletSessionService: session)
         await service.updateWalletConnections()
 
-        try session.setCurrent(walletId: nil)
+        try session.setCurrentWalletId(walletId: nil)
         await service.updateWalletConnections()
 
         #expect(await observer.isConnected == false)
@@ -140,7 +140,7 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsKeepsMarketsUntouched() async throws {
+    func updateWalletConnectionsRefreshesStaleMarkets() async throws {
         let perpetuals = GemPerpetualServiceMock()
         let service = try AppLifecycleService.mock(
             perpetualService: perpetuals,
@@ -149,7 +149,7 @@ struct AppLifecycleServiceTests {
 
         await service.updateWalletConnections()
 
-        #expect(perpetuals.syncMarketsCount == 0)
+        #expect(perpetuals.syncMarketsCount == 1, "a wallet switch refreshes markets that were never synced")
         #expect(perpetuals.clearMarketsCount == 0)
     }
 }

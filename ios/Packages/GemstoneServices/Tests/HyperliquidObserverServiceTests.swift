@@ -59,4 +59,80 @@ struct HyperliquidObserverServiceTests {
 
         #expect(streamService.addresses.count == 1)
     }
+
+    @Test(.timeLimit(.minutes(1)))
+    func overlappingSetupForTheSameWalletPreparesOnce() async {
+        let wallet = hyperliquidWallet("0xa")
+        let gate = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let opened = Locked(wrappedValue: 0)
+        let socket = WebSocketConnectionMock(onConnect: { opened.withLock { $0 += 1 } })
+        let perpetualService = GemPerpetualServiceMock()
+        perpetualService.connectionGate = { _ in await withCheckedContinuation { gate.continuation.yield($0) } }
+        let service = HyperliquidObserverService(webSocket: socket, perpetualService: perpetualService, streamService: PerpetualStreamServiceStub())
+
+        let first = Task { await service.setup(for: wallet) }
+        var pending = gate.stream.makeAsyncIterator()
+        let preparation = await pending.next()
+        await service.setup(for: wallet)
+        preparation?.resume()
+        await first.value
+        try? await Task.sleep(for: .milliseconds(100))
+
+        #expect(perpetualService.connectionCount == 1)
+        #expect(opened.wrappedValue == 1)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func aDelayedPreparationForTheOldWalletDoesNotReplaceTheNewOne() async {
+        let walletA = hyperliquidWallet("0xa")
+        let walletB = hyperliquidWallet("0xb")
+        let gate = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let opened = AsyncStream<Void>.makeStream()
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
+        let streamService = PerpetualStreamServiceStub()
+        let perpetualService = GemPerpetualServiceMock()
+        perpetualService.connectionGate = { wallet in
+            guard wallet.id == walletA.id else { return }
+            await withCheckedContinuation { gate.continuation.yield($0) }
+        }
+        let service = HyperliquidObserverService(webSocket: socket, perpetualService: perpetualService, streamService: streamService)
+
+        let setupA = Task { await service.setup(for: walletA) }
+        var pending = gate.stream.makeAsyncIterator()
+        let preparationA = await pending.next()
+        await service.setup(for: walletB)
+        var connections = opened.stream.makeAsyncIterator()
+        _ = await connections.next()
+        await socket.simulateConnected()
+        preparationA?.resume()
+        await setupA.value
+        try? await Task.sleep(for: .milliseconds(100))
+
+        #expect(streamService.addresses == ["0xb"])
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func goingToTheBackgroundDuringPreparationDoesNotConnect() async {
+        let wallet = hyperliquidWallet("0xa")
+        let gate = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let opened = Locked(wrappedValue: 0)
+        let socket = WebSocketConnectionMock(onConnect: { opened.withLock { $0 += 1 } })
+        let perpetualService = GemPerpetualServiceMock()
+        perpetualService.connectionGate = { _ in await withCheckedContinuation { gate.continuation.yield($0) } }
+        let service = HyperliquidObserverService(webSocket: socket, perpetualService: perpetualService, streamService: PerpetualStreamServiceStub())
+
+        let setup = Task { await service.setup(for: wallet) }
+        var pending = gate.stream.makeAsyncIterator()
+        let preparation = await pending.next()
+        await service.disconnect()
+        preparation?.resume()
+        await setup.value
+        try? await Task.sleep(for: .milliseconds(100))
+
+        #expect(opened.wrappedValue == 0)
+    }
+
+    private func hyperliquidWallet(_ address: String) -> Wallet {
+        Wallet.mock(id: .mock(address: address), accounts: [.mock(chain: .hyperCore, address: address)])
+    }
 }

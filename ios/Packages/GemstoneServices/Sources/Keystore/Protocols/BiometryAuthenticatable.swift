@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemLockPeriod
 import Foundation
 import LocalAuthentication
 import Primitives
@@ -7,14 +8,14 @@ import Primitives
 public protocol BiometryAuthenticatable: Sendable {
     var requiresAuthentication: Bool { get }
     var availableAuthentication: KeystoreAuthentication { get }
-    var lockPeriod: LockPeriod { get }
+    var lockPeriod: GemLockPeriod { get }
     var isPrivacyLockEnabled: Bool { get }
 
     @MainActor
     func authenticate(context: LAContext, reason: String) async throws
     @MainActor
     func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws
-    func update(period: LockPeriod) throws
+    func update(period: GemLockPeriod) throws
     func togglePrivacyLock(enabled: Bool) throws
     func shouldRelock(elapsedMilliseconds: Int64) -> Bool
 }

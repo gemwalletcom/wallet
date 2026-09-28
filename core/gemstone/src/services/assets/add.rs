@@ -1,16 +1,17 @@
+use crate::models::button::GemButtonState;
 use std::iter::once;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Wallet};
 
 use super::rules;
-use crate::address::checksum_address;
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::{GemServiceError, required_account};
 use crate::services::explorer::GemExplorerService;
 use crate::services::localization::GemLocalizedText;
+use chain_primitives::checksum_address;
 use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -25,6 +26,14 @@ pub enum GemAddAssetPhase {
 pub struct GemAddAssetViewState {
     pub phase: GemAddAssetPhase,
     pub can_add: bool,
+    pub button: GemButtonState,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAddAssetChains {
+    pub chains: Vec<Chain>,
+    pub default_chain: Option<Chain>,
+    pub shows_picker: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -33,6 +42,7 @@ pub struct GemAddAssetSession {
     pub address: String,
     pub asset: Option<Asset>,
     pub is_loading: bool,
+    pub is_adding: bool,
     pub failed: bool,
 }
 
@@ -43,6 +53,7 @@ impl GemAddAssetSession {
             address: String::new(),
             asset: None,
             is_loading: false,
+            is_adding: false,
             failed: false,
         }
     }
@@ -61,7 +72,7 @@ impl GemAddAssetSession {
                 text(GemListRowTitle::Decimals, asset.decimals.to_string()),
                 text(GemListRowTitle::Type, asset.asset_type.as_ref().to_string()),
             ]))
-            .chain(explorer.map(|link| section(vec![GemListRow::Explorer { name: link.name, url: link.link }])))
+            .chain(explorer.map(|link| section(vec![GemListRow::explorer(&link)])))
             .collect(),
             None if self.failed => vec![section(vec![GemListRow::Notice {
                 title: GemListRowTitle::Error,
@@ -78,6 +89,7 @@ impl GemAddAssetSession {
             address,
             asset: None,
             is_loading: false,
+            is_adding: false,
             failed: false,
         }
     }
@@ -98,6 +110,10 @@ impl GemAddAssetSession {
             is_loading: self.searches_token(),
             ..self.cleared(self.chain, self.address.clone())
         }
+    }
+
+    pub fn on_adding(&self, is_adding: bool) -> Self {
+        Self { is_adding, ..self.clone() }
     }
 
     pub fn on_found(&self, chain: Chain, address: String, asset: Asset) -> Self {
@@ -138,10 +154,13 @@ impl GemAddAssetSession {
         } else {
             GemAddAssetPhase::Idle
         };
-        GemAddAssetViewState {
-            can_add: matches!(phase, GemAddAssetPhase::Found { .. }),
-            phase,
-        }
+        let can_add = matches!(phase, GemAddAssetPhase::Found { .. });
+        let button = match (self.is_loading || self.is_adding, can_add) {
+            (true, _) => GemButtonState::Loading,
+            (false, true) => GemButtonState::Enabled,
+            (false, false) => GemButtonState::Disabled,
+        };
+        GemAddAssetViewState { can_add, button, phase }
     }
 }
 
@@ -163,12 +182,13 @@ impl GemAddAssetService {
         GemAddAssetSession::new(chain)
     }
 
-    pub fn chains(&self, wallet: Wallet) -> Vec<Chain> {
-        rules::token_chains(&wallet)
-    }
-
-    pub fn default_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
-        rules::default_token_chain(&chains)
+    pub fn chain_picker(&self, wallet: Wallet) -> GemAddAssetChains {
+        let chains = rules::token_chains(&wallet);
+        GemAddAssetChains {
+            default_chain: rules::default_token_chain(&chains),
+            shows_picker: chains.len() > 1,
+            chains,
+        }
     }
 
     pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemListSection> {
@@ -183,7 +203,7 @@ impl GemAddAssetService {
     pub async fn add(&self, wallet: Wallet, asset_id: AssetId) -> Result<(), GemServiceError> {
         required_account(&wallet, asset_id.chain)?;
         let asset = self.assets.ensure_token_asset(asset_id).await?;
-        self.balances.set_assets_enabled(wallet.id, vec![asset.id], true).await
+        self.balances.enable_assets(wallet.id, vec![asset.id]).await
     }
 }
 
@@ -209,6 +229,18 @@ mod session_tests {
         let retyped = found.on_address("0xdef".to_string());
         assert_eq!(retyped.view_state().phase, GemAddAssetPhase::Idle);
         assert!(!retyped.view_state().can_add, "a token that was never looked up cannot be added");
+    }
+
+    #[test]
+    fn test_the_button_spins_while_looking_up_or_adding_and_enables_on_a_found_token() {
+        let idle = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string());
+        assert_eq!(idle.view_state().button, GemButtonState::Disabled);
+        assert_eq!(idle.on_loading().view_state().button, GemButtonState::Loading);
+
+        let found = idle.on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock());
+        assert_eq!(found.view_state().button, GemButtonState::Enabled);
+        assert_eq!(found.on_adding(true).view_state().button, GemButtonState::Loading);
+        assert_eq!(found.on_adding(true).on_adding(false).view_state().button, GemButtonState::Enabled);
     }
 
     #[test]
@@ -278,7 +310,7 @@ mod tests {
                     text(GemListRowTitle::Type, "NATIVE"),
                 ]),
                 section(vec![GemListRow::Explorer {
-                    name: "Etherscan".to_string(),
+                    title: GemLocalizedText::ViewOn { name: "Etherscan".to_string() },
                     url: "https://etherscan.io/token/0xabc".to_string(),
                 }]),
             ]

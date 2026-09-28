@@ -10,6 +10,7 @@ Do not hard-wrap prose at 80 columns in docs, skills, commit messages, PR bodies
 - Confirm repository, checkout/worktree, branch, and `git status --short`. Preserve unrelated changes; avoid stashing the user's tree. If unavoidable, label the stash and verify it before restoring.
 - Fetch remote state only when needed. Record the exact base/head for a review; compare PRs against their own bases, using `git range-diff` when they differ. Inventory review threads separately.
 - Load applicable platform guides and the relevant topic sections once. Use the [architecture index](../docs/ARCHITECTURE.md#find-the-relevant-contract-and-example) instead of reading every design document. State assumptions affecting scope, security, or compatibility.
+- For a behavior change, read the area's section in [Product behavior](../docs/PRODUCT.md) first. A stated rule there is intent, not an implementation detail: keep it, or raise the change as a decision with the reason before touching the owner, and update the section in the same change when the intent moves.
 
 ## 2. Ground the Change Before Editing
 

@@ -36,12 +36,17 @@ let package = Package(
             name: "WebSocketClient",
             dependencies: [],
             path: "WebSocketClient",
-            exclude: ["TestKit"],
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "WebSocketClientTestKit",
             dependencies: ["WebSocketClient"],
             path: "WebSocketClient/TestKit",
+        ),
+        .testTarget(
+            name: "WebSocketClientTests",
+            dependencies: ["WebSocketClient", "WebSocketClientTestKit"],
+            path: "WebSocketClient/Tests",
         ),
     ],
 )

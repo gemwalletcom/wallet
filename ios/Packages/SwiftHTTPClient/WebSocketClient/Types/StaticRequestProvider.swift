@@ -2,18 +2,14 @@
 
 import Foundation
 
-public struct StaticRequestProvider: WebSocketRequestProvider {
+struct StaticRequestProvider: WebSocketRequestProvider {
     private let request: URLRequest
 
-    public init(request: URLRequest) {
-        self.request = request
-    }
-
-    public init(url: URL) {
+    init(url: URL) {
         request = URLRequest(url: url)
     }
 
-    public func makeRequest() -> URLRequest {
+    func makeRequest() -> URLRequest {
         request
     }
 }

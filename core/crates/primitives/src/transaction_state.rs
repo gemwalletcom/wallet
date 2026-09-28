@@ -1,9 +1,9 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter, EnumString};
-use typeshare::typeshare;
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumIter, EnumString)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumIter, EnumString, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum TransactionState {
@@ -16,6 +16,10 @@ pub enum TransactionState {
 }
 
 impl TransactionState {
+    pub fn pending() -> Vec<Self> {
+        Self::iter().filter(|state| !state.is_completed()).collect()
+    }
+
     pub fn is_completed(&self) -> bool {
         match self {
             Self::Confirmed | Self::Failed | Self::Reverted | Self::Refunded => true,
@@ -40,5 +44,10 @@ mod tests {
         assert!(TransactionState::Refunded.is_completed());
         assert!(!TransactionState::Pending.is_completed());
         assert!(!TransactionState::InTransit.is_completed());
+    }
+
+    #[test]
+    fn test_pending_states_are_the_ones_not_completed() {
+        assert_eq!(TransactionState::pending(), vec![TransactionState::Pending, TransactionState::InTransit]);
     }
 }

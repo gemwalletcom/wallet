@@ -1,45 +1,22 @@
-use crate::address::checksum_address;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::*;
+use crate::services::assets::model::GemFeeAmount;
+use chain_primitives::checksum_address;
 use primitives::contract_call_data::ContractCallData;
-use primitives::solana_nft::SolanaNftStandard;
-use primitives::solana_token_program::SolanaTokenProgramId;
-use primitives::transaction_load_metadata::AgentPrivateKey;
-use primitives::{AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TronStakeData};
+use primitives::{AssetId, EarnType, FeeOption, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType};
 use std::collections::HashMap;
-use std::sync::Arc;
 
 pub type GemFeeOption = FeeOption;
-pub type GemTronStakeData = TronStakeData;
 
 #[uniffi::remote(Enum)]
 pub enum FeeOption {
     TokenAccountCreation,
 }
 
-pub type GemAgentPrivateKey = AgentPrivateKey;
-
-#[uniffi::remote(Object)]
-pub struct GemAgentPrivateKey;
-
-pub type GemHyperliquidOrder = HyperliquidOrder;
-
-#[uniffi::remote(Record)]
-pub struct GemHyperliquidOrder {
-    pub approve_agent_required: bool,
-    pub approve_referral_required: bool,
-    pub approve_builder_required: bool,
-    pub builder_fee_bps: u32,
-    pub agent_name: String,
-    pub agent_address: String,
-    pub agent_private_key: Arc<GemAgentPrivateKey>,
-}
-
 pub type GemContractCallData = ContractCallData;
 
 pub type GemEarnType = EarnType;
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemTransactionLoadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
@@ -51,30 +28,31 @@ pub struct GemTransactionLoadInput {
     pub metadata: GemTransactionLoadMetadata,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemSignerInput {
     pub input: GemTransactionLoadInput,
     pub fee: GemTransactionLoadFee,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSignedTransaction {
     pub data: String,
     pub transaction_type: TransactionType,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeOptionItem {
     pub option: GemFeeOption,
     pub value: GemBigInt,
+    pub amount: GemFeeAmount,
 }
 
-#[derive(Debug, Default, Clone, uniffi::Record)]
+#[derive(Debug, Default, Clone)]
 pub struct GemFeeOptions {
     pub options: HashMap<GemFeeOption, GemBigInt>,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemTransactionLoadFee {
     pub fee: GemBigInt,
     pub gas_price_type: GasPriceType,
@@ -90,91 +68,6 @@ pub struct GemTransactionData {
 }
 
 pub type GemTransactionLoadMetadata = TransactionLoadMetadata;
-
-#[uniffi::remote(Enum)]
-pub enum GemTransactionLoadMetadata {
-    None,
-    Solana {
-        sender_token_address: Option<String>,
-        recipient_token_address: Option<String>,
-        token_program: Option<SolanaTokenProgramId>,
-        nft: Option<SolanaNftStandard>,
-        block_hash: String,
-        references: Vec<String>,
-    },
-    Ton {
-        sender_token_address: Option<String>,
-        recipient_token_address: Option<String>,
-        sequence: u64,
-    },
-    Cosmos {
-        account_number: u64,
-        sequence: u64,
-        chain_id: String,
-    },
-    Bitcoin {
-        utxos: Vec<GemUTXO>,
-    },
-    Zcash {
-        utxos: Vec<GemUTXO>,
-        branch_id: String,
-    },
-    Cardano {
-        utxos: Vec<GemUTXO>,
-        block_number: u64,
-    },
-    Evm {
-        nonce: u64,
-        chain_id: u64,
-        contract_call: Option<GemContractCallData>,
-    },
-    Near {
-        sequence: u64,
-        block_hash: String,
-    },
-    Stellar {
-        sequence: u64,
-        is_destination_address_exist: bool,
-    },
-    Xrp {
-        sequence: u64,
-        block_number: u64,
-        is_destination_address_exist: bool,
-    },
-    Algorand {
-        sequence: u64,
-        block_hash: String,
-        chain_id: String,
-    },
-    Aptos {
-        sequence: u64,
-        data: Option<String>,
-    },
-    Polkadot {
-        sequence: u64,
-        genesis_hash: String,
-        block_hash: String,
-        block_number: u64,
-        spec_version: u64,
-        transaction_version: u64,
-        period: u64,
-    },
-    Tron {
-        block_number: u64,
-        block_version: u64,
-        block_timestamp: u64,
-        transaction_tree_root: String,
-        parent_hash: String,
-        witness_address: String,
-        stake_data: GemTronStakeData,
-    },
-    Sui {
-        message_bytes: String,
-    },
-    Hyperliquid {
-        order: Option<GemHyperliquidOrder>,
-    },
-}
 
 impl From<GemTransactionLoadInput> for TransactionLoadInput {
     fn from(value: GemTransactionLoadInput) -> Self {
@@ -260,13 +153,14 @@ impl GemFeeOptions {
         self.options.values().sum()
     }
 
-    pub fn items(&self) -> Vec<GemFeeOptionItem> {
+    pub fn items(&self, amount: impl Fn(&GemBigInt) -> GemFeeAmount) -> Vec<GemFeeOptionItem> {
         let mut items = self
             .options
             .iter()
             .map(|(option, value)| GemFeeOptionItem {
                 option: option.clone(),
                 value: value.clone(),
+                amount: amount(value),
             })
             .collect::<Vec<_>>();
         items.sort_by(|left, right| left.option.as_ref().cmp(right.option.as_ref()));
@@ -315,11 +209,13 @@ mod tests {
             fee_asset: AssetId::from_chain(Chain::Solana),
         };
 
+        let amount = |value: &GemBigInt| crate::services::assets::rules::fee_amount(&primitives::Asset::from_chain(Chain::Solana), value, None, primitives::currency::Currency::USD);
         assert_eq!(
-            fee.options.items(),
+            fee.options.items(amount),
             vec![GemFeeOptionItem {
                 option: FeeOption::TokenAccountCreation,
-                value: 1_488_440.into()
+                value: 1_488_440.into(),
+                amount: amount(&1_488_440.into()),
             }]
         );
         assert_eq!(fee.fee, 1_495_940.into());
@@ -329,7 +225,7 @@ mod tests {
             options: GemFeeOptions::default(),
             ..fee
         };
-        assert_eq!(fee.options.items(), vec![]);
+        assert_eq!(fee.options.items(amount), vec![]);
     }
 
     #[test]

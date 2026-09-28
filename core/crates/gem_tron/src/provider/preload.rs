@@ -1,4 +1,5 @@
 use num_traits::ToPrimitive;
+use primitives::OptionStringExt;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -105,7 +106,7 @@ fn has_swap_quote_memo(input_memo: Option<&str>, data: &SwapQuoteData) -> bool {
 }
 
 fn swap_contract_memo_data_bytes(input_memo: Option<&str>, data: &SwapQuoteData) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
-    if let Some(memo) = data.memo.as_deref().filter(|memo| !memo.is_empty()) {
+    if let Some(memo) = data.memo.as_deref().non_empty() {
         let bytes = decode_hex(memo).map_err(|_| "invalid Tron swap memo")?;
         return Ok(Some(bytes.len() as u64));
     }

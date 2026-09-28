@@ -1,4 +1,6 @@
 use super::model::{GemAuthPromptOutcome, GemLockPeriod};
+use crate::constants::LOCK_PERIODS;
+use crate::services::error_text::GemErrorText;
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
@@ -24,10 +26,12 @@ impl GemLockPeriod {
 
 #[uniffi::export]
 impl GemAuthPromptOutcome {
-    pub fn is_cancelled(self) -> bool {
+    pub fn error_text(self) -> Option<GemErrorText> {
         match self {
-            Self::CancelledByUser | Self::CancelledBySystem => true,
-            Self::Unavailable | Self::LockedOut | Self::Transient | Self::Failed => false,
+            Self::CancelledByUser | Self::CancelledBySystem => None,
+            Self::Unavailable => Some(GemErrorText::AuthenticationUnavailable),
+            Self::LockedOut => Some(GemErrorText::AuthenticationLockedOut),
+            Self::Transient | Self::Failed => Some(GemErrorText::AuthenticationFailed),
         }
     }
 
@@ -42,20 +46,8 @@ impl GemAuthPromptOutcome {
 }
 
 #[uniffi::export]
-pub fn lock_periods() -> Vec<GemLockPeriod> {
-    vec![
-        GemLockPeriod::Immediate,
-        GemLockPeriod::OneMinute,
-        GemLockPeriod::FiveMinutes,
-        GemLockPeriod::FifteenMinutes,
-        GemLockPeriod::OneHour,
-        GemLockPeriod::SixHours,
-    ]
-}
-
-#[uniffi::export]
 pub fn lock_period_from_minutes(minutes: Option<u32>) -> GemLockPeriod {
-    minutes.and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
+    minutes.and_then(|minutes| LOCK_PERIODS.iter().copied().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
 }
 
 pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool) -> bool {
@@ -77,16 +69,18 @@ mod tests {
     }
 
     #[test]
-    fn test_cancellation_covers_both_the_user_and_the_system() {
-        assert!(GemAuthPromptOutcome::CancelledByUser.is_cancelled());
-        assert!(GemAuthPromptOutcome::CancelledBySystem.is_cancelled());
-        assert!(!GemAuthPromptOutcome::LockedOut.is_cancelled());
-        assert!(!GemAuthPromptOutcome::Failed.is_cancelled());
+    fn test_a_failed_prompt_names_why_and_a_cancelled_one_says_nothing() {
+        assert_eq!(GemAuthPromptOutcome::CancelledByUser.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::CancelledBySystem.error_text(), None);
+        assert_eq!(GemAuthPromptOutcome::Unavailable.error_text(), Some(GemErrorText::AuthenticationUnavailable));
+        assert_eq!(GemAuthPromptOutcome::LockedOut.error_text(), Some(GemErrorText::AuthenticationLockedOut));
+        assert_eq!(GemAuthPromptOutcome::Transient.error_text(), Some(GemErrorText::AuthenticationFailed));
+        assert_eq!(GemAuthPromptOutcome::Failed.error_text(), Some(GemErrorText::AuthenticationFailed));
     }
 
     #[test]
     fn test_lock_periods_carry_the_same_minutes_on_both_platforms() {
-        let minutes: Vec<u32> = lock_periods().into_iter().map(GemLockPeriod::minutes).collect();
+        let minutes: Vec<u32> = LOCK_PERIODS.iter().copied().map(GemLockPeriod::minutes).collect();
         assert_eq!(minutes, vec![0, 1, 5, 15, 60, 360]);
         assert_eq!(GemLockPeriod::SixHours.milliseconds(), 21_600_000);
         assert_eq!(lock_period_from_minutes(Some(15)), GemLockPeriod::FifteenMinutes);

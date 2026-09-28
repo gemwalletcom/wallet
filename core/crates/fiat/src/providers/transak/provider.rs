@@ -10,9 +10,8 @@ use crate::{
     providers::transak::mapper::map_asset_with_limits,
 };
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 use std::error::Error;
-use streamer::FiatWebhook;
 
 #[async_trait]
 impl FiatProvider for TransakClient {
@@ -93,7 +92,7 @@ mod fiat_integration_tests {
 
     #[tokio::test]
     async fn test_transak_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_transak_test_client().await?;
+        let client = create_transak_test_client();
 
         let request = FiatQuoteRequest::mock();
         let mut mapping = FiatMapping::mock();
@@ -111,7 +110,7 @@ mod fiat_integration_tests {
 
     #[tokio::test]
     async fn test_transak_get_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_transak_test_client().await?;
+        let client = create_transak_test_client();
         let assets = FiatProvider::get_assets(&client).await?;
 
         assert!(!assets.is_empty());
@@ -144,7 +143,7 @@ mod fiat_integration_tests {
 
     #[tokio::test]
     async fn test_transak_get_countries() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_transak_test_client().await?;
+        let client = create_transak_test_client();
         let countries = FiatProvider::get_countries(&client).await?;
 
         assert!(!countries.is_empty());
@@ -161,7 +160,7 @@ mod fiat_integration_tests {
 
     #[tokio::test]
     async fn test_transak_get_sell_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_transak_test_client().await?;
+        let client = create_transak_test_client();
 
         let request = FiatQuoteRequest::mock_sell();
         let mut mapping = FiatMapping::mock();

@@ -7,6 +7,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
+    private let passwordLock = NSLock()
 
     public init(
         directory: String = "keystore",
@@ -30,16 +31,18 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     }
 
     public func keystorePassword(createIfMissing: Bool) throws -> String {
-        let password = try keystorePassword.getPassword()
-        if password.isNotEmpty {
-            return password
+        try passwordLock.withLock {
+            let password = try keystorePassword.getPassword()
+            if password.isNotEmpty {
+                return password
+            }
+            guard createIfMissing else {
+                throw KeystoreError.missingPassword
+            }
+            let newPassword = try SecureRandom.generateKey(length: 32).hex
+            try keystorePassword.setPassword(newPassword, authentication: .none)
+            return newPassword
         }
-        guard createIfMissing else {
-            throw KeystoreError.missingPassword
-        }
-        let newPassword = try SecureRandom.generateKey(length: 32).hex
-        try keystorePassword.setPassword(newPassword, authentication: .none)
-        return newPassword
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
@@ -63,17 +66,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             }
         }
         return failures
-    }
-
-    public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
-        let password = try await getPassword()
-        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        let chain = input.input.chain()
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
-            }
-        }
     }
 
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {

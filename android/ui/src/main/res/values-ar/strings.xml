@@ -9,6 +9,7 @@
   <string name="common_copy">نسخ</string>
   <string name="common_share">مشاركة</string>
   <string name="common_continue">يكمل</string>
+  <string name="common_continue_anyway">متابعة على أي حال</string>
   <string name="common_sign_in_with">تسجيل الدخول باستخدام %1$s</string>
   <string name="common_provider">مزود</string>
   <string name="common_loading">تحميل</string>
@@ -47,7 +48,6 @@
   <string name="common_description">وصف</string>
   <string name="common_emoji">الرموز التعبيرية</string>
   <string name="common_avatar">الصورة الرمزية</string>
-  <string name="common_save">يحفظ</string>
   <string name="common_percentage">نسبة مئوية</string>
   <string name="common_details">تفاصيل</string>
   <string name="common_info">معلومات</string>
@@ -57,6 +57,7 @@
   <string name="common_token">رمز مميز</string>
   <string name="common_expiration">انتهاء الصلاحية</string>
   <string name="common_suspicious_address">عنوان مشبوه</string>
+  <string name="common_suspicious_address_description">هذا العنوان مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="common_refresh">ينعش</string>
   <string name="common_grant_permission">يعطي الأذن</string>
   <string name="common_required_field">%1$s مطلوب</string>
@@ -102,8 +103,6 @@
   <string name="wallet_portfolio_title">المحفظة الاستثمارية</string>
   <string name="wallet_import_already_imported_message">تم استيراد هذه المحفظة بالفعل.</string>
   <string name="wallets_title">المحافظ</string>
-  <string name="wallets_watch">يشاهد</string>
-  <string name="receive_title">استقبل %1$s</string>
   <string name="receive_warning">هذا عنوانك — أرسل فقط %1$s على %2$s شبكة.</string>
   <string name="buy_title">شراء %1$s</string>
   <string name="buy_providers_title">مقدمي الخدمات</string>
@@ -164,7 +163,6 @@
   <string name="settings_security_authentication">المصادقة</string>
   <string name="settings_notifications_title">إشعارات</string>
   <string name="settings_language">لغة</string>
-  <string name="settings_help_center">مركز المساعدة</string>
   <string name="settings_support">يدعم</string>
   <string name="settings_price_alerts_title">تنبيهات الأسعار</string>
   <string name="settings_hide_balance">إخفاء الرصيد</string>
@@ -210,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">أصل غير مدعوم.</string>
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
   <string name="errors_connections_unsupported_chain">السلسلة المقدمة غير مدعومة.</string>
+  <string name="errors_authentication_unavailable">المصادقة غير مُعدّة على هذا الجهاز. فعّل القياسات الحيوية أو رمز المرور من إعدادات جهازك.</string>
+  <string name="errors_authentication_locked_out">محاولات فاشلة كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.</string>
+  <string name="errors_authentication_failed">فشلت المصادقة. يرجى المحاولة مرة أخرى.</string>
+  <string name="errors_connections_expired">انتهت صلاحية رابط الاتصال هذا. احصل على رمز QR جديد وحاول مرة أخرى.</string>
+  <string name="errors_connections_not_found">هذا الاتصال لم يعد موجودًا.</string>
+  <string name="errors_connections_relay_unavailable">تعذّر الوصول إلى WalletConnect. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.</string>
   <string name="errors_swap_amount_too_small">المبلغ صغير جدًا</string>
   <string name="errors_scan_transaction_malicious_description">لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="errors_scan_transaction_memo_required">يتطلب عنوان محفظة الوجهة %1$s علامة وجهة/مذكرة</string>
@@ -279,7 +283,6 @@
   <string name="asset_buy_asset">شراء %1$s</string>
   <string name="asset_get_asset">احصل على %1$s</string>
   <string name="asset_add_to_wallet">أضف إلى المحفظة</string>
-  <string name="asset_hide_from_wallet">إخفاء من المحفظة</string>
   <string name="asset_added_to_wallet">تمت الإضافة إلى المحفظة</string>
   <string name="asset_hidden_from_wallet">تم الإخفاء من المحفظة</string>
   <string name="asset_resources">موارد</string>
@@ -300,6 +303,7 @@
   <string name="charts_price_change">يتغير</string>
   <string name="date_today">اليوم</string>
   <string name="date_yesterday">أمس</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">اتصال</string>
   <string name="wallet_connect_disconnect">قطع الاتصال</string>
@@ -389,7 +393,6 @@
   <string name="fee_rates_fast">سريع</string>
   <string name="fee_rates_normal">طبيعي</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">مخصص</string>
   <string name="banner_account_activation_title">رسوم تفعيل الحساب</string>
@@ -420,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">عندما ينخفض السعر بمقدار</string>
   <string name="price_alerts_set_alert_set_target_price">تحديد سعر الهدف</string>
   <string name="price_alerts_set_alert_current_price">السعر الحالي</string>
-  <string name="price_alerts_added_for">تعيين تنبيه السعر %1$s</string>
+  <string name="price_alerts_added_price_over">تمت إضافة تنبيه عندما يتجاوز السعر %1$s</string>
+  <string name="price_alerts_added_price_under">تمت إضافة تنبيه عندما ينخفض السعر عن %1$s</string>
+  <string name="price_alerts_added_increases_by">تمت إضافة تنبيه عند ارتفاع السعر بنسبة %1$s</string>
+  <string name="price_alerts_added_decreases_by">تمت إضافة تنبيه عند انخفاض السعر بنسبة %1$s</string>
   <string name="price_alerts_state_empty_title">ستظهر تنبيهاتك هنا</string>
   <string name="price_alerts_state_empty_description">قم بتمكينهم عن طريق إضافة عملات معدنية للتتبع</string>
   <string name="price_alerts_auto_footer">يتم تشغيل التنبيهات عند حدوث تحركات كبيرة في الأسعار.</string>
@@ -498,8 +504,6 @@
   <string name="nft_report_report_button_title">تقرير</string>
   <string name="permissions_access_denied">تم الرفض</string>
   <string name="permissions_image_photo_access_denied_description">لا يتوفر لهذا التطبيق إذن بالوصول إلى مكتبة الصور الخاصة بك. يُرجى تمكين هذا الإذن في إعدادات جهازك.</string>
-  <string name="markets_title">الأسواق</string>
-  <string name="markets_state_empty_title">ستظهر بيانات أسواقك هنا</string>
   <string name="markets_daily_volume">حجم 24 ساعة</string>
   <string name="search_state_empty_description">تحقق من التهجئة أو حاول إجراء بحث جديد.</string>
   <string name="networks_state_empty_search_title">لم يتم العثور على شبكات</string>
@@ -602,6 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">الموافقة على الرموز المميزة غير محدودة</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">تحذير أمني</string>
+  <string name="rootcheck_jailbreak_body">يبدو أن جهازك قد خضع لكسر الحماية. قد يعرض ذلك محفظتك وأموالك للخطر.</string>
   <string name="rootcheck_body">يبدو أن جهازك يتمتع بصلاحيات الجذر، مما قد يزيد من مخاطر الأمان بشكل كبير. قد يؤدي استخدام هذا التطبيق على جهاز به صلاحيات الجذر إلى تعريض أصولك لوصول غير مصرح به وخسارة محتملة. ولضمان سلامة أموالك، نوصي بشدة باستخدام جهاز غير متجذر.</string>
   <string name="rootcheck_ignore">يتجاهل</string>
   <string name="rootcheck_exit">مخرج</string>

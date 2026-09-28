@@ -157,13 +157,13 @@ impl WalletTestkit {
         let preferences = Arc::new(MemoryPreferencesStore::default());
         let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
-        let app_preferences = Arc::new(GemPreferencesService::new(preferences.clone()));
+        let app_preferences = Arc::new(GemPreferencesService::new(preferences));
         let names = Arc::new(GemNameService::new(
             Arc::new(GemDeviceApiClient::new(
                 Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))),
                 Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))),
             )),
-            addresses.clone(),
+            addresses,
         ));
         let service = Arc::new(GemWalletService::new(
             keystore.clone(),
@@ -174,7 +174,7 @@ impl WalletTestkit {
             Arc::new(NoopFileStore),
             Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
             Arc::new(GemExplorerService::new(app_preferences)),
-            names.clone(),
+            names,
             Arc::new(GemAvatarService::new(
                 wallets.clone(),
                 Arc::new(NoopFileStore),
@@ -192,7 +192,7 @@ impl WalletTestkit {
 
     pub async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
         let import = GemWalletImportType::MulticoinPhrase {
-            words: words.iter().map(|word| word.to_string()).collect(),
+            words: words.iter().map(ToString::to_string).collect(),
             chains: vec![Chain::Ethereum],
         };
         self.service.store_import(name.to_string(), import, WalletSource::Import).await.unwrap().wallet()

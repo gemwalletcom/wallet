@@ -9,6 +9,7 @@ common_secret_phrase = خفیہ جملہ
 common_copy = کاپی
 common_share = شیئر کریں۔
 common_continue = جاری رکھیں
+common_continue_anyway = بہرحال جاری رکھیں
 common_sign_in_with = %@ کے ساتھ سائن ان کریں
 common_provider = فراہم کرنے والا
 common_loading = لوڈ ہو رہا ہے۔
@@ -47,7 +48,6 @@ common_learn_more = مزید جانیں
 common_description = تفصیل
 common_emoji = ایموجی
 common_avatar = اوتار
-common_save = محفوظ کریں۔
 common_percentage = فیصد
 common_details = تفصیلات
 common_info = معلومات
@@ -57,6 +57,7 @@ common_method = طریقہ
 common_token = ٹوکن
 common_expiration = میعاد ختم
 common_suspicious_address = مشکوک پتہ
+common_suspicious_address_description = یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔
 common_refresh = ریفریش کریں۔
 common_grant_permission = اجازت دیں۔
 common_required_field = %@ درکار ہے۔
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = یہ والیٹ پہلے ہی درآم�
 # Wallets
 
 wallets_title = والیٹس
-wallets_watch = دیکھیں
 
 # Receive
 
-receive_title = وصول کریں %@
 receive_warning = یہ آپ کا پتہ ہے - صرف بھیجیں۔ %@ پر %@ نیٹ ورک
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = پاس کوڈ کو فعال کریں۔
 settings_security_authentication = تصدیق
 settings_notifications_title = اطلاعات
 settings_language = زبان
-settings_help_center = امدادی مرکز
 settings_support = حمایت
 settings_price_alerts_title = قیمت کے انتباہات
 settings_hide_balance = بیلنس چھپائیں۔
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = کوئی کوٹ دستیاب نہیں ہے۔
 errors_swap_not_supported_asset = تعاون یافتہ اثاثہ نہیں ہے۔
 errors_connections_no_supported_wallets = کوئی تعاون یافتہ بٹوے دستیاب نہیں ہیں۔
 errors_connections_unsupported_chain = فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔
+errors_authentication_unavailable = اس ڈیوائس پر تصدیق سیٹ اپ نہیں ہے۔ ڈیوائس کی ترتیبات میں بایومیٹرکس یا پاس کوڈ آن کریں۔
+errors_authentication_locked_out = بہت زیادہ ناکام کوششیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔
+errors_authentication_failed = تصدیق ناکام ہو گئی۔ براہ کرم دوبارہ کوشش کریں۔
+errors_connections_expired = اس کنکشن لنک کی میعاد ختم ہو گئی ہے۔ نیا QR کوڈ حاصل کریں اور دوبارہ کوشش کریں۔
+errors_connections_not_found = یہ کنکشن اب موجود نہیں ہے۔
+errors_connections_relay_unavailable = WalletConnect تک رسائی نہیں ہو سکی۔ اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔
 errors_swap_amount_too_small = رقم بہت چھوٹی ہے۔
 errors_scan_transaction_malicious_description = یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔
 errors_scan_transaction_memo_required = %@ منزل والے بٹوے کے پتے کے لیے منزل کا ٹیگ / میمو درکار ہے۔
@@ -321,7 +325,6 @@ asset_verification_warning_message = کوئی بھی ایک بنا سکتا ہے
 asset_buy_asset = خریدیں %@
 asset_get_asset = %@ حاصل کریں
 asset_add_to_wallet = بٹوے میں شامل کریں۔
-asset_hide_from_wallet = بٹوے سے چھپائیں۔
 asset_added_to_wallet = بٹوے میں شامل کر دیا گیا
 asset_hidden_from_wallet = بٹوے سے چھپا دیا گیا
 asset_resources = وسائل
@@ -348,6 +351,7 @@ charts_price_change = تبدیلی
 
 date_today = آج
 date_yesterday = کل
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = نارمل
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = حسب ضرورت
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = جب قیمت بڑھ جاتی ہے۔
 price_alerts_set_alert_price_decreases_by = جب قیمت کم ہوتی ہے۔
 price_alerts_set_alert_set_target_price = ہدف کی قیمت مقرر کریں۔
 price_alerts_set_alert_current_price = موجودہ قیمت
-price_alerts_added_for = قیمت کا الرٹ مقرر کریں %@
+price_alerts_added_price_over = قیمت %@ سے اوپر جانے پر الرٹ شامل کر دیا گیا
+price_alerts_added_price_under = قیمت %@ سے نیچے جانے پر الرٹ شامل کر دیا گیا
+price_alerts_added_increases_by = قیمت %@ بڑھنے پر الرٹ شامل کر دیا گیا
+price_alerts_added_decreases_by = قیمت %@ گھٹنے پر الرٹ شامل کر دیا گیا
 price_alerts_state_empty_title = آپ کے الرٹس یہاں ظاہر ہوں گے۔
 price_alerts_state_empty_description = ٹریک میں سکے شامل کرکے انہیں فعال کریں۔
 price_alerts_auto_footer = انتباہات اہم قیمت کی چالوں پر متحرک ہوتے ہیں۔
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = اس ایپ کو آپ کی �
 
 # Markets
 
-markets_title = منڈیاں
-markets_state_empty_title = آپ کے بازاروں کا ڈیٹا یہاں ظاہر ہوگا۔
 markets_daily_volume = 24h والیوم
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = سیکیورٹی وارننگ
+rootcheck_jailbreak_body = لگتا ہے کہ آپ کے آلے پر جیل بریک کیا گیا ہے۔ اس سے آپ کا والیٹ اور فنڈز خطرے میں پڑ سکتے ہیں۔
 rootcheck_body = ایسا لگتا ہے کہ آپ کے آلے کو روٹ تک رسائی حاصل ہے، جس سے سیکورٹی کے خطرات میں نمایاں اضافہ ہو سکتا ہے۔ اس ایپ کو روٹڈ ڈیوائس پر استعمال کرنے سے آپ کے اثاثوں کو غیر مجاز رسائی اور ممکنہ نقصان کا سامنا کرنا پڑ سکتا ہے۔ آپ کے فنڈز کی حفاظت کے لیے، ہم ایک غیر جڑ والا آلہ استعمال کرنے کی سختی سے سفارش کرتے ہیں۔
 rootcheck_ignore = نظر انداز کرنا
 rootcheck_exit = باہر نکلیں۔

@@ -14,16 +14,32 @@ pub mod swap_config;
 pub mod validators;
 pub mod wallet_connect;
 
+use primitives::Platform;
+
+pub fn with_utm_source(url: &str, platform: Platform) -> String {
+    let separator = if url.contains('?') { '&' } else { '?' };
+    format!("{url}{separator}utm_source=gemwallet_{}", platform.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::public::PublicUrl;
+
+    #[test]
+    fn test_a_url_with_a_query_gains_the_source_as_another_parameter() {
+        assert_eq!(PublicUrl::PlayStore.url_for(Platform::Android), format!("{}&utm_source=gemwallet_android", PublicUrl::PlayStore.url()));
+        assert_eq!(PublicUrl::Website.url_for(Platform::IOS), "https://gemwallet.com?utm_source=gemwallet_ios");
+    }
+}
+
 use crate::config::chain::ChainConfig;
 use primitives::{Chain, node_config::NodeRegion};
-use std::time::Duration;
 
 use {
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
-
-const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Config
 #[derive(uniffi::Object)]
@@ -39,10 +55,6 @@ impl Config {
         get_swap_config()
     }
 
-    fn scan_timeout(&self) -> Duration {
-        SCAN_TIMEOUT
-    }
-
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {
         crate::config::chain::get_chain_config(chain)
     }
@@ -51,23 +63,7 @@ impl Config {
         get_wallet_connect_config()
     }
 
-    fn get_node_regions(&self) -> Vec<NodeRegion> {
-        NodeRegion::all()
-    }
-
     fn get_node_url(&self, chain: Chain, region: NodeRegion) -> String {
         region.url(chain)
-    }
-
-    fn get_node_region(&self, url: &str) -> Option<NodeRegion> {
-        NodeRegion::from_url(url)
-    }
-
-    fn get_node_region_flag(&self, region: NodeRegion) -> String {
-        region.flag().to_string()
-    }
-
-    fn get_node_region_priority(&self, region: NodeRegion) -> i32 {
-        region.priority()
     }
 }

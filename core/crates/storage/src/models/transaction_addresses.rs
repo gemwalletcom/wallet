@@ -7,7 +7,7 @@ use crate::sql_types::{AssetId, ChainRow};
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Clone, PartialEq, Eq, Hash)]
 #[diesel(table_name = crate::schema::transactions_addresses)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewTransactionAddressesRow {
+pub(crate) struct NewTransactionAddressesRow {
     pub transaction_id: i64,
     pub asset_id: AssetId,
     pub address: String,
@@ -28,7 +28,7 @@ impl NewTransactionAddressesRow {
 }
 
 #[derive(Queryable, Debug, Clone)]
-pub struct AddressChainIdResultRow {
+pub(crate) struct AddressChainIdResultRow {
     pub address: String,
     pub chain_id: ChainRow,
 }

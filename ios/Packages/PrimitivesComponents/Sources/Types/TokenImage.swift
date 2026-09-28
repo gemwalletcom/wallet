@@ -15,6 +15,11 @@ public struct TokenImage: Sendable {
         switch token {
         case .usdt: Images.Tokens.usdt
         case .usdc: Images.Tokens.usdc
+        case .usds: Images.Tokens.usds
+        case .usde: Images.Tokens.usde
+        case .usd1: Images.Tokens.usd1
+        case .usdg: Images.Tokens.usdg
+        case .pyusd: Images.Tokens.pyusd
         }
     }
 }

@@ -1,13 +1,13 @@
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
+use chain_providers::BroadcastProviders;
 use gem_tracing::{DurationMs, info_with_fields};
 use reqwest::Client;
 use reqwest::StatusCode;
 use reqwest::header::HeaderMap;
 use serde::Serialize;
 use serde_json::{Error as JsonError, Value};
-use settings_chain::BroadcastProviders;
 
 use crate::BoxError;
 use crate::cache::RequestCache;

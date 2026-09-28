@@ -9,6 +9,7 @@ common_secret_phrase = Kalmomin Sirri
 common_copy = Kwafi
 common_share = Raba
 common_continue = Ci gaba
+common_continue_anyway = Ci gaba duk da haka
 common_sign_in_with = Shiga da %@
 common_provider = Mai bayarwa
 common_loading = Ana lodawa
@@ -47,7 +48,6 @@ common_learn_more = Ƙara Koyi
 common_description = Bayani
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Ajiye
 common_percentage = Kashi
 common_details = Cikakkun bayanai
 common_info = Bayani
@@ -57,6 +57,7 @@ common_method = Hanyar
 common_token = Alamar Token
 common_expiration = Ƙarewa
 common_suspicious_address = Adireshin da ake zargi
+common_suspicious_address_description = Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
 common_refresh = Sabuntawa
 common_grant_permission = Ba da izini
 common_required_field = %@ ana bukata
@@ -114,11 +115,9 @@ wallet_import_already_imported_message = An riga an shigo da wannan walat ɗin.
 # Wallets
 
 wallets_title = Wallets
-wallets_watch = Kalli
 
 # Receive
 
-receive_title = Karba %@
 receive_warning = Wannan shine adireshinka — aika kawai %@ a kan %@ hanyar sadarwa.
 
 # Buy
@@ -188,7 +187,6 @@ settings_enable_passcode = Kunna lambar wucewa
 settings_security_authentication = Tabbatarwa
 settings_notifications_title = Sanarwa
 settings_language = Harshe
-settings_help_center = Cibiyar Taimako
 settings_support = Taimako
 settings_price_alerts_title = Faɗakarwar Farashin
 settings_hide_balance = Boye Ma'auni
@@ -240,6 +238,12 @@ errors_swap_no_quote_available = Babu farashi a halin yanzu.
 errors_swap_not_supported_asset = Ba a goyan bayan kadari.
 errors_connections_no_supported_wallets = Babu goyan bayan walat.
 errors_connections_unsupported_chain = Ba a tallafawa sarkar da aka bayar.
+errors_authentication_unavailable = Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na'urar.
+errors_authentication_locked_out = An yi ƙoƙari da yawa da suka gaza. Da fatan za a sake gwadawa daga baya.
+errors_authentication_failed = Tabbatarwa ta gaza. Da fatan za a sake gwadawa.
+errors_connections_expired = Wannan hanyar haɗin ta ƙare. Samo sabon lambar QR ka sake gwadawa.
+errors_connections_not_found = Wannan haɗin ba ya nan kuma.
+errors_connections_relay_unavailable = Ba a iya isa WalletConnect ba. Duba haɗin intanet ɗinka ka sake gwadawa.
 errors_swap_amount_too_small = Adadin yayi ƙanƙanta
 errors_scan_transaction_malicious_description = Ba za a iya kammala wannan ma'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
 errors_scan_transaction_memo_required = %@ Adireshin walat ɗin manufa yana buƙatar alamar manufa / memo
@@ -321,7 +325,6 @@ asset_verification_warning_message = Kowa na iya ƙirƙirar ɗaya - gami da alam
 asset_buy_asset = Sayi %@
 asset_get_asset = Sami %@
 asset_add_to_wallet = Ƙara zuwa walat
-asset_hide_from_wallet = Boye daga walat
 asset_added_to_wallet = An ƙara zuwa walat
 asset_hidden_from_wallet = An ɓoye daga walat
 asset_resources = Albarkatu
@@ -348,6 +351,7 @@ charts_price_change = Sauyi
 
 date_today = Yau
 date_yesterday = Jiya
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -470,7 +474,6 @@ fee_rates_normal = Na al'ada
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Na Musamman
 
@@ -510,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Lokacin da farashin ya ƙaru da
 price_alerts_set_alert_price_decreases_by = Lokacin da farashin ya ragu da
 price_alerts_set_alert_set_target_price = Saita farashin manufa
 price_alerts_set_alert_current_price = Farashin yanzu
-price_alerts_added_for = Saita faɗakarwar farashi %@
+price_alerts_added_price_over = An ƙara faɗakarwa don farashi sama da %@
+price_alerts_added_price_under = An ƙara faɗakarwa don farashi ƙasa da %@
+price_alerts_added_increases_by = An ƙara faɗakarwa don ƙaruwar farashi da %@
+price_alerts_added_decreases_by = An ƙara faɗakarwa don raguwar farashi da %@
 price_alerts_state_empty_title = Faɗin farashin ku zai bayyana anan
 price_alerts_state_empty_description = Kunna su ta ƙara tsabar kudi don waƙa
 price_alerts_auto_footer = Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.
@@ -615,8 +621,6 @@ permissions_image_photo_access_denied_description = Wannan app ɗin bashi da izi
 
 # Markets
 
-markets_title = Kasuwanni
-markets_state_empty_title = Bayanan kasuwanninku zai bayyana a nan
 markets_daily_volume = 24h girma
 
 # Search
@@ -771,6 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Gargadin Tsaro
+rootcheck_jailbreak_body = Na'urarka ta bayyana an yi mata jailbreak. Wannan na iya sa Wallet da kuɗin ku cikin haɗari.
 rootcheck_body = Na'urarka ta bayyana tana da tushen shiga, wanda zai iya ƙara haɗarin tsaro sosai. Yin amfani da wannan ƙa'idar akan na'ura mai tushe na iya fallasa kadarorin ku zuwa shiga mara izini da yuwuwar asara. Don amincin kuɗin ku, muna ba da shawarar yin amfani da na'urar da ba ta da tushe.
 rootcheck_ignore = Yi watsi da shi
 rootcheck_exit = Fita

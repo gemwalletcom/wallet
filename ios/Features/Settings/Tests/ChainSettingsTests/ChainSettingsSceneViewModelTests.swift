@@ -11,30 +11,30 @@ struct ChainSettingsSceneViewModelTests {
     @Test
     func everyNodeGetsItsStatus() async {
         let service = GemChainSettingsServiceMock()
-        service.nodesByCall = [[.mock(url: "a"), .mock(url: "b")]]
+        service.nodesByCall = [[.mock(url: "a", host: "a"), .mock(url: "b", host: "b")]]
         service.statusByUrl = ["a": .result(latestBlockNumber: 10, latency: Latency(latencyType: .fast, value: 5)), "b": .error]
         let model = ChainSettingsSceneViewModel(chain: .ethereum, service: service)
 
         await model.load()
 
-        #expect(model.nodesModels.count == 2)
+        #expect(model.nodeRows.count == 2)
         #expect(service.statusCalls.sorted() == ["a", "b"])
-        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)))
+        #expect(model.nodeRows[0].subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)))
     }
 
     @Test
-    func aDeletedNodeLeavesNoRowBehind() async {
+    func aDeletedNodeLeavesNoRowBehind() async throws {
         let service = GemChainSettingsServiceMock()
-        service.nodesByCall = [[.mock(url: "a"), .mock(url: "b")], [.mock(url: "a")]]
+        service.nodesByCall = [[.mock(url: "a", host: "a"), .mock(url: "b", host: "b")], [.mock(url: "a", host: "a")]]
         service.statusByUrl = ["a": .error, "b": .error]
         let model = ChainSettingsSceneViewModel(chain: .ethereum, service: service)
         await model.load()
 
-        model.onSelectNodeForDeletion(.mock(url: "b"))
+        try model.onSelectNodeForDeletion(#require(model.nodeRows.first { $0.node.url == "b" }))
         await model.onDeleteNode()
 
         #expect(service.deletedNodes == ["b"])
-        #expect(model.nodesModels.map(\.node.url) == ["a"])
+        #expect(model.nodeRows.map(\.node.url) == ["a"])
     }
 
     @Test
@@ -48,5 +48,17 @@ struct ChainSettingsSceneViewModelTests {
 
         #expect(service.setExplorerNames == ["Blockchair"])
         #expect(model.explorers.map(\.name) == ["Blockchair"])
+    }
+}
+
+private extension ChainSettingsSceneViewModel {
+    var nodeRows: [GemNodeRow] {
+        sections.flatMap { section -> [GemNodeRow] in
+            if case let .nodes(rows) = section {
+                rows
+            } else {
+                []
+            }
+        }
     }
 }

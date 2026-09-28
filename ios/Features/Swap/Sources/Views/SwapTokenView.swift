@@ -1,12 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemSwapSideState
+import GemstonePrimitives
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct SwapTokenView: View {
-    let model: SwapTokenViewModel
+    let side: GemSwapSideState
     @Binding var text: String
     var showLoading: Bool = false
     var onBalanceAction: () -> Void
@@ -31,17 +34,17 @@ struct SwapTokenView: View {
             if showLoading {
                 LoadingView()
             }
-            TextField(showLoading ? "" : model.amountPlaceholder, text: $text)
+            TextField(showLoading ? "" : side.amountPlaceholder, text: $text)
                 .keyboardType(.decimalPad)
                 .foregroundStyle(Colors.black)
                 .font(.app.title1)
-                .disabled(!model.interaction.isAmountEditable)
+                .disabled(!side.interaction.isAmountEditable)
                 .multilineTextAlignment(.leading)
         }
     }
 
     private var fiatBalanceView: some View {
-        Text(model.fiatBalance(amount: text) ?? " ")
+        Text(side.fiat?.text() ?? " ")
             .lineLimit(1, reservesSpace: true)
             .font(.app.callout)
             .foregroundStyle(Colors.secondaryText)
@@ -52,26 +55,26 @@ struct SwapTokenView: View {
             onSelectAssetAction()
         } label: {
             HStack {
-                if let assetImage = model.assetImage {
-                    AssetImageView(assetImage: assetImage)
+                if let icon = side.icon {
+                    AssetImageView(assetImage: AssetImage(icon: icon))
                 }
-                Text(model.actionTitle)
+                Text(side.title.text)
                     .textStyle(TextStyle(font: .body, color: .primary, fontWeight: .medium))
                     .lineLimit(1)
                 SwapChevronView()
             }
             .frame(height: .image.asset)
         }
-        .disabled(!model.interaction.isAssetSelectable)
+        .disabled(!side.interaction.isAssetSelectable)
     }
 
     private var availableBalanceView: some View {
         Button(action: onBalanceAction) {
-            Text(model.availableBalanceText ?? " ")
+            Text(side.balance?.text ?? " ")
                 .lineLimit(1, reservesSpace: true)
                 .font(.app.callout)
                 .foregroundStyle(Colors.secondaryText)
         }
-        .disabled(model.isBalanceDisabled)
+        .disabled(!side.interaction.isBalanceActionEnabled)
     }
 }

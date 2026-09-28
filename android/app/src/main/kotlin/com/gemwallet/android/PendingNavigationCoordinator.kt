@@ -1,20 +1,15 @@
 package com.gemwallet.android
 
 import android.content.Intent
-import android.util.Log
-import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.Deeplink
-import uniffi.gemstone.GemDeeplinkService
-import uniffi.gemstone.GemDeeplinkServiceInterface
+import uniffi.gemstone.GemCodeOutcome
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNavigationServiceInterface
-import uniffi.gemstone.Payment
-import uniffi.gemstone.UrlAction
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.WalletConnectLink
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,36 +20,32 @@ internal sealed interface PendingNavigation {
         val code: String?
     }
 
-    data class FromIntent(val intent: Intent) : Input {
-        override val code: String? = intent.dataString
-    }
+    data class FromLink(override val code: String) : Input
 
     data class FromScan(override val code: String) : Input
 
-    data class Routes(val routes: List<NavKey>) : PendingNavigation
+    data class FromNotification(val type: String, val data: String?) : Input {
+        override val code: String? = null
+    }
+
+    data class Routes(val routes: List<NavKey>, val tab: GemNavigationTab? = null) : PendingNavigation
 
     data class Loading(val input: Input) : PendingNavigation
 }
 
 @Singleton
-class PendingNavigationCoordinator @Inject constructor(
-    private val notificationNavigation: NotificationNavigation,
-    private val paymentNavigation: PaymentNavigation,
-    private val navigationService: GemNavigationServiceInterface,
-    private val deeplinkService: GemDeeplinkServiceInterface,
-) {
-
-    private companion object {
-        const val TAG = "PendingNavigation"
-    }
+class PendingNavigationCoordinator @Inject constructor(private val notificationNavigation: NotificationNavigation, private val paymentNavigation: PaymentNavigation, private val navigationService: GemNavigationServiceInterface) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
     fun pendIntent(intent: Intent) {
-        if (intent.hasNotificationPayload() || intent.dataString != null) {
-            _pendingNavigation.update { PendingNavigation.FromIntent(Intent(intent)) }
-        }
+        val code = intent.dataString ?: return
+        _pendingNavigation.update { PendingNavigation.FromLink(code) }
+    }
+
+    fun pendNotification(type: String, data: String?) {
+        _pendingNavigation.update { PendingNavigation.FromNotification(type, data) }
     }
 
     fun pendScan(code: String) {
@@ -65,55 +56,46 @@ class PendingNavigationCoordinator @Inject constructor(
         _pendingNavigation.update { null }
     }
 
-    suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
-        val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
-        val action = pending.code?.let(deeplinkService::urlAction)
-        val loading = if (action is UrlAction.Payment && action.payment is Payment.Link) {
-            PendingNavigation.Loading(pending).also { replace(pending, it) }
-        } else {
-            null
+    suspend fun buildRoutes(walletConnect: WalletConnectHandler): GemErrorText? {
+        val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return null
+        val code = pending.code
+        if (code == null) {
+            val destination = (pending as? PendingNavigation.FromNotification)?.let { notificationNavigation.prepareNavigation(it.type, it.data) }
+            replace(pending, destination?.takeIf { it.routes.isNotEmpty() })
+            return null
         }
-
-        val routes = when {
-            action != null -> routes(action, walletConnect)
-            pending is PendingNavigation.FromIntent -> notificationNavigation.prepareNavigation(pending.intent)
-            else -> emptyList()
-        }
-
-        replace(loading ?: pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
-
-        return when (pending) {
-            is PendingNavigation.FromIntent -> routes.isNotEmpty() || action !is UrlAction.Payment
-            is PendingNavigation.FromScan -> routes.isNotEmpty() || action is UrlAction.WalletConnect
-        }
-    }
-
-    private suspend fun routes(action: UrlAction, walletConnect: WalletConnectHandler): List<NavKey> = when (action) {
-        is UrlAction.WalletConnect -> {
-            when (val link = action.link) {
-                is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
-                WalletConnectLink.Request -> walletConnect.onRequest()
-                is WalletConnectLink.Session -> Unit
+        return when (val outcome = navigationService.openCode(code)) {
+            is GemCodeOutcome.Open -> {
+                replace(pending, outcome.target.destination().takeIf { it.routes.isNotEmpty() })
+                null
             }
-            emptyList()
+
+            is GemCodeOutcome.WalletConnect -> {
+                when (val link = outcome.link) {
+                    is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
+                    WalletConnectLink.Request -> walletConnect.onRequest()
+                    is WalletConnectLink.Session -> Unit
+                }
+                replace(pending, null)
+                null
+            }
+
+            is GemCodeOutcome.Payment -> {
+                val current = if (outcome.showsLoading) PendingNavigation.Loading(pending).also { replace(pending, it) } else pending
+                val routes = paymentNavigation.routes(outcome.payment)
+                replace(current, PendingNavigation.Routes(routes).takeIf { routes.isNotEmpty() })
+                null
+            }
+
+            is GemCodeOutcome.Failure -> {
+                replace(pending, null)
+                outcome.text
+            }
         }
-
-        is UrlAction.Deeplink -> routes(action.deeplink)
-
-        is UrlAction.Payment -> paymentNavigation.routes(action.payment)
     }
-
-    private suspend fun routes(deeplink: Deeplink): List<NavKey> = runCatching { navigationService.openDeeplink(deeplink).routes() }
-        .onFailure { Log.e(TAG, "preparing a deep link failed", it) }
-        .getOrDefault(emptyList())
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {
         _pendingNavigation.update { current -> if (current === pending) replacement else current }
-    }
-
-    @VisibleForTesting
-    internal fun setIntent(intent: Intent) {
-        _pendingNavigation.update { PendingNavigation.FromIntent(intent) }
     }
 
     interface WalletConnectHandler {

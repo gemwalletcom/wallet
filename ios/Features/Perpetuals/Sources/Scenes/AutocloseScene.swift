@@ -20,28 +20,30 @@ public struct AutocloseScene: View {
     }
 
     public var body: some View {
-        List {
-            Section {
-                ListAssetItemView(model: model.positionItemViewModel)
+        let viewState = model.viewState
+        return List {
+            if let positionRow = model.positionRow(viewState) {
+                Section {
+                    ListAssetItemView(row: positionRow)
+                }
             }
 
             Section {
-                if let entryPriceField = model.entryPriceField {
-                    ListItemView(field: entryPriceField)
+                ForEach(viewState.priceRows, id: \.self) { row in
+                    GemListRowView(row: row)
                 }
-                ListItemView(field: model.marketPriceField)
             }
 
             AutocloseInputSection(
-                inputModel: $model.input.takeProfit,
-                sectionModel: model.takeProfitModel,
+                text: $model.takeProfitText,
+                state: viewState.takeProfit,
                 field: Field.takeProfit,
                 focusedField: $focusedField,
             )
 
             AutocloseInputSection(
-                inputModel: $model.input.stopLoss,
-                sectionModel: model.stopLossModel,
+                text: $model.stopLossText,
+                state: viewState.stopLoss,
                 field: Field.stopLoss,
                 focusedField: $focusedField,
             )
@@ -52,22 +54,21 @@ public struct AutocloseScene: View {
         .safeAreaView {
             InputAccessoryView(
                 isEditing: model.isEditing(field: focusedField),
-                suggestions: model.takeProfitModel.percentSuggestions,
+                suggestions: model.percentSuggestions(viewState),
                 onSelect: { model.onSelectPercent($0.value) },
                 onDone: { focusedField = nil },
                 button: StateButton(
                     text: Localized.Transfer.confirm,
-                    type: model.confirmButtonType,
+                    type: model.confirmButtonType(viewState),
                     action: onSelectConfirm,
                 ),
             )
         }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
         .onChange(of: focusedField, model.onChangeFocusField)
-        .onChange(of: model.input.takeProfit.text) { _, _ in model.onChangePrice() }
-        .onChange(of: model.input.stopLoss.text) { _, _ in model.onChangePrice() }
     }
 
     private func onSelectConfirm() {

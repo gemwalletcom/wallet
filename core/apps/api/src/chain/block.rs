@@ -4,8 +4,7 @@ use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, ChainParam};
 use crate::responders::{ApiError, ApiResponse};
 use primitives::Transaction;
-
-use super::ChainClient;
+use services::chain::ChainClient;
 
 #[get("/chain/blocks/<chain>/latest")]
 pub async fn get_latest_block_number(_permission: PermissionChainRead, chain: ChainParam, client: &State<ChainClient>) -> Result<ApiResponse<i64>, ApiError> {

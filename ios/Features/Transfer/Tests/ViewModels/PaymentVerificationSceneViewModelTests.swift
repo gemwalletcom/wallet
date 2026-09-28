@@ -7,12 +7,16 @@ import TransferTestKit
 @MainActor
 struct PaymentVerificationSceneViewModelTests {
     @Test
-    func onlyTheCompleteMessageReportsBack() {
+    func theFormReportsCompletionAndFailure() {
         var completed = 0
-        let model = PaymentVerificationSceneViewModel.mock { completed += 1 }
+        var failed = 0
+        let model = PaymentVerificationSceneViewModel.mock(onComplete: { completed += 1 }, onError: { failed += 1 })
+
+        model.onMessage(["type": "IC_PROGRESS"])
+        #expect(completed == 0 && failed == 0)
 
         model.onMessage(["type": "IC_ERROR"])
-        #expect(completed == 0)
+        #expect(failed == 1)
 
         model.onMessage(["type": "IC_COMPLETE"])
         #expect(completed == 1)

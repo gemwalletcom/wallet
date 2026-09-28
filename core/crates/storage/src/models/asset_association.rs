@@ -7,7 +7,7 @@ use crate::sql_types::{AssetAssociationType as AssetAssociationTypeRow, AssetId}
 #[derive(Debug, Queryable, Selectable, Insertable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::assets_associations)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct AssetAssociationRow {
+pub(crate) struct AssetAssociationRow {
     pub asset_id: AssetId,
     pub id: String,
     pub association_type: AssetAssociationTypeRow,
@@ -22,7 +22,7 @@ impl AssetAssociationRow {
         }
     }
 
-    pub fn as_primitive(self) -> AssetAssociation {
+    pub fn into_primitive(self) -> AssetAssociation {
         AssetAssociation {
             asset_id: self.asset_id.into(),
             association_type: self.association_type.0,

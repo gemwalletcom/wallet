@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import PrimitivesComponents
 import QRScanner
@@ -8,8 +9,6 @@ import Style
 import SwiftUI
 
 struct AddNodeScene: View {
-    @Environment(\.dismiss) private var dismiss
-
     @State private var model: AddNodeSceneViewModel
     @FocusState private var focusedField: Field?
     enum Field: Int, Hashable {
@@ -32,7 +31,7 @@ struct AddNodeScene: View {
         .onChange(of: model.urlInputModel.text) {
             model.onChangeInput()
         }
-        .debouncedTask(id: model.loadTrigger, interval: model.nodeCheckDebounce) {
+        .debouncedTask(id: model.loadTrigger, interval: GemConstants.nodeCheckDebounce) {
             await model.load()
         }
         .safeAreaButton {
@@ -50,7 +49,7 @@ struct AddNodeScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarDismissItem(type: .close, placement: .topBarLeading)
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .url, action: onHandleScan(_:))
+            QRScannerNavigationStack(scanType: .url, action: onHandleScan(_:))
         }
         .alertSheet($model.isPresentingAlertMessage)
     }
@@ -100,6 +99,8 @@ extension AddNodeScene {
                     ListItemView(field: $0.element)
                 }
             }
+        }
+        if model.showsWarning {
             warningSection
         }
     }
@@ -114,15 +115,9 @@ extension AddNodeScene {
 // MARK: - Actions
 
 extension AddNodeScene {
-    private func onSelectDone() {
-        dismiss()
-    }
-
     private func onSubmitUrl() {
         focusedField = nil
-        Task {
-            await model.load()
-        }
+        model.onSubmitInput()
     }
 
     private func onSelectPaste() {

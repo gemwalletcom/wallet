@@ -1,6 +1,7 @@
-use super::model::{GemSupportChatGroup, GemSupportMessageOutcome};
+use super::model::{GemSupportBubbleSide, GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
 use chrono::{DateTime, Utc};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
+use support::parse_support_message_display_content;
 
 pub fn sync_from_timestamp(messages: Vec<SupportMessage>) -> u64 {
     messages.iter().rev().find(|message| !message.sender.is_user()).map(|message| message.created_at.timestamp().max(0) as u64).unwrap_or_default()
@@ -33,7 +34,7 @@ pub fn can_retry(message: &SupportMessage) -> bool {
     message.sender.is_user() && message.images.is_empty()
 }
 
-pub fn message_outcome(message: &SupportMessage) -> GemSupportMessageOutcome {
+fn message_outcome(message: &SupportMessage) -> GemSupportMessageOutcome {
     match message.status {
         SupportMessageStatus::Sending => GemSupportMessageOutcome::Sending,
         SupportMessageStatus::Sent => GemSupportMessageOutcome::Sent,
@@ -47,15 +48,25 @@ pub fn with_status(message: SupportMessage, status: SupportMessageStatus) -> Sup
 
 pub fn chat_groups(messages: Vec<SupportMessage>) -> Vec<GemSupportChatGroup> {
     messages.into_iter().fold(Vec::new(), |mut groups: Vec<GemSupportChatGroup>, message| {
+        let row = message_row(message);
         match groups.last_mut() {
-            Some(group) if group.sender == message.sender => group.messages.push(message),
-            _ => groups.push(GemSupportChatGroup {
-                sender: message.sender.clone(),
-                messages: vec![message],
-            }),
+            Some(group) if group.rows.last().is_some_and(|last| last.message.sender == row.message.sender) => group.rows.push(row),
+            _ => groups.push(GemSupportChatGroup { side: row.side, rows: vec![row] }),
         }
         groups
     })
+}
+
+fn message_row(message: SupportMessage) -> GemSupportMessageRow {
+    GemSupportMessageRow {
+        content: parse_support_message_display_content(&message.content),
+        side: match message.sender.is_user() {
+            true => GemSupportBubbleSide::Outgoing,
+            false => GemSupportBubbleSide::Incoming,
+        },
+        outcome: message_outcome(&message),
+        message,
+    }
 }
 
 pub fn image_file_name(url: &str) -> String {
@@ -129,12 +140,28 @@ mod tests {
                 ..SupportMessage::mock("g", 0)
             },
         ]);
-        let ids: Vec<Vec<&str>> = groups.iter().map(|group| group.messages.iter().map(|message| message.id.as_str()).collect()).collect();
+        let ids: Vec<Vec<&str>> = groups.iter().map(|group| group.rows.iter().map(|row| row.message.id.as_str()).collect()).collect();
 
         assert_eq!(ids, vec![vec!["a", "b"], vec!["c"], vec!["d", "e"], vec!["f"], vec!["g"]]);
-        assert_eq!(groups[0].sender, SupportMessageSender::User);
-        assert_eq!(groups[2].sender, SupportMessageSender::mock_agent("Radmir"));
+        assert_eq!(groups[0].side, GemSupportBubbleSide::Outgoing, "the user's own messages sit on the outgoing side");
+        assert_eq!(groups[2].side, GemSupportBubbleSide::Incoming);
+        assert!(groups[2].rows.iter().all(|row| row.side == GemSupportBubbleSide::Incoming));
         assert!(chat_groups(vec![]).is_empty());
+    }
+
+    #[test]
+    fn test_chat_rows_carry_their_parsed_content_and_outcome() {
+        let message = SupportMessage {
+            content: "Read [the docs](https://gemwallet.com/docs)".into(),
+            ..with_status(SupportMessage::mock("a", 0), SupportMessageStatus::Sending)
+        };
+
+        let row = chat_groups(vec![message.clone()]).remove(0).rows.remove(0);
+
+        assert_eq!(row.content, parse_support_message_display_content(&message.content));
+        assert_eq!(row.content.links.len(), 1);
+        assert_eq!(row.outcome, GemSupportMessageOutcome::Sending);
+        assert_eq!(row.message, message);
     }
 
     #[test]

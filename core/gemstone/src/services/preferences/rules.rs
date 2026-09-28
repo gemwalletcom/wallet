@@ -124,4 +124,11 @@ mod tests {
         assert!(!flag(Some("1".to_string())));
         assert!(!flag(None));
     }
+
+    #[test]
+    fn test_appearance_values_are_the_stored_strings() {
+        assert_eq!(appearance_value(Appearance::System), "system");
+        assert_eq!(appearance_value(Appearance::Light), "light");
+        assert_eq!(appearance_value(Appearance::Dark), "dark");
+    }
 }

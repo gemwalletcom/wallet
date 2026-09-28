@@ -7,7 +7,7 @@ enum QRImageDecoder {
         guard let ciImage = CIImage(image: image) else {
             return nil
         }
-        return detectQRCode(in: ciImage)
+        return detectQRCode(in: ciImage) ?? detectQRCode(in: ciImage.applyingFilter("CIColorInvert"))
     }
 
     private static func detectQRCode(in image: CIImage) -> String? {

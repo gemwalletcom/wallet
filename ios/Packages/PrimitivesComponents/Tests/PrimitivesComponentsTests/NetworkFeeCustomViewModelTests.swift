@@ -11,12 +11,6 @@ import Testing
 @MainActor
 struct NetworkFeeCustomViewModelTests {
     @Test
-    func anInitialRateFillsTheField() {
-        #expect(NetworkFeeCustomViewModel.mock(initialRate: BigInt(3_000_000_000)).input == "3")
-        #expect(NetworkFeeCustomViewModel.mock(initialRate: nil).input.isEmpty)
-    }
-
-    @Test
     func anEmptyFieldCannotBeConfirmed() {
         let model = NetworkFeeCustomViewModel.mock()
 
@@ -26,7 +20,7 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func aBitcoinRateBelowTheMinimumIsRejectedWithItsOwnMessage() {
-        let model = NetworkFeeCustomViewModel.mock(chain: .bitcoin, feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
+        let model = NetworkFeeCustomViewModel.mock(feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
         model.input = "0"
 
         #expect(model.isConfirmEnabled == false)

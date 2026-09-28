@@ -2,12 +2,13 @@
 
 import Components
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 struct ReportSelectReasonScene: View {
-    private let model: ReportNftViewModel
+    @Bindable private var model: ReportNftSceneViewModel
 
-    init(model: ReportNftViewModel) {
+    init(model: ReportNftSceneViewModel) {
         self.model = model
     }
 
@@ -24,6 +25,7 @@ struct ReportSelectReasonScene: View {
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .alertSheet($model.isPresentingAlertMessage)
     }
 }
 

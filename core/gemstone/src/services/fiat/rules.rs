@@ -5,7 +5,7 @@ use rand::RngExt;
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionRow, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::assets::GemAssetAction;
 use crate::services::swap::GemAssetRate;
@@ -87,34 +87,38 @@ pub fn quote_action(quote_type: &FiatQuoteType) -> GemAssetAction {
 
 pub fn transaction_status(status: FiatTransactionStatus) -> GemFiatTransactionStatus {
     match status {
-        FiatTransactionStatus::Complete => GemFiatTransactionStatus { badge: None, is_dimmed: false },
+        FiatTransactionStatus::Complete => GemFiatTransactionStatus { badge: None, tone: GemValueTone::Plain },
         FiatTransactionStatus::Pending => GemFiatTransactionStatus {
             badge: Some(GemFiatTransactionBadge::Pending),
-            is_dimmed: false,
+            tone: GemValueTone::Plain,
         },
         FiatTransactionStatus::Failed => GemFiatTransactionStatus {
             badge: Some(GemFiatTransactionBadge::Failed),
-            is_dimmed: true,
+            tone: GemValueTone::Neutral,
         },
-        FiatTransactionStatus::Unknown => GemFiatTransactionStatus { badge: None, is_dimmed: true },
+        FiatTransactionStatus::Unknown => GemFiatTransactionStatus { badge: None, tone: GemValueTone::Neutral },
     }
 }
 
 pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow {
     let status = transaction_status(data.status.clone());
     GemFiatTransactionRow {
+        id: data.id.clone(),
+        created_at: data.created_at,
         quote_type: data.transaction_type,
         provider: data.provider,
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
-        value: GemFormattedNumber::amount(BigNumberFormatter::f64_value(data.value.to_string(), data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short),
+        value: GemFormattedNumber {
+            tone: status.tone,
+            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(data.value.to_string(), data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short)
+        },
         fiat_value: GemFormattedNumber::currency_code(data.fiat_amount, data.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         badge: status.badge,
-        is_dimmed: status.is_dimmed,
         details_url: data.details_url.clone(),
     }
 }
 
-pub fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
+fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
     BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
 }
@@ -126,22 +130,22 @@ mod tests {
     #[test]
     fn test_a_fiat_transaction_row_badges_pending_and_failed_and_dims_what_did_not_complete() {
         let status = transaction_status;
-        assert_eq!(status(FiatTransactionStatus::Complete), GemFiatTransactionStatus { badge: None, is_dimmed: false });
+        assert_eq!(status(FiatTransactionStatus::Complete), GemFiatTransactionStatus { badge: None, tone: GemValueTone::Plain });
         assert_eq!(
             status(FiatTransactionStatus::Pending),
             GemFiatTransactionStatus {
                 badge: Some(GemFiatTransactionBadge::Pending),
-                is_dimmed: false
+                tone: GemValueTone::Plain
             }
         );
         assert_eq!(
             status(FiatTransactionStatus::Failed),
             GemFiatTransactionStatus {
                 badge: Some(GemFiatTransactionBadge::Failed),
-                is_dimmed: true
+                tone: GemValueTone::Neutral
             }
         );
-        assert_eq!(status(FiatTransactionStatus::Unknown), GemFiatTransactionStatus { badge: None, is_dimmed: true });
+        assert_eq!(status(FiatTransactionStatus::Unknown), GemFiatTransactionStatus { badge: None, tone: GemValueTone::Neutral });
     }
 
     use super::*;
@@ -165,12 +169,13 @@ mod tests {
 
         let row = transaction_row(&data);
 
+        assert_eq!((row.id.as_str(), row.created_at), (data.id.as_str(), data.created_at), "a row keys and dates itself");
         assert_eq!(row.subtitle, "Ethereum (MoonPay)");
         assert_eq!(row.value.value, 1.5);
         assert_eq!(row.value.unit, GemNumberUnit::Symbol { symbol: "ETH".to_string() });
         assert_eq!(row.fiat_value.value, 25.0);
         assert_eq!(row.badge, Some(GemFiatTransactionBadge::Pending));
-        assert!(!row.is_dimmed);
+        assert_eq!(row.value.tone, GemValueTone::Plain);
         assert_eq!(row.details_url.as_deref(), Some("https://moonpay.test/1"));
     }
 
@@ -191,7 +196,7 @@ mod tests {
 
         let row = quote_row(&buy, Some(30.0));
         assert_eq!(row.fiat_amount.unit, GemNumberUnit::Currency { code: buy.fiat_currency.clone() });
-        assert_eq!(row.crypto_amount.unit, GemNumberUnit::Symbol { symbol: buy.asset.symbol.clone() });
+        assert_eq!(row.crypto_amount.unit, GemNumberUnit::Symbol { symbol: buy.asset.symbol });
     }
 
     #[test]

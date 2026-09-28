@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemLockPeriod
 import GemstoneServices
 import LocalAuthentication
 import Primitives
@@ -12,14 +13,14 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
 
     private var memoryPassword: String
     private var isAuthenticationEnabled: Bool
-    private var lockPeriod: LockPeriod?
+    private var lockPeriod: GemLockPeriod?
     private var availableAuthentication: KeystoreAuthentication
     private var privacyLockStatus: PrivacyLockStatus?
 
     public init(
         memoryPassword: String = "",
         isAuthenticationEnabled: Bool = false,
-        lockPeriod: LockPeriod? = .default,
+        lockPeriod: GemLockPeriod? = .default,
         availableAuthentication: KeystoreAuthentication = .none,
         privacyLockStatus: PrivacyLockStatus? = .none,
     ) {
@@ -50,11 +51,11 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         availableAuthentication
     }
 
-    public func getAuthenticationLockPeriod() throws -> LockPeriod? {
+    public func getAuthenticationLockPeriod() throws -> GemLockPeriod? {
         lockPeriod
     }
 
-    public func setAuthenticationLockPeriod(period: LockPeriod) throws {
+    public func setAuthenticationLockPeriod(period: GemLockPeriod) throws {
         lockPeriod = period
     }
 

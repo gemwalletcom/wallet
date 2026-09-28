@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use chain_providers::BroadcastProviders;
 use primitives::Chain;
 use reqwest::Method;
 use reqwest::header::HeaderMap;
-use settings_chain::BroadcastProviders;
 
 use crate::cache::RequestCache;
 use crate::config::HeadersConfig;

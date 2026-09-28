@@ -26,6 +26,7 @@ impl GemBannerContext {
 pub struct MemoryBannerStore {
     pub states: Mutex<HashMap<String, BannerState>>,
     pub writes: Mutex<Vec<Vec<GemBannerKey>>>,
+    pub state_writes: Mutex<usize>,
 }
 
 #[async_trait]
@@ -35,6 +36,7 @@ impl GemBannerStore for MemoryBannerStore {
     }
     async fn set_state(&self, key: GemBannerKey, state: BannerState) -> Result<(), GemServiceError> {
         self.states.lock().unwrap().insert(key.identifier(), state);
+        *self.state_writes.lock().unwrap() += 1;
         Ok(())
     }
     async fn add_banners(&self, keys: Vec<GemBannerKey>, state: BannerState) -> Result<(), GemServiceError> {

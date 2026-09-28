@@ -1,18 +1,18 @@
 use num_bigint::BigUint;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::DatabaseError;
 use crate::sql_types::{AssetId, Currency, FiatProviderNameRow, FiatRateProviderRow, FiatTransactionStatusRow, FiatTransactionType};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{AssetId as PrimitiveAssetId, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionUpdate, PaymentType, fiat_assets::FiatAssetLimits};
+use primitives::{FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionUpdate, PaymentType, fiat_assets::FiatAssetLimits};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Queryable, Selectable, Insertable, AsChangeset, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::fiat_rates)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct FiatRateRow {
+pub(crate) struct FiatRateRow {
     pub id: Currency,
     pub name: String,
     pub rate: f64,
@@ -39,7 +39,7 @@ impl FiatRateRow {
 #[derive(Debug, Queryable, Selectable, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::fiat_assets)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct FiatAssetRow {
+pub(crate) struct FiatAssetRow {
     pub id: String,
     pub asset_id: Option<AssetId>,
     pub provider: FiatProviderNameRow,
@@ -82,6 +82,23 @@ impl FiatAssetRow {
         })
     }
 
+    pub fn as_primitive(&self) -> FiatAsset {
+        FiatAsset {
+            id: self.code.clone(),
+            asset_id: self.asset_id.clone().map(|asset_id| asset_id.0),
+            provider: self.provider.0,
+            symbol: self.symbol.clone(),
+            network: self.network.clone(),
+            token_id: self.token_id.clone(),
+            enabled: self.is_enabled(),
+            is_buy_enabled: self.is_buy_enabled(),
+            is_sell_enabled: self.is_sell_enabled(),
+            unsupported_countries: self.unsupported_countries(),
+            buy_limits: self.buy_limits(),
+            sell_limits: self.sell_limits(),
+        }
+    }
+
     pub fn is_enabled(&self) -> bool {
         self.is_enabled && self.is_enabled_by_provider
     }
@@ -107,20 +124,10 @@ impl FiatAssetRow {
     }
 }
 
-pub trait FiatAssetRowsExt {
-    fn asset_ids(self) -> Vec<PrimitiveAssetId>;
-}
-
-impl FiatAssetRowsExt for Vec<FiatAssetRow> {
-    fn asset_ids(self) -> Vec<PrimitiveAssetId> {
-        self.into_iter().filter_map(|x| x.asset_id.map(|asset_id| asset_id.0)).collect::<HashSet<_>>().into_iter().collect()
-    }
-}
-
 #[derive(Debug, Queryable, Selectable, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::fiat_providers)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct FiatProviderRow {
+pub(crate) struct FiatProviderRow {
     pub id: FiatProviderNameRow,
     pub name: String,
     pub enabled: bool,
@@ -166,7 +173,7 @@ impl FiatProviderRow {
 #[derive(Debug, Queryable, Selectable, Clone)]
 #[diesel(table_name = crate::schema::fiat_transactions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct FiatTransactionRow {
+pub(crate) struct FiatTransactionRow {
     pub id: i32,
     pub asset_id: AssetId,
     pub transaction_type: FiatTransactionType,
@@ -212,7 +219,7 @@ impl FiatTransactionRow {
 #[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::fiat_transactions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct NewFiatTransactionRow {
+pub(crate) struct NewFiatTransactionRow {
     pub asset_id: AssetId,
     pub transaction_type: FiatTransactionType,
     pub provider_id: FiatProviderNameRow,
@@ -272,7 +279,7 @@ impl NewFiatTransactionRow {
 #[derive(Debug, Queryable, Selectable, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::fiat_providers_countries)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct FiatProviderCountryRow {
+pub(crate) struct FiatProviderCountryRow {
     pub id: String,
     pub provider: FiatProviderNameRow,
     pub alpha2: String,
@@ -286,7 +293,7 @@ impl FiatProviderCountryRow {
         Self {
             id: format!("{}_{}", provider.0.id(), primitive.alpha2).to_lowercase(),
             provider,
-            alpha2: primitive.alpha2.to_string(),
+            alpha2: primitive.alpha2.clone(),
             is_allowed: primitive.is_allowed,
         }
     }
@@ -302,7 +309,7 @@ impl FiatProviderCountryRow {
 
 #[derive(AsChangeset)]
 #[diesel(table_name = crate::schema::fiat_transactions)]
-pub struct UpdateFiatTransactionRow {
+pub(crate) struct UpdateFiatTransactionRow {
     pub status: FiatTransactionStatusRow,
     pub fiat_amount: Option<f64>,
     pub fiat_currency: Option<String>,

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -19,21 +18,20 @@ public struct ConfirmTransferScene: View {
     }
 
     public var body: some View {
-        ListSectionView(
-            provider: model,
-            content: content(for:),
-        )
+        ListSectionView(sections: model.sections) { item in
+            content(for: model.itemModel(for: item))
+        }
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
         .safeAreaButton {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .task(id: model.preloadSelection) {
+        .task(id: model.loadOptions) {
             await model.load()
         }
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .confirm)) { @MainActor _ in
-            guard model.state.screen.phase == .ready else { return }
+            guard model.state.screen.refreshes() else { return }
             await model.load()
         }
         .navigationTitle(model.title)
@@ -49,25 +47,22 @@ extension ConfirmTransferScene {
     @ViewBuilder
     private func content(for itemModel: ConfirmTransferItemModel) -> some View {
         switch itemModel {
-        case let .header(model):
-            TransactionHeaderListItemView(
-                headerType: model.headerType,
-                showClearHeader: model.showClearHeader,
-            )
-            .isVisible(self.model.isHeaderVisible)
+        case let .header(header):
+            TransactionHeaderListItemView(header: header.header)
+                .isVisible(!header.isReserved)
         case let .row(row):
             GemListRowView(row: row)
-        case let .recipient(model):
-            AddressListItemView(model: model)
+        case let .recipient(row):
+            AddressListItemView(row: row, onSelect: { model.onSelectAddress(ChainAddress(chain: Chain(core: row.chain), address: row.address)) })
         case let .paymentAsset(model, selectable):
             NavigationCustomLink(
                 with: ListItemView(model: model),
                 isEnabled: selectable,
                 action: self.model.onSelectPaymentAsset,
             )
-        case let .swapDetails(model):
+        case let .swapDetails(details):
             NavigationCustomLink(
-                with: SwapDetailsListView(model: model),
+                with: SwapDetailsListView(details: details),
                 action: { self.model.onSelectSwapDetails() },
             )
         case let .perpetualDetails(model):
@@ -76,9 +71,7 @@ extension ConfirmTransferScene {
                 action: { self.model.onSelectPerpetualDetails(model) },
             )
         case let .perpetualModifyPosition(row):
-            if let row {
-                GemListRowView(row: row)
-            }
+            GemListRowView(row: row, onInfo: model.onInfo)
         case let .networkFee(model, selectable):
             if selectable {
                 NavigationCustomLink(
@@ -95,13 +88,11 @@ extension ConfirmTransferScene {
             )
         case let .warnings(rows):
             ForEach(rows, id: \.self) { GemListRowView(row: $0) }
-        case let .balanceChange(model):
-            ListItemView(model: model.listItem)
         case let .payload(models):
             Group {
                 SimulationPayloadFieldsContent(models: models)
 
-                if self.model.payloadModel.hasDetails {
+                if !self.model.secondaryPayloadFields.isEmpty {
                     NavigationCustomLink(
                         with: ListItemView(model: self.model.payloadDetailsListItem),
                         action: self.model.onSelectPayloadDetails,

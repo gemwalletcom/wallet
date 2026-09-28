@@ -9,7 +9,7 @@ struct SelectAssetTypeTests {
     func swapReceiveCarriesThePayAsset() {
         let payAssetId = AssetId(chain: .ethereum)
 
-        #expect(SelectAssetType.swap(.receive(payAssetId: payAssetId)).flowType == .swapReceive(payAssetId: payAssetId.identifier))
+        #expect(SelectAssetType.swap(.receive(payAssetId: payAssetId)).flowType == .swapReceive(payAssetId: payAssetId))
         #expect(SelectAssetType.swap(.receive(payAssetId: nil)).flowType == .swapReceive(payAssetId: nil))
         #expect(SelectAssetType.swap(.pay).flowType == .swapPay)
     }

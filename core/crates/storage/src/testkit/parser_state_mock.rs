@@ -1,13 +1,12 @@
 use chrono::DateTime;
 use primitives::Chain;
 
-use crate::models::ParserStateRow;
-use crate::sql_types::ChainRow;
+use crate::ParserState;
 
-impl ParserStateRow {
+impl ParserState {
     pub fn mock() -> Self {
         Self {
-            chain: ChainRow::from(Chain::Ethereum),
+            chain: Chain::Ethereum,
             current_block: 0,
             latest_block: 0,
             await_blocks: 1,

@@ -2,27 +2,21 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemTransactionsFilterSummary
 import Localization
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct TransactionsFilterTypeViewModel: FilterTypeRepresentable {
-    private let type: TransactionsFilterType
+    private let summary: GemTransactionsFilterSummary
 
-    public init(type: TransactionsFilterType) {
-        self.type = type
+    public init(summary: GemTransactionsFilterSummary) {
+        self.summary = summary
     }
 
     public var value: String {
-        switch type {
-        case .allTypes:
-            Localized.Common.all
-        case let .type(type):
-            type.title
-        case let .types(selected):
-            "\(selected.count)"
-        }
+        summary.text
     }
 
     public var title: String {

@@ -1,7 +1,10 @@
+use primitives::OptionStringExt;
 use primitives::contact::ContactAddress;
-use primitives::{Chain, Contact};
+use primitives::{AddressName, AddressType, Chain, Contact};
 
 use super::rules;
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::services::chain::{GemChainRow, chain_row};
 
 #[derive(uniffi::Enum)]
 pub enum GemContactAvatar {
@@ -25,6 +28,21 @@ pub enum GemContactAvatarChoice {
     Empty,
     Image { image_url: String },
     Emoji { emoji: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemContactAvatarImage {
+    Initials { text: String },
+    Placeholder,
+    Image { image_url: String, initials: String },
+    Emoji { emoji: String },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemContactAddressRow {
+    pub address: ContactAddress,
+    pub chain: GemChainRow,
+    pub short_address: String,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -70,12 +88,27 @@ impl GemContactSession {
         Self { is_saving, ..self.clone() }
     }
 
+    pub fn address_rows(&self) -> Vec<GemContactAddressRow> {
+        self.addresses
+            .iter()
+            .map(|address| GemContactAddressRow {
+                chain: chain_row(address.chain),
+                short_address: format_address(&address.address, Some(address.chain), GemAddressFormatStyle::Short),
+                address: address.clone(),
+            })
+            .collect()
+    }
+
     pub fn can_save(&self) -> bool {
         rules::can_save_contact(&self.name, self.is_saving)
     }
 
-    pub fn initials(&self) -> String {
-        contact_initials(self.name.clone())
+    pub fn avatar_image(&self) -> GemContactAvatarImage {
+        match &self.avatar {
+            GemContactAvatarChoice::Empty => contact_avatar_image(None, &self.name),
+            GemContactAvatarChoice::Image { image_url } => contact_avatar_image(Some(image_url.clone()), &self.name),
+            GemContactAvatarChoice::Emoji { emoji } => GemContactAvatarImage::Emoji { emoji: emoji.clone() },
+        }
     }
 
     pub fn input(&self, avatar: GemContactAvatar) -> GemContactInput {
@@ -103,9 +136,46 @@ pub enum GemContactAddressField {
     Memo,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemContactAddressSession {
+    pub contact_id: String,
+    pub replacing_id: Option<String>,
+    pub chain: Chain,
+    pub memo: String,
+    pub fields: Vec<GemContactAddressField>,
+}
+
 #[uniffi::export]
-pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
-    rules::contact_address_fields(chain)
+impl GemContactAddressSession {
+    pub fn on_chain_changed(&self, chain: Chain) -> Self {
+        Self {
+            chain,
+            memo: String::new(),
+            fields: rules::contact_address_fields(chain),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_memo_changed(&self, memo: String) -> Self {
+        Self { memo, ..self.clone() }
+    }
+
+    pub fn on_scanned(&self, scan: GemContactScannedAddress) -> Self {
+        Self {
+            memo: scan.memo.unwrap_or_else(|| self.memo.clone()),
+            ..self.clone()
+        }
+    }
+
+    pub fn input(&self, address: String) -> GemContactAddressInput {
+        GemContactAddressInput {
+            contact_id: self.contact_id.clone(),
+            chain: self.chain,
+            address,
+            memo: Some(self.memo.clone()),
+            replacing_id: self.replacing_id.clone(),
+        }
+    }
 }
 
 #[derive(uniffi::Record)]
@@ -147,7 +217,8 @@ mod tests {
         assert!(!session().on_name_changed("  ".into()).can_save(), "spaces are not a name");
         let named = session().on_name_changed("ada lovelace".into());
         assert!(named.can_save());
-        assert_eq!(named.initials(), "AD");
+        assert_eq!(named.avatar_image(), GemContactAvatarImage::Initials { text: "AD".into() });
+        assert_eq!(session().avatar_image(), GemContactAvatarImage::Placeholder, "a blank name has no initials to show");
         assert!(!named.on_saving(true).can_save(), "a save already running blocks another");
     }
 
@@ -169,6 +240,23 @@ mod tests {
     }
 
     #[test]
+    fn test_each_address_row_names_its_network_and_shortens_the_address() {
+        let address = "0x1234567890abcdef1234567890abcdef12345678";
+        let session = session().on_address_saved(GemContactAddressInput {
+            contact_id: "contact".into(),
+            chain: Chain::Ethereum,
+            address: address.into(),
+            memo: None,
+            replacing_id: None,
+        });
+        let row = session.address_rows().remove(0);
+
+        assert_eq!(row.chain, chain_row(Chain::Ethereum));
+        assert_eq!(row.short_address, format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short));
+        assert_ne!(row.short_address, address);
+    }
+
+    #[test]
     fn test_the_save_input_carries_the_form_and_the_rendered_avatar() {
         let input = session()
             .on_name_changed("Ada".into())
@@ -178,6 +266,35 @@ mod tests {
 
         assert_eq!((input.id.as_str(), input.name.as_str(), input.description.as_str()), ("contact", "Ada", "Friend"));
         assert!(matches!(input.avatar, GemContactAvatar::Rendered { .. }));
+    }
+
+    #[test]
+    fn test_an_address_session_clears_the_memo_with_the_chain_and_takes_a_scanned_memo() {
+        let session = rules::new_address_session("contact".into(), None).on_memo_changed("note".into());
+        assert_eq!(session.memo, "note");
+
+        let cosmos = session.on_chain_changed(Chain::Cosmos);
+        assert_eq!(cosmos.memo, "", "a new chain starts without the old memo");
+        assert_eq!(cosmos.fields, rules::contact_address_fields(Chain::Cosmos));
+
+        let typed = cosmos.on_memo_changed("typed".into());
+        assert_eq!(typed.on_scanned(GemContactScannedAddress { address: "cosmos1".into(), memo: None }).memo, "typed", "a scan without a memo keeps the typed one");
+        assert_eq!(
+            typed
+                .on_scanned(GemContactScannedAddress {
+                    address: "cosmos1".into(),
+                    memo: Some("tag".into())
+                })
+                .memo,
+            "tag"
+        );
+
+        let input = rules::new_address_session("contact".into(), Some(ContactAddress::mock("old"))).on_memo_changed("note".into()).input("0xnew".into());
+        assert_eq!(input.contact_id, "contact");
+        assert_eq!(input.chain, Chain::Ethereum);
+        assert_eq!(input.address, "0xnew");
+        assert_eq!(input.memo.as_deref(), Some("note"));
+        assert_eq!(input.replacing_id.as_deref(), Some("old"));
     }
 
     #[test]
@@ -203,20 +320,47 @@ mod tests {
 pub struct GemContactRow {
     pub title: String,
     pub subtitle: Option<String>,
-    pub initials: String,
+    pub avatar: GemContactAvatarImage,
 }
 
 #[uniffi::export]
+pub fn contact_rows(contacts: Vec<Contact>) -> Vec<GemContactRow> {
+    contacts.into_iter().map(contact_row).collect()
+}
+
 pub fn contact_row(contact: Contact) -> GemContactRow {
     GemContactRow {
         title: contact.name.clone(),
+        avatar: contact_avatar_image(contact.image_url.clone(), &contact.name),
         subtitle: contact.description.filter(|description| !description.trim().is_empty()),
-        initials: contact_initials(contact.name.clone()),
+    }
+}
+
+fn contact_avatar_image(image_url: Option<String>, name: &str) -> GemContactAvatarImage {
+    let initials = contact_initials(name.to_string());
+    match (image_url, initials.is_empty()) {
+        (Some(image_url), _) => GemContactAvatarImage::Image { image_url, initials },
+        (None, true) => GemContactAvatarImage::Placeholder,
+        (None, false) => GemContactAvatarImage::Initials { text: initials },
     }
 }
 
 pub fn contact_initials(name: String) -> String {
     name.trim().chars().take(2).collect::<String>().to_uppercase()
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAvatar {
+    pub image_url: Option<String>,
+    pub initials: String,
+}
+
+pub fn contact_avatar(address_name: Option<&AddressName>, name: Option<&str>) -> Option<GemAvatar> {
+    let address_name = address_name.filter(|address_name| address_name.address_type == AddressType::Contact)?;
+    Some(GemAvatar {
+        image_url: address_name.image_url.clone().non_empty(),
+        initials: contact_initials(name.unwrap_or(&address_name.name).to_string()),
+    })
 }
 
 #[cfg(test)]
@@ -248,16 +392,24 @@ mod row_tests {
     }
 
     #[test]
-    fn test_initials_take_two_trimmed_characters_in_upper_case() {
-        assert_eq!(
+    fn test_a_row_avatar_shows_the_image_then_the_initials_then_a_placeholder() {
+        let row = |name: &str, image_url: Option<&str>| {
             contact_row(Contact {
-                name: "  ada lovelace".into(),
+                name: name.into(),
+                image_url: image_url.map(String::from),
                 ..Contact::mock()
             })
-            .initials,
-            "AD"
+            .avatar
+        };
+        assert_eq!(row("  ada lovelace", None), GemContactAvatarImage::Initials { text: "AD".into() });
+        assert_eq!(row("Q", None), GemContactAvatarImage::Initials { text: "Q".into() });
+        assert_eq!(row("", None), GemContactAvatarImage::Placeholder);
+        assert_eq!(
+            row("ada", Some("avatar.png")),
+            GemContactAvatarImage::Image {
+                image_url: "avatar.png".into(),
+                initials: "AD".into()
+            }
         );
-        assert_eq!(contact_row(Contact { name: "Q".into(), ..Contact::mock() }).initials, "Q");
-        assert_eq!(contact_row(Contact { name: "".into(), ..Contact::mock() }).initials, "");
     }
 }

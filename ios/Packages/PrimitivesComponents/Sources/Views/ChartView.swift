@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.ChartDateValue
+import struct Gemstone.GemChartData
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -16,20 +19,24 @@ public struct ChartView: View {
         static let lineWidth: CGFloat = 2.5
         static let selectionDotSize: CGFloat = 12
         static let labelWidth: CGFloat = 88
+        static let trailingSpace: Double = 0.02
     }
 
-    private let model: ChartValuesViewModel
+    private let chart: GemChartData
+    private let lineColor: Color
+    private let dateFormatter = ChartDateFormatter()
 
-    @State private var selectedElement: ChartDateValue?
+    @State private var selectedIndex: Int?
 
-    public init(model: ChartValuesViewModel) {
-        self.model = model
+    init(chart: GemChartData, lineColor: Color = Colors.blue) {
+        self.chart = chart
+        self.lineColor = lineColor
     }
 
     public var body: some View {
         VStack(spacing: .zero) {
             priceHeader
-            chart
+            chartView
         }
     }
 }
@@ -39,9 +46,9 @@ public struct ChartView: View {
 extension ChartView {
     private var priceHeader: some View {
         Group {
-            if let element = selectedElement {
-                ChartHeaderView(header: model.header(for: element), date: model.dateText(for: element))
-            } else if let header = model.chartHeader {
+            if let selection = selectedIndex.flatMap({ chart.selection(index: UInt32($0)) }) {
+                ChartHeaderView(header: selection.header, date: dateFormatter.string(for: selection.date, style: chart.dateStyle))
+            } else if let header = chart.header {
                 ChartHeaderView(header: header)
             }
         }
@@ -49,9 +56,22 @@ extension ChartView {
         .padding(.bottom, Spacing.tiny)
     }
 
-    private var chart: some View {
+    private var selectedElement: ChartDateValue? {
+        selectedIndex.flatMap { chart.values[safe: $0] }
+    }
+
+    private var yScale: [Double] {
+        [chart.bounds.yMin, chart.bounds.yMax]
+    }
+
+    private var xScale: [Date] {
+        guard let first = chart.values.first?.date, let last = chart.values.last?.date else { return [] }
+        return [first, last.addingTimeInterval(last.timeIntervalSince(first) * Metrics.trailingSpace)]
+    }
+
+    private var chartView: some View {
         Chart {
-            ForEach(model.charts, id: \.date) { item in
+            ForEach(chart.values, id: \.date) { item in
                 AreaMark(
                     x: .value(ChartKey.date, item.date),
                     y: .value(ChartKey.value, item.value),
@@ -65,13 +85,13 @@ extension ChartView {
                     y: .value(ChartKey.value, item.value),
                 )
                 .lineStyle(StrokeStyle(lineWidth: Metrics.lineWidth, lineCap: .round, lineJoin: .round))
-                .foregroundStyle(model.lineColor)
+                .foregroundStyle(lineColor)
                 .interpolationMethod(.catmullRom)
             }
 
             if let selectedElement {
                 RuleMark(x: .value(ChartKey.date, selectedElement.date))
-                    .foregroundStyle(model.lineColor.opacity(.medium))
+                    .foregroundStyle(lineColor.opacity(.medium))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
 
                 PointMark(x: .value(ChartKey.date, selectedElement.date), y: .value(ChartKey.value, selectedElement.value))
@@ -79,15 +99,15 @@ extension ChartView {
                         Circle()
                             .fill(
                                 RadialGradient(
-                                    colors: [Colors.white, model.lineColor.opacity(.strong)],
+                                    colors: [Colors.white, lineColor.opacity(.strong)],
                                     center: .center,
                                     startRadius: 0,
                                     endRadius: Metrics.selectionDotSize / 2,
                                 ),
                             )
                             .frame(width: Metrics.selectionDotSize, height: Metrics.selectionDotSize)
-                            .shadow(color: model.lineColor.opacity(.semiStrong), radius: 6)
-                            .overlay(Circle().strokeBorder(model.lineColor, lineWidth: Metrics.lineWidth))
+                            .shadow(color: lineColor.opacity(.semiStrong), radius: 6)
+                            .overlay(Circle().strokeBorder(lineColor, lineWidth: Metrics.lineWidth))
                     }
             }
         }
@@ -106,13 +126,13 @@ extension ChartView {
                             },
                     )
 
-                if let lastPoint = model.charts.last,
+                if let lastPoint = chart.values.last,
                    let plotFrame = proxy.plotFrame,
                    let xPos = proxy.position(forX: lastPoint.date),
                    let yPos = proxy.position(forY: lastPoint.value)
                 {
                     let origin = geometry[plotFrame].origin
-                    PulsingDotView(color: model.lineColor)
+                    PulsingDotView(color: lineColor)
                         .position(x: origin.x + xPos, y: origin.y + yPos)
                         .opacity(selectedElement == nil ? 1 : 0)
                         .animation(.easeInOut(duration: .AnimationDuration.normal), value: selectedElement == nil)
@@ -122,20 +142,20 @@ extension ChartView {
         .padding(.vertical, Spacing.large)
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .chartYScale(domain: model.yScale)
-        .chartXScale(domain: model.xScale)
+        .chartYScale(domain: yScale)
+        .chartXScale(domain: xScale)
         .chartBackground { proxy in
             GeometryReader { geometry in
                 if let plotFrame = proxy.plotFrame {
                     let chartBounds = geometry[plotFrame]
 
-                    if let lowerBoundX = proxy.position(forX: model.lowerBoundDate) {
-                        boundLabel(model.lowerBoundValueText)
+                    if let lowerBoundX = proxy.position(forX: chart.values[Int(chart.bounds.lowerIndex)].date) {
+                        boundLabel(chart.bounds.low.text())
                             .offset(x: labelX(lowerBoundX, geoWidth: geometry.size.width), y: chartBounds.maxY + Spacing.small)
                     }
 
-                    if let upperBoundX = proxy.position(forX: model.upperBoundDate) {
-                        boundLabel(model.upperBoundValueText)
+                    if let upperBoundX = proxy.position(forX: chart.values[Int(chart.bounds.upperIndex)].date) {
+                        boundLabel(chart.bounds.high.text())
                             .offset(x: labelX(upperBoundX, geoWidth: geometry.size.width), y: chartBounds.minY - Spacing.large)
                     }
                 }
@@ -146,12 +166,12 @@ extension ChartView {
     private var areaGradient: LinearGradient {
         .linearGradient(
             stops: [
-                .init(color: model.lineColor.opacity(.opacity45), location: 0),
-                .init(color: model.lineColor.opacity(.opacity38), location: 0.25),
-                .init(color: model.lineColor.opacity(.opacity28), location: 0.5),
-                .init(color: model.lineColor.opacity(.light), location: 0.75),
-                .init(color: model.lineColor.opacity(.faint), location: 0.92),
-                .init(color: model.lineColor.opacity(0), location: 1.0),
+                .init(color: lineColor.opacity(.opacity45), location: 0),
+                .init(color: lineColor.opacity(.opacity38), location: 0.25),
+                .init(color: lineColor.opacity(.opacity28), location: 0.5),
+                .init(color: lineColor.opacity(.light), location: 0.75),
+                .init(color: lineColor.opacity(.faint), location: 0.92),
+                .init(color: lineColor.opacity(0), location: 1.0),
             ],
             startPoint: .top,
             endPoint: .bottom,
@@ -181,15 +201,15 @@ extension ChartView {
 
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let targetDate = proxy.value(atX: relativeX) as Date?,
-              let element = model.charts.min(by: { abs($0.date.distance(to: targetDate)) < abs($1.date.distance(to: targetDate)) })
+              let index = chart.values.indices.min(by: { abs(chart.values[$0].date.distance(to: targetDate)) < abs(chart.values[$1].date.distance(to: targetDate)) })
         else {
             return
         }
 
-        selectedElement = element
+        selectedIndex = index
     }
 
     private func onDragEnd() {
-        selectedElement = nil
+        selectedIndex = nil
     }
 }

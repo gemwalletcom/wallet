@@ -20,6 +20,8 @@ common_copy = Copy
 common_share = Share
 # Used in shared app UI for the continue label.
 common_continue = Continue
+# Used in shared app UI when the user continues despite a warning.
+common_continue_anyway = Continue Anyway
 common_sign_in_with = Sign In with %@
 # Used in shared app UI for the provider label.
 common_provider = Provider
@@ -99,9 +101,6 @@ common_emoji = Emoji
 # Used in shared app UI for the style label.
 # Used in shared app UI for the avatar label.
 common_avatar = Avatar
-# Used in shared app UI for the photo label.
-# Used in shared app UI for the save label.
-common_save = Save
 # Used in shared app UI for the edit label.
 # Used in shared app UI for the percentage label.
 common_percentage = Percentage
@@ -121,6 +120,8 @@ common_token = Token
 common_expiration = Expiration
 # Used in shared app UI for the suspicious address label.
 common_suspicious_address = Suspicious address
+# Used in the suspicious address warning on the address and confirm screens, under its title.
+common_suspicious_address_description = This address is associated with suspicious or harmful activity.
 # Used in shared app UI for the refresh label.
 common_refresh = Refresh
 # Used in shared app UI for the grant permission label.
@@ -220,13 +221,9 @@ wallet_import_already_imported_message = This wallet has already been imported.
 
 # Used in wallet list and wallet switcher screens as a title.
 wallets_title = Wallets
-# Used in wallet list and wallet switcher screens for the watch label.
-wallets_watch = Watch
 
 # Receive
 
-# Used in Receive screen as a title. Contains 1 string placeholder.
-receive_title = Receive %@
 # Receive screen network warning. First %@ is the asset symbol, second %@ is the network name.
 receive_warning = This is your address — send only %@ on the %@ network.
 
@@ -358,8 +355,6 @@ settings_security_authentication = Authentication
 settings_notifications_title = Notifications
 # Used in Settings screens for the language label.
 settings_language = Language
-# Used in Settings screens for the help center label.
-settings_help_center = Help Center
 # Used in Settings screens for the support label.
 settings_support = Support
 # Used in Settings screens for the price alerts title.
@@ -457,6 +452,18 @@ errors_swap_not_supported_asset = Not supported asset.
 errors_connections_no_supported_wallets = No supported wallets are available.
 # Used in error cards and validation UI for the connections unsupported chain label.
 errors_connections_unsupported_chain = The provided chain is not supported.
+# Shown when turning on app authentication on a device with no biometrics or passcode set up.
+errors_authentication_unavailable = Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings.
+# Shown when biometric authentication is locked after too many failed attempts.
+errors_authentication_locked_out = Too many failed attempts. Please try again later.
+# Shown when biometric or passcode authentication fails.
+errors_authentication_failed = Authentication failed. Please try again.
+# WalletConnect error when the scanned connection link (QR code) has expired.
+errors_connections_expired = This connection link has expired. Get a new QR code and try again.
+# WalletConnect error when the connection being paired or disconnected no longer exists.
+errors_connections_not_found = This connection no longer exists.
+# WalletConnect error when its relay server can't be reached.
+errors_connections_relay_unavailable = Couldn't reach WalletConnect. Check your internet connection and try again.
 # Used in error cards and validation UI for the swap amount too small label.
 errors_swap_amount_too_small = Amount too small
 # Used in error cards and validation UI for the scan transaction malicious description.
@@ -609,8 +616,6 @@ asset_buy_asset = Buy %@
 asset_get_asset = Get %@
 # Used in asset detail and asset verification screens for the add to wallet label.
 asset_add_to_wallet = Add to wallet
-# Used in asset detail and asset verification screens for the hide from wallet label.
-asset_hide_from_wallet = Hide from wallet
 # Used in toast confirmations after an asset is added to the wallet.
 asset_added_to_wallet = Added to wallet
 # Used in toast confirmations after an asset is hidden from the wallet.
@@ -657,6 +662,8 @@ charts_price_change = Change
 date_today = Today
 # Used in date labels for the yesterday label.
 date_yesterday = Yesterday
+# Used in date rows to join the day label and the time, as in "Today, 10:30".
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -870,8 +877,6 @@ fee_rates_normal = Normal
 
 # Fee unit label for satoshis per virtual byte.
 fee_rate_satvB = sat/vB
-# Used in network fee rate selector for the satB label. Contains 1 string placeholder.
-fee_rate_satB = %@ sat/B
 # Fee unit label for gwei.
 fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
@@ -941,8 +946,14 @@ price_alerts_set_alert_price_decreases_by = When price decreases by
 price_alerts_set_alert_set_target_price = Set target price
 # Used in Price Alerts screens for the set alert current price label.
 price_alerts_set_alert_current_price = Current price
-# Used in Price Alerts screens for the added for label. Contains 1 string placeholder.
-price_alerts_added_for = Set price alert %@
+# Confirmation after adding a price alert. %@ is the target price, for example $100.
+price_alerts_added_price_over = Alert added for price over %@
+# Confirmation after adding a price alert. %@ is the target price, for example $100.
+price_alerts_added_price_under = Alert added for price under %@
+# Confirmation after adding a price alert. %@ is the percentage, for example 5%.
+price_alerts_added_increases_by = Alert added for price increase of %@
+# Confirmation after adding a price alert. %@ is the percentage, for example 5%.
+price_alerts_added_decreases_by = Alert added for price decrease of %@
 # Used in Price Alerts screens for the state empty title.
 price_alerts_state_empty_title = Your price alerts will appear here
 # Used in Price Alerts screens for the state empty description.
@@ -1126,10 +1137,6 @@ permissions_image_photo_access_denied_description = This app does not have permi
 
 # Markets
 
-# Used in markets UI as a title.
-markets_title = Markets
-# Used in markets UI for the state empty title.
-markets_state_empty_title = Your markets data will appear here
 # Used in markets UI for the daily volume label.
 markets_daily_volume = 24h Volume
 
@@ -1388,6 +1395,8 @@ application_name = Gem
 
 # Used in rootcheck UI for the security alert label.
 rootcheck_security_alert = Security Warning
+# Used in rootcheck UI for the jailbreak warning body.
+rootcheck_jailbreak_body = Your device appears to be jailbroken. This may put your wallet and funds at risk.
 # Used in rootcheck UI for the body label.
 rootcheck_body = Your device appears to have root access, which can significantly increase security risks. Using this app on a rooted device may expose your assets to unauthorized access and potential loss. For the safety of your funds, we strongly recommend using a non-rooted device.
 # Used in rootcheck UI for the ignore label.

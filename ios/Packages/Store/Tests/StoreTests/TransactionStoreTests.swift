@@ -11,7 +11,7 @@ import Testing
 struct TransactionStoreTests {
     @Test func transactionsByStateAreKeyedByWallet() throws {
         let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
-        let db = DB.mockAssets(assets: [asset])
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: asset.asset.chain)])], assets: [asset])
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
         try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .robinhood, address: "0xsender")]))
@@ -19,7 +19,7 @@ struct TransactionStoreTests {
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(.mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId)),
+            .mock(.mock(id: transactionId, assetId: Chain.robinhood.assetId, state: .pending, feeAssetId: Chain.robinhood.assetId)),
         ])
 
         let transactions = try store.getTransactions(states: [.pending])
@@ -40,7 +40,7 @@ struct TransactionStoreTests {
             .mock(asset: .mock(id: sol)),
         ]
 
-        let db = DB.mockAssets(assets: assets)
+        let db = DB.mock(wallets: [.mock(accounts: assets.map { .mock(chain: $0.asset.chain) })], assets: assets)
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.multicoin(address: "test")
         try walletStore.addWallet(.mock(id: walletId, accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
@@ -51,8 +51,8 @@ struct TransactionStoreTests {
             .mock(
                 .mock(
                     id: transactionId,
-                    type: .swap,
                     assetId: btc,
+                    type: .swap,
                     metadata: .encode(TransactionSwapMetadata.mock(
                         fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
                     )),
@@ -65,8 +65,8 @@ struct TransactionStoreTests {
             .mock(
                 .mock(
                     id: transactionId,
-                    type: .swap,
                     assetId: btc,
+                    type: .swap,
                     metadata: .encode(TransactionSwapMetadata.mock(
                         fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
                     )),
@@ -85,7 +85,7 @@ struct TransactionStoreTests {
         let ethereum = Chain.ethereum.assetId
         let bitcoin = Chain.bitcoin.assetId
         let solana = Chain.solana.assetId
-        let db = DB.mockAssets(assets: [ethereum, bitcoin, solana].map { .mock(asset: .mock(id: $0)) })
+        let db = DB.mock(wallets: [.mock(accounts: [ethereum, bitcoin, solana].map { .mock(chain: $0.chain) })], assets: [ethereum, bitcoin, solana].map { .mock(asset: .mock(id: $0)) })
         let store = TransactionStore(db: db)
         let walletId = WalletId.mock()
         let otherWalletId = WalletId.multicoin(address: "other")
@@ -94,15 +94,15 @@ struct TransactionStoreTests {
         let targetId = TransactionId(chain: .ethereum, hash: "confirmed")
         let source = Transaction.mock(
             id: sourceId,
+            assetId: ethereum,
             type: .swap,
             state: .pending,
-            assetId: ethereum,
             metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200")),
         )
         let target = Transaction.mock(
             id: targetId,
-            type: .swap,
             assetId: ethereum,
+            type: .swap,
             fee: "42",
             metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300")),
         )
@@ -126,7 +126,7 @@ struct TransactionStoreTests {
         let result = try store.getTransaction(walletId: walletId, transactionId: targetId)
         #expect(result.recordId == storedSource.recordId)
         #expect(throws: RecordError.self) {
-            try db.dbQueue.read { try TransactionRequest(walletId: otherWalletId, recordId: result.recordId).fetch($0) }
+            try db.dbQueue.read { try TransactionQuery(walletId: otherWalletId, recordId: result.recordId).fetch($0) }
         }
         #expect(result.transaction == storedTarget.transaction)
         #expect(Set(result.assets.map(\.id)) == Set([ethereum, solana]))

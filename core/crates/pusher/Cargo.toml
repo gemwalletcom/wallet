@@ -1,0 +1,13 @@
+[package]
+name = "pusher"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+primitives = { path = "../primitives" }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+push_notification = { path = "../push_notification" }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }

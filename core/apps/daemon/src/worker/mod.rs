@@ -2,7 +2,6 @@ pub mod alerter;
 pub mod assets;
 pub mod context;
 pub mod fiat;
-pub mod job_schedule;
 pub mod jobs;
 pub mod lists;
 pub mod perpetuals;

@@ -53,12 +53,6 @@ class TinkSecurityStore(private val context: Context) : SecurityStore<Any> {
         value
     }
 
-    override suspend fun putValue(key: Any, value: String) = withContext(Dispatchers.IO) {
-        val keyValue = key.toString()
-        encryptedStore.putString(keyValue, value)
-        removeLegacyValue(keyValue)
-    }
-
     private suspend fun getLegacyValue(key: String): String? = context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key)] }
         .firstOrNull()?.let {
             String(aeadProvider.get().decrypt(it.fromHex(), null), UTF_8)

@@ -11,8 +11,8 @@ use crate::{models::AccountResult, provider::preload_mapper::map_transaction_loa
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for StellarClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let destination_address = input.input_type.swap_to_address().unwrap_or(&input.destination_address);
-        let (sender_account, destination_exists) = futures::join!(self.get_account(input.sender_address.clone()), self.account_exists(destination_address));
+        let destination = input.input_type.swap_to_address().or(Some(input.destination_address.as_str())).filter(|address| !address.is_empty());
+        let (sender_account, destination_exists) = futures::join!(self.get_account(input.sender_address.clone()), self.destination_exists(destination));
         match sender_account? {
             AccountResult::Found(account) => Ok(TransactionLoadMetadata::Stellar {
                 sequence: account.sequence + 1,
@@ -40,7 +40,7 @@ mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, TEST_EMPTY_ADDRESS, create_test_client};
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, TransactionInputType, TransactionPreloadInput};
+    use primitives::{AccountDataType, Asset, Chain, TransactionInputType, TransactionPreloadInput};
 
     #[tokio::test]
     async fn test_stellar_get_transaction_preload() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -58,6 +58,25 @@ mod chain_integration_tests {
         assert!(metadata.get_sequence()? > 0);
         assert!(metadata.get_is_destination_address_exist()?);
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_stellar_get_transaction_preload_activation() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_test_client();
+        let input = TransactionPreloadInput {
+            input_type: TransactionInputType::Account {
+                asset: Asset::from_chain(Chain::Stellar),
+                account_type: AccountDataType::Activate,
+            },
+            sender_address: TEST_ADDRESS.to_string(),
+            destination_address: String::new(),
+            references: vec![],
+        };
+
+        let metadata = client.get_transaction_preload(input).await?;
+
+        assert!(!metadata.get_is_destination_address_exist()?);
         Ok(())
     }
 

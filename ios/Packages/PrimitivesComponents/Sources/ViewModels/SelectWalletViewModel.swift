@@ -3,9 +3,9 @@
 import Components
 import Foundation
 import struct Gemstone.GemWalletRow
+import struct Gemstone.GemWalletSection
 import Localization
 import Primitives
-import Style
 
 public struct SelectWalletViewModel: SelectableListAdoptable {
     public typealias Item = GemWalletRow
@@ -19,16 +19,11 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
     public var selectionType: SelectionType = .checkmark
 
     public init(
-        rows: [GemWalletRow],
+        sections: [GemWalletSection],
         selectedRow: GemWalletRow,
     ) {
-        let sections: [ListSection<GemWalletRow>] = [
-            (Localized.Common.pinned, Images.System.pin, rows.filter(\.isPinned)),
-            (nil, nil, rows.filter { !$0.isPinned }),
-        ]
-        .filter(\.2.isNotEmpty)
-        .map { title, image, items in
-            ListSection(id: items.map(\.id).joined(), title: title, image: image, values: items)
+        let sections = sections.map { section in
+            ListSection(id: String(describing: section.kind), title: section.kind.title, image: section.kind.image, values: section.rows)
         }
 
         self.init(
