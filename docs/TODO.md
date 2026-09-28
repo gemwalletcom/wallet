@@ -20,6 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
+2. **Consistency sweeps:** CLN405 to CLN423 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold). Waiting on a date or a release: X168, X163.
 
@@ -192,6 +193,38 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
+
+## 11. Consistency sweeps
+
+Code that works but departs from the repository's own rules, found on 2026-09-28: generic verbs the naming rule bans, comments the clean-code rule bans, abbreviations where the rule asks for the full word, helpers written again beside the owner that already has them, and ids still crossing FFI as strings. Each item changes names, structure or ownership only; no request, stored value, signature or screen changes. Signer, keystore, device-auth and transaction-construction code keeps its text ([security](../skills/security.md)). Each item verifies the modules it touches and says in the commit what moved.
+
+### Core
+
+- **CLN405** **S** **Queue consumers consume.** `MessageConsumer::process` ([`consumer.rs`](../core/crates/streamer/src/consumer.rs)) and its 24 implementations in `services` use a verb the naming rule bans; the trait method becomes `consume`.
+- **CLN406** **S** **Fiat webhooks are parsed, not processed.** `FiatProvider::process_webhook` verifies a provider webhook and maps it to a `FiatWebhook` in every implementation; it becomes `parse_webhook`, with the API route that calls it.
+- **CLN407** **S** **Rust drops the last fetch, handle, execute and manage names.** The EVM fee estimators (`fetch_gas_oracle`, `fetch_fee_data`, `fetch_priority_fee_estimate`, `fetch_base_priority_fees`, `fetch_prediction`, `fetch_tip_floor`) take the `get_` verb the providers use, and the handlers and helpers named `handle_*`, `execute_*` or `manage_*` in `api`, `dynode`, `streamer` and `swapper` take the action they perform. Framework-owned signatures and `resolve` for name resolution stay.
+- **CLN408** **S** **Clock reads go through `primitives::time`.** About 13 call sites outside auth, signer and transaction construction read `SystemTime::now().duration_since(UNIX_EPOCH)` by hand beside `unix_seconds`, `unix_milliseconds` and `unix_timestamp`, and `daemon`'s `now_unix` repeats `unix_timestamp`.
+- **CLN409** **S** **Simulated balance changes take their assets once.** EVM, Sui and Tron simulation each zip balance changes with looked-up assets through the same `match asset { Some(asset) => change.with_asset(asset), None => change }`; one helper beside `with_asset` does it.
+- **CLN410** **S** **Optional string parsers share one wrapper.** `serde_serializers` repeats the `Option<String>` deserialize-then-parse body in `deserialize_option_bigint_from_str`, `deserialize_option_biguint_from_str`, `deserialize_option_u64_from_str` and `deserialize_option_f64_from_str`; one generic wrapper takes the parse function.
+- **CLN411** **M** **Rust spells transaction in full.** `tx`, `txs` and `*_tx` name a transaction in about 60 files; they become `transaction`, `transactions` and `*_transaction`. Channel senders (`shutdown_tx`), external protocol fields and signer code keep their names.
+- **CLN412** **S** **The last string ids take their type.** `set_perpetual_pinned`, the perpetual service's `set_pinned`, the perpetual and search store callbacks (`perpetual_ids`) and `wallet_sections` (`current_wallet_id`) still take `String`; they take `PerpetualId` and `WalletId`, and the Swift call sites drop `.identifier` and `.id`. The keystore's `wallet_id` parameters stay as written.
+- **CLN413** **M** **Chain crates carry no comments.** The `gem_*` chain crates hold most of Core's inline comments; each is removed or replaced by a name that says the same.
+- **CLN414** **M** **Swapper, fiat and backend code carry no comments.** The same for `swapper`, `fiat`, `rewards`, `services`, `storage` and the apps.
+- **CLN415** **S** **Gemstone, primitives and the remaining crates carry no comments.** The same for the rest of Core, keeping license headers and tool directives.
+
+### iOS
+
+- **CLN416** **S** **Search result actions are written once.** `AssetsResultsSceneViewModel` and `WalletSearchSceneViewModel` repeat `setAssetPinned`, `setAssetsEnabled`, `setPerpetualPinned` and the recent-asset update line for line, where Android shares them through `BaseSelectAssetViewModel`; one shared definition serves both.
+- **CLN417** **S** **Store foreign keys are declared through one helper.** Store records declare the `walletId` column with `.notNull().indexed().references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)` 11 times and the `assetId` reference 22 times; a `TableDefinition` helper per referenced table replaces the chain and the created schema stays identical.
+- **CLN418** **S** **Swift drops the last fetch and apply names.** Outside GRDB's `fetch(_ db:)`, functions such as `fetchQuotes`, `fetchExtended`, `fetchNativeAsset` and `applyAmount` take the action they perform, and so do test helpers.
+- **CLN419** **S** **Swift carries no comments.** 152 comments in 74 files, keeping license headers and tool directives.
+
+### Android
+
+- **CLN420** **S** **Unused Kotlin values go.** `bannerEmojiFontSize` in `Banner.kt` and `acceptTermsItems` in `GemConstants.kt` have no reader.
+- **CLN421** **S** **A focused field shows the keyboard through one modifier.** `AddNodeScene`, `AddressChainField` and `MemoTextField` repeat the `onFocusChanged` keyboard show and hide; one `Modifier` extension serves them.
+- **CLN422** **S** **Kotlin drops its fetch names.** `ServiceStatusViewModel.fetch`, `SupportChatViewModel.fetch`, `ConfirmTransferViewModel.fetch` and `AssetsResultsViewModel.fetch` take the action they perform.
+- **CLN423** **S** **Kotlin carries no comments.** Production Kotlin comments go; frozen database migrations keep theirs.
 
 ## Blocked upstream
 
