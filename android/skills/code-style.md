@@ -19,6 +19,7 @@ Use for any Kotlin or Compose change.
 ## Security and Hygiene
 
 - Never commit secrets or API keys; keep sensitive local configuration in `local.properties`
+- `MainActivity` is exported, so any app can start it with any extras; it reads only the intent's data URI. A payload the app must trust, such as a push notification's, reaches it through a non-exported activity that only the app's own `PendingIntent` can start (`app/src/main/kotlin/com/gemwallet/android/NotificationTapActivity.kt`)
 
 ## Patterns
 
