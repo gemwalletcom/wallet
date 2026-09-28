@@ -35,46 +35,43 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
     }
 
     async fn process(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
         let chain = payload.chain;
+        let addresses: Vec<_> = payload.transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
+        let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
+        if subscriptions.is_empty() {
+            return Ok(0);
+        }
+
+        let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
         let is_notify_devices = payload.should_notify_devices();
-        let deposit_addresses = self.vault_client.get_deposit_address_map().await?;
-        let send_addresses = self.vault_client.get_send_address_map().await?;
+        let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
         let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
             .collect::<Vec<_>>();
 
         let min_amount = config.min_amount_usd;
+        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
+        let transactions = transactions
+            .into_iter()
+            .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
+            .collect::<Vec<_>>();
+        if transactions.is_empty() {
+            return Ok(0);
+        }
 
-        let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
         let notification_subscriptions = Self::unique_subscriptions_per_device(subscriptions.clone());
 
-        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
+        let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
+        let nft_asset_ids: Vec<NFTAssetId> = transactions.iter().filter_map(Transaction::nft_asset_id).collect::<HashSet<_>>().into_iter().collect();
 
-        let asset_ids: Vec<AssetId> = transactions
-            .iter()
-            .filter(|x| x.addresses().iter().any(|addr| subscription_addresses.contains(addr)))
-            .flat_map(Transaction::asset_ids)
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
-
-        let (existing_assets, missing_assets) = self.get_existing_and_missing_assets(asset_ids, config.primary_price_max_age).await?;
+        let ((existing_assets, missing_assets), missing_nft_assets) = tokio::try_join!(
+            self.get_existing_and_missing_assets(asset_ids, config.primary_price_max_age),
+            self.get_missing_nft_assets(Self::supported_nft_asset_ids(nft_asset_ids)),
+        )?;
         let existing_assets_map: HashMap<AssetId, primitives::AssetPriceMetadata> = existing_assets.into_iter().map(|asset| (asset.asset.asset.id.clone(), asset)).collect();
 
         let _ = self.stream_producer.publish_fetch_assets(missing_assets).await;
-
-        let nft_asset_ids: Vec<NFTAssetId> = transactions
-            .iter()
-            .filter(|x| x.addresses().iter().any(|addr| subscription_addresses.contains(addr)))
-            .filter_map(Transaction::nft_asset_id)
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
-
-        let missing_nft_assets = self.get_missing_nft_assets(Self::supported_nft_asset_ids(nft_asset_ids)).await?;
         let _ = self.stream_producer.publish_fetch_nft_assets(missing_nft_assets).await;
 
         let subscribed_transactions = subscriptions
@@ -90,6 +87,9 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             })
             .collect::<Vec<_>>();
         let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
+        if transactions_map.is_empty() {
+            return Ok(0);
+        }
         let assets_addresses = subscribed_transactions
             .iter()
             .filter(|(_, transaction)| Self::should_store_asset_addresses(transaction))
@@ -160,7 +160,9 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .collect();
 
         let assets_addresses: Vec<_> = assets_addresses.into_iter().collect();
-        self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
+        if !assets_addresses.is_empty() {
+            self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
+        }
         let _ = self.stream_producer.publish_notifications_transactions(notifications).await;
         let _ = self.stream_producer.publish_wallet_stream_events(wallet_events).await;
 
