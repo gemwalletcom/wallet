@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN409** **S** **Simulated balance changes take their assets once.** EVM, Sui and Tron simulation each zip balance changes with looked-up assets through the same `match asset { Some(asset) => change.with_asset(asset), None => change }`; one helper beside `with_asset` does it.
 - **CLN410** **S** **Optional string parsers share one wrapper.** `serde_serializers` repeats the `Option<String>` deserialize-then-parse body in `deserialize_option_bigint_from_str`, `deserialize_option_biguint_from_str`, `deserialize_option_u64_from_str` and `deserialize_option_f64_from_str`; one generic wrapper takes the parse function.
 - **CLN411** **M** **Rust spells transaction in full.** `tx`, `txs` and `*_tx` name a transaction in about 60 files; they become `transaction`, `transactions` and `*_transaction`. Channel senders (`shutdown_tx`), external protocol fields and signer code keep their names.
 - **CLN412** **S** **The last string ids take their type.** `set_perpetual_pinned`, the perpetual service's `set_pinned`, the perpetual and search store callbacks (`perpetual_ids`) and `wallet_sections` (`current_wallet_id`) still take `String`; they take `PerpetualId` and `WalletId`, and the Swift call sites drop `.identifier` and `.id`. The keystore's `wallet_id` parameters stay as written.

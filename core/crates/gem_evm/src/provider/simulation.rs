@@ -23,14 +23,7 @@ impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
         let SimulationResult { warnings, balance_changes, payload, header } = map_simulation_result(self.get_chain(), signer, &trace);
 
         let assets = self.get_balance_change_assets(&balance_changes).await;
-        let balance_changes = balance_changes
-            .into_iter()
-            .zip(assets)
-            .map(|(change, asset)| match asset {
-                Some(asset) => change.with_asset(asset),
-                None => change,
-            })
-            .collect();
+        let balance_changes = SimulationBalanceChange::with_assets(balance_changes, assets);
 
         Ok(SimulationResult { warnings, balance_changes, payload, header })
     }
