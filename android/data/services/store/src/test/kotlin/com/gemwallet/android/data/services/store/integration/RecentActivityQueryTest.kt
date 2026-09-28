@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.application.assets.values.AssetsQueryFilter
+import com.gemwallet.android.application.assets.values.RecentActivityScope
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
@@ -105,6 +106,15 @@ class RecentActivityQueryTest {
     fun theLimitCapsTheRowsAndZeroReturnsEveryRow() = runBlocking(Dispatchers.IO) {
         assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), limit = 1).first().map { it.asset.id })
         assertEquals(3, query(WalletId("wallet-1"), limit = 0).first().size)
+    }
+
+    @Test
+    fun clearingATypeForgetsItInEveryWalletAndKeepsTheRest() = runBlocking(Dispatchers.IO) {
+        database.assetsDao().clearRecentAssets(RecentActivityScope.AllWallets, listOf(RecentActivityType.Transfer))
+
+        assertEquals(listOf(AssetId(Chain.Ethereum), AssetId(Chain.Bitcoin), AssetId(Chain.Solana)), query(WalletId("wallet-1")).first().map { it.asset.id })
+        assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), types = listOf(RecentActivityType.Transfer, RecentActivityType.Swap)).first().map { it.asset.id })
+        assertEquals(emptyList<AssetId>(), query(WalletId("wallet-2")).first().map { it.asset.id })
     }
 
     @Test

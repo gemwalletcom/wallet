@@ -1,7 +1,13 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::TransactionInputType;
-use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemRecentActivityScope {
+    Wallet { wallet_id: WalletId },
+    AllWallets,
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentActivity {

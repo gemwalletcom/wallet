@@ -1,11 +1,13 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.application.assets.values.toScope
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.entities.DbRecentActivity
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemRecentActivity
+import uniffi.gemstone.GemRecentActivityScope
 import uniffi.gemstone.GemRecentActivityStore
 import uniffi.gemstone.RecentActivityType
 
@@ -23,7 +25,7 @@ class GemstoneRecentActivityStore(private val assetsDao: AssetsDao) : GemRecentA
         )
     }
 
-    override suspend fun clear(walletId: String, types: List<RecentActivityType>) {
-        assetsDao.clearRecentAssets(walletId, types.map { it.toPrimitives() })
+    override suspend fun clear(scope: GemRecentActivityScope, types: List<RecentActivityType>) {
+        assetsDao.clearRecentAssets(scope.toScope(), types.map { it.toPrimitives() })
     }
 }
