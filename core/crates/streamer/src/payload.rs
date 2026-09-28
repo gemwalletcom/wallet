@@ -283,7 +283,14 @@ mod tests {
             event: WalletStreamEvent::WalletConfiguration,
         };
 
-        assert_eq!(serde_json::to_string(&payload).unwrap(), r#"{"wallet_id":123,"event":"WalletConfiguration"}"#);
+        assert_eq!(serde_json::to_string(&payload).unwrap(), r#"{"wallet_id":123,"event":"walletConfiguration"}"#);
+    }
+
+    #[test]
+    fn test_wallet_configuration_payload_legacy_deserialization() {
+        let payload: WalletStreamPayload = serde_json::from_str(r#"{"wallet_id":123,"event":"WalletConfiguration"}"#).unwrap();
+
+        assert!(matches!(payload.event, WalletStreamEvent::WalletConfiguration));
     }
 }
 
@@ -371,11 +378,17 @@ impl fmt::Display for WalletStreamPayload {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum WalletStreamEvent {
+    #[serde(alias = "Transactions")]
     Transactions { transaction_ids: Vec<TransactionId>, asset_ids: Vec<AssetId> },
+    #[serde(alias = "FiatTransaction")]
     FiatTransaction,
+    #[serde(alias = "Nft")]
     Nft,
+    #[serde(alias = "Perpetual")]
     Perpetual,
+    #[serde(alias = "WalletConfiguration")]
     WalletConfiguration,
 }
 
