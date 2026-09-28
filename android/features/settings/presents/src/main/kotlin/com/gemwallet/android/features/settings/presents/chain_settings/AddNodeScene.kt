@@ -13,9 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
@@ -25,6 +23,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
+import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -102,14 +101,11 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState?, url: MutableState<St
 
 @Composable
 private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: String = "", onValueChange: () -> Unit, onQRScan: () -> Unit) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalContext.current.clipboardManager()
     GemTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .onFocusChanged {
-                if (it.hasFocus) keyboardController?.show() else keyboardController?.hide()
-            },
+            .keyboardFollowsFocus(),
         value = value.value,
         singleLine = true,
         label = stringResource(R.string.common_url),
