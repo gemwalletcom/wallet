@@ -1362,19 +1362,18 @@ When a real screen-level service is needed, name it for the screen it backs, not
 #[derive(uniffi::Object)]
 pub struct GemContactEditorService {
     contacts: Arc<GemContactService>,
-    addresses: Arc<GemAddressService>,
     payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemContactEditorService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self { ... }
+    pub fn new(contacts: Arc<GemContactService>, payments: Arc<GemPaymentService>) -> Self { ... }
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress { ... }
-    pub fn default_chain(&self) -> Chain { self.contacts.default_chain() }
     pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> { ... }
-    pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String { ... }
+    pub fn new_session(&self, contact: Option<Contact>, addresses: Vec<ContactAddress>) -> GemContactSession { ... }
+    pub fn new_address_session(&self, contact_id: String, existing: Option<ContactAddress>) -> GemContactAddressSession { ... }
 }
 ```
 
