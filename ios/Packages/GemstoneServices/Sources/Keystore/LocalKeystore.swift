@@ -136,19 +136,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     }
 }
 
-func withV4Password<T>(
-    keystore: Gemstone.GemKeystore,
-    _ password: String,
-    _ operation: (Data) throws -> T,
-) throws -> T {
-    guard password.isNotEmpty else {
-        throw KeystoreError.missingPassword
-    }
-    var passwordBytes = keystore.decodePassword(password: password)
-    defer { passwordBytes.zeroize() }
-    return try operation(passwordBytes)
-}
-
 extension Primitives.Wallet {
     var legacyV3Id: String {
         externalId ?? id.id
