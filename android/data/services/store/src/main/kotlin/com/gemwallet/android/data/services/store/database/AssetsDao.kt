@@ -9,6 +9,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import com.gemwallet.android.application.assets.values.AssetsQueryFilter
 import com.gemwallet.android.application.assets.values.AssetsQueryScope
+import com.gemwallet.android.application.assets.values.RecentActivityScope
 import com.gemwallet.android.application.assets.values.chains
 import com.gemwallet.android.application.assets.values.chainsOrAssets
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
@@ -504,11 +505,19 @@ interface AssetsDao {
     @Query(
         """
         DELETE FROM recent_assets
-        WHERE wallet_id = :walletId
+        WHERE (:walletId IS NULL OR wallet_id = :walletId)
             AND type IN (:types)
     """,
     )
-    suspend fun clearRecentAssets(walletId: String, types: List<RecentActivityType>)
+    suspend fun clearRecentAssetsQuery(walletId: String?, types: List<RecentActivityType>)
+
+    suspend fun clearRecentAssets(scope: RecentActivityScope, types: List<RecentActivityType>) = clearRecentAssetsQuery(
+        walletId = when (scope) {
+            is RecentActivityScope.Wallet -> scope.walletId.id
+            RecentActivityScope.AllWallets -> null
+        },
+        types = types,
+    )
 
     @Query("DELETE FROM asset WHERE type != :nativeType")
     suspend fun deleteTokens(nativeType: AssetType)

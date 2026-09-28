@@ -2,6 +2,7 @@
 
 import Foundation
 import struct Gemstone.GemRecentActivity
+import enum Gemstone.GemRecentActivityScope
 import protocol Gemstone.GemRecentActivityStore
 import enum Gemstone.RecentActivityType
 import typealias Gemstone.WalletId
@@ -20,7 +21,7 @@ public final class GemstoneRecentActivityStore: GemRecentActivityStore, @uncheck
         try store.add(RecentActivityData(activity), walletId: walletId)
     }
 
-    public func clear(walletId: Gemstone.WalletId, types: [Gemstone.RecentActivityType]) async throws {
-        try store.clear(walletId: walletId, types: types.map { $0.toPrimitives() })
+    public func clear(scope: GemRecentActivityScope, types: [Gemstone.RecentActivityType]) async throws {
+        try store.clear(scope: scope.map(), types: types.map { $0.toPrimitives() })
     }
 }

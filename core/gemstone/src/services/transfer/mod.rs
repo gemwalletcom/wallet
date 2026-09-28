@@ -6,6 +6,6 @@ mod store;
 pub(crate) mod testkit;
 
 pub(crate) use model::GemPendingTransactionInput;
-pub use model::{GemConfirmDestination, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
+pub use model::{GemConfirmDestination, GemRecentActivity, GemRecentActivityScope, GemRecipient, GemTransferData, GemTransferOutput};
 pub use recent::GemRecentActivityService;
 pub use store::GemRecentActivityStore;

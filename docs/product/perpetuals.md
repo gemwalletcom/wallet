@@ -28,6 +28,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The wallet is not Multi-Coin or has no Hyperliquid account, or the user has not switched Perpetuals on | Perpetuals are not offered | |
+| The user switches Perpetuals off | the markets, positions and every wallet's perpetual recents are removed | search must not offer a market the app no longer has |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
 | The market has a position | the position shows, with Modify and Close in place of Long and Short | |

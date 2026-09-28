@@ -9,7 +9,7 @@ use crate::services::empty_state::GemEmptyStateKind;
 use crate::services::error::GemServiceError;
 use crate::services::search::rules::matching_assets;
 use crate::services::transfer::rules::TransferInput;
-use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
+use crate::services::transfer::{GemRecentActivity, GemRecentActivityScope, GemRecentActivityStore};
 use crate::services::wallet_session::GemWalletSessionService;
 use primitives::TransactionInputType;
 
@@ -44,7 +44,8 @@ impl GemRecentActivityService {
     }
 
     pub async fn clear(&self, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
-        self.store.clear(self.session.current_wallet_id()?, types).await
+        let wallet_id = self.session.current_wallet_id()?;
+        self.clear_in(GemRecentActivityScope::Wallet { wallet_id }, types).await
     }
 
     /// `days[i]` is the local day of `recents[i]`; the apps know the time zone, Core groups.
@@ -80,6 +81,10 @@ impl GemRecentActivityService {
             Some(activity) => self.store.add(activity, wallet_id).await,
             None => Ok(()),
         }
+    }
+
+    pub async fn clear_in(&self, scope: GemRecentActivityScope, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
+        self.store.clear(scope, types).await
     }
 }
 
