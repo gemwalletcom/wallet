@@ -5,7 +5,7 @@ use primitives::{
 };
 
 pub struct V4Deployment {
-    pub quoter: &'static str, // V4 Quoter
+    pub quoter: &'static str,
     pub state_view: &'static str,
     pub permit2: &'static str,
     pub universal_router: &'static str,
@@ -25,7 +25,6 @@ impl V4Deployment {
 }
 
 pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
-    // https://github.com/Uniswap/contracts/blob/main/deployments/index.md
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Ethereum => Some(V4Deployment::v2_1(
@@ -118,7 +117,6 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0xDa00aE15d3A71466517129255255db7c0c0956d3",
         )),
-        // See: https://github.com/Uniswap/contracts/blob/main/deployments/4663.md
         Chain::Robinhood => Some(V4Deployment::v2_1(
             "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
             "0xF3334192D15450CdD385c8B70e03f9A6bD9E673b",
@@ -131,7 +129,6 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91",
         )),
-        // See: https://github.com/Uniswap/contracts/blob/main/deployments/5042.md
         Chain::Arc => Some(V4Deployment::v2_1(
             "0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94",
             "0xF3334192D15450CdD385c8B70e03f9A6bD9E673b",

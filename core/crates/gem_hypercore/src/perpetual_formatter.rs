@@ -1,6 +1,3 @@
-// https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/contract-specifications
-
 use num_bigint::BigUint;
 
 const MIN_ORDER_VALUE_USD: f64 = 10.0;
@@ -18,7 +15,6 @@ pub fn usdc_value(amount: f64) -> BigUint {
 pub struct PerpetualFormatter;
 
 impl PerpetualFormatter {
-    /// Hyperliquid requires minimum $10 notional value (size × price).
     pub fn minimum_order_usd_amount(price: f64, sz_decimals: i32, leverage: u8) -> u64 {
         let size_multiplier = 10_f64.powi(sz_decimals);
         let rounded_size = ((MIN_ORDER_VALUE_USD / price) * size_multiplier).ceil() / size_multiplier;

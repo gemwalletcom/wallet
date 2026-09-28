@@ -49,7 +49,6 @@ pub use rpc::client::SolanaClient;
 #[cfg(feature = "rpc")]
 pub use rpc::client::SolanaClient;
 
-// Constants
 pub use primitives::asset_constants::{SOLANA_PYUSD_TOKEN_ID as PYUSD_TOKEN_MINT, SOLANA_USDC_TOKEN_ID as USDC_TOKEN_MINT, SOLANA_USDS_TOKEN_ID as USDS_TOKEN_MINT, SOLANA_USDT_TOKEN_ID as USDT_TOKEN_MINT};
 pub use primitives::contract_constants::{
     SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID as ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, SOLANA_BPF_LOADER_PROGRAM_ID as BPF_LOADER_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID as COMPUTE_BUDGET_PROGRAM_ID,

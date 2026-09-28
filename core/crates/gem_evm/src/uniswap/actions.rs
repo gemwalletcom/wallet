@@ -12,7 +12,6 @@ pub const TAKE_ACTION: u8 = 0x0e;
 pub const TAKE_ALL_ACTION: u8 = 0x0f;
 pub const TAKE_PORTION_ACTION: u8 = 0x10;
 
-// https://github.com/Uniswap/v4-periphery/blob/main/src/libraries/Actions.sol
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq)]
 pub enum V4Action {
@@ -57,7 +56,6 @@ pub fn encode_action_data(action: &V4Action) -> Vec<u8> {
 }
 
 pub fn decode_action_data(data: &[u8], universal_router_abi: UniversalRouterAbi) -> Result<Vec<V4Action>, alloy_sol_types::Error> {
-    // The ABI encoding for a sequence of actions is (bytes opcodes, bytes[] action_data)
     let (action_opcodes_bytes, action_data_bytes) = <(Bytes, Vec<Bytes>) as SolValue>::abi_decode_sequence(data)?;
 
     let action_opcodes: Vec<u8> = action_opcodes_bytes.to_vec();
@@ -196,7 +194,6 @@ mod tests {
         assert_eq!(params.len(), expected.len() / 2);
         assert_eq!(HexEncode(&params), expected);
 
-        // Test decode_action_data
         let decoded_actions = decode_action_data(&params, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(actions, decoded_actions, "Decoded actions do not match original actions");

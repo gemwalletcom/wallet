@@ -1,9 +1,6 @@
 use gem_encoding::protobuf::proto_encode;
 use sui_types as sdk;
 
-// Field numbers mirror sui-rpc v0.3.1 argument schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/argument.proto
-
 const ARGUMENT_KIND_GAS: i32 = 1;
 const ARGUMENT_KIND_INPUT: i32 = 2;
 const ARGUMENT_KIND_RESULT: i32 = 3;

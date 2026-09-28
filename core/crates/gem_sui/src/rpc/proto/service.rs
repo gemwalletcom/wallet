@@ -1,11 +1,6 @@
 use super::{FieldMask, Timestamp};
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Field numbers mirror sui-rpc v0.3.1 ledger/epoch/system-state schemas:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/ledger_service.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/epoch.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/system_state.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct GetServiceInfoRequest;
 

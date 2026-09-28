@@ -1,4 +1,3 @@
-// Taken from https://github.com/metaplex-foundation/mpl-token-metadata/blob/main/programs/token-metadata/program/src/state/metadata.rs
 mod collection;
 mod data;
 mod uses;
@@ -29,12 +28,12 @@ pub enum Key {
 
 #[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TokenStandard {
-    NonFungible,                    // This is a master edition
-    FungibleAsset,                  // A token with metadata that can also have attributes
-    Fungible,                       // A token with simple metadata
-    NonFungibleEdition,             // This is a limited edition
-    ProgrammableNonFungible,        // NonFungible with programmable configuration
-    ProgrammableNonFungibleEdition, // NonFungible with programmable configuration
+    NonFungible,
+    FungibleAsset,
+    Fungible,
+    NonFungibleEdition,
+    ProgrammableNonFungible,
+    ProgrammableNonFungibleEdition,
 }
 
 pub fn decode_metadata(base64_str: &str) -> Result<Metadata, Box<dyn std::error::Error>> {

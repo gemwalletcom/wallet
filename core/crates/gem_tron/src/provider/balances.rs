@@ -112,9 +112,6 @@ mod chain_integration_tests {
         assert!(metadata.bandwidth_available > 0);
         assert!(metadata.bandwidth_total >= 600);
 
-        //assert!(metadata.energy_available);
-        //assert!(metadata.energy_total > 0);
-
         assert!(metadata.bandwidth_available <= metadata.bandwidth_total);
         assert!(metadata.energy_available <= metadata.energy_total);
 

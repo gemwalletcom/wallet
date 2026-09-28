@@ -11,29 +11,17 @@ use borsh::{BorshDeserialize, BorshSerialize};
 
 #[derive(Clone, BorshDeserialize, BorshSerialize, Debug, PartialEq, Eq)]
 pub struct Metadata {
-    /// Account discriminator.
     pub key: Key,
-    /// Address of the update authority.
     pub update_authority: Pubkey,
-    /// Address of the mint.
     pub mint: Pubkey,
-    /// Asset data.
     pub data: Data,
-    // Immutable, once flipped, all sales of this metadata are considered secondary.
     pub primary_sale_happened: bool,
-    // Whether or not the data struct is mutable, default is not
     pub is_mutable: bool,
-    /// nonce for easy calculation of editions, if present
     pub edition_nonce: Option<u8>,
-    /// Since we cannot easily change Metadata, we add the new DataV2 fields here at the end.
     pub token_standard: Option<TokenStandard>,
-    /// Collection
     pub collection: Option<Collection>,
-    /// Uses
     pub uses: Option<Uses>,
-    /// Collection Details
     pub collection_details: Option<CollectionDetails>,
-    /// Programmable Config
     pub programmable_config: Option<ProgrammableConfig>,
 }
 

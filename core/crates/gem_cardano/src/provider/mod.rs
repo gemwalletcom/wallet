@@ -17,7 +17,6 @@ pub struct BroadcastProvider;
 
 pub use transactions_mapper::map_transaction;
 
-// Empty ChainAccount implementation
 use crate::rpc::client::CardanoClient;
 use async_trait::async_trait;
 use chain_traits::ChainAccount;

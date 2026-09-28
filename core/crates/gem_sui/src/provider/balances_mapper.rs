@@ -66,8 +66,8 @@ mod tests {
 
         let result = map_balance_tokens(balances, token_ids);
         assert_eq!(result.len(), 2);
-        assert_eq!(result[0].balance.available, BigUint::from(3685298_u64)); // USDC balance
-        assert_eq!(result[1].balance.available, BigUint::from(1000_u64)); // TOKEN balance
+        assert_eq!(result[0].balance.available, BigUint::from(3685298_u64));
+        assert_eq!(result[1].balance.available, BigUint::from(1000_u64));
     }
 
     #[test]

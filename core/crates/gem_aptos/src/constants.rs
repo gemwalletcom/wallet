@@ -24,4 +24,4 @@ pub const STAKE_GET_LOCKUP_SECS_FUNCTION: &str = "0x1::stake::get_lockup_secs";
 pub const DELEGATION_POOL_ADD_STAKE_EVENT: &str = "0x1::delegation_pool::AddStake";
 pub const DELEGATION_POOL_UNLOCK_STAKE_EVENT: &str = "0x1::delegation_pool::UnlockStake";
 
-pub const KNOWN_VALIDATOR_POOL: &str = "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e"; // Everstake
+pub const KNOWN_VALIDATOR_POOL: &str = "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e";

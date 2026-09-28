@@ -6,11 +6,6 @@ use super::json::decode_json_value;
 use super::{Bcs, FieldMask, Status};
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Field numbers mirror sui-rpc v0.3.1 ledger/object schemas:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/ledger_service.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/object.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/owner.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct ListOwnedObjectsRequest {
     pub owner: Option<String>,

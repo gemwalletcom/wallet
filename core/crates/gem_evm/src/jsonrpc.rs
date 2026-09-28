@@ -59,7 +59,6 @@ impl TransactionObject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BlockParameter {
-    // hexadecimal block number
     Number(&'static str),
     Latest,
     Earliest,

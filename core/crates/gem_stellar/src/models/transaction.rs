@@ -34,7 +34,6 @@ pub struct StellarTransactionStatus {
     pub hash: String,
 }
 
-// RPC models
 #[cfg(feature = "rpc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Payment {
@@ -44,7 +43,6 @@ pub struct Payment {
     #[serde(rename = "type")]
     pub payment_type: String,
 
-    // payment
     pub asset_type: Option<String>,
     pub from: Option<String>,
     pub to: Option<String>,
@@ -54,7 +52,6 @@ pub struct Payment {
 
     pub created_at: String,
 
-    // create account
     pub source_account: Option<String>,
     pub funder: Option<String>,
     pub account: Option<String>,

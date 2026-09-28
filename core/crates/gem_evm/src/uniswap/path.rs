@@ -25,9 +25,9 @@ impl Display for TokenPairs {
         write!(f, "[")?;
         let mut iter = self.0.iter();
         if let Some(first) = iter.next() {
-            write!(f, "{first}")?; // Write first element without a leading comma
+            write!(f, "{first}")?;
             for item in iter {
-                write!(f, ", {item}")?; // Write subsequent elements with a leading comma
+                write!(f, ", {item}")?;
             }
         }
         write!(f, "]")
@@ -62,7 +62,6 @@ impl BasePair {
     pub fn path_building_array(&self) -> Vec<Address> {
         let mut array = vec![self.primary];
         array.extend(self.stables.iter().cloned());
-        // alternatives is not used for path building to reduce requests
         array
     }
 }
@@ -81,15 +80,15 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Base => BASE_WBTC_TOKEN_ID,
         EVMChain::AvalancheC => "0x408d4cd0adb7cebd1f1a1c33a0ba2098e1295bab",
         EVMChain::Celo => "0xd71ffd0940c920786ec4dbb5a12306669b5b81ef",
-        EVMChain::SmartChain => "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c", // BTCB
-        EVMChain::OpBNB => "0x7c6b91d9be155a6db01f749217d76ff02a7227f2",      // BTCB
+        EVMChain::SmartChain => "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        EVMChain::OpBNB => "0x7c6b91d9be155a6db01f749217d76ff02a7227f2",
         EVMChain::ZkSync => ZKSYNC_WBTC_TOKEN_ID,
         EVMChain::Blast => BLAST_WBTC_TOKEN_ID,
         EVMChain::World => WORLD_WBTC_TOKEN_ID,
         EVMChain::Sonic => SONIC_WBTC_TOKEN_ID,
         EVMChain::Linea => LINEA_WBTC_TOKEN_ID,
         EVMChain::SeiEvm => "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
-        _ => "", // None
+        _ => "",
     };
 
     let usdc = match chain {
@@ -102,11 +101,11 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Celo => "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
         EVMChain::SmartChain => SMARTCHAIN_USDC_TOKEN_ID,
         EVMChain::ZkSync => ZKSYNC_USDC_E_TOKEN_ID,
-        EVMChain::Blast => "0x4300000000000000000000000000000000000003", // USDB
+        EVMChain::Blast => "0x4300000000000000000000000000000000000003",
         EVMChain::World => WORLD_USDC_E_TOKEN_ID,
-        EVMChain::Abstract => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1", // USDC.e
+        EVMChain::Abstract => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
         EVMChain::Unichain => UNICHAIN_USDC_TOKEN_ID,
-        EVMChain::Sonic => "0x29219dd400f2bf60e5a23d13be72b486d4038894", // USDC.e
+        EVMChain::Sonic => "0x29219dd400f2bf60e5a23d13be72b486d4038894",
         EVMChain::Mantle => "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
         EVMChain::Gnosis => GNOSIS_USDC_TOKEN_ID,
         EVMChain::Manta => "0xb73603c5d87fa094b7314c74ace2e64d165016fb",
@@ -117,7 +116,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::XLayer => XLAYER_USDC_TOKEN_ID,
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
         EVMChain::OpBNB | EVMChain::Plasma | EVMChain::Arc => "",
-        EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b", // USDC.e (Stargate)
+        EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b",
         EVMChain::Tempo => TEMPO_BRIDGED_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
     };
@@ -133,7 +132,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::SmartChain => SMARTCHAIN_USDT_TOKEN_ID,
         EVMChain::ZkSync => ZKSYNC_USDT_TOKEN_ID,
         EVMChain::Abstract => "0x0709F39376dEEe2A2dfC94A58EdEb2Eb9DF012bD",
-        EVMChain::Unichain => "0x9151434b16b9763660705744891fA906F660EcC5", // USDT0
+        EVMChain::Unichain => "0x9151434b16b9763660705744891fA906F660EcC5",
         EVMChain::Sonic => "0x6047828dc181963ba44974801FF68e538dA5eaF9",
         EVMChain::Mantle => "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
         EVMChain::Gnosis => GNOSIS_USDT_TOKEN_ID,
@@ -143,10 +142,10 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Ink => INK_USDT_TOKEN_ID,
         EVMChain::Plasma => PLASMA_USDT_TOKEN_ID,
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
-        EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID, // USDT0
+        EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",                                // USDT0
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "", // None
+        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "",
         _ => panic!("USDT is not configured for this chain"),
     };
 
@@ -172,7 +171,6 @@ pub fn build_direct_pair(token_in: &Address, token_out: &Address, fee_tier: FeeT
 }
 
 pub fn validate_pairs(token_pairs: &[TokenPair]) -> bool {
-    // verify token in and out are chained
     let mut iter = token_pairs.iter().peekable();
     let mut valid = true;
     while let Some(current_pair) = iter.next() {
@@ -205,14 +203,12 @@ pub fn build_pairs(token_pairs: &[TokenPair]) -> Bytes {
 }
 
 pub fn decode_path(path: &Bytes) -> Option<TokenPair> {
-    // Minimum path: token_in | fee | token_out. Length = 20 + 3 + 20 = 43 bytes.
     if path.len() < 43 {
         return None;
     }
 
     let token_in = Address::from_slice(&path[0..20]);
 
-    // Fee is a uint24, stored in 3 bytes.
     let fee_value = u32::from_be_bytes([0, path[20], path[21], path[22]]);
     let fee_tier = FeeTier::try_from(fee_value).ok()?;
 
@@ -230,9 +226,7 @@ mod tests {
 
     #[test]
     fn test_build_path() {
-        // Optimism WETH
         let token0: Address = OPTIMISM_WETH_TOKEN_ID.parse().unwrap();
-        // USDC
         let token1: Address = OPTIMISM_USDC_TOKEN_ID.parse().unwrap();
         let bytes = build_direct_pair(&token0, &token1, FeeTier::FiveHundred);
 
@@ -251,11 +245,8 @@ mod tests {
 
     #[test]
     fn test_two_hop_path() {
-        // UNI
         let token0 = address!("0x6fd9d7AD17242c41f7131d257212c54A0e816691");
-        // WETH
         let token1: Address = OPTIMISM_WETH_TOKEN_ID.parse().unwrap();
-        // LINK
         let token2 = address!("0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6");
         let token_pairs = TokenPair::new_two_hop(&token0, &token1, &token2, FeeTier::ThreeThousand);
         let bytes = build_pairs(&token_pairs);

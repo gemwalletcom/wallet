@@ -152,7 +152,6 @@ pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitive
 }
 
 pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Option<primitives::Transaction> {
-    // reject multi-sig transactions (3+), but allow fee-payer pattern (2 signatures)
     if transaction.transaction.signatures.len() > 2 {
         return None;
     }
@@ -196,7 +195,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let pre_token_balances = &transaction.meta.pre_token_balances;
     let post_token_balances = &transaction.meta.post_token_balances;
 
-    // SPL token transfer (regular tokens or NFTs that go through the SPL Token program).
     if let Some(first_balance) = pre_token_balances.first() {
         let token_id = &first_balance.mint;
         if account_keys.iter().any(|key| key == TOKEN_PROGRAM || key == TOKEN_PROGRAM_2022)
@@ -239,7 +237,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         }
     }
 
-    // Metaplex Core NFT transfer (single instruction, no SPL token balances).
     if let Some(nft) = map_metaplex_core_nft_transfer(transaction, account_keys) {
         let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &nft.collection, &nft.asset));
         return Some(Transaction::new(
@@ -281,7 +278,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    // smart contract call
     let contract = transaction
         .transaction
         .message

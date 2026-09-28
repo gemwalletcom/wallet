@@ -88,7 +88,6 @@ mod tests {
 
         assert!(!validate_address(""));
         assert!(!validate_address("invalid"));
-        // wrong checksum (last char flipped)
         assert!(!validate_address("GAE2SZV4VLGBAPRYRFV2VY7YYLYGYIP5I7OU7BSP6DJT7GAZ35OKFDYZ"));
     }
 }

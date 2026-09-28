@@ -80,7 +80,6 @@ pub struct TransactionEventAttribute {
 
 impl TransactionResponseData {
     pub fn get_rewards_value(&self, denom: &str) -> Option<BigUint> {
-        //base64 decoding added for sei/celestia. This is a temporary solution until the issue is resolved in the cosmos-sdk
         self.events
             .iter()
             .filter(|event| event.event_type == crate::constants::EVENTS_WITHDRAW_REWARDS_TYPE)

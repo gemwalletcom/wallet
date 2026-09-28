@@ -8,7 +8,6 @@ impl EtherConv {
         BigInt::from(10u64.pow(18))
     }
 
-    /// Parse Ether to Wei as BigInt
     pub fn parse_ether(ether: &str) -> BigInt {
         to_bn_wei(ether, 18)
     }

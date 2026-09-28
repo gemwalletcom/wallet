@@ -4,9 +4,6 @@ use sui_types as sdk;
 use super::{Command, Input};
 use crate::rpc::proto::{Bcs, MessageResult};
 
-// Field numbers mirror sui-rpc v0.3.1 transaction data schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/transaction.proto
-
 const KIND_PROGRAMMABLE_TRANSACTION: i32 = 1;
 const KIND_PROGRAMMABLE_SYSTEM_TRANSACTION: i32 = 11;
 

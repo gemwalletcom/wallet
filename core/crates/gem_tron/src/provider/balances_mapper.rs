@@ -71,14 +71,7 @@ pub fn map_balance_staking(account: &TronAccount, reward: &TronReward, usage: &T
     }
 }
 
-fn new_stake_balance(
-    frozen: BigUint,  // bandwidth frozen
-    locked: BigUint,  // energy frozen
-    staked: BigUint,  // vote amount
-    pending: BigUint, // unfreezing amount
-    rewards: BigUint, // voting rewards
-    metadata: BalanceMetadata,
-) -> Balance {
+fn new_stake_balance(frozen: BigUint, locked: BigUint, staked: BigUint, pending: BigUint, rewards: BigUint, metadata: BalanceMetadata) -> Balance {
     Balance {
         available: BigUint::from(0u32),
         frozen,

@@ -1,7 +1,6 @@
 use alloy_sol_types::{SolCall, sol};
 use primitives::EVMChain;
 
-// https://www.multicall3.com/
 sol! {
     #[derive(Debug)]
     interface IMulticall3 {

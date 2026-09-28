@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN413** **M** **Chain crates carry no comments.** The `gem_*` chain crates hold most of Core's inline comments; each is removed or replaced by a name that says the same.
 - **CLN414** **M** **Swapper, fiat and backend code carry no comments.** The same for `swapper`, `fiat`, `rewards`, `services`, `storage` and the apps.
 - **CLN415** **S** **Gemstone, primitives and the remaining crates carry no comments.** The same for the rest of Core, keeping license headers and tool directives.
 

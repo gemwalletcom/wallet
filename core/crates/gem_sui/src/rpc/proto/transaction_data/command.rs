@@ -4,9 +4,6 @@ use sui_types as sdk;
 use super::Argument;
 use crate::rpc::proto::MessageResult;
 
-// Field numbers mirror sui-rpc v0.3.1 transaction command schemas:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/transaction.proto
-
 #[derive(Clone, Debug, Default)]
 pub enum Command {
     MoveCall(MoveCall),

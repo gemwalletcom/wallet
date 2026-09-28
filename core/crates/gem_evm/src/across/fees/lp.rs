@@ -1,4 +1,3 @@
-// https://github.com/across-protocol/sdk/blob/master/src/lpFeeCalculator/lpFeeCalculator.ts#L10
 use crate::ether_conv::EtherConv;
 use num_bigint::BigInt;
 use num_traits::{ToPrimitive, Zero};
@@ -12,19 +11,15 @@ pub struct RateModel {
     pub r2: BigInt,
 }
 
-/// Converts an APY rate to a one-week rate.
-/// R_week = (1 + apy)^(1/52) - 1
 pub fn convert_apy_to_weekly_fee(apy: BigInt) -> BigInt {
     let fixed_point_adjustment = 10u64.pow(18) as f64;
 
-    // Perform decimal calculations using floating-point for fractional exponents
     let apy_decimal = apy.to_f64().unwrap_or(f64::INFINITY) / fixed_point_adjustment;
     let weekly_fee_pct = ((1.0 + apy_decimal).powf(1.0 / 52.0) - 1.0) * fixed_point_adjustment;
 
     BigInt::from(weekly_fee_pct.ceil() as u64)
 }
 
-/// Truncate a BigUint to a given number of decimal places (from 18).
 pub fn truncate_18_decimal_bn(input: &BigInt, digits: u32) -> BigInt {
     let digits_to_drop = 18 - digits;
     let multiplier = BigInt::from(10).pow(digits_to_drop);
@@ -37,17 +32,9 @@ pub struct LpFeeCalculator {
 
 impl LpFeeCalculator {
     pub fn new(rate_model: RateModel) -> Self {
-        //! Rate model to be used in this calculation.
         Self { rate_model }
     }
 
-    /// Calculate the instantaneous rate for a 0 sized deposit (infinitesimally small).
-    ///
-    /// # Parameters
-    /// - util: the utilization rate of the pool
-    ///
-    /// # Returns
-    /// The instantaneous rate for a 0 sized deposit.
     pub fn instantaneous_rate(&self, util: &BigInt) -> BigInt {
         let model = &self.rate_model;
         let one = EtherConv::one();
@@ -59,13 +46,6 @@ impl LpFeeCalculator {
         model.r0.clone() + before_kink + after_kink
     }
 
-    /// Compute area under curve of the piece-wise linear rate model
-    ///
-    /// # Parameters
-    /// - util: the utilization rate of the pool
-    ///
-    /// # Returns
-    /// The area under the curve of the piece-wise linear rate model.the area under the curve
     pub fn area_under_curve(&self, util: &BigInt) -> BigInt {
         let model = &self.rate_model;
         let fixed_point_adjustment = EtherConv::one();
@@ -82,14 +62,6 @@ impl LpFeeCalculator {
         rect_1 + triangle_1 + rect_2 + triangle_2
     }
 
-    /// Calculate the realized yearly LP Fee APY Percent for a given rate model, utilization before and after the deposit.
-    ///
-    /// # Parameters
-    /// - util_before: the utilization rate of the pool before the deposit
-    /// - util_after: the utilization rate of the pool after the deposit
-    ///
-    /// # Returns
-    /// The realized LP fee APY percent.
     pub fn apy_from_utilization(&self, util_before: &BigInt, util_after: &BigInt) -> BigInt {
         if util_before == util_after {
             return self.instantaneous_rate(util_before);
@@ -102,15 +74,6 @@ impl LpFeeCalculator {
         (area_after - area_before) * one / (util_after - util_before)
     }
 
-    /// Calculate the realized LP Fee Percent for a given rate model, utilization before and after the deposit.
-    ///
-    /// # Parameters
-    /// - util_before: The utilization of the pool before the deposit.
-    /// - util_after: The utilization of the pool after the deposit.
-    /// - truncate_decimals: Whether to truncate the result to 6 decimals.
-    ///
-    /// # Returns
-    /// The realized LP fee percent.
     pub fn realized_lp_fee_pct(&self, util_before: &BigInt, util_after: &BigInt, truncate_decimals: bool) -> BigInt {
         let apy = self.apy_from_utilization(util_before, util_after);
         let weekly_fee = convert_apy_to_weekly_fee(apy);

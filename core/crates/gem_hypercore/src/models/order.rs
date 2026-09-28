@@ -72,7 +72,6 @@ pub struct UserFill {
     pub sz: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub closed_pnl: f64,
-    /// Total fee charged by Hyperliquid. This already includes builderFee when present.
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub fee: f64,
     pub fee_token: Option<String>,

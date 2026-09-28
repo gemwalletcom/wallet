@@ -3,9 +3,6 @@ use sui_types as sdk;
 
 use crate::rpc::proto::MessageResult;
 
-// Field numbers mirror sui-rpc v0.3.1 input schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/input.proto
-
 const INPUT_KIND_PURE: i32 = 1;
 const INPUT_KIND_IMMUTABLE_OR_OWNED: i32 = 2;
 const INPUT_KIND_SHARED: i32 = 3;

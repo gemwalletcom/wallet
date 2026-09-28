@@ -8,7 +8,6 @@ use crate::provider::transactions_mapper::map_transaction_broadcast;
 
 pub fn map_transaction_broadcast_response_from_str(response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response: Value = serde_json::from_str(response)?;
-    // TODO(2027-01-01): Remove v2 decoding when Dynode drops legacy wallet routes.
     if let Some(result) = response.get("result") {
         if response.get("ok") != Some(&Value::Bool(true)) {
             return Err("TON broadcast rejected".into());

@@ -6,7 +6,6 @@ pub const SUI_GET_ACCOUNTS_PROPERTY: &str = "sui_getAccounts";
 const SUI_ED25519_SCHEME_FLAG: u8 = 0x00;
 const ED25519_PUBLIC_KEY_LENGTH: usize = 32;
 
-/// sui_getAccounts payload: pubkey is base64 of the ed25519 scheme flag + 32-byte public key.
 pub fn map_sui_get_accounts(accounts: &[Account]) -> Vec<Value> {
     accounts.iter().filter(|account| account.chain == Chain::Sui).filter_map(sui_account_value).collect()
 }

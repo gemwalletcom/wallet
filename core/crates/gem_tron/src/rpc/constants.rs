@@ -6,10 +6,8 @@ pub const DECIMALS_SELECTOR: &str = "decimals()";
 pub const DEFAULT_OWNER_ADDRESS: &str = TRON_BLACK_HOLE_ADDRESS;
 pub const GENESIS_BLOCK_NUMBER: u64 = 0;
 
-// Bandwidth estimate for TRON transactions
 pub const DEFAULT_BANDWIDTH_BYTES: u64 = 300;
 
-// Chain parameter keys
 pub const GET_ENERGY_FEE: &str = "getEnergyFee";
 pub const GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT: &str = "getCreateNewAccountFeeInSystemContract";
 pub const GET_CREATE_ACCOUNT_FEE: &str = "getCreateAccountFee";
@@ -18,5 +16,4 @@ pub const GET_MEMO_FEE: &str = "getMemoFee";
 pub const GET_WITNESS_PAY_PER_BLOCK: &str = "getWitnessPayPerBlock";
 pub const GET_WITNESS_127_PAY_PER_BLOCK: &str = "getWitness127PayPerBlock";
 
-// Event signature constants
 pub const ERC20_TRANSFER_EVENT_SIGNATURE: &str = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";

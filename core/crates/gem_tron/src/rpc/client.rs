@@ -204,26 +204,24 @@ mod tests {
 
     #[test]
     fn test_value_encoding_for_trc20_transfer() {
-        let value = "1000000".to_string(); // 1 USDT (6 decimals)
+        let value = "1000000".to_string();
         let recipient_address = "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa".to_string();
 
         let value_bigint = BigUint::from_str(&value).unwrap();
         let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
         let parameter = format!("{}{}", recipient_address, value_hex);
 
-        // For 1000000 (decimal), the hex should be f4240 padded to 64 chars
         assert_eq!(value_hex, "00000000000000000000000000000000000000000000000000000000000f4240");
         assert_eq!(parameter, "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa00000000000000000000000000000000000000000000000000000000000f4240");
     }
 
     #[test]
     fn test_large_value_encoding() {
-        let value = "16777216".to_string(); // Large value that was causing issues
+        let value = "16777216".to_string();
 
         let value_bigint = BigUint::from_str(&value).unwrap();
         let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
 
-        // 16777216 decimal = 0x1000000 hex
         assert_eq!(value_hex, "0000000000000000000000000000000000000000000000000000000001000000");
     }
 }
