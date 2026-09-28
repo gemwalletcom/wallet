@@ -28,11 +28,11 @@ fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEve
 
 #[async_trait]
 impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
-    async fn should_process(&self, _payload: &WalletStreamPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &WalletStreamPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: WalletStreamPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: WalletStreamPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let wallet_row_id = payload.wallet_id;
         let (wallet, devices) = self
             .database

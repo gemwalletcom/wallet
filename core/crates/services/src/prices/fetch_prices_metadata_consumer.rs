@@ -20,12 +20,12 @@ pub struct FetchPricesMetadataConsumer {
 
 #[async_trait]
 impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
-    async fn should_process(&self, price_id: &PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, price_id: &PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let providers = self.database.run(PricesProvidersRepository::get_prices_providers).await?;
         Ok(providers.into_iter().any(|provider| provider.provider == price_id.provider && provider.enabled))
     }
 
-    async fn process(&self, price_id: PriceId) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, price_id: PriceId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.providers.get(&price_id.provider).ok_or_else(|| format!("Metadata provider unavailable: {}", price_id.provider))?;
         let id = price_id.to_string();
         let retry = self.config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?.as_secs();

@@ -19,11 +19,11 @@ impl SupportWebhookConsumer {
 
 #[async_trait]
 impl MessageConsumer<SupportWebhookPayload, bool> for SupportWebhookConsumer {
-    async fn should_process(&self, _payload: &SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let webhook = match serde_json::from_value::<ChatwootWebhookPayload>(payload.data.clone()) {
             Ok(w) => w,
             Err(e) => {

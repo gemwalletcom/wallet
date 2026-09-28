@@ -23,10 +23,10 @@ impl FetchAddressTransactionsConsumer {
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
-    async fn should_process(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.can_process_cached(CacheKey::FetchAddressTransactions(payload.value.chain.as_ref(), &payload.value.address)).await
     }
-    async fn process(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain = payload.value.chain;
         let limit = self.config.get_param_usize(&ConfigParamKey::TransactionsRequestLimit(chain)).await?;
         let transactions_result = self.providers.get_transactions_by_address_result(chain, TransactionsRequest::new(payload.value.address, limit)).await?;

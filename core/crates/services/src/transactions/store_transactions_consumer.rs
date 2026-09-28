@@ -30,11 +30,11 @@ pub struct StoreTransactionsConsumer {
 
 #[async_trait]
 impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
-    async fn should_process(&self, _payload: &TransactionsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &TransactionsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain = payload.chain;
         let addresses: Vec<_> = payload.transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
         let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;

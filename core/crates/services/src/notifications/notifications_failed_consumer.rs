@@ -16,11 +16,11 @@ impl NotificationsFailedConsumer {
 
 #[async_trait]
 impl MessageConsumer<NotificationsFailedPayload, usize> for NotificationsFailedConsumer {
-    async fn should_process(&self, _payload: &NotificationsFailedPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &NotificationsFailedPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: NotificationsFailedPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: NotificationsFailedPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let device_ids: Vec<String> = payload.failures.iter().filter(|f| f.error.is_device_invalid()).map(|f| f.notification.device_id.clone()).collect();
 
         if device_ids.is_empty() {

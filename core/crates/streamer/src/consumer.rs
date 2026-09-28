@@ -19,8 +19,8 @@ pub struct ConsumerConfig {
     pub retries: u32,
 }
 
-enum ProcessResult<R> {
-    Processed(R),
+enum ConsumeResult<R> {
+    Consumed(R),
     Skipped,
     Error(Box<dyn Error + Send + Sync>),
 }
@@ -32,8 +32,8 @@ pub trait ConsumerStatusReporter: Send + Sync {
 
 #[async_trait]
 pub trait MessageConsumer<P, R> {
-    async fn process(&self, payload: P) -> Result<R, Box<dyn Error + Send + Sync>>;
-    async fn should_process(&self, payload: &P) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn consume(&self, payload: P) -> Result<R, Box<dyn Error + Send + Sync>>;
+    async fn should_consume(&self, payload: &P) -> Result<bool, Box<dyn Error + Send + Sync>>;
 }
 
 pub async fn run_consumer<P, C, R>(
@@ -56,11 +56,11 @@ where
         info_with_fields!("running consumer", consumer = queue_name.to_string());
     }
     stream_reader
-        .read::<P, _, _>(queue_name, routing_key, |payload| process_message(name, &consumer, &config, &reporter, payload), shutdown_rx)
+        .read::<P, _, _>(queue_name, routing_key, |payload| consume_message(name, &consumer, &config, &reporter, payload), shutdown_rx)
         .await
 }
 
-async fn process_message<P, C, R>(name: &str, consumer: &C, config: &ConsumerConfig, reporter: &Arc<dyn ConsumerStatusReporter>, payload: P) -> Result<(), Box<dyn Error + Send + Sync>>
+async fn consume_message<P, C, R>(name: &str, consumer: &C, config: &ConsumerConfig, reporter: &Arc<dyn ConsumerStatusReporter>, payload: P) -> Result<(), Box<dyn Error + Send + Sync>>
 where
     P: Send + Display + 'static,
     C: MessageConsumer<P, R> + Send + 'static,
@@ -70,17 +70,17 @@ where
     let payload_display = payload.to_string();
     info_with_fields!("processing", consumer = name, payload = payload_display.as_str());
     let start = Instant::now();
-    let result = match consumer.should_process(&payload).await {
-        Ok(true) => match consumer.process(payload).await {
-            Ok(r) => ProcessResult::Processed(r),
-            Err(e) => ProcessResult::Error(e),
+    let result = match consumer.should_consume(&payload).await {
+        Ok(true) => match consumer.consume(payload).await {
+            Ok(r) => ConsumeResult::Consumed(r),
+            Err(e) => ConsumeResult::Error(e),
         },
-        Ok(false) => ProcessResult::Skipped,
-        Err(e) => ProcessResult::Error(e),
+        Ok(false) => ConsumeResult::Skipped,
+        Err(e) => ConsumeResult::Error(e),
     };
 
     match result {
-        ProcessResult::Processed(value) => {
+        ConsumeResult::Consumed(value) => {
             let duration = start.elapsed().as_millis() as u64;
             let result_str = format!("{:?}", value);
             info_with_fields!("processed", consumer = name, payload = payload_display.as_str(), result = result_str, elapsed = DurationMs(start.elapsed()));
@@ -90,11 +90,11 @@ where
             }
             Ok(())
         }
-        ProcessResult::Skipped => {
+        ConsumeResult::Skipped => {
             info_with_fields!("skipped", consumer = name, payload = payload_display.as_str(), elapsed = DurationMs(start.elapsed()));
             Ok(())
         }
-        ProcessResult::Error(e) => {
+        ConsumeResult::Error(e) => {
             error_with_fields!("failed", &*e, consumer = name, payload = payload_display.as_str(), elapsed = DurationMs(start.elapsed()));
             if !config.timeout_on_error.is_zero() {
                 tokio::time::sleep(config.timeout_on_error).await;

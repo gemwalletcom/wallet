@@ -54,13 +54,13 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
 
 #[async_trait]
 impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionStatus> for RewardsRedemptionConsumer<S> {
-    async fn should_process(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
         let redemption = self.database.run(move |client| client.get_redemption(redemption_id)).await?;
         Ok(redemption.status == RedemptionStatus::Pending)
     }
 
-    async fn process(&self, payload: RewardsRedemptionPayload) -> Result<RedemptionStatus, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: RewardsRedemptionPayload) -> Result<RedemptionStatus, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
         let (redemption, recipient_address, option) = self
             .database

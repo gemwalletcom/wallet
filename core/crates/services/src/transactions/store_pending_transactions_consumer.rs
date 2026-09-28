@@ -19,11 +19,11 @@ impl StorePendingTransactionsConsumer {
 
 #[async_trait]
 impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer {
-    async fn should_process(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let transaction_id = payload.to_string();
         let expires_at = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs().saturating_add(u64::from(chain_transaction_timeout(payload.chain)) / 1000) as f64;
         let key = CacheKey::PendingTransactions(payload.chain.as_ref());

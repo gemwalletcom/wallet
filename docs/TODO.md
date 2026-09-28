@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Core
 
-- **CLN405** **S** **Queue consumers consume.** `MessageConsumer::process` ([`consumer.rs`](../core/crates/streamer/src/consumer.rs)) and its 24 implementations in `services` use a verb the naming rule bans; the trait method becomes `consume`.
 - **CLN406** **S** **Fiat webhooks are parsed, not processed.** `FiatProvider::process_webhook` verifies a provider webhook and maps it to a `FiatWebhook` in every implementation; it becomes `parse_webhook`, with the API route that calls it.
 - **CLN407** **S** **Rust drops the last fetch, handle, execute and manage names.** The EVM fee estimators (`fetch_gas_oracle`, `fetch_fee_data`, `fetch_priority_fee_estimate`, `fetch_base_priority_fees`, `fetch_prediction`, `fetch_tip_floor`) take the `get_` verb the providers use, and the handlers and helpers named `handle_*`, `execute_*` or `manage_*` in `api`, `dynode`, `streamer` and `swapper` take the action they perform. Framework-owned signatures and `resolve` for name resolution stay.
 - **CLN408** **S** **Clock reads go through `primitives::time`.** About 13 call sites outside auth, signer and transaction construction read `SystemTime::now().duration_since(UNIX_EPOCH)` by hand beside `unix_seconds`, `unix_milliseconds` and `unix_timestamp`, and `daemon`'s `now_unix` repeats `unix_timestamp`.

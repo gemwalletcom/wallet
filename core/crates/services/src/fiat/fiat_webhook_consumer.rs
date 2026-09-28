@@ -58,11 +58,11 @@ impl FiatWebhookConsumer {
 
 #[async_trait]
 impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
-    async fn should_process(&self, _payload: &FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         info_with_fields!("received webhook", provider = payload.provider.id());
 
         let provider = match self.providers.iter().find(|provider| provider.name() == payload.provider) {
