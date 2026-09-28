@@ -60,7 +60,7 @@ impl FiatProvider for MercuryoClient {
     }
 
     // full transaction: https://github.com/mercuryoio/api-migration-docs/blob/master/Widget_API_Mercuryo_v1.6.md#22-callbacks-response-body
-    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
         let webhook_data = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidWebhook)?;
         Ok(FiatWebhook::Transaction(map_order_from_webhook(webhook_data)))
@@ -181,10 +181,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_process_webhook_accepts_signed_transaction() {
+    async fn test_parse_webhook_accepts_signed_transaction() {
         let raw_body = include_str!("../../../testdata/mercuryo/webhook_buy_complete.json");
 
-        let result = MercuryoClient::mock().process_webhook(FiatWebhookRequest::mock_mercuryo_signed(raw_body)).await.unwrap();
+        let result = MercuryoClient::mock().parse_webhook(FiatWebhookRequest::mock_mercuryo_signed(raw_body)).await.unwrap();
 
         assert_transaction(
             result,
@@ -200,10 +200,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_process_webhook_rejects_missing_signature() {
+    async fn test_parse_webhook_rejects_missing_signature() {
         let raw_body = include_str!("../../../testdata/mercuryo/webhook_buy_complete.json");
         let request = FiatWebhookRequest::mock(raw_body);
 
-        assert!(MercuryoClient::mock().process_webhook(request).await.is_err());
+        assert!(MercuryoClient::mock().parse_webhook(request).await.is_err());
     }
 }

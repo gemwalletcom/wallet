@@ -77,12 +77,12 @@ impl FiatClient {
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
 
-    pub async fn process_and_publish_webhook(&self, request: FiatWebhookRequest, provider_name: &str) -> Result<FiatWebhookPayload, Box<dyn Error + Send + Sync>> {
+    pub async fn publish_webhook(&self, request: FiatWebhookRequest, provider_name: &str) -> Result<FiatWebhookPayload, Box<dyn Error + Send + Sync>> {
         let provider = self.provider(provider_name)?;
         let name = provider.name();
         let provider_id = name.id();
         let webhook_data = request.data.clone();
-        let webhook = provider.process_webhook(request).await.map_err(|error| {
+        let webhook = provider.parse_webhook(request).await.map_err(|error| {
             if matches!(error.downcast_ref(), Some(FiatQuoteError::InvalidWebhook)) {
                 error_with_fields!("invalid fiat webhook payload", &*error, provider = provider_id, payload = format!("{webhook_data:#}"));
             } else {

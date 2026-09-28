@@ -49,7 +49,7 @@ impl FiatProvider for MoonPayClient {
             .collect())
     }
 
-    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
         let payload = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidWebhook)?;
         Ok(FiatWebhook::Transaction(map_order(payload)))
@@ -166,17 +166,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_process_webhook_rejects_missing_signature() {
+    async fn test_parse_webhook_rejects_missing_signature() {
         let raw_body = include_str!("../../../testdata/moonpay/webhook_buy_complete.json");
         let request = FiatWebhookRequest::mock(raw_body);
 
-        assert!(MoonPayClient::mock().process_webhook(request).await.is_err());
+        assert!(MoonPayClient::mock().parse_webhook(request).await.is_err());
     }
 
     #[tokio::test]
-    async fn test_process_webhook_rejects_invalid_payload() {
+    async fn test_parse_webhook_rejects_invalid_payload() {
         let request = FiatWebhookRequest::mock_moonpay_signed(r#"{"data":{}}"#);
-        let error = MoonPayClient::mock().process_webhook(request).await.unwrap_err();
+        let error = MoonPayClient::mock().parse_webhook(request).await.unwrap_err();
 
         assert_eq!(error.to_string(), "Invalid webhook payload");
     }
