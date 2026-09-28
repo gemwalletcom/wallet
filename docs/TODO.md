@@ -206,7 +206,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-28
 
 ### Android
 
-- **CLN422** **S** **Kotlin drops its fetch names.** `ServiceStatusViewModel.fetch`, `SupportChatViewModel.fetch`, `ConfirmTransferViewModel.fetch` and `AssetsResultsViewModel.fetch` take the action they perform.
 - **CLN423** **S** **Kotlin carries no comments.** Production Kotlin comments go; frozen database migrations keep theirs.
 
 ## Blocked upstream

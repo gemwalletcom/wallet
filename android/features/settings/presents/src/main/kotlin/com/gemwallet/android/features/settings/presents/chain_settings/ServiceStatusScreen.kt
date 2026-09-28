@@ -13,7 +13,7 @@ fun ServiceStatusScreen(onCancel: () -> Unit, viewModel: ServiceStatusViewModel 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val isStreamConnected by LocalStreamConnected.current.collectAsStateWithLifecycle()
 
-    LaunchedEffect(isStreamConnected) { viewModel.fetch() }
+    LaunchedEffect(isStreamConnected) { viewModel.load() }
 
-    ServiceStatusScene(sections = sections, onRefresh = viewModel::fetch, onCancel = onCancel)
+    ServiceStatusScene(sections = sections, onRefresh = viewModel::load, onCancel = onCancel)
 }

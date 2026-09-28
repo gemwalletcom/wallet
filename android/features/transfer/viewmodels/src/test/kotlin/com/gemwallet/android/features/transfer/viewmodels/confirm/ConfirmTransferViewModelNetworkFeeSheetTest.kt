@@ -131,13 +131,13 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
         assertTrue(viewModel.isErrorSheetVisible.value)
 
-        viewModel.fetch()
+        viewModel.load()
         advanceUntilIdle()
 
         assertTrue(viewModel.isErrorSheetVisible.value)
 
         viewModel.dismissErrorSheet()
-        viewModel.fetch()
+        viewModel.load()
         advanceUntilIdle()
 
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
