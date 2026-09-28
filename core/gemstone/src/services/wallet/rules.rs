@@ -181,11 +181,11 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
     }
 }
 
-pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&str>) -> Vec<GemWalletSection> {
+pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&WalletId>) -> Vec<GemWalletSection> {
     let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_wallets(wallets)
         .iter()
         .map(|wallet| GemWalletRow {
-            is_current: current_wallet_id == Some(wallet.id.id().as_str()),
+            is_current: current_wallet_id == Some(&wallet.id),
             ..row(wallet)
         })
         .partition(|row| row.is_pinned);
@@ -320,7 +320,7 @@ mod tests {
             ..Wallet::mock()
         };
 
-        let sections = sections(vec![plain.clone(), pinned.clone()], Some(&plain.id.id()));
+        let sections = sections(vec![plain.clone(), pinned.clone()], Some(&plain.id));
         assert_eq!(sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemWalletSectionKind::Pinned, GemWalletSectionKind::Wallets]);
         assert_eq!(sections[0].rows, vec![row(&pinned)]);
         assert_eq!(sections[1].rows, vec![GemWalletRow { is_current: true, ..row(&plain) }], "the current wallet is marked where it is listed");

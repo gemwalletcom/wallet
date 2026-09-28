@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, PerpetualId, Wallet, WalletType};
 
 use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchView};
 use super::rules;
@@ -119,7 +119,7 @@ impl GemAssetSelectionService {
         Ok(GemToast::pinned(asset.name, pinned))
     }
 
-    pub async fn set_perpetual_pinned(&self, perpetual_id: String, name: String, pinned: bool) -> Result<GemToast, GemServiceError> {
+    pub async fn set_perpetual_pinned(&self, perpetual_id: PerpetualId, name: String, pinned: bool) -> Result<GemToast, GemServiceError> {
         self.perpetuals.set_pinned(perpetual_id, pinned).await?;
         Ok(GemToast::pinned(name, pinned))
     }

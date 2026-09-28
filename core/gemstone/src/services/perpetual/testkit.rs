@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use num_bigint::BigInt;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{Perpetual, PerpetualData};
-use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
 
 use super::details::GemPerpetualDetailsService;
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
@@ -46,7 +46,7 @@ pub struct MemoryPerpetualStore {
     pub deleted: Mutex<u32>,
     pub cleared_collateral: Mutex<Vec<Vec<AssetId>>>,
     pub perpetual_writes: Mutex<Vec<Vec<PerpetualData>>>,
-    pub pin_writes: Mutex<Vec<(Vec<String>, bool)>>,
+    pub pin_writes: Mutex<Vec<(Vec<PerpetualId>, bool)>>,
     pub stored: Mutex<Vec<Perpetual>>,
 }
 
@@ -59,7 +59,7 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         self.perpetual_writes.lock().unwrap().push(perpetuals);
         Ok(())
     }
-    async fn set_pinned(&self, ids: Vec<String>, pinned: bool) -> Result<(), GemServiceError> {
+    async fn set_pinned(&self, ids: Vec<PerpetualId>, pinned: bool) -> Result<(), GemServiceError> {
         self.pin_writes.lock().unwrap().push((ids, pinned));
         Ok(())
     }

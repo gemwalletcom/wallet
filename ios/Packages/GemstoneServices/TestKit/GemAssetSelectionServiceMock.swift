@@ -45,7 +45,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public var tokensSupported = true
     public var nftSearchItems: [GemNftEntry] = []
     public var filterChainsResult: [Gemstone.Chain] = []
-    public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
+    public private(set) var pinnedPerpetuals: [(perpetualId: PerpetualId, pinned: Bool)] = []
 
     public func flow(selectType: GemSelectAssetType) -> GemSelectAssetFlow {
         selectType.flow()
@@ -123,7 +123,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         return GemToast(text: .pinned(name: asset.name, pinned: pinned), icon: pinned ? .pin : .unpin)
     }
 
-    public func setPerpetualPinned(perpetualId: String, name: String, pinned: Bool) async throws -> GemToast {
+    public func setPerpetualPinned(perpetualId: PerpetualId, name: String, pinned: Bool) async throws -> GemToast {
         pinnedPerpetuals.append((perpetualId, pinned))
         return GemToast(text: .pinned(name: name, pinned: pinned), icon: pinned ? .pin : .unpin)
     }

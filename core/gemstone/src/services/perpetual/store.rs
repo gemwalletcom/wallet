@@ -1,7 +1,7 @@
 use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::perpetual::{Perpetual, PerpetualData};
-use primitives::{AssetId, PerpetualMarketData, PerpetualPosition, PerpetualProvider, WalletId};
+use primitives::{AssetId, PerpetualId, PerpetualMarketData, PerpetualPosition, PerpetualProvider, WalletId};
 use std::collections::HashMap;
 
 #[uniffi::export(rust, foreign)]
@@ -9,7 +9,7 @@ use std::collections::HashMap;
 pub trait GemPerpetualStore: Send + Sync {
     async fn get_perpetuals(&self, names: Vec<String>) -> Result<Vec<Perpetual>, GemServiceError>;
     async fn save_perpetuals(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError>;
-    async fn set_pinned(&self, perpetual_ids: Vec<String>, pinned: bool) -> Result<(), GemServiceError>;
+    async fn set_pinned(&self, perpetual_ids: Vec<PerpetualId>, pinned: bool) -> Result<(), GemServiceError>;
     async fn clear_perpetuals(&self, collateral_asset_ids: Vec<AssetId>) -> Result<(), GemServiceError>;
     async fn get_positions(&self, wallet_id: WalletId, provider: PerpetualProvider) -> Result<Vec<PerpetualPosition>, GemServiceError>;
     async fn get_position_ids(&self, wallet_id: WalletId, provider: PerpetualProvider) -> Result<Vec<String>, GemServiceError>;

@@ -150,7 +150,7 @@ extension AssetsResultsSceneViewModel {
     }
 
     func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
-        try await service.setPerpetualPinned(perpetualId: perpetual.id.identifier, name: perpetual.name, pinned: pinned)
+        try await service.setPerpetualPinned(perpetualId: perpetual.id, name: perpetual.name, pinned: pinned)
     }
 
     var assetItems: ListAssetItemsViewModel {
