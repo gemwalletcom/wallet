@@ -40,7 +40,7 @@ impl FeeUnitType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FeeRate {
     pub priority: FeePriority,
     pub gas_price_type: GasPriceType,

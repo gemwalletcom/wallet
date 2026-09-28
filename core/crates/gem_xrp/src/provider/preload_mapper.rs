@@ -1,6 +1,16 @@
-use crate::models::rpc::AccountInfoResult;
-use primitives::TransactionLoadMetadata;
+use crate::models::rpc::{AccountInfoResult, Fee};
+use num_bigint::BigInt;
+use primitives::{FeePriority, FeeRate, GasPriceType, TransactionLoadMetadata};
 use std::error::Error;
+
+const NORMAL_FEE_PERCENT: u64 = 120;
+const FAST_FEE_PERCENT: u64 = 200;
+
+pub fn map_fee_rates(fee: &Fee) -> Vec<FeeRate> {
+    let base_fee = fee.open_ledger_fee.max(fee.minimum_fee);
+    let rate = |percent: u64| GasPriceType::regular(BigInt::from((base_fee * percent).div_ceil(100)));
+    vec![FeeRate::new(FeePriority::Normal, rate(NORMAL_FEE_PERCENT)), FeeRate::new(FeePriority::Fast, rate(FAST_FEE_PERCENT))]
+}
 
 pub fn map_transaction_preload(account_result: AccountInfoResult, destination_exists: bool) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
     if let Some(account_data) = account_result.account_data {
@@ -18,6 +28,31 @@ pub fn map_transaction_preload(account_result: AccountInfoResult, destination_ex
 mod tests {
     use super::*;
     use crate::models::rpc::{AccountInfo, AccountInfoResult};
+
+    #[test]
+    fn test_map_fee_rates() {
+        assert_eq!(
+            map_fee_rates(&Fee { minimum_fee: 10, open_ledger_fee: 10 }),
+            vec![
+                FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(12))),
+                FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(20)))
+            ]
+        );
+        assert_eq!(
+            map_fee_rates(&Fee { minimum_fee: 10, open_ledger_fee: 5000 }),
+            vec![
+                FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(6000))),
+                FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(10000)))
+            ]
+        );
+        assert_eq!(
+            map_fee_rates(&Fee { minimum_fee: 10, open_ledger_fee: 5 }),
+            vec![
+                FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(12))),
+                FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(20)))
+            ]
+        );
+    }
 
     #[test]
     fn test_map_transaction_preload_with_account_data() {
